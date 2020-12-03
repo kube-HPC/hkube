@@ -64,7 +64,7 @@ config.db = {
         },
         host: process.env.MONGODB_SERVICE_HOST || 'localhost',
         port: formatter.parseInt(process.env.MONGODB_SERVICE_PORT, 27017),
-        dbName: process.env.MONGODB_SERVICE_NAME || 'hkube',
+        dbName: process.env.MONGODB_DB_NAME || 'hkube',
         useUnifiedTopology: true,
     }
 };

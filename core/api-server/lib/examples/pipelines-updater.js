@@ -5,18 +5,20 @@ const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
 const experiments = require('./experiments.json');
 const stateManager = require('../state/state-manager');
+const db = require('../db');
 
 class PipelinesUpdater {
     async init(options) {
-        await this._algorithmsTemplate(options);
+        this._defaultStorage = options.defaultStorage;
+        this._addDefaultAlgorithms = options.addDefaultAlgorithms !== 'false';
+        await this._algorithmsTemplate('algorithm');
         await this._pipelineDriversTemplate(options);
-        await this._pipelinesTemplate(options);
-        await this._experimentsTemplate(options);
+        await this._pipelinesTemplate('pipeline');
+        await this._experimentsTemplate('experiment');
     }
 
-    async _setDiff(type, defaultList, storeList) {
+    async _getDiff(defaultList, storeList) {
         const diff = defaultList.filter(a => !storeList.some(v => v.name === a.name));
-        await Promise.all(diff.map(a => storageManager.hkubeStore.put({ type, name: a.name, data: a })));
         return [...diff, ...storeList];
     }
 
@@ -25,18 +27,38 @@ class PipelinesUpdater {
         return Promise.all(keys.map(a => storageManager.get({ path: a.path })));
     }
 
-    async _algorithmsTemplate(options) {
+    async _algorithmsTemplate(type) {
         try {
-            let algorithmsStoreList = await this._getByType('algorithm');
-            log.info(`found ${algorithmsStoreList.length} algorithms using the ${options.defaultStorage} storage`);
-            if (options.addDefaultAlgorithms !== 'false') {
-                algorithmsStoreList = await this._setDiff('algorithm', algorithms, algorithmsStoreList);
+            let algorithmList = await this._getByType(type);
+            if (this._addDefaultAlgorithm) {
+                algorithmList = await this._getDiff(algorithms, algorithmList);
             }
-            await Promise.all(algorithmsStoreList.map(a => stateManager.algorithms.store.set(a)));
+            this._logSync(type, algorithmList.length);
+            const result = await db.algorithms.createMany(algorithmList);
+            await Promise.all(algorithmList.map(a => this.syncVersions(a)));
+            await this._logSyncSuccess(type, result);
         }
         catch (error) {
-            log.warning(`failed to recover algorithms. ${error.message}`);
+            this._logSyncFailed(type, error);
+
         }
+    }
+
+    async syncVersions(algorithm) {
+        const versions = await stateManager.algorithms.versions.list(algorithm);
+        await db.algorithms.versions.createMany(versions);
+    }
+
+    _logSync(type, list) {
+        log.info(`syncing ${list} ${type}s from ${this._defaultStorage} storage to hkube db`);
+    }
+
+    _logSyncSuccess(type, result) {
+        log.info(`syncing ${type}s success, synced: ${result.inserted}`);
+    }
+
+    _logSyncFailed(type, error) {
+        log.warning(`syncing ${type}s failed. ${error.message}`);
     }
 
     async _pipelineDriversTemplate(options) {
@@ -48,31 +70,33 @@ class PipelinesUpdater {
             await Promise.all(driversTemplate.map(d => stateManager.pipelineDrivers.store.set(d)));
         }
         catch (error) {
-            log.warning(`failed to upload default drivers. ${error.message}`);
+            log.warning(`failed to upload default drivers.${error.message} `);
         }
     }
 
-    async _experimentsTemplate(options) {
+    async _experimentsTemplate(type) {
         try {
-            let experimentsList = await this._getByType('experiment');
-            log.info(`found ${experimentsList.length} experiments using the ${options.defaultStorage} storage`);
-            experimentsList = await this._setDiff('experiment', experiments, experimentsList);
-            await Promise.all(experimentsList.map(d => stateManager.experiments.set(d)));
+            let experimentList = await this._getByType(type);
+            experimentList = await this._getDiff(experiments, experimentList);
+            this._logSync(type, experimentList.length);
+            const result = await db.experiments.createMany(experimentList);
+            this._logSyncSuccess(type, result);
         }
         catch (error) {
-            log.warning(`failed to upload default experiments. ${error.message}`);
+            this._logSyncFailed(type, error);
         }
     }
 
-    async _pipelinesTemplate(options) {
+    async _pipelinesTemplate(type) {
         try {
-            const pipelinesStoreList = await this._getByType('pipeline');
-            log.info(`found ${pipelinesStoreList.length} pipeline using the ${options.defaultStorage} storage`);
-            const pipelineList = await this._setDiff('pipeline', pipelines, pipelinesStoreList);
-            await Promise.all(pipelineList.map(p => stateManager.pipelines.set(p)));
+            let pipelineList = await this._getByType(type);
+            pipelineList = await this._getDiff(pipelines, pipelineList);
+            this._logSync(type, pipelineList.length);
+            const result = await db.pipelines.createMany(pipelineList);
+            this._logSyncSuccess(type, result);
         }
         catch (error) {
-            log.warning(`failed to recover pipelines. ${error.message}`);
+            this._logSyncFailed(type, error);
         }
     }
 }

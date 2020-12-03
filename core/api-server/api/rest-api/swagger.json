@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.0.8",
+    "version": "2.0.14",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -331,9 +331,13 @@
                     "type": "object",
                     "description": "streaming options",
                     "properties": {
-                      "customFlow": {
+                      "defaultFlow": {
+                        "type": "string",
+                        "description": "the name of the default stream flow"
+                      },
+                      "flows": {
                         "type": "object",
-                        "description": "define custom streaming flow in simple syntax",
+                        "description": "define streaming flow in simple syntax",
                         "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
                       }
                     }
@@ -1447,9 +1451,13 @@
                       "type": "object",
                       "description": "streaming options",
                       "properties": {
-                        "customFlow": {
+                        "defaultFlow": {
+                          "type": "string",
+                          "description": "the name of the default stream flow"
+                        },
+                        "flows": {
                           "type": "object",
-                          "description": "define custom streaming flow in simple syntax",
+                          "description": "define streaming flow in simple syntax",
                           "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
                         }
                       }
@@ -1789,9 +1797,13 @@
                       "type": "object",
                       "description": "streaming options",
                       "properties": {
-                        "customFlow": {
+                        "defaultFlow": {
+                          "type": "string",
+                          "description": "the name of the default stream flow"
+                        },
+                        "flows": {
                           "type": "object",
-                          "description": "define custom streaming flow in simple syntax",
+                          "description": "define streaming flow in simple syntax",
                           "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
                         }
                       }
@@ -5455,9 +5467,13 @@
                       "type": "object",
                       "description": "streaming options",
                       "properties": {
-                        "customFlow": {
+                        "defaultFlow": {
+                          "type": "string",
+                          "description": "the name of the default stream flow"
+                        },
+                        "flows": {
                           "type": "object",
-                          "description": "define custom streaming flow in simple syntax",
+                          "description": "define streaming flow in simple syntax",
                           "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
                         }
                       }
@@ -5900,9 +5916,13 @@
                         "type": "object",
                         "description": "streaming options",
                         "properties": {
-                          "customFlow": {
+                          "defaultFlow": {
+                            "type": "string",
+                            "description": "the name of the default stream flow"
+                          },
+                          "flows": {
                             "type": "object",
-                            "description": "define custom streaming flow in simple syntax",
+                            "description": "define streaming flow in simple syntax",
                             "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
                           }
                         }
@@ -6201,9 +6221,13 @@
                     "type": "object",
                     "description": "streaming options",
                     "properties": {
-                      "customFlow": {
+                      "defaultFlow": {
+                        "type": "string",
+                        "description": "the name of the default stream flow"
+                      },
+                      "flows": {
                         "type": "object",
-                        "description": "define custom streaming flow in simple syntax",
+                        "description": "define streaming flow in simple syntax",
                         "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
                       }
                     }
@@ -6478,9 +6502,13 @@
                       "type": "object",
                       "description": "streaming options",
                       "properties": {
-                        "customFlow": {
+                        "defaultFlow": {
+                          "type": "string",
+                          "description": "the name of the default stream flow"
+                        },
+                        "flows": {
                           "type": "object",
-                          "description": "define custom streaming flow in simple syntax",
+                          "description": "define streaming flow in simple syntax",
                           "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
                         }
                       }
@@ -6816,9 +6844,13 @@
                     "type": "object",
                     "description": "streaming options",
                     "properties": {
-                      "customFlow": {
+                      "defaultFlow": {
+                        "type": "string",
+                        "description": "the name of the default stream flow"
+                      },
+                      "flows": {
                         "type": "object",
-                        "description": "define custom streaming flow in simple syntax",
+                        "description": "define streaming flow in simple syntax",
                         "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
                       }
                     }
@@ -7093,9 +7125,13 @@
                       "type": "object",
                       "description": "streaming options",
                       "properties": {
-                        "customFlow": {
+                        "defaultFlow": {
+                          "type": "string",
+                          "description": "the name of the default stream flow"
+                        },
+                        "flows": {
                           "type": "object",
-                          "description": "define custom streaming flow in simple syntax",
+                          "description": "define streaming flow in simple syntax",
                           "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
                         }
                       }
@@ -11720,7 +11756,7 @@
         "tags": [
           "DataSource"
         ],
-        "summary": "Fetch all dataSources",
+        "summary": "Fetch all dataSources meta data",
         "responses": {
           "200": {
             "description": "A collection of dataSources",
@@ -11731,25 +11767,31 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "href": {
-                        "type": "string",
-                        "example": "/datasource/my-datasource"
-                      },
-                      "name": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific dataSource",
-                        "minLength": 1,
-                        "maxLength": 32,
-                        "format": "dataSource-name"
-                      },
                       "id": {
                         "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "versionDescription": {
+                        "type": "string"
+                      },
+                      "filesCount": {
+                        "type": "number"
+                      },
+                      "avgFileSize": {
+                        "type": "string"
+                      },
+                      "totalSize": {
+                        "type": "number"
+                      },
+                      "fileTypes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
                       }
-                    },
-                    "required": [
-                      "name",
-                      "id"
-                    ]
+                    }
                   }
                 }
               }
@@ -11774,8 +11816,21 @@
                     "minLength": 1,
                     "maxLength": 32,
                     "format": "dataSource-name"
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Data file (file types: *)",
+                      "format": "binary"
+                    },
+                    "minItems": 1
                   }
-                }
+                },
+                "required": [
+                  "name",
+                  "files"
+                ]
               }
             }
           },
@@ -11790,7 +11845,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "href": {
+                    "path": {
                       "type": "string",
                       "example": "/datasource/my-datasource"
                     },
@@ -11802,6 +11857,28 @@
                       "format": "dataSource-name"
                     },
                     "id": {
+                      "type": "string"
+                    },
+                    "files": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "example": "/datasource/my-datasource/data.csv"
+                          },
+                          "size": {
+                            "type": "number"
+                          },
+                          "mtime": {
+                            "type": "string",
+                            "example": "2020-10-28T17:45:03.372Z"
+                          }
+                        }
+                      }
+                    },
+                    "versionDescription": {
                       "type": "string"
                     }
                   },
@@ -11826,6 +11903,328 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/{name}": {
+      "get": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "Fetch a single dataSource by name",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A datasource item",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string",
+                          "example": "/datasource/my-datasource"
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific dataSource",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "dataSource-name"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string",
+                                "example": "/datasource/my-datasource/data.csv"
+                              },
+                              "size": {
+                                "type": "number"
+                              },
+                              "mtime": {
+                                "type": "string",
+                                "example": "2020-10-28T17:45:03.372Z"
+                              }
+                            }
+                          }
+                        },
+                        "versionDescription": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "id"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "string",
+                                "example": "/datasource/my-datasource/data.csv"
+                              },
+                              "size": {
+                                "type": "number"
+                              },
+                              "mtime": {
+                                "type": "string",
+                                "example": "2020-10-28T17:45:03.372Z"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "upload a new file to a given datasource",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "versionDescription": {
+                    "type": "string"
+                  },
+                  "filesAdded": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Data file (file types: *)",
+                      "format": "binary"
+                    },
+                    "minItems": 1
+                  },
+                  "filesDropped": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1
+                  }
+                },
+                "anyOf": [
+                  {
+                    "required": [
+                      "versionDescription",
+                      "filesDropped"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "versionDescription",
+                      "filesAdded"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "description": "DataSource name and file to upload",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "new datasource version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "example": "/datasource/my-datasource"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific dataSource",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "dataSource-name"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "files": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string",
+                            "example": "/datasource/my-datasource/data.csv"
+                          },
+                          "size": {
+                            "type": "number"
+                          },
+                          "mtime": {
+                            "type": "string",
+                            "example": "2020-10-28T17:45:03.372Z"
+                          }
+                        }
+                      }
+                    },
+                    "versionDescription": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "id"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "delete a datasource by name",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successfully deleted the datasource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deleted": {
+                      "type": "string",
+                      "description": "a delete acknowledgement"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/{name}/{fileName}": {
+      "get": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "Fetch a single file by id",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fileName",
+            "in": "path",
+            "description": "A file name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/status/version": {
       "get": {
         "tags": [
@@ -11866,217 +12265,6 @@
                       "type": "string"
                     }
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/datasource/{id}": {
-      "get": {
-        "tags": [
-          "DataSource"
-        ],
-        "summary": "Fetch a single dataSource by id",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "A dataSource id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A datasource item",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "href": {
-                          "type": "string",
-                          "example": "/datasource/my-datasource"
-                        },
-                        "name": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific dataSource",
-                          "minLength": 1,
-                          "maxLength": 32,
-                          "format": "dataSource-name"
-                        },
-                        "id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "name",
-                        "id"
-                      ]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "files": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "href": {
-                                "type": "string",
-                                "example": "/datasource/my-datasource/data.csv"
-                              },
-                              "name": {
-                                "type": "string",
-                                "example": "data.csv"
-                              },
-                              "type": {
-                                "type": "string",
-                                "example": "csv"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "DataSource"
-        ],
-        "summary": "upload a new file to a given datasource",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "A dataSource id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "description": "Data file (file types: *)",
-                    "format": "binary"
-                  }
-                }
-              }
-            }
-          },
-          "description": "DataSource name and file to upload",
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "created dataSource",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "DataSource"
-        ],
-        "summary": "delete a datasource by id",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "A dataSource id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successfully deleted the datasource",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "deleted": {
-                      "type": "string",
-                      "description": "a delete acknowledgement"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/datasource/{id}/{fileName}": {
-      "get": {
-        "tags": [
-          "DataSource"
-        ],
-        "summary": "Fetch a single file by id",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "A dataSource id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fileName",
-            "in": "path",
-            "description": "A file name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A file",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
                 }
               }
             }
@@ -12791,7 +12979,7 @@
       "dataSource": {
         "type": "object",
         "properties": {
-          "href": {
+          "path": {
             "type": "string",
             "example": "/datasource/my-datasource"
           },
@@ -12804,6 +12992,28 @@
           },
           "id": {
             "type": "string"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "example": "/datasource/my-datasource/data.csv"
+                },
+                "size": {
+                  "type": "number"
+                },
+                "mtime": {
+                  "type": "string",
+                  "example": "2020-10-28T17:45:03.372Z"
+                }
+              }
+            }
+          },
+          "versionDescription": {
+            "type": "string"
           }
         },
         "required": [
@@ -12814,12 +13024,40 @@
       "dataSourceUploadFile": {
         "type": "object",
         "properties": {
-          "file": {
-            "type": "string",
-            "description": "Data file (file types: *)",
-            "format": "binary"
+          "versionDescription": {
+            "type": "string"
+          },
+          "filesAdded": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Data file (file types: *)",
+              "format": "binary"
+            },
+            "minItems": 1
+          },
+          "filesDropped": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
           }
-        }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "versionDescription",
+              "filesDropped"
+            ]
+          },
+          {
+            "required": [
+              "versionDescription",
+              "filesAdded"
+            ]
+          }
+        ]
       },
       "dataSourceCreate": {
         "type": "object",
@@ -12830,8 +13068,21 @@
             "minLength": 1,
             "maxLength": 32,
             "format": "dataSource-name"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Data file (file types: *)",
+              "format": "binary"
+            },
+            "minItems": 1
           }
-        }
+        },
+        "required": [
+          "name",
+          "files"
+        ]
       },
       "dataSourceName": {
         "type": "string",
@@ -12840,25 +13091,57 @@
         "maxLength": 32,
         "format": "dataSource-name"
       },
-      "dataSourceFile": {
-        "type": "string",
-        "description": "Data file (file types: *)",
-        "format": "binary"
+      "dataSourceFiles": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "description": "Data file (file types: *)",
+          "format": "binary"
+        },
+        "minItems": 1
       },
       "dataSourceFileMeta": {
         "type": "object",
         "properties": {
-          "href": {
+          "path": {
             "type": "string",
             "example": "/datasource/my-datasource/data.csv"
           },
-          "name": {
-            "type": "string",
-            "example": "data.csv"
+          "size": {
+            "type": "number"
           },
-          "type": {
+          "mtime": {
             "type": "string",
-            "example": "csv"
+            "example": "2020-10-28T17:45:03.372Z"
+          }
+        }
+      },
+      "dataSourceMeta": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "versionDescription": {
+            "type": "string"
+          },
+          "filesCount": {
+            "type": "number"
+          },
+          "avgFileSize": {
+            "type": "string"
+          },
+          "totalSize": {
+            "type": "number"
+          },
+          "fileTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -13236,9 +13519,13 @@
             "type": "object",
             "description": "streaming options",
             "properties": {
-              "customFlow": {
+              "defaultFlow": {
+                "type": "string",
+                "description": "the name of the default stream flow"
+              },
+              "flows": {
                 "type": "object",
-                "description": "define custom streaming flow in simple syntax",
+                "description": "define streaming flow in simple syntax",
                 "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
               }
             }

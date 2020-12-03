@@ -1,5 +1,6 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
+const { uid } = require('@hkube/uid');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../lib/state/state-manager');
 const WebhookTypes = require('../lib/webhook/States').Types;
@@ -23,6 +24,35 @@ describe('Experiment', () => {
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('main experiment cannot be deleted');
+        });
+        it('should get experiment list', async () => {
+            const options1 = {
+                uri: restPath,
+                body: {
+                    name: uid()
+                }
+            };
+            const options2 = {
+                uri: restPath,
+                body: {
+                    name: uid()
+                }
+            };
+            const options3 = {
+                uri: restPath,
+                body: {
+                    name: uid()
+                }
+            };
+            await request(options1);
+            await request(options2);
+            await request(options3);
+            const options = {
+                uri: restPath,
+                method: 'GET'
+            };
+            const res = await request(options);
+            expect(res).to.have.greaterThan(2);
         });
         it('should delete experiment with all related data', async () => {
             const pipeline = 'pipeline';
@@ -50,10 +80,6 @@ describe('Experiment', () => {
                         cron: {
                             enabled: true
                         }
-                    },
-                    webhooks: {
-                        'progress': "http://my-url-to-progress",
-                        'result': "http://my-url-to-result"
                     }
                 }
             };

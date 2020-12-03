@@ -2,4 +2,5 @@ coverage
 config
 tests
 bootstrap.js
+lib/examples/pipelines-updater.js
 api/rest-api/swagger-builder.js

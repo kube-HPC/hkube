@@ -40,7 +40,7 @@ class Readme {
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        const result = await storageManager.hkubeStore.put({ type: 'readme/pipeline', name, data: { name, readme: data } });
+        const result = await db.pipelines.readme.update({ name, data });
         return result;
     }
 
@@ -58,14 +58,14 @@ class Readme {
     async getAlgorithm(options) {
         const { name } = options;
         validator.jobs.validateName(options);
-        const algorithm = await stateManager.algorithms.store.get(options);
+        const algorithm = await db.algorithms.readme.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
         let result;
         let error;
         try {
-            result = await storageManager.hkubeStore.get({ type: 'readme/algorithms', name });
+            result = await db.algorithms.readme.fetch({ name });
         }
         catch (e) {
             error = e.message;
@@ -87,22 +87,22 @@ class Readme {
     async _updateAlgorithmReadme(options) {
         const { name, data } = options;
         validator.algorithms.validateUpdateAlgorithm(options);
-        const algorithm = await stateManager.algorithms.store.get(options);
+        const algorithm = await db.algorithms.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
-        const result = await storageManager.hkubeStore.put({ type: 'readme/algorithms', name, data: { name, readme: data } });
+        const result = await db.algorithms.readme.update({ name, data });
         return result;
     }
 
     async deleteAlgorithm(options) {
         const { name } = options;
         validator.jobs.validateName(options);
-        const algorithm = await stateManager.algorithms.store.get(options);
+        const algorithm = await db.algorithms.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
-        const result = await storageManager.hkubeStore.delete({ type: 'readme/algorithms', name });
+        const result = await db.algorithms.readme.delete({ name });
         return result;
     }
 }

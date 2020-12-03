@@ -7,8 +7,9 @@ class DBConnection {
 
     async init(options) {
         const { provider, ...config } = options.db;
-        this.connection = dbConnect(config, provider);
-        await this.connection.init();
+        const connection = dbConnect(config, provider);
+        await connection.init();
+        Object.assign(this, connection);
     }
 }
 

@@ -3,6 +3,7 @@ const { uid } = require('@hkube/uid');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const algorithmStore = require('./algorithms-store');
+const db = require('../db');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 
 const SETTINGS = {
@@ -19,16 +20,17 @@ const SETTINGS = {
 class AlgorithmVersions {
     async getVersions(options) {
         validator.algorithms.validateAlgorithmName(options);
-        const algorithmVersion = await stateManager.algorithms.versions.list(options);
-        return algorithmVersion;
+        const { name } = options;
+        const versions = await this.getVersionsList({ name });
+        return versions;
     }
 
     async getVersion({ name, version }) {
-        const algorithm = await stateManager.algorithms.store.get({ name });
+        const algorithm = await algorithmStore.getAlgorithm({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }
-        const algorithmVersion = await stateManager.algorithms.versions.get({ version, name });
+        const algorithmVersion = await this._getVersion({ version });
         if (!algorithmVersion) {
             throw new ResourceNotFoundError('version', version);
         }
@@ -39,9 +41,7 @@ class AlgorithmVersions {
         const { name, version, pinned, tags } = options;
         validator.algorithms.validateAlgorithmTag(options);
         const ver = await this.getVersion({ name, version });
-        await stateManager.algorithms.versions.update({ version, name, pinned, tags }, (oldItem) => {
-            return { ...oldItem, ...options };
-        });
+        await db.algorithms.versions.update({ version, pinned, tags });
         return ver;
     }
 
@@ -62,18 +62,18 @@ class AlgorithmVersions {
     async deleteVersion(options) {
         const { version, name } = options;
         validator.algorithms.validateAlgorithmVersion({ name, version });
-        const algorithm = await stateManager.algorithms.store.get({ name });
+        const algorithm = await db.algorithms.fetch({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }
         if (algorithm.version === version) {
             throw new ActionNotAllowed('unable to remove used version');
         }
-        const algorithmVersion = await stateManager.algorithms.versions.get({ name, version });
+        const algorithmVersion = await this._getVersion({ version });
         if (!algorithmVersion) {
             throw new ResourceNotFoundError('version', version);
         }
-        const res = await stateManager.algorithms.versions.delete({ name, version });
+        const res = await db.algorithms.versions.delete({ name, version });
         const deleted = parseInt(res.deleted, 10);
         return { deleted };
     }
@@ -109,7 +109,7 @@ class AlgorithmVersions {
                 name,
                 algorithm: { ...algorithm, version }
             };
-            await stateManager.algorithms.versions.create(newVersion);
+            await db.algorithms.versions.create(newVersion);
         }
         finally {
             await this._releaseSemver(name, semver);
@@ -137,8 +137,25 @@ class AlgorithmVersions {
     }
 
     async _getLatestSemver({ name }) {
-        const versions = await stateManager.algorithms.versions.list({ name, order: 'Create', sort: 'desc', limit: 1 });
+        const versions = await this.getVersionsList({
+            name,
+            limit: 1
+        });
         return versions?.[0]?.semver;
+    }
+
+    async _getVersion({ version }) {
+        const algorithmVersion = await db.algorithms.versions.fetch({ version });
+        return algorithmVersion;
+    }
+
+    async getVersionsList({ name, limit }) {
+        const versions = await db.algorithms.versions.fetchAll({
+            query: { name },
+            sort: { created: 'desc' },
+            limit
+        });
+        return versions;
     }
 
     _incSemver(oldVersion) {

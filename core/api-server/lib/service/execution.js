@@ -59,7 +59,7 @@ class ExecutionService {
 
     async _runStored(options) {
         const { pipeline, jobId, rootJobId, parentSpan, types, mergeFlowInput } = options;
-        const storedPipeline = await stateManager.pipelines.get({ name: pipeline.name });
+        const storedPipeline = await dbConnect.pipelines.fetch({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }

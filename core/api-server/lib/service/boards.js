@@ -1,14 +1,14 @@
 const storageManager = require('@hkube/storage-manager');
 const { uid } = require('@hkube/uid');
 const { boardStatuses } = require('@hkube/consts');
-const stateManager = require('../state/state-manager');
+const db = require('../db');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 const graph = require('./graph');
 const execution = require('./execution');
 class Boards {
     async getTensorboard(options) {
-        const response = await stateManager.tensorboard.get(options);
+        const response = await db.tensorboards.fetch(options);
         if (!response) {
             throw new ResourceNotFoundError('board', options.id);
         }
@@ -16,13 +16,12 @@ class Boards {
     }
 
     async getTensorboards(options) {
-        const response = await stateManager.tensorboard.list(options);
+        const response = await db.tensorboards.fetchAll(options);
         return response;
     }
 
     async stopTensorboard(options) {
-        const deleteResult = await stateManager.tensorboard.delete(options);
-        const deleted = parseInt(deleteResult.deleted, 10);
+        const { deleted } = await db.tensorboards.delete(options);
         if (deleted === 0) {
             throw new ResourceNotFoundError('board', options.id);
         }
@@ -46,7 +45,7 @@ class Boards {
         const type = (taskId && 'task') || (jobId && 'batch') || 'node';
         const boardInfo = ((type === 'node') && options) || { ...options, ...(await this.getBoardInfo(options, type)) };
         const id = this.generateId(boardInfo, type);
-        const existingBoard = await stateManager.tensorboard.get({ id });
+        const existingBoard = await db.tensorboards.fetch({ id });
         const logDir = await storageManager.hkubeAlgoMetrics.getMetricsPath(boardInfo);
         const boardReference = uid();
         const boardLink = `hkube/board/${boardReference}/`;
@@ -67,10 +66,10 @@ class Boards {
             if (existingBoard.status === boardStatuses.RUNNING || existingBoard.status === boardStatuses.PENDING) {
                 throw new ActionNotAllowed('board: already started', `board ${JSON.stringify(options)} \n already started and is in ${board.status} status`);
             }
-            return stateManager.tensorboard.update(board);
+            return db.tensorboards.update(board);
         }
 
-        stateManager.tensorboard.set(board);
+        await db.tensorboards.create(board);
         return id;
     }
 
