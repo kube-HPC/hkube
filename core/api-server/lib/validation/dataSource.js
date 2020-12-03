@@ -13,10 +13,10 @@ class ApiValidator {
         this._validator.validate(this._validator.definitions.dataSourceCreate, { ...props, files });
     }
 
-    /** @param {{ filesAdded: Express.Multer.File[]; versionDescription: string, filesDropped: string[] }} props */
+    /** @param {{ files: {added: Express.Multer.File[]}; versionDescription: string, filesDropped: string[] }} props */
     validateUploadFile(props) {
-        const filesAdded = props.filesAdded?.length > 0 ? props.filesAdded.map(file => file.originalname) : undefined;
-        this._validator.validate(this._validator.definitions.dataSourceUploadFile, { ...props, filesAdded });
+        const filesAdded = props.files.added?.length > 0 ? props.files.added.map(file => file.originalname) : undefined;
+        this._validator.validate(this._validator.definitions.dataSourceUploadFile, { ...props, files: { added: filesAdded } });
     }
 
     /** @param {string[]} dataSources */

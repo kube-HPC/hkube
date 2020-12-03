@@ -1,10 +1,12 @@
+const { uuid } = require('@hkube/uid');
 const fse = require('fs-extra');
 const { request } = require('./utils');
+
 
 // a valid mongo ObjectID;
 const nonExistingId = '5f953d50dd38c8291924a0a3';
 const fileName = 'README-1.md';
-
+/** @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta */
 /** @type {(props?: { body?: { name?:string }, withFile?:boolean, fileNames?: string[] }) => Promise<any>} */
 const createDataSource = ({
     body = {},
@@ -24,22 +26,50 @@ const createDataSource = ({
 };
 
 /**
- * @param {string} dataSourceName
- * @param {string} uri
- * @param {string[]} fileNames
+ * @typedef {{
+ *   id: string,
+ *   name: string,
+ *   path: string,
+ * }} MappingFile
+ * @param {object} props
+ * @param {string} props.dataSourceName
+ * @param {{id: string, name: string}[]=} props.files
+ * @param {MappingFile[]=} props.mapping
+ * @param {string=} props.versionDescription
  */
-const uploadFile = (dataSourceName, fileNames = [], versionDescription = 'new-version') => {
+const updateVersion = async ({
+    dataSourceName,
+    files: _files = [],
+    versionDescription = 'new-version',
+    mapping: _mapping = []
+}) => {
     const uri = `${global.testParams.restUrl}/datasource`;
-    const formData = fileNames.length > 0 ? {
+    const normalizedMapping = _mapping.reduce((acc, item) => ({ ...acc, [item.id]: item }), {})
+
+    const files = _files.map((file) => ({
+        value: fse.createReadStream(`tests/mocks/${file.name}`),
+        options: {
+            filename: normalizedMapping[file.id] ? file.id : file.name,
+
+        }
+    }));
+
+    const mapping = _mapping.length > 0
+        ? JSON.stringify(_mapping)
+        : undefined;
+
+    const formData = {
         versionDescription,
-        filesAdded: fileNames.length > 0 ? fileNames.map(fileName => fse.createReadStream(`tests/mocks/${fileName}`)) : undefined
-    } : { versionDescription };
+        files,
+        mapping,
+    };
     const options = {
         uri: `${uri}/${dataSourceName}`,
         formData
     };
     return request(options);
 };
+
 
 /** 
  * @param {object} query 
@@ -55,5 +85,10 @@ const fetchDataSource = ({ name }) => {
 };
 
 module.exports = {
-    fetchDataSource, createDataSource, uploadFile, nonExistingId, fileName
+    fetchDataSource,
+    createDataSource,
+    updateVersion,
+    nonExistingId,
+    fileName,
 }
+

@@ -6,8 +6,8 @@
     "dependencies": {
         "@hkube/config": "^2.0.7",
         "@hkube/consts": "^1.0.29",
-        "@hkube/db": "^1.0.14",
         "@hkube/dag": "^2.1.7",
+        "@hkube/db": "^1.0.14",
         "@hkube/etcd": "^5.1.1",
         "@hkube/logger": "^1.0.26",
         "@hkube/metrics": "^1.0.40",
@@ -43,6 +43,7 @@
         "request-promise": "^4.2.5",
         "requestretry": "^4.1.0",
         "semver": "^7.3.2",
+        "simple-git": "^2.24.0",
         "string-template": "^1.0.0",
         "swagger-parser": "^9.0.1"
     },
@@ -64,7 +65,6 @@
     },
     "scripts": {
         "lint": "./node_modules/eslint/bin/eslint.js .",
-        "pretest": "npm run lint",
         "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --timeout=10000 --colors --recursive --exit",
         "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha tests --timeout=10000 --colors --recursive --exit",
         "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
