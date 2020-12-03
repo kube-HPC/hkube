@@ -9,8 +9,8 @@ const fileType = require('file-type');
 const Logger = require('@hkube/logger');
 const { buildStatuses, buildTypes } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
-const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
+const db = require('../db');
 const Build = require('./build');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
@@ -27,7 +27,7 @@ class Builds {
 
     async getBuild(options) {
         validator.builds.validateBuildId(options);
-        const response = await stateManager.algorithms.builds.get(options);
+        const response = await db.algorithms.builds.fetch(options);
         if (!response) {
             throw new ResourceNotFoundError('build', options.buildId);
         }
@@ -35,8 +35,13 @@ class Builds {
     }
 
     async getBuilds(options) {
+        const { name, sort, limit } = options;
         validator.lists.validateResultList(options);
-        const response = await stateManager.algorithms.builds.list(options);
+        const response = await db.algorithms.builds.fetchAll({
+            query: { algorithmName: name },
+            sort: { startTime: sort },
+            limit
+        });
         return response;
     }
 
@@ -51,7 +56,7 @@ class Builds {
             endTime: null,
             startTime: Date.now()
         };
-        return stateManager.algorithms.builds.set(build);
+        return db.algorithms.builds.update(build);
     }
 
     async stopBuild(options) {
@@ -66,7 +71,7 @@ class Builds {
             status: buildStatuses.STOPPED,
             endTime: Date.now()
         };
-        await stateManager.algorithms.builds.update(buildData);
+        await db.algorithms.builds.update(buildData);
     }
 
     async rerunBuild(options) {

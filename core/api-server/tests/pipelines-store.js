@@ -87,7 +87,7 @@ describe('Store/Pipelines', () => {
                 method: 'DELETE'
             };
             const response2 = await request(options2);
-            expect(response2.body.message).to.equal(`pipline ${pipelineName} successfully deleted from store, stopped related running pipelines 2/3`);
+            expect(response2.body.message).to.equal(`pipeline ${pipelineName} successfully deleted from store, stopped related running pipelines 2/3`);
         });
     });
     describe('/store/pipelines GET', () => {

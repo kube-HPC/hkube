@@ -1,5 +1,5 @@
 const { buildTypes } = require('@hkube/consts');
-const stateManager = require('../../state/state-manager');
+const db = require('../../db');
 const { ResourceNotFoundError } = require('../../errors');
 const { WEBHOOKS } = require('../../consts/builds');
 const gitDataAdapter = require('./git-data-adapter');
@@ -23,7 +23,7 @@ class GitWebhookListener {
     }
 
     async _checkRegistration({ url, branchName }) {
-        const algorithmList = await stateManager.algorithms.store.list({ limit: 1000 });
+        const algorithmList = await db.algorithms.fetchAll();
         return algorithmList.filter(a => a.gitRepository && url === a.gitRepository.webUrl && branchName === a.gitRepository.branchName);
     }
 

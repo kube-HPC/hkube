@@ -1,15 +1,18 @@
-const storageManager = require('@hkube/storage-manager');
-const stateManager = require('../state/state-manager');
+const db = require('../db');
 
 class AlgorithmStore {
-    async storeAlgorithm(options) {
-        const algorithm = options;
+    async storeAlgorithm(payload) {
+        const algorithm = payload;
         if (!algorithm.created) {
             algorithm.created = Date.now();
         }
         algorithm.modified = Date.now();
-        await storageManager.hkubeStore.put({ type: 'algorithm', name: algorithm.name, data: algorithm });
-        await stateManager.algorithms.store.set(algorithm);
+        await db.algorithms.update(algorithm);
+    }
+
+    async getAlgorithm(payload) {
+        const algorithm = await db.algorithms.fetch(payload);
+        return algorithm;
     }
 }
 

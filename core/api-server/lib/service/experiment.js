@@ -1,16 +1,16 @@
 const objectPath = require('object-path');
-const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const executionService = require('./execution');
 const cronService = require('./cron');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
+const db = require('../db');
 const defaultExperiment = require('../consts/defaultExperiment');
 
 class Experiment {
     async getExperiment(options) {
         const { name } = options;
-        const experiment = await stateManager.experiments.get(options);
+        const experiment = await db.experiments.fetch(options);
         if (!experiment) {
             throw new ResourceNotFoundError('experiment', name);
         }
@@ -19,12 +19,21 @@ class Experiment {
 
     async insertExperiment(options) {
         validator.experiments.validateExperimentName(options);
-        await stateManager.experiments.set(options);
-        await storageManager.hkubeStore.put({ type: 'experiment', name: options.name, data: options });
+        const experiment = {
+            name: options.name,
+            description: options.description,
+            created: Date.now(),
+        };
+        await db.experiments.create(experiment);
     }
 
     experimentsList(options) {
-        return stateManager.experiments.list(options);
+        const { sort, limit } = options;
+        return db.experiments.fetchAll({
+            query: {},
+            sort: { created: sort },
+            limit
+        });
     }
 
     async deleteExperiment(options) {
@@ -40,9 +49,8 @@ class Experiment {
 
     async _deleteExperiment(options) {
         const { name } = options;
-        await storageManager.hkubeStore.delete({ type: 'experiment', name });
-        const res = await stateManager.experiments.delete(options);
-        const message = res.deleted === '0' ? 'deleted operation has failed' : 'deleted successfully';
+        const res = await db.experiments.delete(options);
+        const message = res.deleted === 0 ? 'deleted operation has failed' : 'deleted successfully';
         return { message, name };
     }
 

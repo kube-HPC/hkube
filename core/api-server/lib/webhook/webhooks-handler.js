@@ -4,6 +4,7 @@ const { pipelineStatuses } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const log = require('@hkube/logger').GetLogFromContainer();
 const stateManager = require('../state/state-manager');
+const db = require('../db');
 const component = require('../consts/componentNames').WEBHOOK_HANDLER;
 const { States, Types } = require('./States');
 const { metricsNames } = require('../consts/metricsNames');
@@ -44,7 +45,7 @@ class WebhooksHandler {
             log.debug(`progress event with ${payloadLevel} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component, jobId });
             if (clientLevel <= pipelineLevel) {
                 const result = await this._request(pipeline.webhooks.progress, payload, Types.PROGRESS, payload.status, jobId);
-                await stateManager.webhooks.set({ jobId, type: Types.PROGRESS, ...result });
+                await db.webhooks.status.update({ jobId, ...result });
             }
         }
         if (this.isCompletedState(payload.status)) {
@@ -67,7 +68,7 @@ class WebhooksHandler {
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await stateManager.getResultFromStorage(payload);
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
-            await stateManager.webhooks.set({ jobId, type: Types.RESULT, ...result });
+            await db.webhooks.result.update({ jobId, ...result });
         }
         await stateManager.jobs.results.releaseChangeLock({ jobId });
     }

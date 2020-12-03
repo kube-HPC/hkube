@@ -39,8 +39,8 @@ describe('Versions/Algorithms', () => {
             await request(applyReq1);
             await request(applyReq2);
             const res = await request(versionReq);
-            expect(res.body).to.have.lengthOf(2);
             const semver = res.body.map(v => v.semver);
+            expect(res.body).to.have.lengthOf(2);
             expect(semver).to.eql(['1.0.1', '1.0.0']);
         });
     });
@@ -167,7 +167,7 @@ describe('Versions/Algorithms', () => {
             await request(applyReq2);
             const version = res1.body.algorithm.version;
             const versionReq = { uri: `${restPath}/apply`, body: { version, name, force: false } };
-            await request(exeRawPayload);
+            const s = await request(exeRawPayload);
             const res2 = await request(versionReq);
             expect(res2.body).to.have.property('error');
             expect(res2.body.error.code).to.equal(HttpStatus.BAD_REQUEST);

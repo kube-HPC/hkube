@@ -6,6 +6,7 @@ const merge = require('lodash.merge');
 const { uid: uuid } = require('@hkube/uid');
 const stateManager = require('../lib/state/state-manager');
 const versionsService = require('../lib/service/versions');
+const buildsService = require('../lib/service/builds');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms } = require('./mocks');
@@ -114,7 +115,6 @@ describe('Store/Algorithms', () => {
         });
         it('should delete algorithm with related data with force', async () => {
             const algorithmName = `my-alg-${uuid()}`;
-            const algorithmImage = `${algorithmName}-image`
             const formData = {
                 payload: JSON.stringify({ name: algorithmName, env: 'nodejs' }),
                 file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -164,8 +164,8 @@ describe('Store/Algorithms', () => {
             };
             const resAlg = await request(algorithm);
             await versionsService.createVersion(resAlg.body);
-            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-1`, algorithmName });
-            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-2`, algorithmName });
+            await buildsService.startBuild({ buildId: `${algorithmName}-1`, algorithmName });
+            await buildsService.startBuild({ buildId: `${algorithmName}-2`, algorithmName });
 
             const optionsDelete = {
                 uri: `${restPath}/${algorithmName}?force=false`,
@@ -407,8 +407,9 @@ describe('Store/Algorithms', () => {
             expect(algorithm).to.eql({ ...defaultProps, ...body });
         });
         it('should succeed to parallel store and get multiple algorithms', async function () {
-            const limit = 5;
-            const keys = Array.from(Array(limit).keys());
+            const limit = 3;
+            const total = 5;
+            const keys = Array.from(Array(total).keys());
             const algorithms = keys.map(k => ({
                 ...defaultProps,
                 name: `stress-${k}-${uuid()}`,
@@ -416,21 +417,17 @@ describe('Store/Algorithms', () => {
                 mem: "50Mi",
                 cpu: k
             }));
-
             const result = await Promise.all(algorithms.map(a => request({ uri: restPath, body: a })));
-
             result.forEach((r, i) => {
                 const { version, created, modified, ...algorithm } = r.body;
                 expect(algorithm).to.eql(algorithms[i]);
             });
-
             const options = {
                 uri: `${restPath}?name=stress&limit=${limit}`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body).to.has.lengthOf(limit);
-            await stateManager.algorithms.store.delete({ name: 'stress' }, { isPrefix: true })
         });
         it('should succeed to store algorithm', async () => {
             const body = {
@@ -1817,7 +1814,7 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
         });
-        it('should succeed to update algorithm', async () => {
+        it('should succeed to update algorithm image', async () => {
             const body = algorithms[0];
             const options = {
                 uri: restPath,

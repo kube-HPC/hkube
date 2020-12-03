@@ -1,4 +1,4 @@
-const stateManager = require('../state/state-manager');
+const db = require('../db');
 const { ResourceNotFoundError } = require('../errors');
 
 class ApiValidator {
@@ -12,7 +12,7 @@ class ApiValidator {
 
     async validateExperimentExists(pipeline) {
         const { experimentName } = pipeline;
-        const result = await stateManager.experiments.get({ name: experimentName });
+        const result = await db.experiments.fetch({ name: experimentName });
         if (!result) {
             throw new ResourceNotFoundError('experiment', experimentName);
         }
