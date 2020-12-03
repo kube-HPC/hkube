@@ -87,7 +87,7 @@ describe.only('Datasource', () => {
             expect(response.body.error.code).to.equal(HttpStatus.INTERNAL_SERVER_ERROR);
             expect(response.body.error.message).to.eq('i should throw');
         });
-        it.skip('should return specific datasource', async () => {
+        it('should return specific datasource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const { response: getResponse } = await fetchDataSource({ name });
@@ -98,9 +98,11 @@ describe.only('Datasource', () => {
             expect(dataSource.name).to.eq(name);
             expect(dataSource).to.have.property('files');
             dataSource.files.forEach(file => {
+                expect(file).to.have.property('id');
+                expect(file).to.have.property('name');
                 expect(file).to.have.property('path');
                 expect(file).to.have.property('size');
-                expect(file).to.have.property('mtime');
+                expect(file).to.have.property('type');
             });
         });
     });
@@ -193,10 +195,10 @@ describe.only('Datasource', () => {
             const fetchedNames = response.body.map(item => item.name);
             names.forEach(name => expect(fetchedNames).to.contain(name));
         });
-        it.skip('should return only unique file types', async () => {
+        it('should return only unique file types', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
-            const fileNames = ['README-2.md', 'algorithms.json'];
+            const fileNames = ['README-2.md', 'algorithms.json']
             await updateVersion({ dataSourceName: name, fileNames });
             const options = {
                 uri: restPath,
@@ -205,6 +207,7 @@ describe.only('Datasource', () => {
             const { body } = await request(options);
             const ds = body.find(item => item.name === name);
             const { fileTypes } = ds;
+            expect(fileTypes).to.eql(['text/markdown', 'application/json']);
             expect(fileTypes).to.have.lengthOf([...new Set(fileTypes)].length);
         });
     });
@@ -311,6 +314,7 @@ describe.only('Datasource', () => {
         });
     });
     describe('/datasource/:name POST', () => {
+        // update after adding adv validation on the service
         it.skip('should throw missing filesAdded and filesDropped error', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
@@ -319,7 +323,7 @@ describe.only('Datasource', () => {
             expect(uploadResponse.body.error.message).to.match(/data should have required property '.filesAdded'/i);
             expect(uploadResponse.body.error.message).to.match(/data should have required property '.filesDropped'/i);
         });
-        it.skip('should fail uploading a file to a non existing dataSource', async () => {
+        it('should fail uploading a file to a non existing dataSource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const { response: uploadResponse } = await updateVersion({ dataSourceName: 'non-existing', fileNames: ['README-2.md'] });
@@ -327,7 +331,7 @@ describe.only('Datasource', () => {
             expect(uploadResponse.body.error.message).to.match(/not found/i);
             expect(uploadResponse.statusCode).to.eql(HttpStatus.NOT_FOUND);
         });
-        it.skip('should upload a new file to the dataSource and get a new version', async () => {
+        it('should upload a new file to the dataSource and get a new version', async () => {
             const name = uuid();
             const { body: firstVersion } = await createDataSource({ body: { name } });
             const secondFileName = 'README-2.md';

@@ -251,6 +251,11 @@ class DataSource {
      * @param {string[]} props.files.dropped
      */
     async updateDataSource({ name, files: _files, versionDescription }) {
+        // add ajv validation here
+        // also acts validates the datasource exists
+        await db.dataSources.createVersion({
+            name, versionDescription
+        });
         const { commitHash, files } = await this.commitChange({
             repositoryName: name,
             files: _files,

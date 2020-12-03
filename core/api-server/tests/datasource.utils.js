@@ -33,30 +33,34 @@ const createDataSource = ({
  * }} MappingFile
  * @param {object} props
  * @param {string} props.dataSourceName
+ * @param {string=} props.versionDescription
+ * @param {string[]=} props.fileNames - provide file names to be uploaded instead of a complete array of file objects
  * @param {{id: string, name: string}[]=} props.files
  * @param {MappingFile[]=} props.mapping
- * @param {string=} props.versionDescription
  */
 const updateVersion = async ({
     dataSourceName,
-    files: _files = [],
     versionDescription = 'new-version',
-    mapping: _mapping = []
+    fileNames = [],
+    files: _files = [],
+    mapping: _mapping = [],
 }) => {
     const uri = `${global.testParams.restUrl}/datasource`;
     const normalizedMapping = _mapping.reduce((acc, item) => ({ ...acc, [item.id]: item }), {})
+    const files = fileNames
+        .map(name => ({ name, id: uuid() }))
+        .concat(_files)
+        .map((file) => ({
+            value: fse.createReadStream(`tests/mocks/${file.name}`),
+            options: {
+                filename: normalizedMapping[file.id] ? file.id : file.name,
 
-    const files = _files.map((file) => ({
-        value: fse.createReadStream(`tests/mocks/${file.name}`),
-        options: {
-            filename: normalizedMapping[file.id] ? file.id : file.name,
-
-        }
-    }));
+            }
+        }));
 
     const mapping = _mapping.length > 0
         ? JSON.stringify(_mapping)
-        : undefined;
+        : [];
 
     const formData = {
         versionDescription,
@@ -72,7 +76,8 @@ const updateVersion = async ({
 
 
 /** 
- * @param {object} query 
+ * @param {object} que
+ * ry 
  * @param {string} query.name 
  * */
 const fetchDataSource = ({ name }) => {
