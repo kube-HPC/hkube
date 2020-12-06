@@ -5,7 +5,7 @@ const stateManager = require('../lib/state/state-manager');
 const { delay, request } = require('./utils');
 let restUrl;
 
-describe.only('Webhooks', () => {
+describe('Webhooks', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         nock('http://my-webhook-server-2').persist().post('/webhook/result').reply(200);
@@ -99,6 +99,7 @@ describe.only('Webhooks', () => {
                         return resolve();
 
                     })
+
                 const stored = {
                     uri: restUrl + '/exec/stored',
                     body: { name: 'webhookFlow1' }
@@ -265,7 +266,7 @@ describe.only('Webhooks', () => {
             expect(response2.body).to.have.property('pipelineStatus');
             expect(response2.body).to.have.property('responseStatus');
         });
-        it.only('should succeed and return webhook by jobId', async function () {
+        it('should succeed and return webhook by jobId', async function () {
             const options1 = {
                 uri: restUrl + '/exec/stored',
                 body: { name: 'webhookFlow2' }

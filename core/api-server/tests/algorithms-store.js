@@ -153,7 +153,7 @@ describe('Store/Algorithms', () => {
             expect(response.body).to.have.property('message');
             expect(response.body.message).to.contain('related data deleted');
         });
-        it('should delete algorithm with related data without force', async () => {
+        it.only('should delete algorithm with related data without force', async () => {
             const algorithmName = `delete-${uuid()}`;
             const algorithm = {
                 uri: restPath,

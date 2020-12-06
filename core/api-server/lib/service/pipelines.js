@@ -1,16 +1,16 @@
 const graphlib = require('graphlib');
 const validator = require('../validation/api-validator');
-const stateManager = require('../state/state-manager');
-const executionService = require('./execution');
 const db = require('../db');
+const executionService = require('./execution');
+const pipelineStore = require('./pipelines-store');
 const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors');
 
-class PipelineStore {
+class PipelineService {
     async updatePipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
         await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
-        await db.pipelines.update(options);
+        await pipelineStore.updatePipeline(options);
         return options;
     }
 
@@ -24,13 +24,12 @@ class PipelineStore {
             const stopped = result.filter(r => r.success);
             summary += `, stopped related running pipelines ${stopped.length}/${result.length}`;
         }
-        await db.pipelines.delete({ name });
+        await pipelineStore.deletePipeline({ name });
         return summary;
     }
 
     async _stopAllRunningPipelines(options) {
-        const limit = 1000;
-        const pipelines = await stateManager.executions.running.list({ limit }, (p) => p.name === options.name);
+        const pipelines = await db.jobs.fetchRunningByPipelineName({ pipelineName: options.name });
         const result = await Promise.all(pipelines.map(p => this._promiseWrapper(() => executionService.stopJob(p))));
         return result;
     }
@@ -43,7 +42,7 @@ class PipelineStore {
 
     async getPipeline(options) {
         validator.pipelines.validatePipelineName(options.name);
-        const pipeline = await db.pipelines.fetch(options);
+        const pipeline = await pipelineStore.getPipeline(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
@@ -51,13 +50,13 @@ class PipelineStore {
     }
 
     async getPipelines() {
-        return db.pipelines.fetchAll();
+        return pipelineStore.getPipelines();
     }
 
     async getPipelinesTriggersTree(options) {
         const { name } = options;
         const graph = new graphlib.Graph();
-        const pipelines = await db.pipelines.list(null, (p) => p.triggers && p.triggers.pipelines && p.triggers.pipelines.length);
+        const pipelines = await pipelineStore.getPipelines(null, (p) => p.triggers && p.triggers.pipelines && p.triggers.pipelines.length);
         if (pipelines.length === 0) {
             throw new InvalidDataError('unable to find any pipeline with triggers');
         }
@@ -101,13 +100,13 @@ class PipelineStore {
         validator.pipelines.validateUpdatePipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
 
-        const pipeline = await db.pipelines.fetch(options);
+        const pipeline = await pipelineStore.getPipeline(options);
         if (pipeline) {
             throw new ResourceExistsError('pipeline', options.name);
         }
-        await db.pipelines.create(options);
+        await pipelineStore.insertPipeline(options);
         return options;
     }
 }
 
-module.exports = new PipelineStore();
+module.exports = new PipelineService();

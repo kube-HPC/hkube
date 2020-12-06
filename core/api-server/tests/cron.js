@@ -24,7 +24,6 @@ describe('Cron', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('cron results no_such_id Not Found');
         });
-
         it('should throw validation error of order property', async () => {
             const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
             const options = {

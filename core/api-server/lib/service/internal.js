@@ -1,5 +1,6 @@
 const { pipelineTypes } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
+const db = require('../db');
 const validator = require('../validation/api-validator');
 const execution = require('./execution');
 
@@ -7,18 +8,17 @@ class InternalService {
     async runStoredTriggerPipeline(options) {
         validator.internal.validateStoredInternal(options);
         const { name, parentJobId } = options;
-        const execPipeline = await stateManager.executions.stored.get({ jobId: parentJobId });
-        const experimentName = await this._getExperiment(execPipeline);
+        const execPipeline = await db.jobs.fetchPipeline({ jobId: parentJobId });
         const rootJobId = execPipeline.rootJobId || parentJobId;
         const rootJobName = execPipeline.name;
-        const jobId = execution._createJobID({ experimentName, name });
+        const jobId = execution._createJobID({ name });
         const pipeline = { name };
 
         const results = await stateManager.getJobResult({ jobId: parentJobId });
         if (results && results.data) {
             pipeline.flowInput = { parent: results.data };
         }
-        await stateManager.triggers.tree.set({ name, rootJobName, jobId, rootJobId, parentJobId });
+        await db.triggersTree.update({ name, rootJobName, jobId, rootJobId, parentJobId });
         return execution._runStored({ pipeline, jobId, rootJobId, mergeFlowInput: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
     }
 
@@ -43,7 +43,7 @@ class InternalService {
 
     async _getExperimentName(options) {
         const { jobId } = options;
-        const pipeline = await stateManager.executions.stored.get({ jobId });
+        const pipeline = await db.jobs.fetchPipeline({ jobId });
         return this._getExperiment(pipeline);
     }
 

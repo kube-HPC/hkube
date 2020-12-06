@@ -426,4 +426,43 @@ describe('Storage', () => {
             expect(response.body).to.equal(data.toString('utf-8'));
         });
     });
+    describe('/download/pipeline/result/:jobId', () => {
+        let restPath = null;
+        before(() => {
+            restPath = `${restUrl}/storage/download/pipeline/result`;
+        });
+        it('should succeed to get download results', async () => {
+            const optionsRun = {
+                uri: restUrl + '/exec/raw',
+                body: {
+                    name: 'exec_raw_results',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ]
+                }
+            };
+            const responseRun = await request(optionsRun);
+            const jobId = responseRun.body.jobId;
+            const data = 500;
+            await workerStub.done({ jobId, data });
+
+            const options = {
+                uri: `${restPath}/${responseRun.body.jobId}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.body.data).to.equal(data);
+            expect(response.body).to.have.property('jobId');
+            expect(response.body).to.have.property('data');
+            expect(response.body).to.have.property('storageModule');
+            expect(response.body).to.have.property('status');
+            expect(response.body).to.have.property('timeTook');
+            expect(response.body).to.have.property('timestamp');
+        });
+    });
 });

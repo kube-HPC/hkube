@@ -27,7 +27,7 @@ class Experiment {
         await db.experiments.create(experiment);
     }
 
-    experimentsList(options) {
+    async experimentsList(options) {
         const { sort, limit } = options;
         return db.experiments.fetchAll({
             query: {},
@@ -66,8 +66,7 @@ class Experiment {
     }
 
     async _cleanAll(experimentName) {
-        const jobId = `${experimentName}:`;
-        const pipelines = await stateManager.executions.stored.list({ jobId });
+        const pipelines = await db.jobs.fetchAll({ query: { experimentName } });
         await Promise.all(pipelines.map(p => executionService.cleanJob({ jobId: p.jobId })));
     }
 }

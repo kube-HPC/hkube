@@ -2,7 +2,7 @@ const mergeWith = require('lodash.mergewith');
 const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
 const { pipelineKind } = require('@hkube/consts');
-const stateManager = require('../state/state-manager');
+const pipelineStore = require('./pipelines-store');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 const SEPARATORS = {
@@ -16,7 +16,7 @@ class PipelineCreator {
         let newPipeline = pipeline;
         const pipelinesNodes = pipeline.nodes.filter(p => p.pipelineName);
         if (pipelinesNodes.length > 0) {
-            const pipelines = await stateManager.pipelines.list();
+            const pipelines = await pipelineStore.getPipelines();
             const flowInput = pipeline.flowInput || {};
 
             pipelinesNodes.forEach(n => {

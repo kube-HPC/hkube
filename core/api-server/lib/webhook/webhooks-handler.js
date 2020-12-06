@@ -26,7 +26,6 @@ class WebhooksHandler {
     _watch() {
         stateManager.jobs.results.on('change', (response) => {
             this._requestResults(response);
-            this._deleteRunningPipeline({ jobId: response.jobId });
         });
         stateManager.jobs.status.on('change', (response) => {
             this._requestStatus(response);
@@ -35,7 +34,7 @@ class WebhooksHandler {
 
     async _requestStatus(payload) {
         const { jobId } = payload;
-        const pipeline = await stateManager.executions.stored.get({ jobId });
+        const pipeline = await db.jobs.fetchPipeline({ jobId });
 
         if (pipeline && pipeline.webhooks && pipeline.webhooks.progress && payload.level) {
             const progressLevel = pipeline.options.progressVerbosityLevel.toUpperCase();
@@ -55,7 +54,7 @@ class WebhooksHandler {
 
     async _requestResults(payload) {
         const { jobId } = payload;
-        const pipeline = await stateManager.executions.stored.get({ jobId });
+        const pipeline = await db.jobs.fetchPipeline({ jobId });
 
         const time = Date.now() - pipeline.startTime;
         metrics.get(metricsNames.pipelines_gross).retroactive({
@@ -71,10 +70,6 @@ class WebhooksHandler {
             await db.webhooks.result.update({ jobId, ...result });
         }
         await stateManager.jobs.results.releaseChangeLock({ jobId });
-    }
-
-    async _deleteRunningPipeline(options) {
-        await stateManager.executions.running.delete(options);
     }
 
     isCompletedState(state) {

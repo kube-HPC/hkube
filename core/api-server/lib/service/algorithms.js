@@ -49,7 +49,7 @@ class AlgorithmStore {
 
     async getAlgorithms(options) {
         const { name, limit } = options || {};
-        return db.algorithms.fetchAllByName({ name, limit });
+        return algorithmStore.getAlgorithmsByName({ name, limit });
     }
 
     async insertAlgorithm(options) {
@@ -112,7 +112,7 @@ class AlgorithmStore {
     }
 
     _entitiesToText(entities) {
-        return Object.entries(entities).filter(([, v]) => v).map(([k, v]) => `${v} ${k}`).join(', ');
+        return Object.entries(entities).filter(([, v]) => v).map(([k, v]) => `${v.length} ${k}`).join(', ');
     }
 
     async _deleteEntity(func, item) {
@@ -137,17 +137,12 @@ class AlgorithmStore {
     }
 
     async _findAlgorithmDependencies(name) {
-        const limit = 1000;
         const [versions, pipelines, executions] = await Promise.all([
             versionsService.getVersionsList({ name }),
-            db.pipelines.fetchAll({ query: { 'nodes.algorithmName': name } }),
-            stateManager.executions.running.list({ limit }, this._findAlgorithmInNodes(name))
+            db.pipelines.fetchByAlgorithmName({ algorithmName: name }),
+            db.jobs.fetchRunningByAlgorithmName({ algorithmName: name })
         ]);
         return { versions, pipelines, executions };
-    }
-
-    _findAlgorithmInNodes(algorithmName) {
-        return (l => l.nodes && l.nodes.some(n => n.algorithmName === algorithmName));
     }
 
     async getAlgorithmsQueueList() {

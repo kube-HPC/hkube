@@ -23,6 +23,10 @@ class StateManager {
 
     async getJobResults(options) {
         const list = await this.jobs.results.list(options);
+        return this.mergeJobStorageResults(list);
+    }
+
+    async mergeJobStorageResults(list) {
         return Promise.all(list.map(r => this.getResultFromStorage(r)));
     }
 

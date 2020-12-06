@@ -14,16 +14,6 @@ describe('ReadMe', () => {
         before(() => {
             restPath = `${restUrl}/readme/pipelines`;
         });
-        it('should throw validation error of pipeline Not Found', async () => {
-            const options = {
-                method: 'GET',
-                uri: `${restPath}/not_exist`
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal("pipeline not_exist Not Found");
-        });
         it('should throw validation error of readme Not Found', async () => {
             const options = {
                 method: 'GET',
@@ -45,7 +35,7 @@ describe('ReadMe', () => {
                 }
             };
             const response1 = await request(options1);
-            expect(response1.body).to.have.property('path');
+            expect(response1.body).to.eql({ message: 'OK' });
             expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
 
             const options2 = {
@@ -53,6 +43,7 @@ describe('ReadMe', () => {
                 method: 'GET',
             };
             const response2 = await request(options2);
+            expect(response2.body).to.have.property('name');
             expect(response2.body).to.have.property('readme');
             expect(response2.body.readme).to.equal(readme);
         });
@@ -60,7 +51,7 @@ describe('ReadMe', () => {
             const uri = `${restPath}/${pipelines[0].name}`;
             const file1 = 'tests/mocks/README-1.md';
             const file2 = 'tests/mocks/README-2.md';
-            const readme2 = fse.readFileSync(file2, 'UTF-8');
+            const readme = fse.readFileSync(file2, 'UTF-8');
 
             const insert = {
                 uri,
@@ -70,7 +61,7 @@ describe('ReadMe', () => {
                 }
             };
             const response1 = await request(insert);
-            expect(response1.body).to.have.property('path');
+            expect(response1.body).to.eql({ message: 'OK' });
             expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
 
             const put = {
@@ -79,15 +70,17 @@ describe('ReadMe', () => {
                 formData: { 'README.md': fse.createReadStream(file2) }
             };
             const response2 = await request(put);
-            expect(response2.body).to.have.property('path');
+            expect(response2.body).to.eql({ message: 'OK' });
+            expect(response2.response.statusCode).to.equal(HttpStatus.OK);
 
             const get = {
                 uri,
                 method: 'GET'
             };
             const response3 = await request(get);
+            expect(response3.body).to.have.property('name');
             expect(response3.body).to.have.property('readme');
-            expect(response3.body.readme).to.equal(readme2);
+            expect(response3.body.readme).to.equal(readme);
         });
         it('should success to delete readme', async () => {
             const uri = `${restPath}/${pipelines[0].name}`;
@@ -100,7 +93,7 @@ describe('ReadMe', () => {
                 }
             };
             const response1 = await request(insert);
-            expect(response1.body).to.have.property('path');
+            expect(response1.body).to.eql({ message: 'OK' });
             expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
 
             const options2 = {
@@ -127,16 +120,6 @@ describe('ReadMe', () => {
         before(() => {
             restPath = `${restUrl}/readme/algorithms`;
         });
-        it('should throw validation error of algorithm Not Found', async () => {
-            const options = {
-                method: 'GET',
-                uri: `${restPath}/not_exist`
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal("algorithm not_exist Not Found");
-        });
         it('should throw validation error of readme Not Found', async () => {
             const options = {
                 method: 'GET',
@@ -151,22 +134,22 @@ describe('ReadMe', () => {
             const uri = `${restPath}/${algorithms[0].name}`;
             const file = 'tests/mocks/README-1.md';
             const readme = fse.readFileSync(file, 'UTF-8');
-            const insert = {
+            const options1 = {
                 uri,
-                method: 'POST',
                 formData: {
                     'README.md': fse.createReadStream(file)
                 }
             };
-            const response1 = await request(insert);
-            expect(response1.body).to.have.property('path');
+            const response1 = await request(options1);
+            expect(response1.body).to.eql({ message: 'OK' });
             expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
 
             const options2 = {
                 uri,
-                method: 'GET'
+                method: 'GET',
             };
             const response2 = await request(options2);
+            expect(response2.body).to.have.property('name');
             expect(response2.body).to.have.property('readme');
             expect(response2.body.readme).to.equal(readme);
         });
@@ -174,7 +157,7 @@ describe('ReadMe', () => {
             const uri = `${restPath}/${algorithms[0].name}`;
             const file1 = 'tests/mocks/README-1.md';
             const file2 = 'tests/mocks/README-2.md';
-            const readme2 = fse.readFileSync(file2, 'UTF-8');
+            const readme = fse.readFileSync(file2, 'UTF-8');
 
             const insert = {
                 uri,
@@ -184,7 +167,7 @@ describe('ReadMe', () => {
                 }
             };
             const response1 = await request(insert);
-            expect(response1.body).to.have.property('path');
+            expect(response1.body).to.eql({ message: 'OK' });
             expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
 
             const put = {
@@ -193,15 +176,17 @@ describe('ReadMe', () => {
                 formData: { 'README.md': fse.createReadStream(file2) }
             };
             const response2 = await request(put);
-            expect(response2.body).to.have.property('path');
+            expect(response2.body).to.eql({ message: 'OK' });
+            expect(response2.response.statusCode).to.equal(HttpStatus.OK);
 
             const get = {
                 uri,
                 method: 'GET'
             };
             const response3 = await request(get);
+            expect(response3.body).to.have.property('name');
             expect(response3.body).to.have.property('readme');
-            expect(response3.body.readme).to.equal(readme2);
+            expect(response3.body.readme).to.equal(readme);
         });
         it('should success to delete readme', async () => {
             const uri = `${restPath}/${algorithms[0].name}`;
@@ -214,7 +199,7 @@ describe('ReadMe', () => {
                 }
             };
             const response1 = await request(insert);
-            expect(response1.body).to.have.property('path');
+            expect(response1.body).to.eql({ message: 'OK' });
             expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
 
             const options2 = {
@@ -233,7 +218,6 @@ describe('ReadMe', () => {
             expect(response3.body).to.have.property('error');
             expect(response3.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response3.body.error.message).to.equal(`readme ${algorithms[0].name} Not Found`);
-
         });
     });
 });

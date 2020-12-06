@@ -6,8 +6,10 @@ const { pipelineTypes, pipelineStatuses } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const storageManager = require('@hkube/storage-manager');
 const cachingService = require('./caching');
+const pipelineStore = require('./pipelines-store');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
+const db = require('../db');
 const validator = require('../validation/api-validator');
 const pipelineCreator = require('./pipeline-creator');
 const WebhookTypes = require('../webhook/States').Types;
@@ -58,7 +60,7 @@ class ExecutionService {
 
     async _runStored(options) {
         const { pipeline, jobId, rootJobId, parentSpan, types, mergeFlowInput } = options;
-        const storedPipeline = await stateManager.pipelines.get({ name: pipeline.name });
+        const storedPipeline = await pipelineStore.getPipeline({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }
@@ -75,9 +77,8 @@ class ExecutionService {
         validator.executions.addPipelineDefaults(pipeline);
 
         if (!jobId) {
-            jobId = this._createJobID({ name: pipeline.name, experimentName: pipeline.experimentName });
+            jobId = this._createJobID({ name: pipeline.name });
         }
-
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
@@ -95,12 +96,10 @@ class ExecutionService {
                 flowInputMetadata = { metadata, storageInfo };
             }
             const lastRunResult = await this._getLastPipeline(jobId);
-            const pipelineObject = { ...pipeline, jobId, rootJobId, flowInputMetadata, startTime: Date.now(), lastRunResult, types };
-            await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
-            await storageManager.hkubeExecutions.put({ jobId, data: pipelineObject }, tracer.startSpan.bind(tracer, { name: 'storage-put-executions', parent: span.context() }));
-            await stateManager.executions.stored.set(pipelineObject);
-            await stateManager.executions.running.set(pipelineObject);
-            await stateManager.jobs.status.set({ jobId, pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name });
+            const pipelineObject = { ...pipeline, rootJobId, flowInputMetadata, startTime: Date.now(), lastRunResult, types };
+            const statusObject = { timestamp: new Date(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
+            await db.jobs.create({ jobId, pipeline: pipelineObject, status: statusObject });
+            await stateManager.jobs.status.set({ jobId, ...statusObject });
             await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
             span.finish();
             return jobId;
@@ -151,7 +150,7 @@ class ExecutionService {
 
     async getPipeline(options) {
         validator.jobs.validateJobID(options);
-        const pipeline = await stateManager.executions.stored.get({ jobId: options.jobId });
+        const pipeline = await db.jobs.fetch({ jobId: options.jobId });
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.jobId);
         }
@@ -176,7 +175,7 @@ class ExecutionService {
 
     async getPipelinesResult(options) {
         validator.lists.validateResultList(options);
-        const response = await stateManager.getJobResults({ ...options, jobId: `${options.experimentName}:${options.name}` });
+        const response = await stateManager.getJobResults(options);
         if (response.length === 0) {
             throw new ResourceNotFoundError('pipeline results', options.name);
         }
@@ -186,7 +185,7 @@ class ExecutionService {
 
     async getPipelinesStatus(options) {
         validator.lists.validateResultList(options);
-        const response = await stateManager.jobs.status.list({ ...options, jobId: `${options.experimentName}:${options.name}` });
+        const response = await stateManager.jobs.status.list(options);
         if (response.length === 0) {
             throw new ResourceNotFoundError('pipeline status', options.name);
         }
@@ -194,7 +193,7 @@ class ExecutionService {
     }
 
     async getRunningPipelines() {
-        return stateManager.executions.running.list();
+        return db.fetchRunning();
     }
 
     async stopJob(options) {
@@ -207,7 +206,7 @@ class ExecutionService {
             throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
         const { jobId } = options;
-        const pipeline = await stateManager.executions.stored.get({ jobId });
+        const pipeline = await db.jobs.fetchPipeline({ jobId });
         await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.STOPPED, reason: options.reason, level: levels.INFO.name });
         await stateManager.jobs.results.set({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: pipelineStatuses.STOPPED });
     }
@@ -241,7 +240,7 @@ class ExecutionService {
 
     async getTree(options) {
         validator.jobs.validateJobID(options);
-        const tree = await stateManager.triggers.tree.get({ jobId: options.jobId });
+        const tree = await db.triggersTree.fetch({ jobId: options.jobId });
         if (!tree) {
             throw new ResourceNotFoundError('tree', options.jobId);
         }
@@ -269,7 +268,7 @@ class ExecutionService {
     }
 
     _createJobID(options) {
-        return [options.experimentName, options.name, uid({ length: 8 })].join(':');
+        return [options.name, uid({ length: 8 })].join(':');
     }
 
     async _getLastPipeline(jobId) {

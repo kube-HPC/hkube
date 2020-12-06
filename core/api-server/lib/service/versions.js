@@ -50,7 +50,7 @@ class AlgorithmVersions {
         validator.algorithms.validateAlgorithmVersion(options);
         const algorithmVersion = await this.getVersion({ name, version });
         if (!force) {
-            const runningPipelines = await stateManager.executions.running.list(null, e => e.nodes.find(n => n.algorithmName === name));
+            const runningPipelines = await db.jobs.fetchRunningByAlgorithmName({ algorithmName: name });
             if (runningPipelines.length > 0) {
                 throw new ActionNotAllowed(`there are ${runningPipelines.length} running pipelines which dependent on "${options.name}" algorithm`, runningPipelines.map(p => p.jobId));
             }
@@ -62,7 +62,7 @@ class AlgorithmVersions {
     async deleteVersion(options) {
         const { version, name } = options;
         validator.algorithms.validateAlgorithmVersion({ name, version });
-        const algorithm = await db.algorithms.fetch({ name });
+        const algorithm = await algorithmStore.getAlgorithm({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }

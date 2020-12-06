@@ -1,6 +1,6 @@
 const converter = require('@hkube/units-converter');
 const stateManager = require('../state/state-manager');
-const db = require('../db');
+const algorithmStore = require('../service/algorithms-store');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 class ApiValidator {
@@ -84,18 +84,15 @@ class ApiValidator {
     }
 
     async validateAlgorithmExists(pipeline) {
-        const algorithms = new Map();
         const pipelineAlgorithms = pipeline.nodes.map(p => p.algorithmName);
-        const algorithmList = await db.algorithms.fetchMany({ names: pipelineAlgorithms }, { excludeId: true });
-        const algorithmsMap = new Map(algorithmList.map((a) => [a.name, a]));
+        const algorithmsMap = await algorithmStore.getAlgorithmsMapByNames({ names: pipelineAlgorithms });
         pipeline.nodes.forEach((node) => {
             const algorithm = algorithmsMap.get(node.algorithmName);
             if (!algorithm) {
                 throw new ResourceNotFoundError('algorithm', node.algorithmName);
             }
-            algorithms.set(node.algorithmName, algorithm);
         });
-        return algorithms;
+        return algorithmsMap;
     }
 
     validateAlgorithmImage(algorithms) {

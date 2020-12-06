@@ -1,9 +1,9 @@
 const { buildTypes } = require('@hkube/consts');
-const db = require('../../db');
 const { ResourceNotFoundError } = require('../../errors');
 const { WEBHOOKS } = require('../../consts/builds');
 const gitDataAdapter = require('./git-data-adapter');
 const algorithmService = require('../algorithms');
+const algorithmStore = require('../algorithms-store');
 
 class GitWebhookListener {
     async listen(data, type = WEBHOOKS.GITHUB) {
@@ -23,7 +23,7 @@ class GitWebhookListener {
     }
 
     async _checkRegistration({ url, branchName }) {
-        const algorithmList = await db.algorithms.fetchAll();
+        const algorithmList = await algorithmStore.getAlgorithms();
         return algorithmList.filter(a => a.gitRepository && url === a.gitRepository.webUrl && branchName === a.gitRepository.branchName);
     }
 

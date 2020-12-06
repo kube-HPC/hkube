@@ -11,8 +11,25 @@ class AlgorithmStore {
     }
 
     async getAlgorithm(payload) {
-        const algorithm = await db.algorithms.fetch(payload);
-        return algorithm;
+        return db.algorithms.fetch(payload);
+    }
+
+    async getAlgorithms(payload) {
+        return db.algorithms.fetchAll(payload);
+    }
+
+    async getAlgorithmsByNames(payload) {
+        return db.algorithms.fetchMany(payload);
+    }
+
+    async getAlgorithmsMapByNames(payload) {
+        const algorithms = await this.getAlgorithmsByNames(payload);
+        const algorithmsMap = new Map(algorithms.map((a) => [a.name, a]));
+        return algorithmsMap;
+    }
+
+    async getAlgorithmsByName(payload) {
+        return db.algorithms.fetchAllByName(payload);
     }
 }
 

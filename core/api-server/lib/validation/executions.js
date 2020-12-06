@@ -1,6 +1,6 @@
 const regex = require('../consts/regex');
-const stateManager = require('../state/state-manager');
 const { InvalidDataError } = require('../errors');
+const db = require('../db');
 
 class ApiValidator {
     constructor(validator) {
@@ -36,7 +36,7 @@ class ApiValidator {
             const { amount, rejectOnFailure } = pipelines.options.concurrentPipelines;
             const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
             if (jobIdPrefix) {
-                const result = await stateManager.executions.running.list({ jobId: jobIdPrefix[0] });
+                const result = await db.jobs.fetchRunningByJobIdPrefix({ jobId: jobIdPrefix[0] });
                 if (result.length >= amount) {
                     if (rejectOnFailure) {
                         throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);

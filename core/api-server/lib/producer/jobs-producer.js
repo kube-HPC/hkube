@@ -4,6 +4,7 @@ const { pipelineStatuses } = require('@hkube/consts');
 const { tracer } = require('@hkube/metrics');
 const { Producer, Events } = require('@hkube/producer-consumer');
 const stateManager = require('../state/state-manager');
+const db = require('../db');
 const component = require('../consts/componentNames').JOBS_PRODUCER;
 
 class JobProducer {
@@ -31,7 +32,7 @@ class JobProducer {
             const { jobId, error } = data;
             const status = pipelineStatuses.FAILED;
             log.error(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
-            const pipeline = await stateManager.executions.stored.get({ jobId });
+            const pipeline = await db.jobs.fetchPipeline({ jobId });
             stateManager.jobs.status.set({ jobId, pipeline: pipeline.name, status, error, level: levels.ERROR.name });
             stateManager.jobs.results.set({ jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime });
         });
