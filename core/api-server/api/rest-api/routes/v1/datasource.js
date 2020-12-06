@@ -73,7 +73,12 @@ const routes = () => {
                         mapping: mapping ? JSON.parse(mapping) : undefined
                     }
                 });
-                res.status(HttpStatus.CREATED).json(createdVersion);
+                if (createdVersion) {
+                    res.status(HttpStatus.CREATED).json(createdVersion);
+                }
+                else {
+                    res.sendStatus(HttpStatus.OK);
+                }
             }
             finally {
                 await cleanTmpFile(req.files);

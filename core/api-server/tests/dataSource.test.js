@@ -411,7 +411,7 @@ describe.only('Datasource', () => {
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`)).to.be.true;
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.false;
         });
-        it('should return NOT_MODIFIED status(304) if nothing was updated', async () => {
+        it('should return status 200 if nothing was updated', async () => {
             const name = uuid();
             const { body: dataSource } = await createDataSource({ body: { name } });
             const [existingFile] = dataSource.files;
@@ -421,8 +421,7 @@ describe.only('Datasource', () => {
                 fileNames: [existingFile.name],
                 mapping: [existingFile]
             });
-            // return status is not on the same format as an error
-            expect(uploadResponse.response.statusCode).to.eq(HttpStatus.NOT_MODIFIED);
+            expect(uploadResponse.response.statusCode).to.eq(HttpStatus.OK);
         });
         it('should update a file', async () => {
             const name = uuid();
@@ -430,18 +429,18 @@ describe.only('Datasource', () => {
             const [existingFile] = dataSource.files;
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.true;
             expect(await fse.statSync(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`).size).to.eq(108);
-            const { body: uploadResponse } = await updateVersion({
+            const uploadResponse = await updateVersion({
                 dataSourceName: name,
                 fileNames: ['updatedVersions/README-1.md'],
                 mapping: [existingFile]
             });
+            const { body: uploadResponseBody } = uploadResponse;
             // the data file is not deleted only the .dvc file
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`)).to.be.true;
             expect(await fse.statSync(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`).size).to.eq(132);
-            // console.log(uploadResponse);
-            expect(dataSource.versionId).not.to.eq(uploadResponse.versionId);
-            expect(dataSource.files.length).to.eq(uploadResponse.files.length);
-            expect(uploadResponse.files[0].size).to.eq(132)
+            expect(dataSource.versionId).not.to.eq(uploadResponseBody.versionId);
+            expect(dataSource.files.length).to.eq(uploadResponseBody.files.length);
+            expect(uploadResponseBody.files[0].size).to.eq(132)
         });
     });
 });

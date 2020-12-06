@@ -394,7 +394,7 @@ class DataSource {
 
         if (!commitHash) {
             await db.dataSources.delete({ id: createdVersion.id });
-            throw new NotModified('no changes were made, did not create a new version');
+            return null;
         }
 
         // release the lock
