@@ -352,7 +352,7 @@ describe.only('Datasource', () => {
             expect(dataSource.files).to.have.lengthOf(2);
             expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
         });
-        it.only('should upload multiple files to the dataSource', async () => {
+        it('should upload multiple files to the dataSource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const { response: uploadResponse } = await updateVersion({
@@ -363,7 +363,6 @@ describe.only('Datasource', () => {
                 ]
             });
             const { body: { files } } = uploadResponse;
-            console.log({ files });
             files.forEach(file => {
                 expect(file).to.have.property('name');
                 expect(file).to.have.property('path');
@@ -412,7 +411,7 @@ describe.only('Datasource', () => {
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`)).to.be.true;
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.false;
         });
-        it.only('should fail if not real change was made', async () => {
+        it.skip('should fail if not real change was made', async () => {
             const name = uuid();
             const { body: dataSource } = await createDataSource({ body: { name } });
             const [existingFile] = dataSource.files;

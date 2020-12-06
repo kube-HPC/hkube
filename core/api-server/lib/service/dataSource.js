@@ -87,6 +87,7 @@ class DataSource {
     }
 
     /**
+     * converts temporary ids given by the client to permanent ids
      * @param {{[fileID: string]: FileMeta}} normalizedMapping
      * @param {Express.Multer.File[]} files
      * @returns {{
@@ -127,45 +128,64 @@ class DataSource {
     }
 
     /**
-     * @param {object} props
-     * @param {string} props.repositoryName
-     * @param {string} props.commitMessage
-     * @param {object} props.files
-     * @param {Express.Multer.File[]} props.files.added
-     * @param {FileMeta[]=} props.files.mapping
-     * @param {string[]=} props.files.dropped
-     * @param {FileMeta[]=} props.currentFiles
-     * */
-    async commitChange({
-        repositoryName,
-        commitMessage,
-        files: {
-            added,
-            dropped = [],
-            mapping: _mapping = []
-        },
-        currentFiles = []
-    }) {
-        const baseDir = `${this.rootDir}/${repositoryName}`;
-        const dataDir = `${baseDir}/data`;
-        /**
-        * assume the repo has no remote, do not pull or push
-        * it is assumed to be always there and always up to date
-        */
-        const git = simpleGit({ baseDir });
-        const normalizedCurrentFiles = normalize(currentFiles);
+     * @param {string} repositoryName
+     * @param {FileMeta[]} mapping
+     * @param {{[fileID: string]: FileMeta}} normalizedCurrentFiles
+     */
+    async moveFiles(repositoryName, mapping, normalizedCurrentFiles) {
+        if (mapping.length === 0) return {};
+        // fill in missing details from the previous version of the file
+        const filesMovedMapping = mapping.reduce((acc, file) => ({
+            ...acc,
+            [file.id]: {
+                ...normalizedCurrentFiles[file.id],
+                ...file
+            }
+        }), {});
 
+        await Promise.all(mapping.map(async file => {
+            const src = getFilePath(file);
+            const target = getFilePath(filesMovedMapping[file.id]);
+            await fse.ensureDir(parsePath(target).dir);
+            // moves .dvc files and updates gitignore
+            return this._execute(repositoryName, `dvc move ${src} ${target}`);
+        }));
+        return filesMovedMapping;
+    }
+
+    /**
+    * @param {string} repositoryName
+    * @param {string[]} fileIds
+    * @param {{[fileID: string]: FileMeta}} normalizedCurrentFiles
+    */
+    async dropFiles(repositoryName, fileIds, normalizedCurrentFiles) {
+        // ---- delete dropped files ---- //
+        if (fileIds.length === 0) return;
+        await Promise.all(fileIds.map(async id => {
+            const path = getFilePath(normalizedCurrentFiles[id]);
+            // drops the dvc file and updates gitignore
+            return this._execute(repositoryName, `dvc remove ${path}.dvc`);
+        }));
+    }
+
+    /**
+     * @param {string} repositoryName
+     * @param {string} dataDir
+     * @param {FileMeta[]} mapping
+     * @param {Express.Multer.File[]} added
+     * */
+    async addFiles(repositoryName, dataDir, mapping, added) {
+        if (added.length === 0) return { filesMap: mapping, normalizedFilesAdded: {} };
         // fileName is an id!!
         // originalName is the actual name
-        const normalizedMapping = normalize(_mapping, 'id', convertWhiteSpace('-'));
+        const normalizedMapping = normalize(mapping, 'id', convertWhiteSpace('-'));
 
         const normalizedFilesAdded = normalize(added, 'filename');
-
         // some files in the files added list are renamed
         // to an id (they should appear in the mapping with that same id)
         // some are not - they should be in the mapping list
         // rename and re-set all the ids to match on both the mapping and the files list
-        const { files, mapping } = this._syncFilesMapping(normalizedMapping, added);
+        const { files, mapping: _mapping } = this._syncFilesMapping(normalizedMapping, added);
 
         /** @type {{ [fileId: string]: FileMeta }} */
         const filesAddedMapping = files.reduce((acc, { filename: id, ...file }) => ({
@@ -173,13 +193,13 @@ class DataSource {
             [id]: {
                 id,
                 name: file.originalname,
-                path: mapping[id]?.path ?? '/',
+                path: _mapping[id]?.path ?? '/',
                 size: file.size,
                 type: file.mimetype,
                 description: '',
                 uploadedAt: new Date().getTime()
             }
-        }), mapping);
+        }), _mapping);
 
         const filesMap = Object.values(filesAddedMapping);
 
@@ -198,36 +218,60 @@ class DataSource {
             ))
         );
 
-        const filePaths = addedFilesMap.map(getFilePath);
         // creates .dvc files and update/create the relevant gitignore files
-        await this._execute(repositoryName, `dvc add ${filePaths.join(' ')}`);
+        await this._execute(
+            repositoryName,
+            `dvc add ${addedFilesMap.map(getFilePath).join(' ')}`
+        );
+        return { filesMap, normalizedFilesAdded };
+    }
 
-        // ---- move files ---- //
-        const movedFiles = currentFiles.filter(file => filesAddedMapping[file.id]);
+    /**
+     * @param {object} props
+     * @param {string} props.repositoryName
+     * @param {string} props.commitMessage
+     * @param {object} props.files
+     * @param {Express.Multer.File[]} props.files.added
+     * @param {FileMeta[]=} props.files.mapping
+     * @param {string[]=} props.files.dropped
+     * @param {FileMeta[]=} props.currentFiles
+     * */
+    async commitChange({
+        repositoryName,
+        commitMessage,
+        files: {
+            added,
+            dropped = [],
+            mapping = []
+        },
+        currentFiles = []
+    }) {
+        const baseDir = `${this.rootDir}/${repositoryName}`;
+        const dataDir = `${baseDir}/data`;
+        /**
+        * assume the repo has no remote, do not pull or push
+        * it is assumed to be always there and always up to date
+        */
+        const git = simpleGit({ baseDir });
+        const normalizedCurrentFiles = normalize(currentFiles);
 
-        // fill in missing details from the previous version of the file
-        const filesMovedMapping = movedFiles.reduce((acc, file) => ({
-            ...acc,
-            [file.id]: {
-                ...normalizedCurrentFiles[file.id],
-                ...file
-            }
-        }), filesAddedMapping);
+        const { normalizedFilesAdded, filesMap } = await this.addFiles(
+            repositoryName,
+            dataDir,
+            mapping,
+            added
+        );
 
-        await Promise.all(movedFiles.map(async file => {
-            const src = getFilePath(file);
-            const target = getFilePath(filesMovedMapping[file.id]);
-            await fse.ensureDir(parsePath(target).dir);
-            // moves .dvc files and updates gitignore
-            return this._execute(repositoryName, `dvc move ${src} ${target}`);
-        }));
+        await this.moveFiles(
+            repositoryName,
+            added.length > 0
+                // drop new files from the filesMap
+                ? filesMap.filter(file => !normalizedFilesAdded[file.id])
+                : filesMap,
+            normalizedCurrentFiles
+        );
 
-        // delete dropped files
-        await Promise.all(dropped.map(async id => {
-            const path = getFilePath(normalizedCurrentFiles[id]);
-            // drops the dvc file and updates gitignore
-            return this._execute(repositoryName, `dvc remove ${path}.dvc`);
-        }));
+        await this.dropFiles(repositoryName, dropped, normalizedCurrentFiles);
 
         /**
         * cleanups:
