@@ -411,38 +411,37 @@ describe.only('Datasource', () => {
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`)).to.be.true;
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.false;
         });
-        it.skip('should fail if not real change was made', async () => {
+        it('should return NOT_MODIFIED status(304) if nothing was updated', async () => {
             const name = uuid();
             const { body: dataSource } = await createDataSource({ body: { name } });
             const [existingFile] = dataSource.files;
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.true;
-
             const uploadResponse = await updateVersion({
                 dataSourceName: name,
                 fileNames: [existingFile.name],
                 mapping: [existingFile]
             });
-
+            // return status is not on the same format as an error
             expect(uploadResponse.response.statusCode).to.eq(HttpStatus.NOT_MODIFIED);
         });
-        it.skip('should update a file', async () => {
+        it('should update a file', async () => {
             const name = uuid();
             const { body: dataSource } = await createDataSource({ body: { name } });
             const [existingFile] = dataSource.files;
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.true;
-
+            expect(await fse.statSync(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`).size).to.eq(108);
             const { body: uploadResponse } = await updateVersion({
                 dataSourceName: name,
-                fileNames: [existingFile.name],
+                fileNames: ['updatedVersions/README-1.md'],
                 mapping: [existingFile]
             });
-            console.log(dataSource);
-            console.log(uploadResponse);
-            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/algorithms.json`)).to.be.true;
             // the data file is not deleted only the .dvc file
             expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`)).to.be.true;
-            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.false;
+            expect(await fse.statSync(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`).size).to.eq(132);
+            // console.log(uploadResponse);
+            expect(dataSource.versionId).not.to.eq(uploadResponse.versionId);
+            expect(dataSource.files.length).to.eq(uploadResponse.files.length);
+            expect(uploadResponse.files[0].size).to.eq(132)
         });
-        it.skip('should update and move a file', async () => { });
     });
 });

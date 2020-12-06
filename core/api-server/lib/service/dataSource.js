@@ -40,11 +40,14 @@ const convertWhiteSpace = (to) => file => ({
     path: file.path.split(' ').join(to)
 });
 
-/** @param {{name: string, path: string}} File */
-const getFilePath = ({ name, path }) => {
+/**
+ * @param {{name: string, path: string}} File
+ * @param {string=} dataDir
+ * */
+const getFilePath = ({ name, path }, dataDir = 'data') => {
     return path === '/'
-        ? `data/${name}`
-        : `data/${path.replace(/^\//, '')}/${name}`;
+        ? `${dataDir}/${name}`
+        : `${dataDir}/${path.replace(/^\//, '')}/${name}`;
 };
 
 class DataSource {
@@ -175,22 +178,42 @@ class DataSource {
      * @param {Express.Multer.File[]} added
      * */
     async addFiles(repositoryName, dataDir, mapping, added) {
-        if (added.length === 0) return { filesMap: mapping, normalizedFilesAdded: {} };
-        // fileName is an id!!
-        // originalName is the actual name
+        if (added.length === 0) {
+            return {
+                filesMap: mapping,
+                normalizedFilesAdded: {},
+                droppedIds: []
+            };
+        }
+
         const normalizedMapping = normalize(mapping, 'id', convertWhiteSpace('-'));
 
-        const normalizedFilesAdded = normalize(added, 'filename');
         // some files in the files added list are renamed
         // to an id (they should appear in the mapping with that same id)
         // some are not - they should be in the mapping list
         // rename and re-set all the ids to match on both the mapping and the files list
         const { files, mapping: _mapping } = this._syncFilesMapping(normalizedMapping, added);
 
-        /** @type {{ [fileId: string]: FileMeta }} */
-        const filesAddedMapping = files.reduce((acc, { filename: id, ...file }) => ({
+        /** @type {{[filePath: string] : FileMeta}} */
+        const normalizedByPath = Object.values(_mapping).reduce((acc, file) => ({
             ...acc,
-            [id]: {
+            [getFilePath(file)]: file
+        }), {});
+
+        /**
+         * run through all the files normalized byId, and path(in case of a file update)
+         * fill in missing properties
+         * drop files in duplicated location in favor of the newer one
+         * lists old versions of files to drop
+         * @type {{
+         *  byId: {[fileId: string]: FileMeta}
+         *  byPath: {[filePath: string]: FileMeta}
+         *  droppedIds: string[]
+         * }}
+         * */
+        const filesAddedMapping = files.reduce((acc, { filename: id, ...file }) => {
+            /** @type {FileMeta} */
+            const fileMeta = {
                 id,
                 name: file.originalname,
                 path: _mapping[id]?.path ?? '/',
@@ -198,10 +221,39 @@ class DataSource {
                 type: file.mimetype,
                 description: '',
                 uploadedAt: new Date().getTime()
-            }
-        }), _mapping);
+            };
+            const filePath = getFilePath(fileMeta);
 
-        const filesMap = Object.values(filesAddedMapping);
+            let idToDrop;
+            let nextByIdFile = fileMeta;
+            if (acc.byPath[filePath]) {
+                const existingFile = acc.byPath[filePath];
+                if (existingFile.uploadedAt > fileMeta.uploadedAt) {
+                    // byPath should hold only the latest for each path
+                    nextByIdFile = existingFile;
+                }
+                if (existingFile.uploadedAt < fileMeta.uploadedAt) {
+                    idToDrop = existingFile.id;
+                }
+            }
+            return {
+                byPath: {
+                    ...acc.byPath,
+                    [filePath]: nextByIdFile
+                },
+                droppedIds: idToDrop
+                    ? acc.droppedIds.concat(idToDrop)
+                    : acc.droppedIds,
+                byId: {
+                    ...acc.byId,
+                    [id]: fileMeta
+                }
+            };
+        }, { byId: _mapping, byPath: normalizedByPath, droppedIds: [] });
+
+        const filesMap = Object.values(filesAddedMapping.byId);
+        /** @type {{[fileID: string]: Express.Multer.File}} */
+        const normalizedFilesAdded = normalize(added, 'filename');
 
         const addedFilesMap = filesMap
             .filter(file => normalizedFilesAdded[file.id] !== undefined);
@@ -211,6 +263,7 @@ class DataSource {
             addedFilesMap.map(file => fse.ensureDir(file.path.match(pathNameRegex)[0]))
         );
 
+        // console.log({ addedFilesMap, normalizedFilesAdded, filesMap });
         await Promise.all(
             addedFilesMap.map(file => fse.move(
                 normalizedFilesAdded[file.id].path,
@@ -221,9 +274,14 @@ class DataSource {
         // creates .dvc files and update/create the relevant gitignore files
         await this._execute(
             repositoryName,
-            `dvc add ${addedFilesMap.map(getFilePath).join(' ')}`
+            `dvc add ${addedFilesMap.map(file => getFilePath(file)).join(' ')}`
         );
-        return { filesMap, normalizedFilesAdded };
+
+        return {
+            filesMap: Object.values(filesAddedMapping.byPath),
+            addedIds: Object.keys(normalizedFilesAdded),
+            droppedIds: filesAddedMapping.droppedIds
+        };
     }
 
     /**
@@ -253,25 +311,37 @@ class DataSource {
         * it is assumed to be always there and always up to date
         */
         const git = simpleGit({ baseDir });
-        const normalizedCurrentFiles = normalize(currentFiles);
+        const normalizedCurrentFiles = currentFiles.reduce((acc, file, ii) => ({
+            byId: {
 
-        const { normalizedFilesAdded, filesMap } = await this.addFiles(
+                ...acc.byId,
+                [file.id]: file,
+            },
+            byPath: {
+                ...acc.byPath,
+                [getFilePath(file, '')]: { ...file, idx: ii }
+            }
+        }), { byId: {}, byPath: {} });
+
+        const { filesMap, addedIds, droppedIds } = await this.addFiles(
             repositoryName,
             dataDir,
             mapping,
             added
         );
 
+        const addedIdsSet = new Set(addedIds);
+
         await this.moveFiles(
             repositoryName,
             added.length > 0
                 // drop new files from the filesMap
-                ? filesMap.filter(file => !normalizedFilesAdded[file.id])
+                ? filesMap.filter(file => !addedIdsSet.has[file.id])
                 : filesMap,
-            normalizedCurrentFiles
+            normalizedCurrentFiles.byId
         );
 
-        await this.dropFiles(repositoryName, dropped, normalizedCurrentFiles);
+        await this.dropFiles(repositoryName, dropped, normalizedCurrentFiles.byId);
 
         /**
         * cleanups:
@@ -285,16 +355,13 @@ class DataSource {
 
         git.add('.');
 
-        // await git.push()
         const { commit } = await git.commit(commitMessage);
-        // commit is either '(root-commit) <hash>' || <hash>
-        // the length of the hash is 7 chars
+        // await git.push()
+
         return {
-            commitHash: commit.length === 7
-                ? commit
-                : commit.split(' ')[1],
+            commitHash: commit,
             files: {
-                droppedIds: dropped,
+                droppedIds: dropped.concat(droppedIds),
                 mapping: filesMap
             }
         };
