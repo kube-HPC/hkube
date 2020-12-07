@@ -6,16 +6,18 @@ class WorkerStub {
 
     async done({ jobId, data }) {
         const results = {
+            jobId,
             status: 'completed',
             data,
             level: 'info'
         }
-        await stateManager.jobs.status.set({ jobId, ...results });
+        await stateManager.jobs.status.set(results);
         results.data = {};
         results.data.storageInfo = await storageManager.hkubeResults.put({ jobId, data });
-        await db.jobs.updateStatus({ jobId, data: results })
-        await db.jobs.updateResult({ jobId, data: results })
-        await stateManager.jobs.results.set({ jobId, ...results });
+        const { data: stam, ...rest } = results;
+        await db.jobs.updateStatus(rest);
+        await db.jobs.updateResult(results);
+        await stateManager.jobs.results.set(results);
     }
 }
 

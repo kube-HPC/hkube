@@ -1,6 +1,7 @@
 const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
+const db = require('../db');
 
 class StateManager {
     async init(options) {
@@ -17,13 +18,8 @@ class StateManager {
     }
 
     async getJobResult(options) {
-        const result = await this.jobs.results.get(options);
+        const result = await db.jobs.fetchResult(options);
         return this.getResultFromStorage(result);
-    }
-
-    async getJobResults(options) {
-        const list = await this.jobs.results.list(options);
-        return this.mergeJobStorageResults(list);
     }
 
     async mergeJobStorageResults(list) {

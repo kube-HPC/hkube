@@ -57,7 +57,7 @@ describe('Pipelines', () => {
         it('should succeed to get pipelines results', async () => {
             const pipeline = 'flow1';
             const optionsRun = {
-                uri: restUrl + '/exec/stored',
+                uri: `${restUrl}/exec/stored`,
                 body: {
                     name: pipeline,
                     experimentName: 'main'
@@ -69,7 +69,7 @@ describe('Pipelines', () => {
 
             const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit: 3 });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -138,7 +138,7 @@ describe('Pipelines', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data.limit should be integer");
         });
-        it('should succeed to get pipelines results', async () => {
+        it('should succeed to get pipelines status', async () => {
             const pipeline = 'flow1';
             const optionsRun = {
                 uri: restUrl + '/exec/raw',
@@ -153,17 +153,18 @@ describe('Pipelines', () => {
                     ]
                 }
             };
-            const data = [100, 200, 300];
+            const status = 'completed';
+            const data = [status, status, status];
             const responses = await Promise.all(data.map(d => request(optionsRun)));
             await Promise.all(responses.map((r, i) => workerStub.done({ jobId: r.body.jobId, data: data[i] })));
 
             const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit: 3 });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
-            const result = response.body.map(r => r.data).sort();
+            const result = response.body.map(r => r.status)
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(result).to.deep.equal(data);
             expect(response.body[0]).to.have.property('jobId');

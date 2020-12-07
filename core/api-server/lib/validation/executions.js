@@ -1,4 +1,3 @@
-const regex = require('../consts/regex');
 const { InvalidDataError } = require('../errors');
 const db = require('../db');
 
@@ -31,18 +30,16 @@ class ApiValidator {
         this._validator.validate(this._validator.definitions.pipeline, pipeline, false, { checkFlowInput: true, ...options });
     }
 
-    async validateConcurrentPipelines(pipelines, jobId) {
-        if (pipelines.options && pipelines.options.concurrentPipelines) {
-            const { amount, rejectOnFailure } = pipelines.options.concurrentPipelines;
-            const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
-            if (jobIdPrefix) {
-                const result = await db.jobs.fetchRunningByJobIdPrefix({ jobId: jobIdPrefix[0] });
-                if (result.length >= amount) {
-                    if (rejectOnFailure) {
-                        throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);
-                    }
-                    return true;
+    async validateConcurrentPipelines(pipeline) {
+        if (pipeline.options?.concurrentPipelines) {
+            const { experimentName, name: pipelineName } = pipeline;
+            const { amount, rejectOnFailure } = pipeline.options.concurrentPipelines;
+            const result = await db.jobs.fetchByParams({ experimentName, pipelineName, isRunning: true, fields: { jobId: true } });
+            if (result.length >= amount) {
+                if (rejectOnFailure) {
+                    throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);
                 }
+                return true;
             }
         }
         return false;

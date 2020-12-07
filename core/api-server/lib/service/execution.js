@@ -12,8 +12,6 @@ const stateManager = require('../state/state-manager');
 const db = require('../db');
 const validator = require('../validation/api-validator');
 const pipelineCreator = require('./pipeline-creator');
-const WebhookTypes = require('../webhook/States').Types;
-const regex = require('../consts/regex');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 const ActiveStates = [pipelineStatuses.PENDING, pipelineStatuses.CREATING, pipelineStatuses.ACTIVE, pipelineStatuses.RESUMED, pipelineStatuses.PAUSED];
 const PausedState = [pipelineStatuses.PAUSED];
@@ -87,7 +85,7 @@ class ExecutionService {
             await validator.experiments.validateExperimentExists(pipeline);
             const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
             validator.algorithms.validateAlgorithmImage(algorithms);
-            const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline, jobId);
+            const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline);
             types = this._addTypesByAlgorithms(algorithms, types);
 
             if (pipeline.flowInput && !flowInputMetadata) {
@@ -95,9 +93,9 @@ class ExecutionService {
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
                 flowInputMetadata = { metadata, storageInfo };
             }
-            const lastRunResult = await this._getLastPipeline(jobId);
+            const lastRunResult = await this._getLastPipeline(pipeline);
             const pipelineObject = { ...pipeline, rootJobId, flowInputMetadata, startTime: Date.now(), lastRunResult, types };
-            const statusObject = { timestamp: new Date(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
+            const statusObject = { timestamp: Date.now(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await db.jobs.create({ jobId, pipeline: pipelineObject, status: statusObject });
             await stateManager.jobs.status.set({ jobId, ...statusObject });
             await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
@@ -141,7 +139,7 @@ class ExecutionService {
 
     async getJobStatus(options) {
         validator.jobs.validateJobID(options);
-        const status = await stateManager.jobs.status.get({ jobId: options.jobId });
+        const status = await db.jobs.fetchStatus({ jobId: options.jobId });
         if (!status) {
             throw new ResourceNotFoundError('status', options.jobId);
         }
@@ -150,7 +148,7 @@ class ExecutionService {
 
     async getPipeline(options) {
         validator.jobs.validateJobID(options);
-        const pipeline = await db.jobs.fetch({ jobId: options.jobId });
+        const pipeline = await db.jobs.fetchPipeline({ jobId: options.jobId });
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.jobId);
         }
@@ -159,7 +157,7 @@ class ExecutionService {
 
     async getJobResult(options) {
         validator.jobs.validateJobID(options);
-        const jobStatus = await stateManager.jobs.status.get({ jobId: options.jobId });
+        const jobStatus = await db.jobs.fetchStatus({ jobId: options.jobId });
         if (!jobStatus) {
             throw new ResourceNotFoundError('status', options.jobId);
         }
@@ -175,20 +173,24 @@ class ExecutionService {
 
     async getPipelinesResult(options) {
         validator.lists.validateResultList(options);
-        const response = await stateManager.getJobResults(options);
-        if (response.length === 0) {
+        const { name: pipelineName, experimentName } = options;
+        const list = await db.jobs.fetchByParams({ experimentName, pipelineName, hasResult: true, fields: { jobId: true, result: true } });
+        if (list.length === 0) {
             throw new ResourceNotFoundError('pipeline results', options.name);
         }
-
+        const map = list.map(l => ({ jobId: l.jobId, ...l.result }));
+        const response = await stateManager.mergeJobStorageResults(map);
         return response;
     }
 
     async getPipelinesStatus(options) {
         validator.lists.validateResultList(options);
-        const response = await stateManager.jobs.status.list(options);
-        if (response.length === 0) {
+        const { name: pipelineName, experimentName } = options;
+        const list = await db.jobs.fetchByParams({ experimentName, pipelineName, fields: { jobId: true, status: true } });
+        if (list.length === 0) {
             throw new ResourceNotFoundError('pipeline status', options.name);
         }
+        const response = list.map(l => ({ jobId: l.jobId, ...l.status }));
         return response;
     }
 
@@ -198,43 +200,51 @@ class ExecutionService {
 
     async stopJob(options) {
         validator.executions.validateStopPipeline(options);
-        const jobStatus = await stateManager.jobs.status.get({ jobId: options.jobId });
+        const { jobId, reason } = options;
+        const jobStatus = await db.jobs.fetchStatus({ jobId });
         if (!jobStatus) {
-            throw new ResourceNotFoundError('jobId', options.jobId);
+            throw new ResourceNotFoundError('jobId', jobId);
         }
         if (!this.isActiveState(jobStatus.status)) {
             throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
-        const { jobId } = options;
         const pipeline = await db.jobs.fetchPipeline({ jobId });
-        await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.STOPPED, reason: options.reason, level: levels.INFO.name });
-        await stateManager.jobs.results.set({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: pipelineStatuses.STOPPED });
+        const statusObject = { jobId, status: pipelineStatuses.STOPPED, reason, level: levels.INFO.name };
+        const resultObject = { jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status: pipelineStatuses.STOPPED };
+        await db.jobs.updateStatus(statusObject);
+        await db.jobs.updateResult(resultObject);
+        await stateManager.jobs.status.update(statusObject);
+        await stateManager.jobs.results.set(resultObject);
     }
 
     async pauseJob(options) {
         validator.jobs.validateJobID(options);
         const { jobId } = options;
-        const jobStatus = await stateManager.jobs.status.get({ jobId });
+        const jobStatus = await db.jobs.fetchStatus({ jobId });
         if (!jobStatus) {
             throw new ResourceNotFoundError('jobId', jobId);
         }
         if (!this.isActiveState(jobStatus.status)) {
             throw new InvalidDataError(`unable to pause pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
-        await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.PAUSED, level: levels.INFO.name });
+        const statusObject = { jobId, status: pipelineStatuses.PAUSED, level: levels.INFO.name };
+        await db.jobs.updateStatus(statusObject);
+        await stateManager.jobs.status.update(statusObject);
     }
 
     async resumeJob(options) {
         validator.jobs.validateJobID(options);
         const { jobId } = options;
-        const jobStatus = await stateManager.jobs.status.get({ jobId });
+        const jobStatus = await db.jobs.fetchStatus({ jobId });
         if (!jobStatus) {
             throw new ResourceNotFoundError('jobId', jobId);
         }
         if (!this.isPausedState(jobStatus.status)) {
             throw new InvalidDataError(`unable to resume pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
-        await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.RESUMED, level: levels.INFO.name });
+        const statusObject = { jobId, status: pipelineStatuses.RESUMED, level: levels.INFO.name };
+        await db.jobs.updateStatus(statusObject);
+        await stateManager.jobs.status.update(statusObject);
         await producer.createJob({ jobId });
     }
 
@@ -249,20 +259,17 @@ class ExecutionService {
 
     async cleanJob(options) {
         const { jobId } = options;
-        await stateManager.jobs.status.set({ jobId, status: pipelineStatuses.STOPPED, reason: 'clean job' });
+        const statusObject = { jobId, status: pipelineStatuses.STOPPED, reason: 'clean job' };
+        await db.jobs.updateStatus(statusObject);
+        await stateManager.jobs.status.update(statusObject);
         await Promise.all([
             storageManager.hkubeIndex.delete({ jobId }),
-            storageManager.hkubeExecutions.delete({ jobId }),
             storageManager.hkube.delete({ jobId }),
             storageManager.hkubeResults.delete({ jobId }),
             storageManager.hkubeMetadata.delete({ jobId }),
-            stateManager.executions.running.delete({ jobId }),
-            stateManager.executions.stored.delete({ jobId }),
             stateManager.jobs.results.delete({ jobId }),
             stateManager.jobs.status.delete({ jobId }),
             stateManager.jobs.tasks.delete({ jobId }),
-            stateManager.webhooks.delete({ jobId, type: WebhookTypes.PROGRESS }),
-            stateManager.webhooks.delete({ jobId, type: WebhookTypes.RESULT }),
             producer.stopJob({ jobId })
         ]);
     }
@@ -271,13 +278,19 @@ class ExecutionService {
         return [options.name, uid({ length: 8 })].join(':');
     }
 
-    async _getLastPipeline(jobId) {
-        const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
-        if (jobIdPrefix) {
-            const result = await stateManager.jobs.results.list({ jobId: jobIdPrefix[0], limit: 1, sort: 'desc' });
-            if (result.length > 0) {
-                return (({ timestamp, status, timeTook }) => ({ timestamp, status, timeTook }))(result[0]);
-            }
+    async _getLastPipeline(pipeline) {
+        const { experimentName, name: pipelineName } = pipeline;
+        const result = await db.jobs.fetchByParams({
+            experimentName,
+            pipelineName,
+            hasResult: true,
+            sort: { 'result.timestamp': 'desc' },
+            limit: 1,
+            fields: { result: true }
+        });
+        if (result.length > 0) {
+            const { timestamp, status, timeTook } = result[0].result;
+            return { timestamp, status, timeTook };
         }
         return null;
     }

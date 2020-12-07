@@ -73,10 +73,7 @@ describe('Executions', () => {
             expect(response2.body.nodes).to.deep.equal(options1.body.nodes);
         });
         it('should exec stored pipeline with concurrent and failed if reached the max number', async () => {
-            const rp = await stateManager.executions.running.list({ jobId: 'concurrentPipelinesReject:' });
-            await Promise.all(rp.map(p => stateManager.executions.running.delete({ jobId: p.jobId })));
             const pipeline = pipelines.find(p => p.name === 'concurrentPipelinesReject');
-
             const options = {
                 uri: restUrl + '/exec/stored',
                 body: {

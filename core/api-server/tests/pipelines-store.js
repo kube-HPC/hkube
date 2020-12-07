@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const clone = require('clone');
 const { pipelineStatuses } = require('@hkube/consts');
-const stateManager = require('../lib/state/state-manager');
+const db = require('../lib/db');
 const { uuid } = require('@hkube/uid');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
@@ -54,7 +54,7 @@ describe('Store/Pipelines', () => {
             await request(optionsInsert);
 
             const options = {
-                uri: restPath + '/' + pipeline.name,
+                uri: `${restPath}/${pipeline.name}`,
                 method: 'DELETE',
                 body: {}
             };
@@ -80,7 +80,7 @@ describe('Store/Pipelines', () => {
             await request(options1);
             const res = await request(options1);
             const jobId = res.body.jobId;
-            await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.STOPPED });
+            await db.jobs.updateStatus({ jobId, status: pipelineStatuses.STOPPED });
 
             const options2 = {
                 uri: `${restPath}/${pipelineName}`,

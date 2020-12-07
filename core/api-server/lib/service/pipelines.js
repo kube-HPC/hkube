@@ -1,4 +1,5 @@
 const graphlib = require('graphlib');
+const { pipelineTypes } = require('@hkube/consts');
 const validator = require('../validation/api-validator');
 const db = require('../db');
 const executionService = require('./execution');
@@ -29,8 +30,13 @@ class PipelineService {
     }
 
     async _stopAllRunningPipelines(options) {
-        const pipelines = await db.jobs.fetchRunningByPipelineName({ pipelineName: options.name });
-        const result = await Promise.all(pipelines.map(p => this._promiseWrapper(() => executionService.stopJob(p))));
+        const pipelines = await db.jobs.fetchByParams({
+            pipelineName: options.name,
+            pipelineType: pipelineTypes.STORED,
+            isRunning: true,
+            fields: { jobId: true },
+        });
+        const result = await Promise.all(pipelines.map(p => this._promiseWrapper(() => executionService.stopJob({ jobId: p.jobId, reason: 'pipeline has been deleted' }))));
         return result;
     }
 
@@ -56,7 +62,9 @@ class PipelineService {
     async getPipelinesTriggersTree(options) {
         const { name } = options;
         const graph = new graphlib.Graph();
-        const pipelines = await pipelineStore.getPipelines(null, (p) => p.triggers && p.triggers.pipelines && p.triggers.pipelines.length);
+        const pipelines = await db.pipelines.fetchByParams({
+            hasTriggers: true
+        });
         if (pipelines.length === 0) {
             throw new InvalidDataError('unable to find any pipeline with triggers');
         }

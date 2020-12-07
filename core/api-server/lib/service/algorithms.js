@@ -112,7 +112,7 @@ class AlgorithmStore {
     }
 
     _entitiesToText(entities) {
-        return Object.entries(entities).filter(([, v]) => v).map(([k, v]) => `${v.length} ${k}`).join(', ');
+        return Object.entries(entities).filter(([, v]) => v).map(([k, v]) => `${v} ${k}`).join(', ');
     }
 
     async _deleteEntity(func, item) {
@@ -138,9 +138,9 @@ class AlgorithmStore {
 
     async _findAlgorithmDependencies(name) {
         const [versions, pipelines, executions] = await Promise.all([
-            versionsService.getVersionsList({ name }),
-            db.pipelines.fetchByAlgorithmName({ algorithmName: name }),
-            db.jobs.fetchRunningByAlgorithmName({ algorithmName: name })
+            versionsService.getVersionsList({ name, fields: { fileInfo: true } }),
+            db.pipelines.fetchByParams({ algorithmName: name }),
+            db.jobs.fetchByParams({ algorithmName: name, isRunning: true, fields: { jobId: true } })
         ]);
         return { versions, pipelines, executions };
     }

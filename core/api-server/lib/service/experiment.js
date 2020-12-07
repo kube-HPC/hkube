@@ -1,5 +1,4 @@
 const objectPath = require('object-path');
-const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const executionService = require('./execution');
 const cronService = require('./cron');
@@ -55,8 +54,10 @@ class Experiment {
     }
 
     async _stopAllCrons(experimentName) {
-        const limit = 1000;
-        const pipelines = await stateManager.pipelines.list({ limit }, (p) => this._hasCron(p, experimentName));
+        const pipelines = await db.pipelines.fetchByParams({
+            experimentName,
+            hasCronEnabled: true,
+        });
         await Promise.all(pipelines.map(p => cronService.updateCronJob(p, { enabled: false })));
     }
 
@@ -66,7 +67,7 @@ class Experiment {
     }
 
     async _cleanAll(experimentName) {
-        const pipelines = await db.jobs.fetchAll({ query: { experimentName } });
+        const pipelines = await db.jobs.fetchByParams({ experimentName, fields: { jobId: true } });
         await Promise.all(pipelines.map(p => executionService.cleanJob({ jobId: p.jobId })));
     }
 }

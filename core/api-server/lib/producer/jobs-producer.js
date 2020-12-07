@@ -33,8 +33,13 @@ class JobProducer {
             const status = pipelineStatuses.FAILED;
             log.error(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
             const pipeline = await db.jobs.fetchPipeline({ jobId });
-            stateManager.jobs.status.set({ jobId, pipeline: pipeline.name, status, error, level: levels.ERROR.name });
-            stateManager.jobs.results.set({ jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime });
+            const statusObject = { jobId, status, error, level: levels.ERROR.name };
+            const resultObject = { jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime };
+            await db.jobs.updateStatus(statusObject);
+            await db.jobs.updateResult(resultObject);
+
+            stateManager.jobs.status.update(statusObject);
+            stateManager.jobs.results.set(resultObject);
         });
     }
 

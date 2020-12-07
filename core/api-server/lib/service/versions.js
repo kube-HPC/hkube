@@ -50,7 +50,7 @@ class AlgorithmVersions {
         validator.algorithms.validateAlgorithmVersion(options);
         const algorithmVersion = await this.getVersion({ name, version });
         if (!force) {
-            const runningPipelines = await db.jobs.fetchRunningByAlgorithmName({ algorithmName: name });
+            const runningPipelines = await db.jobs.fetchByParams({ algorithmName: name, isRunning: true, fields: { jobId: true } });
             if (runningPipelines.length > 0) {
                 throw new ActionNotAllowed(`there are ${runningPipelines.length} running pipelines which dependent on "${options.name}" algorithm`, runningPipelines.map(p => p.jobId));
             }
@@ -149,11 +149,12 @@ class AlgorithmVersions {
         return algorithmVersion;
     }
 
-    async getVersionsList({ name, limit }) {
+    async getVersionsList({ name, limit, fields }) {
         const versions = await db.algorithms.versions.fetchAll({
             query: { name },
             sort: { created: 'desc' },
-            limit
+            limit,
+            fields
         });
         return versions;
     }

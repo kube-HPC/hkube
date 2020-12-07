@@ -76,7 +76,7 @@ describe('Internal', () => {
                 }
             };
             const response = await request(options2);
-            expect(response.body.jobId).to.include(options1.body.experimentName);
+            expect(response.body.jobId).to.include(pipelineName);
         })
         it('should run cron pipelines without experiment', async () => {
             const pipeline = clone(pipelines[0]);
@@ -87,7 +87,7 @@ describe('Internal', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body.jobId).to.include('main');
+            expect(response.body.jobId).to.include(pipeline.name);
         })
         it('should run triggered cron pipelines and get the results', async () => {
             const requests = 5;
@@ -300,7 +300,7 @@ describe('Internal', () => {
 
             // get the exec tree
             const opt = {
-                uri: restUrl + `/exec/tree/${firstJobId}`,
+                uri: `${restUrl}/exec/tree/${firstJobId}`,
                 method: 'GET'
             };
             const tree = await request(opt);

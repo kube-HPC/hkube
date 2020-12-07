@@ -11,10 +11,11 @@ class CronService {
     async getCronResult(options) {
         validator.lists.validateResultList(options);
         const { experimentName, name, sort, limit } = options;
-        const list = await db.jobs.fetchCronByPipelineAndExperiment({
+        const list = await db.jobs.fetchByParams({
             experimentName,
             pipelineName: name,
-            sort: { startTime: sort },
+            pipelineType: pipelineTypes.CRON,
+            sort: { 'pipeline.startTime': sort },
             fields: { jobId: true, result: true },
             limit
         });
@@ -29,14 +30,15 @@ class CronService {
     async getCronStatus(options) {
         validator.lists.validateResultList(options);
         const { experimentName, name, sort, limit } = options;
-        const list = await db.jobs.fetchCronByPipelineAndExperiment({
+        const list = await db.jobs.fetchByParams({
             experimentName,
             pipelineName: name,
-            sort: { startTime: sort },
+            pipelineType: pipelineTypes.CRON,
+            sort: { 'pipeline.startTime': sort },
             fields: { jobId: true, status: true },
             limit
         });
-        const map = list.map(l => ({ jobId: l.jobId, ...l.result }));
+        const map = list.map(l => ({ jobId: l.jobId, ...l.status }));
         if (map.length === 0) {
             throw new ResourceNotFoundError('cron status', options.name);
         }
@@ -45,8 +47,10 @@ class CronService {
 
     async getCronList(options) {
         const { sort, limit } = options;
-        let pipelines = await db.pipelines.fetchByCron({
+        let pipelines = await db.pipelines.fetchByParams({
+            hasCron: true,
             sort: { startTime: sort },
+            fields: { name: true, 'triggers.cron': true },
             limit
         });
         pipelines = pipelines.map(p => ({ name: p.name, cron: p.triggers.cron }));
