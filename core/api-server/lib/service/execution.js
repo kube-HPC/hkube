@@ -173,8 +173,15 @@ class ExecutionService {
 
     async getPipelinesResult(options) {
         validator.lists.validateResultList(options);
-        const { name: pipelineName, experimentName } = options;
-        const list = await db.jobs.fetchByParams({ experimentName, pipelineName, hasResult: true, fields: { jobId: true, result: true } });
+        const { name: pipelineName, experimentName, sort, limit } = options;
+        const list = await db.jobs.fetchByParams({
+            experimentName,
+            pipelineName,
+            hasResult: true,
+            fields: { jobId: true, result: true },
+            sort: { 'result.timestamp': sort },
+            limit
+        });
         if (list.length === 0) {
             throw new ResourceNotFoundError('pipeline results', options.name);
         }
@@ -185,8 +192,14 @@ class ExecutionService {
 
     async getPipelinesStatus(options) {
         validator.lists.validateResultList(options);
-        const { name: pipelineName, experimentName } = options;
-        const list = await db.jobs.fetchByParams({ experimentName, pipelineName, fields: { jobId: true, status: true } });
+        const { name: pipelineName, experimentName, sort, limit } = options;
+        const list = await db.jobs.fetchByParams({
+            experimentName,
+            pipelineName,
+            fields: { jobId: true, status: true },
+            sort: { 'status.timestamp': sort },
+            limit
+        });
         if (list.length === 0) {
             throw new ResourceNotFoundError('pipeline status', options.name);
         }

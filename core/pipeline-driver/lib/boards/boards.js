@@ -7,7 +7,7 @@ class Boards {
     }
 
     update(task) {
-        if (!this.updated && task.metricsPath && task.metricsPath.tensorboard && task.metricsPath.tensorboard.path) {
+        if (!this.updated && task.metricsPath?.tensorboard?.path) {
             this.updated = true;
             this.updateBoard({ jobId: task.jobId }, (oldItem) => {
                 const types = [...new Set([...oldItem.types || [], pipelineTypes.TENSORBOARD])];

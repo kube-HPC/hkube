@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const nock = require('nock');
 const stateManager = require('../lib/state/state-manager');
+const db = require('../lib/db');
 const { delay, request } = require('./utils');
 let restUrl;
 
@@ -95,13 +96,14 @@ describe('Webhooks', () => {
                             method: 'GET'
                         };
                         const response = await request(status);
-                        expect(requestBody).to.deep.equal(response.body);
+                        expect(response.body.jobId).to.eql(requestBody.jobId);
+                        expect(response.body.status).to.eql(requestBody.status);
+                        expect(response.body.data).to.eql(requestBody.data);
                         return resolve();
-
-                    })
+                    });
 
                 const stored = {
-                    uri: restUrl + '/exec/stored',
+                    uri: `${restUrl}/exec/stored`,
                     body: { name: 'webhookFlow1' }
                 };
                 const response = await request(stored);
@@ -111,6 +113,8 @@ describe('Webhooks', () => {
                     status: 'completed',
                     data: [{ res1: 400 }, { res2: 500 }]
                 }
+                await db.jobs.updateStatus(results);
+                await db.jobs.updateResult(results);
                 await stateManager.jobs.status.set(results);
                 await stateManager.jobs.results.set(results);
             });
@@ -159,7 +163,6 @@ describe('Webhooks', () => {
                 data: [{ res1: 400 }, { res2: 500 }]
             }
             await stateManager.jobs.results.set(results);
-
             await delay(1000);
 
             options = {
@@ -194,7 +197,9 @@ describe('Webhooks', () => {
                             method: 'GET'
                         };
                         const response = await request(status);
-                        expect(requestBody).to.deep.equal(response.body);
+                        expect(response.body.jobId).to.eql(requestBody.jobId);
+                        expect(response.body.status).to.eql(requestBody.status);
+                        expect(response.body.data).to.eql(requestBody.data);
                         return resolve();
 
                     })

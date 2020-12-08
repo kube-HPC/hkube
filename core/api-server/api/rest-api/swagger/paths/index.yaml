@@ -111,8 +111,6 @@
   $ref: ./experiment/experiment_name.yaml
 /experiment:
   $ref: ./experiment/experiment.yaml
-/experiment/list/all:
-  $ref: ./experiment/experiment_list.yaml
 
 # graph
 /graph/raw/{jobId}:

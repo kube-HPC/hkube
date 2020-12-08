@@ -1,7 +1,7 @@
 const rp = require('request-promise');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { boardStatuses } = require('@hkube/consts');
-const etcd = require('../helpers/etcd');
+const db = require('../helpers/db');
 const { createKindsSpec } = require('../deployments/tensorboard');
 const kubernetes = require('../helpers/kubernetes');
 const { normalizeBoardDeployments } = require('./normalize');
@@ -13,7 +13,7 @@ const _createBoardDeployment = async (deploymentDetails) => {
     await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name: boardReference }, deploymentType);
     board.status = boardStatuses.CREATING;
     board.timestamp = Date.now();
-    await etcd.updateTensorboard(board);
+    await db.updateTensorboard(board);
 };
 
 const reconcile = async ({ boards, deployments, versions, registry, clusterOptions, boardTimeOut, options }) => {
@@ -22,7 +22,7 @@ const reconcile = async ({ boards, deployments, versions, registry, clusterOptio
     const added = pending.filter(a => !normDeployments.find(d => d.boardReference === a.boardReference));
     const now = Date.now();
     const timedOut = boards.filter(b => ((b.startTime + boardTimeOut) < now));
-    await Promise.all(timedOut.map(board => (etcd.deleteTensorboard(board))));
+    await Promise.all(timedOut.map(board => (db.deleteTensorboard(board))));
     const boardsLeft = boards.filter(board => (timedOut.indexOf(board) === -1));
     const removed = normDeployments.filter(a => !boardsLeft.find(d => d.boardReference === a.boardReference));
     await Promise.all(added.map(a => _createBoardDeployment({ board: a, versions, registry, clusterOptions, options })));
@@ -30,13 +30,13 @@ const reconcile = async ({ boards, deployments, versions, registry, clusterOptio
 };
 
 const updateTensorboards = async () => {
-    const boards = await etcd.getTensorboards();
+    const boards = await db.getTensorboards();
     const creating = boards.filter(b => b.status === boardStatuses.CREATING);
     await Promise.all(creating.map(async (board) => {
         const url = `http://board-service-${board.boardReference}.${kubernetes.namespace}.svc`;
         try {
             const result = await rp({ uri: url, resolveWithFullResponse: true });
-            await etcd.updateTensorboard({ ...board, status: boardStatuses.RUNNING, timestamp: Date.now() });
+            await db.updateTensorboard({ ...board, status: boardStatuses.RUNNING, timestamp: Date.now() });
             return { code: result.statusCode };
         }
         catch (error) {

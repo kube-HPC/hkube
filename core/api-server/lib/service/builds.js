@@ -10,6 +10,7 @@ const Logger = require('@hkube/logger');
 const { buildStatuses, buildTypes } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
+const stateManager = require('../state/state-manager');
 const db = require('../db');
 const Build = require('./build');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
@@ -56,6 +57,7 @@ class Builds {
             endTime: null,
             startTime: Date.now()
         };
+        await stateManager.algorithms.builds.set(build);
         return db.algorithms.builds.update(build);
     }
 
@@ -71,6 +73,7 @@ class Builds {
             status: buildStatuses.STOPPED,
             endTime: Date.now()
         };
+        await stateManager.algorithms.builds.update(buildData);
         await db.algorithms.builds.update(buildData);
     }
 

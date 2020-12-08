@@ -1,5 +1,5 @@
 module.exports = {
     API: 'API',
-    RUNNER: 'RUNNER'
-
+    RUNNER: 'RUNNER',
+    DB: 'DB'
 };

@@ -58,7 +58,8 @@
         "options": {
             "debug": false,
             "pending": false
-        }
+        },
+        "downloadFileExt": "jpg"
     },
     {
         "name": "black-alg",
@@ -69,7 +70,8 @@
         "options": {
             "debug": false,
             "pending": false
-        }
+        },
+        "downloadFileExt": "png"
     },
     {
         "name": "types-check",

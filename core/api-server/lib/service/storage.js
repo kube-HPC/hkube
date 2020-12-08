@@ -90,8 +90,8 @@ class StorageService {
     async _createArchive(data, algorithmsMap, archive) {
         let info;
         if (data.info) {
-            const algorithms = algorithmsMap.get(data.algorithmName);
-            const ext = algorithms.downloadFileExt || 'hkube';
+            const algorithm = algorithmsMap.get(data.algorithmName);
+            const ext = algorithm?.downloadFileExt || 'hkube';
             const fileName = `${uid()}.${ext}`;
             const stream = await storageManager.getCustomStream({ path: data.info.path });
             archive.append(stream, { name: fileName });

@@ -152,8 +152,8 @@ describe('TaskRunner', function () {
 
         // simulate restart
         await taskRunner._onStop({})
-        expect(taskRunner._active).to.equal(false,'_onStop failed');
-        taskRunner=new TaskRunner(config)
+        expect(taskRunner._active).to.equal(false, '_onStop failed');
+        taskRunner = new TaskRunner(config)
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });

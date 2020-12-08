@@ -5,6 +5,7 @@ const HttpStatus = require('http-status-codes');
 const { Encoding } = require('@hkube/encoding');
 const { request } = require('./utils');
 const { uid: uuid } = require('@hkube/uid');
+const { workerStub } = require('./mocks');
 let restUrl;
 let maxStorageFetchKeys;
 let encoding;
@@ -447,22 +448,37 @@ describe('Storage', () => {
             };
             const responseRun = await request(optionsRun);
             const jobId = responseRun.body.jobId;
-            const data = 500;
-            await workerStub.done({ jobId, data });
+            const path1 = await storageManager.hkube.put({ jobId, taskId: 'a', data: 100 });
+            const path2 = await storageManager.hkube.put({ jobId, taskId: 'b', data: 200 });
+            const data = [
+                {
+                    nodeName: 'A',
+                    algorithmName: 'yellow-alg',
+                    info: {
+                        path: path1.path,
+                        size: 10
+                    }
+                },
+                {
+                    nodeName: 'B',
+                    algorithmName: 'black-alg',
+                    info: {
+                        path: path2.path,
+                        size: 20
+                    }
+                }];
 
+            await workerStub.done({ jobId, data });
             const options = {
                 uri: `${restPath}/${responseRun.body.jobId}`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body.data).to.equal(data);
-            expect(response.body).to.have.property('jobId');
-            expect(response.body).to.have.property('data');
-            expect(response.body).to.have.property('storageModule');
-            expect(response.body).to.have.property('status');
-            expect(response.body).to.have.property('timeTook');
-            expect(response.body).to.have.property('timestamp');
+            expect(response.response.headers['content-disposition']).to.eql('attachment; filename=hkube-result.zip');
+            expect(response.body).to.contains('metadata.json');
+            expect(response.body).to.contains('jpg');
+            expect(response.body).to.contains('png');
         });
     });
 });

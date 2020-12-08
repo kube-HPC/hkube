@@ -15,8 +15,8 @@ class CronService {
             experimentName,
             pipelineName: name,
             pipelineType: pipelineTypes.CRON,
-            sort: { 'pipeline.startTime': sort },
             fields: { jobId: true, result: true },
+            sort: { 'pipeline.startTime': sort },
             limit
         });
         const map = list.map(l => ({ jobId: l.jobId, ...l.result }));

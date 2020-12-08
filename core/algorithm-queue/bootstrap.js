@@ -8,6 +8,7 @@ const { componentName } = require('./lib/consts/index');
 const { tracer } = require('@hkube/metrics');
 
 const modules = [
+    require('./lib/persistency/db'),
     require('./lib/jobs/consumer'),
     require('./lib/jobs/producer-singleton'),
     require('./lib/jobs/producer'),
