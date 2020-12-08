@@ -4,7 +4,7 @@ ENV PACKAGES_REGISTRY_USER ${PACKAGES_REGISTRY_USER}
 ENV PACKAGES_TOKEN ${PACKAGES_TOKEN}
 ENV PACKAGES_REGISTRY ${PACKAGES_REGISTRY}
 COPY ./dockerfile/settings.xml ./algorithm_unique_folder/src/main/resources/settings.xml* /root/.m2/
-RUN mvn -q dependency:get -Dartifact=io.hkube:wrapper:${javaWrapperVersion}:jar:wide -DremoteRepositories=http://artifacts-registry:8081/hkube/mvn_registry/repository/sonatype-snapshot/ -Ddest=/hkube/algorithm-runner/wrapper.jar
+RUN mvn -q dependency:get -Dartifact=io.hkube:wrapper:${javaWrapperVersion}:jar:wide -DremoteRepositories=http://artifacts-registry:8081/hkube/artifacts-registry/repository/sonatype-snapshot/ -Ddest=/hkube/algorithm-runner/wrapper.jar
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./runJava.sh /hkube/algorithm-runner/
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
