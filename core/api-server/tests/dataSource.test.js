@@ -65,6 +65,19 @@ describe.only('Datasource', () => {
             expect(response.body.dataSourceMetadata).to.have.property(ds);
         });
     });
+    describe('datasource/id/:id GET', () => {
+        it('should fetch by id', async () => {
+            const name = uuid();
+            const { body: firstVersion } = await createDataSource({ body: { name } });
+            const secondFileName = 'README-2.md';
+            const { response: uploadResponse } = await updateVersion({ dataSourceName: name, fileNames: [secondFileName] });
+            const { body: updatedVersion } = uploadResponse;
+            expect(firstVersion.id).not.to.eq(updatedVersion.id);
+            expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
+            const { body: oldVersion } = await fetchDataSource({ id: firstVersion.id });
+            expect(oldVersion.id).to.eq(firstVersion.id);
+        });
+    });
     describe('/datasource/:name GET', () => {
         it('should throw error datasource not found', async () => {
             const options = {
@@ -104,6 +117,30 @@ describe.only('Datasource', () => {
                 expect(file).to.have.property('size');
                 expect(file).to.have.property('type');
             });
+        });
+        it('should fetch an older version', async () => {
+            const name = uuid();
+            const { body: firstVersion } = await createDataSource({ body: { name } });
+            const secondFileName = 'README-2.md';
+            const { response: uploadResponse } = await updateVersion({ dataSourceName: name, fileNames: [secondFileName] });
+            const { body: updatedVersion } = uploadResponse;
+            expect(firstVersion.id).not.to.eq(updatedVersion.id);
+            expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
+            const { body: oldVersion } = await fetchDataSource({ name, id: firstVersion.id });
+            expect(oldVersion.id).to.eq(firstVersion.id);
+        });
+        it('should fail if version_id does not match the name', async () => {
+            const name = uuid();
+            const { body: firstVersion } = await createDataSource({ body: { name } });
+            const secondFileName = 'README-2.md';
+            const { response: uploadResponse } = await updateVersion({ dataSourceName: name, fileNames: [secondFileName] });
+            const { body: updatedVersion } = uploadResponse;
+            expect(firstVersion.id).not.to.eq(updatedVersion.id);
+            expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
+            const { body: errorBody } = await fetchDataSource({ name: 'not real name', id: firstVersion.id });
+            expect(errorBody).to.have.property('error');
+            expect(errorBody.error.code).to.eq(400);
+            expect(errorBody.error.message).to.match(/version_id (.+) does not exist for name (.+)/i);
         });
     });
     describe.skip('datasource/:name/:fileName GET', () => {

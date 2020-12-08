@@ -84,12 +84,16 @@ const updateVersion = async ({
 
 /** 
  * @param {object} query
- * @param {string} query.name 
+ * @param {string=} query.name 
+ * @param {string=} query.id 
  * */
-const fetchDataSource = ({ name }) => {
+const fetchDataSource = ({ name, id }) => {
     const uri = `${global.testParams.restUrl}/datasource`;
     const getOptions = {
-        uri: `${uri}/${name}`,
+        uri: id && name
+            ? `${uri}/${name}?version_id=${id}`
+            : id ? `${uri}/id/${id}`
+                : `${uri}/${name}`,
         method: 'GET'
     };
     return request(getOptions);

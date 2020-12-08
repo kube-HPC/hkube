@@ -5,7 +5,6 @@ const { default: simpleGit } = require('simple-git');
 const childProcess = require('child_process');
 const { parse: parsePath } = require('path');
 const { connection: db } = require('../db');
-const { NotModified } = require('../errors');
 const {
     ResourceExistsError,
     ResourceNotFoundError
@@ -84,7 +83,9 @@ class DataSource {
         });
         await new Promise((res, rej) => {
             ls.on('error', rej);
-            ls.stdout.on('end', res);
+            ls.stdout.on('end', (data) => {
+                res(data);
+            });
         });
         return cache;
     }
@@ -138,16 +139,19 @@ class DataSource {
     async moveFiles(repositoryName, mapping, normalizedCurrentFiles) {
         if (mapping.length === 0) return {};
         // fill in missing details from the previous version of the file
-        const filesMovedMapping = mapping.reduce((acc, file) => ({
-            ...acc,
-            [file.id]: {
-                ...normalizedCurrentFiles[file.id],
-                ...file
-            }
-        }), {});
+        const filesMovedMapping = mapping.reduce((acc, file) => (
+            normalizedCurrentFiles[file.id]
+                ? {
+                    ...acc,
+                    [file.id]: {
+                        ...normalizedCurrentFiles[file.id],
+                        ...file
+                    }
+                } : acc
+        ), {});
 
-        await Promise.all(mapping.map(async file => {
-            const src = getFilePath(file);
+        await Promise.all(Object.values(filesMovedMapping).map(async file => {
+            const src = getFilePath(normalizedCurrentFiles[file.id]);
             const target = getFilePath(filesMovedMapping[file.id]);
             await fse.ensureDir(parsePath(target).dir);
             // moves .dvc files and updates gitignore
@@ -222,10 +226,14 @@ class DataSource {
                 description: '',
                 uploadedAt: new Date().getTime()
             };
+            // the path is used as a key for the byPath collection
+            // this is used to drop duplications when updating a file's version
             const filePath = getFilePath(fileMeta);
 
             let idToDrop;
             let nextByIdFile = fileMeta;
+            // file already exists on the byPath collection
+            // pick the newer version and list the old one for dropping later on
             if (acc.byPath[filePath]) {
                 const existingFile = acc.byPath[filePath];
                 if (existingFile.uploadedAt > fileMeta.uploadedAt) {
@@ -263,7 +271,6 @@ class DataSource {
             addedFilesMap.map(file => fse.ensureDir(file.path.match(pathNameRegex)[0]))
         );
 
-        // console.log({ addedFilesMap, normalizedFilesAdded, filesMap });
         await Promise.all(
             addedFilesMap.map(file => fse.move(
                 normalizedFilesAdded[file.id].path,
@@ -322,7 +329,6 @@ class DataSource {
                 [getFilePath(file, '')]: { ...file, idx: ii }
             }
         }), { byId: {}, byPath: {} });
-
         const { filesMap, addedIds, droppedIds } = await this.addFiles(
             repositoryName,
             dataDir,
@@ -331,7 +337,6 @@ class DataSource {
         );
 
         const addedIdsSet = new Set(addedIds);
-
         await this.moveFiles(
             repositoryName,
             added.length > 0
@@ -420,6 +425,7 @@ class DataSource {
             if (error.type === errorTypes.CONFLICT) {
                 throw new ResourceExistsError('dataSource', name);
             }
+            return null;
         }
         await this.createRepo(name);
         const { commitHash, files: { mapping } } = await this.commitChange({
@@ -450,12 +456,13 @@ class DataSource {
 
     /**
      * @param {object} query
-     * @param {string} query.name
+     * @param {string=} query.name
+     * @param {string=} query.id
      */
-    async fetchDataSourceMetaData({ name }) {
+    async fetchDataSourceMetaData({ name, id }) {
         let dataSource = null;
         try {
-            dataSource = await db.dataSources.fetch({ name });
+            dataSource = await db.dataSources.fetch({ name, id });
         }
         catch (error) {
             if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
@@ -468,10 +475,11 @@ class DataSource {
 
     /**
      * @param {object} query
-     * @param {string} query.name
+     * @param {string=} query.name
+     * @param {string=} query.id
      */
-    async fetchDataSource({ name }) {
-        return this.fetchDataSourceMetaData({ name });
+    async fetchDataSource({ name, id }) {
+        return this.fetchDataSourceMetaData({ name, id });
     }
 
     /** @type {(query: {names?: string[], ids?:string[]}) => Promise<DataSourceItem[]>} */

@@ -45,12 +45,38 @@ const routes = () => {
             }
             next();
         });
+    router
+        .route('/id/:id')
+        .get(async (req, res, next) => {
+            const { id } = req.params;
+            const dataSourceEntry = await dataSource.fetchDataSource({ id });
 
+            const { files, ...rest } = dataSourceEntry;
+            res.json({
+                ...rest,
+                path: `datasource/id/${dataSourceEntry.id}`,
+                files
+            });
+            next();
+        });
     router
         .route('/:name')
         .get(async (req, res, next) => {
+            /** @type {{version_id: string}} */
+            // @ts-ignore
+            const { version_id: versionId } = req.query;
             const { name } = req.params;
-            const dataSourceEntry = await dataSource.fetchDataSource({ name });
+            let dataSourceEntry;
+            if (versionId) {
+                dataSourceEntry = await dataSource.fetchDataSource({ id: versionId });
+                if (dataSourceEntry?.name !== name) {
+                    throw new InvalidDataError(`version_id ${versionId} does not exist for name ${name}`);
+                }
+            }
+            else {
+                dataSourceEntry = await dataSource.fetchDataSource({ name });
+            }
+
             const { files, ...rest } = dataSourceEntry;
             res.json({
                 ...rest,
