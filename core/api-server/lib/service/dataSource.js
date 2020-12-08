@@ -171,7 +171,12 @@ class DataSource {
         await Promise.all(fileIds.map(async id => {
             const path = getFilePath(normalizedCurrentFiles[id]);
             // drops the dvc file and updates gitignore
-            return this._execute(repositoryName, `dvc remove ${path}.dvc`);
+            await this._execute(repositoryName, `dvc remove ${path}.dvc`);
+            const fullPath = `${this.rootDir}/${repositoryName}/${path}`;
+            if (await fse.pathExists(fullPath)) {
+                await fse.unlink(fullPath);
+            }
+            return null;
         }));
     }
 
