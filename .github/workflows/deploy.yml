@@ -125,7 +125,7 @@ jobs:
       run: kubectl cluster-info
     - name: deploy
       run: |
-          helm upgrade -i hkube --force --wait -f ${{ github.workspace }}/dev1.yaml ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
+          helm upgrade -i hkube --wait -f ${{ github.workspace }}/dev1.yaml ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
           helm ls
     - name: set deployment status to success
       id: successful_deployment
