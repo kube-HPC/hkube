@@ -12,7 +12,7 @@ class ApiValidator {
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validator.validate(this._validator.definitions.storedPipelineRequest, pipeline, false);
+        this._validator.validate(this._validator.definitions.pipeline, pipeline, false);
     }
 
     validateCaching(request) {

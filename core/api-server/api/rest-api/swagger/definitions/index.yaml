@@ -74,8 +74,6 @@ pauseRequest:
   $ref: ./pauseRequest.yaml
 resumeRequest:
   $ref: ./resumeRequest.yaml
-storedPipelineRequest:
-  $ref: ./storedPipelineRequest.yaml
 triggers:
   $ref: ./triggers.yaml
 webhookResult:
