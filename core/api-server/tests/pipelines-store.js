@@ -496,7 +496,6 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
-            expect(response.body).to.deep.equal(pipeline);
         });
     });
     describe('/store/pipelines PUT', () => {
