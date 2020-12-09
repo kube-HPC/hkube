@@ -3,13 +3,13 @@ const validator = require('../validation/api-validator');
 const executionService = require('./execution');
 const cronService = require('./cron');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
-const db = require('../db');
+const stateManager = require('../state/state-manager');
 const defaultExperiment = require('../consts/defaultExperiment');
 
 class Experiment {
     async getExperiment(options) {
         const { name } = options;
-        const experiment = await db.experiments.fetch(options);
+        const experiment = await stateManager.getExperiment(options);
         if (!experiment) {
             throw new ResourceNotFoundError('experiment', name);
         }
@@ -23,16 +23,12 @@ class Experiment {
             description: options.description,
             created: Date.now(),
         };
-        await db.experiments.create(experiment);
+        await stateManager.createExperiment(experiment);
     }
 
     async experimentsList(options) {
         const { sort, limit } = options;
-        return db.experiments.fetchAll({
-            query: {},
-            sort: { created: sort },
-            limit
-        });
+        return stateManager.getExperiments({ sort, limit });
     }
 
     async deleteExperiment(options) {
@@ -48,13 +44,13 @@ class Experiment {
 
     async _deleteExperiment(options) {
         const { name } = options;
-        const res = await db.experiments.delete(options);
+        const res = await stateManager.deleteExperiment({ name });
         const message = res.deleted === 0 ? 'deleted operation has failed' : 'deleted successfully';
         return { message, name };
     }
 
     async _stopAllCrons(experimentName) {
-        const pipelines = await db.pipelines.fetchByParams({
+        const pipelines = await stateManager.searchPipelines({
             experimentName,
             hasCronEnabled: true,
         });
@@ -67,7 +63,7 @@ class Experiment {
     }
 
     async _cleanAll(experimentName) {
-        const pipelines = await db.jobs.fetchByParams({ experimentName, fields: { jobId: true } });
+        const pipelines = await stateManager.searchJobs({ experimentName, fields: { jobId: true } });
         await Promise.all(pipelines.map(p => executionService.cleanJob({ jobId: p.jobId })));
     }
 }

@@ -1,4 +1,4 @@
-const db = require('../db');
+const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, } = require('../errors');
 
@@ -6,7 +6,7 @@ class WebhooksService {
     async getWebhooksResults(options) {
         validator.jobs.validateJobID(options);
         const { jobId } = options;
-        const status = await db.webhooks.result.fetch({ jobId });
+        const status = await stateManager.getResultWebhook({ jobId });
         if (!status) {
             throw new ResourceNotFoundError('webhook', jobId);
         }
@@ -16,7 +16,7 @@ class WebhooksService {
     async getWebhooksStatus(options) {
         validator.jobs.validateJobID(options);
         const { jobId } = options;
-        const status = await db.webhooks.status.fetch({ jobId });
+        const status = await stateManager.getStatusWebhook({ jobId });
         if (!status) {
             throw new ResourceNotFoundError('webhook', jobId);
         }
@@ -26,8 +26,8 @@ class WebhooksService {
     async getWebhooks(options) {
         validator.jobs.validateJobID(options);
         const { jobId } = options;
-        const result = await db.webhooks.result.fetch({ jobId });
-        const progress = await db.webhooks.status.fetch({ jobId });
+        const result = await stateManager.getResultWebhook({ jobId });
+        const progress = await stateManager.getStatusWebhook({ jobId });
         if (!result && !progress) {
             throw new ResourceNotFoundError('webhook', jobId);
         }

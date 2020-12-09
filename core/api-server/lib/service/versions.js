@@ -2,8 +2,6 @@ const semverLib = require('semver');
 const { uid } = require('@hkube/uid');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const algorithmStore = require('./algorithms-store');
-const db = require('../db');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 
 const SETTINGS = {
@@ -21,12 +19,12 @@ class AlgorithmVersions {
     async getVersions(options) {
         validator.algorithms.validateAlgorithmName(options);
         const { name } = options;
-        const versions = await this.getVersionsList({ name });
+        const versions = await stateManager.getVersions({ name });
         return versions;
     }
 
     async getVersion({ name, version }) {
-        const algorithm = await algorithmStore.getAlgorithm({ name });
+        const algorithm = await stateManager.getAlgorithm({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }
@@ -41,7 +39,7 @@ class AlgorithmVersions {
         const { name, version, pinned, tags } = options;
         validator.algorithms.validateAlgorithmTag(options);
         const ver = await this.getVersion({ name, version });
-        await db.algorithms.versions.update({ version, pinned, tags });
+        await stateManager.updateVersion({ version, pinned, tags });
         return ver;
     }
 
@@ -50,19 +48,19 @@ class AlgorithmVersions {
         validator.algorithms.validateAlgorithmVersion(options);
         const algorithmVersion = await this.getVersion({ name, version });
         if (!force) {
-            const runningPipelines = await db.jobs.fetchByParams({ algorithmName: name, isRunning: true, fields: { jobId: true } });
+            const runningPipelines = await stateManager.searchJobs({ algorithmName: name, isRunning: true, fields: { jobId: true } });
             if (runningPipelines.length > 0) {
                 throw new ActionNotAllowed(`there are ${runningPipelines.length} running pipelines which dependent on "${options.name}" algorithm`, runningPipelines.map(p => p.jobId));
             }
         }
-        await algorithmStore.storeAlgorithm(algorithmVersion.algorithm);
+        await stateManager.updateAlgorithm(algorithmVersion.algorithm);
         return algorithmVersion;
     }
 
     async deleteVersion(options) {
         const { version, name } = options;
         validator.algorithms.validateAlgorithmVersion({ name, version });
-        const algorithm = await algorithmStore.getAlgorithm({ name });
+        const algorithm = await stateManager.getAlgorithm({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }
@@ -73,7 +71,7 @@ class AlgorithmVersions {
         if (!algorithmVersion) {
             throw new ResourceNotFoundError('version', version);
         }
-        const res = await db.algorithms.versions.delete({ name, version });
+        const res = await stateManager.deleteVersion({ name, version });
         const deleted = parseInt(res.deleted, 10);
         return { deleted };
     }
@@ -109,16 +107,12 @@ class AlgorithmVersions {
                 name,
                 algorithm: { ...algorithm, version }
             };
-            await db.algorithms.versions.create(newVersion);
+            await stateManager.createVersion(newVersion);
         }
         finally {
-            await this._releaseSemver(name, semver);
+            await stateManager.releaseVersionLock({ name, version: semver });
         }
         return version;
-    }
-
-    async _releaseSemver(name, semver) {
-        await stateManager.algorithms.versions.releaseLock({ name, version: semver });
     }
 
     async _lockSemver(name, semver) {
@@ -126,7 +120,7 @@ class AlgorithmVersions {
         let success = false;
         let semVersion = semver;
         while (!success && attempts < SETTINGS.SEMVER.MAX_LOCK_ATTEMPTS) {
-            const lock = await stateManager.algorithms.versions.acquireLock({ name, version: semVersion }); // eslint-disable-line
+            const lock = await stateManager.acquireVersionLock({ name, version: semVersion }); // eslint-disable-line
             success = lock.success;
             if (!success) {
                 attempts += 1;
@@ -137,26 +131,13 @@ class AlgorithmVersions {
     }
 
     async _getLatestSemver({ name }) {
-        const versions = await this.getVersionsList({
-            name,
-            limit: 1
-        });
+        const versions = await stateManager.getVersions({ name, limit: 1 });
         return versions?.[0]?.semver;
     }
 
     async _getVersion({ version }) {
-        const algorithmVersion = await db.algorithms.versions.fetch({ version });
+        const algorithmVersion = await stateManager.getVersion({ version });
         return algorithmVersion;
-    }
-
-    async getVersionsList({ name, limit, fields }) {
-        const versions = await db.algorithms.versions.fetchAll({
-            query: { name },
-            sort: { created: 'desc' },
-            limit,
-            fields
-        });
-        return versions;
     }
 
     _incSemver(oldVersion) {

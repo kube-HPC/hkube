@@ -105,9 +105,9 @@ describe('Experiment', () => {
             const response3 = await storageManager.hkube.list({ jobId });
             const response4 = await storageManager.hkubeResults.list({ jobId });
             const response5 = await storageManager.hkubeMetadata.list({ jobId });
-            const response8 = await stateManager.jobs.results.get({ jobId });
-            const response9 = await stateManager.jobs.status.get({ jobId });
-            const response10 = await stateManager.jobs.tasks.get({ jobId });
+            const response8 = await stateManager._etcd.jobs.results.get({ jobId });
+            const response9 = await stateManager._etcd.jobs.status.get({ jobId });
+            const response10 = await stateManager._etcd.jobs.tasks.get({ jobId });
 
             expect(response3).to.have.lengthOf(0);
             expect(response4).to.have.lengthOf(0);

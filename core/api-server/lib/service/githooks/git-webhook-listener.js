@@ -3,7 +3,7 @@ const { ResourceNotFoundError } = require('../../errors');
 const { WEBHOOKS } = require('../../consts/builds');
 const gitDataAdapter = require('./git-data-adapter');
 const algorithmService = require('../algorithms');
-const algorithmStore = require('../algorithms-store');
+const stateManager = require('../../state/state-manager');
 
 class GitWebhookListener {
     async listen(data, type = WEBHOOKS.GITHUB) {
@@ -23,7 +23,7 @@ class GitWebhookListener {
     }
 
     async _checkRegistration({ url, branchName }) {
-        const algorithmList = await algorithmStore.getAlgorithms();
+        const algorithmList = await stateManager.getAlgorithms();
         return algorithmList.filter(a => a.gitRepository && url === a.gitRepository.webUrl && branchName === a.gitRepository.branchName);
     }
 

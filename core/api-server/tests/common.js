@@ -13,14 +13,14 @@ describe('Common', () => {
     describe('Pipeline template', () => {
         it('should apply defaults', async () => {
             await updater._pipelineDriversTemplate({})
-            const template = await stateManager._client.get('/pipelineDrivers/store/pipeline-driver',{ isPrefix : false });
+            const template = await stateManager._etcd._client.get('/pipelineDrivers/store/pipeline-driver', { isPrefix: false });
             expect(template).to.exist;
             expect(template.mem).to.eql(2048)
             expect(template.cpu).to.eql(0.15)
         });
         it('should apply from config', async () => {
-            await updater._pipelineDriversTemplate({pipelineDriversResources: {mem: 300, cpu: 0.6}})
-            const template = await stateManager._client.get('/pipelineDrivers/store/pipeline-driver',{ isPrefix : false });
+            await updater._pipelineDriversTemplate({ pipelineDriversResources: { mem: 300, cpu: 0.6 } })
+            const template = await stateManager._etcd._client.get('/pipelineDrivers/store/pipeline-driver', { isPrefix: false });
             expect(template).to.exist;
             expect(template.mem).to.eql(300)
             expect(template.cpu).to.eql(0.6)

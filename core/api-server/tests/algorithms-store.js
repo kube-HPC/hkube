@@ -101,8 +101,8 @@ describe('Store/Algorithms', () => {
             await request(store);
             await request(exec);
             await versionsService.createVersion(resAlg.body);
-            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-1`, algorithmName });
-            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-2`, algorithmName });
+            await stateManager.createBuild({ buildId: `${algorithmName}-1`, algorithmName });
+            await stateManager.createBuild({ buildId: `${algorithmName}-2`, algorithmName });
 
             const optionsDelete = {
                 uri: `${restPath}/${algorithmName}?force=false`,
@@ -470,8 +470,8 @@ describe('Store/Algorithms', () => {
     describe('/store/algorithms/apply POST', () => {
         describe('Validation', () => {
             before(async () => {
-                stateManager.discovery._client.leaser._lease = null;
-                await stateManager.discovery.register({ serviceName: 'task-executor', data: nodes });
+                stateManager._etcd.discovery._client.leaser._lease = null;
+                await stateManager._etcd.discovery.register({ serviceName: 'task-executor', data: nodes });
             });
             it('should throw validation error of required property name', async () => {
                 const options = {
@@ -1212,7 +1212,7 @@ describe('Store/Algorithms', () => {
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
                 const res1 = await request({ uri: `${restPath}/apply`, formData });
-                await stateManager.algorithms.builds.set({ buildId: res1.body.buildId, algorithm: res1.body.algorithm, algorithmName, algorithmImage, status: 'completed' });
+                await stateManager.createBuild({ buildId: res1.body.buildId, algorithm: res1.body.algorithm, algorithmName, algorithmImage, status: 'completed' });
                 await delay(2000);
 
                 const { options, created: c1, modified: c2, ...restProps } = res1.body.algorithm;
@@ -1237,13 +1237,13 @@ describe('Store/Algorithms', () => {
                 const app2 = await request({ uri: `${restPath}/apply`, formData: formData2 });
                 const get2 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
 
-                await stateManager.algorithms.builds.set({ buildId: app1.body.buildId, algorithm: app1.body.algorithm, algorithmName, algorithmImage: algorithmImage1, status: 'completed' });
+                await stateManager.createBuild({ buildId: app1.body.buildId, algorithm: app1.body.algorithm, algorithmName, algorithmImage: algorithmImage1, status: 'completed' });
                 await delay(1000);
 
                 const get3 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
                 app2.body.algorithm.version = get3.body.version;
 
-                await stateManager.algorithms.builds.set({ buildId: app2.body.buildId, algorithm: app2.body.algorithm, algorithmName, algorithmImage: algorithmImage2, status: 'completed' });
+                await stateManager.createBuild({ buildId: app2.body.buildId, algorithm: app2.body.algorithm, algorithmName, algorithmImage: algorithmImage2, status: 'completed' });
                 await delay(1000);
 
                 const get4 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });

@@ -11,7 +11,6 @@ const { buildStatuses, buildTypes } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const db = require('../db');
 const Build = require('./build');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
@@ -27,10 +26,11 @@ class Builds {
     }
 
     async getBuild(options) {
+        const { buildId } = options;
         validator.builds.validateBuildId(options);
-        const response = await db.algorithms.builds.fetch(options);
+        const response = await stateManager.getBuild({ buildId });
         if (!response) {
-            throw new ResourceNotFoundError('build', options.buildId);
+            throw new ResourceNotFoundError('build', buildId);
         }
         return response;
     }
@@ -38,9 +38,9 @@ class Builds {
     async getBuilds(options) {
         const { name, sort, limit } = options;
         validator.lists.validateResultList(options);
-        const response = await db.algorithms.builds.fetchAll({
-            query: { algorithmName: name },
-            sort: { startTime: sort },
+        const response = await stateManager.getBuilds({
+            algorithmName: name,
+            sort,
             limit
         });
         return response;
@@ -57,8 +57,7 @@ class Builds {
             endTime: null,
             startTime: Date.now()
         };
-        await stateManager.algorithms.builds.set(build);
-        return db.algorithms.builds.update(build);
+        await stateManager.createBuild(build);
     }
 
     async stopBuild(options) {
@@ -73,8 +72,7 @@ class Builds {
             status: buildStatuses.STOPPED,
             endTime: Date.now()
         };
-        await stateManager.algorithms.builds.update(buildData);
-        await db.algorithms.builds.update(buildData);
+        await stateManager.updateBuild(buildData);
     }
 
     async rerunBuild(options) {

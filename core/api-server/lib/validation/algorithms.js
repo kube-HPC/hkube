@@ -1,6 +1,5 @@
 const converter = require('@hkube/units-converter');
 const stateManager = require('../state/state-manager');
-const algorithmStore = require('../service/algorithms-store');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 class ApiValidator {
@@ -39,7 +38,7 @@ class ApiValidator {
     }
 
     async validateAlgorithmResources(algorithm) {
-        const resources = await stateManager.discovery.list({ serviceName: 'task-executor' });
+        const resources = await stateManager.getSystemResources();
         if (resources && resources[0] && resources[0].nodes) {
             const { cpu, gpu } = algorithm;
             const mem = converter.getMemoryInMi(algorithm.mem);
@@ -85,7 +84,7 @@ class ApiValidator {
 
     async validateAlgorithmExists(pipeline) {
         const pipelineAlgorithms = pipeline.nodes.map(p => p.algorithmName);
-        const algorithmsMap = await algorithmStore.getAlgorithmsMapByNames({ names: pipelineAlgorithms });
+        const algorithmsMap = await stateManager.getAlgorithmsMapByNames({ names: pipelineAlgorithms });
         pipeline.nodes.forEach((node) => {
             const algorithm = algorithmsMap.get(node.algorithmName);
             if (!algorithm) {

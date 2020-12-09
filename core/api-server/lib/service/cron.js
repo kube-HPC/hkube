@@ -1,8 +1,6 @@
 const objectPath = require('object-path');
 const { pipelineTypes } = require('@hkube/consts');
 const execution = require('./execution');
-const pipelineStore = require('./pipelines-store');
-const db = require('../db');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError } = require('../errors');
@@ -11,7 +9,7 @@ class CronService {
     async getCronResult(options) {
         validator.lists.validateResultList(options);
         const { experimentName, name, sort, limit } = options;
-        const list = await db.jobs.fetchByParams({
+        const list = await stateManager.searchJobs({
             experimentName,
             pipelineName: name,
             pipelineType: pipelineTypes.CRON,
@@ -30,7 +28,7 @@ class CronService {
     async getCronStatus(options) {
         validator.lists.validateResultList(options);
         const { experimentName, name, sort, limit } = options;
-        const list = await db.jobs.fetchByParams({
+        const list = await stateManager.searchJobs({
             experimentName,
             pipelineName: name,
             pipelineType: pipelineTypes.CRON,
@@ -47,7 +45,7 @@ class CronService {
 
     async getCronList(options) {
         const { sort, limit } = options;
-        let pipelines = await db.pipelines.fetchByParams({
+        let pipelines = await stateManager.searchPipelines({
             hasCron: true,
             sort: { startTime: sort },
             fields: { name: true, 'triggers.cron': true },
@@ -73,7 +71,7 @@ class CronService {
 
     async _toggleCronJob(options, enabled) {
         validator.cron.validateCronRequest(options);
-        const pipeline = await pipelineStore.getPipeline(options);
+        const pipeline = await stateManager.getPipeline(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
@@ -84,7 +82,7 @@ class CronService {
         const cronPattern = objectPath.get(pipeline, 'triggers.cron.pattern');
         objectPath.set(pipeline, 'triggers.cron.enabled', enabled);
         objectPath.set(pipeline, 'triggers.cron.pattern', pattern || cronPattern || '0 * * * *');
-        await pipelineStore.updatePipeline(pipeline);
+        await stateManager.updatePipeline(pipeline);
         return pipeline;
     }
 
@@ -96,7 +94,7 @@ class CronService {
 
     async _getExperimentName(options) {
         const { name } = options;
-        const pipeline = await pipelineStore.getPipeline({ name });
+        const pipeline = await stateManager.getPipeline({ name });
         const experiment = { name: (pipeline && pipeline.experimentName) || undefined };
         validator.experiments.validateExperimentName(experiment);
         return experiment.name;

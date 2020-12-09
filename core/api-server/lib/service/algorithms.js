@@ -3,14 +3,12 @@ const isEqual = require('lodash.isequal');
 const cloneDeep = require('lodash.clonedeep');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
-const { buildTypes, buildStatuses } = require('@hkube/consts');
+const { buildTypes } = require('@hkube/consts');
 const executionService = require('./execution');
 const stateManager = require('../state/state-manager');
 const buildsService = require('./builds');
 const versionsService = require('./versions');
-const algorithmStore = require('./algorithms-store');
 const validator = require('../validation/api-validator');
-const db = require('../db');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
 
@@ -18,29 +16,26 @@ class AlgorithmStore {
     init(config) {
         this._debugUrl = config.debugUrl.path;
 
-        stateManager.algorithms.builds.on('change', async (build) => {
-            if (build.status !== buildStatuses.COMPLETED) {
-                return;
-            }
+        stateManager.onBuildComplete(async (build) => {
             /**
              * this code runs after a successful build.
              * first, we create a new version, then if there are no versions,
              * we update the current algorithm with the new build image.
              */
             const { buildId, algorithm, algorithmName: name, algorithmImage } = build;
-            const versions = await versionsService.getVersionsList({ name });
+            const versions = await stateManager.getVersions({ name });
             const newAlgorithm = merge({}, algorithm, { algorithmImage, options: { pending: false } });
             const version = await versionsService.createVersion(newAlgorithm, buildId);
 
             if (versions.length === 0) {
-                await algorithmStore.storeAlgorithm({ ...newAlgorithm, version });
+                await stateManager.updateAlgorithm({ ...newAlgorithm, version });
             }
         });
     }
 
     async getAlgorithm(options) {
         validator.jobs.validateName(options);
-        const algorithm = await algorithmStore.getAlgorithm(options);
+        const algorithm = await stateManager.getAlgorithm(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
@@ -49,12 +44,12 @@ class AlgorithmStore {
 
     async getAlgorithms(options) {
         const { name, limit } = options || {};
-        return algorithmStore.getAlgorithmsByName({ name, limit });
+        return stateManager.getAlgorithmsByName({ name, limit });
     }
 
     async insertAlgorithm(options) {
         validator.algorithms.validateAlgorithmName(options);
-        const alg = await algorithmStore.getAlgorithm(options);
+        const alg = await stateManager.getAlgorithm(options);
         if (alg) {
             throw new ResourceExistsError('algorithm', options.name);
         }
@@ -64,7 +59,7 @@ class AlgorithmStore {
 
     async updateAlgorithm(options) {
         validator.algorithms.validateAlgorithmName(options);
-        const alg = await algorithmStore.getAlgorithm(options);
+        const alg = await stateManager.getAlgorithm(options);
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
@@ -75,7 +70,7 @@ class AlgorithmStore {
     async deleteAlgorithm(options) {
         validator.algorithms.validateAlgorithmDelete(options);
         const { name, force } = options;
-        const algorithm = await algorithmStore.getAlgorithm({ name });
+        const algorithm = await stateManager.getAlgorithm({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }
@@ -87,10 +82,10 @@ class AlgorithmStore {
             throw new ActionNotAllowed(message, details);
         }
         else {
-            const result = await db.algorithms.delete({ name });
+            const result = await stateManager.deleteAlgorithm({ name });
             const buildPaths = versions.filter(v => v.fileInfo).map(v => v.fileInfo.path);
             await this._deleteAll(buildPaths, (a) => storageManager.delete({ path: a }));
-            const pipelineRes = await db.pipelines.deleteMany({ names: pipelines.map(p => p.name) });
+            const pipelineRes = await stateManager.deletePipelines({ names: pipelines.map(p => p.name) });
             const execRes = await this._deleteAll(executions, (a) => executionService.stopJob(a));
 
             const entities = {
@@ -138,15 +133,15 @@ class AlgorithmStore {
 
     async _findAlgorithmDependencies(name) {
         const [versions, pipelines, executions] = await Promise.all([
-            versionsService.getVersionsList({ name, fields: { fileInfo: true } }),
-            db.pipelines.fetchByParams({ algorithmName: name }),
-            db.jobs.fetchByParams({ algorithmName: name, isRunning: true, fields: { jobId: true } })
+            stateManager.getVersions({ name, fields: { fileInfo: true } }),
+            stateManager.searchPipelines({ algorithmName: name }),
+            stateManager.searchJobs({ algorithmName: name, isRunning: true, fields: { jobId: true } })
         ]);
         return { versions, pipelines, executions };
     }
 
     async getAlgorithmsQueueList() {
-        return stateManager.algorithms.queue.list();
+        return stateManager.getAlgorithmsQueueList();
     }
 
     /**
@@ -163,7 +158,7 @@ class AlgorithmStore {
         const file = { path: data.file?.path, name: data.file?.originalname };
 
         validator.algorithms.validateApplyAlgorithm(payload);
-        const oldAlgorithm = await algorithmStore.getAlgorithm(payload);
+        const oldAlgorithm = await stateManager.getAlgorithm(payload);
         const newAlgorithm = this._mergeAlgorithm(oldAlgorithm, payload);
 
         if (!newAlgorithm.type) {
@@ -199,7 +194,7 @@ class AlgorithmStore {
 
         if (shouldStoreOverride || shouldStoreFirstApply) {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
-            await algorithmStore.storeAlgorithm(newAlgorithm);
+            await stateManager.updateAlgorithm(newAlgorithm);
         }
         return { buildId, messages, algorithm: newAlgorithm };
     }

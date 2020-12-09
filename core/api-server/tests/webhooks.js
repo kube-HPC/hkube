@@ -2,7 +2,6 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const nock = require('nock');
 const stateManager = require('../lib/state/state-manager');
-const db = require('../lib/db');
 const { delay, request } = require('./utils');
 let restUrl;
 
@@ -113,10 +112,8 @@ describe('Webhooks', () => {
                     status: 'completed',
                     data: [{ res1: 400 }, { res2: 500 }]
                 }
-                await db.jobs.updateStatus(results);
-                await db.jobs.updateResult(results);
-                await stateManager.jobs.status.set(results);
-                await stateManager.jobs.results.set(results);
+                await stateManager.updateJobStatus(results);
+                await stateManager.updateJobResult(results);
             });
         });
         it('should succeed to store pipeline with webhooks', async () => {
@@ -162,7 +159,7 @@ describe('Webhooks', () => {
                 level: 'info',
                 data: [{ res1: 400 }, { res2: 500 }]
             }
-            await stateManager.jobs.results.set(results);
+            await stateManager._etcd.jobs.results.set(results);
             await delay(1000);
 
             options = {
@@ -285,7 +282,7 @@ describe('Webhooks', () => {
                 data: [{ res1: 400 }, { res2: 500 }]
             }
 
-            await stateManager.jobs.results.set(results);
+            await stateManager.updateJobResult(results);
 
             await delay(2000);
 

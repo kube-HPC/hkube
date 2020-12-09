@@ -1,29 +1,31 @@
 const storageManager = require('@hkube/storage-manager');
 const { uid } = require('@hkube/uid');
 const { boardStatuses } = require('@hkube/consts');
-const db = require('../db');
+const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 const graph = require('./graph');
 const execution = require('./execution');
 class Boards {
     async getTensorboard(options) {
-        const response = await db.tensorboards.fetch(options);
+        const { id } = options;
+        const response = await stateManager.getTensorboard({ id });
         if (!response) {
-            throw new ResourceNotFoundError('board', options.id);
+            throw new ResourceNotFoundError('board', id);
         }
         return response;
     }
 
-    async getTensorboards(options) {
-        const response = await db.tensorboards.fetchAll(options);
+    async getTensorboards() {
+        const response = await stateManager.getTensorboards();
         return response;
     }
 
     async stopTensorboard(options) {
-        const { deleted } = await db.tensorboards.delete(options);
+        const { id } = options;
+        const { deleted } = await stateManager.deleteTensorboard({ id });
         if (deleted === 0) {
-            throw new ResourceNotFoundError('board', options.id);
+            throw new ResourceNotFoundError('board', id);
         }
         return deleted;
     }
@@ -45,7 +47,7 @@ class Boards {
         const type = (taskId && 'task') || (jobId && 'batch') || 'node';
         const boardInfo = ((type === 'node') && options) || { ...options, ...(await this.getBoardInfo(options, type)) };
         const id = this.generateId(boardInfo, type);
-        const existingBoard = await db.tensorboards.fetch({ id });
+        const existingBoard = await stateManager.getTensorboard({ id });
         const logDir = await storageManager.hkubeAlgoMetrics.getMetricsPath(boardInfo);
         const boardReference = uid();
         const boardLink = `hkube/board/${boardReference}/`;
@@ -66,10 +68,9 @@ class Boards {
             if (existingBoard.status === boardStatuses.RUNNING || existingBoard.status === boardStatuses.PENDING) {
                 throw new ActionNotAllowed('board: already started', `board ${JSON.stringify(options)} \n already started and is in ${board.status} status`);
             }
-            return db.tensorboards.update(board);
+            return stateManager.updateTensorboard(board);
         }
-
-        await db.tensorboards.create(board);
+        await stateManager.createTensorboard(board);
         return id;
     }
 

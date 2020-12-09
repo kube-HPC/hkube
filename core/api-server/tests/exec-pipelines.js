@@ -92,8 +92,8 @@ describe('Executions', () => {
 
         });
         it('should exec stored pipeline with concurrent and success if reached the max number', async () => {
-            const rp = await stateManager.executions.running.list({ jobId: 'concurrentPipelinesResolve:' });
-            await Promise.all(rp.map(p => stateManager.executions.running.delete({ jobId: p.jobId })));
+            const rp = await stateManager._etcd.executions.running.list({ jobId: 'concurrentPipelinesResolve:' });
+            await Promise.all(rp.map(p => stateManager._etcd.executions.running.delete({ jobId: p.jobId })));
             const pipeline = pipelines.find(p => p.name === 'concurrentPipelinesResolve');
 
             const options = {

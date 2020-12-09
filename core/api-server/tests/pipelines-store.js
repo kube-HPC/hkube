@@ -2,10 +2,10 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const clone = require('clone');
 const { pipelineStatuses } = require('@hkube/consts');
-const db = require('../lib/db');
 const { uuid } = require('@hkube/uid');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
+const stateManager = require('../lib/state/state-manager');
 let restUrl, restPath;
 
 describe('Store/Pipelines', () => {
@@ -80,7 +80,7 @@ describe('Store/Pipelines', () => {
             await request(options1);
             const res = await request(options1);
             const jobId = res.body.jobId;
-            await db.jobs.updateStatus({ jobId, status: pipelineStatuses.STOPPED });
+            await stateManager.updateJobStatus({ jobId, status: pipelineStatuses.STOPPED });
 
             const options2 = {
                 uri: `${restPath}/${pipelineName}`,

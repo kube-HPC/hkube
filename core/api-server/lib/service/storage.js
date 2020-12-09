@@ -5,7 +5,7 @@ const { uid } = require('@hkube/uid');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const executions = require('./execution');
-const algorithmStore = require('./algorithms-store');
+const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError } = require('../errors');
 
 class StorageService {
@@ -78,7 +78,7 @@ class StorageService {
         let algorithmsMap;
         if (hasLargeResults) {
             const names = result.data.map(d => d.algorithmName);
-            algorithmsMap = await algorithmStore.getAlgorithmsMapByNames({ names });
+            algorithmsMap = await stateManager.getAlgorithmsMapByNames({ names });
         }
         const archive = archiver('zip', { zlib: { level: 9 } });
         const archiveData = await Promise.all(result.data.map(d => this._createArchive(d, algorithmsMap, archive)));

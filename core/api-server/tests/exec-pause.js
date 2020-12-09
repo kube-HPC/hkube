@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const db = require('../lib/db');
+const stateManager = require('../lib/state/state-manager');
 const { request } = require('./utils');
 let restUrl;
 
@@ -40,7 +40,7 @@ describe('Executions', () => {
             const status = 'completed';
             const stored = await request(runStored);
             const jobId = stored.body.jobId;
-            await db.jobs.updateStatus({ jobId, status });
+            await stateManager.updateJobStatus({ jobId, status });
             const response = await request({ uri: restPath, body: { jobId } });
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`unable to pause pipeline ${pipeline} because its in ${status} status`);

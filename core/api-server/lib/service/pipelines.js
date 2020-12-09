@@ -1,9 +1,8 @@
 const graphlib = require('graphlib');
 const { pipelineTypes } = require('@hkube/consts');
 const validator = require('../validation/api-validator');
-const db = require('../db');
 const executionService = require('./execution');
-const pipelineStore = require('./pipelines-store');
+const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors');
 
 class PipelineService {
@@ -11,7 +10,7 @@ class PipelineService {
         validator.pipelines.validateUpdatePipeline(options);
         await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
-        await pipelineStore.updatePipeline(options);
+        await stateManager.updatePipeline(options);
         return options;
     }
 
@@ -25,12 +24,12 @@ class PipelineService {
             const stopped = result.filter(r => r.success);
             summary += `, stopped related running pipelines ${stopped.length}/${result.length}`;
         }
-        await pipelineStore.deletePipeline({ name });
+        await stateManager.deletePipeline({ name });
         return summary;
     }
 
     async _stopAllRunningPipelines(options) {
-        const pipelines = await db.jobs.fetchByParams({
+        const pipelines = await stateManager.searchJobs({
             pipelineName: options.name,
             pipelineType: pipelineTypes.STORED,
             isRunning: true,
@@ -48,7 +47,7 @@ class PipelineService {
 
     async getPipeline(options) {
         validator.pipelines.validatePipelineName(options.name);
-        const pipeline = await pipelineStore.getPipeline(options);
+        const pipeline = await stateManager.getPipeline(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
@@ -56,13 +55,13 @@ class PipelineService {
     }
 
     async getPipelines() {
-        return pipelineStore.getPipelines();
+        return stateManager.getPipelines();
     }
 
     async getPipelinesTriggersTree(options) {
         const { name } = options;
         const graph = new graphlib.Graph();
-        const pipelines = await db.pipelines.fetchByParams({
+        const pipelines = await stateManager.searchPipelines({
             hasTriggers: true
         });
         if (pipelines.length === 0) {
@@ -108,11 +107,11 @@ class PipelineService {
         validator.pipelines.validateUpdatePipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
 
-        const pipeline = await pipelineStore.getPipeline(options);
+        const pipeline = await stateManager.getPipeline(options);
         if (pipeline) {
             throw new ResourceExistsError('pipeline', options.name);
         }
-        await pipelineStore.insertPipeline(options);
+        await stateManager.insertPipeline(options);
         return options;
     }
 }

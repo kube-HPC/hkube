@@ -1,5 +1,5 @@
 const { InvalidDataError } = require('../errors');
-const db = require('../db');
+const stateManager = require('../state/state-manager');
 
 class ApiValidator {
     constructor(validator) {
@@ -34,7 +34,7 @@ class ApiValidator {
         if (pipeline.options?.concurrentPipelines) {
             const { experimentName, name: pipelineName } = pipeline;
             const { amount, rejectOnFailure } = pipeline.options.concurrentPipelines;
-            const result = await db.jobs.fetchByParams({ experimentName, pipelineName, isRunning: true, fields: { jobId: true } });
+            const result = await stateManager.searchJobs({ experimentName, pipelineName, isRunning: true, fields: { jobId: true } });
             if (result.length >= amount) {
                 if (rejectOnFailure) {
                     throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);

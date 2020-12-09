@@ -5,7 +5,6 @@ const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
 const experiments = require('./experiments.json');
 const stateManager = require('../state/state-manager');
-const db = require('../db');
 
 class PipelinesUpdater {
     async init(options) {
@@ -15,10 +14,10 @@ class PipelinesUpdater {
 
         await this._pipelineDriversTemplate(options);
         await this._transfer('algorithm', defaultAlgorithms, (list) => this._createAlgorithms(list));
-        await this._transfer('pipeline', pipelines, (list) => db.pipelines.createMany(list));
-        await this._transfer('experiment', experiments, (list) => db.experiments.createMany(list));
-        await this._transfer('readme/pipeline', null, (list) => db.pipelines.readme.createMany(list));
-        await this._transfer('readme/algorithms', null, (list) => db.algorithms.readme.createMany(list));
+        await this._transfer('pipeline', pipelines, (list) => stateManager.createPipelines(list));
+        await this._transfer('experiment', experiments, (list) => stateManager.createExperiments(list));
+        await this._transfer('readme/pipeline', null, (list) => stateManager.createPipelinesReadMe(list));
+        await this._transfer('readme/algorithms', null, (list) => stateManager.createAlgorithmsReadMe(list));
     }
 
     async _transfer(type, defaultData, createFunc) {
@@ -47,17 +46,8 @@ class PipelinesUpdater {
     }
 
     async _createAlgorithms(list) {
-        await db.algorithms.createMany(list);
-        await this.syncAlgorithmsVersions(list);
-    }
-
-    async syncAlgorithmsVersions(list) {
-        await Promise.all(list.map(a => this._syncVersions(a)));
-    }
-
-    async _syncVersions(algorithm) {
-        const versions = await stateManager.algorithms.versions.list(algorithm);
-        await db.algorithms.versions.createMany(versions);
+        await stateManager.createAlgorithms(list);
+        await stateManager.syncAlgorithmsVersions(list);
     }
 
     _logSync(type, list) {
@@ -78,7 +68,7 @@ class PipelinesUpdater {
             if (options.pipelineDriversResources) {
                 driversTemplate = drivers.map(d => ({ ...d, ...options.pipelineDriversResources }));
             }
-            await Promise.all(driversTemplate.map(d => stateManager.pipelineDrivers.store.set(d)));
+            await Promise.all(driversTemplate.map(d => stateManager.setPipelineDriversSettings(d)));
         }
         catch (error) {
             log.warning(`failed to upload default drivers.${error.message} `);

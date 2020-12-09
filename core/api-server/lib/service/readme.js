@@ -1,12 +1,12 @@
 const validator = require('../validation/api-validator');
-const db = require('../db');
+const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError } = require('../errors');
 
 class Readme {
     async getPipeline(options) {
         const { name } = options;
         validator.pipelines.validatePipelineName(name);
-        const pipeline = await db.pipelines.readme.fetch({ name });
+        const pipeline = await stateManager.getPipelineReadMe({ name });
         if (!pipeline) {
             throw new ResourceNotFoundError('readme', name);
         }
@@ -24,28 +24,28 @@ class Readme {
     async _updatePipelineReadme(options) {
         const { name, data } = options;
         validator.pipelines.validatePipelineName(name);
-        const pipeline = await db.pipelines.fetch({ name });
+        const pipeline = await stateManager.getPipeline({ name });
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', name);
         }
-        await db.pipelines.readme.update({ name, data });
+        await stateManager.updatePipelineReadMe({ name, data });
     }
 
     async deletePipeline(options) {
         const { name } = options;
         validator.pipelines.validatePipelineName(name);
-        const pipeline = await db.pipelines.readme.fetch(options);
+        const pipeline = await stateManager.getPipelineReadMe(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('readme', name);
         }
-        const result = await db.pipelines.readme.delete({ name });
+        const result = await stateManager.deletePipelineReadMe({ name });
         return result;
     }
 
     async getAlgorithm(options) {
         const { name } = options;
         validator.algorithms.validateAlgorithmName({ name });
-        const algorithm = await db.algorithms.readme.fetch({ name });
+        const algorithm = await stateManager.getAlgorithmReadMe({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('readme', name);
         }
@@ -63,21 +63,21 @@ class Readme {
     async _updateAlgorithmReadme(options) {
         const { name, data } = options;
         validator.algorithms.validateAlgorithmName({ name });
-        const algorithm = await db.algorithms.fetch({ name });
+        const algorithm = await stateManager.getAlgorithm({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }
-        await db.algorithms.readme.update({ name, data });
+        await stateManager.updateAlgorithmReadMe({ name, data });
     }
 
     async deleteAlgorithm(options) {
         const { name } = options;
         validator.algorithms.validateAlgorithmName({ name });
-        const algorithm = await db.algorithms.readme.fetch({ name });
+        const algorithm = await stateManager.getAlgorithmReadMe({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('readme', name);
         }
-        const result = await db.algorithms.readme.delete({ name });
+        const result = await stateManager.deleteAlgorithmReadMe({ name });
         return result;
     }
 }
