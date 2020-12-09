@@ -145,7 +145,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data should have required property 'nodes'");
+            expect(response.body.error.message).to.equal("pipeline must have at nodes property with at least one node");
         });
         it('should throw validation error of required property nodes.nodeName', async () => {
             const options = {
@@ -464,6 +464,31 @@ describe('Store/Pipelines', () => {
                     progressVerbosityLevel: "info",
                     ttl: 3600
                 }
+            }
+            const options = {
+                uri: restPath,
+                body: pipeline
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.body).to.deep.equal(pipeline);
+        });
+        it('should succeed to store pip', async () => {
+            const pipeline = {
+                "name": "pipeline_in_pipeline",
+                "nodes": [
+                    {
+                        "nodeName": "A",
+                        "pipelineName": "simple",
+                        "input": []
+                    },
+                    {
+                        "nodeName": "B",
+                        "pipelineName": "simple",
+                        "input": [{ "data": "@A" }]
+                    }
+                ]
+
             }
             const options = {
                 uri: restPath,
