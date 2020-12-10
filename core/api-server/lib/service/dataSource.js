@@ -12,9 +12,8 @@ const {
 const validator = require('../validation/api-validator');
 
 const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
-/** @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta */
-
 /**
+ *  @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
  *  @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
  *  @typedef {import('express')} Express;
  *  @typedef {{createdPath: string, fileName: string}} uploadFileResponse
@@ -41,12 +40,12 @@ const convertWhiteSpace = (str, to) => str.split(' ').join(to);
  * @param {{name: string, path: string}} File
  * @param {string=} dataDir
  * */
-const getFilePath = ({ name, path }, dataDir = 'data') => {
-    return path === '/'
+const getFilePath = ({ name, path }, dataDir = 'data') => (
+    path === '/'
         ? `${dataDir}/${name}`
-        // ensure there's no '/' at the end of a path, convert white spaces to '-' on folder names
-        : `${dataDir}/${path.replace(/^\//, '')}/${name}`;
-};
+        // ensure there's no '/' at the end of a path
+        : `${dataDir}/${path.replace(/^\//, '')}/${name}`
+);
 
 class DataSource {
     constructor() {
@@ -104,6 +103,7 @@ class DataSource {
 
     /**
      * converts temporary ids given by the client to permanent ids.
+     * fills in missing details for all the files
      * @param {NormalizedFileMeta} normalizedMapping
      * @param {Express.Multer.File[]} files
      * @returns {{
@@ -132,7 +132,7 @@ class DataSource {
                     },
                 };
             }
-            // drop the temporary id from the mapping
+            // @ts-ignore
             const { [tmpFileName]: droppedId, ...nextMapping } = acc.normalizedAddedFiles;
             const updatedFileMeta = {
                 ...fileMeta,
@@ -144,7 +144,7 @@ class DataSource {
                     ...acc.byPath,
                     [filePath]: file.filename
                 },
-                // convert the file's name from the id back to it's actual name
+                // convert the file's name back from an id to it's actual name
                 allFiles: acc.allFiles.concat({
                     ...file,
                     originalname: updatedFileMeta.name
@@ -163,11 +163,11 @@ class DataSource {
     }
 
     /**
-    * @param {string} repositoryName
-    * @param {string} baseDir
-    * @param {string[]} fileIds
-    * @param {FileMeta[]} currentFiles
-    */
+     * @param {string} repositoryName
+     * @param {string} baseDir
+     * @param {string[]} fileIds
+     * @param {FileMeta[]} currentFiles
+     */
     async _dropFiles(repositoryName, baseDir, fileIds, currentFiles) {
         if (fileIds.length === 0) return;
         const normalizedCurrentFiles = normalize(currentFiles);
@@ -214,7 +214,7 @@ class DataSource {
             byPath,
         } = this.prepareAddedFiles(normalizedMapping, _addedFiles);
 
-        /** @type {{movedFiles: SourceTargetArray[], updatedFiles: SourceTargetArray[], touchedFileIds: string[]}} */
+        /** @type {{ movedFiles: SourceTargetArray[], updatedFiles: SourceTargetArray[], touchedFileIds: string[] }} */
         const { movedFiles, updatedFiles, touchedFileIds } = currentFiles.reduce((acc, srcFile) => {
             const movedFile = normalizedMapping[srcFile.id];
             const updatedFileId = byPath[getFilePath(srcFile)];
@@ -284,7 +284,6 @@ class DataSource {
                 );
             })
         );
-
         // creates .dvc files and update/create the relevant gitignore files
         await this._execute(
             repositoryName,
@@ -321,18 +320,16 @@ class DataSource {
     async commitChange({
         repositoryName,
         commitMessage,
-        files: {
-            added,
-            dropped = [],
-            mapping = []
-        },
+        files: { added, dropped = [], mapping = [] },
         currentFiles = []
     }) {
-        // const mapping = _mapping.map(file => ({ ...file, path: whiteSpaceToDash(file.path) }));
         const baseDir = `${this.rootDir}/${repositoryName}`;
         /**
         * assume the repo has no remote, do not pull or push
         * it is assumed to be always there and always up to date
+        * get the repo path and name from the db
+        * git dir exists ? git pull : clone
+        * future: clear the git directory it is not needed anymore
         */
         const git = simpleGit({ baseDir });
         const groups = this._splitToGroups({ currentFiles, mapping, addedFiles: added });
@@ -346,14 +343,10 @@ class DataSource {
         * update dvc:
         *      dvc push
         */
-
         // await this._execute(repositoryName, `dvc push`);
-
         git.add('.');
-
         const { commit } = await git.commit(commitMessage);
         // await git.push()
-
         return {
             commitHash: commit,
             files: {
@@ -381,18 +374,13 @@ class DataSource {
             versionDescription,
             name
         });
-
         const { commitHash, files } = await this.commitChange({
             repositoryName: name,
             files: _files,
             commitMessage: versionDescription,
             currentFiles: currentVersion.files
         });
-
-        if (!commitHash) {
-            return null;
-        }
-
+        if (!commitHash) return null;
         // release the lock
         return db.dataSources.uploadFiles({
             name,
@@ -437,8 +425,7 @@ class DataSource {
         }
         catch (error) {
             await Promise.allSettled([
-                db.dataSources.delete({ name }),
-                // storage.hkubeDataSource.deleteFiles(filesMeta)
+                db.dataSources.delete({ name }) // delete from the git server and dvc storage
             ]);
             throw error;
         }
@@ -490,26 +477,12 @@ class DataSource {
 
 module.exports = new DataSource();
 
-// -------------  trash  ------------- //
-
-// /** @param {{name: string}} query */
-// async delete({ name }) {
-//     // const [deletedId] = await Promise.all([
-//     //     db.dataSources.delete({ name }),
-//     //     storage.hkubeDataSource.delete({ dataSource: name })
-//     // ]);
-//     // return deletedId;
-// }
-
 /**
- * * assume the repo has no remote, do not pull or push
- * it is assumed to be always there and always up to date
- * dvc workflow:
- * + constructor should create a git cached dir if not exists
- * get the repo path and name from the db
- * git dir exists?
- *      git pull
- * else:
- *      clone
- * future: clear the git directory it is not needed anymore
- */
+ * async delete({ name }) {
+ *   // const [deletedId] = await Promise.all([
+ *   //     db.dataSources.delete({ name }),
+ *   //     storage.hkubeDataSource.delete({ dataSource: name })
+ *   // ]);
+ *   // return deletedId;
+ *}
+*/
