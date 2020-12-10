@@ -19,7 +19,7 @@ const {
 
 const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
 
-describe.only('Datasource', () => {
+describe('Datasource', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/datasource`;

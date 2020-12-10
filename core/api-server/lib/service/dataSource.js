@@ -1,14 +1,10 @@
-const storage = require('@hkube/storage-manager');
 const { errorTypes, isDBError } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
 const { default: simpleGit } = require('simple-git');
 const childProcess = require('child_process');
 const { parse: parsePath } = require('path');
 const { connection: db } = require('../db');
-const {
-    ResourceExistsError,
-    ResourceNotFoundError
-} = require('../errors');
+const { ResourceExistsError, ResourceNotFoundError } = require('../errors');
 const validator = require('../validation/api-validator');
 
 const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
@@ -70,7 +66,7 @@ class DataSource {
         const response = await git.commit('initialized');
         // git.addRemote()
         // git.push()
-        return response;
+        return { ...response, commit: response.commit.replace(/(.+) /, '') };
     }
 
     async _execute(repositoryName, command) {
@@ -294,10 +290,9 @@ class DataSource {
 
     /**
      * @param {string} repositoryName
-     * @param {string} baseDir
      * @param {SourceTargetArray[]} sourceTargetArray
      * */
-    async _moveExistingFiles(repositoryName, baseDir, sourceTargetArray) {
+    async _moveExistingFiles(repositoryName, sourceTargetArray) {
         return Promise.all(sourceTargetArray.map(async ([srcFile, targetFile]) => {
             const srcPath = getFilePath(srcFile);
             const targetPath = getFilePath(targetFile);
@@ -334,7 +329,7 @@ class DataSource {
         const git = simpleGit({ baseDir });
         const groups = this._splitToGroups({ currentFiles, mapping, addedFiles: added });
         await this._addFiles(repositoryName, baseDir, groups.normalizedAddedFiles, groups.allAddedFiles);
-        await this._moveExistingFiles(repositoryName, baseDir, groups.movedFiles);
+        await this._moveExistingFiles(repositoryName, groups.movedFiles);
         await this._dropFiles(repositoryName, baseDir, dropped, currentFiles);
         /**
         * cleanups:
@@ -468,21 +463,6 @@ class DataSource {
     async list() {
         return db.dataSources.fetchAll();
     }
-
-    /** @param {{name: string}} query */
-    async listWithStats({ name }) {
-        return storage.hkubeDataSource.listWithStats({ dataSource: name });
-    }
 }
 
 module.exports = new DataSource();
-
-/**
- * async delete({ name }) {
- *   // const [deletedId] = await Promise.all([
- *   //     db.dataSources.delete({ name }),
- *   //     storage.hkubeDataSource.delete({ dataSource: name })
- *   // ]);
- *   // return deletedId;
- *}
-*/

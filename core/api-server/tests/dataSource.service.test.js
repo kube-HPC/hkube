@@ -26,17 +26,14 @@ describe('Datasource-service', () => {
         service = require('./../lib/service/dataSource');
     });
     after(() => {
-        // fse.removeSync(DATASOURCE_GIT_REPOS_DIR);
+        fse.removeSync(DATASOURCE_GIT_REPOS_DIR);
     });
 
     describe('git repository', () => {
-
         const createRepository = async (name = uuid()) => {
             const response = await service.createRepo(name);
             return { name, response }
         };
-
-
         it('should ensure the root dir exists', async () => {
             expect(await fse.pathExists(DATASOURCE_GIT_REPOS_DIR)).to.be.true;
         });
@@ -47,14 +44,8 @@ describe('Datasource-service', () => {
             expect(await fse.pathExists(`${path}/data`)).to.be.true;
             expect(await fse.pathExists(`${path}/.dvc`)).to.be.true;
             expect(await fse.pathExists(`${path}/.dvcignore`)).to.be.true;
-            console.log(response);
+            expect(response.commit).be.string;
+            expect(response.commit).to.have.lengthOf(7);
         });
-        // it('should create a new commit', async () => {
-        //     const { name } = await createRepository();
-        //     await fse.copy('README.md', `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/README.md`);
-        //     const commitHash = await service.commitChanges(name, 'my first commit', ['data/README.md']);
-        //     expect(commitHash).to.be.string;
-        //     expect(commitHash).to.have.lengthOf(7);
-        // });
     });
 });
