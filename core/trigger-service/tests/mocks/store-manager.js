@@ -3,7 +3,7 @@ const pipelines = require('./pipelines');
 
 class StateManagerMock extends EventEmitter {
 
-    getPipelines() {
+    searchPipelines() {
         return pipelines;
     }
 }

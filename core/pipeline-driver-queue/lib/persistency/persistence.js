@@ -1,5 +1,8 @@
 const EventEmitter = require('events');
 const Client = require('@hkube/etcd');
+const dbConnect = require('@hkube/db');
+const Logger = require('@hkube/logger');
+const component = require('../consts/component-name').DB;
 
 class Persistence extends EventEmitter {
     constructor() {
@@ -8,6 +11,7 @@ class Persistence extends EventEmitter {
     }
 
     async init({ options }) {
+        const log = Logger.GetLogFromContainer();
         const { etcd, persistence, serviceName } = options;
         this.queueName = persistence.type;
         this.client = new Client({ ...etcd, serviceName });
@@ -15,6 +19,10 @@ class Persistence extends EventEmitter {
         this.client.jobs.status.on('change', (data) => {
             this.emit(`job-${data.status}`, data);
         });
+        const { provider, ...config } = options.db;
+        this._db = dbConnect(config, provider);
+        await this._db.init();
+        log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
         return this;
     }
 
@@ -26,16 +34,18 @@ class Persistence extends EventEmitter {
         return this.client.pipelineDrivers.queue.get({ name: this.queueName });
     }
 
-    getExecution(options) {
-        return this.client.executions.stored.get(options);
+    async getExecution(options) {
+        return this._db.jobs.fetchPipeline(options);
     }
 
-    setJobStatus(options) {
-        return this.client.jobs.status.set(options);
+    async setJobStatus(options) {
+        await this.client.jobs.status.set(options);
+        await this._db.jobs.updateStatus(options);
     }
 
-    setJobResults(options) {
-        return this.client.jobs.results.set(options);
+    async setJobResults(options) {
+        await this.client.jobs.results.set(options);
+        await this._db.jobs.updateResult(options);
     }
 
     watchJobStatus(options) {

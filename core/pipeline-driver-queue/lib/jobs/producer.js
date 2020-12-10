@@ -87,8 +87,8 @@ class JobProducer {
             const status = pipelineStatuses.FAILED;
             log.warning(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
             const pipeline = await persistence.getExecution({ jobId });
-            persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, error, level: 'error' });
-            persistence.setJobResults({ jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime });
+            await persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, error, level: 'error' });
+            await persistence.setJobResults({ jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime });
         });
     }
 

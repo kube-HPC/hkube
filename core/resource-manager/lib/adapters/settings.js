@@ -20,7 +20,7 @@ module.exports = {
         templatesStore: {
             enable: true,
             mandatory: true,
-            cacheTTL: 300
+            cacheTTL: 10
         }
     },
     drivers: {

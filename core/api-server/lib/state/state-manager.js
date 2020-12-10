@@ -51,22 +51,18 @@ class StateManager {
         return this._db.algorithms.delete({ name });
     }
 
-    async getAlgorithms(payload) {
-        return this._db.algorithms.fetchAll(payload);
-    }
-
-    async getAlgorithmsByNames(payload) {
-        return this._db.algorithms.fetchMany(payload);
+    async getAlgorithms({ name, sort, limit }) {
+        return this._db.algorithms.search({
+            name,
+            sort: { created: sort },
+            limit
+        });
     }
 
     async getAlgorithmsMapByNames(payload) {
-        const algorithms = await this.getAlgorithmsByNames(payload);
+        const algorithms = await this.getAlgorithms(payload);
         const algorithmsMap = new Map(algorithms.map((a) => [a.name, a]));
         return algorithmsMap;
-    }
-
-    async getAlgorithmsByName(payload) {
-        return this._db.algorithms.fetchAllByName(payload);
     }
 
     // Versions
@@ -79,8 +75,8 @@ class StateManager {
     }
 
     async getVersions({ name, limit, fields }) {
-        return this._db.algorithms.versions.fetchAll({
-            query: { name },
+        return this._db.algorithms.versions.search({
+            name,
             sort: { created: 'desc' },
             limit,
             fields
@@ -122,8 +118,8 @@ class StateManager {
     }
 
     async getBuilds({ algorithmName, sort, limit }) {
-        return this._db.algorithms.builds.fetchAll({
-            query: { algorithmName },
+        return this._db.algorithms.builds.search({
+            algorithmName,
             sort: { startTime: sort },
             limit
         });
@@ -157,7 +153,7 @@ class StateManager {
     }
 
     async searchPipelines({ experimentName, algorithmName, hasTriggers, hasCron, hasCronEnabled, fields, sort, limit }) {
-        return this._db.pipelines.fetchByParams({
+        return this._db.pipelines.search({
             experimentName,
             algorithmName,
             hasTriggers,
@@ -171,6 +167,10 @@ class StateManager {
 
     async updatePipeline(options) {
         return this._db.pipelines.update(options);
+    }
+
+    async replacePipeline(options) {
+        return this._db.pipelines.replace(options);
     }
 
     async deletePipeline({ name }) {
@@ -314,7 +314,7 @@ class StateManager {
     }
 
     async searchJobs({ experimentName, pipelineName, pipelineType, algorithmName, isRunning, hasResult, fields, sort, limit }) {
-        return this._db.jobs.fetchByParams({
+        return this._db.jobs.search({
             experimentName,
             pipelineName,
             pipelineType,

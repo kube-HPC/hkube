@@ -1,4 +1,5 @@
 const mergeWith = require('lodash.mergewith');
+const cloneDeep = require('lodash.clonedeep');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 const { uid } = require('@hkube/uid');
@@ -65,16 +66,14 @@ class ExecutionService {
     }
 
     async _run(payload) {
-        let { jobId, types } = payload;
+        let { types } = payload;
         let { flowInputMetadata, ...pipeline } = payload.pipeline;
         const { rootJobId } = payload;
         const { validateNodes, parentSpan } = payload.options || {};
+        const userPipeline = cloneDeep(pipeline);
 
         validator.executions.addPipelineDefaults(pipeline);
-
-        if (!jobId) {
-            jobId = this._createJobID({ name: pipeline.name });
-        }
+        const jobId = this._createJobID();
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
@@ -94,7 +93,7 @@ class ExecutionService {
             const lastRunResult = await this._getLastPipeline(pipeline);
             const pipelineObject = { ...pipeline, rootJobId, flowInputMetadata, startTime: Date.now(), lastRunResult, types };
             const statusObject = { timestamp: Date.now(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
-            await stateManager.createJob({ jobId, pipeline: pipelineObject, status: statusObject });
+            await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
             await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
             span.finish();
             return jobId;
@@ -277,8 +276,8 @@ class ExecutionService {
         ]);
     }
 
-    _createJobID(options) {
-        return [options.name, uid({ length: 8 })].join(':');
+    _createJobID() {
+        return uid({ length: 12 });
     }
 
     async _getLastPipeline(pipeline) {

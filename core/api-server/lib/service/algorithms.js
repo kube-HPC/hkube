@@ -43,8 +43,8 @@ class AlgorithmStore {
     }
 
     async getAlgorithms(options) {
-        const { name, limit } = options || {};
-        return stateManager.getAlgorithmsByName({ name, limit });
+        const { name, sort, limit } = options || {};
+        return stateManager.getAlgorithms({ name, sort, limit });
     }
 
     async insertAlgorithm(options) {

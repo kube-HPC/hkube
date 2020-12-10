@@ -18,7 +18,7 @@ before(async () => {
     await bootstrap.init();
     await etcd._etcd._client.delete('/', { isPrefix: true });
 
-    await Promise.all(templateStore.map(d => etcd._etcd.algorithms.store.set(d)));
+    await etcd._db.algorithms.createMany(templateStore);
     await Promise.all(driversTemplateStore.map(d => etcd._etcd.pipelineDrivers.store.set(d)));
 
     global.testParams = {

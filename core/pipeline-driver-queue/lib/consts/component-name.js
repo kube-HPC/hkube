@@ -9,4 +9,5 @@ module.exports = {
     JOBS_CONSUMER: 'JOBS_CONSUMER',
     AGGREGATION_METRIC: 'AGGREGATION_METRIC',
     CONSUMER: 'CONSUMER',
+    DB: 'DB'
 };

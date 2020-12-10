@@ -27,14 +27,14 @@ class Etcd extends EventEmitter {
 
     async getAlgorithmTemplates() {
         const [algorithms, count] = await Promise.all([
-            this._db.algorithms.fetchAll({ sort: { created: 'desc' }, limit: 100 }),
+            this._db.algorithms.search({ isPending: false, sort: { created: 'desc' }, limit: 100 }),
             this._db.algorithms.count()
         ]);
         return { algorithms, count };
     }
 
     async getBuilds() {
-        return this._db.algorithms.builds.fetchByParams({
+        return this._db.algorithms.builds.search({
             statuses: [buildStatus.PENDING, buildStatus.STOPPED],
             sort: { startTime: 'desc' }
         });
@@ -45,7 +45,7 @@ class Etcd extends EventEmitter {
     }
 
     async getTensorboards(status) {
-        return this._db.tensorboards.fetchByParams({ status });
+        return this._db.tensorboards.search({ status });
     }
 
     async updateTensorboard(options) {

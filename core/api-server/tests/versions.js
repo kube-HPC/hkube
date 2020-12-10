@@ -167,7 +167,7 @@ describe('Versions/Algorithms', () => {
             await request(applyReq2);
             const version = res1.body.algorithm.version;
             const versionReq = { uri: `${restPath}/apply`, body: { version, name, force: false } };
-            const s = await request(exeRawPayload);
+            await request(exeRawPayload);
             const res2 = await request(versionReq);
             expect(res2.body).to.have.property('error');
             expect(res2.body.error.code).to.equal(HttpStatus.BAD_REQUEST);

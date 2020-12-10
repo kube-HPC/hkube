@@ -1,4 +1,5 @@
 const EtcdClient = require('@hkube/etcd');
+const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 const parse = require('@hkube/units-converter');
 const { logWrappers } = require('./tracing');
@@ -18,6 +19,12 @@ class Etcd {
         this._etcd = new EtcdClient(options.etcd);
         log.info(`Initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
         await this._etcd.jobs.status.watch({ jobId: 'hookWatch' });
+
+        const { provider, ...config } = options.db;
+        this._db = dbConnect(config, provider);
+        await this._db.init();
+        log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
+
         this._workerServiceName = options.workerServiceName || CONTAINERS.WORKER;
         this._pipelineDriverServiceName = options.workerServiceName || CONTAINERS.PIPELINE_DRIVER;
         const discoveryInfo = {};
@@ -88,13 +95,19 @@ class Etcd {
     }
 
     async getAlgorithmTemplate() {
-        const algorithms = await this._etcd.algorithms.store.list();
-        const templates = algorithms.map((a) => {
-            if (a.mem) {
-                a.mem = parse.getMemoryInMi(a.mem);
-            }
-            return a;
+        const algorithms = await this._db.algorithms.search({
+            hasImage: true,
+            sort: { created: 'desc' },
+            limit: 100,
         });
+        const templates = algorithms
+            .filter(a => !a.options || a.options.debug === false)
+            .map((a) => {
+                if (a.mem) {
+                    a.mem = parse.getMemoryInMi(a.mem);
+                }
+                return a;
+            });
         return arrayToMap(templates);
     }
 

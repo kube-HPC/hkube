@@ -10,7 +10,7 @@ class PipelineService {
         validator.pipelines.validateUpdatePipeline(options);
         await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
-        await stateManager.updatePipeline(options);
+        await stateManager.replacePipeline(options);
         return options;
     }
 
@@ -62,7 +62,7 @@ class PipelineService {
         const { name } = options;
         const graph = new graphlib.Graph();
         const pipelines = await stateManager.searchPipelines({
-            hasTriggers: true
+            hasPipelinesTriggers: true
         });
         if (pipelines.length === 0) {
             throw new InvalidDataError('unable to find any pipeline with triggers');

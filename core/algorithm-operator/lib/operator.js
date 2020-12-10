@@ -47,7 +47,7 @@ class Operator {
             const { algorithms, count } = await db.getAlgorithmTemplates();
             await Promise.all([
                 this._algorithmBuilds({ ...configMap }, options),
-                this._tenosrboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
+                this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
             ]);
@@ -93,7 +93,7 @@ class Operator {
         });
     }
 
-    async _tenosrboards({ versions, registry, clusterOptions, boardTimeOut }, options) {
+    async _tensorboards({ versions, registry, clusterOptions, boardTimeOut }, options) {
         const boards = await db.getTensorboards();
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
 
@@ -110,7 +110,7 @@ class Operator {
 
     async _algorithmDebug({ versions, registry, clusterOptions }, algorithms, options) {
         const kubernetesKinds = await kubernetes.getAlgorithmForDebug({ labelSelector: `type=${CONTAINERS.ALGORITHM_DEBUG}` });
-        const debugAlgorithms = algorithms.filter(a => a.options && a.options.debug === true);
+        const debugAlgorithms = algorithms.filter(a => a.options?.debug === true);
         await workerDebugReconciler.reconcile({
             kubernetesKinds,
             algorithms: debugAlgorithms,
