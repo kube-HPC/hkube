@@ -269,8 +269,8 @@ class StateManager {
         return this._etcd.jobs.status.releaseChangeLock({ jobId });
     }
 
-    async createJob({ jobId, pipeline, status }) {
-        await this._db.jobs.create({ jobId, pipeline, status });
+    async createJob({ jobId, userPipeline, pipeline, status }) {
+        await this._db.jobs.create({ jobId, userPipeline, pipeline, status });
         await this._etcd.jobs.status.set({ jobId, ...status });
     }
 

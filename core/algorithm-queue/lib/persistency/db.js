@@ -14,6 +14,10 @@ class DBConnection {
         await this._db.init();
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
+
+    async getJob({ jobId }) {
+        return this._db.jobs.fetchStatus({ jobId });
+    }
 }
 
 module.exports = new DBConnection();

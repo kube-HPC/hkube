@@ -59,7 +59,7 @@ class JobConsumer extends EventEmitter {
     async _handleJob(job) {
         try {
             const { jobId } = job.data;
-            const data = await db.jobs.fetchStatus({ jobId });
+            const data = await db.getJob({ jobId });
             log.info(`job arrived with ${data.status} state and ${job.data.tasks.length} tasks`, { component });
             if (this._isCompletedState({ status: data.status })) {
                 this._removeInvalidJob({ jobId });

@@ -57,7 +57,7 @@ class Builds {
             endTime: null,
             startTime: Date.now()
         };
-        await stateManager.createBuild(build);
+        await stateManager.updateBuild(build);
     }
 
     async stopBuild(options) {

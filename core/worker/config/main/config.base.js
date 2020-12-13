@@ -31,7 +31,7 @@ config.streaming = {
         minRatioToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_DOWN, 0.8),
         maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 10),
         minTimeWaitForReplicaUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_UP, 10000),
-        maxTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_UP, 10000)
+        maxTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 10000)
     },
     election: {
         interval: formatters.parseInt(process.env.ELECTION_INTERVAL, 10000),
