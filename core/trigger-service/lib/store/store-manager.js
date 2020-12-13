@@ -19,36 +19,18 @@ class StateManager extends EventEmitter {
         const { provider, ...config } = options.db;
         this._db = dbConnect(config, provider);
         await this._db.init();
-        await this._watchPipelines();
+        await this._checkPipelinesInterval();
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
 
-    async _watchPipelines() {
-
-        const pipelines = await this.searchPipelines();
-        pipelines.forEach((p) => {
-            this._pipelines[p.name] = p;
-        });
-
+    async _checkPipelinesInterval() {
         setInterval(async () => {
             if (this._active) {
                 return;
             }
             try {
                 this._active = true;
-                const pipelines = await this.searchPipelines();
-                pipelines.forEach((p) => {
-                    this._pipelines[p.name] = p;
-                    this.emit(Events.CHANGE, new Trigger(p));
-                });
-
-                Object.entries(this._pipelines).forEach(([k, v]) => {
-                    const pipeline = pipelines.find(p => p.name === k);
-                    if (!pipeline) {
-                        delete this._pipelines[k];
-                        this.emit(Events.DELETE, new Trigger(v));
-                    }
-                });
+                this._watchPipelines();
             }
             catch (e) {
                 log.throttle.error(e.message, { component });
@@ -59,9 +41,24 @@ class StateManager extends EventEmitter {
         }, this._checkCronsIntervalMs);
     }
 
-    async searchPipelines({ hasCronTriggers, fields, sort, limit } = {}) {
+    async _watchPipelines() {
+        const pipelines = await this.searchPipelines();
+        pipelines.forEach((p) => {
+            this._pipelines[p.name] = p;
+            this.emit(Events.CHANGE, new Trigger(p));
+        });
+        Object.entries(this._pipelines).forEach(([k, v]) => {
+            const pipeline = pipelines.find(p => p.name === k);
+            if (!pipeline) {
+                delete this._pipelines[k];
+                this.emit(Events.DELETE, new Trigger(v));
+            }
+        });
+    }
+
+    async searchPipelines({ triggersPipeline, fields, sort, limit } = {}) {
         return this._db.pipelines.search({
-            hasCronTriggers,
+            triggersPipeline,
             fields,
             sort,
             limit

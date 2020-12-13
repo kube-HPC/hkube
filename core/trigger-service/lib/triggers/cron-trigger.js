@@ -16,8 +16,6 @@ class CronTask {
         log = logger.GetLogFromContainer();
         storeManager.on(Events.CHANGE, t => this._updateTrigger(t));
         storeManager.on(Events.DELETE, t => this._removeTrigger(t));
-        const pipelines = await storeManager.searchPipelines({ hasCronTriggers: true });
-        pipelines.forEach(p => this._updateTrigger(new Trigger(p)));
     }
 
     _updateTrigger(trigger) {

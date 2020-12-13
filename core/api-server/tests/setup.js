@@ -7,6 +7,7 @@ before(async function () {
     const config = await bootstrap.init();
     await stateManager._etcd._client.client.delete().all();
     await stateManager._db.db.dropDatabase();
+    await stateManager._db.init();
     await stateManager.createPipelines(pipelines);
     await stateManager.createAlgorithms(algorithms);
     await stateManager.createExperiments(experiments);

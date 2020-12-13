@@ -48,7 +48,7 @@ class AlgorithmVersions {
         validator.algorithms.validateAlgorithmVersion(options);
         const algorithmVersion = await this.getVersion({ name, version });
         if (!force) {
-            const runningPipelines = await stateManager.searchJobs({ algorithmName: name, isRunning: true, fields: { jobId: true } });
+            const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
             if (runningPipelines.length > 0) {
                 throw new ActionNotAllowed(`there are ${runningPipelines.length} running pipelines which dependent on "${options.name}" algorithm`, runningPipelines.map(p => p.jobId));
             }

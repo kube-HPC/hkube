@@ -1,4 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
+const formatter = require(process.cwd() + '/lib/utils/formatters');
 const config = {};
 const heuristicsNames = require('../../lib/consts/heuristics-name');
 

@@ -135,7 +135,7 @@ class AlgorithmStore {
         const [versions, pipelines, executions] = await Promise.all([
             stateManager.getVersions({ name, fields: { fileInfo: true } }),
             stateManager.searchPipelines({ algorithmName: name }),
-            stateManager.searchJobs({ algorithmName: name, isRunning: true, fields: { jobId: true } })
+            stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } })
         ]);
         return { versions, pipelines, executions };
     }

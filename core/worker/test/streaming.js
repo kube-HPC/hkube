@@ -133,7 +133,7 @@ const checkThroughput = () => {
 
 describe('Streaming', () => {
     before(async () => {
-        await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+        await stateAdapter._db.jobs.create({ pipeline, jobId });
         await streamHandler.start(job);
     });
     beforeEach(() => {

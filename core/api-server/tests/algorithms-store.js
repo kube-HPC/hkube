@@ -1221,7 +1221,7 @@ describe('Store/Algorithms', () => {
                 expect(algorithm).to.eql({ ...defaultProps, ...restProps, algorithmImage });
             });
             it('should succeed to update algorithm only after completed build', async function () {
-                const algorithmName = `my-alg-${uuid()}`;
+                const algorithmName = `new-build-${uuid()}`;
                 const algorithmImage1 = `${algorithmName}-image1`;
                 const algorithmImage2 = `${algorithmName}-image2`;
                 const formData1 = {
@@ -1237,13 +1237,13 @@ describe('Store/Algorithms', () => {
                 const app2 = await request({ uri: `${restPath}/apply`, formData: formData2 });
                 const get2 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
 
-                await stateManager.createBuild({ buildId: app1.body.buildId, algorithm: app1.body.algorithm, algorithmName, algorithmImage: algorithmImage1, status: 'completed' });
+                await stateManager.updateBuild({ buildId: app1.body.buildId, algorithmImage: algorithmImage1, status: 'completed' });
                 await delay(1000);
 
                 const get3 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
                 app2.body.algorithm.version = get3.body.version;
 
-                await stateManager.createBuild({ buildId: app2.body.buildId, algorithm: app2.body.algorithm, algorithmName, algorithmImage: algorithmImage2, status: 'completed' });
+                await stateManager.updateBuild({ buildId: app2.body.buildId, algorithmImage: algorithmImage2, status: 'completed' });
                 await delay(1000);
 
                 const get4 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });

@@ -61,6 +61,19 @@ config.etcd = {
     serviceName: config.serviceName
 };
 
+config.db = {
+    provider: 'mongo',
+    mongo: {
+        auth: {
+            user: process.env.MONGODB_SERVICE_USER_NAME,
+            password: process.env.MONGODB_SERVICE_PASSWORD,
+        },
+        host: process.env.MONGODB_SERVICE_HOST || 'localhost',
+        port: formatters.parseInt(process.env.MONGODB_SERVICE_PORT, 27017),
+        dbName: process.env.MONGODB_DB_NAME || 'hkube',
+    }
+};
+
 config.apiServer = {
     protocol: 'http',
     host: process.env.API_SERVER_SERVICE_HOST || 'localhost',

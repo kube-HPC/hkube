@@ -10,8 +10,12 @@ class PipelineService {
         validator.pipelines.validateUpdatePipeline(options);
         await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
-        await stateManager.replacePipeline(options);
-        return options;
+        const newPipeline = {
+            modified: Date.now(),
+            ...options,
+        };
+        await stateManager.replacePipeline(newPipeline);
+        return newPipeline;
     }
 
     async deletePipeline(options) {
@@ -32,7 +36,7 @@ class PipelineService {
         const pipelines = await stateManager.searchJobs({
             pipelineName: options.name,
             pipelineType: pipelineTypes.STORED,
-            isRunning: true,
+            hasResult: false,
             fields: { jobId: true },
         });
         const result = await Promise.all(pipelines.map(p => this._promiseWrapper(() => executionService.stopJob({ jobId: p.jobId, reason: 'pipeline has been deleted' }))));
@@ -111,8 +115,12 @@ class PipelineService {
         if (pipeline) {
             throw new ResourceExistsError('pipeline', options.name);
         }
-        await stateManager.insertPipeline(options);
-        return options;
+        const newPipeline = {
+            modified: Date.now(),
+            ...options,
+        };
+        await stateManager.insertPipeline(newPipeline);
+        return newPipeline;
     }
 }
 

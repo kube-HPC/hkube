@@ -13,26 +13,25 @@ module.exports = {
         "ecmaVersion": 2020
     },
     "rules": {
-        "no-param-reassign": "off",
+        "no-param-reassign": "error",
+        "prefer-template": "error",
+        "no-trailing-spaces": "error",
+        "no-console": "error",
         "no-use-before-define": "warn",
+        "object-curly-spacing": "error",
+        "no-var": "error",
         "import/newline-after-import": "off",
+        "max-len": ["error", 220],
+        "brace-style": ["error", "stroustrup"],
         "indent": ["warn", 4],
-        "prefer-template": "off",
         "comma-dangle": "off",
         "no-underscore-dangle": "off",
-        "max-len": ["error", 200],
-        "brace-style": ["error", "stroustrup"],
-        "no-trailing-spaces": "off",
-        "no-console": "error",
         "linebreake-style": "off",
-        "no-var": "error",
-        "object-curly-spacing": "off",
+        "object-curly-newline": "off",
+        "newline-per-chained-call": "off",
         "arrow-body-style": "off",
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
-        "chai-friendly/no-unused-expressions": 2,
-        "linebreak-style": 0,
-        "arrow-parens": 0,
-        'object-curly-newline': 0
+        "arrow-parens": "off"
     }
 };

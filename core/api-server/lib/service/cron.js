@@ -46,7 +46,7 @@ class CronService {
     async getCronList(options) {
         const { sort, limit } = options;
         let pipelines = await stateManager.searchPipelines({
-            hasCron: true,
+            hasCronTriggers: true,
             sort: { startTime: sort },
             fields: { name: true, 'triggers.cron': true },
             limit

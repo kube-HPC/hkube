@@ -34,7 +34,7 @@ class ApiValidator {
         if (pipeline.options?.concurrentPipelines) {
             const { experimentName, name: pipelineName } = pipeline;
             const { amount, rejectOnFailure } = pipeline.options.concurrentPipelines;
-            const result = await stateManager.searchJobs({ experimentName, pipelineName, isRunning: true, fields: { jobId: true } });
+            const result = await stateManager.searchJobs({ experimentName, pipelineName, hasResult: false, fields: { jobId: true } });
             if (result.length >= amount) {
                 if (rejectOnFailure) {
                     throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);

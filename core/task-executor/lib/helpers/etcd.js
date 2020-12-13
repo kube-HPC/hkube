@@ -18,7 +18,6 @@ class Etcd {
         log = Logger.GetLogFromContainer();
         this._etcd = new EtcdClient(options.etcd);
         log.info(`Initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
-        await this._etcd.jobs.status.watch({ jobId: 'hookWatch' });
 
         const { provider, ...config } = options.db;
         this._db = dbConnect(config, provider);

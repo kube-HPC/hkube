@@ -12,6 +12,7 @@ class StateManager {
         this._etcd = new Etcd(options.etcd);
         await this._watch();
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
+        log.info(`initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
 
         const { provider, ...config } = options.db;
         this._db = dbConnect(config, provider);
@@ -152,12 +153,12 @@ class StateManager {
         return this._db.pipelines.deleteMany(list);
     }
 
-    async searchPipelines({ experimentName, algorithmName, hasTriggers, hasCron, hasCronEnabled, fields, sort, limit }) {
+    async searchPipelines({ experimentName, algorithmName, hasPipelinesTriggers, hasCronTriggers, hasCronEnabled, fields, sort, limit }) {
         return this._db.pipelines.search({
             experimentName,
             algorithmName,
-            hasTriggers,
-            hasCron,
+            hasPipelinesTriggers,
+            hasCronTriggers,
             hasCronEnabled,
             fields,
             sort,
@@ -313,13 +314,12 @@ class StateManager {
         return options;
     }
 
-    async searchJobs({ experimentName, pipelineName, pipelineType, algorithmName, isRunning, hasResult, fields, sort, limit }) {
+    async searchJobs({ experimentName, pipelineName, pipelineType, algorithmName, hasResult, fields, sort, limit }) {
         return this._db.jobs.search({
             experimentName,
             pipelineName,
             pipelineType,
             algorithmName,
-            isRunning,
             hasResult,
             fields,
             sort,

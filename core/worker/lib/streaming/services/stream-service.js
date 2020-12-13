@@ -36,7 +36,7 @@ class StreamService extends EventEmitter {
 
     async _createNodesForElection(jobData) {
         const { childs, jobId, nodeName } = jobData;
-        const pipeline = await stateAdapter.getExecution({ jobId });
+        const pipeline = await stateAdapter.getJobPipeline({ jobId });
         const dag = new DAG(pipeline);
         const nodesMap = pipeline.nodes.reduce((acc, cur) => {
             acc[cur.nodeName] = cur;

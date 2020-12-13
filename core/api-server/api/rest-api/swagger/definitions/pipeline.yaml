@@ -49,7 +49,6 @@ properties:
   edges:
     type: array
     description: edges define relation between nodes
-additionalProperties: false
 required:
   - name
   - nodes

@@ -51,6 +51,7 @@ class WebhooksHandler {
         }
     }
 
+    // TODO: DELETE JOB FROM ETCD
     async _requestResults(payload) {
         const { jobId } = payload;
         const pipeline = await stateManager.getJobPipeline({ jobId });
