@@ -49,7 +49,7 @@ class DataSource {
             ? dvcConfig.getFSConfig
             : dvcConfig.getS3Config({
                 endpoint: config.s3.endpoint,
-                bucketName: 'dataSources',
+                bucketName: 'local-hkube-datasource',
                 secretAccessKey: config.s3.secretAccessKey,
                 accessKeyId: config.s3.accessKeyId,
                 useSSL: false
