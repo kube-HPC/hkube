@@ -76,6 +76,7 @@ class ExecutionService {
         const jobId = this._createJobID();
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
+            validator.pipelines.validatePipelineNodes(pipeline);
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline);
             validator.executions.validatePipeline(pipeline, { validateNodes });

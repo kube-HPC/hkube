@@ -51,4 +51,3 @@ properties:
     description: edges define relation between nodes
 required:
   - name
-  - nodes
