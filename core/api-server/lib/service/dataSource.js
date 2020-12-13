@@ -3,38 +3,29 @@ const fse = require('fs-extra');
 const { default: simpleGit } = require('simple-git');
 const childProcess = require('child_process');
 const { parse: parsePath } = require('path');
-const { connection: db } = require('../db');
 const { ResourceExistsError, ResourceNotFoundError } = require('../errors');
 const validator = require('../validation/api-validator');
-
+const dvcConfig = require('../utils/dvc');
+const dbConnection = require('../db');
+const normalize = require('../utils/normalize');
 const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
 /**
  *  @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
  *  @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
  *  @typedef {import('express')} Express;
- *  @typedef {{createdPath: string, fileName: string}} uploadFileResponse
  *  @typedef {import('@hkube/storage-manager/lib/storage/storage-base').EntryWithMetaData} EntryWithMetaData
- *  @typedef {{name?: string; id?: string;}} NameOrId
- *  @typedef {{[fileId: string]: FileMeta}} NormalizedFileMeta
- *  @typedef {[FileMeta, FileMeta]} SourceTargetArray
+ *  @typedef {{ createdPath: string, fileName: string }} uploadFileResponse
+ *  @typedef {{ name?: string; id?: string; }} NameOrId
+ *  @typedef {{ [fileId: string]: FileMeta }} NormalizedFileMeta
+ *  @typedef { [FileMeta, FileMeta] } SourceTargetArray
  * */
 
-/**
- * @param {object[]} collection
- * @param {string=} id
- * @param {function=} mapper
- * */
-const normalize = (collection, id = 'id', mapper) => collection
-    .reduce((acc, item) => ({
-        ...acc,
-        [item[id]]: mapper ? mapper(item) : item
-    }), {});
-
+/** @type {(str: string, to: string) => string} */
 const convertWhiteSpace = (str, to) => str.split(' ').join(to);
 
 /**
- * @param {{name: string, path: string}} File
- * @param {string=} dataDir
+ * @param {{ name: string, path: string }} File
+ * @param { string= } dataDir
  * */
 const getFilePath = ({ name, path }, dataDir = 'data') => (
     path === '/'
@@ -42,6 +33,7 @@ const getFilePath = ({ name, path }, dataDir = 'data') => (
         // ensure there's no '/' at the end of a path
         : `${dataDir}/${path.replace(/^\//, '')}/${name}`
 );
+let db = null;
 
 class DataSource {
     constructor() {
@@ -50,10 +42,28 @@ class DataSource {
         fse.ensureDirSync(this.rootDir);
     }
 
+    async init(config) {
+        this.config = config;
+        const storage = config.defaultStorage;
+        this.generateDvcConfig = storage === 'fs'
+            ? dvcConfig.getFSConfig
+            : dvcConfig.getS3Config({
+                endpoint: config.s3.endpoint,
+                bucketName: 'dataSources',
+                secretAccessKey: config.s3.secretAccessKey,
+                accessKeyId: config.s3.accessKeyId,
+                useSSL: false
+            });
+        db = dbConnection.connection;
+    }
+
     /** @param {string} name */
     async setupDvcRepository(name) {
         await this._execute(name, 'dvc init');
-        // update dvc config file - add remote and bucket name
+        await fse.writeFile(
+            `${this.rootDir}/${name}/.dvc/config`,
+            this.generateDvcConfig(name)
+        );
     }
 
     async createRepo(name) {
@@ -335,10 +345,9 @@ class DataSource {
         * cleanups:
         *   - drop empty directories and empty git ignore files
         *     make sure the directory is really empty and has no subDirs!
-        * update dvc:
-        *      dvc push
         */
-        // await this._execute(repositoryName, `dvc push`);
+
+        await this._execute(repositoryName, 'dvc push -r storage');
         git.add('.');
         const { commit } = await git.commit(commitMessage);
         // await git.push()

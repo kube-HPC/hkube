@@ -3,7 +3,6 @@ const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const sinon = require('sinon');
-const stateManager = require('../lib/state/state-manager');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { request } = require('./utils');
 const dbConnection = require('../lib/db');
@@ -18,6 +17,7 @@ const {
 } = require('./datasource.utils');
 
 const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
+const STORAGE_DIR = '/var/tmp/fs/storage/local-hkube-dvc';
 
 describe('Datasource', () => {
     before(() => {
@@ -26,6 +26,7 @@ describe('Datasource', () => {
     });
     after(() => {
         fse.removeSync(DATASOURCE_GIT_REPOS_DIR);
+        fse.removeSync(STORAGE_DIR);
     });
     afterEach(() => sinon.restore());
     describe.skip('/datasource/exec/raw', () => {
@@ -346,9 +347,20 @@ describe('Datasource', () => {
                 const { body: fetchResponse } = await fetchDataSource({ name });
                 expect(fetchResponse.error.code).to.eql(HttpStatus.NOT_FOUND);
             });
-            describe('/datasource/:name PUT', () => {
+            it('should configure the new dataSource remote storage', async () => {
+                const name = uuid();
+                await createDataSource({ body: { name } });
+                const config = fse.readFileSync(`${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config`, 'utf8');
+                expect(config).to.match(new RegExp(name));
+            });
+            it('should push to dvc host', async () => {
+                const name = uuid();
+                await createDataSource({ body: { name } });
+                expect(await fse.ensureDir(`${STORAGE_DIR}/${name}`));
             });
         });
+    });
+    describe('/datasource/:name PUT', () => {
     });
     describe('/datasource/:name POST', () => {
         // update after adding ajv validation on the service
@@ -481,3 +493,4 @@ describe('Datasource', () => {
         });
     });
 });
+
