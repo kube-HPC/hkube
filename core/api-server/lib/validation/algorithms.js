@@ -86,7 +86,7 @@ class ApiValidator {
         const algorithms = new Map();
         const algorithmList = await stateManager.algorithms.store.list({ limit: 1000 });
         const algorithmsMap = new Map(algorithmList.map((a) => [a.name, a]));
-        pipeline.nodes.forEach((node) => {
+        pipeline.nodes.filter(n => n.algorithmName).forEach((node) => {
             const algorithm = algorithmsMap.get(node.algorithmName);
             if (!algorithm) {
                 throw new ResourceNotFoundError('algorithm', node.algorithmName);
