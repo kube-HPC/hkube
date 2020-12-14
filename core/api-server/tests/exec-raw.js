@@ -251,7 +251,7 @@ describe('Executions', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
         });
-        it('should throw validation error of data should NOT have additional properties', async () => {
+        it('should not throw validation error of data should NOT have additional properties', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -270,9 +270,7 @@ describe('Executions', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data should NOT have additional properties (additionalProps)');
+            expect(response.body).to.have.property('jobId');
         });
         it('should throw validation error of duplicate node', async () => {
             const options = {

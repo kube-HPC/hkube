@@ -83,12 +83,12 @@ class ApiValidator {
     }
 
     async validateAlgorithmExists(pipeline) {
-        const pipelineAlgorithms = pipeline.nodes.map(p => p.algorithmName);
+        const pipelineAlgorithms = pipeline.nodes.filter(n => n.algorithmName).map(p => p.algorithmName);
         const algorithmsMap = await stateManager.getAlgorithmsMapByNames({ names: pipelineAlgorithms });
-        pipeline.nodes.forEach((node) => {
-            const algorithm = algorithmsMap.get(node.algorithmName);
+        pipelineAlgorithms.forEach((a) => {
+            const algorithm = algorithmsMap.get(a);
             if (!algorithm) {
-                throw new ResourceNotFoundError('algorithm', node.algorithmName);
+                throw new ResourceNotFoundError('algorithm', a);
             }
         });
         return algorithmsMap;

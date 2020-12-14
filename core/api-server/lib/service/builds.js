@@ -46,7 +46,7 @@ class Builds {
         return response;
     }
 
-    async startBuild(options) {
+    _cleanBuild(options) {
         const build = {
             ...options,
             status: buildStatuses.PENDING,
@@ -57,7 +57,12 @@ class Builds {
             endTime: null,
             startTime: Date.now()
         };
-        await stateManager.updateBuild(build);
+        return build;
+    }
+
+    async startBuild(options) {
+        const build = this._cleanBuild(options);
+        await stateManager.createBuild(build);
     }
 
     async stopBuild(options) {
@@ -78,11 +83,12 @@ class Builds {
     async rerunBuild(options) {
         validator.builds.validateBuildId(options);
         const { buildId } = options;
-        const build = await this.getBuild({ buildId });
-        if (this.isActiveState(build.status)) {
-            throw new InvalidDataError(`unable to rerun build because its in ${build.status} status`);
+        const buildData = await this.getBuild({ buildId });
+        if (this.isActiveState(buildData.status)) {
+            throw new InvalidDataError(`unable to rerun build because its in ${buildData.status} status`);
         }
-        await this.startBuild(build);
+        const build = this._cleanBuild(options);
+        await stateManager.updateBuild(build);
     }
 
     async _createBuildFromCode(build) {

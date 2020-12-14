@@ -1206,13 +1206,13 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to watch completed build', async function () {
                 const algorithmName = `my-alg-${uuid()}`;
-                const algorithmImage = `${algorithmName}-image`
+                const algorithmImage = `${algorithmName}-image`;
                 const formData = {
                     payload: JSON.stringify({ name: algorithmName, env: 'nodejs' }),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
                 const res1 = await request({ uri: `${restPath}/apply`, formData });
-                await stateManager.createBuild({ buildId: res1.body.buildId, algorithm: res1.body.algorithm, algorithmName, algorithmImage, status: 'completed' });
+                await stateManager.updateBuild({ buildId: res1.body.buildId, algorithmImage, status: 'completed' });
                 await delay(2000);
 
                 const { options, created: c1, modified: c2, ...restProps } = res1.body.algorithm;

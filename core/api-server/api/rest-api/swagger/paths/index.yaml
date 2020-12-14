@@ -65,7 +65,7 @@
   $ref: ./webhooks/status.yaml
 /webhooks/results/{jobId}:
   $ref: ./webhooks/results.yaml
-/webhooks/list:
+/webhooks/list/{jobId}:
   $ref: ./webhooks/list.yaml
 
 # boards

@@ -52,16 +52,20 @@ class StateManager {
         return this._db.algorithms.delete({ name });
     }
 
-    async getAlgorithms({ name, sort, limit }) {
+    async getAlgorithms({ name, names, sort, limit } = {}) {
         return this._db.algorithms.search({
             name,
+            names,
             sort: { created: sort },
             limit
         });
     }
 
-    async getAlgorithmsMapByNames(payload) {
-        const algorithms = await this.getAlgorithms(payload);
+    async getAlgorithmsMapByNames({ names }) {
+        if (!names?.length) {
+            return new Map();
+        }
+        const algorithms = await this.getAlgorithms({ names });
         const algorithmsMap = new Map(algorithms.map((a) => [a.name, a]));
         return algorithmsMap;
     }
@@ -182,8 +186,8 @@ class StateManager {
         return this._db.pipelines.fetch(options);
     }
 
-    async getPipelines() {
-        return this._db.pipelines.fetchAll();
+    async getPipelines({ pipelinesNames } = {}) {
+        return this._db.pipelines.search({ pipelinesNames });
     }
 
     async insertPipeline(options) {
@@ -295,6 +299,10 @@ class StateManager {
     async getJobResult(options) {
         const result = await this._db.jobs.fetchResult(options);
         return this.getResultFromStorage(result);
+    }
+
+    async getJobResultClean(options) {
+        return this._db.jobs.fetchResult(options);
     }
 
     async mergeJobStorageResults(list) {

@@ -15,7 +15,7 @@ class PipelineService {
             ...options,
         };
         await stateManager.replacePipeline(newPipeline);
-        return newPipeline;
+        return options;
     }
 
     async deletePipeline(options) {
@@ -120,7 +120,7 @@ class PipelineService {
             ...options,
         };
         await stateManager.insertPipeline(newPipeline);
-        return newPipeline;
+        return options;
     }
 }
 
