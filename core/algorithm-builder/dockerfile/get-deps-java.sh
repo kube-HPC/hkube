@@ -1,7 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
-mkdir -p $SCRIPTPATH/../environments/java/m2
 export javaWrapperVersion='2.0-SNAPSHOT'
 mkdir -p $SCRIPTPATH/../environments/java/debs
 cd $SCRIPTPATH/../environments/java/debs
