@@ -17,6 +17,7 @@ const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
  *  @typedef {{ createdPath: string, fileName: string }} uploadFileResponse
  *  @typedef {{ name?: string; id?: string; }} NameOrId
  *  @typedef {{ [fileId: string]: FileMeta }} NormalizedFileMeta
+ *  @typedef {Express.Multer.File} MulterFile
  *  @typedef { [FileMeta, FileMeta] } SourceTargetArray
  * */
 
@@ -33,6 +34,7 @@ const getFilePath = ({ name, path }, dataDir = 'data') => (
         // ensure there's no '/' at the end of a path
         : `${dataDir}/${path.replace(/^\//, '')}/${name}`
 );
+/** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
 let db = null;
 
 class DataSource {
@@ -94,7 +96,7 @@ class DataSource {
         return cache;
     }
 
-    /** @type {(file: Express.Multer.File, path?:string) => FileMeta} */
+    /** @type {(file: MulterFile, path?:string) => FileMeta} */
     createFileMeta(file, path = null) {
         return {
             id: file.filename,
@@ -113,7 +115,7 @@ class DataSource {
      * @param {NormalizedFileMeta} normalizedMapping
      * @param {Express.Multer.File[]} files
      * @returns {{
-     *  allFiles: Express.Multer.File[];
+     *  allFiles: MulterFile[];
      *  normalizedAddedFiles: NormalizedFileMeta;
      *  byPath: {[path: string]: string} // maps from path to fileId
      * }}
@@ -194,18 +196,19 @@ class DataSource {
      * splits the inputs to groups by their respective actions.
      * **note**: the normalizedAddedFiles collection includes all
      * the added files including updated file
-     * @type { (props?: {
-     *  currentFiles?: FileMeta[];
-     *  mapping: FileMeta[];
-     *  addedFiles?: Express.Multer.File[];
-     *  }) => {
-     *    mapping: FileMeta[];
-     *    allAddedFiles: Express.Multer.File[];
-     *    normalizedAddedFiles: NormalizedFileMeta
-     *    byPath: {[path: string]: string}
-     *    updatedFiles: SourceTargetArray[];
-     *    movedFiles: SourceTargetArray[];
-     *    touchedFileIds: string[];
+     * @param {{
+     *   currentFiles?: FileMeta[];
+     *   mapping: FileMeta[];
+     *   addedFiles?: MulterFile[];
+     * }=} props
+     * @returns {{
+     *   mapping: FileMeta[];
+     *   allAddedFiles: MulterFile[];
+     *   normalizedAddedFiles: NormalizedFileMeta
+     *   byPath: {[path: string]: string}
+     *   updatedFiles: SourceTargetArray[];
+     *   movedFiles: SourceTargetArray[];
+     *   touchedFileIds: string[];
      * }}
      * */
     _splitToGroups({ currentFiles = [], mapping, addedFiles: _addedFiles = [] }) {
@@ -260,7 +263,7 @@ class DataSource {
      * @param {string} repositoryName
      * @param {string} baseDir
      * @param {NormalizedFileMeta} normalizedMapping
-     * @param {Express.Multer.File[]} allAddedFiles
+     * @param {MulterFile[]} allAddedFiles
      * */
     async _addFiles(repositoryName, baseDir, normalizedMapping, allAddedFiles) {
         if (allAddedFiles.length === 0) return null;
@@ -317,7 +320,7 @@ class DataSource {
      * @param {string} props.repositoryName
      * @param {string} props.commitMessage
      * @param {object} props.files
-     * @param {Express.Multer.File[]} props.files.added
+     * @param {MulterFile[]} props.files.added
      * @param {FileMeta[]=} props.files.mapping
      * @param {string[]=} props.files.dropped
      * @param {FileMeta[]=} props.currentFiles
@@ -366,7 +369,7 @@ class DataSource {
      * @param {string} props.versionDescription
      * @param {object} props.files
      * @param {FileMeta[]} props.files.mapping
-     * @param {Express.Multer.File[]} props.files.added
+     * @param {MulterFile[]} props.files.added
      * @param {string[]} props.files.dropped
      */
     async updateDataSource({ name, files: _files, versionDescription }) {
@@ -393,11 +396,7 @@ class DataSource {
         });
     }
 
-    /**
-      * @param {object} query
-      * @param {string} query.name
-      * @param {Express.Multer.File[]} query.files
-      */
+    /** @param {{ name: string, files: MulterFile[] }} query */
     async createDataSource({ name, files }) {
         validator.dataSource.validateCreate({ name, files });
         let createdDataSource;
@@ -428,6 +427,7 @@ class DataSource {
             });
         }
         catch (error) {
+            // @ts-ignore
             await Promise.allSettled([
                 db.dataSources.delete({ name }) // delete from the git server and dvc storage
             ]);
@@ -436,11 +436,7 @@ class DataSource {
         return updatedDataSource;
     }
 
-    /**
-     * @param {object} query
-     * @param {string=} query.name
-     * @param {string=} query.id
-     */
+    /** @param {{name?: string, id?: string}} query */
     async fetchDataSourceMetaData({ name, id }) {
         let dataSource = null;
         try {
@@ -455,11 +451,7 @@ class DataSource {
         return dataSource;
     }
 
-    /**
-     * @param {object} query
-     * @param {string=} query.name
-     * @param {string=} query.id
-     */
+    /** @param {{name?: string, id?: string}} query */
     async fetchDataSource({ name, id }) {
         return this.fetchDataSourceMetaData({ name, id });
     }
@@ -471,6 +463,11 @@ class DataSource {
 
     async list() {
         return db.dataSources.fetchAll();
+    }
+
+    /** @param {string} name */
+    async listVersions(name) {
+        return db.dataSources.listVersions({ name });
     }
 }
 
