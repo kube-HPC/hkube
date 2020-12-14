@@ -110,6 +110,14 @@ const routes = () => {
             }
             next();
         });
+
+    router.get('/:name/versions', async (req, res, next) => {
+        const { name } = req.params;
+        const versions = await dataSource.listVersions(name);
+        res.json(versions);
+        return next();
+    });
+
     router.use(errorsMiddleware);
     return router;
 };

@@ -14,6 +14,7 @@ const {
     updateVersion,
     fileName,
     nonExistingId,
+    fetchDataSourceVersions
 } = require('./datasource.utils');
 
 const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
@@ -360,8 +361,7 @@ describe('Datasource', () => {
             });
         });
     });
-    describe('/datasource/:name PUT', () => {
-    });
+
     describe('/datasource/:name POST', () => {
         // update after adding ajv validation on the service
         it.skip('should throw missing filesAdded and filesDropped error', async () => {
@@ -490,6 +490,29 @@ describe('Datasource', () => {
             expect(dataSource.versionId).not.to.eq(uploadResponseBody.versionId);
             expect(dataSource.files.length).to.eq(uploadResponseBody.files.length);
             expect(uploadResponseBody.files[0].size).to.eq(132)
+        });
+    });
+    describe('/datasource/:name/versions GET', () => {
+        it('should fetch the versions listing of a datasource', async () => {
+            const name = uuid();
+            const { body: dataSource } = await createDataSource({ body: { name } });
+            const [existingFile] = dataSource.files;
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.true;
+            expect(await fse.statSync(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`).size).to.eq(108);
+            const uploadResponse = await updateVersion({
+                dataSourceName: name,
+                fileNames: ['updatedVersions/README-1.md'],
+                mapping: [existingFile]
+            });
+            const { body: versionsList } = await fetchDataSourceVersions({ name });
+            expect(versionsList).to.have.lengthOf(2);
+            // validates the order of the array
+            const [, latestVersion] = versionsList;
+            expect(uploadResponse.body.id).to.eq(latestVersion.id);
+        });
+        it('should fetch the versions listing for non existing datasource', async () => {
+            const { body: versionsList } = await fetchDataSourceVersions({ name: 'not-existing-dataasource' });
+            expect(versionsList).to.have.length(0);
         });
     });
 });

@@ -82,11 +82,7 @@ const updateVersion = async ({
 };
 
 
-/** 
- * @param {object} query
- * @param {string=} query.name 
- * @param {string=} query.id 
- * */
+/**  @param {{name?: string, id?: string}} query */
 const fetchDataSource = ({ name, id }) => {
     const uri = `${global.testParams.restUrl}/datasource`;
     const getOptions = {
@@ -99,8 +95,19 @@ const fetchDataSource = ({ name, id }) => {
     return request(getOptions);
 };
 
+/** @param {{name: string}} query */
+const fetchDataSourceVersions = ({ name }) => {
+    const uri = `${global.testParams.restUrl}/datasource/${name}/versions`;
+    const getOptions = {
+        uri,
+        method: 'GET'
+    };
+    return request(getOptions);
+}
+
 module.exports = {
     fetchDataSource,
+    fetchDataSourceVersions,
     createDataSource,
     updateVersion,
     nonExistingId,
