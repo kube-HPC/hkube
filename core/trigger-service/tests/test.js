@@ -1,39 +1,23 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const mockery = require('mockery');
-let cronTrigger, pipelineTrigger, triggerQueue, pipelineProducer, storeManager;
+const nock = require('nock');
+const { uid: uuidv4 } = require('@hkube/uid');
+const storeManager = require('../lib/store/store-manager');
+const triggerQueue = require('../lib/queue/trigger-queue');
+const pipelineProducer = require('../lib/pipelines/pipeline-producer');
+const { cronTrigger, pipelineTrigger } = require('../lib/triggers');
+const bootstrap = require('../bootstrap');
 const Trigger = require('../lib/triggers/Trigger');
 const pipelines = require('./mocks/pipelines.json');
-const apiServerMock = require('./mocks/api-server');
 const { Triggers } = require('../lib/consts');
-const Logger = require('@hkube/logger');
-const configIt = require('@hkube/config');
 const delay = require('await-delay');
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
 
 describe('test', () => {
     before(async () => {
-        mockery.enable({
-            useCleanCache: false,
-            warnOnReplace: false,
-            warnOnUnregistered: false
-        });
-
-        mockery.registerSubstitute('../store/store-manager', `${process.cwd()}/tests/mocks/store-manager.js`);
-        mockery.registerSubstitute('../lib/store/store-manager', `${process.cwd()}/tests/mocks/store-manager.js`);
-
-        triggerQueue = require('../lib/queue/trigger-queue');
-        triggerRunner = require('../lib/queue/trigger-runner');
-        pipelineProducer = require('../lib/pipelines/pipeline-producer');
-        cronTrigger = require('../lib/triggers/index').cronTrigger;
-        pipelineTrigger = require('../lib/triggers/index').pipelineTrigger;
-        storeManager = require('../lib/store/store-manager');
-
-        await apiServerMock.init();
-        cronTrigger.init(main);
-        triggerRunner.init(main);
-        pipelineProducer.init(main);
+        nock('http://localhost:3000').persist().post('/internal/v1/exec/stored/cron').reply(200, { jobId: uuidv4() });
+        nock('http://localhost:3000').persist().post('/internal/v1/exec/stored/trigger').reply(200, { jobId: uuidv4() });
+        await bootstrap.init();
+        await storeManager._db.pipelines.createMany(pipelines);
     });
     describe('CronTrigger', () => {
         beforeEach(() => {

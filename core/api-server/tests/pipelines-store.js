@@ -501,6 +501,7 @@ describe('Store/Pipelines', () => {
             const pipeline = clone(pipelines[2]);
             pipeline.description = 'my description';
             pipeline.kind = 'stream';
+            pipeline.nodes.forEach(n => n.stateType = 'stateless');
             const options = {
                 uri: restPath,
                 method: 'PUT',

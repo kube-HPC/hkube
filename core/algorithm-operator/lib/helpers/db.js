@@ -3,22 +3,13 @@ const dbConnect = require('@hkube/db');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../consts/componentNames').ETCD;
 const buildStatus = require('../consts/buildStatus');
-const { logWrappers } = require('./tracing');
 
-class Etcd extends EventEmitter {
+class DB extends EventEmitter {
     async init(options) {
         const { provider, ...config } = options.db;
         this._db = dbConnect(config, provider);
         await this._db.init();
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
-        if (options.healthchecks.logExternalRequests) {
-            logWrappers([
-                'getAlgorithmTemplate',
-                'getAlgorithmTemplates',
-                'getBuilds',
-                'setBuild'
-            ], this, log);
-        }
     }
 
     getAlgorithmTemplate({ name }) {
@@ -57,4 +48,4 @@ class Etcd extends EventEmitter {
     }
 }
 
-module.exports = new Etcd();
+module.exports = new DB();

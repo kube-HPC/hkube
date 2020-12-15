@@ -635,33 +635,33 @@ describe('Executions', () => {
                 uri: restPath,
                 body: {
                     name: 'streaming-flow',
-                    kind: "stream",
+                    kind: 'stream',
                     nodes: [
                         {
-                            "nodeName": "A",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateful"
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful',
                         },
                         {
-                            "nodeName": "B",
-                            "algorithmName": "green-alg",
-                            "input": ["@A"],
-                            "stateType": "stateless"
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless',
                         },
                         {
-                            "nodeName": "C",
-                            "algorithmName": "green-alg",
-                            "input": ["@C"],
-                            "stateType": "stateless"
-                        }
+                            nodeName: 'C',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless',
+                        },
                     ],
                     streaming: {
                         flows: {
-                            "analyze": "A >> B >> C"
-                        }
-                    }
-                }
+                            analyze: 'A >> B >> C',
+                        },
+                    },
+                },
             };
             const re = await request(options);
             const optionsGET = { uri: `${restUrl}/exec/pipelines/${re.body.jobId}`, method: 'GET' };

@@ -19,7 +19,7 @@ before(async () => {
     await etcd._etcd._client.delete('/', { isPrefix: true });
 
     await etcd._db.algorithms.createMany(templateStore);
-    await Promise.all(driversTemplateStore.map(d => etcd._etcd.pipelineDrivers.store.set(d)));
+    await etcd._db.pipelineDrivers.createMany(driversTemplateStore);
 
     global.testParams = {
         callCount,

@@ -2,7 +2,6 @@ const EtcdClient = require('@hkube/etcd');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 const parse = require('@hkube/units-converter');
-const { logWrappers } = require('./tracing');
 const { cacheResults, arrayToMap } = require('../utils/utils');
 const { components, containers } = require('../consts');
 const component = components.ETCD;
@@ -27,19 +26,6 @@ class Etcd {
         this._workerServiceName = options.workerServiceName || CONTAINERS.WORKER;
         this._pipelineDriverServiceName = options.workerServiceName || CONTAINERS.PIPELINE_DRIVER;
         const discoveryInfo = {};
-        if (options.healthchecks.logExternalRequests) {
-            logWrappers([
-                'updateDiscovery',
-                'sendCommandToWorker',
-                'sendCommandToDriver',
-                'getWorkers',
-                'getPipelineDrivers',
-                'getAlgorithmRequests',
-                'getPipelineDriverRequests',
-                'getAlgorithmTemplate',
-                'getDriversTemplate'
-            ], this, log);
-        }
         await this._etcd.discovery.register({ data: discoveryInfo });
         log.info(`registering discovery for id ${this._etcd.discovery._instanceId}`, { component });
         if ((options.cacheResults || {}).enabled) {
@@ -111,7 +97,7 @@ class Etcd {
     }
 
     async getDriversTemplate() {
-        const templates = await this._etcd.pipelineDrivers.store.list();
+        const templates = await this._db.pipelineDrivers.fetchAll();
         return arrayToMap(templates);
     }
 }

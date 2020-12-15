@@ -1,7 +1,6 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('./consts/componentNames').OPERATOR;
 const db = require('./helpers/db');
-const { logWrappers } = require('./helpers/tracing');
 const kubernetes = require('./helpers/kubernetes');
 const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
 const tensorboardReconciler = require('./reconcile/tensorboard');
@@ -14,11 +13,6 @@ class Operator {
         this._intervalMs = options.intervalMs;
         this._boardsIntervalMs = options.boardsIntervalMs;
         this._boardTimeOut = options.boardTimeOut;
-        if (options.healthchecks.logExternalRequests) {
-            logWrappers([
-                '_interval',
-            ], this, log);
-        }
         this._interval = this._interval.bind(this);
         this._boardsInterval = this._boardsInterval.bind(this);
         this._lastIntervalTime = null;
@@ -64,7 +58,6 @@ class Operator {
         this._lastIntervalBoardTime = Date.now();
         try {
             log.debug('Update board interval.', { component });
-
             await tensorboardReconciler.updateTensorboards();
         }
         catch (e) {

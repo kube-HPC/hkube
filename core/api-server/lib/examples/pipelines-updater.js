@@ -13,20 +13,19 @@ class PipelinesUpdater {
         const defaultAlgorithms = addDefaultAlgorithms ? algorithms : null;
 
         await this._pipelineDriversTemplate(options);
-        await this._transfer('algorithm', defaultAlgorithms, (list) => this._createAlgorithms(list));
-        await this._transfer('pipeline', pipelines, (list) => stateManager.createPipelines(list));
-        await this._transfer('experiment', experiments, (list) => stateManager.createExperiments(list));
-        await this._transfer('readme/pipeline', null, (list) => stateManager.createPipelinesReadMe(list));
-        await this._transfer('readme/algorithms', null, (list) => stateManager.createAlgorithmsReadMe(list));
+        await this._transferFromStorageToDB('algorithm', defaultAlgorithms, (list) => this._createAlgorithms(list));
+        await this._transferFromStorageToDB('pipeline', pipelines, (list) => stateManager.createPipelines(list));
+        await this._transferFromStorageToDB('experiment', experiments, (list) => stateManager.createExperiments(list));
+        await this._transferFromStorageToDB('readme/pipeline', null, (list) => stateManager.createPipelinesReadMe(list));
+        await this._transferFromStorageToDB('readme/algorithms', null, (list) => stateManager.createAlgorithmsReadMe(list));
     }
 
-    async _transfer(type, defaultData, createFunc) {
+    async _transferFromStorageToDB(type, defaultData, createFunc) {
         try {
             let list = await this._getByType(type);
             if (defaultData) {
                 list = await this._getDiff(defaultData, list);
             }
-            this._logSync(type, list);
             const result = await createFunc(list);
             this._logSyncSuccess(type, result);
         }
@@ -50,10 +49,6 @@ class PipelinesUpdater {
         await stateManager.syncAlgorithmsVersions(list);
     }
 
-    _logSync(type, list) {
-        log.info(`syncing ${list.length} ${type}s from ${this._defaultStorage} storage to hkube db`);
-    }
-
     _logSyncSuccess(type, result) {
         log.info(`syncing ${type}s success, synced: ${result?.inserted || 0}`);
     }
@@ -64,14 +59,11 @@ class PipelinesUpdater {
 
     async _pipelineDriversTemplate(options) {
         try {
-            let driversTemplate = drivers;
-            if (options.pipelineDriversResources) {
-                driversTemplate = drivers.map(d => ({ ...d, ...options.pipelineDriversResources }));
-            }
+            const driversTemplate = drivers.map(d => ({ ...d, ...options.pipelineDriversResources }));
             await Promise.all(driversTemplate.map(d => stateManager.setPipelineDriversSettings(d)));
         }
         catch (error) {
-            log.warning(`failed to upload default drivers.${error.message} `);
+            log.warning(`failed to upload default drivers. ${error.message} `);
         }
     }
 }

@@ -2,20 +2,11 @@ const EventEmitter = require('events');
 const log = require('@hkube/logger').GetLogFromContainer();
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const component = require('../consts/componentNames').K8S;
-const { logWrappers } = require('./tracing');
 
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
         this._namespace = options.kubernetes.namespace;
         this._client = new KubernetesClient(options.kubernetes);
-        if (options.healthchecks.logExternalRequests) {
-            logWrappers([
-                'getDeployments',
-                'getJobs',
-                'getVersionsConfigMap',
-                'getAlgorithmForDebug'
-            ], this, log);
-        }
         log.info(`Initialized kubernetes client with options ${JSON.stringify({
             ...options.kubernetes,
             url: this._client._config.url

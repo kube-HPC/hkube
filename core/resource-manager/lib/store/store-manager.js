@@ -13,11 +13,11 @@ class StoreManager {
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
 
-    getAlgorithmQueue() {
+    async getAlgorithmQueue() {
         return this._etcd.algorithms.queue.list();
     }
 
-    getAlgorithmTemplateStore() {
+    async getAlgorithmTemplateStore() {
         return this._db.algorithms.search({
             isDebug: false,
             isPending: false,
@@ -26,19 +26,19 @@ class StoreManager {
         });
     }
 
-    setAlgorithmsResourceRequirements(options) {
+    async setAlgorithmsResourceRequirements(options) {
         return this._etcd.algorithms.requirements.set(options);
     }
 
-    getPipelineDriverQueue(options) {
+    async getPipelineDriverQueue(options) {
         return this._etcd.pipelineDrivers.queue.list(options);
     }
 
-    getPipelineDriverTemplateStore(options) {
-        return this._etcd.pipelineDrivers.store.list(options);
+    async getPipelineDriverTemplateStore() {
+        return this._db.pipelineDrivers.fetchAll();
     }
 
-    setPipelineDriverRequirements(resourceResults) {
+    async setPipelineDriverRequirements(resourceResults) {
         return this._etcd.pipelineDrivers.requirements.set(resourceResults);
     }
 }

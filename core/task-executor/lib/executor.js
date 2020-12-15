@@ -1,6 +1,5 @@
 const Logger = require('@hkube/logger');
 const { metrics } = require('@hkube/metrics');
-const { logWrappers } = require('./helpers/tracing');
 const { metricsNames, components } = require('./consts');
 const component = components.EXECUTOR;
 const etcd = require('./helpers/etcd');
@@ -40,11 +39,6 @@ class Executor {
             name: metricsNames.TASK_EXECUTOR_JOB_ACTIVE,
             labels: ['algorithmName']
         });
-        if (options.healthchecks.logExternalRequests) {
-            logWrappers([
-                '_interval',
-            ], this, log);
-        }
         this._interval = this._interval.bind(this);
         this._driversSettings = this._prepareDriversData(options);
         this._lastIntervalTime = null;

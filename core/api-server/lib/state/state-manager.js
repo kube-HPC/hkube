@@ -27,7 +27,7 @@ class StateManager {
     }
 
     async setPipelineDriversSettings(data) {
-        await this._etcd.pipelineDrivers.store.set(data);
+        await this._db.pipelineDrivers.update(data);
     }
 
     // Algorithms
