@@ -124,7 +124,7 @@ class DataSource {
         return files.reduce((acc, file) => {
             const tmpFileName = file.originalname;
             const fileMeta = this.createFileMeta(file, normalizedMapping[tmpFileName]?.path);
-            const filePath = getFilePath(fileMeta);
+            let filePath = getFilePath(fileMeta);
             // the file does not have an id for a name - it is unmapped
             if (!normalizedMapping[tmpFileName]) {
                 return {
@@ -146,6 +146,8 @@ class DataSource {
                 ...fileMeta,
                 name: normalizedMapping[tmpFileName].name
             };
+            filePath = getFilePath(updatedFileMeta);
+
             return {
                 ...acc,
                 byPath: {
