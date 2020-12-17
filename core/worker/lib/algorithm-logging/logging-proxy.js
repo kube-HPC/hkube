@@ -128,10 +128,10 @@ class LoggingProxy {
     _handleLine(line) {
         const { logMessage, stream, parsedLogWithoutLogMessage } = this._getLogMessage(line);
         if (stream === 'stderr') {
-            log.info(logMessage, { component, ...parsedLogWithoutLogMessage });
+            log.info(logMessage, { component, ...parsedLogWithoutLogMessage, level: 'error' });
         }
         else {
-            log.info(logMessage, { component, ...parsedLogWithoutLogMessage });
+            log.info(logMessage, { component, ...parsedLogWithoutLogMessage, level: 'info' });
         }
     }
 }
