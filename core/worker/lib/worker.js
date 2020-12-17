@@ -12,6 +12,7 @@ const messages = require('./algorithm-communication/messages');
 const streamHandler = require('./streaming/services/stream-handler');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
+const loggingProxy = require('./algorithm-logging/logging-proxy.js');
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
@@ -244,42 +245,45 @@ class Worker {
      * Register to algoRunner messages.
      */
     _registerToCommunicationEvents() {
-        algoRunnerCommunication.on(messages.incomming.initialized, () => {
+        algoRunnerCommunication.on(messages.incoming.initialized, () => {
             stateManager.start();
         });
-        algoRunnerCommunication.on(messages.incomming.storing, (message) => {
+        algoRunnerCommunication.on(messages.incoming.storing, (message) => {
             jobConsumer.setStoringStatus(message.data);
         });
-        algoRunnerCommunication.on(messages.incomming.streamingStatistics, (message) => {
+        algoRunnerCommunication.on(messages.incoming.streamingStatistics, (message) => {
             streamHandler.reportStats(message.data);
         });
-        algoRunnerCommunication.on(messages.incomming.done, (message) => {
+        algoRunnerCommunication.on(messages.incoming.done, (message) => {
             stateManager.done(message);
         });
-        algoRunnerCommunication.on(messages.incomming.stopped, (message) => {
+        algoRunnerCommunication.on(messages.incoming.stopped, (message) => {
             if (this._stopTimeout) {
                 clearTimeout(this._stopTimeout);
             }
             stateManager.done(message);
         });
-        algoRunnerCommunication.on(messages.incomming.progress, (message) => {
+        algoRunnerCommunication.on(messages.incoming.progress, (message) => {
             if (message.data) {
                 log.debug(`progress: ${message.data.progress}`, { component });
             }
         });
-        algoRunnerCommunication.on(messages.incomming.error, async (data) => {
+        algoRunnerCommunication.on(messages.incoming.error, async (data) => {
             const message = data.error && data.error.message;
             log.info(`got error from algorithm: ${message}`, { component });
             await this._handleRetry({ error: { message }, isAlgorithmError: true });
         });
-        algoRunnerCommunication.on(messages.incomming.startSpan, (message) => {
+        algoRunnerCommunication.on(messages.incoming.startSpan, (message) => {
             this._startAlgorithmSpan(message);
         });
-        algoRunnerCommunication.on(messages.incomming.finishSpan, (message) => {
+        algoRunnerCommunication.on(messages.incoming.finishSpan, (message) => {
             this._finishAlgorithmSpan(message);
         });
-        algoRunnerCommunication.on(messages.incomming.servingStatus, () => {
+        algoRunnerCommunication.on(messages.incoming.servingStatus, () => {
             this._algorithmServingLastUpdate = Date.now();
+        });
+        algoRunnerCommunication.on(messages.incoming.logData, (message) => {
+            loggingProxy.handleExternalLog(message);
         });
     }
 

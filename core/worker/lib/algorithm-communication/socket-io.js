@@ -51,7 +51,7 @@ class SocketWorkerCommunication extends EventEmitter {
 
     _registerSocketMessages(socket) {
         this._socket = socket;
-        Object.values(messages.incomming).forEach((topic) => {
+        Object.values(messages.incoming).forEach((topic) => {
             log.debug(`registering for topic ${topic}`, { component });
 
             socket.on(topic, (message) => {

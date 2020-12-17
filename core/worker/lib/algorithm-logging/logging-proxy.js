@@ -100,13 +100,7 @@ class LoggingProxy {
         try {
             this._tail = new Tail(this._algorunnerLogFilePath, { fromBeginning: true });
             this._tail.on('line', (line) => {
-                const { logMessage, stream, parsedLogWithoutLogMessage } = this._getLogMessage(line);
-                if (stream === 'stderr') {
-                    log.info(logMessage, { component, ...parsedLogWithoutLogMessage });
-                }
-                else {
-                    log.info(logMessage, { component, ...parsedLogWithoutLogMessage });
-                }
+                this._handleLine(line);
             });
             this._tail.on('error', (error) => {
                 log.throttle.error(error.message, { component });
@@ -115,6 +109,29 @@ class LoggingProxy {
         catch (error) {
             log.throttle.warning(`Algorunner logging proxy error: ${error.message}. Trying again in ${DELAY} seconds.`, { component });
             setTimeout(this._startWatch, DELAY * 1000);
+        }
+    }
+
+    handleExternalLog(message) {
+        const lines = message?.data;
+        if (!lines) {
+            return;
+        }
+        try {
+            lines.forEach(line => this._handleLine(line));
+        }
+        catch {
+            log.throttle.warning('Failed to handle redirected algorithm logs', { component });
+        }
+    }
+
+    _handleLine(line) {
+        const { logMessage, stream, parsedLogWithoutLogMessage } = this._getLogMessage(line);
+        if (stream === 'stderr') {
+            log.info(logMessage, { component, ...parsedLogWithoutLogMessage });
+        }
+        else {
+            log.info(logMessage, { component, ...parsedLogWithoutLogMessage });
         }
     }
 }

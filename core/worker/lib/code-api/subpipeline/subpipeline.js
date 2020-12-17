@@ -57,13 +57,13 @@ class SubPipelineHandler {
     }
 
     _registerToAlgEvents() {
-        algoRunnerCommunication.on(messages.incomming.startRawSubPipeline, (message) => {
+        algoRunnerCommunication.on(messages.incoming.startRawSubPipeline, (message) => {
             this._handleStartSubPipeline(message, ApiServerPostTypes.SubPipeline.RAW);
         });
-        algoRunnerCommunication.on(messages.incomming.startStoredSubPipeline, (message) => {
+        algoRunnerCommunication.on(messages.incoming.startStoredSubPipeline, (message) => {
             this._handleStartSubPipeline(message, ApiServerPostTypes.SubPipeline.STORED);
         });
-        algoRunnerCommunication.on(messages.incomming.stopSubPipeline, (message) => {
+        algoRunnerCommunication.on(messages.incoming.stopSubPipeline, (message) => {
             this._handleStopSubPipeline(message);
         });
     }

@@ -12,7 +12,7 @@ module.exports = {
         done: 'done'
 
     },
-    incomming: {
+    incoming: {
         ping: 'pingMessage',
         initialize: 'initialize',
         start: 'start',

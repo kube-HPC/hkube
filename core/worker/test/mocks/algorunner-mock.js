@@ -26,29 +26,29 @@ class AlgorunnerMock extends EventEmitter {
 
     send(message) {
         switch (message.command) {
-            case messages.incomming.initialize:
+            case messages.incoming.initialize:
                 this._initialize(message.data);
                 break;
-            case messages.incomming.start:
+            case messages.incoming.start:
                 this._start(message.data);
                 break;
-            case messages.incomming.subPipelineStarted:
+            case messages.incoming.subPipelineStarted:
                 this._subPipelineStarted(message.data);
                 break;
-            case messages.incomming.subPipelineDone:
+            case messages.incoming.subPipelineDone:
                 this._subPipelineDone(message.data);
                 break;
-            case messages.incomming.subPipelineError:
+            case messages.incoming.subPipelineError:
                 this._subPipelineError(message.data);
                 break;
-            case messages.incomming.subPipelineStopped:
+            case messages.incoming.subPipelineStopped:
                 this._subPipelineStopped(message.data);
                 break;
-            case messages.incomming.cleanup:
-                this._simulateSend({ command: messages.incomming.done, data: message.data });
+            case messages.incoming.cleanup:
+                this._simulateSend({ command: messages.incoming.done, data: message.data });
                 break;
-            case messages.incomming.stop:
-                this._stop({ command: messages.incomming.stopped, data: message.data });
+            case messages.incoming.stop:
+                this._stop({ command: messages.incoming.stopped, data: message.data });
                 break;
 
             default:
@@ -298,7 +298,7 @@ class AlgorunnerMock extends EventEmitter {
         if (process.env.IGNORE_STOP) {
             return;
         }
-        this._stopEmitter.emit(messages.incomming.stop);
+        this._stopEmitter.emit(messages.incoming.stop);
         this._simulateSend({
             command: messages.outgoing.stopped
         });

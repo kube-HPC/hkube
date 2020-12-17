@@ -1,5 +1,5 @@
 module.exports = {
-    incomming: {
+    incoming: {
         initialized: 'initialized',
         started: 'started',
         stopped: 'stopped',
@@ -15,7 +15,8 @@ module.exports = {
         stopAlgorithmExecution: 'stopAlgorithmExecution',
         streamingStatistics: 'streamingStatistics',
         storing: 'storing',
-        done: 'done'
+        done: 'done',
+        logData: 'logData'
     },
     outgoing: {
         initialize: 'initialize',

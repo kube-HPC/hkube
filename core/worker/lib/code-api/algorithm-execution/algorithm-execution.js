@@ -56,10 +56,10 @@ class AlgorithmExecution {
     }
 
     _registerToAlgorithmEvents() {
-        algoRunnerCommunication.on(messages.incomming.startAlgorithmExecution, (message) => {
+        algoRunnerCommunication.on(messages.incoming.startAlgorithmExecution, (message) => {
             this._startAlgorithmExecution(message);
         });
-        algoRunnerCommunication.on(messages.incomming.stopAlgorithmExecution, (message) => {
+        algoRunnerCommunication.on(messages.incoming.stopAlgorithmExecution, (message) => {
             this._stopAlgorithmExecution(message);
         });
     }

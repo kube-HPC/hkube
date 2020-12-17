@@ -123,9 +123,9 @@ describe('worker SubPipeline test', () => {
     });
     beforeEach(() => {
         sinon.restore();
-        workerCommunication.removeAllListeners(messages.incomming.done);
-        workerCommunication.removeAllListeners(messages.incomming.error);
-        workerCommunication.removeAllListeners(messages.incomming.initialized);
+        workerCommunication.removeAllListeners(messages.incoming.done);
+        workerCommunication.removeAllListeners(messages.incoming.error);
+        workerCommunication.removeAllListeners(messages.incoming.initialized);
     });
     after(async () => {
         mockery.disable();
@@ -136,7 +136,7 @@ describe('worker SubPipeline test', () => {
         const apiServerMock = require('./mocks/api-server-mock');
         const subPipelineHandler = require('../lib/code-api/subpipeline/subpipeline');
         const input = [10];
-        workerCommunication.on(messages.incomming.initialized, (message) => {
+        workerCommunication.on(messages.incoming.initialized, (message) => {
             stateManager.state = workerStates.working;
             adapter.send({ command: messages.outgoing.start });
         });

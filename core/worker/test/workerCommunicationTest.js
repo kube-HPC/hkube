@@ -23,8 +23,8 @@ describe('worker communication', () => {
     it('should pass events', async () => {
         const spy = sinon.spy();
         const { adapter } = workerCommunication;
-        workerCommunication.on(messages.incomming.started, spy);
-        adapter.emit(messages.incomming.started, ['1', '2']);
+        workerCommunication.on(messages.incoming.started, spy);
+        adapter.emit(messages.incoming.started, ['1', '2']);
         expect(spy.callCount).to.eq(1);
         expect(spy.getCall(0).args[0]).to.eql(['1', '2']);
     });
@@ -35,7 +35,7 @@ describe('worker communication', () => {
         stateManager.prepare();
         expect(stateManager.state).to.equal('init');
         const { adapter } = workerCommunication;
-        workerCommunication.on(messages.incomming.initialized, spy);
+        workerCommunication.on(messages.incoming.initialized, spy);
         adapter.send({ command: messages.outgoing.initialize, data: { xxx: 'yyy' } });
         expect(spy.callCount).to.eq(1);
         expect(spy.getCall(0).args[0]).to.eql({ xxx: 'yyy' });

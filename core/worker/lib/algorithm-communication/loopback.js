@@ -28,19 +28,19 @@ class Loopback extends EventEmitter {
         switch (message.command) {
             case messages.outgoing.initialize:
                 this._lastInput = message.data;
-                this._simulateSend({ command: messages.incomming.initialized, data: message.data });
+                this._simulateSend({ command: messages.incoming.initialized, data: message.data });
                 break;
             case messages.outgoing.start:
-                this._simulateSend({ command: messages.incomming.started, data: message.data });
+                this._simulateSend({ command: messages.incoming.started, data: message.data });
                 break;
             case messages.outgoing.cleanup:
-                this._simulateSend({ command: messages.incomming.done, data: message.data });
+                this._simulateSend({ command: messages.incoming.done, data: message.data });
                 break;
             case messages.outgoing.stop:
-                this._simulateSend({ command: messages.incomming.stopped, data: message.data });
+                this._simulateSend({ command: messages.incoming.stopped, data: message.data });
                 break;
             case messages.outgoing.ping:
-                this._simulateSend({ command: messages.incomming.pong, data: message.data });
+                this._simulateSend({ command: messages.incoming.pong, data: message.data });
                 break;
 
             default:
