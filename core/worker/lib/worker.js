@@ -68,14 +68,14 @@ class Worker {
         return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `${k}:${v}`).join(',') : '';
     }
 
-    _setInactiveTimeout(shouldExitAndCompleteJob) {
+    _setInactiveTimeout() {
         if (jobConsumer.isConsumerPaused) {
             this._inactiveTimeoutMs = this._options.timeouts.inactivePaused || 0;
         }
         else {
             this._inactiveTimeoutMs = this._options.timeouts.inactive || 0;
         }
-        this._handleTimeout(stateManager.state, shouldExitAndCompleteJob);
+        this._handleTimeout(stateManager.state);
     }
 
     _registerToEtcdEvents() {
@@ -89,13 +89,11 @@ class Worker {
             this._stopPipeline({ status: data.status, reason: data.reason });
         });
         stateAdapter.on(workerCommands.coolDown, async () => {
-            log.info('got coolDown event', { component });
             jobConsumer.hotWorker = false;
             await jobConsumer.updateDiscovery({ state: stateManager.state });
             this._setInactiveTimeout();
         });
         stateAdapter.on(workerCommands.warmUp, async () => {
-            log.info('got warmUp event', { component });
             jobConsumer.hotWorker = true;
             await jobConsumer.updateDiscovery({ state: stateManager.state });
             this._setInactiveTimeout();
@@ -113,13 +111,10 @@ class Worker {
             if (shouldStop) {
                 await jobConsumer.pause();
                 await jobConsumer.updateDiscovery({ state: stateManager.state });
-                // if the reason to pause is scale-down we want to force exit and update the driver we finished.
-                const shouldExitAndCompleteJob = reason === streamingEvents.SCALE_DOWN;
-                this._setInactiveTimeout(shouldExitAndCompleteJob);
+                this._setInactiveTimeout();
             }
         });
         stateAdapter.on(workerCommands.exit, async (event) => {
-            log.info(`got ${event.status.command} command, message ${event.message}`, { component });
             await jobConsumer.updateDiscovery({ state: 'exit' });
             const data = {
                 error: {
@@ -139,6 +134,12 @@ class Worker {
                 await jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
             }
+        });
+        stateAdapter.on(workerCommands.scaleDown, () => {
+            const data = {
+                shouldCompleteJob: true
+            };
+            stateManager.done(data);
         });
     }
 
@@ -456,18 +457,18 @@ class Worker {
         }
     }
 
-    _handleTimeout(state, shouldExitAndCompleteJob = false) {
+    _handleTimeout(state) {
         if (this._debugMode) {
             return;
         }
-        if (state === workerStates.ready || shouldExitAndCompleteJob) {
+        if (state === workerStates.ready) {
             this._clearInactiveTimeout();
             if (!jobConsumer.hotWorker && this._inactiveTimeoutMs != 0) { // eslint-disable-line
                 log.info(`starting inactive timeout for worker ${this._inactiveTimeoutMs / 1000} seconds`, { component });
                 this._inactiveTimer = setTimeout(() => {
                     if (!this._inTerminationMode) {
                         log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`, { component });
-                        stateManager.exit({ shouldCompleteJob: shouldExitAndCompleteJob });
+                        stateManager.exit({ shouldCompleteJob: false });
                     }
                 }, this._inactiveTimeoutMs);
             }
