@@ -379,7 +379,7 @@ class DataSource {
         // also acts validates the datasource exists
         // can be used to tag the dataSource as locked while updating
         // add fetch dataSource a flag to take the lock into account
-        const currentVersion = await db.dataSources.createVersion({
+        const createdVersion = await db.dataSources.createVersion({
             versionDescription,
             name
         });
@@ -387,9 +387,12 @@ class DataSource {
             repositoryName: name,
             files: _files,
             commitMessage: versionDescription,
-            currentFiles: currentVersion.files
+            currentFiles: createdVersion.files
         });
-        if (!commitHash) return null;
+        if (!commitHash) {
+            await db.dataSources.delete({ id: createdVersion.id });
+            return null;
+        }
         // release the lock
         return db.dataSources.uploadFiles({
             name,
