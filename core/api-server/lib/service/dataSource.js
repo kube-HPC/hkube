@@ -34,6 +34,13 @@ const getFilePath = ({ name, path }, dataDir = 'data') => (
         // ensure there's no '/' at the end of a path
         : `${dataDir}/${path.replace(/^\//, '')}/${name}`
 );
+
+const metaRegex = new RegExp('.meta');
+/** @param {string} fileName */
+const isMetaFile = fileName => fileName.match(metaRegex);
+const extractFileName = metaData =>
+    metaData.input.slice(0, metaData.index);
+
 /** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
 let db = null;
 
@@ -117,7 +124,8 @@ class DataSource {
      * @returns {{
      *  allFiles: MulterFile[];
      *  normalizedAddedFiles: NormalizedFileMeta;
-     *  byPath: {[path: string]: string} // maps from path to fileId
+     *  byPath: {[path: string]: string}; // maps from path to fileId
+     *  metaFilesByPath: {[path: string]: MulterFile};
      * }}
      */
     prepareAddedFiles(normalizedMapping, files) {
@@ -125,6 +133,13 @@ class DataSource {
             const tmpFileName = file.originalname;
             const fileMeta = this.createFileMeta(file, normalizedMapping[tmpFileName]?.path);
             let filePath = getFilePath(fileMeta);
+            // if is meta file split to another collection
+            const metaDescription = isMetaFile(fileMeta.name);
+            if (metaDescription) {
+                const fileName = extractFileName(metaDescription);
+                const _path = getFilePath({ ...fileMeta, name: fileName });
+                return { ...acc, metaFilesByPath: { [_path]: file } };
+            }
             // the file does not have an id for a name - it is unmapped
             if (!normalizedMapping[tmpFileName]) {
                 return {
@@ -169,6 +184,7 @@ class DataSource {
             allFiles: [],
             normalizedAddedFiles: {},
             byPath: {},
+            metaFilesByPath: {}
         });
     }
 
@@ -195,6 +211,25 @@ class DataSource {
     }
 
     /**
+     * loads the .meta files and add their content to the
+     * description field on the file normalized mapping
+     * return a new mapping object
+     * @param {NormalizedFileMeta} normalizedMapping
+     * @param { {[path: string]: string} } byPath
+     * @param { {[path: string]: MulterFile} } metaFilesByPath
+     */
+    async _loadMetaDataFile(normalizedMapping, byPath, metaFilesByPath) {
+        const contents = await Promise.all(Object.entries(metaFilesByPath).map(async ([filePath, file]) => {
+            const content = await fse.readFile(file.path);
+            return [byPath[filePath], content.toString('utf8')];
+        }));
+        return contents.reduce((acc, [fileId, description]) => ({
+            ...acc,
+            [fileId]: { ...acc[fileId], description }
+        }), normalizedMapping);
+    }
+
+    /**
      * splits the inputs to groups by their respective actions.
      * **note**: the normalizedAddedFiles collection includes all
      * the added files including updated file
@@ -204,13 +239,13 @@ class DataSource {
      *   addedFiles?: MulterFile[];
      * }=} props
      * @returns {{
-     *   mapping: FileMeta[];
      *   allAddedFiles: MulterFile[];
      *   normalizedAddedFiles: NormalizedFileMeta
      *   byPath: {[path: string]: string}
      *   updatedFiles: SourceTargetArray[];
      *   movedFiles: SourceTargetArray[];
      *   touchedFileIds: string[];
+     *   metaFilesByPath: {[path: string]: MulterFile};
      * }}
      * */
     _splitToGroups({ currentFiles = [], mapping, addedFiles: _addedFiles = [] }) {
@@ -223,6 +258,7 @@ class DataSource {
             allFiles: allAddedFiles, // mapped files were renamed from ids to their actual names
             normalizedAddedFiles,
             byPath,
+            metaFilesByPath
         } = this.prepareAddedFiles(normalizedMapping, _addedFiles);
 
         /** @type {{ movedFiles: SourceTargetArray[], updatedFiles: SourceTargetArray[], touchedFileIds: string[] }} */
@@ -247,17 +283,14 @@ class DataSource {
             return acc;
         }, { movedFiles: [], updatedFiles: [], touchedFileIds: [] });
 
-        const finalMapping = Object.values(normalizedAddedFiles)
-            .concat(movedFiles.map(([, targetFile]) => targetFile));
-
         return {
-            mapping: finalMapping,
             allAddedFiles,
             normalizedAddedFiles,
             byPath,
             movedFiles,
             updatedFiles,
-            touchedFileIds
+            touchedFileIds,
+            metaFilesByPath
         };
     }
 
@@ -343,7 +376,8 @@ class DataSource {
         */
         const git = simpleGit({ baseDir });
         const groups = this._splitToGroups({ currentFiles, mapping, addedFiles: added });
-        await this._addFiles(repositoryName, baseDir, groups.normalizedAddedFiles, groups.allAddedFiles);
+        const normalizedAddedFiles = await this._loadMetaDataFile(groups.normalizedAddedFiles, groups.byPath, groups.metaFilesByPath);
+        await this._addFiles(repositoryName, baseDir, normalizedAddedFiles, groups.allAddedFiles);
         await this._moveExistingFiles(repositoryName, groups.movedFiles);
         await this._dropFiles(repositoryName, baseDir, dropped, currentFiles);
         /**
@@ -356,11 +390,14 @@ class DataSource {
         git.add('.');
         const { commit } = await git.commit(commitMessage);
         // await git.push()
+        const finalMapping = Object.values(normalizedAddedFiles)
+            .concat(groups.movedFiles.map(([, targetFile]) => targetFile));
+
         return {
             commitHash: commit,
             files: {
                 droppedIds: groups.touchedFileIds.concat(dropped),
-                mapping: groups.mapping
+                mapping: finalMapping
             }
         };
     }

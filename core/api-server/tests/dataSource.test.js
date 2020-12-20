@@ -357,7 +357,19 @@ describe('Datasource', () => {
             it('should push to dvc host', async () => {
                 const name = uuid();
                 await createDataSource({ body: { name } });
-                expect(await fse.ensureDir(`${STORAGE_DIR}/${name}`));
+                expect(await fse.pathExists(`${STORAGE_DIR}/${name}`)).to.be.true;
+            });
+            it('should upload a file with meta data', async () => {
+                const name = uuid();
+                await createDataSource({
+                    body: { name },
+                    fileNames: [
+                        'dataSources/logo.svg',
+                        'dataSources/logo.svg.meta'
+                    ]
+                });
+                expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg`)).to.be.true;
+                expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg.meta`)).to.be.false;
             });
         });
     });
