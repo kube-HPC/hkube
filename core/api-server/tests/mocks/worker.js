@@ -12,7 +12,6 @@ class WorkerStub {
         }
         results.data = {};
         results.data.storageInfo = await storageManager.hkubeResults.put({ jobId, data });
-        const { data: stam, ...rest } = results;
         await stateManager.updateJobStatus(results);
         await stateManager.updateJobResult(results);
     }

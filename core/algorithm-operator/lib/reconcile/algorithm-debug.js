@@ -1,7 +1,6 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const isEqualWith = require('lodash.isequalwith');
 const objectPath = require('object-path');
-const db = require('../helpers/db');
 const { createKindsSpec } = require('../deployments/worker-debug');
 const kubernetes = require('../helpers/kubernetes');
 const component = require('../consts/componentNames').ALGORITHM_DEBUG_RECONCILER;

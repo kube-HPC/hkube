@@ -1,7 +1,6 @@
 const { CronJob } = require('cron');
 const logger = require('@hkube/logger');
 const { componentName, Events, Triggers } = require('../consts');
-const Trigger = require('../triggers/Trigger');
 const triggerQueue = require('../queue/trigger-queue');
 const storeManager = require('../store/store-manager');
 const component = componentName.CRON_TRIGGER;
