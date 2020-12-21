@@ -41,8 +41,8 @@ class ServiceDiscovery extends EventEmitter {
             this.emit(streamingEvents.DISCOVERY_CHANGED, changes);
         }
 
-        const parentAlive = parents.some(p => this._discoveryMap[p]);
-        if (!parentAlive) {
+        const parentsAlive = parents.some(p => this._discoveryMap[p]);
+        if (parents.length > 0 && !parentsAlive) {
             if (!this._timeWait) {
                 this._timeWait = Date.now();
             }
