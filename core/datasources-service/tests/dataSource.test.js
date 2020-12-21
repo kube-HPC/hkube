@@ -314,7 +314,7 @@ describe('Datasource', () => {
                 await fse.statSync(
                     `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`
                 ).size
-            ).to.eq(108);
+            ).to.eq(107);
             const uploadResponse = await updateVersion({
                 dataSourceName: name,
                 fileNames: ['updatedVersions/README-1.md'],

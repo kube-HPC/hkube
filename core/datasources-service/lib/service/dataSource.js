@@ -89,20 +89,14 @@ class DataSource {
     }
 
     async _execute(repositoryName, command) {
-        const ls = await childProcess.exec(command, {
+        const cmd = await childProcess.exec(command, {
             cwd: `${this.rootDir}/${repositoryName}`,
         });
-        let cache = '';
-        ls.stdout.on('data', data => {
-            cache += data;
+        const response = await new Promise((res, rej) => {
+            cmd.on('error', rej);
+            cmd.stdout.on('readable', res);
         });
-        await new Promise((res, rej) => {
-            ls.on('error', rej);
-            ls.stdout.on('end', data => {
-                res(data);
-            });
-        });
-        return cache;
+        return response;
     }
 
     /** @type {(file: MulterFile, path?: string) => FileMeta} */
@@ -360,7 +354,11 @@ class DataSource {
 
         const uniqueDirs = [...new Set(dirs)];
 
-        await Promise.all(uniqueDirs.map(dir => fse.ensureDir(dir)));
+        await Promise.all(
+            uniqueDirs.map(dir =>
+                fse.ensureDir(`${this.rootDir}/${repositoryName}/${dir}`)
+            )
+        );
 
         await Promise.all(
             allAddedFiles.map(file => {
