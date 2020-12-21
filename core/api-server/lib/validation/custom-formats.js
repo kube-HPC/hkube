@@ -22,7 +22,6 @@ class ApiValidator {
         validatorInstance.addFormat('algorithm-image', this._validateAlgorithmImage);
         validatorInstance.addFormat('algorithm-mount-pvc', this._validateAlgorithmMountPvc);
         validatorInstance.addFormat('algorithm-memory', this._validateAlgorithmMemory);
-        validatorInstance.addFormat('dataSource-name', this._validateDataSourceName);
         validatorInstance.addFormat('memory', this._validateMemory);
         validatorInstance.addFormat('path', this._validatePath);
         validatorInstance.addFormat('binary', this._validateBinary);
@@ -35,7 +34,6 @@ class ApiValidator {
     _addFormatMessages() {
         formatMessages.set('pipeline-name', validationMessages.PIPELINE_NAME_FORMAT);
         formatMessages.set('algorithm-name', validationMessages.ALGORITHM_NAME_FORMAT);
-        formatMessages.set('dataSource-name', validationMessages.DATASOURCE_NAME_FORMAT);
         formatMessages.set('binary', validationMessages.BINARY_FILE_NAME);
         formatMessages.set('algorithm-image', validationMessages.ALGORITHM_IMAGE_FORMAT);
         formatMessages.set('experiment-name', validationMessages.EXPERIMENT_NAME_FORMAT);
@@ -59,10 +57,6 @@ class ApiValidator {
 
     _validatePath(path) {
         return regex.PATH.test(path);
-    }
-
-    _validateDataSourceName(name) {
-        return regex.DATASOURCE_NAME_REGEX.test(name);
     }
 
     _validateAlgorithmName(name) {

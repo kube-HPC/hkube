@@ -19,7 +19,6 @@ const modules = [
     require('./lib/service/algorithms'),
     require('./lib/service/caching'),
     require('./lib/service/storage'),
-    require('./lib/service/dataSource'),
 ];
 
 class Bootstrap {

@@ -4,7 +4,6 @@ const Regex = {
     PIPELINE_NAME_REGEX: /^[:\-_.A-Za-z0-9]+$/i,
     EXPERIMENT_NAME_REGEX: /^[:\-_.A-Za-z0-9]+$/i,
     ALGORITHM_NAME_REGEX: /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/,
-    DATASOURCE_NAME_REGEX: /^[:\-_.A-Za-z0-9]+$/i,
     PVC_NAME_REGEX: /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/,
     ALGORITHM_IMAGE_REGEX: /^\S*$/,
     BOARD_ID: /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/,

@@ -22,5 +22,3 @@
   description: Store new pipelines, update, get and delete
 - name: Webhooks
   description: Webhooks status and result
-- name: DataSource
-  description: DataSources and their related files
