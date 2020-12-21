@@ -145,11 +145,18 @@ class Worker {
 
     _registerToAutoScalerChangesEvents() {
         streamHandler.on(streamingEvents.DISCOVERY_CHANGED, (changes) => {
-            log.info(`discovery detected ${changes.length} changes`, { component });
+            log.info(`service discovery detected ${changes.length} changes`, { component });
             algoRunnerCommunication.send({
                 command: messages.outgoing.serviceDiscoveryUpdate,
                 data: changes
             });
+        });
+        streamHandler.on(streamingEvents.DISCOVERY_PARENTS_DOWN, () => {
+            log.info('service discovery detected all parents down', { component });
+            const data = {
+                shouldCompleteJob: true
+            };
+            stateManager.done(data);
         });
         streamHandler.on(streamingEvents.THROUGHPUT_CHANGED, (throughput) => {
             jobConsumer.updateThroughput(throughput);

@@ -40,7 +40,8 @@ config.streaming = {
         interval: formatters.parseInt(process.env.STREAMING_THROUGHPUT_INTERVAL, 10000),
     },
     serviceDiscovery: {
-        interval: process.env.SERVICE_DISCOVERY_INTERVAL || 5000,
+        interval: formatters.parseInt(process.env.SERVICE_DISCOVERY_INTERVAL, 5000),
+        timeWaitOnParentsDown: formatters.parseInt(process.env.SERVICE_DISCOVERY_PARENTS_DOWN_TIME_WAIT, 20000),
         address: {
             host: process.env.POD_IP || '127.0.0.1',
             port: process.env.STREAMING_DISCOVERY_PORT || 9022
