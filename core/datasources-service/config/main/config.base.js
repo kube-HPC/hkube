@@ -1,0 +1,98 @@
+const path = require('path');
+const packageJson = require(process.cwd() + '/package.json');
+const formatter = require(process.cwd() + '/lib/utils/formatters');
+
+const config = {};
+config.serviceName = packageJson.name;
+config.systemVersion = process.env.HKUBE_SYSTEM_VERSION;
+
+const secured = !!process.env.API_SERVER_SSL;
+config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+config.maxStorageFetchKeys = formatter.parseInt(
+    process.env.MAX_STORAGE_FETCH_KEYS,
+    100
+);
+config.storageResultsThreshold =
+    process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
+
+config.version = packageJson.version;
+
+config.rest = {
+    port: process.env.API_SERVER_REST_PORT || 3002,
+    prefix: 'api',
+    poweredBy: 'HKube Server',
+    rateLimit: {
+        route: '/api',
+        ms: process.env.API_SERVER_RATE_LIMIT_MS || 1000,
+        max: process.env.API_SERVER_RATE_LIMIT_MAX || 5,
+        delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0,
+    },
+};
+
+config.cachingServer = {
+    protocol: 'http',
+    host: process.env.CACHING_SERVICE_SERVICE_HOST || 'localhost',
+    port: process.env.CACHING_SERVICE_SERVICE_PORT || 9005,
+    prefix: 'cache',
+};
+
+config.debugUrl = {
+    path: path.join(process.env.INGRESS_PREFIX || '', 'hkube/debug'),
+};
+
+config.swagger = {
+    protocol: secured ? 'https' : 'http',
+    host: process.env.BASE_URL_HOST || 'localhost',
+    port: process.env.BASE_URL_PORT || config.rest.port,
+    path: process.env.BASE_URL_PATH || '',
+};
+
+config.db = {
+    provider: 'mongo',
+    mongo: {
+        auth: {
+            user: process.env.MONGODB_SERVICE_USER_NAME,
+            password: process.env.MONGODB_SERVICE_PASSWORD,
+        },
+        host: process.env.MONGODB_SERVICE_HOST || 'localhost',
+        port: formatter.parseInt(process.env.MONGODB_SERVICE_PORT, 27017),
+        dbName: process.env.MONGODB_SERVICE_NAME || 'hkube',
+        useUnifiedTopology: true,
+    },
+};
+
+config.clusterName = process.env.CLUSTER_NAME || 'local';
+
+config.metrics = {
+    prefix: 'hkube_',
+    collectDefault: true,
+    server: {
+        port: process.env.METRICS_PORT,
+    },
+};
+
+config.tracer = {
+    tracerConfig: {
+        serviceName: config.serviceName,
+        reporter: {
+            agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
+            agentPort:
+                process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832,
+        },
+    },
+};
+
+config.s3 = {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
+    secretAccessKey:
+        process.env.AWS_SECRET_ACCESS_KEY ||
+        'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
+};
+
+config.fs = {
+    baseDirectory:
+        process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+};
+
+module.exports = config;
