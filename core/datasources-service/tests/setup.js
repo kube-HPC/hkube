@@ -1,3 +1,5 @@
+const fse = require('fs-extra');
+
 const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
 const STORAGE_DIR = '/var/tmp/fs/storage/local-hkube-dvc';
 

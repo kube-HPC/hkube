@@ -6,7 +6,7 @@ const {
     createDataSource,
     fetchDataSource,
     updateVersion,
-} = require('./datasource.utils');
+} = require('./utils');
 
 let DATASOURCE_GIT_REPOS_DIR, STORAGE_DIR;
 

@@ -3,7 +3,7 @@ const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const sinon = require('sinon');
-const { request } = require('./utils');
+const { request } = require('./request');
 const dbConnection = require('../lib/db');
 const {
     createDataSource,
@@ -12,7 +12,7 @@ const {
     fileName,
     nonExistingId,
     fetchDataSourceVersions,
-} = require('./datasource.utils');
+} = require('./utils');
 
 let DATASOURCE_GIT_REPOS_DIR, restUrl, restPath;
 

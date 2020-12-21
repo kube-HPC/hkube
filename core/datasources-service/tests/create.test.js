@@ -4,12 +4,12 @@ const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const sinon = require('sinon');
 const validationMessages = require('../lib/consts/validationMessages.js');
-const { request } = require('./utils');
-const { createDataSource, fetchDataSource } = require('./datasource.utils');
+const { request } = require('./request');
+const { createDataSource, fetchDataSource } = require('./utils');
 
 let restUrl, restPath, DATASOURCE_GIT_REPOS_DIR, STORAGE_DIR;
 
-describe('update datasource', () => {
+describe('create datasource', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
