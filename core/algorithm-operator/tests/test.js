@@ -3,18 +3,19 @@ const mockery = require('mockery');
 const db = require('../lib/helpers/db');
 const decache = require('decache');
 const { templateStoreStub } = require('./stub/discoveryStub');
-const { callCount, mock } = (require('./mocks/kubernetes.mock')).kubernetes()
+const { mock } = (require('./mocks/kubernetes.mock')).kubernetes()
 
 describe('bootstrap', () => {
     before(async () => {
         mockery.enable({
             warnOnReplace: false,
             warnOnUnregistered: false,
-            // useCleanCache: true
         });
         mockery.registerMock('./lib/helpers/kubernetes', mock);
         const bootstrap = require('../bootstrap');
         await bootstrap.init();
+        await db._db.db.dropDatabase();
+        await db._db.init();
     });
     after(() => {
         mockery.disable();
@@ -32,9 +33,8 @@ describe('bootstrap', () => {
         expect(algorithms.length).to.eql(count);
     });
     it('should list template store above limit', async () => {
-        await Promise.all([...Array(110).keys()].map(i => db._db.algorithms.update({ name: `key-${i}`, created: Date.now() })));
+        await Promise.all([...Array(110).keys()].map(i => db._db.algorithms.update({ name: `key-${i}`, modified: Date.now() })));
         const { algorithms, count } = await db.getAlgorithmTemplates();
-        expect(algorithms).to.deep.include({ name: 'key-99' });
         expect(algorithms.length).to.not.eql(count);
     });
 });

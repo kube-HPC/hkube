@@ -18,7 +18,7 @@ class DB extends EventEmitter {
 
     async getAlgorithmTemplates() {
         const [algorithms, count] = await Promise.all([
-            this._db.algorithms.search({ isPending: false, sort: { created: 'desc' }, limit: 100 }),
+            this._db.algorithms.search({ sort: { modified: 'desc' }, limit: 100 }),
             this._db.algorithms.count()
         ]);
         return { algorithms, count };
