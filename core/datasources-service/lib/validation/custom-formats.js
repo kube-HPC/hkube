@@ -18,6 +18,7 @@ class ApiValidator {
             'dataSource-name',
             this._validateDataSourceName
         );
+        validatorInstance.addFormat('binary', this._validateBinary);
 
         Object.entries(definitions).forEach(([k, v]) => {
             validatorInstance.addSchema(v, `#/components/schemas/${k}`);
@@ -25,6 +26,7 @@ class ApiValidator {
     }
 
     _addFormatMessages() {
+        formatMessages.set('binary', validationMessages.BINARY_FILE_NAME);
         formatMessages.set(
             'dataSource-name',
             validationMessages.DATASOURCE_NAME_FORMAT
