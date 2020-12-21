@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const EtcdClient = require('@hkube/etcd');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
+const { buildStatuses } = require('@hkube/consts');
 const component = require('../consts/components').ETCD;
 const { redactLines } = require('../utils/text');
 
@@ -48,14 +49,17 @@ class StateManger extends EventEmitter {
 
         await this._db.algorithms.builds.update(results);
 
-        while (!ok && count > 0) {
-            try {
-                await this._etcd.algorithms.builds.update(results); // eslint-disable-line
-                ok = true;
-            }
-            catch (error) {
-                count -= 1;
-                log.info(`update failed. ${count} retries left. error: ${error.message}`);
+        // only on completed we need to update etcd
+        if (results.status === buildStatuses.COMPLETED) {
+            while (!ok && count > 0) {
+                try {
+                    await this._etcd.algorithms.builds.update(results); // eslint-disable-line
+                    ok = true;
+                }
+                catch (error) {
+                    count -= 1;
+                    log.info(`update failed. ${count} retries left. error: ${error.message}`);
+                }
             }
         }
     }

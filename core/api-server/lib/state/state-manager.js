@@ -27,7 +27,7 @@ class StateManager {
     }
 
     async setPipelineDriversSettings(data) {
-        await this._db.pipelineDrivers.update(data);
+        return this._db.pipelineDrivers.update(data);
     }
 
     // Algorithms
@@ -100,15 +100,6 @@ class StateManager {
         return this._db.algorithms.versions.create(version);
     }
 
-    async syncAlgorithmsVersions(list) {
-        await Promise.all(list.map(a => this._syncVersions(a)));
-    }
-
-    async _syncVersions(algorithm) {
-        const versions = await this._etcd.algorithms.versions.list(algorithm);
-        return this.createVersions(versions);
-    }
-
     async acquireVersionLock({ name, version }) {
         return this._etcd.algorithms.versions.acquireLock({ name, version });
     }
@@ -118,6 +109,10 @@ class StateManager {
     }
 
     // Builds
+    async createBuilds(list) {
+        return this._db.algorithms.builds.createMany(list);
+    }
+
     async getBuild({ buildId }) {
         return this._db.algorithms.builds.fetch({ buildId });
     }
@@ -253,6 +248,10 @@ class StateManager {
     }
 
     // Jobs
+    async createJobs(list) {
+        return this._db.jobs.createMany(list);
+    }
+
     onJobResult(func) {
         this._etcd.jobs.results.on('change', (response) => {
             func(response);
