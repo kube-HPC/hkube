@@ -15,10 +15,10 @@ class PipelinesUpdater {
         await this._pipelineDriversTemplate(options);
         await this._transferJobsToDB();
         await this._transferFromStorageToDB('algorithm', defaultAlgorithms, (...args) => this._createAlgorithms(...args));
-        await this._transferFromStorageToDB('pipeline', pipelines, (...args) => this.createPipelines(...args));
-        await this._transferFromStorageToDB('experiment', experiments, (...args) => this.createExperiments(...args));
-        await this._transferFromStorageToDB('readme/pipeline', null, (...args) => this.createPipelinesReadMe(...args));
-        await this._transferFromStorageToDB('readme/algorithms', null, (...args) => this.createAlgorithmsReadMe(...args));
+        await this._transferFromStorageToDB('pipeline', pipelines, (...args) => this._createPipelines(...args));
+        await this._transferFromStorageToDB('experiment', experiments, (...args) => this._createExperiments(...args));
+        await this._transferFromStorageToDB('readme/pipeline', null, (...args) => this._createPipelinesReadMe(...args));
+        await this._transferFromStorageToDB('readme/algorithms', null, (...args) => this._createAlgorithmsReadMe(...args));
         log.info('--------finish sync process---------');
     }
 
@@ -28,7 +28,7 @@ class PipelinesUpdater {
             if (defaultData) {
                 list = await this._getDiff(defaultData, list);
             }
-            log.info(`found ${list.length} ${type} to sync from storage to db`);
+            log.info(`${type}s: found ${list.length} to sync from storage to db`);
             const result = await createFunc(type, list);
             this._logSyncSuccess(type, result);
         }
@@ -43,26 +43,26 @@ class PipelinesUpdater {
             const status = await stateManager._etcd.jobs.status.list({ limit });
             const results = await stateManager._etcd.jobs.results.list({ limit });
             const executions = await stateManager._etcd.executions.stored.list({ limit });
-            const jobs = [];
+            let jobs = 0;
 
-            status.forEach(s => {
-                const result = results.find(r => r.jobId === s.jobId);
-                const pipeline = executions.find(r => r.jobId === s.jobId);
-                const job = {
-                    jobId: s.jobId,
-                    status: s,
-                    result,
-                    pipeline
-                };
-                jobs.push(job);
-            });
+            await Promise.all(status.map(async s => {
+                const { jobId, ...status } = s;
+                const { jobId: j1, ...result } = results.find(r => r.jobId === s.jobId) || {};
+                const { jobId: j2, ...pipeline } = executions.find(r => r.jobId === s.jobId) || {};
+                try {
+                    const res = await stateManager._db.jobs.create({ jobId, status, result, pipeline });
+                    jobs += res.a;
+                }
+                catch (error) {
+                    log.throttle.error(`error syncing job ${error.message}`);
+                }
+            }));
             if (jobs.length > 0) {
-                const result = await stateManager.createJobs(jobs);
-                log.info(`synced ${result?.inserted || 0} jobs from etcd to db`);
-                await this._deleteEtcdPrefix('/jobs');
+                log.info(`jobs: synced ${jobs.length} from etcd to db`);
+                await this._deleteEtcdPrefix('jobs', '/jobs');
             }
             else {
-                log.info('there are no jobs to sync');
+                log.info('jobs: there are no data to sync');
             }
         }
         catch (error) {
@@ -82,11 +82,11 @@ class PipelinesUpdater {
 
     async _createAlgorithms(type, list) {
         const result = await stateManager.createAlgorithms(list);
-        log.info(`synced ${result?.inserted || 0} algorithms to db`);
+        log.info(`algorithms: synced ${result?.inserted || 0} to db`);
         await this._syncAlgorithmsData(list);
-        await this._deleteEtcdPrefix('/algorithm/store');
-        await this._deleteEtcdPrefix('/algorithm/versions');
-        await this._deleteEtcdPrefix('/algorithm/builds');
+        await this._deleteEtcdPrefix('algorithms', '/algorithms/store');
+        await this._deleteEtcdPrefix('algorithms', '/algorithms/versions');
+        await this._deleteEtcdPrefix('algorithms', '/algorithms/builds');
         await this._deleteStoragePrefix(type);
     }
 
@@ -108,58 +108,58 @@ class PipelinesUpdater {
                 await stateManager.createBuilds(builds);
             }
         }
-        log.info(`synced ${versionsCount} versions and ${buildsCount} builds to sync from storage to db`);
+        log.info(`algorithms: synced ${versionsCount} versions and ${buildsCount} builds to sync from storage to db`);
     }
 
     _logSyncSuccess(type, result) {
-        log.info(`syncing ${type}s success, synced: ${result?.inserted || 0}`);
+        log.info(`${type}s: syncing success, synced: ${result?.inserted || 0}`);
     }
 
     _logSyncFailed(type, error) {
-        log.warning(`syncing ${type}s failed. ${error.message}`);
+        log.warning(`${type}s: syncing failed. ${error.message}`);
     }
 
     async _pipelineDriversTemplate(options) {
         try {
             const driversTemplate = drivers.map(d => ({ ...d, ...options.pipelineDriversResources }));
             await Promise.all(driversTemplate.map(d => stateManager.setPipelineDriversSettings(d)));
-            await this._deleteEtcdPrefix('/pipelineDrivers/store');
+            await this._deleteEtcdPrefix('pipelineDrivers', '/pipelineDrivers/store');
         }
         catch (error) {
-            log.warning(`failed to upload default drivers. ${error.message} `);
+            log.warning(`pipelineDrivers: failed to upload default drivers. ${error.message} `);
         }
     }
 
-    async createPipelines(type, list) {
+    async _createPipelines(type, list) {
         await stateManager.createPipelines(list);
-        await this._deleteEtcdPrefix('/pipelines/store');
+        await this._deleteEtcdPrefix('pipelines', '/pipelines/store');
         await this._deleteStoragePrefix(type);
     }
 
-    async createExperiments(type, list) {
+    async _createExperiments(type, list) {
         await stateManager.createExperiments(list);
-        await this._deleteEtcdPrefix('/experiment');
+        await this._deleteEtcdPrefix('experiments', '/experiment');
         await this._deleteStoragePrefix(type);
     }
 
-    async createPipelinesReadMe(type, list) {
+    async _createPipelinesReadMe(type, list) {
         await stateManager.createPipelinesReadMe(list);
         await this._deleteStoragePrefix(type);
     }
 
-    async createAlgorithmsReadMe(type, list) {
+    async _createAlgorithmsReadMe(type, list) {
         await stateManager.createAlgorithmsReadMe(list);
         await this._deleteStoragePrefix(type);
     }
 
-    async _deleteEtcdPrefix(path) {
+    async _deleteEtcdPrefix(type, path) {
         const result = await stateManager._etcd._client.delete(path, { isPrefix: true });
-        log.info(`clean etcd path "${path}" deleted ${result.deleted} keys`);
+        log.info(`${type}: clean etcd path "${path}" deleted ${result.deleted} keys`);
     }
 
     async _deleteStoragePrefix(type) {
         await storageManager.hkubeStore.delete({ type });
-        log.info(`clean storage path "${type}"`);
+        log.info(`${type}s: clean storage path "${type}"`);
     }
 }
 

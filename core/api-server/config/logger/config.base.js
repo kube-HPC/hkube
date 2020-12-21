@@ -14,6 +14,9 @@ config.transport = {
     file: false,
     redis: false
 };
+config.throttle = {
+    wait: 30000
+};
 
 config.extraDetails = false;
 config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
