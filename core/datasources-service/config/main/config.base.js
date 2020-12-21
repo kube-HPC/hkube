@@ -6,7 +6,7 @@ const config = {};
 config.serviceName = packageJson.name;
 config.systemVersion = process.env.HKUBE_SYSTEM_VERSION;
 
-const secured = !!process.env.API_SERVER_SSL;
+const secured = !!process.env.DATASOURCE_SERVICE_SSL;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.maxStorageFetchKeys = formatter.parseInt(
     process.env.MAX_STORAGE_FETCH_KEYS,
@@ -18,14 +18,14 @@ config.storageResultsThreshold =
 config.version = packageJson.version;
 
 config.rest = {
-    port: process.env.API_SERVER_REST_PORT || 3002,
+    port: process.env.DATASOURCE_SERVICE_REST_PORT || 3005,
     prefix: 'api',
     poweredBy: 'HKube Server',
     rateLimit: {
         route: '/api',
-        ms: process.env.API_SERVER_RATE_LIMIT_MS || 1000,
-        max: process.env.API_SERVER_RATE_LIMIT_MAX || 5,
-        delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0,
+        ms: process.env.DATASOURCE_SERVICE_RATE_LIMIT_MS || 1000,
+        max: process.env.DATASOURCE_SERVICE_RATE_LIMIT_MAX || 5,
+        delay: process.env.DATASOURCE_SERVICE_RATE_LIMIT_DELAY || 0,
     },
 };
 

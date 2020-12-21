@@ -60,11 +60,12 @@ class AppServer {
                 const file = path.basename(f, '.js');
                 return {
                     route: path.join('/', prefix, v, file),
+                    // eslint-disable-next-line
                     router: require('./' + path.join('routes', v, file))({
                         ...options,
                         version: v,
                         file,
-                    }), // eslint-disable-line
+                    }),
                 };
             });
         });

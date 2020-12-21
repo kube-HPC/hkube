@@ -22,4 +22,5 @@ before(async function () {
 after(() => {
     fse.removeSync(DATASOURCE_GIT_REPOS_DIR);
     fse.removeSync(STORAGE_DIR);
+    fse.removeSync('uploads/datasource')
 });
