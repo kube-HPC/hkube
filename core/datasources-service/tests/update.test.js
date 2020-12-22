@@ -87,6 +87,8 @@ describe('update datasource', () => {
                 expect(file).to.have.property('name');
                 expect(file).to.have.property('path');
             });
+            const mappedFile = files.find(file => file.name === 'README-2.md');
+            expect(mappedFile.path).to.eq('/someSubDir');
             expect(
                 await fse.pathExists(
                     `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/someSubDir/README-2.md`
@@ -241,23 +243,49 @@ describe('update datasource', () => {
             );
             expect(uploadResponseBody.files[0].size).to.eq(131);
         });
-        it.skip('should upload a file with meta data to a sub-dir', async () => {
+        it('should upload a file with meta data to a sub-dir', async () => {
             const name = uuid();
             await createDataSource({
                 body: { name },
             });
             const uploadResponse = await updateVersion({
                 dataSourceName: name,
-                fileNames: ['logo.svg', 'logo.svg.meta'],
+                files: [
+                    { name: 'README-2.md', id: 'someId' },
+                    { name: 'logo.svg', id: 'logoId' },
+                    { name: 'logo.svg.meta', id: 'logoMetaId' },
+                ],
+                mapping: [
+                    { id: 'someId', name: 'README-2.md', path: '/someSubDir' },
+                    { id: 'logoId', name: 'logo.svg', path: '/new-dir' },
+                    {
+                        id: 'logoMetaId',
+                        name: 'logo.svg.meta',
+                        path: '/new-dir',
+                    },
+                ],
             });
+            const {
+                body: { files },
+            } = uploadResponse;
+            const logoFile = files.find(file => file.name === 'logo.svg');
+            expect(logoFile.description).to.match(
+                /information about the logo/i
+            );
+
+            const existingFiles = await Promise.all(
+                [
+                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/someSubDir/README-2.md`,
+                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/new-dir/logo.svg`,
+                ].map(address => fse.pathExists(address))
+            );
+            existingFiles.forEach(isExisting => {
+                expect(isExisting).to.be.true;
+            });
+
             expect(
                 await fse.pathExists(
-                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg`
-                )
-            ).to.be.true;
-            expect(
-                await fse.pathExists(
-                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg.meta`
+                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/new-dir/logo.svg.meta`
                 )
             ).to.be.false;
         });

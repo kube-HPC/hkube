@@ -129,20 +129,30 @@ class DataSource {
         return files.reduce(
             (acc, file) => {
                 const tmpFileName = file.originalname;
-                const fileMeta = this.createFileMeta(
+                let fileMeta = this.createFileMeta(
                     file,
                     normalizedMapping[tmpFileName]?.path
                 );
-                let filePath = getFilePath(fileMeta);
-                // if is meta file split to another collection
+                const mappingEntry = normalizedMapping[tmpFileName];
+                if (mappingEntry) {
+                    fileMeta = {
+                        ...fileMeta,
+                        name: mappingEntry.name,
+                    };
+                }
+
+                const filePath = getFilePath(fileMeta);
                 const metaDescription = isMetaFile(fileMeta.name);
                 if (metaDescription) {
                     const fileName = extractFileName(metaDescription);
-                    const _path = getFilePath({ ...fileMeta, name: fileName });
+                    const _path = getFilePath({
+                        ...fileMeta,
+                        name: fileName,
+                    });
                     return { ...acc, metaFilesByPath: { [_path]: file } };
                 }
                 // the file does not have an id for a name - it is unmapped
-                if (!normalizedMapping[tmpFileName]) {
+                if (!mappingEntry) {
                     return {
                         ...acc,
                         byPath: {
@@ -156,16 +166,11 @@ class DataSource {
                         },
                     };
                 }
-                // @ts-ignore
+
                 const {
                     [tmpFileName]: droppedId,
                     ...nextMapping
                 } = acc.normalizedAddedFiles;
-                const updatedFileMeta = {
-                    ...fileMeta,
-                    name: normalizedMapping[tmpFileName].name,
-                };
-                filePath = getFilePath(updatedFileMeta);
 
                 return {
                     ...acc,
@@ -176,12 +181,12 @@ class DataSource {
                     // convert the file's name back from an id to it's actual name
                     allFiles: acc.allFiles.concat({
                         ...file,
-                        originalname: updatedFileMeta.name,
+                        originalname: fileMeta.name,
                     }),
                     // re-add the file with its final id
                     normalizedAddedFiles: {
                         ...nextMapping,
-                        [file.filename]: updatedFileMeta,
+                        [file.filename]: fileMeta,
                     },
                 };
             },
