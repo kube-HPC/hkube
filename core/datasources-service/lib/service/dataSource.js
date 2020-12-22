@@ -66,6 +66,27 @@ class DataSource {
         db = dbConnection.connection;
     }
 
+    async _execute(repositoryName, command) {
+        const [mainCmd, ...args] = command.split(' ');
+        const cmd = childProcess.spawn(mainCmd, args, {
+            cwd: `${this.rootDir}/${repositoryName}`,
+        });
+        return new Promise((res, rej) => {
+            let cache = '';
+            cmd.stdout.on('data', d => {
+                cache += d.toString();
+            });
+            cmd.stderr.on('data', d => {
+                cache += d.toString();
+            });
+            cmd.stdout.on('error', () => rej(cache));
+            cmd.on('error', rej);
+            cmd.on('close', errorCode =>
+                errorCode !== 0 ? rej(cache) : res(cache)
+            );
+        });
+    }
+
     /** @param {string} name */
     async setupDvcRepository(name) {
         await this._execute(name, 'dvc init');
@@ -88,17 +109,6 @@ class DataSource {
         return { ...response, commit: response.commit.replace(/(.+) /, '') };
     }
 
-    async _execute(repositoryName, command) {
-        const cmd = await childProcess.exec(command, {
-            cwd: `${this.rootDir}/${repositoryName}`,
-        });
-        const response = await new Promise((res, rej) => {
-            cmd.on('error', rej);
-            cmd.stdout.on('readable', res);
-        });
-        return response;
-    }
-
     /** @type {(file: MulterFile, path?: string) => FileMeta} */
     createFileMeta(file, path = null) {
         return {
@@ -117,7 +127,7 @@ class DataSource {
      * missing details for all the files
      *
      * @param {NormalizedFileMeta} normalizedMapping
-     * @param {Express.Multer.File[]} files
+     * @param {MulterFile[]} files
      * @returns {{
      *     allFiles: MulterFile[];
      *     normalizedAddedFiles: NormalizedFileMeta;
@@ -400,14 +410,16 @@ class DataSource {
     }
 
     /**
-     * @param {object} props
-     * @param {string} props.repositoryName
-     * @param {string} props.commitMessage
-     * @param {object} props.files
-     * @param {MulterFile[]} props.files.added
-     * @param {FileMeta[]=} props.files.mapping
-     * @param {string[]=} props.files.dropped
-     * @param {FileMeta[]=} props.currentFiles
+     * @param {{
+     *     repositoryName: string;
+     *     commitMessage: string;
+     *     files: {
+     *         added: MulterFile[];
+     *         mapping?: FileMeta[];
+     *         dropped?: string[];
+     *     };
+     *     currentFiles?: FileMeta[];
+     * }} props
      */
     async commitChange({
         repositoryName,
@@ -464,15 +476,22 @@ class DataSource {
     }
 
     /**
-     * @param {object} props
-     * @param {string} props.name
-     * @param {string} props.versionDescription
-     * @param {object} props.files
-     * @param {FileMeta[]} props.files.mapping
-     * @param {MulterFile[]} props.files.added
-     * @param {string[]} props.files.dropped
+     * @param {{
+     *     name: string;
+     *     versionDescription: string;
+     *     files: {
+     *         mapping: FileMeta[];
+     *         added: MulterFile[];
+     *         dropped: string[];
+     *     };
+     * }} props
      */
     async updateDataSource({ name, files: _files, versionDescription }) {
+        validator.dataSource.update({
+            name,
+            files: _files,
+            versionDescription,
+        });
         // add ajv validation here
         // also acts validates the datasource exists
         // can be used to tag the dataSource as locked while updating
@@ -491,7 +510,6 @@ class DataSource {
             await db.dataSources.delete({ id: createdVersion.id });
             return null;
         }
-        // release the lock
         return db.dataSources.uploadFiles({
             name,
             files,
@@ -501,7 +519,7 @@ class DataSource {
 
     /** @param {{ name: string; files: MulterFile[] }} query */
     async createDataSource({ name, files }) {
-        validator.dataSource.validateCreate({ name, files });
+        validator.dataSource.create({ name, files });
         let createdDataSource;
         try {
             createdDataSource = await db.dataSources.create({ name });

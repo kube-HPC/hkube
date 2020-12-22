@@ -1,7 +1,6 @@
-# dataSource
 /datasource:
-    $ref: ./dataSource/dataSource.yaml
+    $ref: ./root.yaml
 /datasource/{name}:
-    $ref: ./dataSource/dataSource_name.yaml
-/datasource/{name}/{fileName}:
-    $ref: ./dataSource/dataSource_file.yaml
+    $ref: ./byName.yaml
+/datasource/{name}/versions:
+    $ref: ./versions.yaml

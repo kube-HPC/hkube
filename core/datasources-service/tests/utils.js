@@ -113,16 +113,6 @@ const fetchDataSourceVersions = ({ name }) => {
     return request(getOptions);
 };
 
-/** @param {{ name: string }} query */
-const fetchDataSourceVersions = ({ name }) => {
-    const uri = `${global.testParams.restUrl}/datasource/${name}/versions`;
-    const getOptions = {
-        uri,
-        method: 'GET',
-    };
-    return request(getOptions);
-};
-
 module.exports = {
     fetchDataSource,
     fetchDataSourceVersions,

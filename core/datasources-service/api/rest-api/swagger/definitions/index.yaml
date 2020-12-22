@@ -1,16 +1,25 @@
-dataSource:
-    $ref: ./dataSource.yaml
-dataSourceUploadFile:
-    $ref: ./dataSourceUploadFile.yaml
-dataSourceCreate:
-    $ref: ./dataSourceCreate.yaml
-dataSourceName:
-    $ref: ./dataSourceName.yaml
-dataSourceFiles:
-    $ref: ./dataSourceFiles.yaml
-dataSourceFileMeta:
-    $ref: ./dataSourceFileMeta.yaml
-dataSourceMeta:
-    $ref: ./dataSourceMeta.yaml
-error:
-    $ref: ./error.yaml
+Files:
+    $ref: ./Files.yaml
+FileMeta:
+    $ref: ./FileMeta.yaml
+Error:
+    $ref: ./Error.yaml
+
+DataSourceMeta:
+    $ref: ./DataSourceMeta.yaml
+DataSource:
+    $ref: ./DataSource.yaml
+
+DataSourceWithMeta:
+    $ref: ./DataSourceWithMeta.yaml
+DataSourceName:
+    $ref: ./DataSourceName.yaml
+DataSourceVersion:
+    $ref: ./DataSourceVersion.yaml
+
+createRequest:
+    $ref: ./create.request.yaml
+updateRequest:
+    $ref: ./update.request.yaml
+update:
+    $ref: ./update.yaml

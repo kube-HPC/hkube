@@ -157,19 +157,6 @@ describe('create datasource', () => {
                     'already exists'
                 );
             });
-            it.skip('should roll back the creating of the dataSource on errors', async () => {
-                sinon
-                    .stub(storage.hkubeDataSource, 'putStream')
-                    .rejects('i should reject');
-                const name = uuid();
-                const { response } = await createDataSource({ body: { name } });
-                expect(response.statusCode).to.eql(
-                    HttpStatus.INTERNAL_SERVER_ERROR
-                );
-                sinon.restore();
-                const { body: fetchResponse } = await fetchDataSource({ name });
-                expect(fetchResponse.error.code).to.eql(HttpStatus.NOT_FOUND);
-            });
             it('should configure the new dataSource remote storage', async () => {
                 const name = uuid();
                 await createDataSource({ body: { name } });

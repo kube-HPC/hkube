@@ -8,12 +8,12 @@ class ApiValidator {
     }
 
     /** @param {{ name: string; files: Express.Multer.File[] }} props */
-    validateCreate(props) {
+    create(props) {
         const files =
             props.files?.length > 0
                 ? props.files.map(file => file.originalname)
                 : undefined;
-        this._validator.validate(this._validator.definitions.dataSourceCreate, {
+        this._validator.validate(this._validator.definitions.createRequest, {
             ...props,
             files,
         });
@@ -21,20 +21,24 @@ class ApiValidator {
 
     /**
      * @param {{
-     *     files: { added: Express.Multer.File[] };
+     *     name: string;
      *     versionDescription: string;
-     *     filesDropped: string[];
+     *     files: {
+     *         mapping: FileMeta[];
+     *         added: MulterFile[];
+     *         dropped: string[];
+     *     };
      * }} props
      */
-    validateUploadFile(props) {
+    update(props) {
         const filesAdded =
             props.files.added?.length > 0
                 ? props.files.added.map(file => file.originalname)
                 : undefined;
-        this._validator.validate(
-            this._validator.definitions.dataSourceUploadFile,
-            { ...props, files: { added: filesAdded } }
-        );
+        this._validator.validate(this._validator.definitions.update, {
+            ...props,
+            files: { added: filesAdded },
+        });
     }
 
     /** @param {string[]} dataSources */

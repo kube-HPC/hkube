@@ -3,12 +3,16 @@ properties:
     versionDescription:
         type: string
     filesAdded:
-        $ref: '#/components/schemas/dataSourceFiles'
+        $ref: "#/components/schemas/Files"
     filesDropped:
         type: array
         items:
             type: string
         minItems: 1
+    mapping:
+        type: array
+        items:
+            $ref: "#/components/schemas/FileMeta"
 anyOf:
     - required:
           - versionDescription

@@ -24,60 +24,6 @@ describe('Datasource', () => {
         restPath = `${restUrl}/datasource`;
     });
     afterEach(() => sinon.restore());
-    describe.skip('/datasource/exec/raw', () => {
-        it('should throw missing file error', async () => {
-            const dataSourceName = uuid();
-            const ds = `dataSource.${dataSourceName}/${fileName}`;
-            await createDataSource({ body: { name: dataSourceName } });
-            const pipeline = {
-                name: uuid(),
-                nodes: [
-                    {
-                        nodeName: 'node1',
-                        algorithmName: 'green-alg',
-                        input: [`@${ds}/non-existing-file.txt`],
-                    },
-                ],
-            };
-            const res = await request({
-                uri: `${restUrl}/exec/raw`,
-                body: pipeline,
-            });
-            const { error } = res.body;
-            expect(error).to.haveOwnProperty('message');
-            expect(error.message).to.match(/not found/i);
-        });
-        it('should succeed and return job id', async () => {
-            const dataSourceName = uuid();
-            const ds = `dataSource.${dataSourceName}/${fileName}`;
-            await createDataSource({ body: { name: dataSourceName } });
-            await updateVersion({
-                dataSourceName,
-                fileNames: [fileName],
-                versionDescription: 'my testing version',
-            });
-            const pipeline = {
-                name: uuid(),
-                nodes: [
-                    {
-                        nodeName: 'node1',
-                        algorithmName: 'green-alg',
-                        input: [`@${ds}`],
-                    },
-                ],
-            };
-            const res = await request({
-                uri: `${restUrl}/exec/raw`,
-                body: pipeline,
-            });
-            console.log(res.body);
-            const response = await request({
-                method: 'GET',
-                uri: `${restUrl}/exec/pipelines/${res.body.jobId}`,
-            });
-            expect(response.body.dataSourceMetadata).to.have.property(ds);
-        });
-    });
     describe('datasource/id/:id GET', () => {
         it('should fetch by id', async () => {
             const name = uuid();

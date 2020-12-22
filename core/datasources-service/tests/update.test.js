@@ -161,12 +161,11 @@ describe('update datasource', () => {
                 )
             ).to.be.true;
 
-            await updateVersion({
+            const deleteResponse = await updateVersion({
                 dataSourceName: name,
                 fileNames: ['algorithms.json'],
                 droppedFileIds: [existingFile.id],
             });
-
             expect(
                 await fse.pathExists(
                     `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/algorithms.json`

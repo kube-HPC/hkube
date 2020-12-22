@@ -1,0 +1,7 @@
+nameParam:
+    name: name
+    in: path
+    description: A dataSource name
+    required: true
+    schema:
+        type: string

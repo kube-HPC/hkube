@@ -65,7 +65,6 @@ const routes = () => {
         .route('/:name')
         .get(async (req, res, next) => {
             /** @type {{ version_id: string }} */
-            // @ts-ignore
             const { version_id: versionId } = req.query;
             const { name } = req.params;
             let dataSourceEntry;
