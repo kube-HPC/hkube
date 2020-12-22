@@ -161,7 +161,7 @@ describe('update datasource', () => {
                 )
             ).to.be.true;
 
-            const deleteResponse = await updateVersion({
+            await updateVersion({
                 dataSourceName: name,
                 fileNames: ['algorithms.json'],
                 droppedFileIds: [existingFile.id],

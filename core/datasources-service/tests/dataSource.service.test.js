@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const { uid: uuid } = require('@hkube/uid');
 
-let restUrl, restPath, service;
+let restUrl, service;
 const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
 
 describe('Datasource-service', () => {

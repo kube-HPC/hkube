@@ -2,10 +2,9 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
-const sinon = require('sinon');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { request } = require('./request');
-const { createDataSource, fetchDataSource } = require('./utils');
+const { createDataSource } = require('./utils');
 
 let restUrl, restPath, DATASOURCE_GIT_REPOS_DIR, STORAGE_DIR;
 
@@ -16,7 +15,6 @@ describe('create datasource', () => {
         STORAGE_DIR = global.testParams.STORAGE_DIR;
         restPath = `${restUrl}/datasource`;
     });
-    afterEach(() => sinon.restore());
 
     describe('/datasource POST', () => {
         describe('validation', () => {
