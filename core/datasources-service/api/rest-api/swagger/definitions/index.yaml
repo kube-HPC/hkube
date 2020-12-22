@@ -1,0 +1,16 @@
+dataSource:
+    $ref: ./dataSource.yaml
+dataSourceUploadFile:
+    $ref: ./dataSourceUploadFile.yaml
+dataSourceCreate:
+    $ref: ./dataSourceCreate.yaml
+dataSourceName:
+    $ref: ./dataSourceName.yaml
+dataSourceFiles:
+    $ref: ./dataSourceFiles.yaml
+dataSourceFileMeta:
+    $ref: ./dataSourceFileMeta.yaml
+dataSourceMeta:
+    $ref: ./dataSourceMeta.yaml
+error:
+    $ref: ./error.yaml

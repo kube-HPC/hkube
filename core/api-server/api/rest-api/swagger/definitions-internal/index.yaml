@@ -20,5 +20,3 @@ algorithmDelete:
   $ref: ./algorithmDelete.yaml
 graph:
   $ref: ./graph.yaml
-dataSourceName:
-  $ref: ./dataSourceName.yaml
