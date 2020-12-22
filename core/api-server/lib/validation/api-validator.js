@@ -11,7 +11,6 @@ const {
     Jobs,
     Lists,
     Pipelines,
-    DataSource
 } = require('./index');
 
 class ApiValidator {
@@ -28,7 +27,6 @@ class ApiValidator {
         this.jobs = new Jobs(innerValidator);
         this.pipelines = new Pipelines(innerValidator);
         this.lists = new Lists(innerValidator);
-        this.dataSource = new DataSource(innerValidator);
     }
 }
 
