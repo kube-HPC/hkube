@@ -540,7 +540,7 @@ describe('Streaming', () => {
             const nodes = scaleUp.nodes.sort((a, b) => b - a);
             expect(nodes).to.have.lengthOf(4);
             expect(scaleUp.currentSize).to.eql(currentSize);
-            expect(scaleUp.source).to.eql('A');
+            expect(scaleUp.source).to.contain('A');
             expect(scaleUp.replicas).to.eql(nodes[0]);
             expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
             expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
@@ -578,7 +578,7 @@ describe('Streaming', () => {
             streamService.reportStats(data);
             streamService.reportStats(data);
             const masters = getMasters();
-            const stats = masters[0]._autoScaler._statistics._data[nodeName]['C'];
+            const stats = Object.values(masters[0]._autoScaler._statistics._data[nodeName])[0];
             const { requests, responses, durations } = stats;
             const maxSizeWindow = testParams.config.streaming.autoScaler.maxSizeWindow;
             expect(requests.items).to.have.lengthOf(maxSizeWindow);
@@ -626,7 +626,7 @@ describe('Streaming', () => {
             await delay(500);
             const masters = getMasters();
             const slaves = masters[0].slaves();
-            expect(slaves.sort()).to.deep.equal(['A', 'B'])
+            expect(slaves.sort()).to.deep.equal([slave1.source, slave2.source])
         });
         it('should scale up based on avg master and slaves', async () => {
             const nodeName = 'D';
@@ -638,10 +638,14 @@ describe('Streaming', () => {
             const list1 = { nodeName, queueSize: 300, responses: 80, currentSize };
             const list2 = { nodeName, queueSize: 450, responses: 140, currentSize };
             const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
-            const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
+            const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
+            const slave3 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
+            const slave4 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
             await requests(list);
             await slave1.report(list1);
-            await slave2.report(list2);
+            await slave2.report(list1);
+            await slave3.report(list1);
+            await slave4.report(list2);
             await delay(500);
 
             const { scaleUp, scaleDown } = autoScale();
@@ -650,7 +654,7 @@ describe('Streaming', () => {
             expect(throughput.map(t => t.source).sort()).to.eql(['A', 'B', 'C']);
             expect(throughput).to.have.lengthOf(3);
             expect(scaleUp.currentSize).to.eql(currentSize);
-            expect(scaleUp.nodes).to.have.lengthOf(3);
+            expect(scaleUp.nodes).to.have.lengthOf(5);
             expect(scaleUp.replicas).to.eql(8);
             expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
             expect(scaleDown).to.be.null;

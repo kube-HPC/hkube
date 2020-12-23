@@ -2,11 +2,11 @@ const FixedWindow = require('./fixed-window');
 
 /**
  * This class holds statistics in a structure of <Target, <Source, Stats>>
- * For instance, nodes A,B,C stream data to node D.
+ * For instance, nodes A,C stream data to node D.
  * so the structure will look like:
- * "D" -> "A": <Stats> (slave)
- *        "B": <Stats> (slave)
- *        "C": <Stats> (master)
+ * "D" -> "A-<uid>": <Stats> (slave)
+ *        "A-<uid>": <Stats> (master)
+ *        "C-<uid>": <Stats> (slave)
  *
  * This class also expose generator that implements custom iterator,
  * so it will be easy to iterate over this structure.
