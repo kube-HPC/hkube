@@ -1,5 +1,4 @@
 const Regex = {
-    JOB_ID_PREFIX_REGEX: /.+:(.+:)?/,
     URL_REGEX: /^(f|ht)tps?:\/\//i,
     PIPELINE_NAME_REGEX: /^[:\-_.A-Za-z0-9]+$/i,
     EXPERIMENT_NAME_REGEX: /^[:\-_.A-Za-z0-9]+$/i,

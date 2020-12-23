@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const asyncQueue = require('async.queue');
 const Etcd = require('@hkube/etcd');
+const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 const { cacheResults } = require('../utils');
 const { EventMessages, Components, jobStatus, workerCommands } = require('../consts');
@@ -37,9 +38,15 @@ class StateAdapter extends EventEmitter {
             this._etcd.jobs.tasks.set(task).then(r => callback(null, r)).catch(e => callback(e));
         }, 1);
         await this._etcd.discovery.register({ data: this._discoveryInfo });
+        log.info(`initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
         log.info(`registering worker discovery for id ${this._workerId}`, { component });
-
         await this.watchWorkerStates();
+
+        const { provider, ...config } = options.db;
+        this._db = dbConnect(config, provider);
+        await this._db.init();
+        log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
+
         this._etcd.workers.on('change', (res) => {
             log.info(`got worker state change ${JSON.stringify(res)}`, { component });
             this.emit(res.status.command, res);
@@ -85,8 +92,8 @@ class StateAdapter extends EventEmitter {
         this.emit(`${EventMessages.JOB_RESULT}-${result.status}`, result);
     }
 
-    getExecution(options) {
-        return this._etcd.executions.running.get(options);
+    async getJobPipeline({ jobId }) {
+        return this._db.jobs.fetchPipeline({ jobId });
     }
 
     stopWorker({ workerId }) {
@@ -166,15 +173,15 @@ class StateAdapter extends EventEmitter {
     }
 
     async createAlgorithmType(options) {
-        await this._etcd.algorithms.store.set(options);
+        await this._db.algorithms.update(options);
     }
 
     async deleteAlgorithmType(options) {
-        await this._etcd.algorithms.store.delete(options);
+        await this._db.algorithms.delete(options);
     }
 
     async getExistingAlgorithms() {
-        return this._etcd.algorithms.store.list();
+        return this._db.algorithms.fetchAll();
     }
 
     async unwatch(options) {

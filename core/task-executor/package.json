@@ -23,8 +23,9 @@
   },
   "homepage": "https://github.com/kube-HPC/task-executor#readme",
   "dependencies": {
-    "@hkube/config": "^2.0.7",
-    "@hkube/etcd": "^5.0.37",
+    "@hkube/config": "^2.0.10",
+    "@hkube/db": "^1.0.16",
+    "@hkube/etcd": "^5.1.2",
     "@hkube/healthchecks": "^1.0.0",
     "@hkube/kubernetes-client": "^1.0.32",
     "@hkube/logger": "^1.0.25",

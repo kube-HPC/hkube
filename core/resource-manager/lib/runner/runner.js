@@ -66,8 +66,8 @@ class Runner {
         const aq = adaptersResults.algorithms.queue;
         const dq = adaptersResults.drivers.queue;
 
-        const aqf = aq.filter(q => this._filter(adaptersResults.algorithms.templatesStore, q.name));
-        const dqf = dq.filter(q => this._filter(adaptersResults.drivers.templatesStore, q.name));
+        const aqf = aq.filter(q => adaptersResults.algorithms.templatesStore[q.name]);
+        const dqf = dq.filter(q => adaptersResults.drivers.templatesStore[q.name]);
 
         const results = {
             ...adaptersResults,
@@ -81,17 +81,6 @@ class Runner {
             }
         };
         return results;
-    }
-
-    _filter(ts, name) {
-        const resource = ts[name];
-        if (resource) {
-            if (resource.options && resource.options.debug) {
-                return false;
-            }
-            return true;
-        }
-        return false;
     }
 }
 
