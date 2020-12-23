@@ -14,9 +14,9 @@ class Persistence extends EventEmitter {
         const log = Logger.GetLogFromContainer();
         const { etcd, persistence, serviceName } = options;
         this.queueName = persistence.type;
-        this.client = new Client({ ...etcd, serviceName });
+        this._etcd = new Client({ ...etcd, serviceName });
         await this._watchJobStatus();
-        this.client.jobs.status.on('change', (data) => {
+        this._etcd.jobs.status.on('change', (data) => {
             this.emit(`job-${data.status}`, data);
         });
         const { provider, ...config } = options.db;
@@ -27,15 +27,15 @@ class Persistence extends EventEmitter {
     }
 
     store(data) {
-        return this.client.pipelineDrivers.queue.set({ name: this.queueName, data });
+        return this._etcd.pipelineDrivers.queue.set({ name: this.queueName, data });
     }
 
     get() {
-        return this.client.pipelineDrivers.queue.get({ name: this.queueName });
+        return this._etcd.pipelineDrivers.queue.get({ name: this.queueName });
     }
 
     async _watchJobStatus(options) {
-        await this.client.jobs.status.watch(options);
+        await this._etcd.jobs.status.watch(options);
     }
 
     async getExecution({ jobId }) {
@@ -43,12 +43,12 @@ class Persistence extends EventEmitter {
     }
 
     async setJobStatus(options) {
-        await this.client.jobs.status.update(options);
+        await this._etcd.jobs.status.update(options);
         await this._db.jobs.updateStatus(options);
     }
 
     async setJobResults(options) {
-        await this.client.jobs.results.set(options);
+        await this._etcd.jobs.results.set(options);
         await this._db.jobs.updateResult(options);
     }
 

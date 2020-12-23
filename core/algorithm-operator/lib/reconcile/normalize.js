@@ -19,7 +19,7 @@ const normalizeAlgorithms = (algorithmsRaw) => {
     if (algorithmsRaw == null) {
         return [];
     }
-    return algorithmsRaw;
+    return algorithmsRaw.filter(a => a.options && !a.options.pending);
 };
 
 const _tryParseTime = (timeString) => {
