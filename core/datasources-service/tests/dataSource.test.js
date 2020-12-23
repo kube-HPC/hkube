@@ -23,7 +23,6 @@ describe('Datasource', () => {
         STORAGE_DIR = global.testParams.STORAGE_DIR;
         restPath = `${restUrl}/datasource`;
     });
-    afterEach(() => sinon.restore());
     describe('datasource/id/:id GET', () => {
         it('should fetch by id', async () => {
             const name = uuid();
@@ -64,13 +63,14 @@ describe('Datasource', () => {
                 .stub(dbConnection.connection.dataSources, 'fetch')
                 .rejects({ message: 'i should throw' });
             const response = await request(options);
+            sinon.restore();
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(
                 HttpStatus.INTERNAL_SERVER_ERROR
             );
             expect(response.body.error.message).to.eq('i should throw');
         });
-        it('should return specific datasource', async () => {
+        it('should fetch a datasource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const { response: getResponse } = await fetchDataSource({ name });
@@ -80,13 +80,12 @@ describe('Datasource', () => {
             expect(dataSource).to.have.property('name');
             expect(dataSource.name).to.eq(name);
             expect(dataSource).to.have.property('files');
-            dataSource.files.forEach(file => {
-                expect(file).to.have.property('id');
-                expect(file).to.have.property('name');
-                expect(file).to.have.property('path');
-                expect(file).to.have.property('size');
-                expect(file).to.have.property('type');
-            });
+            const [file] = dataSource.files;
+            expect(file).to.have.property('id');
+            expect(file).to.have.property('name');
+            expect(file).to.have.property('path');
+            expect(file).to.have.property('size');
+            expect(file).to.have.property('type');
         });
         it('should fetch an older version', async () => {
             const name = uuid();

@@ -1,5 +1,5 @@
 const fse = require('fs-extra');
-
+const sinon = require('sinon');
 const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
 const STORAGE_DIR = '/var/tmp/fs/storage/local-hkube-dvc';
 
@@ -17,9 +17,15 @@ before(async function () {
         DATASOURCE_GIT_REPOS_DIR: 'temp/datasource-git-repositories',
         STORAGE_DIR: '/var/tmp/fs/storage/local-hkube-dvc',
     };
+    // avoid actually deleting files for testing changes on the fs
+    sinon.stub(fse, 'remove');
+});
+
+afterEach(() => {
+    sinon.reset();
 });
 
 after(() => {
-    fse.removeSync(DATASOURCE_GIT_REPOS_DIR);
-    fse.removeSync(STORAGE_DIR);
+    // fse.removeSync(DATASOURCE_GIT_REPOS_DIR);
+    // fse.removeSync(STORAGE_DIR);
 });

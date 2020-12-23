@@ -95,4 +95,12 @@ config.fs = {
         process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
 };
 
+config.git = {
+    user: {
+        name: process.env.GIT_USER_NAME || 'hkube',
+        password: process.env.GIT_PASSWORD || '123456',
+    },
+    endpoint: process.env.GIT_ENDPOINT_URL || 'localhost:3010',
+};
+
 module.exports = config;

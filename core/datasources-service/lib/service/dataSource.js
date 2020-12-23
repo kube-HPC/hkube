@@ -19,6 +19,7 @@ const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
  * @typedef {{ [fileId: string]: FileMeta }} NormalizedFileMeta
  * @typedef {Express.Multer.File} MulterFile
  * @typedef {[FileMeta, FileMeta]} SourceTargetArray
+ * @typedef {typeof import('./../../config/main/config.base')} config
  */
 
 /** @type {(str: string, to: string) => string} */
@@ -50,6 +51,7 @@ class DataSource {
         fse.ensureDirSync(this.rootDir);
     }
 
+    /** @param {config} config */
     async init(config) {
         this.config = config;
         const storage = config.defaultStorage;
@@ -96,16 +98,23 @@ class DataSource {
         );
     }
 
+    getRepositoryUrl(repositoryName) {
+        const {
+            endpoint,
+            user: { name: userName, password },
+        } = this.config.git;
+        return `http://${userName}:${password}@${endpoint}/hkube/${repositoryName}.git`;
+    }
+
     async createRepo(name) {
         await fse.ensureDir(`${this.rootDir}/${name}`);
         await fse.ensureDir(`${this.rootDir}/${name}/data`);
         const git = simpleGit({ baseDir: `${this.rootDir}/${name}` });
-        await git.init();
+        await git.init().addRemote('origin', this.getRepositoryUrl(name));
         await this.setupDvcRepository(name);
         await git.add('.');
         const response = await git.commit('initialized');
-        // git.addRemote()
-        // git.push()
+        await git.push(['--set-upstream', 'origin', 'master']);
         return { ...response, commit: response.commit.replace(/(.+) /, '') };
     }
 
@@ -399,7 +408,6 @@ class DataSource {
             sourceTargetArray.map(async ([srcFile, targetFile]) => {
                 const srcPath = getFilePath(srcFile);
                 const targetPath = getFilePath(targetFile);
-                await fse.ensureDir(parsePath(targetPath).dir);
                 // moves .dvc files and updates gitignore
                 return this._execute(
                     repositoryName,
@@ -428,13 +436,15 @@ class DataSource {
         currentFiles = [],
     }) {
         const baseDir = `${this.rootDir}/${repositoryName}`;
-        /**
-         * Assume the repo has no remote, do not pull or push it is assumed to
-         * be always there and always up to date get the repo path and name
-         * from the db git dir exists ? git pull : clone future: clear the git
-         * directory it is not needed anymore
-         */
+        await fse.ensureDir(baseDir);
+        const hasClone = await fse.pathExists(`${baseDir}/.git`);
+        if (!hasClone) {
+            await simpleGit({ baseDir: this.rootDir }).clone(
+                this.getRepositoryUrl(repositoryName)
+            );
+        }
         const git = simpleGit({ baseDir });
+
         const groups = this._splitToGroups({
             currentFiles,
             mapping,
@@ -459,12 +469,14 @@ class DataSource {
          */
 
         await this._execute(repositoryName, 'dvc push -r storage');
-        git.add('.');
+        await git.add('.');
         const { commit } = await git.commit(commitMessage);
-        // await git.push()
+        await git.push();
         const finalMapping = Object.values(normalizedAddedFiles).concat(
             groups.movedFiles.map(([, targetFile]) => targetFile)
         );
+
+        await fse.remove(baseDir);
 
         return {
             commitHash: commit,
@@ -549,7 +561,6 @@ class DataSource {
                 versionId: commitHash,
             });
         } catch (error) {
-            // @ts-ignore
             await Promise.allSettled([
                 db.dataSources.delete({ name }), // delete from the git server and dvc storage
             ]);

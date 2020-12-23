@@ -14,6 +14,8 @@ properties:
     versionDescription:
         description: a commit message supplied by the user
         type: string
+    gitRepositoryUrl:
+        type: string
 required:
     - name
     - id
