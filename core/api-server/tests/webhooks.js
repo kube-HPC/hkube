@@ -95,12 +95,14 @@ describe('Webhooks', () => {
                             method: 'GET'
                         };
                         const response = await request(status);
-                        expect(requestBody).to.deep.equal(response.body);
+                        expect(response.body.jobId).to.eql(requestBody.jobId);
+                        expect(response.body.status).to.eql(requestBody.status);
+                        expect(response.body.data).to.eql(requestBody.data);
                         return resolve();
+                    });
 
-                    })
                 const stored = {
-                    uri: restUrl + '/exec/stored',
+                    uri: `${restUrl}/exec/stored`,
                     body: { name: 'webhookFlow1' }
                 };
                 const response = await request(stored);
@@ -110,8 +112,8 @@ describe('Webhooks', () => {
                     status: 'completed',
                     data: [{ res1: 400 }, { res2: 500 }]
                 }
-                await stateManager.jobs.status.set(results);
-                await stateManager.jobs.results.set(results);
+                await stateManager.updateJobStatus(results);
+                await stateManager.updateJobResult(results);
             });
         });
         it('should succeed to store pipeline with webhooks', async () => {
@@ -157,8 +159,7 @@ describe('Webhooks', () => {
                 level: 'info',
                 data: [{ res1: 400 }, { res2: 500 }]
             }
-            await stateManager.jobs.results.set(results);
-
+            await stateManager._etcd.jobs.results.set(results);
             await delay(1000);
 
             options = {
@@ -193,7 +194,9 @@ describe('Webhooks', () => {
                             method: 'GET'
                         };
                         const response = await request(status);
-                        expect(requestBody).to.deep.equal(response.body);
+                        expect(response.body.jobId).to.eql(requestBody.jobId);
+                        expect(response.body.status).to.eql(requestBody.status);
+                        expect(response.body.data).to.eql(requestBody.data);
                         return resolve();
 
                     })
@@ -279,7 +282,7 @@ describe('Webhooks', () => {
                 data: [{ res1: 400 }, { res2: 500 }]
             }
 
-            await stateManager.jobs.results.set(results);
+            await stateManager.updateJobResult(results);
 
             await delay(2000);
 
@@ -288,9 +291,9 @@ describe('Webhooks', () => {
                 uri: `${restUrl}/webhooks/list/${jobId} `
             };
             const response2 = await request(options2);
-            expect(response2.body[0]).to.have.property('jobId');
-            expect(response2.body[0]).to.have.property('result');
-            expect(response2.body[0]).to.have.property('progress');
+            expect(response2.body).to.have.property('jobId');
+            expect(response2.body).to.have.property('result');
+            expect(response2.body).to.have.property('progress');
         });
     });
 });

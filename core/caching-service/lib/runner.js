@@ -1,13 +1,17 @@
 const { NodesMap } = require('@hkube/dag');
-const Etcd = require('@hkube/etcd');
+const dbConnect = require('@hkube/db');
 const { parser, consts } = require('@hkube/parsers');
+const Logger = require('@hkube/logger');
+const component = require('./consts/component-name').DB;
 const { relations } = consts;
 
 class Runner {
     async init(options) {
-        this._options = options;
-        this._etcd = new Etcd(options.etcd);
-        await this._etcd.jobs.status.watch({ jobId: 'hookWatch' });
+        const log = Logger.GetLogFromContainer();
+        const { provider, ...config } = options.db;
+        this._db = dbConnect(config, provider);
+        await this._db.init();
+        log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
 
     async parse(jobId, nodeName) {
@@ -52,7 +56,7 @@ class Runner {
     }
 
     async _getStoredExecution(jobId) {
-        const pipeline = await this._etcd.executions.stored.get({ jobId });
+        const pipeline = await this._db.jobs.fetchPipeline({ jobId });
         if (!pipeline) {
             throw new Error(`unable to find pipeline ${jobId}`);
         }

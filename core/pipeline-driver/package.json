@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "2.0.11",
+  "version": "2.0.12",
   "description": "pipeline execution based on DAG",
   "main": "app.js",
   "directories": {
@@ -8,13 +8,14 @@
     "tests": "tests"
   },
   "dependencies": {
-    "@hkube/config": "^2.0.7",
+    "@hkube/config": "^2.0.10",
     "@hkube/consts": "^1.0.29",
-    "@hkube/dag": "^2.1.7",
-    "@hkube/etcd": "^5.0.37",
+    "@hkube/dag": "^2.1.9",
+    "@hkube/db": "^1.0.16",
+    "@hkube/etcd": "^5.1.2",
     "@hkube/logger": "^1.0.26",
     "@hkube/metrics": "^1.0.40",
-    "@hkube/parsers": "^2.1.5",
+    "@hkube/parsers": "^2.1.7",
     "@hkube/producer-consumer": "^1.0.46",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.12",
