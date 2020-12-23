@@ -133,7 +133,7 @@ const checkThroughput = () => {
 
 describe('Streaming', () => {
     before(async () => {
-        await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+        await stateAdapter._db.jobs.create({ pipeline, jobId });
         await streamHandler.start(job);
     });
     beforeEach(() => {
@@ -447,7 +447,6 @@ describe('Streaming', () => {
             await requests(list);
             const { scaleUp, scaleDown } = autoScale();
             expect(scaleDown.reason.code).to.eql(ScaleReasonsCodes.IDLE_TIME);
-            expect(scaleDown.reason.message).to.eql('based on no requests and no responses for 0 sec');
             expect(scaleUp).to.be.null;
         });
         it('should not scale down based on responses', async () => {

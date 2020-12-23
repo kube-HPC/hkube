@@ -24,11 +24,10 @@ describe('Cron', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('cron results no_such_id Not Found');
         });
-
         it('should throw validation error of order property', async () => {
             const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -38,7 +37,7 @@ describe('Cron', () => {
         it('should throw validation error of sort property', async () => {
             const qs = querystring.stringify({ name: 'pipe', sort: 'bla' });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -48,7 +47,7 @@ describe('Cron', () => {
         it('should throw validation error of limit should be >= 1', async () => {
             const qs = querystring.stringify({ name: 'pipe', limit: 0 });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -58,7 +57,7 @@ describe('Cron', () => {
         it('should throw validation error of limit should be integer', async () => {
             const qs = querystring.stringify({ name: 'pipe', limit: "y" });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -85,7 +84,7 @@ describe('Cron', () => {
 
             const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit: 3 });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -118,7 +117,7 @@ describe('Cron', () => {
         it('should throw validation error of order property', async () => {
             const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -128,7 +127,7 @@ describe('Cron', () => {
         it('should throw validation error of sort property', async () => {
             const qs = querystring.stringify({ name: 'pipe', sort: 'bla' });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -138,7 +137,7 @@ describe('Cron', () => {
         it('should throw validation error of limit should be >= 1', async () => {
             const qs = querystring.stringify({ name: 'pipe', limit: 0 });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -148,7 +147,7 @@ describe('Cron', () => {
         it('should throw validation error of limit should be integer', async () => {
             const qs = querystring.stringify({ name: 'pipe', limit: "y" });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -168,7 +167,7 @@ describe('Cron', () => {
 
             const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit });
             const options = {
-                uri: restPath + `?${qs}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);

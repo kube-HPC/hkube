@@ -116,7 +116,6 @@ describe('Boards', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body.status).to.equal(boardStatuses.PENDING);
         });
-
         it('starting board should fail if name exists', async () => {
             const options1 = {
                 uri: global.testParams.restUrl + '/exec/raw',
@@ -191,8 +190,6 @@ describe('Boards', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline no_such_job Not Found');
         });
-
-
     });
     describe('stop', () => {
         let restPath = null;
@@ -208,7 +205,6 @@ describe('Boards', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('board no_such_id Not Found');
         });
-
         it('should succeed to stop', async () => {
             let options = {
                 uri: `${restBoardPath}`,
@@ -233,6 +229,5 @@ describe('Boards', () => {
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.NOT_FOUND);
         });
-
     });
 });

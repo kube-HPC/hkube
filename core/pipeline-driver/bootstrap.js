@@ -8,6 +8,7 @@ const storageManager = require('@hkube/storage-manager');
 let log;
 
 const modules = [
+    require('./lib/state/db'),
     require('./lib/producer/jobs-producer'),
     require('./lib/consumer/jobs-consumer'),
     require('./lib/metrics/pipeline-metrics'),
@@ -67,7 +68,7 @@ class Bootstrap {
             process.exit(0);
         });
         process.on('unhandledRejection', (error) => {
-            if (error.isBrokenCircuitError){
+            if (error.isBrokenCircuitError) {
                 log.warning(`ignored unhandledRejection: ${error.message}`, { component }, error);
                 return;
             }
