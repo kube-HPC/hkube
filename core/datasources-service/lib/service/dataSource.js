@@ -2,7 +2,6 @@ const { errorTypes, isDBError } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
 const { default: simpleGit } = require('simple-git');
 const childProcess = require('child_process');
-const { parse: parsePath } = require('path');
 const { ResourceExistsError, ResourceNotFoundError } = require('../errors');
 const validator = require('../validation/api-validator');
 const dvcConfig = require('../utils/dvc');
@@ -329,7 +328,7 @@ class DataSource {
                         touchedFileIds: acc.touchedFileIds.concat(srcFile.id),
                     };
                 }
-                if (movedFile) {
+                if (movedFile && srcFile.path !== movedFile.path) {
                     return {
                         ...acc,
                         movedFiles: [...acc.movedFiles, [srcFile, movedFile]],
