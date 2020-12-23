@@ -8,8 +8,9 @@
     "tests": "tests"
   },
   "dependencies": {
-    "@hkube/config": "^2.0.7",
-    "@hkube/etcd": "^5.0.35",
+    "@hkube/config": "^2.0.10",
+    "@hkube/db": "^1.0.16",
+    "@hkube/etcd": "^5.1.2",
     "@hkube/kubernetes-client": "^1.0.30",
     "@hkube/logger": "^1.0.25",
     "@hkube/metrics": "^1.0.39",

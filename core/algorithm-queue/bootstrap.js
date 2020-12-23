@@ -8,6 +8,7 @@ const { componentName } = require('./lib/consts/index');
 const { tracer } = require('@hkube/metrics');
 
 const modules = [
+    require('./lib/persistency/db'),
     require('./lib/jobs/consumer'),
     require('./lib/jobs/producer-singleton'),
     require('./lib/jobs/producer'),
@@ -30,8 +31,9 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            await Promise.all(modules.map(m => m.init(main)));
-
+            for (const m of modules) {
+                await m.init(main);
+            }
             return main;
         }
         catch (error) {

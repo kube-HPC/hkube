@@ -80,6 +80,33 @@ const template = {
                                     }
                                 }
                             },
+                            {
+                                name: 'MONGODB_SERVICE_USER_NAME',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'mongodb-secret',
+                                        key: 'mongodb-username'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'MONGODB_SERVICE_PASSWORD',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'mongodb-secret',
+                                        key: 'mongodb-password'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'MONGODB_DB_NAME',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'mongodb-secret',
+                                        key: 'mongodb-database'
+                                    }
+                                }
+                            }
                         ],
                     }
                 ],

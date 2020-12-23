@@ -4,13 +4,13 @@ const { rest: healthcheck } = require('@hkube/healthchecks');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 const component = require('./lib/consts/componentNames').MAIN;
-const etcd = require('./lib/helpers/etcd');
+const db = require('./lib/helpers/db');
 const kubernetes = require('./lib/helpers/kubernetes');
 const operator = require('./lib/operator');
 const { setFromConfig } = require('./lib/helpers/settings');
 
 const modules = [
-    etcd,
+    db,
     kubernetes,
     operator
 ];

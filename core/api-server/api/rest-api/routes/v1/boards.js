@@ -23,7 +23,6 @@ const routes = (options) => {
         const { id } = req.params;
         await boards.stopTensorboard({ id });
         res.json({ message: 'Board deleted' });
-
         next();
     });
     router.post('/tensors/', logger(), async (req, res, next) => {

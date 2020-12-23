@@ -1,9 +1,9 @@
 const { CronJob } = require('cron');
 const logger = require('@hkube/logger');
 const { componentName, Events, Triggers } = require('../consts');
-const component = componentName.CRON_TRIGGER;
 const triggerQueue = require('../queue/trigger-queue');
-const storedPipelineListener = require('../pipelines/stored-pipelines-listener');
+const storeManager = require('../store/store-manager');
+const component = componentName.CRON_TRIGGER;
 let log;
 
 class CronTask {
@@ -13,25 +13,31 @@ class CronTask {
 
     async init() {
         log = logger.GetLogFromContainer();
-        storedPipelineListener.on(Events.CHANGE, t => this._updateTrigger(t));
-        storedPipelineListener.on(Events.DELETE, t => this._removeTrigger(t));
-        const triggers = await storedPipelineListener.getTriggeredPipelineByType(Triggers.CRON);
-        triggers.forEach(t => this._updateTrigger(t));
+        storeManager.on(Events.CHANGE, t => this._updateTrigger(t));
+        storeManager.on(Events.DELETE, t => this._removeTrigger(t));
     }
 
     _updateTrigger(trigger) {
-        if (!trigger.cron || !trigger.cron.enabled) {
+        if (!trigger.cron?.enabled) {
             this._removeTrigger(trigger);
             return;
         }
-        this._stopCron(trigger.name);
+        const { name } = trigger;
+        const { pattern } = trigger.cron;
+        const cronData = this._crons.get(name);
+        if (cronData?.pattern === pattern) {
+            return;
+        }
+        if (cronData && cronData.pattern !== pattern) {
+            this._stopCron(name);
+        }
         try {
-            const cron = new CronJob(trigger.cron.pattern, () => this._onTick(trigger), null, true);
-            this._crons.set(trigger.name, cron);
-            log.info(`update cron job for pipeline ${trigger.name} (${trigger.cron.pattern}), next: ${cron.nextDate()}, total cron jobs: ${this._crons.size}`, { component });
+            const cron = new CronJob(pattern, () => this._onTick(trigger), null, true);
+            this._crons.set(name, { cron, pattern });
+            log.info(`update cron job for pipeline ${name} (${pattern}), next: ${cron.nextDate()}, total cron jobs: ${this._crons.size}`, { component });
         }
         catch (e) {
-            log.error(`cron pattern not valid for pipeline ${trigger.name} (${trigger.cron.pattern}). ${e.message}`, { component });
+            log.error(`cron pattern not valid for pipeline ${name} (${pattern}). ${e.message}`, { component });
         }
     }
 
@@ -49,12 +55,12 @@ class CronTask {
     }
 
     _stopCron(trigger) {
-        const cron = this._crons.get(trigger);
-        if (cron) {
-            cron.stop();
+        const cronData = this._crons.get(trigger);
+        if (cronData) {
+            cronData.cron.stop();
             log.info(`stop cron job for pipeline ${trigger}`, { component });
         }
-        return cron;
+        return cronData;
     }
 }
 

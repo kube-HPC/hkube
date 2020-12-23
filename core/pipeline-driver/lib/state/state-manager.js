@@ -4,6 +4,7 @@ const Etcd = require('@hkube/etcd');
 const logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
+const db = require('./db');
 const DriverStates = require('./DriverStates');
 const component = require('../consts/componentNames').STATE_MANAGER;
 const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED, DriverStates.PAUSED];
@@ -13,6 +14,7 @@ class StateManager extends EventEmitter {
     constructor(option) {
         super();
         const options = option || {};
+        this._options = options;
         log = logger.GetLogFromContainer();
         this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
         this._podName = options.kubernetes.podName;
@@ -152,6 +154,7 @@ class StateManager extends EventEmitter {
         let error;
         try {
             await this._etcd.jobs.results.set(options);
+            await db.updateResult(options);
         }
         catch (e) {
             error = e.message;
@@ -167,7 +170,9 @@ class StateManager extends EventEmitter {
         await this._updateDiscovery();
         return this._etcd.jobs.status.update(options, (oldItem) => {
             if (oldItem.status !== DriverStates.STOPPED && oldItem.status !== DriverStates.PAUSED) {
-                return { ...oldItem, ...options };
+                const data = { ...oldItem, ...options };
+                db.updateStatus(data);
+                return data;
             }
             return null;
         }).catch(e => {
@@ -176,7 +181,7 @@ class StateManager extends EventEmitter {
     }
 
     getJobStatus(options) {
-        return this._etcd.jobs.status.get(options);
+        return db.fetchStatus(options);
     }
 
     async tasksList(options) {
@@ -189,15 +194,15 @@ class StateManager extends EventEmitter {
     }
 
     getExecution(options) {
-        return this._etcd.executions.running.get(options);
+        return db.fetchPipeline(options);
     }
 
     setExecution(options) {
-        return this._etcd.executions.running.set(options);
+        return db.updatePipeline(options);
     }
 
     updateExecution(options, cb) {
-        return this._etcd.executions.stored.update(options, cb);
+        return db.patchPipeline(options, cb);
     }
 
     watchTasks(options) {

@@ -6,23 +6,22 @@ const storeTemplates = require('../data/templates-store.json');
 const driversStore = require('../data/drivers-store.json');
 
 class StateManagerMock extends EventEmitter {
-
-    getAlgorithmQueue(options) {
+    getAlgorithmQueue() {
         return clone(algorithmQueue);
     }
 
-    getPipelineDriverQueue(options) {
+    getPipelineDriverQueue() {
         return clone(pipelinesQueue);
     }
 
     setPipelineDriverRequirements() {
     }
 
-    getPipelineDriverTemplateStore(options) {
+    getPipelineDriverTemplateStore() {
         return clone(driversStore);
     }
 
-    getAlgorithmTemplateStore(options) {
+    getAlgorithmTemplateStore() {
         return clone(storeTemplates);
     }
 

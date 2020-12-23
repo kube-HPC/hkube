@@ -1,50 +1,46 @@
 const graphlib = require('graphlib');
-const storageManager = require('@hkube/storage-manager');
+const { pipelineTypes } = require('@hkube/consts');
 const validator = require('../validation/api-validator');
-const stateManager = require('../state/state-manager');
 const executionService = require('./execution');
+const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors');
 
-class PipelineStore {
+class PipelineService {
     async updatePipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
-        const pipeline = await stateManager.pipelines.get(options);
-        if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', options.name);
-        }
+        await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
-        await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: options });
-        await stateManager.pipelines.set(options);
+        const newPipeline = {
+            modified: Date.now(),
+            ...options,
+        };
+        await stateManager.replacePipeline(newPipeline);
         return options;
     }
 
     async deletePipeline(options) {
-        validator.pipelines.validatePipelineName(options.name);
-        const pipeline = await stateManager.pipelines.get(options);
-        if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', options.name);
-        }
-        let summary = `pipline ${options.name} successfully deleted from store`;
+        const { name } = options;
+        validator.pipelines.validatePipelineName(name);
+        await this.getPipeline(options);
+        let summary = `pipeline ${name} successfully deleted from store`;
         const result = await this._stopAllRunningPipelines(options);
         if (result.length > 0) {
-            const stopeed = result.filter(r => r.success);
-            summary += `, stopped related running pipelines ${stopeed.length}/${result.length}`;
+            const stopped = result.filter(r => r.success);
+            summary += `, stopped related running pipelines ${stopped.length}/${result.length}`;
         }
-        await this.deletePipelineFromStore(options);
+        await stateManager.deletePipeline({ name });
         return summary;
     }
 
     async _stopAllRunningPipelines(options) {
-        const limit = 1000;
-        const pipelines = await stateManager.executions.running.list({ limit }, (p) => p.name === options.name);
-        const result = await Promise.all(pipelines.map(p => this._promiseWrapper(() => executionService.stopJob(p))));
+        const pipelines = await stateManager.searchJobs({
+            pipelineName: options.name,
+            pipelineType: pipelineTypes.STORED,
+            hasResult: false,
+            fields: { jobId: true },
+        });
+        const result = await Promise.all(pipelines.map(p => this._promiseWrapper(() => executionService.stopJob({ jobId: p.jobId, reason: 'pipeline has been deleted' }))));
         return result;
-    }
-
-    async deletePipelineFromStore(options) {
-        await storageManager.hkubeStore.delete({ type: 'pipeline', name: options.name });
-        await storageManager.hkubeStore.delete({ type: 'readme/pipeline', name: options.name });
-        return stateManager.pipelines.delete(options);
     }
 
     _promiseWrapper(func) {
@@ -55,7 +51,7 @@ class PipelineStore {
 
     async getPipeline(options) {
         validator.pipelines.validatePipelineName(options.name);
-        const pipeline = await stateManager.pipelines.get(options);
+        const pipeline = await stateManager.getPipeline(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
@@ -63,13 +59,15 @@ class PipelineStore {
     }
 
     async getPipelines() {
-        return stateManager.pipelines.list();
+        return stateManager.getPipelines();
     }
 
     async getPipelinesTriggersTree(options) {
         const { name } = options;
         const graph = new graphlib.Graph();
-        const pipelines = await stateManager.pipelines.list(null, (p) => p.triggers && p.triggers.pipelines && p.triggers.pipelines.length);
+        const pipelines = await stateManager.searchPipelines({
+            hasPipelinesTriggers: true
+        });
         if (pipelines.length === 0) {
             throw new InvalidDataError('unable to find any pipeline with triggers');
         }
@@ -112,15 +110,18 @@ class PipelineStore {
     async insertPipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
-        await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: options });
 
-        const pipe = await stateManager.pipelines.get(options);
-        if (pipe) {
+        const pipeline = await stateManager.getPipeline(options);
+        if (pipeline) {
             throw new ResourceExistsError('pipeline', options.name);
         }
-        await stateManager.pipelines.set(options);
+        const newPipeline = {
+            modified: Date.now(),
+            ...options,
+        };
+        await stateManager.insertPipeline(newPipeline);
         return options;
     }
 }
 
-module.exports = new PipelineStore();
+module.exports = new PipelineService();

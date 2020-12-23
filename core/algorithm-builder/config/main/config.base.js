@@ -1,5 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
-const { parseBool } = require(process.cwd() + '/lib/utils/formatters');
+const { parseBool, parseInt } = require(process.cwd() + '/lib/utils/formatters');
 const config = {};
 config.serviceName = packageJson.name;
 
@@ -70,6 +70,19 @@ config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
     port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
     sentinel: useSentinel
+};
+
+config.db = {
+    provider: 'mongo',
+    mongo: {
+        auth: {
+            user: process.env.MONGODB_SERVICE_USER_NAME || 'tester',
+            password: process.env.MONGODB_SERVICE_PASSWORD || 'password',
+        },
+        host: process.env.MONGODB_SERVICE_HOST || 'localhost',
+        port: parseInt(process.env.MONGODB_SERVICE_PORT, 27017),
+        dbName: process.env.MONGODB_DB_NAME || 'hkube',
+    }
 };
 
 config.etcd = {

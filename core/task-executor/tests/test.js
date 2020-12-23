@@ -22,7 +22,7 @@ describe('bootstrap', () => {
     });
     it('should get template store', async () => {
         const algo = 'algo2';
-        await Promise.all(templateStoreStub.map(t => etcd._etcd.algorithms.store.set(t)));
+        await etcd._db.algorithms.createMany(templateStoreStub);
         const templates = await etcd.getAlgorithmTemplate();
         const alg1 = templates[algo];
         const alg2 = templateStoreStub.find(t => t.name === algo);

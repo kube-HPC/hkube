@@ -7,19 +7,18 @@ class InternalService {
     async runStoredTriggerPipeline(options) {
         validator.internal.validateStoredInternal(options);
         const { name, parentJobId } = options;
-        const execPipeline = await stateManager.executions.stored.get({ jobId: parentJobId });
-        const experimentName = await this._getExperiment(execPipeline);
+        const execPipeline = await stateManager.getJobPipeline({ jobId: parentJobId });
         const rootJobId = execPipeline.rootJobId || parentJobId;
         const rootJobName = execPipeline.name;
-        const jobId = execution._createJobID({ experimentName, name });
         const pipeline = { name };
 
-        const results = await stateManager.getJobResult({ jobId: parentJobId });
-        if (results && results.data) {
-            pipeline.flowInput = { parent: results.data };
+        const results = await stateManager.getJobResultClean({ jobId: parentJobId });
+        if (results?.data?.storageInfo) {
+            pipeline.flowInputMetadata = results.data;
         }
-        await stateManager.triggers.tree.set({ name, rootJobName, jobId, rootJobId, parentJobId });
-        return execution._runStored({ pipeline, jobId, rootJobId, mergeFlowInput: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
+        const jobId = await execution._runStored({ pipeline, rootJobId, mergeFlowInput: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
+        await stateManager.updateTriggersTree({ name, rootJobName, jobId, rootJobId, parentJobId });
+        return jobId;
     }
 
     async runStoredSubPipeline(options) {
@@ -43,7 +42,7 @@ class InternalService {
 
     async _getExperimentName(options) {
         const { jobId } = options;
-        const pipeline = await stateManager.executions.stored.get({ jobId });
+        const pipeline = await stateManager.getJobPipeline({ jobId });
         return this._getExperiment(pipeline);
     }
 

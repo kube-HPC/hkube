@@ -86,7 +86,7 @@ describe('Builds', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body).to.have.property('status');
             expect(response.body).to.have.property('startTime');
-            expect(response.body).not.to.have.property('baseImage');
+            expect(response.body).to.have.property('baseImage');
             expect(response.body.status).to.equal('pending');
         });
         it('should succeed to get baseImage', async () => {
@@ -224,7 +224,6 @@ describe('Builds', () => {
         before(() => {
             restPath = `${restUrl}/builds/list`;
         });
-
         it('should throw validation error of order property', async () => {
             const qs = querystring.stringify({ order: 'bla' });
             const options = {
@@ -299,7 +298,7 @@ describe('Builds', () => {
             const qs = querystring.stringify({ sort: 'desc', limit });
 
             const options = {
-                uri: restPath + `/${body.name}?${qs}`,
+                uri: `${restPath}/${body.name}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);

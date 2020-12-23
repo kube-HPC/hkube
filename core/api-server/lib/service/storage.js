@@ -77,8 +77,8 @@ class StorageService {
         const hasLargeResults = result.data.some(d => d.info);
         let algorithmsMap;
         if (hasLargeResults) {
-            const algorithmList = await stateManager.algorithms.store.list({ limit: 1000 });
-            algorithmsMap = new Map(algorithmList.map((a) => [a.name, a]));
+            const names = result.data.map(d => d.algorithmName);
+            algorithmsMap = await stateManager.getAlgorithmsMapByNames({ names });
         }
         const archive = archiver('zip', { zlib: { level: 9 } });
         const archiveData = await Promise.all(result.data.map(d => this._createArchive(d, algorithmsMap, archive)));
@@ -90,8 +90,8 @@ class StorageService {
     async _createArchive(data, algorithmsMap, archive) {
         let info;
         if (data.info) {
-            const algorithms = algorithmsMap.get(data.algorithmName);
-            const ext = algorithms.downloadFileExt || 'hkube';
+            const algorithm = algorithmsMap.get(data.algorithmName);
+            const ext = algorithm?.downloadFileExt || 'hkube';
             const fileName = `${uid()}.${ext}`;
             const stream = await storageManager.getCustomStream({ path: data.info.path });
             archive.append(stream, { name: fileName });

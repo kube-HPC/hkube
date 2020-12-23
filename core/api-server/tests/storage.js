@@ -5,6 +5,7 @@ const HttpStatus = require('http-status-codes');
 const { Encoding } = require('@hkube/encoding');
 const { request } = require('./utils');
 const { uid: uuid } = require('@hkube/uid');
+const { workerStub } = require('./mocks');
 let restUrl;
 let maxStorageFetchKeys;
 let encoding;
@@ -68,7 +69,7 @@ describe('Storage', () => {
             expect(response.body).to.have.property('keys');
             expect(response.body).to.have.property('path');
             expect(response.body).to.have.property('total');
-            expect(response.body.keys).to.be.an('array').that.includes('algorithm');
+            expect(response.body.keys).to.have.lengthOf(0);
         });
         it('should return zero prefixes', async () => {
             const options = {
@@ -95,10 +96,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body).to.have.property('keys');
-            expect(response.body).to.have.property('path');
-            expect(response.body).to.have.property('total');
-            expect(response.body.keys).to.have.lengthOf(total);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
         });
     });
     describe('/keys/:path', () => {
@@ -115,17 +113,14 @@ describe('Storage', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('key no_such_key Not Found');
         });
-        it('should return specific keys', async () => {
+        it('should not return specific keys', async () => {
             const alg = 'eval-alg';
             const options = {
                 uri: `${restPath}/${`local-hkube-store/algorithm/${alg}.json`}`,
                 method: 'GET'
             };
             const response = await request(options);
-            const algorithm = response.body.keys[0]
-            expect(algorithm).to.have.property('path');
-            expect(algorithm).to.have.property('size');
-            expect(algorithm).to.have.property('mtime');
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
         });
         it('should return zero keys', async () => {
             const options = {
@@ -151,7 +146,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.keys).to.have.lengthOf(total);
+            expect(response.body.keys).to.have.lengthOf(0);
         });
         it('should limit the return to max keys', async () => {
             const length = 140;
@@ -189,7 +184,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.name).to.eql(alg);
+            expect(response.body.name).to.be.undefined;
         });
     });
     describe('/stream/:path', () => {
@@ -207,15 +202,14 @@ describe('Storage', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`stream ${value} Not Found`);
         });
-        it.skip('should return specific stream', async () => {
+        it('should return specific stream', async () => {
             const alg = 'eval-alg';
             const options = {
                 uri: `${restPath}/${`local-hkube-store/algorithm/${alg}.json`}`,
                 method: 'GET'
             };
             const response = await request(options);
-            const body = encoding.decode(response.body);
-            expect(body.name).to.eql(alg);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
         });
     });
     describe('/stream/custom:path', () => {
@@ -329,14 +323,14 @@ describe('Storage', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`stream ${value} Not Found`);
         });
-        it.skip('should return specific download', async () => {
+        it('should return specific download', async () => {
             const alg = 'eval-alg';
             const options = {
                 uri: `${restPath}/${`local-hkube-store/algorithm/${alg}.json`}`,
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.name).to.eql(alg);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
         });
     });
     describe('/download/custom/:path', () => {
@@ -424,6 +418,60 @@ describe('Storage', () => {
             };
             const response = await request(options);
             expect(response.body).to.equal(data.toString('utf-8'));
+        });
+    });
+    describe('/download/pipeline/result/:jobId', () => {
+        let restPath = null;
+        before(() => {
+            restPath = `${restUrl}/storage/download/pipeline/result`;
+        });
+        it('should succeed to get download results', async () => {
+            const optionsRun = {
+                uri: restUrl + '/exec/raw',
+                body: {
+                    name: 'exec_raw_results',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ]
+                }
+            };
+            const responseRun = await request(optionsRun);
+            const jobId = responseRun.body.jobId;
+            const path1 = await storageManager.hkube.put({ jobId, taskId: 'a', data: 100 });
+            const path2 = await storageManager.hkube.put({ jobId, taskId: 'b', data: 200 });
+            const data = [
+                {
+                    nodeName: 'A',
+                    algorithmName: 'yellow-alg',
+                    info: {
+                        path: path1.path,
+                        size: 10
+                    }
+                },
+                {
+                    nodeName: 'B',
+                    algorithmName: 'black-alg',
+                    info: {
+                        path: path2.path,
+                        size: 20
+                    }
+                }];
+
+            await workerStub.done({ jobId, data });
+            const options = {
+                uri: `${restPath}/${responseRun.body.jobId}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.headers['content-disposition']).to.eql('attachment; filename=hkube-result.zip');
+            expect(response.body).to.contains('metadata.json');
+            expect(response.body).to.contains('jpg');
+            expect(response.body).to.contains('png');
         });
     });
 });

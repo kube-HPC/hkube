@@ -1,16 +1,15 @@
 const objectPath = require('object-path');
-const storageManager = require('@hkube/storage-manager');
-const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const executionService = require('./execution');
 const cronService = require('./cron');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
+const stateManager = require('../state/state-manager');
 const defaultExperiment = require('../consts/defaultExperiment');
 
 class Experiment {
     async getExperiment(options) {
         const { name } = options;
-        const experiment = await stateManager.experiments.get(options);
+        const experiment = await stateManager.getExperiment(options);
         if (!experiment) {
             throw new ResourceNotFoundError('experiment', name);
         }
@@ -19,12 +18,17 @@ class Experiment {
 
     async insertExperiment(options) {
         validator.experiments.validateExperimentName(options);
-        await stateManager.experiments.set(options);
-        await storageManager.hkubeStore.put({ type: 'experiment', name: options.name, data: options });
+        const experiment = {
+            name: options.name,
+            description: options.description,
+            created: Date.now(),
+        };
+        await stateManager.createExperiment(experiment);
     }
 
-    experimentsList(options) {
-        return stateManager.experiments.list(options);
+    async experimentsList(options) {
+        const { sort, limit } = options;
+        return stateManager.getExperiments({ sort, limit });
     }
 
     async deleteExperiment(options) {
@@ -40,15 +44,16 @@ class Experiment {
 
     async _deleteExperiment(options) {
         const { name } = options;
-        await storageManager.hkubeStore.delete({ type: 'experiment', name });
-        const res = await stateManager.experiments.delete(options);
-        const message = res.deleted === '0' ? 'deleted operation has failed' : 'deleted successfully';
+        const res = await stateManager.deleteExperiment({ name });
+        const message = res.deleted === 0 ? 'deleted operation has failed' : 'deleted successfully';
         return { message, name };
     }
 
     async _stopAllCrons(experimentName) {
-        const limit = 1000;
-        const pipelines = await stateManager.pipelines.list({ limit }, (p) => this._hasCron(p, experimentName));
+        const pipelines = await stateManager.searchPipelines({
+            experimentName,
+            hasCronEnabled: true,
+        });
         await Promise.all(pipelines.map(p => cronService.updateCronJob(p, { enabled: false })));
     }
 
@@ -58,8 +63,7 @@ class Experiment {
     }
 
     async _cleanAll(experimentName) {
-        const jobId = `${experimentName}:`;
-        const pipelines = await stateManager.executions.stored.list({ jobId });
+        const pipelines = await stateManager.searchJobs({ experimentName, fields: { jobId: true } });
         await Promise.all(pipelines.map(p => executionService.cleanJob({ jobId: p.jobId })));
     }
 }

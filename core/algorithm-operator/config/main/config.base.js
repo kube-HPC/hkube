@@ -10,6 +10,19 @@ config.boardTimeOut = formatter.parseInt(process.env.BOARDS_TIMEOUT, 3 * 60 * 60
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.buildMode = process.env.BUILD_MODE || 'kaniko'
 
+config.db = {
+    provider: 'mongo',
+    mongo: {
+        auth: {
+            user: process.env.MONGODB_SERVICE_USER_NAME || 'tester',
+            password: process.env.MONGODB_SERVICE_PASSWORD || 'password',
+        },
+        host: process.env.MONGODB_SERVICE_HOST || 'localhost',
+        port: formatter.parseInt(process.env.MONGODB_SERVICE_PORT, 27017),
+        dbName: process.env.MONGODB_DB_NAME || 'hkube',
+    }
+};
+
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',
@@ -17,12 +30,6 @@ config.kubernetes = {
     version: '1.9'
 };
 
-config.etcd = {
-    protocol: 'http',
-    host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
-    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
-    serviceName: config.serviceName
-};
 config.jaeger = {
     host: process.env.JAEGER_AGENT_SERVICE_HOST,
 }

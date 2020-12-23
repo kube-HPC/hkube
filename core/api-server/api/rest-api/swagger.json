@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.0.14",
+    "version": "2.0.15",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -333,17 +333,26 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax",
-                        "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "example": {
+                          "main": "A >> B&C , B >> D",
+                          "second": "A >> B >> C"
+                        }
                       }
                     }
                   },
                   "edges": {
                     "type": "array",
-                    "description": "edges define relation between nodes"
+                    "description": "edges define relation between nodes",
+                    "items": {},
+                    "example": [
+                      {
+                        "source": "A",
+                        "target": "B"
+                      }
+                    ]
                   }
                 },
-                "additionalProperties": false,
                 "required": [
                   "name"
                 ]
@@ -679,17 +688,26 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax",
-                        "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "example": {
+                          "main": "A >> B&C , B >> D",
+                          "second": "A >> B >> C"
+                        }
                       }
                     }
                   },
                   "edges": {
                     "type": "array",
-                    "description": "edges define relation between nodes"
+                    "description": "edges define relation between nodes",
+                    "items": {},
+                    "example": [
+                      {
+                        "source": "A",
+                        "target": "B"
+                      }
+                    ]
                   }
                 },
-                "additionalProperties": false,
                 "required": [
                   "name"
                 ]
@@ -1599,17 +1617,26 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax",
-                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "example": {
+                            "main": "A >> B&C , B >> D",
+                            "second": "A >> B >> C"
+                          }
                         }
                       }
                     },
                     "edges": {
                       "type": "array",
-                      "description": "edges define relation between nodes"
+                      "description": "edges define relation between nodes",
+                      "items": {},
+                      "example": [
+                        {
+                          "source": "A",
+                          "target": "B"
+                        }
+                      ]
                     }
                   },
-                  "additionalProperties": false,
                   "required": [
                     "name"
                   ]
@@ -1944,17 +1971,26 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax",
-                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "example": {
+                            "main": "A >> B&C , B >> D",
+                            "second": "A >> B >> C"
+                          }
                         }
                       }
                     },
                     "edges": {
                       "type": "array",
-                      "description": "edges define relation between nodes"
+                      "description": "edges define relation between nodes",
+                      "items": {},
+                      "example": [
+                        {
+                          "source": "A",
+                          "target": "B"
+                        }
+                      ]
                     }
                   },
-                  "additionalProperties": false,
                   "required": [
                     "name"
                   ]
@@ -5613,17 +5649,26 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax",
-                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "example": {
+                            "main": "A >> B&C , B >> D",
+                            "second": "A >> B >> C"
+                          }
                         }
                       }
                     },
                     "edges": {
                       "type": "array",
-                      "description": "edges define relation between nodes"
+                      "description": "edges define relation between nodes",
+                      "items": {},
+                      "example": [
+                        {
+                          "source": "A",
+                          "target": "B"
+                        }
+                      ]
                     }
                   },
-                  "additionalProperties": false,
                   "required": [
                     "name"
                   ]
@@ -6061,17 +6106,26 @@
                           },
                           "flows": {
                             "type": "object",
-                            "description": "define streaming flow in simple syntax",
-                            "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                            "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                            "example": {
+                              "main": "A >> B&C , B >> D",
+                              "second": "A >> B >> C"
+                            }
                           }
                         }
                       },
                       "edges": {
                         "type": "array",
-                        "description": "edges define relation between nodes"
+                        "description": "edges define relation between nodes",
+                        "items": {},
+                        "example": [
+                          {
+                            "source": "A",
+                            "target": "B"
+                          }
+                        ]
                       }
                     },
-                    "additionalProperties": false,
                     "required": [
                       "name"
                     ]
@@ -6365,17 +6419,26 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax",
-                        "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "example": {
+                          "main": "A >> B&C , B >> D",
+                          "second": "A >> B >> C"
+                        }
                       }
                     }
                   },
                   "edges": {
                     "type": "array",
-                    "description": "edges define relation between nodes"
+                    "description": "edges define relation between nodes",
+                    "items": {},
+                    "example": [
+                      {
+                        "source": "A",
+                        "target": "B"
+                      }
+                    ]
                   }
                 },
-                "additionalProperties": false,
                 "required": [
                   "name"
                 ]
@@ -6645,17 +6708,26 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax",
-                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "example": {
+                            "main": "A >> B&C , B >> D",
+                            "second": "A >> B >> C"
+                          }
                         }
                       }
                     },
                     "edges": {
                       "type": "array",
-                      "description": "edges define relation between nodes"
+                      "description": "edges define relation between nodes",
+                      "items": {},
+                      "example": [
+                        {
+                          "source": "A",
+                          "target": "B"
+                        }
+                      ]
                     }
                   },
-                  "additionalProperties": false,
                   "required": [
                     "name"
                   ]
@@ -6986,17 +7058,26 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax",
-                        "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "example": {
+                          "main": "A >> B&C , B >> D",
+                          "second": "A >> B >> C"
+                        }
                       }
                     }
                   },
                   "edges": {
                     "type": "array",
-                    "description": "edges define relation between nodes"
+                    "description": "edges define relation between nodes",
+                    "items": {},
+                    "example": [
+                      {
+                        "source": "A",
+                        "target": "B"
+                      }
+                    ]
                   }
                 },
-                "additionalProperties": false,
                 "required": [
                   "name"
                 ]
@@ -7266,17 +7347,26 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax",
-                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "example": {
+                            "main": "A >> B&C , B >> D",
+                            "second": "A >> B >> C"
+                          }
                         }
                       }
                     },
                     "edges": {
                       "type": "array",
-                      "description": "edges define relation between nodes"
+                      "description": "edges define relation between nodes",
+                      "items": {},
+                      "example": [
+                        {
+                          "source": "A",
+                          "target": "B"
+                        }
+                      ]
                     }
                   },
-                  "additionalProperties": false,
                   "required": [
                     "name"
                   ]
@@ -7559,7 +7649,7 @@
         }
       }
     },
-    "/webhooks/list": {
+    "/webhooks/list/{jobId}": {
       "get": {
         "tags": [
           "Webhooks"
@@ -10512,6 +10602,77 @@
       }
     },
     "/experiment": {
+      "get": {
+        "tags": [
+          "Experiment"
+        ],
+        "summary": "Get experiments list",
+        "description": "Returns experiments list",
+        "responses": {
+          "200": {
+            "description": "list of experiments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "experiment-name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "describe the experiment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "Experiment"
@@ -10583,79 +10744,6 @@
           },
           "409": {
             "description": "pipeline conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/experiment/list/all": {
-      "get": {
-        "tags": [
-          "Experiment"
-        ],
-        "summary": "Get experiments list",
-        "description": "Returns experiments list",
-        "responses": {
-          "200": {
-            "description": "list of experiments",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "experiment name",
-                      "default": "main",
-                      "minLength": 1,
-                      "maxLength": 32,
-                      "format": "experiment-name"
-                    },
-                    "description": {
-                      "type": "string",
-                      "description": "describe the experiment"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
             "content": {
               "application/json": {
                 "schema": {
@@ -13016,17 +13104,26 @@
               },
               "flows": {
                 "type": "object",
-                "description": "define streaming flow in simple syntax",
-                "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                "example": {
+                  "main": "A >> B&C , B >> D",
+                  "second": "A >> B >> C"
+                }
               }
             }
           },
           "edges": {
             "type": "array",
-            "description": "edges define relation between nodes"
+            "description": "edges define relation between nodes",
+            "items": {},
+            "example": [
+              {
+                "source": "A",
+                "target": "B"
+              }
+            ]
           }
         },
-        "additionalProperties": false,
         "required": [
           "name"
         ]

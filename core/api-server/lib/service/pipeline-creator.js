@@ -14,15 +14,20 @@ const SEPARATORS = {
 class PipelineCreator {
     async buildPipelineOfPipelines(pipeline) {
         let newPipeline = pipeline;
-        const pipelinesNodes = pipeline.nodes.filter(p => p.pipelineName);
-        if (pipelinesNodes.length > 0) {
-            const pipelines = await stateManager.pipelines.list();
+        const duplicates = pipeline.nodes.some(p => p.algorithmName && p.pipelineName);
+        if (duplicates.length > 0) {
+            throw new InvalidDataError('algorithmName and pipelineName are not allowed in single node');
+        }
+        const pipelineNames = pipeline.nodes.filter(p => p.pipelineName).map(p => p.pipelineName);
+        const pipelinesNames = [...new Set(pipelineNames)];
+        if (pipelinesNames.length > 0) {
+            const pipelines = await stateManager.getPipelines({ pipelinesNames });
             const flowInput = pipeline.flowInput || {};
 
-            pipelinesNodes.forEach(n => {
-                const storedPipeline = pipelines.find(p => p.name === n.pipelineName);
+            pipelinesNames.forEach(pl => {
+                const storedPipeline = pipelines.find(p => p.name === pl);
                 if (!storedPipeline) {
-                    throw new ResourceNotFoundError('pipeline', n.pipelineName);
+                    throw new ResourceNotFoundError('pipeline', pl);
                 }
                 mergeWith(flowInput, storedPipeline.flowInput);
             });
@@ -112,17 +117,17 @@ class PipelineCreator {
             }
             return pipeline;
         }
-        if (pipeline.kind === pipelineKind.Stream) {
-            if (!flows) {
-                throw new InvalidDataError('please specify a stream flow');
-            }
-            if (!defaultFlow) {
-                if (Object.keys(flows).length > 1) {
-                    throw new InvalidDataError('please specify a default stream flow');
-                }
-                [defaultFlow] = Object.keys(flows);
-            }
+
+        if (!flows) {
+            throw new InvalidDataError('please specify a stream flow');
         }
+        if (!defaultFlow) {
+            if (Object.keys(flows).length > 1) {
+                throw new InvalidDataError('please specify a default stream flow');
+            }
+            [defaultFlow] = Object.keys(flows);
+        }
+
         const parsedFlow = {};
         const edges = [];
 
@@ -146,7 +151,7 @@ class PipelineCreator {
                     const sources = source.split(SEPARATORS.AND);
                     const targets = target?.split(SEPARATORS.AND);
                     sources.forEach((s) => {
-                        const node = pipeline.nodes.find(n => n.nodeName === s);
+                        const node = pipeline.nodes.find(n => n.nodeName === s || n.origName === s);
                         if (!node) {
                             throw new InvalidDataError(`invalid node ${s} in stream flow ${k}`);
                         }

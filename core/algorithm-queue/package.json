@@ -17,9 +17,10 @@
   "author": "Hkube",
   "license": "MIT",
   "dependencies": {
-    "@hkube/config": "^2.0.7",
-    "@hkube/consts": "^1.0.12",
-    "@hkube/etcd": "^5.0.37",
+    "@hkube/config": "^2.0.10",
+    "@hkube/consts": "^1.0.29",
+    "@hkube/db": "^1.0.16",
+    "@hkube/etcd": "^5.1.2",
     "@hkube/logger": "^1.0.25",
     "@hkube/metrics": "^1.0.38",
     "@hkube/producer-consumer": "^1.0.46",

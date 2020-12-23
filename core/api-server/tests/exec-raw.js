@@ -251,7 +251,7 @@ describe('Executions', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
         });
-        it('should throw validation error of data should NOT have additional properties', async () => {
+        it('should not throw validation error of data should NOT have additional properties', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -270,9 +270,7 @@ describe('Executions', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data should NOT have additional properties (additionalProps)');
+            expect(response.body).to.have.property('jobId');
         });
         it('should throw validation error of duplicate node', async () => {
             const options = {
@@ -637,33 +635,33 @@ describe('Executions', () => {
                 uri: restPath,
                 body: {
                     name: 'streaming-flow',
-                    kind: "stream",
+                    kind: 'stream',
                     nodes: [
                         {
-                            "nodeName": "A",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateful"
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful',
                         },
                         {
-                            "nodeName": "B",
-                            "algorithmName": "green-alg",
-                            "input": ["@A"],
-                            "stateType": "stateless"
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless',
                         },
                         {
-                            "nodeName": "C",
-                            "algorithmName": "green-alg",
-                            "input": ["@C"],
-                            "stateType": "stateless"
-                        }
+                            nodeName: 'C',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless',
+                        },
                     ],
                     streaming: {
                         flows: {
-                            "analyze": "A >> B >> C"
-                        }
-                    }
-                }
+                            analyze: 'A >> B >> C',
+                        },
+                    },
+                },
             };
             const re = await request(options);
             const optionsGET = { uri: `${restUrl}/exec/pipelines/${re.body.jobId}`, method: 'GET' };

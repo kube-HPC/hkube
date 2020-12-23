@@ -1,17 +1,24 @@
 const objectPath = require('object-path');
-const { uid } = require('@hkube/uid');
-const storageManager = require('@hkube/storage-manager');
 const { pipelineTypes } = require('@hkube/consts');
 const execution = require('./execution');
-const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
+const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError } = require('../errors');
 
-class ExecutionService {
+class CronService {
     async getCronResult(options) {
         validator.lists.validateResultList(options);
-        const jobId = this._createCronJobID(options);
-        const response = await stateManager.getJobResults({ ...options, jobId });
+        const { experimentName, name, sort, limit } = options;
+        const list = await stateManager.searchJobs({
+            experimentName,
+            pipelineName: name,
+            pipelineType: pipelineTypes.CRON,
+            fields: { jobId: true, result: true },
+            sort: { 'pipeline.startTime': sort },
+            limit
+        });
+        const map = list.map(l => ({ jobId: l.jobId, ...l.result }));
+        const response = await stateManager.mergeJobStorageResults(map);
         if (response.length === 0) {
             throw new ResourceNotFoundError('cron results', options.name);
         }
@@ -20,16 +27,30 @@ class ExecutionService {
 
     async getCronStatus(options) {
         validator.lists.validateResultList(options);
-        const jobId = this._createCronJobID(options);
-        const response = await stateManager.jobs.status.list({ ...options, jobId });
-        if (response.length === 0) {
+        const { experimentName, name, sort, limit } = options;
+        const list = await stateManager.searchJobs({
+            experimentName,
+            pipelineName: name,
+            pipelineType: pipelineTypes.CRON,
+            sort: { 'pipeline.startTime': sort },
+            fields: { jobId: true, status: true },
+            limit
+        });
+        const map = list.map(l => ({ jobId: l.jobId, ...l.status }));
+        if (map.length === 0) {
             throw new ResourceNotFoundError('cron status', options.name);
         }
-        return response;
+        return map;
     }
 
     async getCronList(options) {
-        let pipelines = await stateManager.pipelines.list(options, l => l.triggers && l.triggers.cron);
+        const { sort, limit } = options;
+        let pipelines = await stateManager.searchPipelines({
+            hasCronTriggers: true,
+            sort: { startTime: sort },
+            fields: { name: true, 'triggers.cron': true },
+            limit
+        });
         pipelines = pipelines.map(p => ({ name: p.name, cron: p.triggers.cron }));
         return pipelines;
     }
@@ -37,8 +58,7 @@ class ExecutionService {
     async runStoredCron(options) {
         validator.internal.validateStoredInternal(options);
         const pipeline = await this._createPipeline(options);
-        const jobId = this._createCronJobID(pipeline, uid({ length: 8 }));
-        return execution._runStored({ pipeline, jobId, types: [pipelineTypes.STORED, pipelineTypes.INTERNAL, pipelineTypes.CRON] });
+        return execution._runStored({ pipeline, types: [pipelineTypes.STORED, pipelineTypes.INTERNAL, pipelineTypes.CRON] });
     }
 
     async startCronJob(options) {
@@ -51,7 +71,7 @@ class ExecutionService {
 
     async _toggleCronJob(options, enabled) {
         validator.cron.validateCronRequest(options);
-        const pipeline = await stateManager.pipelines.get(options);
+        const pipeline = await stateManager.getPipeline(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
@@ -62,8 +82,7 @@ class ExecutionService {
         const cronPattern = objectPath.get(pipeline, 'triggers.cron.pattern');
         objectPath.set(pipeline, 'triggers.cron.enabled', enabled);
         objectPath.set(pipeline, 'triggers.cron.pattern', pattern || cronPattern || '0 * * * *');
-        await storageManager.hkubeStore.put({ type: 'pipeline', name: pipeline.name, data: pipeline });
-        await stateManager.pipelines.set(pipeline);
+        await stateManager.updatePipeline(pipeline);
         return pipeline;
     }
 
@@ -75,15 +94,11 @@ class ExecutionService {
 
     async _getExperimentName(options) {
         const { name } = options;
-        const pipeline = await stateManager.pipelines.get({ name });
+        const pipeline = await stateManager.getPipeline({ name });
         const experiment = { name: (pipeline && pipeline.experimentName) || undefined };
         validator.experiments.validateExperimentName(experiment);
         return experiment.name;
     }
-
-    _createCronJobID(options, id) {
-        return [options.experimentName, pipelineTypes.CRON, options.name, id].join(':');
-    }
 }
 
-module.exports = new ExecutionService();
+module.exports = new CronService();

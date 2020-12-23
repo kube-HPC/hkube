@@ -14,9 +14,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hkube/config": "^2.0.7",
-    "@hkube/consts": "^1.0.21",
-    "@hkube/etcd": "^5.0.38",
+    "@hkube/config": "^2.0.10",
+    "@hkube/consts": "^1.0.29",
+    "@hkube/db": "^1.0.16",
     "@hkube/healthchecks": "^1.0.0",
     "@hkube/kubernetes-client": "^1.0.32",
     "@hkube/logger": "^1.0.25",
