@@ -136,11 +136,15 @@ class Worker {
             }
         });
         stateAdapter.on(workerCommands.scaleDown, () => {
-            const data = {
-                shouldCompleteJob: true
-            };
-            stateManager.done(data);
+            this._scaleDown({ status: workerCommands.scaleDown, reason: workerCommands.scaleDown });
         });
+    }
+
+    async _scaleDown({ status, reason }) {
+        const { jobId } = jobConsumer.jobData;
+        log.warning(`got status: ${status}`, { component });
+        await this._stopAllPipelinesAndExecutions({ jobId, reason: `parent pipeline ${status}. ${reason || ''}` });
+        stateManager.stop();
     }
 
     _registerToAutoScalerChangesEvents() {
