@@ -15,6 +15,9 @@ class StreamHandler extends EventEmitter {
         discovery.on(streamingEvents.DISCOVERY_CHANGED, (changed) => {
             this.emit(streamingEvents.DISCOVERY_CHANGED, changed);
         });
+        discovery.on(streamingEvents.DISCOVERY_PARENTS_DOWN, (changed) => {
+            this.emit(streamingEvents.DISCOVERY_PARENTS_DOWN, changed);
+        });
         streamService.on(streamingEvents.THROUGHPUT_CHANGED, (changed) => {
             this.emit(streamingEvents.THROUGHPUT_CHANGED, changed);
         });

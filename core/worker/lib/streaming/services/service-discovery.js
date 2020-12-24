@@ -40,6 +40,18 @@ class ServiceDiscovery extends EventEmitter {
         if (changes.length > 0) {
             this.emit(streamingEvents.DISCOVERY_CHANGED, changes);
         }
+
+        const parentsAlive = parents.some(p => this._discoveryMap[p]);
+        if (parents.length > 0 && !parentsAlive) {
+            if (!this._timeWait) {
+                this._timeWait = Date.now();
+            }
+            const diff = Date.now() - this._timeWait;
+            if (diff >= this._options.timeWaitOnParentsDown) {
+                this._timeWait = null;
+                this.emit(streamingEvents.DISCOVERY_PARENTS_DOWN, changes);
+            }
+        }
     }
 
     async _checkDiscovery({ jobId, taskId }) {
@@ -57,7 +69,7 @@ class ServiceDiscovery extends EventEmitter {
                 map.list.push({ nodeName, address, workerId });
             }
         });
-        Object.values(this._discoveryMap).forEach((v) => {
+        Object.entries(this._discoveryMap).forEach(([k, v]) => {
             for (let i = v.list.length - 1; i >= 0; i -= 1) {
                 const { nodeName, address } = v.list[i];
                 const found = list.find(f => f.nodeName === nodeName
@@ -67,6 +79,9 @@ class ServiceDiscovery extends EventEmitter {
                     changeList.push({ nodeName, address, type: 'Del' });
                     v.list.splice(i, 1);
                 }
+            }
+            if (v.list.length === 0) {
+                delete this._discoveryMap[k];
             }
         });
         return changeList;
