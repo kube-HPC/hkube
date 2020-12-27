@@ -8,11 +8,6 @@ const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 
 const modules = [
-<<<<<<< HEAD
-    require('./lib/db'),
-    require('./api/rest-api/app-server'),
-=======
->>>>>>> master
     require('./lib/state/state-manager'),
     require('./api/rest-api/app-server'),
     require('./lib/producer/jobs-producer'),

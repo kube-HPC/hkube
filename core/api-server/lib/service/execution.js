@@ -7,7 +7,6 @@ const { pipelineTypes, pipelineStatuses } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const storageManager = require('@hkube/storage-manager');
 const cachingService = require('./caching');
-const dbConnect = require('../db');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
@@ -93,7 +92,7 @@ class ExecutionService {
                 flowInputMetadata = { metadata, storageInfo };
             }
             // const { dataSourceMetadata, dataSources } = await this.dsService.validate(pipeline);
-            let dataSourceMetadata = null;
+            const dataSourceMetadata = null;
             const lastRunResult = await this._getLastPipeline(jobId);
             const pipelineObject = { ...pipeline, jobId, rootJobId, flowInputMetadata, dataSourceMetadata, startTime: Date.now(), lastRunResult, types };
             const statusObject = { timestamp: Date.now(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };

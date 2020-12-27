@@ -40,7 +40,6 @@
         "multer": "^1.4.2",
         "object-path": "^0.11.5",
         "read-chunk": "^3.2.0",
-        "simple-git": "^2.24.0",
         "request-promise": "^4.2.6",
         "requestretry": "^4.1.2",
         "semver": "^7.3.4",
@@ -48,7 +47,6 @@
         "swagger-parser": "^10.0.2"
     },
     "devDependencies": {
-        "body-parser": "^1.19.0",
         "@hkube/encoding": "^1.0.21",
         "chai": "^4.2.0",
         "clone": "^2.1.2",
@@ -69,7 +67,6 @@
         "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha tests --timeout=10000 --colors --recursive --exit",
         "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
         "start": "node app",
-        "start:services": "./scripts/startServices.sh",
         "build": "./dockerfile/build.sh api-server",
         "build-swagger": "node ./api/rest-api/swagger-builder.js"
     },
