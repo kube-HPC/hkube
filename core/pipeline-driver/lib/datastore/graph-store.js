@@ -161,7 +161,7 @@ class GraphStore {
                 const storage = node.storage[key];
                 let input;
                 if (Array.isArray(storage)) {
-                    input = { type: 'array', size: storage?.length || 0 };
+                    input = { type: 'array', size: storage.length };
                 }
                 else {
                     input = storage?.storageInfo;
