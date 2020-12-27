@@ -1,38 +1,25 @@
 const { errorTypes, isDBError } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
-const { default: simpleGit } = require('simple-git');
-const childProcess = require('child_process');
+const Repository = require('../utils/Repository');
 const { ResourceExistsError, ResourceNotFoundError } = require('../errors');
 const validator = require('../validation/api-validator');
-const dvcConfig = require('../utils/dvc');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
+const getFilePath = require('../utils/getFilePath');
 
-const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
 /**
- * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
+ * @typedef {import('./../utils/types').FileMeta} FileMeta
+ * @typedef {import('./../utils/types').MulterFile} MulterFile
+ * @typedef {import('./../utils/types').NormalizedFileMeta} NormalizedFileMeta
+ * @typedef {import('./../utils/types').SourceTargetArray} SourceTargetArray
+ * @typedef {import('./../utils/types').config} config
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
- * @typedef {import('express')} Express;
  * @typedef {{ createdPath: string; fileName: string }} uploadFileResponse
  * @typedef {{ name?: string; id?: string }} NameOrId
- * @typedef {{ [fileId: string]: FileMeta }} NormalizedFileMeta
- * @typedef {Express.Multer.File} MulterFile
- * @typedef {[FileMeta, FileMeta]} SourceTargetArray
- * @typedef {typeof import('./../../config/main/config.base')} config
  */
 
 /** @type {(str: string, to: string) => string} */
 const convertWhiteSpace = (str, to) => str.split(' ').join(to);
-
-/**
- * @param {{ name: string; path: string }} File
- * @param { string= } dataDir
- */
-const getFilePath = ({ name, path }, dataDir = 'data') =>
-    path === '/'
-        ? `${dataDir}/${name}`
-        : // ensure there's no '/' at the end of a path
-          `${dataDir}/${path.replace(/^\//, '')}/${name}`;
 
 const metaRegex = new RegExp('.meta');
 /** @param {string} fileName */
@@ -45,76 +32,14 @@ let db = null;
 
 class DataSource {
     constructor() {
-        this.rootDir = DATASOURCE_GIT_REPOS_DIR;
-        this.createRepo = this.createRepo.bind(this);
         fse.ensureDirSync(this.rootDir);
     }
 
     /** @param {config} config */
     async init(config) {
+        this.rootDir = config.directories.temporaryGitRepositories;
         this.config = config;
-        const storage = config.defaultStorage;
-        this.generateDvcConfig =
-            storage === 'fs'
-                ? dvcConfig.getFSConfig
-                : dvcConfig.getS3Config({
-                      endpoint: config.s3.endpoint,
-                      bucketName: 'local-hkube-datasource',
-                      secretAccessKey: config.s3.secretAccessKey,
-                      accessKeyId: config.s3.accessKeyId,
-                      useSSL: false,
-                  });
         db = dbConnection.connection;
-    }
-
-    async _execute(repositoryName, command) {
-        const [mainCmd, ...args] = command.split(' ');
-        const cmd = childProcess.spawn(mainCmd, args, {
-            cwd: `${this.rootDir}/${repositoryName}`,
-        });
-        return new Promise((res, rej) => {
-            let cache = '';
-            cmd.stdout.on('data', d => {
-                cache += d.toString();
-            });
-            cmd.stderr.on('data', d => {
-                cache += d.toString();
-            });
-            cmd.stdout.on('error', () => rej(cache));
-            cmd.on('error', rej);
-            cmd.on('close', errorCode =>
-                errorCode !== 0 ? rej(cache) : res(cache)
-            );
-        });
-    }
-
-    /** @param {string} name */
-    async setupDvcRepository(name) {
-        await this._execute(name, 'dvc init');
-        await fse.writeFile(
-            `${this.rootDir}/${name}/.dvc/config`,
-            this.generateDvcConfig(name)
-        );
-    }
-
-    getRepositoryUrl(repositoryName) {
-        const {
-            endpoint,
-            user: { name: userName, password },
-        } = this.config.git;
-        return `http://${userName}:${password}@${endpoint}/hkube/${repositoryName}.git`;
-    }
-
-    async createRepo(name) {
-        await fse.ensureDir(`${this.rootDir}/${name}`);
-        await fse.ensureDir(`${this.rootDir}/${name}/data`);
-        const git = simpleGit({ baseDir: `${this.rootDir}/${name}` });
-        await git.init().addRemote('origin', this.getRepositoryUrl(name));
-        await this.setupDvcRepository(name);
-        await git.add('.');
-        const response = await git.commit('initialized');
-        await git.push(['--set-upstream', 'origin', 'master']);
-        return { ...response, commit: response.commit.replace(/(.+) /, '') };
     }
 
     /** @type {(file: MulterFile, path?: string) => FileMeta} */
@@ -218,54 +143,6 @@ class DataSource {
     }
 
     /**
-     * @param {string} repositoryName
-     * @param {string} baseDir
-     * @param {string[]} fileIds
-     * @param {FileMeta[]} currentFiles
-     */
-    async _dropFiles(repositoryName, baseDir, fileIds, currentFiles) {
-        if (fileIds.length === 0) return;
-        const normalizedCurrentFiles = normalize(currentFiles);
-        await Promise.all(
-            fileIds.map(async id => {
-                const path = getFilePath(normalizedCurrentFiles[id]);
-                if (!path) return null;
-                // drops the dvc file and updates gitignore
-                await this._execute(repositoryName, `dvc remove ${path}.dvc`);
-                const fullPath = `${baseDir}/${path}`;
-                if (await fse.pathExists(fullPath)) {
-                    await fse.unlink(fullPath);
-                }
-                return null;
-            })
-        );
-    }
-
-    /**
-     * Loads the .meta files and add their content to the description field on
-     * the file normalized mapping return a new mapping object
-     *
-     * @param {NormalizedFileMeta} normalizedMapping
-     * @param {{ [path: string]: string }} byPath
-     * @param {{ [path: string]: MulterFile }} metaFilesByPath
-     */
-    async _loadMetaDataFile(normalizedMapping, byPath, metaFilesByPath) {
-        const contents = await Promise.all(
-            Object.entries(metaFilesByPath).map(async ([filePath, file]) => {
-                const content = await fse.readFile(file.path);
-                return [byPath[filePath], content.toString('utf8')];
-            })
-        );
-        return contents.reduce(
-            (acc, [fileId, description]) => ({
-                ...acc,
-                [fileId]: { ...acc[fileId], description },
-            }),
-            normalizedMapping
-        );
-    }
-
-    /**
      * Splits the inputs to groups by their respective actions. **note**: the
      * normalizedAddedFiles collection includes all the added files including
      * updated file
@@ -352,73 +229,8 @@ class DataSource {
     }
 
     /**
-     * @param {string} repositoryName
-     * @param {string} baseDir
-     * @param {NormalizedFileMeta} normalizedMapping
-     * @param {MulterFile[]} allAddedFiles
-     */
-    async _addFiles(repositoryName, baseDir, normalizedMapping, allAddedFiles) {
-        if (allAddedFiles.length === 0) return null;
-
-        const { dirs, filePaths } = Object.values(normalizedMapping).reduce(
-            (acc, fileMeta) => {
-                const filePath = getFilePath(fileMeta);
-                const dirPath = filePath.slice(
-                    0,
-                    filePath.length - fileMeta.name.length - 1
-                );
-                return {
-                    dirs: acc.dirs.concat(dirPath),
-                    filePaths: acc.filePaths.concat(filePath),
-                };
-            },
-            { dirs: [], filePaths: [] }
-        );
-
-        const uniqueDirs = [...new Set(dirs)];
-
-        await Promise.all(
-            uniqueDirs.map(dir =>
-                fse.ensureDir(`${this.rootDir}/${repositoryName}/${dir}`)
-            )
-        );
-
-        await Promise.all(
-            allAddedFiles.map(file => {
-                const fileMeta = normalizedMapping[file.filename];
-                return fse.move(
-                    file.path,
-                    `${baseDir}/${getFilePath(fileMeta)}`,
-                    { overwrite: true }
-                );
-            })
-        );
-        // creates .dvc files and update/create the relevant gitignore files
-        await this._execute(repositoryName, `dvc add ${filePaths.join(' ')}`);
-        return null;
-    }
-
-    /**
-     * @param {string} repositoryName
-     * @param {SourceTargetArray[]} sourceTargetArray
-     */
-    async _moveExistingFiles(repositoryName, sourceTargetArray) {
-        return Promise.all(
-            sourceTargetArray.map(async ([srcFile, targetFile]) => {
-                const srcPath = getFilePath(srcFile);
-                const targetPath = getFilePath(targetFile);
-                // moves .dvc files and updates gitignore
-                return this._execute(
-                    repositoryName,
-                    `dvc move ${srcPath} ${targetPath}`
-                );
-            })
-        );
-    }
-
-    /**
      * @param {{
-     *     repositoryName: string;
+     *     repository: Repository;
      *     commitMessage: string;
      *     files: {
      *         added: MulterFile[];
@@ -429,54 +241,35 @@ class DataSource {
      * }} props
      */
     async commitChange({
-        repositoryName,
+        repository,
         commitMessage,
         files: { added, dropped = [], mapping = [] },
         currentFiles = [],
     }) {
-        const baseDir = `${this.rootDir}/${repositoryName}`;
-        await fse.ensureDir(baseDir);
-        const hasClone = await fse.pathExists(`${baseDir}/.git`);
-        if (!hasClone) {
-            await simpleGit({ baseDir: this.rootDir }).clone(
-                this.getRepositoryUrl(repositoryName)
-            );
-        }
-        const git = simpleGit({ baseDir });
-
+        await repository.ensureClone();
         const groups = this._splitToGroups({
             currentFiles,
             mapping,
             addedFiles: added,
         });
-        const normalizedAddedFiles = await this._loadMetaDataFile(
+        const normalizedAddedFiles = await repository._loadMetaDataFile(
             groups.normalizedAddedFiles,
             groups.byPath,
             groups.metaFilesByPath
         );
-        await this._addFiles(
-            repositoryName,
-            baseDir,
-            normalizedAddedFiles,
-            groups.allAddedFiles
-        );
-        await this._moveExistingFiles(repositoryName, groups.movedFiles);
-        await this._dropFiles(repositoryName, baseDir, dropped, currentFiles);
+        await repository.addFiles(normalizedAddedFiles, groups.allAddedFiles);
+        await repository.moveExistingFiles(groups.movedFiles);
+        await repository.dropFiles(dropped, currentFiles);
         /**
          * Cleanups: - drop empty directories and empty git ignore files
          *     make sure the directory is really empty and has no subDirs!
          */
 
-        await this._execute(repositoryName, 'dvc push -r storage');
-        await git.add('.');
-        const { commit } = await git.commit(commitMessage);
-        await git.push();
+        const commit = await repository.push(commitMessage);
         const finalMapping = Object.values(normalizedAddedFiles).concat(
             groups.movedFiles.map(([, targetFile]) => targetFile)
         );
-
-        await fse.remove(baseDir);
-
+        await repository.cleanup();
         return {
             commitHash: commit,
             files: {
@@ -503,16 +296,15 @@ class DataSource {
             files: _files,
             versionDescription,
         });
-        // add ajv validation here
-        // also acts validates the datasource exists
-        // can be used to tag the dataSource as locked while updating
-        // add fetch dataSource a flag to take the lock into account
+        // validates the datasource exists, adds a partial flag on the version
         const createdVersion = await db.dataSources.createVersion({
             versionDescription,
             name,
         });
+
+        const repository = new Repository(name, this.config);
         const { commitHash, files } = await this.commitChange({
-            repositoryName: name,
+            repository,
             files: _files,
             commitMessage: versionDescription,
             currentFiles: createdVersion.files,
@@ -540,16 +332,15 @@ class DataSource {
             }
             return null;
         }
-        await this.createRepo(name);
+        const repository = new Repository(name, this.config);
+        await repository.setup();
         const {
             commitHash,
             files: { mapping },
         } = await this.commitChange({
-            repositoryName: name,
+            repository,
             commitMessage: 'initial upload',
-            files: {
-                added: files,
-            },
+            files: { added: files },
         });
         let updatedDataSource;
 
@@ -569,10 +360,14 @@ class DataSource {
     }
 
     /** @param {{ name?: string; id?: string }} query */
-    async fetchDataSourceMetaData({ name, id }) {
+    async fetchDataSource({ name, id }) {
         let dataSource = null;
         try {
-            dataSource = await db.dataSources.fetch({ name, id });
+            dataSource = await db.dataSources.fetch({
+                name,
+                id,
+                filters: { isPartial: false },
+            });
         } catch (error) {
             if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
                 throw new ResourceNotFoundError('dataSource', name, error);
@@ -580,11 +375,6 @@ class DataSource {
             throw error;
         }
         return dataSource;
-    }
-
-    /** @param {{ name?: string; id?: string }} query */
-    async fetchDataSource({ name, id }) {
-        return this.fetchDataSourceMetaData({ name, id });
     }
 
     /**
@@ -607,4 +397,5 @@ class DataSource {
     }
 }
 
+module.exports = new DataSource();
 module.exports = new DataSource();
