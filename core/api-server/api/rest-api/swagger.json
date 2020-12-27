@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.0.12",
+    "version": "2.0.16",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -60,10 +60,6 @@
     {
       "name": "Webhooks",
       "description": "Webhooks status and result"
-    },
-    {
-      "name": "DataSource",
-      "description": "DataSources and their related files"
     }
   ],
   "externalDocs": {
@@ -337,20 +333,28 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax",
-                        "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "example": {
+                          "main": "A >> B&C , B >> D",
+                          "second": "A >> B >> C"
+                        }
                       }
                     }
                   },
                   "edges": {
                     "type": "array",
-                    "description": "edges define relation between nodes"
+                    "description": "edges define relation between nodes",
+                    "items": {},
+                    "example": [
+                      {
+                        "source": "A",
+                        "target": "B"
+                      }
+                    ]
                   }
                 },
-                "additionalProperties": false,
                 "required": [
-                  "name",
-                  "nodes"
+                  "name"
                 ]
               }
             }
@@ -448,12 +452,105 @@
                     ]
                   },
                   "experimentName": {
-                    "default": "main",
                     "type": "string",
                     "description": "experiment name",
+                    "default": "main",
                     "minLength": 1,
                     "maxLength": 32,
                     "format": "experiment-name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "pipeline description"
+                  },
+                  "nodes": {
+                    "type": "array",
+                    "description": "Array of nodes",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "nodeName": {
+                          "type": "string",
+                          "description": "Unique node identifier",
+                          "minLength": 1
+                        },
+                        "algorithmName": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific algorithm",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "algorithm-name"
+                        },
+                        "pipelineName": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific pipeline",
+                          "minLength": 1,
+                          "format": "pipeline-name"
+                        },
+                        "input": {
+                          "type": "array",
+                          "description": "The input for the algorithm",
+                          "items": {},
+                          "default": []
+                        },
+                        "ttl": {
+                          "type": "integer",
+                          "description": "Algorithm execution time to live in seconds. 0 to disable",
+                          "minimum": 0,
+                          "example": 0
+                        },
+                        "includeInResult": {
+                          "type": "boolean"
+                        },
+                        "metrics": {
+                          "type": "object",
+                          "properties": {
+                            "tensorboard": {
+                              "type": "boolean",
+                              "description": "Should tensorboard metrics be collected."
+                            }
+                          }
+                        },
+                        "retry": {
+                          "type": "object",
+                          "properties": {
+                            "policy": {
+                              "type": "string",
+                              "default": "OnCrash",
+                              "enum": [
+                                "Never",
+                                "Always",
+                                "OnError",
+                                "OnCrash"
+                              ]
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "default": 3,
+                              "example": 1
+                            }
+                          }
+                        },
+                        "batchOperation": {
+                          "type": "string",
+                          "enum": [
+                            "indexed",
+                            "cartesian"
+                          ]
+                        },
+                        "stateType": {
+                          "type": "string",
+                          "enum": [
+                            "stateless",
+                            "stateful"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "nodeName"
+                      ]
+                    }
                   },
                   "flowInput": {
                     "type": "object",
@@ -536,6 +633,37 @@
                     "maximum": 5,
                     "example": 3
                   },
+                  "triggers": {
+                    "type": "object",
+                    "properties": {
+                      "pipelines": {
+                        "type": "array",
+                        "description": "pipelines to activate upon result",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "uniqueItems": true
+                      },
+                      "cron": {
+                        "type": "object",
+                        "properties": {
+                          "pattern": {
+                            "type": "string",
+                            "description": "cron job",
+                            "minLength": 1,
+                            "format": "cron"
+                          },
+                          "enabled": {
+                            "type": "boolean",
+                            "description": "enable or disable cron job",
+                            "default": false
+                          }
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "tags": {
                     "type": "array",
                     "description": "Array of tags",
@@ -545,9 +673,41 @@
                       "minLength": 1,
                       "maxLength": 32
                     }
+                  },
+                  "rootJobId": {
+                    "type": "string",
+                    "description": "the root job id of the current tree"
+                  },
+                  "streaming": {
+                    "type": "object",
+                    "description": "streaming options",
+                    "properties": {
+                      "defaultFlow": {
+                        "type": "string",
+                        "description": "the name of the default stream flow"
+                      },
+                      "flows": {
+                        "type": "object",
+                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "example": {
+                          "main": "A >> B&C , B >> D",
+                          "second": "A >> B >> C"
+                        }
+                      }
+                    }
+                  },
+                  "edges": {
+                    "type": "array",
+                    "description": "edges define relation between nodes",
+                    "items": {},
+                    "example": [
+                      {
+                        "source": "A",
+                        "target": "B"
+                      }
+                    ]
                   }
                 },
-                "additionalProperties": false,
                 "required": [
                   "name"
                 ]
@@ -1457,20 +1617,28 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax",
-                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "example": {
+                            "main": "A >> B&C , B >> D",
+                            "second": "A >> B >> C"
+                          }
                         }
                       }
                     },
                     "edges": {
                       "type": "array",
-                      "description": "edges define relation between nodes"
+                      "description": "edges define relation between nodes",
+                      "items": {},
+                      "example": [
+                        {
+                          "source": "A",
+                          "target": "B"
+                        }
+                      ]
                     }
                   },
-                  "additionalProperties": false,
                   "required": [
-                    "name",
-                    "nodes"
+                    "name"
                   ]
                 }
               }
@@ -1803,20 +1971,28 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax",
-                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "example": {
+                            "main": "A >> B&C , B >> D",
+                            "second": "A >> B >> C"
+                          }
                         }
                       }
                     },
                     "edges": {
                       "type": "array",
-                      "description": "edges define relation between nodes"
+                      "description": "edges define relation between nodes",
+                      "items": {},
+                      "example": [
+                        {
+                          "source": "A",
+                          "target": "B"
+                        }
+                      ]
                     }
                   },
-                  "additionalProperties": false,
                   "required": [
-                    "name",
-                    "nodes"
+                    "name"
                   ]
                 }
               }
@@ -5473,20 +5649,28 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax",
-                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "example": {
+                            "main": "A >> B&C , B >> D",
+                            "second": "A >> B >> C"
+                          }
                         }
                       }
                     },
                     "edges": {
                       "type": "array",
-                      "description": "edges define relation between nodes"
+                      "description": "edges define relation between nodes",
+                      "items": {},
+                      "example": [
+                        {
+                          "source": "A",
+                          "target": "B"
+                        }
+                      ]
                     }
                   },
-                  "additionalProperties": false,
                   "required": [
-                    "name",
-                    "nodes"
+                    "name"
                   ]
                 }
               }
@@ -5922,20 +6106,28 @@
                           },
                           "flows": {
                             "type": "object",
-                            "description": "define streaming flow in simple syntax",
-                            "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                            "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                            "example": {
+                              "main": "A >> B&C , B >> D",
+                              "second": "A >> B >> C"
+                            }
                           }
                         }
                       },
                       "edges": {
                         "type": "array",
-                        "description": "edges define relation between nodes"
+                        "description": "edges define relation between nodes",
+                        "items": {},
+                        "example": [
+                          {
+                            "source": "A",
+                            "target": "B"
+                          }
+                        ]
                       }
                     },
-                    "additionalProperties": false,
                     "required": [
-                      "name",
-                      "nodes"
+                      "name"
                     ]
                   }
                 }
@@ -6227,20 +6419,28 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax",
-                        "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "example": {
+                          "main": "A >> B&C , B >> D",
+                          "second": "A >> B >> C"
+                        }
                       }
                     }
                   },
                   "edges": {
                     "type": "array",
-                    "description": "edges define relation between nodes"
+                    "description": "edges define relation between nodes",
+                    "items": {},
+                    "example": [
+                      {
+                        "source": "A",
+                        "target": "B"
+                      }
+                    ]
                   }
                 },
-                "additionalProperties": false,
                 "required": [
-                  "name",
-                  "nodes"
+                  "name"
                 ]
               }
             }
@@ -6508,20 +6708,28 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax",
-                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "example": {
+                            "main": "A >> B&C , B >> D",
+                            "second": "A >> B >> C"
+                          }
                         }
                       }
                     },
                     "edges": {
                       "type": "array",
-                      "description": "edges define relation between nodes"
+                      "description": "edges define relation between nodes",
+                      "items": {},
+                      "example": [
+                        {
+                          "source": "A",
+                          "target": "B"
+                        }
+                      ]
                     }
                   },
-                  "additionalProperties": false,
                   "required": [
-                    "name",
-                    "nodes"
+                    "name"
                   ]
                 }
               }
@@ -6850,20 +7058,28 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax",
-                        "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "example": {
+                          "main": "A >> B&C , B >> D",
+                          "second": "A >> B >> C"
+                        }
                       }
                     }
                   },
                   "edges": {
                     "type": "array",
-                    "description": "edges define relation between nodes"
+                    "description": "edges define relation between nodes",
+                    "items": {},
+                    "example": [
+                      {
+                        "source": "A",
+                        "target": "B"
+                      }
+                    ]
                   }
                 },
-                "additionalProperties": false,
                 "required": [
-                  "name",
-                  "nodes"
+                  "name"
                 ]
               }
             }
@@ -7131,20 +7347,28 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax",
-                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "example": {
+                            "main": "A >> B&C , B >> D",
+                            "second": "A >> B >> C"
+                          }
                         }
                       }
                     },
                     "edges": {
                       "type": "array",
-                      "description": "edges define relation between nodes"
+                      "description": "edges define relation between nodes",
+                      "items": {},
+                      "example": [
+                        {
+                          "source": "A",
+                          "target": "B"
+                        }
+                      ]
                     }
                   },
-                  "additionalProperties": false,
                   "required": [
-                    "name",
-                    "nodes"
+                    "name"
                   ]
                 }
               }
@@ -7425,7 +7649,7 @@
         }
       }
     },
-    "/webhooks/list": {
+    "/webhooks/list/{jobId}": {
       "get": {
         "tags": [
           "Webhooks"
@@ -10378,6 +10602,77 @@
       }
     },
     "/experiment": {
+      "get": {
+        "tags": [
+          "Experiment"
+        ],
+        "summary": "Get experiments list",
+        "description": "Returns experiments list",
+        "responses": {
+          "200": {
+            "description": "list of experiments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "experiment-name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "describe the experiment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "Experiment"
@@ -10449,79 +10744,6 @@
           },
           "409": {
             "description": "pipeline conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/experiment/list/all": {
-      "get": {
-        "tags": [
-          "Experiment"
-        ],
-        "summary": "Get experiments list",
-        "description": "Returns experiments list",
-        "responses": {
-          "200": {
-            "description": "list of experiments",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "experiment name",
-                      "default": "main",
-                      "minLength": 1,
-                      "maxLength": 32,
-                      "format": "experiment-name"
-                    },
-                    "description": {
-                      "type": "string",
-                      "description": "describe the experiment"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
             "content": {
               "application/json": {
                 "schema": {
@@ -11751,480 +11973,6 @@
         }
       }
     },
-    "/datasource": {
-      "get": {
-        "tags": [
-          "DataSource"
-        ],
-        "summary": "Fetch all dataSources meta data",
-        "responses": {
-          "200": {
-            "description": "A collection of dataSources",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "versionDescription": {
-                        "type": "string"
-                      },
-                      "filesCount": {
-                        "type": "number"
-                      },
-                      "avgFileSize": {
-                        "type": "string"
-                      },
-                      "totalSize": {
-                        "type": "number"
-                      },
-                      "fileTypes": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "DataSource"
-        ],
-        "summary": "Create a new dataSource and upload a file",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Unique identifier representing a specific dataSource",
-                    "minLength": 1,
-                    "maxLength": 32,
-                    "format": "dataSource-name"
-                  },
-                  "files": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "description": "Data file (file types: *)",
-                      "format": "binary"
-                    },
-                    "minItems": 1
-                  }
-                },
-                "required": [
-                  "name",
-                  "files"
-                ]
-              }
-            }
-          },
-          "description": "DataSource name and file to upload",
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "created dataSource",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "path": {
-                      "type": "string",
-                      "example": "/datasource/my-datasource"
-                    },
-                    "name": {
-                      "type": "string",
-                      "description": "Unique identifier representing a specific dataSource",
-                      "minLength": 1,
-                      "maxLength": 32,
-                      "format": "dataSource-name"
-                    },
-                    "id": {
-                      "type": "string"
-                    },
-                    "files": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "path": {
-                            "type": "string",
-                            "example": "/datasource/my-datasource/data.csv"
-                          },
-                          "size": {
-                            "type": "number"
-                          },
-                          "mtime": {
-                            "type": "string",
-                            "example": "2020-10-28T17:45:03.372Z"
-                          }
-                        }
-                      }
-                    },
-                    "versionDescription": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "name",
-                    "id"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/datasource/{name}": {
-      "get": {
-        "tags": [
-          "DataSource"
-        ],
-        "summary": "Fetch a single dataSource by name",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "A dataSource name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A datasource item",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "path": {
-                          "type": "string",
-                          "example": "/datasource/my-datasource"
-                        },
-                        "name": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific dataSource",
-                          "minLength": 1,
-                          "maxLength": 32,
-                          "format": "dataSource-name"
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "files": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "path": {
-                                "type": "string",
-                                "example": "/datasource/my-datasource/data.csv"
-                              },
-                              "size": {
-                                "type": "number"
-                              },
-                              "mtime": {
-                                "type": "string",
-                                "example": "2020-10-28T17:45:03.372Z"
-                              }
-                            }
-                          }
-                        },
-                        "versionDescription": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "name",
-                        "id"
-                      ]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "files": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "path": {
-                                "type": "string",
-                                "example": "/datasource/my-datasource/data.csv"
-                              },
-                              "size": {
-                                "type": "number"
-                              },
-                              "mtime": {
-                                "type": "string",
-                                "example": "2020-10-28T17:45:03.372Z"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "DataSource"
-        ],
-        "summary": "upload a new file to a given datasource",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "A dataSource name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "versionDescription": {
-                    "type": "string"
-                  },
-                  "filesAdded": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "description": "Data file (file types: *)",
-                      "format": "binary"
-                    },
-                    "minItems": 1
-                  },
-                  "filesDropped": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "minItems": 1
-                  }
-                },
-                "anyOf": [
-                  {
-                    "required": [
-                      "versionDescription",
-                      "filesDropped"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "versionDescription",
-                      "filesAdded"
-                    ]
-                  }
-                ]
-              }
-            }
-          },
-          "description": "DataSource name and file to upload",
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "new datasource version",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "path": {
-                      "type": "string",
-                      "example": "/datasource/my-datasource"
-                    },
-                    "name": {
-                      "type": "string",
-                      "description": "Unique identifier representing a specific dataSource",
-                      "minLength": 1,
-                      "maxLength": 32,
-                      "format": "dataSource-name"
-                    },
-                    "id": {
-                      "type": "string"
-                    },
-                    "files": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "path": {
-                            "type": "string",
-                            "example": "/datasource/my-datasource/data.csv"
-                          },
-                          "size": {
-                            "type": "number"
-                          },
-                          "mtime": {
-                            "type": "string",
-                            "example": "2020-10-28T17:45:03.372Z"
-                          }
-                        }
-                      }
-                    },
-                    "versionDescription": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "name",
-                    "id"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "DataSource"
-        ],
-        "summary": "delete a datasource by name",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "A dataSource name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successfully deleted the datasource",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "deleted": {
-                      "type": "string",
-                      "description": "a delete acknowledgement"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/datasource/{name}/{fileName}": {
-      "get": {
-        "tags": [
-          "DataSource"
-        ],
-        "summary": "Fetch a single file by id",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "A dataSource id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fileName",
-            "in": "path",
-            "description": "A file name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A file",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/status/version": {
       "get": {
         "tags": [
@@ -12976,175 +12724,6 @@
           "name"
         ]
       },
-      "dataSource": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string",
-            "example": "/datasource/my-datasource"
-          },
-          "name": {
-            "type": "string",
-            "description": "Unique identifier representing a specific dataSource",
-            "minLength": 1,
-            "maxLength": 32,
-            "format": "dataSource-name"
-          },
-          "id": {
-            "type": "string"
-          },
-          "files": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "path": {
-                  "type": "string",
-                  "example": "/datasource/my-datasource/data.csv"
-                },
-                "size": {
-                  "type": "number"
-                },
-                "mtime": {
-                  "type": "string",
-                  "example": "2020-10-28T17:45:03.372Z"
-                }
-              }
-            }
-          },
-          "versionDescription": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "name",
-          "id"
-        ]
-      },
-      "dataSourceUploadFile": {
-        "type": "object",
-        "properties": {
-          "versionDescription": {
-            "type": "string"
-          },
-          "filesAdded": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "description": "Data file (file types: *)",
-              "format": "binary"
-            },
-            "minItems": 1
-          },
-          "filesDropped": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "minItems": 1
-          }
-        },
-        "anyOf": [
-          {
-            "required": [
-              "versionDescription",
-              "filesDropped"
-            ]
-          },
-          {
-            "required": [
-              "versionDescription",
-              "filesAdded"
-            ]
-          }
-        ]
-      },
-      "dataSourceCreate": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Unique identifier representing a specific dataSource",
-            "minLength": 1,
-            "maxLength": 32,
-            "format": "dataSource-name"
-          },
-          "files": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "description": "Data file (file types: *)",
-              "format": "binary"
-            },
-            "minItems": 1
-          }
-        },
-        "required": [
-          "name",
-          "files"
-        ]
-      },
-      "dataSourceName": {
-        "type": "string",
-        "description": "Unique identifier representing a specific dataSource",
-        "minLength": 1,
-        "maxLength": 32,
-        "format": "dataSource-name"
-      },
-      "dataSourceFiles": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "description": "Data file (file types: *)",
-          "format": "binary"
-        },
-        "minItems": 1
-      },
-      "dataSourceFileMeta": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string",
-            "example": "/datasource/my-datasource/data.csv"
-          },
-          "size": {
-            "type": "number"
-          },
-          "mtime": {
-            "type": "string",
-            "example": "2020-10-28T17:45:03.372Z"
-          }
-        }
-      },
-      "dataSourceMeta": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "versionDescription": {
-            "type": "string"
-          },
-          "filesCount": {
-            "type": "number"
-          },
-          "avgFileSize": {
-            "type": "string"
-          },
-          "totalSize": {
-            "type": "number"
-          },
-          "fileTypes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
       "defaultResponse": {
         "type": "object",
         "properties": {
@@ -13525,20 +13104,28 @@
               },
               "flows": {
                 "type": "object",
-                "description": "define streaming flow in simple syntax",
-                "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                "example": {
+                  "main": "A >> B&C , B >> D",
+                  "second": "A >> B >> C"
+                }
               }
             }
           },
           "edges": {
             "type": "array",
-            "description": "edges define relation between nodes"
+            "description": "edges define relation between nodes",
+            "items": {},
+            "example": [
+              {
+                "source": "A",
+                "target": "B"
+              }
+            ]
           }
         },
-        "additionalProperties": false,
         "required": [
-          "name",
-          "nodes"
+          "name"
         ]
       },
       "pipelineName": {
@@ -13724,129 +13311,6 @@
         },
         "required": [
           "jobId"
-        ]
-      },
-      "storedPipelineRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Unique identifier representing a specific pipeline",
-            "minLength": 1,
-            "format": "pipeline-name"
-          },
-          "kind": {
-            "type": "string",
-            "default": "batch",
-            "example": "batch",
-            "enum": [
-              "batch",
-              "stream"
-            ]
-          },
-          "experimentName": {
-            "default": "main",
-            "type": "string",
-            "description": "experiment name",
-            "minLength": 1,
-            "maxLength": 32,
-            "format": "experiment-name"
-          },
-          "flowInput": {
-            "type": "object",
-            "description": "input object"
-          },
-          "webhooks": {
-            "type": "object",
-            "properties": {
-              "progress": {
-                "type": "string",
-                "format": "url",
-                "minLength": 1,
-                "description": "url to activate upon progress",
-                "example": "http://my-url-to-progress"
-              },
-              "result": {
-                "type": "string",
-                "format": "url",
-                "minLength": 1,
-                "description": "url to activate upon result",
-                "example": "http://my-url-to-result"
-              }
-            },
-            "additionalProperties": false
-          },
-          "options": {
-            "default": {},
-            "type": "object",
-            "properties": {
-              "ttl": {
-                "type": "integer",
-                "description": "pipeline time to live in seconds",
-                "minimum": 1,
-                "default": 3600,
-                "example": 3600
-              },
-              "batchTolerance": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 100,
-                "default": 80,
-                "example": 80
-              },
-              "concurrentPipelines": {
-                "type": "object",
-                "properties": {
-                  "amount": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 10000,
-                    "example": 1
-                  },
-                  "rejectOnFailure": {
-                    "type": "boolean",
-                    "default": true
-                  }
-                },
-                "additionalProperties": false
-              },
-              "progressVerbosityLevel": {
-                "type": "string",
-                "default": "info",
-                "example": "info",
-                "enum": [
-                  "trace",
-                  "debug",
-                  "info",
-                  "warn",
-                  "error",
-                  "critical"
-                ]
-              }
-            },
-            "description": "optional properties"
-          },
-          "priority": {
-            "default": 3,
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 3
-          },
-          "tags": {
-            "type": "array",
-            "description": "Array of tags",
-            "items": {
-              "type": "string",
-              "description": "Unique identifier representing a specific tag",
-              "minLength": 1,
-              "maxLength": 32
-            }
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "name"
         ]
       },
       "triggers": {

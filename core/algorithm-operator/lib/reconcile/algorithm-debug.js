@@ -1,7 +1,6 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const isEqualWith = require('lodash.isequalwith');
 const objectPath = require('object-path');
-const etcd = require('../helpers/etcd');
 const { createKindsSpec } = require('../deployments/worker-debug');
 const kubernetes = require('../helpers/kubernetes');
 const component = require('../consts/componentNames').ALGORITHM_DEBUG_RECONCILER;
@@ -50,7 +49,6 @@ const reconcile = async ({ kubernetesKinds, algorithms, versions, registry, clus
         await _createKinds({ algorithmName: algorithm.name, versions, registry, clusterOptions, options, workerEnv: algorithm.workerEnv }); // eslint-disable-line
     }
     for (let algorithm of removed) { // eslint-disable-line
-        await etcd.removeAlgorithmData(algorithm.algorithmName); // eslint-disable-line
         await kubernetes.deleteExposedDeployment(algorithm.algorithmName, deploymentType); // eslint-disable-line
     }
     for (let deployment of updated) { // eslint-disable-line

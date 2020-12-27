@@ -1,7 +1,7 @@
 const events = {
     DISCOVERY_CHANGED: 'discovery-changed',
+    DISCOVERY_PARENTS_DOWN: 'discovery-parents-down',
     THROUGHPUT_CHANGED: 'throughput-changed',
-    SCALE_DOWN: 'scaleDown'
 };
 
 module.exports = events;

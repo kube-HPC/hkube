@@ -38,7 +38,7 @@ class ApiValidator {
     }
 
     async validateAlgorithmResources(algorithm) {
-        const resources = await stateManager.discovery.list({ serviceName: 'task-executor' });
+        const resources = await stateManager.getSystemResources();
         if (resources && resources[0] && resources[0].nodes) {
             const { cpu, gpu } = algorithm;
             const mem = converter.getMemoryInMi(algorithm.mem);
@@ -83,17 +83,15 @@ class ApiValidator {
     }
 
     async validateAlgorithmExists(pipeline) {
-        const algorithms = new Map();
-        const algorithmList = await stateManager.algorithms.store.list({ limit: 1000 });
-        const algorithmsMap = new Map(algorithmList.map((a) => [a.name, a]));
-        pipeline.nodes.forEach((node) => {
-            const algorithm = algorithmsMap.get(node.algorithmName);
+        const pipelineAlgorithms = pipeline.nodes.filter(n => n.algorithmName).map(p => p.algorithmName);
+        const algorithmsMap = await stateManager.getAlgorithmsMapByNames({ names: pipelineAlgorithms });
+        pipelineAlgorithms.forEach((a) => {
+            const algorithm = algorithmsMap.get(a);
             if (!algorithm) {
-                throw new ResourceNotFoundError('algorithm', node.algorithmName);
+                throw new ResourceNotFoundError('algorithm', a);
             }
-            algorithms.set(node.algorithmName, algorithm);
         });
-        return algorithms;
+        return algorithmsMap;
     }
 
     validateAlgorithmImage(algorithms) {

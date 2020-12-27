@@ -32,7 +32,7 @@ const getFilePath = ({ name, path }, dataDir = 'data') =>
     path === '/'
         ? `${dataDir}/${name}`
         : // ensure there's no '/' at the end of a path
-          `${dataDir}/${path.replace(/^\//, '')}/${name}`;
+        `${dataDir}/${path.replace(/^\//, '')}/${name}`;
 
 const metaRegex = new RegExp('.meta');
 /** @param {string} fileName */
@@ -58,12 +58,12 @@ class DataSource {
             storage === 'fs'
                 ? dvcConfig.getFSConfig
                 : dvcConfig.getS3Config({
-                      endpoint: config.s3.endpoint,
-                      bucketName: 'local-hkube-datasource',
-                      secretAccessKey: config.s3.secretAccessKey,
-                      accessKeyId: config.s3.accessKeyId,
-                      useSSL: false,
-                  });
+                    endpoint: config.s3.endpoint,
+                    bucketName: 'local-hkube-datasource',
+                    secretAccessKey: config.s3.secretAccessKey,
+                    accessKeyId: config.s3.accessKeyId,
+                    useSSL: false,
+                });
         db = dbConnection.connection;
     }
 
@@ -604,6 +604,46 @@ class DataSource {
     /** @param {string} name */
     async listVersions(name) {
         return db.dataSources.listVersions({ name });
+    }
+
+    async _extractDataSourceMetaData(pipeline) {
+        // const dataSourceService = require('./dataSource');
+        const db = dbConnect.connection;
+        try {
+            const { metadata, dataSources } = parser.extractDataSourceMetaData({ pipeline, storagePrefix: storageManager.hkubeDataSource.prefix });
+            if (Object.keys(metadata).length === 0) return { metadata: null, dataSources };
+            // fetch all the dataSources
+            const dataSourceEntries = await db.dataSources.fetchMany({ names: dataSources });
+
+            if (dataSourceEntries.length !== dataSources.length) {
+                const namesSet = new Set(dataSourceEntries.map(item => item.name));
+                const notFoundNames = dataSources
+                    .filter(item => !namesSet.has(item));
+
+                throw new ResourceNotFoundError('dataSource', notFoundNames.join(', '));
+            }
+            const resolvedMetadata = Object.fromEntries(
+                // extract the relevant files and structure a matching metadata object
+                Object.entries(metadata).map(([path, description]) => {
+                    const dataSource = dataSourceEntries
+                        .find(item => item.name === description.storageInfo.dataSourceName);
+                    // TODO: this should be a glob match not a simple equality test
+                    const files = dataSource.files.filter(item => item.name === description.storageInfo.pattern);
+                    if (files.length === 0) {
+                        throw new ResourceNotFoundError('file', path);
+                    }
+                    return [path, files.map(file => ({ storageInfo: { path: file.path } }))];
+                })
+            );
+            return { dataSourceMetadata: resolvedMetadata, dataSources };
+        }
+        catch (e) {
+            if (e.status) {
+                // bubbling a known error up
+                throw e;
+            }
+            throw new InvalidDataError(e.message);
+        }
     }
 }
 

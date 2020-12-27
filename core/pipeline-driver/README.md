@@ -21,3 +21,4 @@ First the task runner consumes a job, then it goes as follows:
 9. decide if to run the next task in the pipeline.
 10. if one node failed, the entire pipeline will failed.
 11. unless this node is part of a batch and the batch tolerance lower the total failed.
+

@@ -251,42 +251,48 @@ class JobConsumer extends EventEmitter {
     }
 
     async finishJob(data = {}, isTtlExpired) {
+        if (this._inFinishState) {
+            return;
+        }
         if (!this._job) {
             return;
         }
-        await this._unwatchJob();
-        await stateAdapter.unwatch({ jobId: this._jobId });
-        if (this._execId) {
-            await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
-        }
-        const { resultData, status, error, isImagePullErr, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
-
-        if (shouldCompleteJob) {
-            let storageResult;
-            let metricsPath;
-            if (!error && status === taskStatuses.SUCCEED) {
-                storageResult = await storage.setStorage({ data: resultData, jobData: this._job.data });
-                metricsPath = await boards.putAlgoMetrics(this.jobData, this.jobCurrentTime);
+        try {
+            this._inFinishState = true;
+            await this._unwatchJob();
+            await stateAdapter.unwatch({ jobId: this._jobId });
+            if (this._execId) {
+                await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
             }
-            const resData = {
-                status,
-                error,
-                isImagePullErr,
-                endTime: Date.now(),
-                metricsPath,
-                ...storageResult,
-                result: this._result
-            };
-            if (this._job) {
+            const { resultData, status, error, isImagePullErr, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
+
+            if (shouldCompleteJob) {
+                let storageResult;
+                let metricsPath;
+                if (!error && status === taskStatuses.SUCCEED) {
+                    storageResult = await storage.setStorage({ data: resultData, jobData: this._job.data });
+                    metricsPath = await boards.putAlgoMetrics(this.jobData, this.jobCurrentTime);
+                }
+                const resData = {
+                    status,
+                    error,
+                    isImagePullErr,
+                    endTime: Date.now(),
+                    metricsPath,
+                    ...storageResult,
+                    result: this._result
+                };
                 this._job.error = error;
+                await this.updateStatus(resData);
+                log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
             }
-
-            await this.updateStatus(resData);
-            log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
+            storage.finish({ kind: this._kind });
+            metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId });
+            log.info(`finishJob - status: ${status}, error: ${error}`, { component });
         }
-        storage.finish({ kind: this._kind });
-        metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId });
-        log.info(`finishJob - status: ${status}, error: ${error}`, { component });
+        finally {
+            this._inFinishState = false;
+        }
     }
 
     async _unwatchJob() {

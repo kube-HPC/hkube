@@ -7,7 +7,6 @@ let log;
 const modules = [
     require('./lib/store/store-manager'),
     require('./lib/queue/trigger-runner'),
-    require('./lib/pipelines/stored-pipelines-listener'),
     require('./lib/pipelines/pipeline-producer')
 ];
 
