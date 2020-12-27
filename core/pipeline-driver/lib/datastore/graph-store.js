@@ -158,8 +158,15 @@ class GraphStore {
         Object.entries(flatObj).forEach(([k, v]) => {
             if (typeof v === 'string' && v.startsWith('$$')) {
                 const key = v.substring(2);
-                const link = node.storage[key];
-                objectPath.set(result, k, link.storageInfo);
+                const storage = node.storage[key];
+                let input;
+                if (Array.isArray(storage)) {
+                    input = { type: 'array', size: storage?.length || 0 };
+                }
+                else {
+                    input = storage?.storageInfo;
+                }
+                objectPath.set(result, k, input);
             }
         });
         return result;
