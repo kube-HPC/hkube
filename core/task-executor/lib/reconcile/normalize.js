@@ -67,7 +67,7 @@ const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, regist
         return workers;
     }
     normWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
-        const algorithm = algorithmTemplates[w.algorithmName] || {};
+        const algorithm = algorithmTemplates[w.algorithmName];
         if (!algorithm) {
             return;
         }
