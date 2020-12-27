@@ -6,7 +6,7 @@ const { Statistics, PendingScale, Throughput, ScaleReasons, Metrics, IdleMarker 
 const { ScaleReasonsCodes, ScaleReasonsMessages } = ScaleReasons;
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
-const { Components, streamingEvents } = require('../../consts');
+const { Components } = require('../../consts');
 const component = Components.AUTO_SCALER;
 let log;
 
@@ -318,7 +318,7 @@ class AutoScaler {
         const { replicas } = scale;
         const instances = discovery.getInstances(this._nodeName);
         const workers = instances.slice(0, replicas);
-        return Promise.all(workers.map(w => stateAdapter.stopWorker({ workerId: w.workerId, reason: streamingEvents.SCALE_DOWN })));
+        return Promise.all(workers.map(w => stateAdapter.stopWorker({ workerId: w.workerId })));
     }
 }
 

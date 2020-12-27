@@ -96,8 +96,8 @@ class StateAdapter extends EventEmitter {
         return this._db.jobs.fetchPipeline({ jobId });
     }
 
-    stopWorker({ workerId, reason }) {
-        return this._etcd.workers.set({ workerId, status: { command: workerCommands.stopProcessing }, reason, timestamp: Date.now() });
+    stopWorker({ workerId }) {
+        return this._etcd.workers.set({ workerId, status: { command: workerCommands.scaleDown }, timestamp: Date.now() });
     }
 
     async stopAlgorithmExecution(options) {
