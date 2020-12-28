@@ -15,6 +15,13 @@ const getFilePath = require('./getFilePath');
  * @typedef {import('./types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./types').config} config
  */
+
+const extractRelativePath = filePath => {
+    const response = parsePath(filePath.replace('data/', '')).dir;
+    if (response === '') return '/';
+    return `/${response}`;
+};
+
 /**
  * @template T
  * @typedef {{ [path: string]: T }} ByPath
@@ -171,8 +178,9 @@ class Repository {
             allAddedFiles.map(async file => {
                 const fileMeta = normalizedMapping[file.filename];
                 const filePath = getFilePath(fileMeta);
+                const { path, ...rest } = fileMeta;
                 await this._enrichDvcFile(fileMeta, {
-                    ...fileMeta,
+                    ...rest,
                     meta: metaByPath[filePath] || '',
                 });
                 return null;
@@ -182,9 +190,9 @@ class Repository {
         return null;
     }
 
-    async _pullDvcFile(filePath) {
-        await this._execute(
-            this.repositoryName,
+    /** @type {(filePath: string) => Promise<void>} */
+    _pullDvcFile(filePath) {
+        return this._execute(
             `dvc get ${this.repositoryUrl} ${filePath} -o ${filePath}`
         );
     }
@@ -194,21 +202,11 @@ class Repository {
         return Promise.all(
             sourceTargetArray.map(async ([srcFile, targetFile]) => {
                 const srcPath = getFilePath(srcFile);
-                const repositoryUrl = this.getRepositoryUrl(
-                    this.repositoryName
-                );
-                await this._pullDvcFile(
-                    this.repositoryName,
-                    repositoryUrl,
-                    srcPath
-                );
+                await this._pullDvcFile(srcPath);
                 const targetPath = getFilePath(targetFile);
                 await fse.ensureDir(parsePath(`${this.cwd}/${targetPath}`).dir);
                 // moves .dvc files and updates gitignore
-                return this._execute(
-                    this.repositoryName,
-                    `dvc move ${srcPath} ${targetPath}`
-                );
+                return this._execute(`dvc move ${srcPath} ${targetPath}`);
             })
         );
     }
@@ -220,12 +218,17 @@ class Repository {
                 err ? rej(err) : res(matches)
             )
         );
+
         return Promise.all(
-            metaFiles.map(
-                async filePath =>
-                    yaml.load(await fse.readFile(`${this.cwd}/${filePath}`))
-                        .meta.hkube
-            )
+            metaFiles.map(async filePath => {
+                const content = yaml.load(
+                    await fse.readFile(`${this.cwd}/${filePath}`)
+                ).meta.hkube;
+                return {
+                    path: extractRelativePath(filePath),
+                    ...content,
+                };
+            })
         );
     }
 
@@ -243,10 +246,7 @@ class Repository {
                 const path = getFilePath(normalizedCurrentFiles[id]);
                 if (!path) return null;
                 // drops the dvc file and updates gitignore
-                await this._execute(
-                    this.repositoryName,
-                    `dvc remove ${path}.dvc`
-                );
+                await this._execute(`dvc remove ${path}.dvc`);
                 const fullPath = `${this.cwd}/${path}`;
                 if (await fse.pathExists(fullPath)) {
                     await fse.unlink(fullPath);
