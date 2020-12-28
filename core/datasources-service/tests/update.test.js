@@ -5,7 +5,7 @@ const { uid: uuid } = require('@hkube/uid');
 const { createDataSource, fetchDataSource, updateVersion } = require('./utils');
 
 let DATASOURCE_GIT_REPOS_DIR;
-describe('/datasource/:name POST', () => {
+describe.only('/datasource/:name POST', () => {
     before(() => {
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
         STORAGE_DIR = global.testParams.STORAGE_DIR;
@@ -25,7 +25,8 @@ describe('/datasource/:name POST', () => {
             /data should have required property '.filesDropped'/i
         );
     });
-    it('should fail uploading a file to a non existing dataSource', async () => {
+    // Stopped Here
+    it.only('should fail uploading a file to a non existing dataSource', async () => {
         const name = uuid();
         await createDataSource({ body: { name } });
         const { response: uploadResponse } = await updateVersion({
@@ -36,7 +37,8 @@ describe('/datasource/:name POST', () => {
         expect(uploadResponse.body.error.message).to.match(/not found/i);
         expect(uploadResponse.statusCode).to.eql(HttpStatus.NOT_FOUND);
     });
-    it('should upload a new file to the dataSource and get a new version', async () => {
+    // should pass
+    it.skip('should upload a new file to the dataSource and get a new version', async () => {
         const name = uuid();
         const { body: firstVersion } = await createDataSource({
             body: { name },
@@ -64,7 +66,8 @@ describe('/datasource/:name POST', () => {
         expect(dataSource.files).to.have.lengthOf(2);
         expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
     });
-    it('should upload multiple files to the dataSource', async () => {
+    // should pass
+    it.skip('should upload multiple files to the dataSource', async () => {
         const name = uuid();
         await createDataSource({ body: { name } });
         const { response: uploadResponse } = await updateVersion({

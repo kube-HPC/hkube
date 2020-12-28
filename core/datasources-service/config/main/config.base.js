@@ -5,6 +5,7 @@ const formatter = require(process.cwd() + '/lib/utils/formatters');
 const config = {};
 config.serviceName = packageJson.name;
 config.systemVersion = process.env.HKUBE_SYSTEM_VERSION;
+const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 const secured = !!process.env.DATASOURCE_SERVICE_SSL;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
@@ -105,6 +106,29 @@ config.git = {
 
 config.directories = {
     temporaryGitRepositories: 'temp/datasource-git-repositories',
+};
+
+config.redis = {
+    host: useSentinel
+        ? process.env.REDIS_SENTINEL_SERVICE_HOST
+        : process.env.REDIS_SERVICE_HOST || 'localhost',
+    port: useSentinel
+        ? process.env.REDIS_SENTINEL_SERVICE_PORT
+        : process.env.REDIS_SERVICE_PORT || 6379,
+    sentinel: useSentinel,
+};
+
+config.etcd = {
+    protocol: 'http',
+    host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
+    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
+};
+
+config.jobs = {
+    consumer: {
+        prefix: 'data-sources',
+        type: 'data-sources-job',
+    },
 };
 
 module.exports = config;
