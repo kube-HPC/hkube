@@ -103,4 +103,8 @@ config.git = {
     endpoint: process.env.GIT_ENDPOINT_URL || 'localhost:3010',
 };
 
+config.directories = {
+    temporaryGitRepositories: 'temp/datasource-git-repositories',
+};
+
 module.exports = config;
