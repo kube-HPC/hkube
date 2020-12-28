@@ -38,6 +38,10 @@ cronPattern:
   $ref: ./cronPattern.yaml
 cronRequest:
   $ref: ./cronRequest.yaml
+dataSource-raw:
+  $ref: ./dataSource-raw.yaml
+dataSource-snapshot:
+  $ref: ./dataSource-snapshot.yaml
 defaultResponse:
   $ref: ./defaultResponse.yaml
 defaultResponseWithName:

@@ -22,14 +22,22 @@ describe('Executions', () => {
         config = testParams.config;
     });
     describe('/exec/raw', () => {
-        it('should throw invalid reserved name dataSource', async () => {
-            const response = await runRaw({
+        it.only('should throw invalid reserved name dataSource', async () => {
+            const pipeline = {
                 nodes: [{
-                    nodeName: 'dataSource',
+                    nodeName: 'A',
+                    kind: 'dataSource',
+                    dataSource: {
+                        snapshot: "snap-1"
+                    }
+                },
+                {
+                    nodeName: 'B',
                     algorithmName: 'green-alg',
-                    input: [1, 2, 3]
+                    input: ["@A"]
                 }]
-            });
+            };
+            const response = await runRaw(pipeline);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`pipeline "${pipelineName}" has invalid reserved name "dataSource"`);

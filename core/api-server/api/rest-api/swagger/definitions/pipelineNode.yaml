@@ -48,5 +48,13 @@ properties:
     enum:
       - stateless
       - stateful
+  kind:
+    type: string
+    enum:
+      - dataSource
+  dataSource:
+    oneOf:
+      - $ref: "#/components/schemas/dataSource-raw"
+      - $ref: "#/components/schemas/dataSource-snapshot"
 required:
   - nodeName

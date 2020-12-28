@@ -34,6 +34,13 @@ config.cachingServer = {
     prefix: 'cache'
 };
 
+config.dataSourceService = {
+    protocol: 'http',
+    host: process.env.DATASOURCES_SERVICE_SERVICE_HOST || 'localhost',
+    port: process.env.DATASOURCES_SERVICE_SERVICE_PORT || 3002,
+    prefix: 'api/v1/'
+};
+
 config.debugUrl = {
     path: path.join(process.env.INGRESS_PREFIX || '', 'hkube/debug')
 };
