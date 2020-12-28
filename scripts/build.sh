@@ -1,27 +1,14 @@
 #!/bin/bash
-set -x
-if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-  echo ${DOCKER_HUB_PASS} | docker login --username yehiyam --password-stdin
-  echo ${CHANGED}
-  for REPO in ${CHANGED}
-  do
-    echo ${REPO} changed. Running build
-    export PRIVATE_REGISTRY=docker.io/hkube
-    lerna run --scope $REPO --stream build
-    echo lerna run --scope $REPO build exited with code $?
-    echo "build done for ${REPO}"
-  done
-else
-  echo "version skiped!"
-  echo "building to test docker"
-  echo ${CHANGED}
-  for REPO in ${CHANGED}
-  do
-    echo ${REPO} changed. Running build
-    unset PRIVATE_REGISTRY
-    lerna run --scope $REPO --stream build
-    echo lerna run --scope $REPO build exited with code $?
-    echo "build done for ${REPO}"
-  done
-fi
+set -xo pipefail
+echo ${DOCKER_PASSWORD} | docker login --username yehiyam --password-stdin
+echo ${CHANGED}
+for REPO in ${CHANGED}
+do
+  echo ${REPO} changed. Running build
+  export PRIVATE_REGISTRY=docker.io/hkube
+  lerna run --scope $REPO --stream build
+  echo lerna run --scope $REPO build exited with code $?
+  echo "build done for ${REPO}"
+done
+
 echo "all builds done."

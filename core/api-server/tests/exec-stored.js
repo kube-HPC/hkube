@@ -48,25 +48,6 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
         });
-        it('should throw validation error of data should NOT have additional properties', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'string',
-                    nodes: [
-                        {
-                            nodeName: 'string',
-                            algorithmName: 'green-alg',
-                            input: []
-                        }
-                    ]
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data should NOT have additional properties (nodes)');
-        });
         it('should throw pipeline not found', async () => {
             const options = {
                 uri: restPath,

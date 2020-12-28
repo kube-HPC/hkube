@@ -1,0 +1,65 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI-PR
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  test:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Opens tcp port 6379 on the host and service container
+          - 6379:6379
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - run: ./scripts/beforeInstall.sh
+      - run: |
+          npm ci
+          echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
+      - name: bootstrap
+        run: |
+          export CHANGED=$(lerna changed --includeMergedTags)||true
+          echo ${CHANGED}
+          # export CHANGED=${CHANGED:-$(lerna list)}
+          # echo ${CHANGED}
+          for i in $CHANGED
+          do
+            echo installing in $i
+            lerna exec npm ci --scope $i
+          done 
+          echo CHANGED=$CHANGED >> $GITHUB_ENV
+      - name: test
+        run: |
+          echo $CHANGED
+          if [ -z $CHANGED ]; 
+          then 
+            echo nothing changed
+          else 
+            ./scripts/test.sh
+          fi
+

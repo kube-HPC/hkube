@@ -115,17 +115,18 @@ jobs:
       shell: bash
       env:
         DEV1_VALUES: ${{secrets.DEV1_VALUES}}
-    - name: deploy
-      uses: 'deliverybot/helm@v1'
-      with:
-        chart: "${{ github.workspace }}/${{ needs.build_job.outputs.chart }}"
-        release: 'hkube' 
-        namespace: default
-        helm: helm3
-        value-files: "${{ github.workspace }}/dev1.yaml"
-        token: "${{ secrets.GITHUB_TOKEN }}"
+    - name: create kubeconfig
+      run: |
+          echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/config
+          echo KUBECONFIG=/tmp/config >> $GITHUB_ENV
       env:
-        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+        KUBE_CONFIG_DATA: ${{ secrets.DEV1_KUBECONFIG }}
+    - name: verify kubectl
+      run: kubectl cluster-info
+    - name: deploy
+      run: |
+          helm upgrade -i hkube --wait -f ${{ github.workspace }}/dev1.yaml ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
+          helm ls
     - name: set deployment status to success
       id: successful_deployment
       uses: octokit/request-action@v2.x

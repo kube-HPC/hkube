@@ -8,15 +8,15 @@ const stateAdapter = require('../lib/states/stateAdapter');
 
 describe('AlgorithmExecutions', () => {
     let spy;
-    before(function () {
+    before(async () => {
         let options = { name: 'black-alg', data: 'bla' };
-        stateAdapter.createAlgorithmType(options);
+        await stateAdapter.createAlgorithmType(options);
     });
-    after(function () {
+    after(async () => {
         let options = { name: 'black-alg', data: 'bla' };
-        stateAdapter.deleteAlgorithmType(options);
+        await stateAdapter.deleteAlgorithmType(options);
     });
-    afterEach(function () {
+    afterEach(() => {
         spy && spy.restore();
         execAlgorithm._watching = false;
         execAlgorithm._executions.clear();
@@ -27,13 +27,11 @@ describe('AlgorithmExecutions', () => {
         await stateAdapter.createAlgorithmType(options);
         const algsAfter = await stateAdapter.getExistingAlgorithms();
         expect(algsAfter).to.deep.eql(algsBefore);
-
-    })
+    });
     it('should cache algorithm list when called in rapid succession', async () => {
         const results = await Promise.all(Array.from(Array(30)).map(stateAdapter.getExistingAlgorithms));
         expect(results).to.have.lengthOf(30)
-
-    })
+    });
     it('should fail with no execId', async function () {
         spy = sinon.spy(execAlgorithm, '_sendErrorToAlgorithm');
         await execAlgorithm._startAlgorithmExecution(null);

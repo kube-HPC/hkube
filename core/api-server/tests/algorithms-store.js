@@ -6,6 +6,7 @@ const merge = require('lodash.merge');
 const { uid: uuid } = require('@hkube/uid');
 const stateManager = require('../lib/state/state-manager');
 const versionsService = require('../lib/service/versions');
+const buildsService = require('../lib/service/builds');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms } = require('./mocks');
@@ -100,8 +101,8 @@ describe('Store/Algorithms', () => {
             await request(store);
             await request(exec);
             await versionsService.createVersion(resAlg.body);
-            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-1`, algorithmName });
-            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-2`, algorithmName });
+            await stateManager.createBuild({ buildId: `${algorithmName}-1`, algorithmName });
+            await stateManager.createBuild({ buildId: `${algorithmName}-2`, algorithmName });
 
             const optionsDelete = {
                 uri: `${restPath}/${algorithmName}?force=false`,
@@ -114,7 +115,6 @@ describe('Store/Algorithms', () => {
         });
         it('should delete algorithm with related data with force', async () => {
             const algorithmName = `my-alg-${uuid()}`;
-            const algorithmImage = `${algorithmName}-image`
             const formData = {
                 payload: JSON.stringify({ name: algorithmName, env: 'nodejs' }),
                 file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -164,8 +164,8 @@ describe('Store/Algorithms', () => {
             };
             const resAlg = await request(algorithm);
             await versionsService.createVersion(resAlg.body);
-            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-1`, algorithmName });
-            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-2`, algorithmName });
+            await buildsService.startBuild({ buildId: `${algorithmName}-1`, algorithmName });
+            await buildsService.startBuild({ buildId: `${algorithmName}-2`, algorithmName });
 
             const optionsDelete = {
                 uri: `${restPath}/${algorithmName}?force=false`,
@@ -407,8 +407,9 @@ describe('Store/Algorithms', () => {
             expect(algorithm).to.eql({ ...defaultProps, ...body });
         });
         it('should succeed to parallel store and get multiple algorithms', async function () {
-            const limit = 5;
-            const keys = Array.from(Array(limit).keys());
+            const limit = 3;
+            const total = 5;
+            const keys = Array.from(Array(total).keys());
             const algorithms = keys.map(k => ({
                 ...defaultProps,
                 name: `stress-${k}-${uuid()}`,
@@ -416,21 +417,17 @@ describe('Store/Algorithms', () => {
                 mem: "50Mi",
                 cpu: k
             }));
-
             const result = await Promise.all(algorithms.map(a => request({ uri: restPath, body: a })));
-
             result.forEach((r, i) => {
                 const { version, created, modified, ...algorithm } = r.body;
                 expect(algorithm).to.eql(algorithms[i]);
             });
-
             const options = {
                 uri: `${restPath}?name=stress&limit=${limit}`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body).to.has.lengthOf(limit);
-            await stateManager.algorithms.store.delete({ name: 'stress' }, { isPrefix: true })
         });
         it('should succeed to store algorithm', async () => {
             const body = {
@@ -473,8 +470,8 @@ describe('Store/Algorithms', () => {
     describe('/store/algorithms/apply POST', () => {
         describe('Validation', () => {
             before(async () => {
-                stateManager.discovery._client.leaser._lease = null;
-                await stateManager.discovery.register({ serviceName: 'task-executor', data: nodes });
+                stateManager._etcd.discovery._client.leaser._lease = null;
+                await stateManager._etcd.discovery.register({ serviceName: 'task-executor', data: nodes });
             });
             it('should throw validation error of required property name', async () => {
                 const options = {
@@ -1209,13 +1206,13 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to watch completed build', async function () {
                 const algorithmName = `my-alg-${uuid()}`;
-                const algorithmImage = `${algorithmName}-image`
+                const algorithmImage = `${algorithmName}-image`;
                 const formData = {
                     payload: JSON.stringify({ name: algorithmName, env: 'nodejs' }),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
                 const res1 = await request({ uri: `${restPath}/apply`, formData });
-                await stateManager.algorithms.builds.set({ buildId: res1.body.buildId, algorithm: res1.body.algorithm, algorithmName, algorithmImage, status: 'completed' });
+                await stateManager.updateBuild({ buildId: res1.body.buildId, algorithmImage, status: 'completed' });
                 await delay(2000);
 
                 const { options, created: c1, modified: c2, ...restProps } = res1.body.algorithm;
@@ -1224,7 +1221,7 @@ describe('Store/Algorithms', () => {
                 expect(algorithm).to.eql({ ...defaultProps, ...restProps, algorithmImage });
             });
             it('should succeed to update algorithm only after completed build', async function () {
-                const algorithmName = `my-alg-${uuid()}`;
+                const algorithmName = `new-build-${uuid()}`;
                 const algorithmImage1 = `${algorithmName}-image1`;
                 const algorithmImage2 = `${algorithmName}-image2`;
                 const formData1 = {
@@ -1240,13 +1237,13 @@ describe('Store/Algorithms', () => {
                 const app2 = await request({ uri: `${restPath}/apply`, formData: formData2 });
                 const get2 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
 
-                await stateManager.algorithms.builds.set({ buildId: app1.body.buildId, algorithm: app1.body.algorithm, algorithmName, algorithmImage: algorithmImage1, status: 'completed' });
+                await stateManager.updateBuild({ buildId: app1.body.buildId, algorithmImage: algorithmImage1, status: 'completed' });
                 await delay(1000);
 
                 const get3 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
                 app2.body.algorithm.version = get3.body.version;
 
-                await stateManager.algorithms.builds.set({ buildId: app2.body.buildId, algorithm: app2.body.algorithm, algorithmName, algorithmImage: algorithmImage2, status: 'completed' });
+                await stateManager.updateBuild({ buildId: app2.body.buildId, algorithmImage: algorithmImage2, status: 'completed' });
                 await delay(1000);
 
                 const get4 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
@@ -1817,7 +1814,7 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
         });
-        it('should succeed to update algorithm', async () => {
+        it('should succeed to update algorithm image', async () => {
             const body = algorithms[0];
             const options = {
                 uri: restPath,

@@ -1,6 +1,5 @@
-const regex = require('../consts/regex');
-const stateManager = require('../state/state-manager');
 const { InvalidDataError } = require('../errors');
+const stateManager = require('../state/state-manager');
 
 class ApiValidator {
     constructor(validator) {
@@ -12,7 +11,7 @@ class ApiValidator {
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validator.validate(this._validator.definitions.storedPipelineRequest, pipeline, false);
+        this._validator.validate(this._validator.definitions.pipeline, pipeline, false);
     }
 
     validateCaching(request) {
@@ -31,18 +30,16 @@ class ApiValidator {
         this._validator.validate(this._validator.definitions.pipeline, pipeline, false, { checkFlowInput: true, ...options });
     }
 
-    async validateConcurrentPipelines(pipelines, jobId) {
-        if (pipelines.options && pipelines.options.concurrentPipelines) {
-            const { amount, rejectOnFailure } = pipelines.options.concurrentPipelines;
-            const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
-            if (jobIdPrefix) {
-                const result = await stateManager.executions.running.list({ jobId: jobIdPrefix[0] });
-                if (result.length >= amount) {
-                    if (rejectOnFailure) {
-                        throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);
-                    }
-                    return true;
+    async validateConcurrentPipelines(pipeline) {
+        if (pipeline.options?.concurrentPipelines) {
+            const { experimentName, name: pipelineName } = pipeline;
+            const { amount, rejectOnFailure } = pipeline.options.concurrentPipelines;
+            const result = await stateManager.searchJobs({ experimentName, pipelineName, hasResult: false, fields: { jobId: true } });
+            if (result.length >= amount) {
+                if (rejectOnFailure) {
+                    throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);
                 }
+                return true;
             }
         }
         return false;

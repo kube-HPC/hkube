@@ -7,7 +7,6 @@ yarn-error.log*
 
 # uploads
 uploads
-temp
 
 # IDE
 .idea

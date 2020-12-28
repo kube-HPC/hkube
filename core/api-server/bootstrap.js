@@ -4,13 +4,12 @@ const { tracer, metrics } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const monitor = require('@hkube/redis-utils').Monitor;
 const component = require('./lib/consts/componentNames').MAIN;
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
+const { main: config, logger } = configIt.load();
+const log = new Logger(config.serviceName, logger);
 
 const modules = [
-    require('./lib/db'),
-    require('./api/rest-api/app-server'),
     require('./lib/state/state-manager'),
+    require('./api/rest-api/app-server'),
     require('./lib/producer/jobs-producer'),
     require('./lib/examples/pipelines-updater'),
     require('./lib/webhook/webhooks-handler'),
@@ -23,26 +22,24 @@ const modules = [
 
 class Bootstrap {
     async init() {
-        let config = null;
         try {
             this._handleErrors();
-            log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
+            log.info(`running application with env: ${configIt.env()}, version: ${config.version}, node: ${process.versions.node}`, { component });
             monitor.on('ready', (data) => {
                 log.info((data.message).green, { component });
             });
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
             });
-            await monitor.check(main.redis);
-            await metrics.init(main.metrics);
-            await storageManager.init(main, log, true);
-            if (main.tracer) {
-                await tracer.init(main.tracer);
+            await monitor.check(config.redis);
+            await metrics.init(config.metrics);
+            await storageManager.init(config, log, true);
+            if (config.tracer) {
+                await tracer.init(config.tracer);
             }
             for (const m of modules) {
-                await m.init(main);
+                await m.init(config);
             }
-            config = main;
         }
         catch (error) {
             this._onInitFailed(error);
