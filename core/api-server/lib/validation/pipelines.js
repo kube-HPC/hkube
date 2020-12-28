@@ -1,3 +1,4 @@
+const { nodeKind } = require('@hkube/consts');
 const { InvalidDataError } = require('../errors');
 class ApiValidator {
     constructor(validator) {

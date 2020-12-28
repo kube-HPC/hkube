@@ -1,0 +1,7 @@
+type: object
+properties:
+  snapshot:
+    type: string
+additionalProperties: false
+required:
+  - snapshot

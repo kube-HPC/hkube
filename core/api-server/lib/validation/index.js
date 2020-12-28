@@ -9,6 +9,7 @@ const Internal = require('./internal');
 const Jobs = require('./jobs');
 const Lists = require('./lists');
 const Pipelines = require('./pipelines');
+const DataSources = require('./data-sources');
 
 module.exports = {
     Algorithms,
@@ -22,4 +23,5 @@ module.exports = {
     Jobs,
     Lists,
     Pipelines,
+    DataSources
 };

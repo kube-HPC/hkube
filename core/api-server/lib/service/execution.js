@@ -81,6 +81,7 @@ class ExecutionService {
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline);
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
+            await validator.dataSources.validate(pipeline);
             const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
             validator.algorithms.validateAlgorithmImage(algorithms);
             const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline);
@@ -91,10 +92,8 @@ class ExecutionService {
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
                 flowInputMetadata = { metadata, storageInfo };
             }
-            // const { dataSourceMetadata, dataSources } = await this.dsService.validate(pipeline);
-            const dataSourceMetadata = null;
             const lastRunResult = await this._getLastPipeline(jobId);
-            const pipelineObject = { ...pipeline, jobId, rootJobId, flowInputMetadata, dataSourceMetadata, startTime: Date.now(), lastRunResult, types };
+            const pipelineObject = { ...pipeline, jobId, rootJobId, flowInputMetadata, startTime: Date.now(), lastRunResult, types };
             const statusObject = { timestamp: Date.now(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });

@@ -1,10 +1,10 @@
 const { expect } = require('chai');
+const nock = require('nock');
 const HttpStatus = require('http-status-codes');
 const { request } = require('./utils');
 let restPath = null;
 const pipelineName = 'exec_raw';
 
-/** @type {(props: {nodes: {nodeName: string, algorithmName: string, input: any[]}[], name?:string}  ) => Promise<any> }*/
 const runRaw = ({ nodes, name = pipelineName }) => {
     const options = {
         uri: `${restPath}/exec/raw`,
@@ -20,16 +20,65 @@ describe('Executions', () => {
     before(() => {
         restPath = testParams.restUrl;
         config = testParams.config;
+        const { protocol, host, port, prefix } = config.dataSourceService;
+        const serviceURI = `${protocol}://${host}:${port}`;
+        const pathSuccess = `/${prefix}`;
+        const pathFailed = `/${prefix}`;
+        nock(serviceURI).persist().post(pathSuccess).reply(200);
+        nock(serviceURI).persist().post(pathFailed).reply(404);
     });
     describe('/exec/raw', () => {
-        it('should throw invalid reserved name dataSource', async () => {
-            const response = await runRaw({
+        it.only('should throw invalid reserved name dataSource', async () => {
+            const pipeline = {
                 nodes: [{
-                    nodeName: 'dataSource',
-                    algorithmName: 'green-alg',
-                    input: [1, 2, 3]
+                    nodeName: 'A',
+                    kind: 'dataSource',
+                    dataSource: {
+                        snapshot: "snap-1"
+                    }
                 }]
-            });
+            };
+            const response = await runRaw(pipeline);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(`pipeline "${pipelineName}" has invalid reserved name "dataSource"`);
+        });
+        it('should throw invalid reserved name dataSource', async () => {
+            const pipeline = {
+                nodes: [{
+                    nodeName: 'A',
+                    kind: 'dataSource',
+                    dataSource: {
+                        snapshot: "snap-1"
+                    }
+                },
+                {
+                    nodeName: 'B',
+                    algorithmName: 'green-alg',
+                    input: ["@A"]
+                }]
+            };
+            const response = await runRaw(pipeline);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(`pipeline "${pipelineName}" has invalid reserved name "dataSource"`);
+        });
+        it('should throw invalid reserved name dataSource', async () => {
+            const pipeline = {
+                nodes: [{
+                    nodeName: 'A',
+                    kind: 'dataSource',
+                    dataSource: {
+                        snapshot: "snap-1"
+                    }
+                },
+                {
+                    nodeName: 'B',
+                    algorithmName: 'green-alg',
+                    input: ["@A"]
+                }]
+            };
+            const response = await runRaw(pipeline);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`pipeline "${pipelineName}" has invalid reserved name "dataSource"`);

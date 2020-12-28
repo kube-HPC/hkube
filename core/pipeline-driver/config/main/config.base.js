@@ -22,7 +22,11 @@ config.jobs = {
     },
     producer: {
         enableCheckStalledJobs: false,
-        prefix: 'algorithm-queue'
+        prefix: 'algorithm-queue',
+    },
+    producerDataSources: {
+        prefix: 'data-sources',
+        type: 'data-sources-job'
     }
 };
 
