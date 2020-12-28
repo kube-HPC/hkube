@@ -1,13 +1,33 @@
 const Etcd = require('@hkube/etcd');
 
 class StateManager {
-    constructor(option) {
+    init(option) {
         const options = option || {};
         this._etcd = new Etcd({
             ...options.etcd,
             serviceName: options.serviceName,
         });
     }
+
+    set({ jobId, taskId, nodeName, status }) {
+        return this._etcd.jobs.tasks.set({
+            jobId,
+            taskId,
+            nodeName,
+            status,
+        });
+    }
+
+    update({ jobId, taskId, nodeName, status, result, error }) {
+        return this._etcd.jobs.tasks.update({
+            jobId,
+            taskId,
+            nodeName,
+            status,
+            result,
+            error,
+        });
+    }
 }
 
-module.exports = StateManager;
+module.exports = new StateManager();
