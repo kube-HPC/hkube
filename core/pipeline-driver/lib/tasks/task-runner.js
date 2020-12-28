@@ -463,7 +463,6 @@ class TaskRunner extends EventEmitter {
 
             const parse = {
                 flowInputMetadata: this.pipeline.flowInputMetadata,
-                dataSourceMetadata: this.pipeline.dataSourceMetadata,
                 nodeInput: node.input,
                 parentOutput: node.parentOutput || parentOutput,
                 batchOperation: node.batchOperation,

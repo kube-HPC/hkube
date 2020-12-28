@@ -6,11 +6,11 @@ class DataSources {
         this._baseUrl = `${protocol}://${host}:${port}/${prefix}`;
     }
 
-    async create(body) {
+    async validate(body) {
         let error;
-        let pipeline;
+        let response;
         try {
-            pipeline = await request({
+            response = await request({
                 method: 'POST',
                 body,
                 uri: this._baseUrl,
@@ -20,7 +20,7 @@ class DataSources {
         catch (e) {
             error = e.response ? e.response.body.error : e.error;
         }
-        return { error, pipeline };
+        return { error, response };
     }
 }
 
