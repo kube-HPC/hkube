@@ -31,15 +31,12 @@ const extractFileName = metaData => metaData.input.slice(0, metaData.index);
 let db = null;
 
 class DataSource {
-    constructor() {
-        fse.ensureDirSync(this.rootDir);
-    }
-
     /** @param {config} config */
     async init(config) {
         this.rootDir = config.directories.temporaryGitRepositories;
         this.config = config;
         db = dbConnection.connection;
+        fse.ensureDirSync(this.rootDir);
     }
 
     /** @type {(file: MulterFile, path?: string) => FileMeta} */
@@ -50,7 +47,7 @@ class DataSource {
             path: path || '/',
             size: file.size,
             type: file.mimetype,
-            description: '',
+            meta: '',
             uploadedAt: new Date().getTime(),
         };
     }
@@ -252,12 +249,17 @@ class DataSource {
             mapping,
             addedFiles: added,
         });
-        const normalizedAddedFiles = await repository._loadMetaDataFile(
+        const { normalizedAddedFiles } = groups;
+        const metaByPath = await repository.loadMetaDataFiles(
             groups.normalizedAddedFiles,
             groups.byPath,
             groups.metaFilesByPath
         );
-        await repository.addFiles(normalizedAddedFiles, groups.allAddedFiles);
+        await repository.addFiles(
+            normalizedAddedFiles,
+            groups.allAddedFiles,
+            metaByPath
+        );
         await repository.moveExistingFiles(groups.movedFiles);
         await repository.dropFiles(dropped, currentFiles);
         /**
@@ -266,16 +268,11 @@ class DataSource {
          */
 
         const commit = await repository.push(commitMessage);
-        const finalMapping = Object.values(normalizedAddedFiles).concat(
-            groups.movedFiles.map(([, targetFile]) => targetFile)
-        );
+        const finalMapping = await repository.scanDir();
         await repository.cleanup();
         return {
             commitHash: commit,
-            files: {
-                droppedIds: groups.touchedFileIds.concat(dropped),
-                mapping: finalMapping,
-            },
+            files: finalMapping,
         };
     }
 
@@ -313,7 +310,7 @@ class DataSource {
             await db.dataSources.delete({ id: createdVersion.id });
             return null;
         }
-        return db.dataSources.uploadFiles({
+        return db.dataSources.updateFiles({
             name,
             files,
             versionId: commitHash,
@@ -321,8 +318,8 @@ class DataSource {
     }
 
     /** @param {{ name: string; files: MulterFile[] }} query */
-    async createDataSource({ name, files }) {
-        validator.dataSource.create({ name, files });
+    async createDataSource({ name, files: _files }) {
+        validator.dataSource.create({ name, files: _files });
         let createdDataSource;
         try {
             createdDataSource = await db.dataSources.create({ name });
@@ -334,20 +331,17 @@ class DataSource {
         }
         const repository = new Repository(name, this.config);
         await repository.setup();
-        const {
-            commitHash,
-            files: { mapping },
-        } = await this.commitChange({
+        const { commitHash, files } = await this.commitChange({
             repository,
             commitMessage: 'initial upload',
-            files: { added: files },
+            files: { added: _files },
         });
         let updatedDataSource;
 
         try {
-            updatedDataSource = await db.dataSources.uploadFiles({
+            updatedDataSource = await db.dataSources.updateFiles({
                 id: createdDataSource.id,
-                files: { mapping },
+                files,
                 versionId: commitHash,
             });
         } catch (error) {

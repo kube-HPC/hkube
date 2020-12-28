@@ -1,8 +1,9 @@
 const childProcess = require('child_process');
 const fse = require('fs-extra');
 const { parse: parsePath } = require('path');
-// const glob = require('glob');
+const glob = require('glob');
 const { default: simpleGit } = require('simple-git');
+const yaml = require('js-yaml');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvc');
 const getFilePath = require('./getFilePath');
@@ -13,6 +14,10 @@ const getFilePath = require('./getFilePath');
  * @typedef {import('./types').NormalizedFileMeta} NormalizedFileMeta
  * @typedef {import('./types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./types').config} config
+ */
+/**
+ * @template T
+ * @typedef {{ [path: string]: T }} ByPath
  */
 
 class Repository {
@@ -45,6 +50,20 @@ class Repository {
             `${this.cwd}/.dvc/config`,
             generateDvcConfig(this.repositoryName)
         );
+    }
+
+    async _enrichDvcFile(fileMeta, metaData) {
+        const dvcFilePath = `${this.cwd}/${getFilePath(fileMeta)}.dvc`;
+        const fileContent = await fse.readFile(dvcFilePath);
+        const dvcData = yaml.load(fileContent);
+        const extendedData = {
+            ...dvcData,
+            meta: {
+                ...(dvcData?.meta ?? {}),
+                hkube: metaData,
+            },
+        };
+        await fse.writeFile(dvcFilePath, yaml.dump(extendedData));
     }
 
     async setup() {
@@ -106,11 +125,11 @@ class Repository {
     }
 
     /**
-     * @param {string} repositoryName
      * @param {NormalizedFileMeta} normalizedMapping
      * @param {MulterFile[]} allAddedFiles
+     * @param {ByPath<string>} metaByPath
      */
-    async addFiles(normalizedMapping, allAddedFiles) {
+    async addFiles(normalizedMapping, allAddedFiles, metaByPath) {
         if (allAddedFiles.length === 0) return null;
         const { dirs, filePaths } = Object.values(normalizedMapping).reduce(
             (acc, fileMeta) => {
@@ -148,15 +167,17 @@ class Repository {
         // creates .dvc files and update/create the relevant gitignore files
         await this._execute(`dvc add ${filePaths.join(' ')}`);
 
-        // await Promise.all(
-        //     allAddedFiles.map(file => {
-        //         const fileMeta = normalizedMapping[file.filename];
-        //         // TODO:: run through all the files and update their respective .dvc
-        //         // file with the fileMeta content
-        //         console.log({ fileMeta });
-        //         return null;
-        //     })
-        // );
+        await Promise.all(
+            allAddedFiles.map(async file => {
+                const fileMeta = normalizedMapping[file.filename];
+                const filePath = getFilePath(fileMeta);
+                await this._enrichDvcFile(fileMeta, {
+                    ...fileMeta,
+                    meta: metaByPath[filePath] || '',
+                });
+                return null;
+            })
+        );
 
         return null;
     }
@@ -168,11 +189,7 @@ class Repository {
         );
     }
 
-    /**
-     * @param {string} repositoryName
-     * @param {SourceTargetArray[]} sourceTargetArray
-     * @param {string} baseDir
-     */
+    /** @param {SourceTargetArray[]} sourceTargetArray */
     async moveExistingFiles(sourceTargetArray) {
         return Promise.all(
             sourceTargetArray.map(async ([srcFile, targetFile]) => {
@@ -197,15 +214,24 @@ class Repository {
     }
 
     /** @returns {FileMeta[]} */
-    scanDir() {
-        return [];
+    async scanDir() {
+        const metaFiles = await new Promise((res, rej) =>
+            glob('**/*.dvc', { cwd: this.cwd }, (err, matches) =>
+                err ? rej(err) : res(matches)
+            )
+        );
+        return Promise.all(
+            metaFiles.map(
+                async filePath =>
+                    yaml.load(await fse.readFile(`${this.cwd}/${filePath}`))
+                        .meta.hkube
+            )
+        );
     }
 
     // prepareForDownload(currentMapping, fileIds) {}
 
     /**
-     * @param {string} repositoryName
-     * @param {string} baseDir
      * @param {string[]} fileIds
      * @param {FileMeta[]} currentFiles
      */
@@ -231,29 +257,28 @@ class Repository {
     }
 
     /**
-     * Loads the .meta files and add their content to the description field on
-     * the file normalized mapping return a new mapping object
+     * Loads the .meta files, adds their content to the .dvc files
      *
      * @param {NormalizedFileMeta} normalizedMapping
-     * @param {{ [path: string]: string }} byPath
-     * @param {{ [path: string]: MulterFile }} metaFilesByPath
+     * @param {ByPath<string>} byPath
+     * @param {ByPath<MulterFile>} metaFilesByPath
+     * @returns {Promise<ByPath<string>>}
      */
-    async _loadMetaDataFile(normalizedMapping, byPath, metaFilesByPath) {
-        const contents = await Promise.all(
+    async loadMetaDataFiles(normalizedMapping, byPath, metaFilesByPath) {
+        const entries = await Promise.all(
             Object.entries(metaFilesByPath).map(async ([filePath, file]) => {
                 const content = await fse.readFile(file.path);
-                return [byPath[filePath], content.toString('utf8')];
+                const fileId = byPath[filePath];
+                const meta = content.toString('utf8');
+                const fileMeta = normalizedMapping[fileId];
+                await fse.move(
+                    file.path,
+                    `${this.cwd}/${getFilePath(fileMeta)}.meta`
+                );
+                return [filePath, meta];
             })
         );
-        // TODO:: run through all the files
-        // open their .dvc file and extend it with the description
-        return contents.reduce(
-            (acc, [fileId, description]) => ({
-                ...acc,
-                [fileId]: { ...acc[fileId], description },
-            }),
-            normalizedMapping
-        );
+        return Object.fromEntries(entries);
     }
 
     async push(commitMessage) {
