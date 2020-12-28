@@ -64,7 +64,7 @@ class Runner {
     }
 
     _findRelations(pipeline, nodeName) {
-        const graph = new NodesMap({ nodes: pipeline.nodes });
+        const graph = new NodesMap({ nodes: pipeline.nodes }, { validateNodesRelations: false });
         const successorsMap = this._getSuccessors(graph, nodeName);
         const successors = this._flatten(successorsMap, nodeName);
         return { successors };
