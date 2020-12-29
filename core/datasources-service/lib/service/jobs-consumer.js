@@ -45,7 +45,8 @@ class JobConsumer {
             dataSourceEntry = await this.db.dataSources.fetch(
                 shouldGetLatest
                     ? { name: dataSource.name }
-                    : { id: dataSource.version }
+                    : { id: dataSource.version },
+                { allowNotFound: false }
             );
         } catch (e) {
             return this.handleFail({
