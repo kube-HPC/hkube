@@ -128,6 +128,7 @@ config.jobs = {
     consumer: {
         prefix: 'data-sources',
         type: 'data-sources-job',
+        concurrency: 10000
     },
 };
 

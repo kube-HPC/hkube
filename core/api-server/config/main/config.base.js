@@ -37,7 +37,7 @@ config.cachingServer = {
 config.dataSourceService = {
     protocol: 'http',
     host: process.env.DATASOURCES_SERVICE_SERVICE_HOST || 'localhost',
-    port: process.env.DATASOURCES_SERVICE_SERVICE_PORT || 3002,
+    port: process.env.DATASOURCES_SERVICE_SERVICE_PORT || 3005,
     prefix: 'api/v1'
 };
 

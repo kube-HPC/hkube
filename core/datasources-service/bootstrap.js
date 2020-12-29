@@ -10,6 +10,8 @@ const modules = [
     require('./lib/db'),
     require('./api/rest-api/app-server'),
     require('./lib/service/dataSource'),
+    require('./lib/etcd'),
+    require('./lib/jobs-consumer'),
 ];
 
 class Bootstrap {

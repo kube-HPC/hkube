@@ -1,7 +1,7 @@
 const { Consumer } = require('@hkube/producer-consumer');
 const { taskStatuses } = require('@hkube/consts');
-const { etcd } = require('../config/main/config.base');
-
+const etcd = require('./etcd');
+const delay = d => new Promise(r => setTimeout(r, d));
 class JobConsumer {
     constructor() {
         this._inactiveTimer = null;
@@ -15,7 +15,7 @@ class JobConsumer {
     init(options) {
         const { type, prefix } = options.jobs.consumer;
         const option = {
-            job: { type },
+            job: { type, prefix },
             setting: {
                 redis: options.redis,
                 prefix,
@@ -37,32 +37,50 @@ class JobConsumer {
         // version?: string
         // query?: string
 
-        consumer.on('job', job => {
+        consumer.on('job', async job => {
             // download to the mounted directory - ENV var
             // update etcd
             // SUBSCRIBE to job done
 
-            job.done(); // send job done to redis
-            const { jobId, taskId } = job;
-            etcd.jobs.tasks.update({
+            const { jobId, taskId, nodeName } = job.data;
+            await etcd.set({
                 jobId,
                 taskId,
+                nodeName,
                 status: taskStatuses.ACTIVE,
             });
-            // after mount
-            etcd.jobs.tasks.update({
+            await delay(2000);
+
+            const storageInfo = await storageManager.hkube.put({
                 jobId,
                 taskId,
-                status: taskStatuses.SUCCEED,
+                data: [],
+            });
+            // after mount
+            await etcd.update({
+                jobId,
+                taskId,
+                nodeName,
+                status: taskStatuses.STORING,
                 result: 'some optional result',
             });
-            // onFail
-            etcd.jobs.tasks.update({
+
+            await delay(2000);
+            await etcd.update({
                 jobId,
                 taskId,
-                status: taskStatuses.FAILED,
-                error: 'the reason i failed',
+                nodeName,
+                status: taskStatuses.SUCCEED,
             });
+            // // onFail
+            // await etcd.update({
+            //     jobId,
+            //     taskId,
+            //     status: taskStatuses.FAILED,
+            //     error: 'the reason i failed',
+            // });
+
+            job.done(); // send job done to redis
         });
     }
 }

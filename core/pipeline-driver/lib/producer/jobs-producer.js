@@ -29,6 +29,7 @@ class JobProducer extends EventEmitter {
                 data: {
                     jobId,
                     taskId: options.node.taskId,
+                    nodeName: options.node.nodeName,
                     dataSource: options.node.dataSource
                 }
             };
@@ -76,6 +77,7 @@ class JobProducer extends EventEmitter {
         const opt = {
             job: {
                 type: options.type,
+                prefix: options.prefix,
                 data: options.data
             }
         };
