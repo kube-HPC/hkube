@@ -7,8 +7,6 @@ class StateManager {
             ...configs.etcd,
             serviceName: configs.serviceName,
         });
-        // this.set = this.set.bind(this);
-        // this.update = this.update.bind(this);
     }
 
     set({ jobId, taskId, nodeName, status }) {
@@ -29,6 +27,15 @@ class StateManager {
             result,
             error,
         });
+    }
+
+    startWatch() {
+        return this._etcd.jobs.results.watch();
+    }
+
+    /** @param {(job: import('./service/types').DoneJob) => void} cb */
+    onDone(cb) {
+        return this._etcd.jobs.results.on('change', cb);
     }
 }
 
