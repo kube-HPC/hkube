@@ -364,11 +364,14 @@ class DataSource {
     async fetchDataSource({ name, id }) {
         let dataSource = null;
         try {
-            dataSource = await db.dataSources.fetch({
-                name,
-                id,
-                isPartial: false,
-            });
+            dataSource = await db.dataSources.fetch(
+                {
+                    name,
+                    id,
+                    isPartial: false,
+                },
+                { allowNotFound: false }
+            );
         } catch (error) {
             if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
                 throw new ResourceNotFoundError('dataSource', name, error);

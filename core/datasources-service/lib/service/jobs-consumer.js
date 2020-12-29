@@ -108,8 +108,8 @@ class JobConsumer {
         return null;
     }
 
-    async unmountDataSource(jobId) {
-        fse.remove(`${this.rootDir}/${jobId}`);
+    unmountDataSource(jobId) {
+        return fse.remove(`${this.rootDir}/${jobId}`);
     }
 
     /**
