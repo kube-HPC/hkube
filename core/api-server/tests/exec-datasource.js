@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const nock = require('nock');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const { request } = require('./utils');
 let restPath = null;
 const pipelineName = 'exec_raw';
@@ -16,121 +16,114 @@ const runRaw = ({ nodes, name = pipelineName }) => {
     return request(options);
 };
 
-describe('Executions', () => {
+describe('DataSources', () => {
     before(() => {
         restPath = testParams.restUrl;
         config = testParams.config;
         const { protocol, host, port, prefix } = config.dataSourceService;
         const serviceURI = `${protocol}://${host}:${port}`;
-        const pathSuccess = `/${prefix}`;
-        const pathFailed = `/${prefix}`;
-        nock(serviceURI).persist().post(pathSuccess).reply(200);
-        nock(serviceURI).persist().post(pathFailed).reply(404);
+        const path = `/${prefix}`;
+        nock(serviceURI).persist().post(path, [{ name: 'exist' }]).reply(200);
+        nock(serviceURI).persist().post(path, [{ snapshot: 'exist' }]).reply(200);
+        nock(serviceURI).persist().post(path, [{ name: 'non-exist' }]).reply(400, { error: { code: 400, message: 'dataSource non-exist Not Found' } });
+        nock(serviceURI).persist().post(path, [{ snapshot: 'non-exist' }]).reply(400, { error: { code: 400, message: 'snapshot non-exist Not Found' } });
     });
     describe('/exec/raw', () => {
-        it.only('should throw invalid reserved name dataSource', async () => {
+        it('should throw invalid kind', async () => {
+            const pipeline = {
+                nodes: [{
+                    nodeName: 'A',
+                    kind: 'non',
+                }]
+            };
+            const response = await runRaw(pipeline);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(`data.nodes[0].kind should be equal to one of the allowed values (dataSource)`);
+        });
+        it('should throw no dataSource provided', async () => {
+            const pipeline = {
+                nodes: [{
+                    nodeName: 'A',
+                    kind: 'dataSource'
+                }]
+            };
+            const response = await runRaw(pipeline);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(`you must provide a valid dataSource`);
+        });
+        it('should throw dataSource non-exist Not Found', async () => {
             const pipeline = {
                 nodes: [{
                     nodeName: 'A',
                     kind: 'dataSource',
                     dataSource: {
-                        snapshot: "snap-1"
+                        name: "non-exist"
                     }
                 }]
             };
             const response = await runRaw(pipeline);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(`pipeline "${pipelineName}" has invalid reserved name "dataSource"`);
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(`dataSource non-exist Not Found`);
         });
-        it('should throw invalid reserved name dataSource', async () => {
+        it('should throw snapshot non-exist Not Found', async () => {
             const pipeline = {
                 nodes: [{
                     nodeName: 'A',
                     kind: 'dataSource',
                     dataSource: {
-                        snapshot: "snap-1"
+                        snapshot: "non-exist"
                     }
-                },
-                {
-                    nodeName: 'B',
-                    algorithmName: 'green-alg',
-                    input: ["@A"]
                 }]
             };
             const response = await runRaw(pipeline);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(`pipeline "${pipelineName}" has invalid reserved name "dataSource"`);
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(`snapshot non-exist Not Found`);
         });
-        it('should throw invalid reserved name dataSource', async () => {
+        it('should throw need exactly one schema', async () => {
             const pipeline = {
                 nodes: [{
                     nodeName: 'A',
                     kind: 'dataSource',
                     dataSource: {
-                        snapshot: "snap-1"
+                        name: 'exist',
+                        snapshot: 'exist'
                     }
-                },
-                {
-                    nodeName: 'B',
-                    algorithmName: 'green-alg',
-                    input: ["@A"]
                 }]
             };
             const response = await runRaw(pipeline);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(`pipeline "${pipelineName}" has invalid reserved name "dataSource"`);
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(`data.nodes[0].dataSource should match exactly one schema in oneOf`);
         });
-        it('should throw invalid input syntax for input @dataSource', async () => {
-            const response = await runRaw({
+        it('should success to exec pipeline with data-source name', async () => {
+            const pipeline = {
                 nodes: [{
-                    nodeName: 'node1',
-                    algorithmName: 'green-alg',
-                    input: ['@dataSource']
+                    nodeName: 'A',
+                    kind: 'dataSource',
+                    dataSource: {
+                        name: 'exist'
+                    }
                 }]
-            });
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('invalid input syntax, ex: @dataSource.<dataSourceName>/<fileName>');
+            };
+            const response = await runRaw(pipeline);
+            expect(response.body).to.have.property('jobId');
         });
-        it('should throw invalid input syntax for input @dataSource/models', async () => {
-            const response = await runRaw({
+        it('should success to exec pipeline with data-source snapshot', async () => {
+            const pipeline = {
                 nodes: [{
-                    nodeName: 'node1',
-                    algorithmName: 'green-alg',
-                    input: ['@dataSource/models']
+                    nodeName: 'A',
+                    kind: 'dataSource',
+                    dataSource: {
+                        snapshot: 'exist'
+                    }
                 }]
-            });
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('invalid input syntax, ex: @dataSource.<dataSourceName>/<fileName>');
-        });
-        it('should throw invalid input syntax for input @dataSource/model', async () => {
-            const response = await runRaw({
-                name: 'data-sources',
-                nodes: [{
-                    nodeName: 'node1',
-                    algorithmName: 'green-alg',
-                    input: [
-                        '@dataSource.models1/file1',
-                        '@dataSource.models1/file2',
-                        '@dataSource.models2/file2',
-                        '@dataSource.models2/file2',
-                        '@dataSource.models3/file3',
-                        '@dataSource.models4/file5',
-                        '@dataSource.images1/file1',
-                        '@dataSource.images2/file2',
-                        '@dataSource.images3/file3',
-                        '@dataSource.images3/file4',
-                        '@dataSource.images3/file5',
-                    ]
-                }]
-            });
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('dataSource models1, models2, models3, models4, images1, images2, images3 Not Found');
+            };
+            const response = await runRaw(pipeline);
+            expect(response.body).to.have.property('jobId');
         });
     });
 });

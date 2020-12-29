@@ -8,17 +8,12 @@ class DataSources {
     }
 
     async validate(pipeline) {
-        const dataSources = [];
-        pipeline.nodes.forEach(node => {
-            if (node.kind === nodeKind.DataSource) {
-                if (!node.dataSource) {
-                    throw new InvalidDataError('you must provide a valid dataSource');
-                }
-                dataSources.push(node.dataSource);
-            }
-        });
+        const dataSources = pipeline.nodes
+            .filter(n => n.kind === nodeKind.DataSource)
+            .map(n => n.dataSource);
+
         if (dataSources.length > 0) {
-            const { error, } = await dataSourceService.validate(dataSources);
+            const { error } = await dataSourceService.validate(dataSources);
             if (error) {
                 throw new InvalidDataError(error.message);
             }
