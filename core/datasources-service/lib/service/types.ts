@@ -9,4 +9,17 @@ export type Job = {
     nodeName: string;
 };
 
+export type DoneJob = {
+    jobId: string;
+    timestamp: string;
+    pipeline: 'dataSource';
+    data?: {
+        storageInfo: {
+            path: string;
+        };
+    };
+    status: string;
+    timeTook: number;
+};
+
 export type onJobHandler = (job: { data: Job }) => Promise<void>;

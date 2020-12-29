@@ -108,8 +108,8 @@ class JobConsumer {
         return null;
     }
 
-    async unmountDataSource({ name, version }) {
-        console.error(`not implemented!, should delete ${name}:${version}`);
+    async unmountDataSource(jobId) {
+        fse.remove(`${this.rootDir}/${jobId}`);
     }
 
     /**
@@ -134,6 +134,7 @@ class JobConsumer {
         this.consumer.register(consumerSettings);
         /** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
         this.db = dbConnection.connection;
+        await this.state.startWatch();
         // register to events
         this.consumer.on(
             'job',
@@ -141,9 +142,12 @@ class JobConsumer {
             async job => {
                 await this.fetchDataSource(job.data);
                 job.done(); // send job done to redis
-                // SUBSCRIBE to job done do clear the directory
             }
         );
+
+        this.state.onDone(job => {
+            this.unmountDataSource(job.jobId);
+        });
     }
 }
 
