@@ -64,7 +64,7 @@ class JobConsumer {
             await repository.ensureClone(dataSourceEntry.versionId);
             await repository.pullFiles();
         } catch (error) {
-            this.handleFail({
+            return this.handleFail({
                 ...job,
                 error: `could not clone the datasource ${dataSource.name}`,
             });
