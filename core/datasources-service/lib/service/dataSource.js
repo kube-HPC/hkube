@@ -298,7 +298,11 @@ class DataSource {
             name,
         });
 
-        const repository = new Repository(name, this.config);
+        const repository = new Repository(
+            name,
+            this.config,
+            this.config.directories.temporaryGitRepositories
+        );
         const { commitHash, files } = await this.commitChange({
             repository,
             files: _files,
@@ -328,7 +332,11 @@ class DataSource {
             }
             return null;
         }
-        const repository = new Repository(name, this.config);
+        const repository = new Repository(
+            name,
+            this.config,
+            this.config.directories.temporaryGitRepositories
+        );
         await repository.setup();
         const { commitHash, files } = await this.commitChange({
             repository,

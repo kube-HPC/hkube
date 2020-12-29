@@ -6,6 +6,7 @@ const config = {};
 config.serviceName = packageJson.name;
 config.systemVersion = process.env.HKUBE_SYSTEM_VERSION;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
+const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
 const secured = !!process.env.DATASOURCE_SERVICE_SSL;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
@@ -106,6 +107,7 @@ config.git = {
 
 config.directories = {
     temporaryGitRepositories: 'temp/datasource-git-repositories',
+    dataSourcesInUse: 'temp/dataSources-in-use',
 };
 
 config.redis = {
@@ -128,7 +130,29 @@ config.jobs = {
     consumer: {
         prefix: 'data-sources',
         type: 'data-sources-job',
-        concurrency: 10000
+        concurrency: 10000,
+    },
+};
+
+config.storageAdapters = {
+    s3: {
+        connection: config.s3,
+        encoding: storageEncoding,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter',
+    },
+    etcd: {
+        connection: config.etcd,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/etcd-adapter',
+    },
+    redis: {
+        connection: config.redis,
+        moduleName:
+            process.env.STORAGE_MODULE || '@hkube/redis-storage-adapter',
+    },
+    fs: {
+        connection: config.fs,
+        encoding: storageEncoding,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter',
     },
 };
 
