@@ -63,8 +63,7 @@ describe.only('/datasource/:name POST', () => {
         expect(dataSource.files).to.have.lengthOf(2);
         expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
     });
-    // should pass
-    it.skip('should upload multiple files to the dataSource', async () => {
+    it('should upload multiple files to the dataSource', async () => {
         const name = uuid();
         await createDataSource({ body: { name } });
         const { response: uploadResponse } = await updateVersion({
@@ -112,7 +111,7 @@ describe.only('/datasource/:name POST', () => {
         const { body: dataSource } = fetchDataSourceResponse;
         expect(dataSource.files).to.have.lengthOf(3);
         expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
-    });
+    }).timeout(20000);
     it('should move a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
@@ -145,7 +144,7 @@ describe.only('/datasource/:name POST', () => {
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/a-new-directory/${existingFile.name}`
             )
         );
-    });
+    }).timeout(20000);
     it('delete a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
@@ -179,7 +178,7 @@ describe.only('/datasource/:name POST', () => {
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`
             )
         ).to.be.false;
-    });
+    }).timeout(20000);
     it('should return status 200 if nothing was updated', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
@@ -234,7 +233,7 @@ describe.only('/datasource/:name POST', () => {
         expect(dataSource.versionId).not.to.eq(uploadResponseBody.versionId);
         expect(dataSource.files.length).to.eq(uploadResponseBody.files.length);
         expect(uploadResponseBody.files[0].size).to.eq(131);
-    });
+    }).timeout(20000);
     it('should upload a file with meta data to a sub-dir', async () => {
         const name = uuid();
         await createDataSource({
@@ -283,5 +282,5 @@ describe.only('/datasource/:name POST', () => {
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/new-dir/logo.svg.meta`
             )
         ).to.be.true;
-    });
+    }).timeout(20000);
 });

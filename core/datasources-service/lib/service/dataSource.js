@@ -367,7 +367,7 @@ class DataSource {
             dataSource = await db.dataSources.fetch({
                 name,
                 id,
-                filters: { isPartial: false },
+                isPartial: false,
             });
         } catch (error) {
             if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
