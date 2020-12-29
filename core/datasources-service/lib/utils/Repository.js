@@ -66,6 +66,7 @@ class Repository {
         const dvcFilePath = `${this.cwd}/${getFilePath(fileMeta)}.dvc`;
         const fileContent = await fse.readFile(dvcFilePath);
         const dvcData = yaml.load(fileContent);
+        if (dvcData?.meta?.hkube) return null;
         const extendedData = {
             ...dvcData,
             meta: {
@@ -73,7 +74,7 @@ class Repository {
                 hkube: metaData,
             },
         };
-        await fse.writeFile(dvcFilePath, yaml.dump(extendedData));
+        return fse.writeFile(dvcFilePath, yaml.dump(extendedData));
     }
 
     async setup() {

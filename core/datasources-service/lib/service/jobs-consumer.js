@@ -96,7 +96,6 @@ class JobConsumer {
                 status: taskStatuses.STORING,
                 result: storageInfo,
             });
-
             await this.state.update({
                 ...job,
                 status: taskStatuses.SUCCEED,

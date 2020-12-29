@@ -25,10 +25,7 @@ describe.only('/datasource/:name POST', () => {
             /data should have required property '.filesDropped'/i
         );
     });
-    // Stopped Here
-    it.only('should fail uploading a file to a non existing dataSource', async () => {
-        const name = uuid();
-        await createDataSource({ body: { name } });
+    it('should fail uploading a file to a non existing dataSource', async () => {
         const { response: uploadResponse } = await updateVersion({
             dataSourceName: 'non-existing',
             fileNames: ['README-2.md'],
@@ -183,8 +180,7 @@ describe.only('/datasource/:name POST', () => {
             )
         ).to.be.false;
     });
-    it.skip('should return status 200 if nothing was updated', async () => {
-        // currently updating the .dvc files even when nothing has changed - ex: upload time override
+    it('should return status 200 if nothing was updated', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
             body: { name },
@@ -201,7 +197,7 @@ describe.only('/datasource/:name POST', () => {
             mapping: [existingFile],
         });
         expect(uploadResponse.response.statusCode).to.eq(HttpStatus.OK);
-    });
+    }).timeout(15000);
     it('should update a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({

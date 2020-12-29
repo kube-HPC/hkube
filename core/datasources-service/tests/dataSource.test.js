@@ -130,59 +130,6 @@ describe('Datasource', () => {
             );
         });
     });
-    describe.skip('datasource/:name/:fileName GET', () => {
-        it('should fetch a file', async () => {
-            const name = uuid();
-            await createDataSource({ body: { name } });
-            const options = {
-                uri: `${restPath}/${name}/${fileName}`,
-                method: 'GET',
-            };
-            const { response: fetchFileResponse } = await request(options);
-            expect(fetchFileResponse.statusCode).to.eq(HttpStatus.OK);
-            expect(fetchFileResponse.body).to.be.string;
-            const fileContent = fse
-                .readFileSync(`tests/mocks/${fileName}`)
-                .toString();
-            expect(fileContent).to.eq(fetchFileResponse.body);
-        });
-        it('should fail fetching a file', async () => {
-            const name = uuid();
-            await createDataSource({ body: { name } });
-            const options = {
-                uri: `${restPath}/${name}/${fileName}`,
-                method: 'GET',
-            };
-            sinon
-                .stub(storage.hkubeDataSource, 'getStream')
-                .rejects({ message: 'failed on purpose' });
-            const { response: fetchFileResponse } = await request(options);
-            expect(fetchFileResponse.body.error.message).to.match(
-                /failed on purpose/i
-            );
-            expect(fetchFileResponse.statusCode).to.eq(HttpStatus.BAD_REQUEST);
-        });
-        it('non-existing dataSource id', async () => {
-            const options = {
-                uri: `${restPath}/${nonExistingId}/${fileName}`,
-                method: 'GET',
-            };
-            const { response: fetchFileResponse } = await request(options);
-            expect(fetchFileResponse.body.error.message).to.match(/Not Found/i);
-            expect(fetchFileResponse.statusCode).to.eq(404);
-        });
-        it('invalid file name', async () => {
-            const name = uuid();
-            await createDataSource({ body: { name } });
-            const options = {
-                uri: `${restPath}/${name}/wrong-file-name`,
-                method: 'GET',
-            };
-            const { response: fetchFileResponse } = await request(options);
-            expect(fetchFileResponse.body.error.message).to.match(/Not Found/i);
-            expect(fetchFileResponse.statusCode).to.eq(404);
-        });
-    });
     describe.skip('/datasource/:name DELETE', () => {
         it('should delete a datasource given an id', async () => {
             const name = uuid();

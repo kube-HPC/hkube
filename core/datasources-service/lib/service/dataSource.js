@@ -158,7 +158,7 @@ class DataSource {
      *     metaFilesByPath: { [path: string]: MulterFile };
      * }}
      */
-    _splitToGroups({
+    _categorizeFiles({
         currentFiles = [],
         mapping,
         addedFiles: _addedFiles = [],
@@ -243,7 +243,7 @@ class DataSource {
         currentFiles = [],
     }) {
         await repository.ensureClone();
-        const groups = this._splitToGroups({
+        const groups = this._categorizeFiles({
             currentFiles,
             mapping,
             addedFiles: added,
