@@ -25,10 +25,7 @@ describe.only('/datasource/:name POST', () => {
             /data should have required property '.filesDropped'/i
         );
     });
-    // Stopped Here
-    it.only('should fail uploading a file to a non existing dataSource', async () => {
-        const name = uuid();
-        await createDataSource({ body: { name } });
+    it('should fail uploading a file to a non existing dataSource', async () => {
         const { response: uploadResponse } = await updateVersion({
             dataSourceName: 'non-existing',
             fileNames: ['README-2.md'],
@@ -66,8 +63,7 @@ describe.only('/datasource/:name POST', () => {
         expect(dataSource.files).to.have.lengthOf(2);
         expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
     });
-    // should pass
-    it.skip('should upload multiple files to the dataSource', async () => {
+    it('should upload multiple files to the dataSource', async () => {
         const name = uuid();
         await createDataSource({ body: { name } });
         const { response: uploadResponse } = await updateVersion({
@@ -115,7 +111,7 @@ describe.only('/datasource/:name POST', () => {
         const { body: dataSource } = fetchDataSourceResponse;
         expect(dataSource.files).to.have.lengthOf(3);
         expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
-    });
+    }).timeout(20000);
     it('should move a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
@@ -148,7 +144,7 @@ describe.only('/datasource/:name POST', () => {
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/a-new-directory/${existingFile.name}`
             )
         );
-    });
+    }).timeout(20000);
     it('delete a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
@@ -182,9 +178,8 @@ describe.only('/datasource/:name POST', () => {
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`
             )
         ).to.be.false;
-    });
-    it.skip('should return status 200 if nothing was updated', async () => {
-        // currently updating the .dvc files even when nothing has changed - ex: upload time override
+    }).timeout(20000);
+    it('should return status 200 if nothing was updated', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
             body: { name },
@@ -201,7 +196,7 @@ describe.only('/datasource/:name POST', () => {
             mapping: [existingFile],
         });
         expect(uploadResponse.response.statusCode).to.eq(HttpStatus.OK);
-    });
+    }).timeout(15000);
     it('should update a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
@@ -238,7 +233,7 @@ describe.only('/datasource/:name POST', () => {
         expect(dataSource.versionId).not.to.eq(uploadResponseBody.versionId);
         expect(dataSource.files.length).to.eq(uploadResponseBody.files.length);
         expect(uploadResponseBody.files[0].size).to.eq(131);
-    });
+    }).timeout(20000);
     it('should upload a file with meta data to a sub-dir', async () => {
         const name = uuid();
         await createDataSource({
@@ -287,5 +282,5 @@ describe.only('/datasource/:name POST', () => {
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/new-dir/logo.svg.meta`
             )
         ).to.be.true;
-    });
+    }).timeout(20000);
 });

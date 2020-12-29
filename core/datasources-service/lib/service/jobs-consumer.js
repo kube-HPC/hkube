@@ -5,7 +5,6 @@ const fse = require('fs-extra');
 const Etcd = require('../Etcd');
 const dbConnection = require('../db');
 const Repository = require('../utils/Repository');
-const getFilePath = require('./../utils/getFilePath');
 /**
  * @typedef {import('./../utils/types').config} config
  * @typedef {import('./types').onJobHandler} onJobHandler
@@ -73,9 +72,9 @@ class JobConsumer {
 
         let payload = dataSourceEntry.files;
         if (dataSource.query) {
-            payload = await this.filterFiles(
-                { dataSource, ...job },
-                dataSourceEntry.files
+            payload = await repository.filterFiles(
+                dataSourceEntry.files,
+                dataSource.query
             );
         }
         return this.storeResult({ payload, ...job });
@@ -94,9 +93,8 @@ class JobConsumer {
             await this.state.update({
                 ...job,
                 status: taskStatuses.STORING,
-                result: storageInfo,
+                result: { storageInfo },
             });
-
             await this.state.update({
                 ...job,
                 status: taskStatuses.SUCCEED,
@@ -112,42 +110,6 @@ class JobConsumer {
 
     async unmountDataSource({ name, version }) {
         console.error(`not implemented!, should delete ${name}:${version}`);
-    }
-
-    /**
-     * @param {Job} job
-     * @param {FileMeta[]} files
-     */
-    async filterFiles({ dataSource: { name, version, query }, jobId }, files) {
-        const dirPath = `${this.rootDir}/${jobId}/${name}/data`;
-        const queryRegexp = new RegExp(query, 'i');
-        /** @type {{ filesToKeep: FileMeta[]; filesToDelete: FileMeta[] }} */
-        const { filesToKeep, filesToDelete } = files.reduce(
-            (acc, file) =>
-                file.meta.match(queryRegexp)
-                    ? {
-                          ...acc,
-                          filesToKeep: acc.filesToKeep.concat(file),
-                      }
-                    : {
-                          ...acc,
-                          filesToDelete: acc.filesToDelete.concat(file),
-                      },
-            {
-                filesToKeep: [],
-                filesToDelete: [],
-            }
-        );
-        const deletePromises = filesToDelete.map(file => {
-            const filePath = getFilePath(file, dirPath);
-            return [
-                fse.remove(filePath),
-                fse.remove(`${filePath}.dvc`),
-                fse.remove(`${filePath}.meta`),
-            ];
-        });
-        await Promise.all(deletePromises.flat());
-        return filesToKeep;
     }
 
     /**
