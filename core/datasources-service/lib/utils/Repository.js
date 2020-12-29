@@ -28,14 +28,17 @@ const extractRelativePath = filePath => {
  */
 
 class Repository {
-    /** @param {string} repositoryName */
-    /** @param {config} config */
-    constructor(repositoryName, config) {
+    /**
+     * @param {string} repositoryName
+     * @param {config} config
+     * @param {string} rootDir
+     */
+    constructor(repositoryName, config, rootDir) {
         /** @type {import('simple-git').SimpleGit} */
         this.gitClient = null;
         this.config = config;
         this.repositoryName = repositoryName;
-        this.rootDir = config.directories.temporaryGitRepositories;
+        this.rootDir = rootDir;
     }
 
     /** @param {string} name */
@@ -87,7 +90,8 @@ class Repository {
         return { ...response, commit: response.commit.replace(/(.+) /, '') };
     }
 
-    async ensureClone() {
+    /** @param {string=} versionId */
+    async ensureClone(versionId) {
         await fse.ensureDir(this.cwd);
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
         if (!hasClone) {
@@ -96,6 +100,7 @@ class Repository {
             );
         }
         this.gitClient = simpleGit({ baseDir: this.cwd });
+        if (versionId) await this.gitClient.checkout(versionId);
     }
 
     get repositoryUrl() {
@@ -195,6 +200,10 @@ class Repository {
         return this._execute(
             `dvc get ${this.repositoryUrl} ${filePath} -o ${filePath}`
         );
+    }
+
+    pullFiles() {
+        return this._execute(`dvc pull`);
     }
 
     /** @param {SourceTargetArray[]} sourceTargetArray */
