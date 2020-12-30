@@ -27,7 +27,7 @@ class Bootstrap {
             if (config.tracer) {
                 await tracer.init(config.tracer);
             }
-            await storageManager.init(config, log, true);
+            await storageManager.init(config, log);
 
             for (const m of modules) {
                 await m.init(config);
