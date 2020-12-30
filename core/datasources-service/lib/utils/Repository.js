@@ -55,7 +55,7 @@ class Repository {
                       accessKeyId: config.s3.accessKeyId,
                       useSSL: false,
                   });
-        await this._execute('dvc init');
+        await this._dvcExecute('init');
         await fse.writeFile(
             `${this.cwd}/.dvc/config`,
             generateDvcConfig(this.repositoryName)
@@ -116,9 +116,9 @@ class Repository {
         return `${this.rootDir}/${this.repositoryName}`;
     }
 
-    async _execute(command) {
-        const [mainCmd, ...args] = command.split(' ');
-        const cmd = childProcess.spawn(mainCmd, args, {
+    async _execute(command, args) {
+        console.info({ command, args });
+        const cmd = childProcess.spawn(command, args, {
             cwd: this.cwd,
         });
         return new Promise((res, rej) => {
@@ -137,6 +137,10 @@ class Repository {
         });
     }
 
+    async _dvcExecute(...args) {
+        return this._execute('dvc', args.flat());
+    }
+
     /**
      * @param {NormalizedFileMeta} normalizedMapping
      * @param {MulterFile[]} allAddedFiles
@@ -144,6 +148,7 @@ class Repository {
      */
     async addFiles(normalizedMapping, allAddedFiles, metaByPath) {
         if (allAddedFiles.length === 0) return null;
+        /** @type {{ dirs: string[]; filePaths: string[] }} */
         const { dirs, filePaths } = Object.values(normalizedMapping).reduce(
             (acc, fileMeta) => {
                 const filePath = getFilePath(fileMeta);
@@ -178,7 +183,7 @@ class Repository {
             })
         );
         // creates .dvc files and update/create the relevant gitignore files
-        await this._execute(`dvc add ${filePaths.join(' ')}`);
+        await this._dvcExecute(`add`, filePaths);
 
         await Promise.all(
             allAddedFiles.map(async file => {
@@ -198,13 +203,14 @@ class Repository {
 
     /** @type {(filePath: string) => Promise<void>} */
     _pullDvcFile(filePath) {
-        return this._execute(
-            `dvc get ${this.repositoryUrl} ${filePath} -o ${filePath}`
+        return this._dvcExecute(
+            'get',
+            `${this.repositoryUrl} ${filePath} -o ${filePath}`
         );
     }
 
     pullFiles() {
-        return this._execute(`dvc pull`);
+        return this._dvcExecute(`pull`);
     }
 
     /** @param {SourceTargetArray[]} sourceTargetArray */
@@ -216,7 +222,7 @@ class Repository {
                 const targetPath = getFilePath(targetFile);
                 await fse.ensureDir(parsePath(`${this.cwd}/${targetPath}`).dir);
                 // moves .dvc files and updates gitignore
-                return this._execute(`dvc move ${srcPath} ${targetPath}`);
+                return this._dvcExecute('move', `${srcPath} ${targetPath}`);
             })
         );
     }
@@ -256,7 +262,7 @@ class Repository {
                 const path = getFilePath(normalizedCurrentFiles[id]);
                 if (!path) return null;
                 // drops the dvc file and updates gitignore
-                await this._execute(`dvc remove ${path}.dvc`);
+                await this._dvcExecute('remove', `${path}.dvc`);
                 const fullPath = `${this.cwd}/${path}`;
                 if (await fse.pathExists(fullPath)) {
                     await fse.unlink(fullPath);
@@ -292,7 +298,7 @@ class Repository {
     }
 
     async push(commitMessage) {
-        await this._execute('dvc push -r storage');
+        await this._dvcExecute('push', '-r', 'storage');
         await this.gitClient.add('.');
         const { commit } = await this.gitClient.commit(commitMessage);
         await this.gitClient.push();

@@ -364,14 +364,11 @@ class DataSource {
     async fetchDataSource({ name, id }) {
         let dataSource = null;
         try {
-            dataSource = await db.dataSources.fetch(
-                {
-                    name,
-                    id,
-                    isPartial: false,
-                },
-                { allowNotFound: false }
-            );
+            dataSource = await db.dataSources.fetch({
+                name,
+                id,
+                isPartial: false,
+            });
         } catch (error) {
             if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
                 throw new ResourceNotFoundError('dataSource', name, error);
@@ -392,12 +389,16 @@ class DataSource {
     }
 
     async list() {
-        return db.dataSources.fetchAll();
+        return db.dataSources.listDataSources();
     }
 
     /** @param {string} name */
     async listVersions(name) {
         return db.dataSources.listVersions({ name });
+    }
+
+    async upsertSnapshot({ name, id, snapshot }) {
+        return db.dataSources.upsertSnapshot({ id, name, snapshot });
     }
 }
 

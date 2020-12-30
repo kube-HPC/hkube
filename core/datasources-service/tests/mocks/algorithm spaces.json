@@ -1,0 +1,108 @@
+[
+    {
+        "name": "eval-alg",
+        "algorithmImage": "hkube/algorunner",
+        "cpu": 1.5,
+        "mem": "50Mi",
+        "type": "Image",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": false,
+            "pending": false
+        }
+    },
+    {
+        "name": "deep-green-alg",
+        "algorithmImage": "hkube/algorithm-example",
+        "cpu": 1,
+        "mem": "6000Mi",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "gitRepository": {
+            "url": "https://gitlab.com/maty21/anomaly",
+            "branchName": "master",
+            "gitKind": "gitlab"
+        },
+        "env": "nodejs",
+        "entryPoint": "./app.js",
+        "type": "Git"
+    },
+    {
+        "name": "green-alg",
+        "algorithmImage": "hkube/algorithm-example",
+        "cpu": 1,
+        "mem": "6000Mi",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "gitRepository": {
+            "url": "https://github.com/kube-HPC/hkube-green",
+            "webUrl": "https://github.com/kube-HPC/hkube-green",
+            "branchName": "master"
+        },
+        "env": "nodejs",
+        "entryPoint": "./app.js",
+        "type": "Git"
+    },
+    {
+        "name": "yellow-alg",
+        "algorithmImage": "hkube/algorithm-example",
+        "cpu": 7.1,
+        "mem": "1.2Gi",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": false,
+            "pending": false
+        }
+    },
+    {
+        "name": "black-alg",
+        "algorithmImage": "hkube/algorithm-example",
+        "cpu": 2,
+        "mem": "100Mi",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": false,
+            "pending": false
+        }
+    },
+    {
+        "name": "types-check",
+        "algorithmImage": "hkube/algorithm-example",
+        "cpu": 7.1,
+        "mem": "1.2Gi",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": true,
+            "pending": false,
+            "devMode": true
+        }
+    },
+    {
+        "name": "no-image-alg",
+        "cpu": 1.5,
+        "mem": "50Mi",
+        "type": "Image",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": false,
+            "pending": false
+        }
+    },
+    {
+        "name": "no-image-alg-debug",
+        "cpu": 1.5,
+        "mem": "50Mi",
+        "type": "Image",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": true,
+            "pending": false
+        }
+    }
+]
