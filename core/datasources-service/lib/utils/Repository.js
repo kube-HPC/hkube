@@ -1,12 +1,12 @@
-const childProcess = require('child_process');
 const fse = require('fs-extra');
 const { parse: parsePath } = require('path');
 const glob = require('glob');
 const { default: simpleGit } = require('simple-git');
 const yaml = require('js-yaml');
 const normalize = require('./normalize');
-const dvcConfig = require('./dvc');
+const dvcConfig = require('./dvcConfig');
 const getFilePath = require('./getFilePath');
+const DvcClient = require('./DvcClient');
 
 /**
  * @typedef {import('./types').FileMeta} FileMeta
@@ -39,42 +39,21 @@ class Repository {
         this.config = config;
         this.repositoryName = repositoryName;
         this.rootDir = rootDir;
+        // this._execute = Shell(this.cwd);
+        this.dvc = new DvcClient(this.cwd, this.repositoryUrl);
     }
 
     /** @param {string} name */
     async _setupDvcRepository() {
         const { config } = this;
         const storage = config.defaultStorage;
-        const generateDvcConfig =
-            storage === 'fs'
-                ? dvcConfig.getFSConfig
-                : dvcConfig.getS3Config({
-                      endpoint: config.s3.endpoint,
-                      bucketName: 'local-hkube-datasource',
-                      secretAccessKey: config.s3.secretAccessKey,
-                      accessKeyId: config.s3.accessKeyId,
-                      useSSL: false,
-                  });
-        await this._dvcExecute('init');
-        await fse.writeFile(
-            `${this.cwd}/.dvc/config`,
-            generateDvcConfig(this.repositoryName)
-        );
+        const generateDvcConfig = dvcConfig[storage](config);
+        await this.dvc.init();
+        await this.dvc.config(generateDvcConfig(this.repositoryName));
     }
 
-    async _enrichDvcFile(fileMeta, metaData) {
-        const dvcFilePath = `${this.cwd}/${getFilePath(fileMeta)}.dvc`;
-        const fileContent = await fse.readFile(dvcFilePath);
-        const dvcData = yaml.load(fileContent);
-        if (dvcData?.meta?.hkube) return null;
-        const extendedData = {
-            ...dvcData,
-            meta: {
-                ...(dvcData?.meta ?? {}),
-                hkube: metaData,
-            },
-        };
-        return fse.writeFile(dvcFilePath, yaml.dump(extendedData));
+    _enrichDvcFile(fileMeta, metaData) {
+        return this.dvc.enrichMeta(getFilePath(fileMeta), 'hkube', metaData);
     }
 
     async setup() {
@@ -114,31 +93,6 @@ class Repository {
 
     get cwd() {
         return `${this.rootDir}/${this.repositoryName}`;
-    }
-
-    async _execute(command, args) {
-        console.info({ command, args });
-        const cmd = childProcess.spawn(command, args, {
-            cwd: this.cwd,
-        });
-        return new Promise((res, rej) => {
-            let cache = '';
-            cmd.stdout.on('data', d => {
-                cache += d.toString();
-            });
-            cmd.stderr.on('data', d => {
-                cache += d.toString();
-            });
-            cmd.stdout.on('error', () => rej(cache));
-            cmd.on('error', rej);
-            cmd.on('close', errorCode =>
-                errorCode !== 0 ? rej(cache) : res(cache)
-            );
-        });
-    }
-
-    async _dvcExecute(...args) {
-        return this._execute('dvc', args.flat());
     }
 
     /**
@@ -183,7 +137,7 @@ class Repository {
             })
         );
         // creates .dvc files and update/create the relevant gitignore files
-        await this._dvcExecute(`add`, filePaths);
+        await this.dvc.add(filePaths);
 
         await Promise.all(
             allAddedFiles.map(async file => {
@@ -203,14 +157,14 @@ class Repository {
 
     /** @type {(filePath: string) => Promise<void>} */
     _pullDvcFile(filePath) {
-        return this._dvcExecute(
-            'get',
-            `${this.repositoryUrl} ${filePath} -o ${filePath}`
-        );
+        if (!filePath) {
+            throw new Error(`_pullDvcFile: missing filePath ${filePath}`);
+        }
+        return this.dvc.pull(filePath);
     }
 
     pullFiles() {
-        return this._dvcExecute(`pull`);
+        return this.dvc.pull();
     }
 
     /** @param {SourceTargetArray[]} sourceTargetArray */
@@ -221,8 +175,7 @@ class Repository {
                 await this._pullDvcFile(srcPath);
                 const targetPath = getFilePath(targetFile);
                 await fse.ensureDir(parsePath(`${this.cwd}/${targetPath}`).dir);
-                // moves .dvc files and updates gitignore
-                return this._dvcExecute('move', `${srcPath} ${targetPath}`);
+                return this.dvc.move(srcPath, targetPath);
             })
         );
     }
@@ -257,13 +210,16 @@ class Repository {
     async dropFiles(fileIds, currentFiles) {
         if (fileIds.length === 0) return;
         const normalizedCurrentFiles = normalize(currentFiles);
+        const filePaths = fileIds.map(id => {
+            const path = getFilePath(normalizedCurrentFiles[id]);
+            if (!path) return null;
+            return path;
+        });
+        await this.dvc.remove({ paths: filePaths });
         await Promise.all(
-            fileIds.map(async id => {
-                const path = getFilePath(normalizedCurrentFiles[id]);
-                if (!path) return null;
+            filePaths.map(async filePath => {
                 // drops the dvc file and updates gitignore
-                await this._dvcExecute('remove', `${path}.dvc`);
-                const fullPath = `${this.cwd}/${path}`;
+                const fullPath = `${this.cwd}/${filePath}`;
                 if (await fse.pathExists(fullPath)) {
                     await fse.unlink(fullPath);
                 }
@@ -298,7 +254,7 @@ class Repository {
     }
 
     async push(commitMessage) {
-        await this._dvcExecute('push', '-r', 'storage');
+        await this.dvc.push();
         await this.gitClient.add('.');
         const { commit } = await this.gitClient.commit(commitMessage);
         await this.gitClient.push();

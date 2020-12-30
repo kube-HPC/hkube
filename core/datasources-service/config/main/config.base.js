@@ -9,7 +9,7 @@ const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
 const secured = !!process.env.DATASOURCE_SERVICE_SSL;
-config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+config.defaultStorage = process.env.DEFAULT_STORAGE || 'fs';
 config.maxStorageFetchKeys = formatter.parseInt(
     process.env.MAX_STORAGE_FETCH_KEYS,
     100

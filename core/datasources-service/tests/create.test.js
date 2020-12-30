@@ -179,7 +179,7 @@ describe('/datasource POST', () => {
                 await fse.pathExists(
                     `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg.meta`
                 )
-            ).to.be.false;
+            ).to.be.true;
         });
     });
 });

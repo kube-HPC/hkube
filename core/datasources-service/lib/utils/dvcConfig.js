@@ -1,6 +1,5 @@
 const storage = require('@hkube/storage-manager');
 
-const { HKUBE_DATASOURCE } = storage.STORAGE_PREFIX.STORAGE_PREFIX;
 const getS3Config = ({
     endpoint,
     accessKeyId,
@@ -8,7 +7,7 @@ const getS3Config = ({
     useSSL = false,
 }) => repositoryName => `
 ['remote "storage"']
-    url = s3://${HKUBE_DATASOURCE}/${repositoryName}
+    url = s3://${storage.hkubeDataSource.prefix}/${repositoryName}
     endpointurl = ${endpoint}
     access_key_id = ${accessKeyId}
     secret_access_key = ${secretAccessKey}
@@ -17,14 +16,16 @@ const getS3Config = ({
     remote = storage
 `;
 
-const getFSConfig = repositoryName => `
+const getFSConfig = () => repositoryName => `
 ['remote "storage"']
-    url = /var/tmp/fs/storage/${HKUBE_DATASOURCE}/${repositoryName}
+    url = /var/tmp/fs/storage/${storage.hkubeDataSource.prefix}/${repositoryName}
 [core]
     remote = storage
 `;
 
-module.exports = {
-    getS3Config,
-    getFSConfig,
+const configMap = {
+    fs: getFSConfig,
+    s3: getS3Config,
 };
+
+module.exports = configMap;
