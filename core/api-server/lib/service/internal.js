@@ -13,7 +13,7 @@ class InternalService {
         const pipeline = { name };
 
         const results = await stateManager.getJobResult({ jobId: parentJobId });
-        if (results && results.data) {
+        if (results?.data) {
             pipeline.flowInput = { parent: results.data };
         }
         const jobId = await execution._runStored({ pipeline, rootJobId, mergeFlowInput: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
