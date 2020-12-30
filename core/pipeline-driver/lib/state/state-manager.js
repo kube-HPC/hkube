@@ -197,12 +197,8 @@ class StateManager extends EventEmitter {
         return db.fetchPipeline(options);
     }
 
-    setExecution(options) {
+    updatePipeline(options) {
         return db.updatePipeline(options);
-    }
-
-    updateExecution(options, cb) {
-        return db.patchPipeline(options, cb);
     }
 
     watchTasks(options) {
@@ -227,6 +223,11 @@ class StateManager extends EventEmitter {
 
     _watchDrivers() {
         return this._etcd.drivers.watch({ driverId: this._driverId });
+    }
+
+    async createJob({ jobId, pipeline, status }) {
+        await db.createJob({ jobId, pipeline, status });
+        await this._etcd.jobs.status.set({ jobId, ...status });
     }
 }
 
