@@ -5,6 +5,7 @@ const storageManager = require('@hkube/storage-manager');
 const { pipelineStatuses } = require('@hkube/consts');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
+const pipelines = require('./mocks/pipelines');
 const DriverStates = require('../lib/state/DriverStates');
 const StateManager = require('../lib/state/state-manager');
 let stateManager;
@@ -87,10 +88,11 @@ describe('StateManager', function () {
     });
     it('getExecution', async function () {
         const jobId = `jobid-${uuidv4()}`;
-        const options = { jobId, status: 'completed' };
-        await stateManager.setExecution(options);
-        const response = await stateManager.getExecution(options);
-        expect(response).to.deep.equal(options);
+        const pipeline = pipelines.find(p => p.name === 'simple-wait-any');
+        const options = { jobId, pipeline, status: { status: 'completed' } };
+        await stateManager.createJob(options);
+        const { jobId: j, ...pipe } = await stateManager.getExecution(options);
+        expect(pipe).to.deep.equal(options.pipeline);
     });
     it('unWatchTasks', function () {
         return new Promise(async (resolve, reject) => {
