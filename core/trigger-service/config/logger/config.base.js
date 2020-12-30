@@ -6,17 +6,20 @@ config.redis = {
     sentinel: useSentinel,
     clientVerbosity: process.env.CLIENT_VERBOSITY || 'error'
 };
+
 config.transport = {
-    console: true,
-    fluentd: false,
+    console: false,
     logstash: false,
-    file: false
+    fluentd: false,
+    file: false,
+    redis: false
 };
-config.logstash = {
-    logstashURL: 'localhost',
-    logstashPort: 28777
+
+config.throttle = {
+    wait: 30000
 };
+
 config.extraDetails = false;
+config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
 config.isDefault = true;
-config.verbosityLevel = 2;
 module.exports = config;

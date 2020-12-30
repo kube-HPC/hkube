@@ -2,7 +2,6 @@ const Logger = require('@hkube/logger');
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const objectPath = require('object-path');
 const { components, containers } = require('../consts');
-const { logWrappers } = require('./tracing');
 const { cacheResults } = require('../utils/utils');
 const component = components.K8S;
 const CONTAINERS = containers;
@@ -16,15 +15,6 @@ class KubernetesApi {
         this._hasNodeList = options.kubernetes.hasNodeList;
         this._defaultQuota = options.resources.defaultQuota;
         log.info(`Initialized kubernetes client with options ${JSON.stringify({ ...options.kubernetes, url: this._client._config.url })}`, { component });
-        if (options.healthchecks.logExternalRequests) {
-            logWrappers([
-                'getResourcesPerNode',
-                'getWorkerJobs',
-                'getPipelineDriversJobs',
-                'getPodsForJob',
-                'getVersionsConfigMap'
-            ], this, log);
-        }
         if ((options.cacheResults || {}).enabled) {
             this.getVersionsConfigMap = cacheResults(this.getVersionsConfigMap.bind(this), 5000);
             this.getResourcesPerNode = cacheResults(this.getResourcesPerNode.bind(this), 1000);

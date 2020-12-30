@@ -72,6 +72,15 @@ const template = {
                                 }
                             },
                             {
+                                name: 'STORAGE_RESULTS_THRESHOLD',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'pipeline-driver-configmap',
+                                        key: 'STORAGE_RESULTS_THRESHOLD'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {
@@ -80,6 +89,33 @@ const template = {
                                     }
                                 }
                             },
+                            {
+                                name: 'MONGODB_SERVICE_USER_NAME',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'mongodb-secret',
+                                        key: 'mongodb-username'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'MONGODB_SERVICE_PASSWORD',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'mongodb-secret',
+                                        key: 'mongodb-password'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'MONGODB_DB_NAME',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'mongodb-secret',
+                                        key: 'mongodb-database'
+                                    }
+                                }
+                            }
                         ],
                     }
                 ],

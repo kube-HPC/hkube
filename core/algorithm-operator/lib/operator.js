@@ -1,7 +1,6 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('./consts/componentNames').OPERATOR;
-const etcd = require('./helpers/etcd');
-const { logWrappers } = require('./helpers/tracing');
+const db = require('./helpers/db');
 const kubernetes = require('./helpers/kubernetes');
 const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
 const tensorboardReconciler = require('./reconcile/tensorboard');
@@ -14,11 +13,6 @@ class Operator {
         this._intervalMs = options.intervalMs;
         this._boardsIntervalMs = options.boardsIntervalMs;
         this._boardTimeOut = options.boardTimeOut;
-        if (options.healthchecks.logExternalRequests) {
-            logWrappers([
-                '_interval',
-            ], this, log);
-        }
         this._interval = this._interval.bind(this);
         this._boardsInterval = this._boardsInterval.bind(this);
         this._lastIntervalTime = null;
@@ -44,10 +38,10 @@ class Operator {
         try {
             log.debug('Reconcile interval.', { component });
             const configMap = await kubernetes.getVersionsConfigMap();
-            const { algorithms, count } = await etcd.getAlgorithmTemplates();
+            const { algorithms, count } = await db.getAlgorithmTemplates();
             await Promise.all([
                 this._algorithmBuilds({ ...configMap }, options),
-                this._tenosrboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
+                this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
             ]);
@@ -64,7 +58,6 @@ class Operator {
         this._lastIntervalBoardTime = Date.now();
         try {
             log.debug('Update board interval.', { component });
-
             await tensorboardReconciler.updateTensorboards();
         }
         catch (e) {
@@ -76,7 +69,7 @@ class Operator {
     }
 
     async _algorithmBuilds({ versions, registry, clusterOptions }, options) {
-        const builds = await etcd.getBuilds();
+        const builds = await db.getBuilds();
         if (builds.length === 0) {
             return;
         }
@@ -93,8 +86,8 @@ class Operator {
         });
     }
 
-    async _tenosrboards({ versions, registry, clusterOptions, boardTimeOut }, options) {
-        const boards = await etcd.getTensorboards();
+    async _tensorboards({ versions, registry, clusterOptions, boardTimeOut }, options) {
+        const boards = await db.getTensorboards();
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
 
         await tensorboardReconciler.reconcile({
@@ -110,7 +103,7 @@ class Operator {
 
     async _algorithmDebug({ versions, registry, clusterOptions }, algorithms, options) {
         const kubernetesKinds = await kubernetes.getAlgorithmForDebug({ labelSelector: `type=${CONTAINERS.ALGORITHM_DEBUG}` });
-        const debugAlgorithms = algorithms.filter(a => a.options && a.options.debug === true);
+        const debugAlgorithms = algorithms.filter(a => a.options?.debug === true);
         await workerDebugReconciler.reconcile({
             kubernetesKinds,
             algorithms: debugAlgorithms,

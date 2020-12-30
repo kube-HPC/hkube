@@ -4,6 +4,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const { pipelineStatuses } = require('@hkube/consts');
 const { tracer } = require('@hkube/metrics');
+const db = require('../persistency/db');
 const { heuristicsName } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 const component = require('../consts/component-name').JOBS_CONSUMER;
@@ -58,7 +59,7 @@ class JobConsumer extends EventEmitter {
     async _handleJob(job) {
         try {
             const { jobId } = job.data;
-            const data = await this.etcd.jobs.status.get({ jobId });
+            const data = await db.getJob({ jobId });
             log.info(`job arrived with ${data.status} state and ${job.data.tasks.length} tasks`, { component });
             if (this._isCompletedState({ status: data.status })) {
                 this._removeInvalidJob({ jobId });

@@ -5,6 +5,7 @@ const logger = require('../../middlewares/logger');
 const readme = require('../../../../lib/service/readme');
 const storage = multer.memoryStorage();
 const upload = multer({ storage, fileSize: 100000 });
+const fileMiddleware = upload.single('README.md');
 
 const routes = () => {
     const router = express.Router();
@@ -15,18 +16,18 @@ const routes = () => {
         res.json(response);
         next();
     });
-    router.post('/pipelines/:name', upload.single('README.md'), logger(), async (req, res, next) => {
+    router.post('/pipelines/:name', fileMiddleware, logger(), async (req, res, next) => {
         const { name } = req.params;
         const data = req.file.buffer.toString();
-        const response = await readme.insertPipeline({ name, data });
-        res.status(HttpStatus.CREATED).json(response);
+        await readme.insertPipeline({ name, data });
+        res.status(HttpStatus.CREATED).json({ message: 'OK' });
         next();
     });
-    router.put('/pipelines/:name', upload.single('README.md'), logger(), async (req, res, next) => {
+    router.put('/pipelines/:name', fileMiddleware, logger(), async (req, res, next) => {
         const { name } = req.params;
         const data = req.file.buffer.toString();
-        const response = await readme.updatePipeline({ name, data });
-        res.json(response);
+        await readme.updatePipeline({ name, data });
+        res.json({ message: 'OK' });
         next();
     });
     router.delete('/pipelines/:name', logger(), async (req, res, next) => {
@@ -42,18 +43,18 @@ const routes = () => {
         res.json(response);
         next();
     });
-    router.post('/algorithms/:name', upload.single('README.md'), logger(), async (req, res, next) => {
+    router.post('/algorithms/:name', fileMiddleware, logger(), async (req, res, next) => {
         const { name } = req.params;
         const data = req.file.buffer.toString();
-        const response = await readme.insertAlgorithm({ name, data });
-        res.status(HttpStatus.CREATED).json(response);
+        await readme.insertAlgorithm({ name, data });
+        res.status(HttpStatus.CREATED).json({ message: 'OK' });
         next();
     });
-    router.put('/algorithms/:name', upload.single('README.md'), logger(), async (req, res, next) => {
+    router.put('/algorithms/:name', fileMiddleware, logger(), async (req, res, next) => {
         const { name } = req.params;
         const data = req.file.buffer.toString();
-        const response = await readme.updateAlgorithm({ name, data });
-        res.status(HttpStatus.CREATED).json(response);
+        await readme.updateAlgorithm({ name, data });
+        res.json({ message: 'OK' });
         next();
     });
     router.delete('/algorithms/:name', logger(), async (req, res, next) => {

@@ -9,8 +9,8 @@ const fileType = require('file-type');
 const Logger = require('@hkube/logger');
 const { buildStatuses, buildTypes } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
-const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
+const stateManager = require('../state/state-manager');
 const Build = require('./build');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
@@ -26,21 +26,27 @@ class Builds {
     }
 
     async getBuild(options) {
+        const { buildId } = options;
         validator.builds.validateBuildId(options);
-        const response = await stateManager.algorithms.builds.get(options);
+        const response = await stateManager.getBuild({ buildId });
         if (!response) {
-            throw new ResourceNotFoundError('build', options.buildId);
+            throw new ResourceNotFoundError('build', buildId);
         }
         return response;
     }
 
     async getBuilds(options) {
+        const { name, sort, limit } = options;
         validator.lists.validateResultList(options);
-        const response = await stateManager.algorithms.builds.list(options);
+        const response = await stateManager.getBuilds({
+            algorithmName: name,
+            sort,
+            limit
+        });
         return response;
     }
 
-    async startBuild(options) {
+    _cleanBuild(options) {
         const build = {
             ...options,
             status: buildStatuses.PENDING,
@@ -51,7 +57,12 @@ class Builds {
             endTime: null,
             startTime: Date.now()
         };
-        return stateManager.algorithms.builds.set(build);
+        return build;
+    }
+
+    async startBuild(options) {
+        const build = this._cleanBuild(options);
+        await stateManager.createBuild(build);
     }
 
     async stopBuild(options) {
@@ -66,17 +77,18 @@ class Builds {
             status: buildStatuses.STOPPED,
             endTime: Date.now()
         };
-        await stateManager.algorithms.builds.update(buildData);
+        await stateManager.updateBuild(buildData);
     }
 
     async rerunBuild(options) {
         validator.builds.validateBuildId(options);
         const { buildId } = options;
-        const build = await this.getBuild({ buildId });
-        if (this.isActiveState(build.status)) {
-            throw new InvalidDataError(`unable to rerun build because its in ${build.status} status`);
+        const buildData = await this.getBuild({ buildId });
+        if (this.isActiveState(buildData.status)) {
+            throw new InvalidDataError(`unable to rerun build because its in ${buildData.status} status`);
         }
-        await this.startBuild(build);
+        const build = this._cleanBuild(options);
+        await stateManager.updateBuild(build);
     }
 
     async _createBuildFromCode(build) {

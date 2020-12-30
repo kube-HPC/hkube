@@ -1,4 +1,3 @@
-const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError } = require('../errors');
@@ -6,23 +5,12 @@ const { ResourceNotFoundError } = require('../errors');
 class Readme {
     async getPipeline(options) {
         const { name } = options;
-        validator.pipelines.validatePipelineName(options.name);
-        const pipeline = await stateManager.pipelines.get(options);
+        validator.pipelines.validatePipelineName(name);
+        const pipeline = await stateManager.getPipelineReadMe({ name });
         if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', options.name);
+            throw new ResourceNotFoundError('readme', name);
         }
-        let result;
-        let error;
-        try {
-            result = await storageManager.hkubeStore.get({ type: 'readme/pipeline', name });
-        }
-        catch (e) {
-            error = e.message;
-        }
-        if (error) {
-            throw new ResourceNotFoundError('readme', options.name, error);
-        }
-        return result;
+        return { name, readme: pipeline.data };
     }
 
     async insertPipeline(options) {
@@ -35,45 +23,33 @@ class Readme {
 
     async _updatePipelineReadme(options) {
         const { name, data } = options;
-        validator.pipelines.validatePipelineName(options.name);
-        const pipeline = await stateManager.pipelines.get(options);
+        validator.pipelines.validatePipelineName(name);
+        const pipeline = await stateManager.getPipeline({ name });
         if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', options.name);
+            throw new ResourceNotFoundError('pipeline', name);
         }
-        const result = await storageManager.hkubeStore.put({ type: 'readme/pipeline', name, data: { name, readme: data } });
-        return result;
+        await stateManager.updatePipelineReadMe({ name, data });
     }
 
     async deletePipeline(options) {
         const { name } = options;
         validator.pipelines.validatePipelineName(name);
-        const pipeline = await stateManager.pipelines.get(options);
+        const pipeline = await stateManager.getPipelineReadMe(options);
         if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', options.name);
+            throw new ResourceNotFoundError('readme', name);
         }
-        const result = await storageManager.hkubeStore.delete({ type: 'readme/pipeline', name });
+        const result = await stateManager.deletePipelineReadMe({ name });
         return result;
     }
 
     async getAlgorithm(options) {
         const { name } = options;
-        validator.jobs.validateName(options);
-        const algorithm = await stateManager.algorithms.store.get(options);
+        validator.algorithms.validateAlgorithmName({ name });
+        const algorithm = await stateManager.getAlgorithmReadMe({ name });
         if (!algorithm) {
-            throw new ResourceNotFoundError('algorithm', options.name);
+            throw new ResourceNotFoundError('readme', name);
         }
-        let result;
-        let error;
-        try {
-            result = await storageManager.hkubeStore.get({ type: 'readme/algorithms', name });
-        }
-        catch (e) {
-            error = e.message;
-        }
-        if (error) {
-            throw new ResourceNotFoundError('readme', options.name, error);
-        }
-        return result;
+        return { name, readme: algorithm.data };
     }
 
     async insertAlgorithm(options) {
@@ -86,23 +62,22 @@ class Readme {
 
     async _updateAlgorithmReadme(options) {
         const { name, data } = options;
-        validator.algorithms.validateUpdateAlgorithm(options);
-        const algorithm = await stateManager.algorithms.store.get(options);
+        validator.algorithms.validateAlgorithmName({ name });
+        const algorithm = await stateManager.getAlgorithm({ name });
         if (!algorithm) {
-            throw new ResourceNotFoundError('algorithm', options.name);
+            throw new ResourceNotFoundError('algorithm', name);
         }
-        const result = await storageManager.hkubeStore.put({ type: 'readme/algorithms', name, data: { name, readme: data } });
-        return result;
+        await stateManager.updateAlgorithmReadMe({ name, data });
     }
 
     async deleteAlgorithm(options) {
         const { name } = options;
-        validator.jobs.validateName(options);
-        const algorithm = await stateManager.algorithms.store.get(options);
+        validator.algorithms.validateAlgorithmName({ name });
+        const algorithm = await stateManager.getAlgorithmReadMe({ name });
         if (!algorithm) {
-            throw new ResourceNotFoundError('algorithm', options.name);
+            throw new ResourceNotFoundError('readme', name);
         }
-        const result = await storageManager.hkubeStore.delete({ type: 'readme/algorithms', name });
+        const result = await stateManager.deleteAlgorithmReadMe({ name });
         return result;
     }
 }

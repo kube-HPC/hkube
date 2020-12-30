@@ -2,10 +2,10 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const clone = require('clone');
 const { pipelineStatuses } = require('@hkube/consts');
-const stateManager = require('../lib/state/state-manager');
 const { uuid } = require('@hkube/uid');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
+const stateManager = require('../lib/state/state-manager');
 let restUrl, restPath;
 
 describe('Store/Pipelines', () => {
@@ -54,7 +54,7 @@ describe('Store/Pipelines', () => {
             await request(optionsInsert);
 
             const options = {
-                uri: restPath + '/' + pipeline.name,
+                uri: `${restPath}/${pipeline.name}`,
                 method: 'DELETE',
                 body: {}
             };
@@ -80,14 +80,14 @@ describe('Store/Pipelines', () => {
             await request(options1);
             const res = await request(options1);
             const jobId = res.body.jobId;
-            await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.STOPPED });
+            await stateManager.updateJobStatus({ jobId, status: pipelineStatuses.STOPPED });
 
             const options2 = {
                 uri: `${restPath}/${pipelineName}`,
                 method: 'DELETE'
             };
             const response2 = await request(options2);
-            expect(response2.body.message).to.equal(`pipline ${pipelineName} successfully deleted from store, stopped related running pipelines 2/3`);
+            expect(response2.body.message).to.equal(`pipeline ${pipelineName} successfully deleted from store, stopped related running pipelines 2/3`);
         });
     });
     describe('/store/pipelines GET', () => {
@@ -245,7 +245,7 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
         });
-        it('should throw validation error of data should NOT have additional properties', async () => {
+        it('should not throw validation error of data should NOT have additional properties', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -264,9 +264,7 @@ describe('Store/Pipelines', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data should NOT have additional properties (additionalProps)');
+            expect(response.body.name).to.eql(options.body.name);
         });
         it('should throw conflict error', async () => {
             const pipeline = clone(pipelines[0]);
@@ -503,6 +501,7 @@ describe('Store/Pipelines', () => {
             const pipeline = clone(pipelines[2]);
             pipeline.description = 'my description';
             pipeline.kind = 'stream';
+            pipeline.nodes.forEach(n => n.stateType = 'stateless');
             const options = {
                 uri: restPath,
                 method: 'PUT',

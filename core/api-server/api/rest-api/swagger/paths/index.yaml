@@ -65,7 +65,7 @@
   $ref: ./webhooks/status.yaml
 /webhooks/results/{jobId}:
   $ref: ./webhooks/results.yaml
-/webhooks/list:
+/webhooks/list/{jobId}:
   $ref: ./webhooks/list.yaml
 
 # boards
@@ -111,8 +111,6 @@
   $ref: ./experiment/experiment_name.yaml
 /experiment:
   $ref: ./experiment/experiment.yaml
-/experiment/list/all:
-  $ref: ./experiment/experiment_list.yaml
 
 # graph
 /graph/raw/{jobId}:
