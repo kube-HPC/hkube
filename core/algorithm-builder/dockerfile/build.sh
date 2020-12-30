@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-set -eo pipefail
+set -exo pipefail
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 ${SCRIPTPATH}/get-deps-python.sh
 ${SCRIPTPATH}/get-deps-nodejs.sh
 ${SCRIPTPATH}/get-deps-java.sh
 REPO_NAME=$1
-if [ -v PRIVATE_REGISTRY ]
+if [ ! -z $PRIVATE_REGISTRY ]
 then
   IMAGE_NAME=${PRIVATE_REGISTRY}/${REPO_NAME}
 else
@@ -18,7 +18,7 @@ if [ "${TRAVIS_PULL_REQUEST:-"false"}" != "false" ]; then
 fi
 TAG_VER="${IMAGE_NAME}:${VERSION}"
 
-if [ -v BASE_PRIVATE_REGISTRY ]
+if [ ! -z $BASE_PRIVATE_REGISTRY ]
 then
   BASE_PRIVATE_REGISTRY="${BASE_PRIVATE_REGISTRY}/"
 fi
@@ -28,13 +28,9 @@ if [ "${TRAVIS_PULL_REQUEST:-"false"}" == "false" ] || [ -z "${TRAVIS_PULL_REQUE
   docker tag ${TAG_VER} "${TAG_CUR}"
 fi
 
-if [ -v PRIVATE_REGISTRY ]
+if [ ! -z $PRIVATE_REGISTRY ]
 then
   echo docker push ${TAG_VER}
   docker push ${TAG_VER}
-  if [[ -v TAG_CUR ]]; then
-    echo docker push ${TAG_CUR}
-    docker push ${TAG_CUR}
-  fi
 fi
 
