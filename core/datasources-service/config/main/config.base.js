@@ -53,8 +53,8 @@ config.db = {
     provider: 'mongo',
     mongo: {
         auth: {
-            user: process.env.MONGODB_SERVICE_USER_NAME,
-            password: process.env.MONGODB_SERVICE_PASSWORD,
+            user: process.env.MONGODB_SERVICE_USER_NAME || 'tester',
+            password: process.env.MONGODB_SERVICE_PASSWORD || 'password',
         },
         host: process.env.MONGODB_SERVICE_HOST || 'localhost',
         port: formatter.parseInt(process.env.MONGODB_SERVICE_PORT, 27017),
