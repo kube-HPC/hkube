@@ -14,7 +14,7 @@ idParam:
         type: string
 
 snapshotNameParam:
-    name: snapshot
+    name: snapshotName
     in: path
     description: A Snapshot name
     required: true

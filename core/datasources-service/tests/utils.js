@@ -140,7 +140,9 @@ const delay = d => new Promise(r => setTimeout(r, d));
 /** @param {{ dataSourceName: string; snapshotName?: string }} query */
 const fetchSnapshot = ({ dataSourceName, snapshotName }) =>
     request({
-        uri: `${setupUrl({ name: dataSourceName })}/snapshot/${snapshotName}`,
+        uri: `${setupUrl({
+            name: dataSourceName,
+        })}/snapshot/${snapshotName}?resolve=${shouldResolve}`,
         method: 'GET',
     });
 
