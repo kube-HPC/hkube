@@ -14,8 +14,10 @@ class SubPipelineHandler {
         const { includeResult } = options;
         if (includeResult && result && result.storageInfo) {
             const { payload } = await storageManager.getCustomData(result.storageInfo);
-            payload.forEach(node => fillMissing(node));
-
+            for (let i = 0; i < payload.length; i += 1) {
+                // eslint-disable-next-line no-await-in-loop
+                await fillMissing(payload[i]);
+            }
             result = payload;
         }
         return result;
