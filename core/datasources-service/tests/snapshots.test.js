@@ -16,7 +16,8 @@ const generateSnapshot = (name, query) => ({
 /**
  * @returns {{
  *     dataSource: import('@hkube/db/lib/DataSource').DataSource;
- *     snapshots: import('@hkube/db/lib/DataSource').Snapshot;
+ *     generatedSnapshots: { name: string; query: string }[];
+ *     createdSnapshots: import('@hkube/db/lib/DataSource').Snapshot;
  * }}
  */
 const setupDataSource = async (numberOfSnapshots = 1) => {
@@ -51,7 +52,7 @@ describe.only('snapshots', () => {
         restPath = `${restUrl}/datasource`;
     });
     it('should fetch snapshot by datasource name and id', async () => {
-        const { dataSource, snapshots } = await setupDataSource(5);
+        const { dataSource, generatedSnapshots } = await setupDataSource(5);
         const response = await fetchAllSnapshots({
             dataSourceId: dataSource.id,
         });
@@ -63,7 +64,7 @@ describe.only('snapshots', () => {
             expect(entry.dataSource.id).to.eql(dataSource.id);
             expect(entry.dataSource.name).to.eql(dataSource.name);
         });
-        expect(items).to.eql(snapshots);
+        expect(items).to.eql(generatedSnapshots);
     });
     it('should fetch snapshot by dataSource and snapshot name', async () => {
         const count = 5;
@@ -75,9 +76,26 @@ describe.only('snapshots', () => {
             snapshotName: randomSnapshot.name,
         });
         const { body: snapshot } = response;
-        expect(snapshot.dataSource.id).to.eql(dataSource.id);
+        expect(snapshot.dataSource.id).to.eq(dataSource.id);
         expect(snapshot.name).to.eql(randomSnapshot.name);
         expect(snapshot.query).to.eql(randomSnapshot.query);
+        expect(snapshot.dataSource).not.to.have.ownProperty('files');
+    });
+    it.only('should fetch snapshot by dataSource and snapshot name', async () => {
+        const count = 5;
+        const { dataSource, createdSnapshots } = await setupDataSource(count);
+        const randomSnapshot =
+            createdSnapshots[Math.floor(Math.random() * count)];
+        const response = await fetchSnapshot({
+            dataSourceName: dataSource.name,
+            snapshotName: randomSnapshot.name,
+            shouldResolve: true,
+        });
+        const { body: snapshot } = response;
+        expect(snapshot.dataSource.id).to.eq(dataSource.id);
+        expect(snapshot.name).to.eql(randomSnapshot.name);
+        expect(snapshot.query).to.eql(randomSnapshot.query);
+        expect(snapshot.dataSource).to.have.ownProperty('files');
     });
     it('should throw snapshot not found error', async () => {
         const { dataSource } = await setupDataSource();

@@ -53,6 +53,17 @@ class Snapshots {
         }
         return response;
     }
+
+    async fetchDataSource({ dataSourceName, snapshotName }) {
+        const response = await this.db.snapshots.fetchDataSource({
+            dataSourceName,
+            snapshotName,
+        });
+        if (!response) {
+            throw new ResourceNotFoundError('snapshot', snapshotName);
+        }
+        return response;
+    }
 }
 
 module.exports = new Snapshots();

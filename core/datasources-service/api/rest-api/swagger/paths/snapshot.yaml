@@ -1,40 +1,48 @@
 post:
-  tags:
-    - Snapshot
-  summary: create a new snapshot for a given datasource version
-  parameters:
-    - $ref: "#components/parameters/nameParam"
-    - $ref: "#components/parameters/idQueryRequired"
-  requestBody:
-    content:
-      application/json:
-        schema:
-          $ref: "#/components/schemas/SnapshotRequest"
-  responses:
-    "201":
-      description: A collection of snapshots
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Snapshot"
+    tags:
+        - Snapshot
+    summary: create a new snapshot for a given datasource version
+    parameters:
+        - $ref: "#components/parameters/nameParam"
+        - $ref: "#components/parameters/idQueryRequired"
+    requestBody:
+        content:
+            application/json:
+                schema:
+                    $ref: "#/components/schemas/SnapshotRequest"
+    responses:
+        "201":
+            description: A collection of snapshots
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Snapshot"
 get:
-  tags:
-    - Snapshot
-  summary: fetch snapshots for a given datasource
-  parameters:
-    - $ref: "#components/parameters/snapshotNameParam"
-  responses:
-    "200":
-      description: A collection of snapshots
-      content:
-        application/json:
+    tags:
+        - Snapshot
+    summary: fetch snapshots for a given datasource
+    parameters:
+        - $ref: "#components/parameters/nameParam"
+        - $ref: "#components/parameters/snapshotNameParam"
+        - name: resolve
+          in: query
+          description: return the entire dataSource with the snapshot
           schema:
-            type: object
-            properties:
-              dataSource:
-                type: object
-                properties:
-                  id:
-                    type: string
-              snapshot:
-                $ref: "#/components/schemas/Snapshot"
+              type: boolean
+    responses:
+        "200":
+            description: A collection of snapshots
+            content:
+                application/json:
+                    schema:
+                        oneOf:
+                            - type: object
+                              properties:
+                                  dataSource:
+                                      type: object
+                                      properties:
+                                          id:
+                                              type: string
+                                  snapshot:
+                                      $ref: "#/components/schemas/Snapshot"
+                            - $ref: "#/components/schemas/ResolvedSnapshot"

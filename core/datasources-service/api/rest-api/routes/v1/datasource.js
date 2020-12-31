@@ -136,10 +136,19 @@ const routes = () => {
             next();
         })
         .get('/:name/snapshot/:snapshotName', async (req, res, next) => {
-            const response = await snapshots.fetch({
-                dataSourceName: req.params.name,
-                snapshotName: req.params.snapshotName,
-            });
+            const shouldResolve = req.query.resolve === 'true';
+            let response;
+            if (shouldResolve) {
+                response = await snapshots.fetchDataSource({
+                    dataSourceName: req.params.name,
+                    snapshotName: req.params.snapshotName,
+                });
+            } else {
+                response = await snapshots.fetch({
+                    dataSourceName: req.params.name,
+                    snapshotName: req.params.snapshotName,
+                });
+            }
             res.json(response);
             next();
         });

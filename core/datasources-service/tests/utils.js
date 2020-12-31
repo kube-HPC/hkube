@@ -111,10 +111,22 @@ const fetchDataSourceVersions = ({ name }) => {
     return request(getOptions);
 };
 
-/** @param {{ dataSourceName: string; snapshotName?: string }} query */
-const fetchSnapshot = ({ dataSourceName, snapshotName }) =>
+/**
+ * @param {{
+ *     dataSourceName: string;
+ *     snapshotName?: string;
+ *     shouldResolve: boolean;
+ * }} query
+ */
+const fetchSnapshot = ({
+    dataSourceName,
+    snapshotName,
+    shouldResolve = false,
+}) =>
     request({
-        uri: `${setupUrl({ name: dataSourceName })}/snapshot/${snapshotName}`,
+        uri: `${setupUrl({
+            name: dataSourceName,
+        })}/snapshot/${snapshotName}?resolve=${shouldResolve}`,
         method: 'GET',
     });
 
