@@ -2,7 +2,7 @@ const storageManager = require('@hkube/storage-manager');
 
 async function fillMissing(element) {
     if (element.info) {
-        if (element.info.message && element.info.message.startsWith('data too large')) {
+        if (element.info.message?.startsWith('data too large')) {
             const res = await storageManager.getCustomData(element.info);
             element.result = res.payload;
         }
