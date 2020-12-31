@@ -90,6 +90,7 @@ config.git = {
 config.directories = {
     temporaryGitRepositories: 'temp/datasource-git-repositories',
     dataSourcesInUse: 'temp/dataSources-in-use',
+    forDownload: 'temp/for-download',
 };
 
 config.redis = {
