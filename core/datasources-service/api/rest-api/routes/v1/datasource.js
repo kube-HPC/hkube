@@ -87,7 +87,6 @@ const routes = () => {
                     name,
                     versionDescription,
                     files: {
-                        // @ts-ignore
                         added: req.files,
                         dropped: droppedFileIds
                             ? JSON.parse(droppedFileIds)
