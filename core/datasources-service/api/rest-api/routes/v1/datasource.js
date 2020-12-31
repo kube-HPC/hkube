@@ -17,7 +17,6 @@ const cleanTmpFile = async (files = []) => {
 
 const routes = () => {
     const router = Router();
-    router.use(dbErrorsMiddleware);
     router
         .route('/')
         .get(async (req, res, next) => {
@@ -153,6 +152,7 @@ const routes = () => {
             next();
         });
 
+    router.use(dbErrorsMiddleware);
     return router;
 };
 

@@ -34,8 +34,7 @@ describe('/datasource/:name POST', () => {
         expect(uploadResponse.body.error.message).to.match(/not found/i);
         expect(uploadResponse.statusCode).to.eql(HttpStatus.NOT_FOUND);
     });
-    // should pass
-    it.skip('should upload a new file to the dataSource and get a new version', async () => {
+    it('should upload a new file to the dataSource and get a new version', async () => {
         const name = uuid();
         const { body: firstVersion } = await createDataSource({
             body: { name },
@@ -85,26 +84,15 @@ describe('/datasource/:name POST', () => {
         });
         const mappedFile = files.find(file => file.name === 'README-2.md');
         expect(mappedFile.path).to.eq('/someSubDir');
-        expect(
-            await fse.pathExists(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/someSubDir/README-2.md`
-            )
+        const results = await Promise.all(
+            [
+                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/someSubDir/README-2.md`,
+                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/someSubDir/README-2.md.dvc`,
+                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/algorithms.json`,
+                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/algorithms.json.dvc`,
+            ].map(fse.pathExists)
         );
-        expect(
-            await fse.pathExists(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/someSubDir/README-2.md.dvc`
-            )
-        );
-        expect(
-            await fse.pathExists(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/algorithms.json`
-            )
-        );
-        expect(
-            await fse.pathExists(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/algorithms.json.dvc`
-            )
-        );
+        results.forEach(r => expect(r).to.be.true);
         const { response: fetchDataSourceResponse } = await fetchDataSource({
             name,
         });

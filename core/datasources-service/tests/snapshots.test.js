@@ -44,7 +44,7 @@ const setupDataSource = async (numberOfSnapshots = 1) => {
     };
 };
 
-describe.only('snapshots', () => {
+describe('snapshots', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
@@ -81,7 +81,7 @@ describe.only('snapshots', () => {
         expect(snapshot.query).to.eql(randomSnapshot.query);
         expect(snapshot.dataSource).not.to.have.ownProperty('files');
     });
-    it.only('should fetch snapshot by dataSource and snapshot name', async () => {
+    it('should fetch snapshot by dataSource and snapshot name', async () => {
         const count = 5;
         const { dataSource, createdSnapshots } = await setupDataSource(count);
         const randomSnapshot =
