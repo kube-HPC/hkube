@@ -1,6 +1,7 @@
 const { Consumer } = require('@hkube/producer-consumer');
 const { taskStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
+const log = require('@hkube/logger').GetLogFromContainer();
 const fse = require('fs-extra');
 const Etcd = require('../Etcd');
 const dbConnection = require('../db');
@@ -19,6 +20,7 @@ class JobConsumer {
     }
 
     handleFail({ jobId, taskId, error }) {
+        log.error(error);
         return this.state.update({
             jobId,
             taskId,
