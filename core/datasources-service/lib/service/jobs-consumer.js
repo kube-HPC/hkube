@@ -37,30 +37,41 @@ class JobConsumer {
     }
 
     /** @param {Job} props */
-    async fetchDataSource({ dataSource, ...job }) {
+    async fetchDataSource({ dataSource: dataSourceDescriptor, ...job }) {
         const { jobId } = job;
         await this.setActive(job);
 
-        const shouldGetLatest = !dataSource.version;
-        let dataSourceEntry;
+        let dataSource;
+        const { snapshotName } = dataSourceDescriptor;
         try {
-            dataSourceEntry = await this.db.dataSources.fetch(
-                shouldGetLatest
-                    ? { name: dataSource.name }
-                    : { id: dataSource.version }
-            );
+            if (snapshotName) {
+                const resolvedSnapshot = await this.db.snapshots.fetchDataSource(
+                    {
+                        snapshotName,
+                        dataSourceName: dataSourceDescriptor.name,
+                    }
+                );
+                dataSource = resolvedSnapshot.dataSource;
+            } else {
+                const shouldGetLatest = !dataSourceDescriptor.version;
+                dataSource = await this.db.dataSources.fetch(
+                    shouldGetLatest
+                        ? { name: dataSourceDescriptor.name }
+                        : { id: dataSourceDescriptor.version }
+                );
+            }
         } catch (e) {
             return this.handleFail({ ...job, error: e.message });
         }
 
         const repository = new Repository(
-            dataSource.name,
+            dataSourceDescriptor.name,
             this.config,
             `${this.rootDir}/${jobId}`
         );
 
         try {
-            await repository.ensureClone(dataSourceEntry.versionId);
+            await repository.ensureClone(dataSource.versionId);
             await repository.pullFiles();
         } catch (error) {
             return this.handleFail({
@@ -69,10 +80,10 @@ class JobConsumer {
             });
         }
 
-        let payload = dataSourceEntry.files;
+        let payload = dataSource.files;
         if (dataSource.query) {
             payload = await repository.filterFiles(
-                dataSourceEntry.files,
+                dataSource.files,
                 dataSource.query
             );
         }

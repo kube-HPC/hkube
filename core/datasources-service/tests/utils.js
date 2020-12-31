@@ -12,17 +12,20 @@ const setupUrl = ({ name, id }) => {
     return id && name
         ? `${uri}/${name}?version_id=${id}`
         : id
-            ? `${uri}/id/${id}`
-            : `${uri}/${name}`;
+        ? `${uri}/id/${id}`
+        : `${uri}/${name}`;
 };
 
-/** @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta */
+/**
+ * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
+ * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
+ */
 /**
  * @type {(props?: {
  *     body?: { name?: string };
  *     withFile?: boolean;
  *     fileNames?: string[];
- * }) => Promise<any>}
+ * }) => Promise<{ body: DataSource }>}
  */
 const createDataSource = ({
     body = {},
@@ -117,7 +120,7 @@ const createJob = async ({ dataSource }) => {
     const producer = new Producer({
         setting: {
             redis: config.redis,
-        }
+        },
     });
     const { prefix, type } = config.jobs.consumer;
     const job = {
@@ -127,13 +130,12 @@ const createJob = async ({ dataSource }) => {
             jobId: uuid(),
             taskId: uuid(),
             nodeName: uuid(),
-            dataSource
-        }
-
+            dataSource,
+        },
     };
     await producer.createJob({ job });
     return job;
-}
+};
 
 const delay = d => new Promise(r => setTimeout(r, d));
 
