@@ -25,7 +25,7 @@ config.servingReportInterval = formatters.parseInt(process.env.DISCOVERY_SERVING
 config.streaming = {
     autoScaler: {
         interval: formatters.parseInt(process.env.AUTO_SCALER_INTERVAL, 2000),
-        logStatsInterval: formatters.parseInt(process.env.AUTO_SCALER_STATS_INTERVAL, 20000),
+        logStatsInterval: formatters.parseInt(process.env.AUTO_SCALER_STATS_INTERVAL, 30000),
         maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 10),
         minRatioToScaleUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_UP, 1.2),
         minRatioToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_DOWN, 0.8),
@@ -41,7 +41,7 @@ config.streaming = {
     },
     serviceDiscovery: {
         interval: formatters.parseInt(process.env.SERVICE_DISCOVERY_INTERVAL, 5000),
-        timeWaitOnParentsDown: formatters.parseInt(process.env.SERVICE_DISCOVERY_PARENTS_DOWN_TIME_WAIT, 20000),
+        timeWaitOnParentsDown: formatters.parseInt(process.env.SERVICE_DISCOVERY_PARENTS_DOWN_TIME_WAIT, 30000),
         address: {
             host: process.env.POD_IP || '127.0.0.1',
             port: process.env.STREAMING_DISCOVERY_PORT || 9022
