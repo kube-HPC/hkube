@@ -79,7 +79,7 @@ describe.only('snapshots', () => {
         expect(snapshot.name).to.eql(randomSnapshot.name);
         expect(snapshot.query).to.eql(randomSnapshot.query);
     });
-    it.only('should throw snapshot not found error', async () => {
+    it('should throw snapshot not found error', async () => {
         const { dataSource } = await setupDataSource();
         const response = await fetchSnapshot({
             dataSourceName: dataSource.name,
@@ -89,5 +89,18 @@ describe.only('snapshots', () => {
         expect(response.body.error.code).to.eql(HttpStatus.NOT_FOUND);
         expect(response.body.error.message).to.match(/not found/i);
     });
-    it.skip('should throw an error for an already occupied snapshot name', () => {});
+    it('should throw an error for an already occupied snapshot name', async () => {
+        const { dataSource, createdSnapshots } = await setupDataSource();
+        const [snapshot] = createdSnapshots;
+        const response = await createSnapshot({
+            id: dataSource.id,
+            name: dataSource.name,
+            snapshot: {
+                name: snapshot.name,
+                query: snapshot.query,
+            },
+        });
+        expect(response.body.error.code).to.eql(HttpStatus.CONFLICT);
+        expect(response.body.error.message).to.match(/already exists/i);
+    });
 });

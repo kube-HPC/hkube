@@ -1,5 +1,5 @@
 const { errorTypes, isDBError } = require('@hkube/db/lib/errors');
-const { ResourceNotFoundError } = require('../errors');
+const { ResourceNotFoundError, ResourceExistsError } = require('../errors');
 const validator = require('../validation');
 const dbConnection = require('../db');
 
@@ -22,13 +22,22 @@ class Snapshots {
 
     async create(snapshot) {
         validator.snapshots.validateSnapshot(snapshot);
-        return this.db.snapshots.create(snapshot);
+        let response = null;
+        try {
+            response = await this.db.snapshots.create(snapshot);
+        } catch (error) {
+            if (isDBError(error) && error.type === errorTypes.CONFLICT) {
+                throw new ResourceExistsError('snapshot', snapshot.name, error);
+            }
+            throw error;
+        }
+        return response;
     }
 
     async fetch({ dataSourceName, snapshotName }) {
         let response = null;
         try {
-            response = this.db.snapshots.fetch(
+            response = await this.db.snapshots.fetch(
                 { name: snapshotName, 'dataSource.name': dataSourceName },
                 { allowNotFound: false }
             );
