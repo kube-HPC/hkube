@@ -12,6 +12,8 @@ info:
 tags:
     - name: DataSource
       description: DataSources and their related files
+    - name: Snapshot
+      description: A Snapshot is a bundle of dataSource version and a query
 
 externalDocs:
     description: Find out more about Hkube

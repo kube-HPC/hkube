@@ -10,6 +10,7 @@ const modules = [
     require('./lib/db'),
     require('./api/rest-api/app-server'),
     require('./lib/service/dataSource'),
+    require('./lib/service/snapshots'),
     require('./lib/service/jobs-consumer'),
 ];
 

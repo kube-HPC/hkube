@@ -1,25 +1,13 @@
-const { isDBError, errorTypes } = require('@hkube/db/lib/errors');
 const { Router } = require('express');
 const multer = require('multer');
 const HttpStatus = require('http-status-codes');
 const fse = require('fs-extra');
-const {
-    ResourceNotFoundError,
-    InvalidDataError,
-} = require('../../../../lib/errors');
+const { InvalidDataError } = require('../../../../lib/errors');
 const dataSource = require('../../../../lib/service/dataSource');
+const snapshots = require('../../../../lib/service/snapshots');
+const dbErrorsMiddleware = require('./../../middlewares/dbErrors');
 
 const upload = multer({ dest: 'uploads/datasource/' });
-
-const errorsMiddleware = (error, req, res, next) => {
-    if (isDBError(error)) {
-        if (error.type === errorTypes.NOT_FOUND) {
-            throw new ResourceNotFoundError('dataSource', error.metaData.id);
-        }
-        throw new InvalidDataError(error.message);
-    }
-    return next(error);
-};
 
 const cleanTmpFile = async (files = []) => {
     if (files.length > 0) {
@@ -29,6 +17,7 @@ const cleanTmpFile = async (files = []) => {
 
 const routes = () => {
     const router = Router();
+    router.use(dbErrorsMiddleware);
     router
         .route('/')
         .get(async (req, res, next) => {
@@ -49,6 +38,7 @@ const routes = () => {
             }
             next();
         });
+
     router.route('/id/:id').get(async (req, res, next) => {
         const { id } = req.params;
         const dataSourceEntry = await dataSource.fetchDataSource({ id });
@@ -61,6 +51,7 @@ const routes = () => {
         });
         next();
     });
+
     router
         .route('/:name')
         .get(async (req, res, next) => {
@@ -123,7 +114,36 @@ const routes = () => {
         return next();
     });
 
-    router.use(errorsMiddleware);
+    router
+        .post('/:name/snapshot', async (req, res, next) => {
+            /** @type {{ version_id: string }} */
+            const { version_id: id } = req.query;
+            const { name, query } = req.body;
+            const response = await snapshots.create({
+                dataSource: {
+                    id,
+                    name: req.params.name,
+                },
+                name,
+                query,
+            });
+            res.json(response);
+            next();
+        })
+        .get('/id/:id/snapshot', async (req, res, next) => {
+            const response = await snapshots.fetchAll({ id: req.params.id });
+            res.json(response);
+            next();
+        })
+        .get('/:name/snapshot/:snapshotName', async (req, res, next) => {
+            const response = await snapshots.fetch({
+                dataSourceName: req.params.name,
+                snapshotName: req.params.snapshotName,
+            });
+            res.json(response);
+            next();
+        });
+
     return router;
 };
 
