@@ -1,0 +1,17 @@
+type: object
+properties:
+  name:
+    type: string
+  query:
+    type: string
+  dataSource:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+required:
+  - name
+  - query
+  - dataSource

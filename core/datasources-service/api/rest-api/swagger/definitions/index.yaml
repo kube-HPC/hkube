@@ -17,6 +17,13 @@ DataSourceName:
 DataSourceVersion:
     $ref: ./DataSourceVersion.yaml
 
+SnapshotRequest:
+    $ref: ./Snapshot.request.yaml
+SnapshotCreate:
+    $ref: ./Snapshot.create.yaml
+Snapshot:
+    $ref: ./Snapshot.yaml
+
 createRequest:
     $ref: ./create.request.yaml
 updateRequest:

@@ -6,6 +6,16 @@ const { request } = require('./request');
 // a valid mongo ObjectID;
 const nonExistingId = '5f953d50dd38c8291924a0a3';
 const fileName = 'README-1.md';
+
+const setupUrl = ({ name, id }) => {
+    const uri = `${global.testParams.restUrl}/datasource`;
+    return id && name
+        ? `${uri}/${name}?version_id=${id}`
+        : id
+            ? `${uri}/id/${id}`
+            : `${uri}/${name}`;
+};
+
 /** @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta */
 /**
  * @type {(props?: {
@@ -26,10 +36,7 @@ const createDataSource = ({
             ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`))
             : undefined,
     };
-    const options = {
-        uri,
-        formData,
-    };
+    const options = { uri, formData };
     return request(options);
 };
 
@@ -56,7 +63,7 @@ const updateVersion = async ({
     mapping: _mapping = [],
     droppedFileIds: _droppedFileIds = [],
 }) => {
-    const uri = `${global.testParams.restUrl}/datasource`;
+    const uri = setupUrl({ name: dataSourceName });
     const normalizedMapping = _mapping.reduce(
         (acc, item) => ({ ...acc, [item.id]: item }),
         {}
@@ -82,23 +89,14 @@ const updateVersion = async ({
         mapping,
         droppedFileIds,
     };
-    const options = {
-        uri: `${uri}/${dataSourceName}`,
-        formData,
-    };
+    const options = { uri, formData };
     return request(options);
 };
 
 /** @param {{ name?: string; id?: string }} query */
 const fetchDataSource = ({ name, id }) => {
-    const uri = `${global.testParams.restUrl}/datasource`;
     const getOptions = {
-        uri:
-            id && name
-                ? `${uri}/${name}?version_id=${id}`
-                : id
-                    ? `${uri}/id/${id}`
-                    : `${uri}/${name}`,
+        uri: setupUrl({ name, id }),
         method: 'GET',
     };
     return request(getOptions);
@@ -106,7 +104,7 @@ const fetchDataSource = ({ name, id }) => {
 
 /** @param {{ name: string }} query */
 const fetchDataSourceVersions = ({ name }) => {
-    const uri = `${global.testParams.restUrl}/datasource/${name}/versions`;
+    const uri = `${setupUrl({ name })}/versions`;
     const getOptions = {
         uri,
         method: 'GET',
@@ -115,28 +113,56 @@ const fetchDataSourceVersions = ({ name }) => {
 };
 
 const createJob = async ({ dataSource }) => {
-    const config = global.testParams.config.jobs.consumer;
+    const config = global.testParams.config;
     const producer = new Producer({
         setting: {
             redis: config.redis,
         }
     });
-    const options = {
-        job: {
-            prefix: config.prefix,
-            type: config.type,
-            data: {
-                jobId: uuid(),
-                taskId: uuid(),
-                nodeName: uuid(),
-                dataSource
-            }
+    const { prefix, type } = config.jobs.consumer;
+    const job = {
+        prefix,
+        type,
+        data: {
+            jobId: uuid(),
+            taskId: uuid(),
+            nodeName: uuid(),
+            dataSource
         }
+
     };
-    await producer.createJob(options);
+    await producer.createJob({ job });
+    return job;
 }
 
 const delay = d => new Promise(r => setTimeout(r, d));
+
+/** @param {{ dataSourceName: string; snapshotName?: string }} query */
+const fetchSnapshot = ({ dataSourceName, snapshotName }) =>
+    request({
+        uri: `${setupUrl({ name: dataSourceName })}/snapshot/${snapshotName}`,
+        method: 'GET',
+    });
+
+/** @param {{ dataSourceId: string }} query */
+const fetchAllSnapshots = ({ dataSourceId }) =>
+    request({
+        uri: `${setupUrl({ id: dataSourceId })}/snapshot`,
+        method: 'GET',
+    });
+
+/**
+ * @param {{
+ *     name: string;
+ *     id?: string;
+ *     snapshot: { name: string; query: string };
+ * }} query
+ */
+const createSnapshot = ({ name, id, snapshot }) =>
+    request({
+        uri: `${global.testParams.restUrl}/datasource/${name}/snapshot?version_id=${id}`,
+        body: snapshot,
+    });
 
 module.exports = {
     fetchDataSource,
@@ -147,4 +173,7 @@ module.exports = {
     delay,
     nonExistingId,
     fileName,
+    fetchSnapshot,
+    createSnapshot,
+    fetchAllSnapshots,
 };

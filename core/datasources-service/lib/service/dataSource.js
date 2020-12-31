@@ -2,7 +2,7 @@ const { errorTypes, isDBError } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
 const Repository = require('../utils/Repository');
 const { ResourceExistsError, ResourceNotFoundError } = require('../errors');
-const validator = require('../validation/api-validator');
+const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const getFilePath = require('../utils/getFilePath');
@@ -261,11 +261,7 @@ class DataSource {
         );
         await repository.moveExistingFiles(groups.movedFiles);
         await repository.dropFiles(dropped, currentFiles);
-        /**
-         * Cleanups: - drop empty directories and empty git ignore files
-         *     make sure the directory is really empty and has no subDirs!
-         */
-
+        /** Cleanups: - drop empty git ignore files */
         const commit = await repository.push(commitMessage);
         const finalMapping = await repository.scanDir();
         await repository.cleanup();
@@ -287,7 +283,7 @@ class DataSource {
      * }} props
      */
     async updateDataSource({ name, files: _files, versionDescription }) {
-        validator.dataSource.update({
+        validator.dataSources.update({
             name,
             files: _files,
             versionDescription,
@@ -303,6 +299,7 @@ class DataSource {
             this.config,
             this.config.directories.temporaryGitRepositories
         );
+
         const { commitHash, files } = await this.commitChange({
             repository,
             files: _files,
@@ -322,7 +319,7 @@ class DataSource {
 
     /** @param {{ name: string; files: MulterFile[] }} query */
     async createDataSource({ name, files: _files }) {
-        validator.dataSource.create({ name, files: _files });
+        validator.dataSources.create({ name, files: _files });
         let createdDataSource;
         try {
             createdDataSource = await db.dataSources.create({ name });
@@ -364,14 +361,11 @@ class DataSource {
     async fetchDataSource({ name, id }) {
         let dataSource = null;
         try {
-            dataSource = await db.dataSources.fetch(
-                {
-                    name,
-                    id,
-                    isPartial: false,
-                },
-                { allowNotFound: false }
-            );
+            dataSource = await db.dataSources.fetch({
+                name,
+                id,
+                isPartial: false,
+            });
         } catch (error) {
             if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
                 throw new ResourceNotFoundError('dataSource', name, error);
@@ -392,12 +386,34 @@ class DataSource {
     }
 
     async list() {
-        return db.dataSources.fetchAll();
+        return db.dataSources.listDataSources();
     }
 
     /** @param {string} name */
     async listVersions(name) {
         return db.dataSources.listVersions({ name });
+    }
+
+    async createSnapshot({ id, snapshot }) {
+        validator.dataSources.validateSnapshot(snapshot);
+        return db.dataSources.createSnapshot({ id, snapshot });
+    }
+
+    async fetchSnapshot({ snapshotName }) {
+        const entry = await db.dataSources.fetch(
+            { 'snapshots.name': snapshotName },
+            { fields: { snapshots: 1 }, allowNotFound: true }
+        );
+        if (!entry) {
+            throw new ResourceNotFoundError('Snapshot', snapshotName);
+        }
+        const snapshot = entry.snapshots.find(
+            item => item.name === snapshotName
+        );
+        return {
+            dataSource: { id: entry.id },
+            snapshot,
+        };
     }
 }
 

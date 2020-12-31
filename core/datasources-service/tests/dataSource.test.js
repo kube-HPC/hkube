@@ -9,7 +9,6 @@ const {
     createDataSource,
     fetchDataSource,
     updateVersion,
-    fileName,
     nonExistingId,
     fetchDataSourceVersions,
 } = require('./utils');
@@ -73,7 +72,9 @@ describe('Datasource', () => {
         it('should fetch a datasource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
-            const { response: getResponse } = await fetchDataSource({ name });
+            const { response: getResponse } = await fetchDataSource({
+                name,
+            });
             const { body: dataSource } = getResponse;
             expect(dataSource).to.have.property('id');
             expect(dataSource.id).to.be.string;
@@ -130,32 +131,8 @@ describe('Datasource', () => {
             );
         });
     });
-    describe.skip('/datasource/:name DELETE', () => {
-        it('should delete a datasource given an id', async () => {
-            const name = uuid();
-            await createDataSource({ body: { name } });
-            const options = {
-                uri: `${restPath}/${name}`,
-                method: 'DELETE',
-            };
-            const { response: deleteResponse } = await request(options);
-            expect(deleteResponse.statusCode).to.eq(HttpStatus.OK);
-        });
-        it('should return 404 if dataSource is not found', async () => {
-            const options = {
-                uri: `${restPath}/${nonExistingId}`,
-                method: 'DELETE',
-            };
-            const { response } = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal(
-                `dataSource ${nonExistingId} Not Found`
-            );
-        });
-    });
     describe('/datasource GET', () => {
-        it('should success to get list of dataSources', async () => {
+        it('should succeed list all dataSources', async () => {
             const names = new Array(3).fill(0).map(() => uuid());
             await Promise.all(
                 names.map(name => createDataSource({ body: { name } }))
@@ -186,7 +163,10 @@ describe('Datasource', () => {
             const { body } = await request(options);
             const ds = body.find(item => item.name === name);
             const { fileTypes } = ds;
-            expect(fileTypes).to.eql(['text/markdown', 'application/json']);
+            expect(fileTypes).to.have.members([
+                'text/markdown',
+                'application/json',
+            ]);
             expect(fileTypes).to.have.lengthOf([...new Set(fileTypes)].length);
         });
     });
@@ -227,4 +207,4 @@ describe('Datasource', () => {
             expect(versionsList).to.have.length(0);
         });
     });
-});
+}).timeout(20000);

@@ -18,6 +18,13 @@ class StateManager {
         });
     }
 
+    get({ jobId, taskId }) {
+        return this._etcd.jobs.tasks.get({
+            jobId,
+            taskId,
+        });
+    }
+
     update({ jobId, taskId, nodeName, status, result, error }) {
         return this._etcd.jobs.tasks.update({
             jobId,

@@ -10,6 +10,7 @@ const modules = [
     require('./lib/db'),
     require('./api/rest-api/app-server'),
     require('./lib/service/dataSource'),
+    require('./lib/service/snapshots'),
     require('./lib/service/jobs-consumer'),
 ];
 
@@ -27,7 +28,7 @@ class Bootstrap {
             if (config.tracer) {
                 await tracer.init(config.tracer);
             }
-            await storageManager.init(config, log, true);
+            await storageManager.init(config, log);
 
             for (const m of modules) {
                 await m.init(config);

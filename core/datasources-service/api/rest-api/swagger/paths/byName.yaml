@@ -4,11 +4,7 @@ get:
     summary: Fetch a single dataSource by name
     parameters:
         - $ref: "#components/parameters/nameParam"
-        - in: query
-          name: version_id
-          description: request a specific version, if not stated the latest is returned
-          schema:
-              type: string
+        - $ref: "#components/parameters/idQuery"
     responses:
         "200":
             description: A datasource item

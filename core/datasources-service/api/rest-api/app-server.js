@@ -7,7 +7,7 @@ const { metrics } = require('@hkube/metrics');
 require('express-async-errors');
 const HttpStatus = require('http-status-codes');
 const swaggerLoader = require('./swagger-loader.js');
-const validator = require('../../lib/validation/api-validator');
+const validator = require('../../lib/validation');
 const afterRequest = require('./middlewares/after-request');
 const component = require('../../lib/consts/componentNames').REST_API;
 

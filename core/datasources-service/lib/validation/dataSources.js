@@ -2,7 +2,7 @@ const dbConnect = require('../db');
 const { ResourceNotFoundError } = require('../errors');
 /** @typedef {import('express')} Express */
 
-class ApiValidator {
+class DataSources {
     constructor(validator) {
         this._validator = validator;
     }
@@ -57,6 +57,13 @@ class ApiValidator {
             );
         }
     }
+
+    async validateSnapshot(snapshot) {
+        this._validator.validate(
+            this._validator.definitions.Snapshot,
+            snapshot
+        );
+    }
 }
 
-module.exports = ApiValidator;
+module.exports = DataSources;
