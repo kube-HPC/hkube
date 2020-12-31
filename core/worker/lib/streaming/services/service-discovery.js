@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
+const { stateType: stateTypes } = require('@hkube/consts');
 const { Interval } = require('../core');
 const stateAdapter = require('../../states/stateAdapter');
 const { Components, streamingEvents, workerStates } = require('../../consts');
@@ -21,11 +22,11 @@ class ServiceDiscovery extends EventEmitter {
         log = Logger.GetLogFromContainer();
     }
 
-    async start({ jobId, taskId, parents }) {
+    async start({ jobId, taskId, parents, stateType }) {
         this._discoveryMap = Object.create(null);
 
         this._interval = new Interval({ delay: this._options.interval })
-            .onFunc(() => this._discoveryInterval({ jobId, taskId, parents }))
+            .onFunc(() => this._discoveryInterval({ jobId, taskId, parents, stateType }))
             .onError((e) => log.throttle.error(e.message, { component }))
             .start();
     }
@@ -34,13 +35,18 @@ class ServiceDiscovery extends EventEmitter {
         this._interval?.stop();
     }
 
-    async _discoveryInterval({ jobId, taskId, parents }) {
+    async _discoveryInterval({ jobId, taskId, parents, stateType }) {
         const changed = await this._checkDiscovery({ jobId, taskId });
         const changes = changed.filter(c => parents.indexOf(c.nodeName) !== -1);
         if (changes.length > 0) {
             this.emit(streamingEvents.DISCOVERY_CHANGED, changes);
         }
 
+        if (stateType === stateTypes.Stateful) {
+            return; // stateful nodes should not scaled-down
+        }
+
+        // scale-down stateless nodes which don't have any parents for x time.
         const parentsAlive = parents.some(p => this._discoveryMap[p]);
         if (parents.length > 0 && !parentsAlive) {
             if (!this._timeWait) {
