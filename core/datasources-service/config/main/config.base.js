@@ -10,12 +10,7 @@ const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
 const secured = !!process.env.DATASOURCE_SERVICE_SSL;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
-config.maxStorageFetchKeys = formatter.parseInt(
-    process.env.MAX_STORAGE_FETCH_KEYS,
-    100
-);
-config.storageResultsThreshold =
-    process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
+config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.version = packageJson.version;
 
@@ -29,17 +24,6 @@ config.rest = {
         max: process.env.DATASOURCE_SERVICE_RATE_LIMIT_MAX || 5,
         delay: process.env.DATASOURCE_SERVICE_RATE_LIMIT_DELAY || 0,
     },
-};
-
-config.cachingServer = {
-    protocol: 'http',
-    host: process.env.CACHING_SERVICE_SERVICE_HOST || 'localhost',
-    port: process.env.CACHING_SERVICE_SERVICE_PORT || 9005,
-    prefix: 'cache',
-};
-
-config.debugUrl = {
-    path: path.join(process.env.INGRESS_PREFIX || '', 'hkube/debug'),
 };
 
 config.swagger = {
@@ -62,8 +46,6 @@ config.db = {
         useUnifiedTopology: true,
     },
 };
-
-config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.metrics = {
     prefix: 'hkube_',

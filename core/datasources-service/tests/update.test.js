@@ -5,7 +5,7 @@ const { uid: uuid } = require('@hkube/uid');
 const { createDataSource, fetchDataSource, updateVersion } = require('./utils');
 
 let DATASOURCE_GIT_REPOS_DIR;
-describe.only('/datasource/:name POST', () => {
+describe('/datasource/:name POST', () => {
     before(() => {
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
         STORAGE_DIR = global.testParams.STORAGE_DIR;

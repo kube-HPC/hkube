@@ -1,4 +1,5 @@
 const { uuid } = require('@hkube/uid');
+const { Producer } = require('@hkube/producer-consumer');
 const fse = require('fs-extra');
 const { request } = require('./request');
 
@@ -96,8 +97,8 @@ const fetchDataSource = ({ name, id }) => {
             id && name
                 ? `${uri}/${name}?version_id=${id}`
                 : id
-                ? `${uri}/id/${id}`
-                : `${uri}/${name}`,
+                    ? `${uri}/id/${id}`
+                    : `${uri}/${name}`,
         method: 'GET',
     };
     return request(getOptions);
@@ -113,11 +114,37 @@ const fetchDataSourceVersions = ({ name }) => {
     return request(getOptions);
 };
 
+const createJob = async ({ dataSource }) => {
+    const config = global.testParams.config.jobs.consumer;
+    const producer = new Producer({
+        setting: {
+            redis: config.redis,
+        }
+    });
+    const options = {
+        job: {
+            prefix: config.prefix,
+            type: config.type,
+            data: {
+                jobId: uuid(),
+                taskId: uuid(),
+                nodeName: uuid(),
+                dataSource
+            }
+        }
+    };
+    await producer.createJob(options);
+}
+
+const delay = d => new Promise(r => setTimeout(r, d));
+
 module.exports = {
     fetchDataSource,
     fetchDataSourceVersions,
     createDataSource,
     updateVersion,
+    createJob,
+    delay,
     nonExistingId,
     fileName,
 };
