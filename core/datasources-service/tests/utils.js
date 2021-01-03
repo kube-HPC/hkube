@@ -105,6 +105,14 @@ const fetchDataSource = ({ name, id }) => {
     return request(getOptions);
 };
 
+const deleteDataSource = ({ name }) => {
+    const deleteOptions = {
+        uri: setupUrl({ name }),
+        method: 'DELETE',
+    };
+    return request(deleteOptions);
+};
+
 /** @param {{ name: string }} query */
 const fetchDataSourceVersions = ({ name }) => {
     const uri = `${setupUrl({ name })}/versions`;
@@ -170,6 +178,7 @@ const createSnapshot = ({ name, id, snapshot }) =>
 
 module.exports = {
     fetchDataSource,
+    deleteDataSource,
     fetchDataSourceVersions,
     createDataSource,
     updateVersion,

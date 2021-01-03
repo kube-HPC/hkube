@@ -1,5 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContanier();
-const components = require('../../../lib/consts/componentNames');
+const component = require('../../../lib/consts/componentNames').REST_API;
 
 const logger = () => (req, res, next) => {
     const route = req.baseUrl + req.route.path;
@@ -11,7 +11,7 @@ const logger = () => (req, res, next) => {
         pipelineName,
     };
     log.info(`request arrived for ${req.method} ${req.originalUrl}`, {
-        component: components.REST_API,
+        component,
         route,
         jobId,
         pipelineName,

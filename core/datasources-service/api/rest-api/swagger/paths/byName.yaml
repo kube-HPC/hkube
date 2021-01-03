@@ -44,7 +44,7 @@ delete:
         - DataSource
     summary: delete a datasource by name
     parameters:
-        - $ref: "components/parameters/nameParam"
+        - $ref: "#components/parameters/nameParam"
     responses:
         "200":
             description: successfully deleted the datasource

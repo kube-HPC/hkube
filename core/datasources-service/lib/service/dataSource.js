@@ -375,17 +375,18 @@ class DataSource {
         return dataSource;
     }
 
-    async deleteDataSource({ id }) {
-        let dataSource = null;
+    async deleteDataSource({ name }) {
+        validator.dataSources.delete({ name });
+        let response = null;
         try {
-            dataSource = await db.dataSources.delete({ id });
+            response = await db.dataSources.delete({ name });
         } catch (error) {
             if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
                 throw new ResourceNotFoundError('dataSource', name, error);
             }
             throw error;
         }
-        return dataSource;
+        return response;
     }
 
     /**

@@ -1,8 +1,9 @@
+const fse = require('fs-extra');
 const { Consumer } = require('@hkube/producer-consumer');
 const { taskStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
-const fse = require('fs-extra');
+const component = require('../consts/componentNames').MAIN;
 const Etcd = require('../Etcd');
 const dbConnection = require('../db');
 const Repository = require('../utils/Repository');
@@ -20,10 +21,11 @@ class JobConsumer {
     }
 
     handleFail({ jobId, taskId, error }) {
-        log.error(error);
+        log.error(error, { component, taskId });
         return this.state.update({
             jobId,
             taskId,
+            endTime: Date.now(),
             status: taskStatuses.FAILED,
             error,
         });
@@ -32,13 +34,16 @@ class JobConsumer {
     setActive(job) {
         return this.state.set({
             ...job,
+            podName: this.config.podName,
+            startTime: Date.now(),
             status: taskStatuses.ACTIVE,
         });
     }
 
     /** @param {Job} props */
     async fetchDataSource({ dataSource: dataSourceDescriptor, ...job }) {
-        const { jobId } = job;
+        const { jobId, taskId } = job;
+        log.info(`got job, starting to fetch dataSource`, { component, taskId });
         await this.setActive(job);
 
         let dataSource;
@@ -71,12 +76,13 @@ class JobConsumer {
         );
 
         try {
+            log.info(`starting to clone dataSource ${dataSource.name}`, { component, taskId });
             await repository.ensureClone(dataSource.versionId);
             await repository.pullFiles();
-        } catch (error) {
+        } catch (e) {
             return this.handleFail({
                 ...job,
-                error: `could not clone the datasource ${dataSource.name}`,
+                error: `could not clone the datasource ${dataSource.name}. ${e.message}`,
             });
         }
 
@@ -87,7 +93,9 @@ class JobConsumer {
                 dataSource.query
             );
         }
-        return this.storeResult({ payload, ...job });
+        await this.storeResult({ payload, ...job });
+        log.info(`successfully cloned and stored dataSource ${dataSource.name}`, { component, taskId });
+        return null;
     }
 
     /** @param {{ payload: FileMeta[] } & Job} props */
@@ -107,12 +115,13 @@ class JobConsumer {
             });
             await this.state.update({
                 ...job,
+                endTime: Date.now(),
                 status: taskStatuses.SUCCEED,
             });
-        } catch (error) {
+        } catch (e) {
             return this.handleFail({
                 ...job,
-                error: `failed storing datasource ${job.dataSource.name}`,
+                error: `failed storing datasource ${job.dataSource.name}. ${e.message}`,
             });
         }
         return null;
