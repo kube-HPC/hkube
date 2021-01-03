@@ -1,4 +1,4 @@
-const { errorTypes, isDBError } = require('@hkube/db/lib/errors');
+const { errorTypes } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
 const Repository = require('../utils/Repository');
 const { ResourceExistsError, ResourceNotFoundError } = require('../errors');
@@ -320,15 +320,7 @@ class DataSource {
     /** @param {{ name: string; files: MulterFile[] }} query */
     async createDataSource({ name, files: _files }) {
         validator.dataSources.create({ name, files: _files });
-        let createdDataSource;
-        try {
-            createdDataSource = await db.dataSources.create({ name });
-        } catch (error) {
-            if (error.type === errorTypes.CONFLICT) {
-                throw new ResourceExistsError('dataSource', name);
-            }
-            return null;
-        }
+        const createdDataSource = await db.dataSources.create({ name });
         const repository = new Repository(
             name,
             this.config,
@@ -359,33 +351,17 @@ class DataSource {
 
     /** @param {{ name?: string; id?: string }} query */
     async fetchDataSource({ name, id }) {
-        let dataSource = null;
-        try {
-            dataSource = await db.dataSources.fetch({
-                name,
-                id,
-                isPartial: false,
-            });
-        } catch (error) {
-            if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
-                throw new ResourceNotFoundError('dataSource', name, error);
-            }
-            throw error;
-        }
+        const dataSource = await db.dataSources.fetch({
+            name,
+            id,
+            isPartial: false,
+        });
         return dataSource;
     }
 
     async deleteDataSource({ name }) {
         validator.dataSources.delete({ name });
-        let response = null;
-        try {
-            response = await db.dataSources.delete({ name });
-        } catch (error) {
-            if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
-                throw new ResourceNotFoundError('dataSource', name, error);
-            }
-            throw error;
-        }
+        const response = await db.dataSources.delete({ name });
         return response;
     }
 
