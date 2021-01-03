@@ -147,8 +147,18 @@ const createJob = async ({ dataSource }) => {
 
 const delay = d => new Promise(r => setTimeout(r, d));
 
-/** @param {{ dataSourceName: string; snapshotName?: string }} query */
-const fetchSnapshot = ({ dataSourceName, snapshotName }) =>
+/**
+ * @param {{
+ *     dataSourceName: string;
+ *     snapshotName?: string;
+ *     shouldResolve?: boolean;
+ * }} query
+ */
+const fetchSnapshot = ({
+    dataSourceName,
+    snapshotName,
+    shouldResolve = false,
+}) =>
     request({
         uri: `${setupUrl({
             name: dataSourceName,
