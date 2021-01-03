@@ -375,6 +375,19 @@ class DataSource {
         return dataSource;
     }
 
+    async deleteDataSource({ id }) {
+        let dataSource = null;
+        try {
+            dataSource = await db.dataSources.delete({ id });
+        } catch (error) {
+            if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
+                throw new ResourceNotFoundError('dataSource', name, error);
+            }
+            throw error;
+        }
+        return dataSource;
+    }
+
     /**
      * @type {(query: {
      *     names?: string[];

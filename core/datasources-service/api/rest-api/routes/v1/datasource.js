@@ -38,18 +38,27 @@ const routes = () => {
             next();
         });
 
-    router.route('/id/:id').get(async (req, res, next) => {
-        const { id } = req.params;
-        const dataSourceEntry = await dataSource.fetchDataSource({ id });
+    router
+        .route('/id/:id')
+        .get(async (req, res, next) => {
+            const { id } = req.params;
+            const dataSourceEntry = await dataSource.fetchDataSource({ id });
 
-        const { files, ...rest } = dataSourceEntry;
-        res.json({
-            ...rest,
-            path: `datasource/id/${dataSourceEntry.id}`,
-            files,
+            const { files, ...rest } = dataSourceEntry;
+            res.json({
+                ...rest,
+                path: `datasource/id/${dataSourceEntry.id}`,
+                files,
+            });
+            next();
+        })
+        .delete(async (req, res, next) => {
+            const { id } = req.params;
+            const dataSourceEntry = await dataSource.deleteDataSource({ id });
+
+            res.json({});
+            next();
         });
-        next();
-    });
 
     router
         .route('/:name')

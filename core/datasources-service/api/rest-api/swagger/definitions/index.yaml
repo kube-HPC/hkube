@@ -30,5 +30,7 @@ createRequest:
     $ref: ./create.request.yaml
 updateRequest:
     $ref: ./update.request.yaml
+deleteRequest:
+    $ref: ./delete.request.yaml
 update:
     $ref: ./update.yaml
