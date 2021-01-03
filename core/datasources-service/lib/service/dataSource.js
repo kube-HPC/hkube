@@ -1,7 +1,5 @@
-const { errorTypes, isDBError } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
 const Repository = require('../utils/Repository');
-const { ResourceExistsError, ResourceNotFoundError } = require('../errors');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
@@ -320,59 +318,40 @@ class DataSource {
     /** @param {{ name: string; files: MulterFile[] }} query */
     async createDataSource({ name, files: _files }) {
         validator.dataSources.create({ name, files: _files });
-        let createdDataSource;
-        try {
-            createdDataSource = await db.dataSources.create({ name });
-        } catch (error) {
-            if (error.type === errorTypes.CONFLICT) {
-                throw new ResourceExistsError('dataSource', name);
-            }
-            return null;
-        }
-        const repository = new Repository(
-            name,
-            this.config,
-            this.config.directories.temporaryGitRepositories
-        );
-        await repository.setup();
-        const { commitHash, files } = await this.commitChange({
-            repository,
-            commitMessage: 'initial upload',
-            files: { added: _files },
-        });
+        const createdDataSource = await db.dataSources.create({ name });
         let updatedDataSource;
-
         try {
+            const repository = new Repository(
+                name,
+                this.config,
+                this.config.directories.temporaryGitRepositories
+            );
+            await repository.setup();
+            const { commitHash, files } = await this.commitChange({
+                repository,
+                commitMessage: 'initial upload',
+                files: { added: _files },
+            });
+
             updatedDataSource = await db.dataSources.updateFiles({
                 id: createdDataSource.id,
                 files,
                 versionId: commitHash,
             });
         } catch (error) {
-            await Promise.allSettled([
-                db.dataSources.delete({ name }), // delete from the git server and dvc storage
-            ]);
+            await db.dataSources.delete({ name });
             throw error;
         }
         return updatedDataSource;
     }
 
     /** @param {{ name?: string; id?: string }} query */
-    async fetchDataSource({ name, id }) {
-        let dataSource = null;
-        try {
-            dataSource = await db.dataSources.fetch({
-                name,
-                id,
-                isPartial: false,
-            });
-        } catch (error) {
-            if (isDBError(error) && error.type === errorTypes.NOT_FOUND) {
-                throw new ResourceNotFoundError('dataSource', name, error);
-            }
-            throw error;
-        }
-        return dataSource;
+    fetchDataSource({ name, id }) {
+        return db.dataSources.fetch({
+            name,
+            id,
+            isPartial: false,
+        });
     }
 
     /**
@@ -402,11 +381,8 @@ class DataSource {
     async fetchSnapshot({ snapshotName }) {
         const entry = await db.dataSources.fetch(
             { 'snapshots.name': snapshotName },
-            { fields: { snapshots: 1 }, allowNotFound: true }
+            { fields: { snapshots: 1 } }
         );
-        if (!entry) {
-            throw new ResourceNotFoundError('Snapshot', snapshotName);
-        }
         const snapshot = entry.snapshots.find(
             item => item.name === snapshotName
         );
