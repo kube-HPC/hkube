@@ -41,6 +41,10 @@ class DataSources {
         });
     }
 
+    delete(props) {
+        this._validator.validate(this._validator.definitions.deleteRequest, props);
+    }
+
     /** @param {string[]} dataSources */
     async validateDataSourceExists(dataSources) {
         const db = dbConnect.connection;

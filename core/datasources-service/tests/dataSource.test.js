@@ -8,6 +8,7 @@ const dbConnection = require('../lib/db');
 const {
     createDataSource,
     fetchDataSource,
+    deleteDataSource,
     updateVersion,
     nonExistingId,
     fetchDataSourceVersions,
@@ -168,6 +169,45 @@ describe('Datasource', () => {
                 'application/json',
             ]);
             expect(fileTypes).to.have.lengthOf([...new Set(fileTypes)].length);
+        });
+    });
+    describe('datasource/:name DELETE', () => {
+        it('should throw not found on delete by name', async () => {
+            const name = uuid();
+            const delRes = await deleteDataSource({ name });
+            expect(delRes.body).to.have.property('error');
+            expect(delRes.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(delRes.body.error.message).to.match(/Not Found/i);
+        });
+        it('should create and delete one datasource by name', async () => {
+            const name = uuid();
+            await createDataSource({ body: { name } });
+            const fetchRes = await fetchDataSource({ name });
+            const delRes = await deleteDataSource({ name });
+            const fetchDel = await fetchDataSource({ name });
+            expect(fetchRes.body.name).to.eql(name);
+            expect(delRes.body).to.eql({ delete: 1 });
+            expect(fetchDel.body).to.have.property('error');
+            expect(fetchDel.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(fetchDel.body.error.message).to.match(/Not Found/i);
+        });
+        it('should create and delete many datasources by name', async () => {
+            const name = uuid();
+            await createDataSource({ body: { name } });
+            const secondFileName = 'README-2.md';
+            await updateVersion({
+                dataSourceName: name,
+                fileNames: [secondFileName],
+            });
+            const fetchRes = await fetchDataSource({ name });
+            const delRes = await deleteDataSource({ name });
+            const fetchDel = await fetchDataSource({ name });
+            expect(fetchRes.body.name).to.eql(name);
+            expect(fetchRes.body.files).to.have.lengthOf(2);
+            expect(delRes.body).to.eql({ delete: 2 });
+            expect(fetchDel.body).to.have.property('error');
+            expect(fetchDel.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(fetchDel.body.error.message).to.match(/Not Found/i);
         });
     });
     describe('/datasource/:name/versions GET', () => {

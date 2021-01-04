@@ -103,6 +103,12 @@ const routes = () => {
                 await cleanTmpFile(req.files);
             }
             next();
+        })
+        .delete(async (req, res, next) => {
+            const { name } = req.params;
+            const response = await dataSource.deleteDataSource({ name });
+            res.json(response);
+            next();
         });
 
     router.get('/:name/versions', async (req, res, next) => {

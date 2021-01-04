@@ -354,6 +354,12 @@ class DataSource {
         });
     }
 
+    async deleteDataSource({ name }) {
+        validator.dataSources.delete({ name });
+        const response = await db.dataSources.delete({ name });
+        return response;
+    }
+
     /**
      * @type {(query: {
      *     names?: string[];

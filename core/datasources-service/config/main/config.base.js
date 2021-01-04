@@ -13,6 +13,7 @@ config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.version = packageJson.version;
+config.podName = process.env.POD_NAME;
 
 config.rest = {
     port: process.env.DATASOURCE_SERVICE_REST_PORT || 3005,
