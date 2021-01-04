@@ -1,4 +1,3 @@
-const path = require('path');
 const packageJson = require(process.cwd() + '/package.json');
 const formatter = require(process.cwd() + '/lib/utils/formatters');
 
@@ -73,6 +72,7 @@ config.s3 = {
         process.env.AWS_SECRET_ACCESS_KEY ||
         'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
     endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
+    useSSL: false,
 };
 
 config.fs = {
