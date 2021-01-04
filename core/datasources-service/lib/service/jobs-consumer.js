@@ -43,7 +43,7 @@ class JobConsumer {
     /** @param {Job} props */
     async fetchDataSource({ dataSource: dataSourceDescriptor, ...job }) {
         const { jobId, taskId } = job;
-        log.info(`got job, starting to fetch dataSource`, { component, taskId });
+        log.info(`got job, starting to fetch dataSource ${dataSourceDescriptor.name}`, { component, taskId });
         await this.setActive(job);
 
         let dataSource;
