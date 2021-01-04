@@ -43,7 +43,10 @@ class JobConsumer {
     /** @param {Job} props */
     async fetchDataSource({ dataSource: dataSourceDescriptor, ...job }) {
         const { jobId, taskId } = job;
-        log.info(`got job, starting to fetch dataSource`, { component, taskId });
+        log.info(`got job, starting to fetch dataSource`, {
+            component,
+            taskId,
+        });
         await this.setActive(job);
 
         let dataSource;
@@ -76,7 +79,10 @@ class JobConsumer {
         );
 
         try {
-            log.info(`starting to clone dataSource ${dataSource.name}`, { component, taskId });
+            log.info(`starting to clone dataSource ${dataSource.name}`, {
+                component,
+                taskId,
+            });
             await repository.ensureClone(dataSource.versionId);
             await repository.pullFiles();
         } catch (e) {
@@ -94,7 +100,10 @@ class JobConsumer {
             );
         }
         await this.storeResult({ payload, ...job });
-        log.info(`successfully cloned and stored dataSource ${dataSource.name}`, { component, taskId });
+        log.info(
+            `successfully cloned and stored dataSource ${dataSource.name}`,
+            { component, taskId }
+        );
         return null;
     }
 

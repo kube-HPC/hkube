@@ -42,7 +42,10 @@ class DataSources {
     }
 
     delete(props) {
-        this._validator.validate(this._validator.definitions.deleteRequest, props);
+        this._validator.validate(
+            this._validator.definitions.deleteRequest,
+            props
+        );
     }
 
     /** @param {string[]} dataSources */

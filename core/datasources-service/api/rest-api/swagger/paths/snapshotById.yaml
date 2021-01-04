@@ -3,13 +3,13 @@ get:
         - Snapshot
     summary: fetch snapshots for a given datasource
     parameters:
-        - $ref: "#components/parameters/idParam"
+        - $ref: '#components/parameters/idParam'
     responses:
-        "200":
+        '200':
             description: A newly created snapshot
             content:
                 application/json:
                     schema:
                         type: array
                         items:
-                            $ref: "#/components/schemas/Snapshot"
+                            $ref: '#/components/schemas/Snapshot'

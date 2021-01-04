@@ -1,8 +1,8 @@
 type: object
 properties:
-  id:
-    type: string
-  versionDescription:
-    type: string
-  versionId:
-    type: string
+    id:
+        type: string
+    versionDescription:
+        type: string
+    versionId:
+        type: string
