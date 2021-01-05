@@ -103,7 +103,6 @@ describe('snapshots', () => {
             dataSourceName: dataSource.name,
             snapshotName: 'non-existing-snapshot',
         });
-        console.log(response.body.error);
         expect(response.body).to.haveOwnProperty('error');
         expect(response.body.error.code).to.eql(HttpStatus.NOT_FOUND);
         expect(response.body.error.message).to.match(/not found/i);

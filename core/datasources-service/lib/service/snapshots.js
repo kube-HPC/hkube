@@ -5,6 +5,7 @@ const dbConnection = require('../db');
 /**
  * @typedef {import('./../utils/types').config} config
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} SnapshotItem;
+ * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
  */
 
 class Snapshots {
@@ -40,6 +41,11 @@ class Snapshots {
             throw new ResourceNotFoundError('snapshot', snapshotName);
         }
         return response;
+    }
+
+    /** @param {{ id: string; filesList: FileMeta[] }} props */
+    async updateSnapshotResult({ id, filesList }) {
+        return this.db.snapshots.updateFilesList({ id, filesList });
     }
 }
 

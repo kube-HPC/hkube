@@ -7,6 +7,7 @@ const component = require('../consts/componentNames').MAIN;
 const Etcd = require('../Etcd');
 const dbConnection = require('../db');
 const Repository = require('../utils/Repository');
+const getFilePath = require('../utils/getFilePath');
 /**
  * @typedef {import('./../utils/types').config} config
  * @typedef {import('./types').onJobHandler} onJobHandler
@@ -40,6 +41,27 @@ class JobConsumer {
         });
     }
 
+    /** @returns {{ filesToKeep: FileMeta[]; filesToDelete: FileMeta[] }} */
+    filterFilesList(files, query) {
+        const queryRegexp = new RegExp(query, 'i');
+        return files.reduce(
+            (acc, file) =>
+                file.meta.match(queryRegexp)
+                    ? {
+                          ...acc,
+                          filesToKeep: acc.filesToKeep.concat(file),
+                      }
+                    : {
+                          ...acc,
+                          filesToDelete: acc.filesToDelete.concat(file),
+                      },
+            {
+                filesToKeep: [],
+                filesToDelete: [],
+            }
+        );
+    }
+
     /** @param {Job} props */
     async fetchDataSource({ dataSource: dataSourceDescriptor, ...job }) {
         const { jobId, taskId } = job;
@@ -51,14 +73,13 @@ class JobConsumer {
 
         let dataSource;
         const { snapshotName } = dataSourceDescriptor;
+        let resolvedSnapshot;
         try {
             if (snapshotName) {
-                const resolvedSnapshot = await this.db.snapshots.fetchDataSource(
-                    {
-                        snapshotName,
-                        dataSourceName: dataSourceDescriptor.name,
-                    }
-                );
+                resolvedSnapshot = await this.db.snapshots.fetchDataSource({
+                    snapshotName,
+                    dataSourceName: dataSourceDescriptor.name,
+                });
                 dataSource = resolvedSnapshot.dataSource;
             } else {
                 const shouldGetLatest = !dataSourceDescriptor.version;
@@ -92,14 +113,37 @@ class JobConsumer {
             });
         }
 
-        let payload = dataSource.files;
-        if (dataSource.query) {
-            payload = await repository.filterFiles(
-                dataSource.files,
-                dataSource.query
-            );
+        let filesList = dataSource.files;
+        if (resolvedSnapshot) {
+            let filesToDelete;
+            if (resolvedSnapshot.filteredFilesList) {
+                filesList = resolvedSnapshot.filteredFilesList;
+                filesToDelete = resolvedSnapshot.droppedFiles;
+            } else {
+                const categorizedList = this.filterFilesList(
+                    filesList,
+                    resolvedSnapshot.query
+                );
+                filesList = categorizedList.filesToKeep;
+                filesToDelete = categorizedList.filesToDelete;
+                await this.db.snapshots.updateFilesList({
+                    id: resolvedSnapshot.id,
+                    filesList,
+                    droppedFiles: filesToDelete,
+                });
+            }
+            await repository.filterFilesFromClone(filesToDelete);
         }
-        await this.storeResult({ payload, ...job });
+
+        filesList = filesList.map(fileMeta => ({
+            ...fileMeta,
+            fullPath: `${job.jobId}/${dataSource.name}/${getFilePath(
+                fileMeta
+            )}`,
+        }));
+
+        await this.storeResult({ filesList, ...job });
+
         log.info(
             `successfully cloned and stored dataSource ${dataSource.name}`,
             { component, taskId }
@@ -108,20 +152,26 @@ class JobConsumer {
     }
 
     /** @param {{ payload: FileMeta[] } & Job} props */
-    async storeResult({ payload, ...job }) {
+    async storeResult({ filesList, ...job }) {
         const { jobId, taskId } = job;
         try {
             /** @type {{ path: string }} */
-            const storageInfo = await storageManager.hkube.put({
+            const filesStorageInfo = await storageManager.hkube.put({
+                jobId,
+                taskId: `${taskId}-0`,
+                data: filesList,
+            });
+            const linkStorageInfo = await storageManager.hkube.put({
                 jobId,
                 taskId,
-                data: payload,
+                data: filesStorageInfo,
             });
             await this.state.update({
                 ...job,
                 status: taskStatuses.STORING,
-                result: { storageInfo },
+                result: { storageInfo: linkStorageInfo },
             });
+            await this.db.snapshots.updateFilesList({});
             await this.state.update({
                 ...job,
                 endTime: Date.now(),

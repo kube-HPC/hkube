@@ -8,7 +8,7 @@ const {
     delay,
 } = require('./utils');
 
-describe('JobsConsumer', () => {
+describe.only('JobsConsumer', () => {
     before(() => {
         jobConsumer = require('../lib/service/jobs-consumer');
     });
@@ -34,7 +34,7 @@ describe('JobsConsumer', () => {
         expect(state.status).to.equal('succeed');
         expect(state).to.have.property('result');
     });
-    it('should succeed get datasource by snapshot', async () => {
+    it.only('should succeed get datasource by snapshot', async () => {
         const name = uuid();
         const snapshotName = uuid();
         const { body: dataSource } = await createDataSource({ body: { name } });
@@ -51,8 +51,10 @@ describe('JobsConsumer', () => {
         });
         await delay(10000);
         const { jobId, taskId } = job.data;
+        console.log({ jobId });
         const state = await jobConsumer.state.get({ jobId, taskId });
         expect(state.status).to.equal('succeed');
         expect(state).to.have.property('result');
     });
+    // fetch the same snapshot again to load it from the cache
 });
