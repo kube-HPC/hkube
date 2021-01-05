@@ -3,6 +3,7 @@
     "algorithmName": "sort-alg",
     "env": "nodejs",
     "version": "5.0.0",
+    "imageTag": "5.0.0",
     "fileExt": "gz",
     "status": "pending",
     "error": null,
@@ -10,5 +11,6 @@
     "result": null,
     "progress": 0,
     "startTime": 1556799896273,
-    "endTime": null
+    "endTime": null,
+    "dependencyInstallCmd": "./install.sh"
 }

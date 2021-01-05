@@ -41,8 +41,8 @@ class Bootstrap {
             const storageManager = require('@hkube/storage-manager');
             const fse = require('fs-extra');
             const { buildId } = mockBuild;
-            await stateManger.insertBuild(mockBuild);
-            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(tar) });
+            const {path: filePath} = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(tar) });
+            await stateManger.insertBuild({...mockBuild, filePath});
             config.buildId = buildId;
         }
     }

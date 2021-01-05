@@ -381,7 +381,7 @@ const _overrideVersion = async (env, buildPath, version) => {
     }
 }
 
-const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId }) => {
+const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId, dependencyInstallCmd }) => {
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${imageTag}`;
     const packages = packagesRepo[env];
@@ -393,6 +393,7 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imag
     _envsHelper(envs, 'REMOVE_IMAGE', rmi);
     _envsHelper(envs, 'BUILD_PATH', buildPath);
     _envsHelper(envs, 'BASE_IMAGE', baseImageName);
+    _envsHelper(envs, 'DEPENDENCY_INSTALL_CMD', dependencyInstallCmd);
     _envsHelper(envs, 'BUILD_ID', buildId);
     _envsHelper(envs, 'WRAPPER_VERSION', wrapperVersion);
 
@@ -475,7 +476,7 @@ const runBuild = async (options) => {
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
 
         const overwrite = true;
-        const { env, imageTag, fileExt, filePath, baseImage, type, gitRepository } = build;
+        const { env, imageTag, fileExt, filePath, baseImage, type, gitRepository, dependencyInstallCmd } = build;
         const { docker, buildDirs, tmpFolder, packagesRepo } = options;
         buildMode = options.buildMode;
         algorithmName = build.algorithmName;
@@ -495,7 +496,7 @@ const runBuild = async (options) => {
         }
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
-        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo, buildId });
+        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo, buildId, dependencyInstallCmd });
     }
     catch (e) {
         error = e.message;

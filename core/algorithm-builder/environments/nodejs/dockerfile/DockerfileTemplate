@@ -8,6 +8,7 @@ WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
 ENV packagesRegistry=${packagesRegistry}
 ENV packagesToken=${packagesToken}
 ENV packagesAuth=${packagesAuth}
+ENV dependency_install_cmd=${dependency_install_cmd}
 RUN ../dockerfile/requirements.sh
 
 # Second build

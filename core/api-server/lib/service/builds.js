@@ -136,7 +136,8 @@ class Builds {
                     algorithmName: newAlgorithm.name,
                     gitRepository: newAlgorithm.gitRepository,
                     type: newAlgorithm.type,
-                    baseImage: newAlgorithm.baseImage
+                    baseImage: newAlgorithm.baseImage,
+                    dependencyInstallCmd: newAlgorithm.dependencyInstallCmd
                 });
                 buildId = build.buildId;
                 if (fileInfo && !fileInfo.path) {
@@ -221,10 +222,10 @@ class Builds {
     }
 
     _formatDiff(algorithm) {
-        const { fileInfo, env, baseImage, gitRepository } = algorithm;
+        const { fileInfo, env, baseImage, gitRepository, dependencyInstallCmd } = algorithm;
         const checksum = fileInfo?.checksum;
         const commit = gitRepository?.commit?.id;
-        return { checksum, env, commit, baseImage };
+        return { checksum, env, commit, baseImage, dependencyInstallCmd };
     }
 }
 
