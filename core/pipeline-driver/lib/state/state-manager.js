@@ -124,7 +124,7 @@ class StateManager extends EventEmitter {
                             result = payload;
                         }
                         else {
-                            info = { ...a.result.storageInfo, message: resSize.error };
+                            info = { ...a.result.storageInfo, isBigData: true, message: resSize.error };
                         }
                         return { ...a, result, info };
                     }
