@@ -96,20 +96,20 @@ dockerBuildKaniko() {
   export insecure_pull=${INSECURE_PULL}
   export skip_tls_verify=${SKIP_TLS_VERIFY}
   export skip_tls_verify_pull=${SKIP_TLS_VERIFY_PULL}
+  export dependency_install_cmd=${DEPENDENCY_INSTALL_CMD}
 
   echo "Building image ${image}"
   echo copy context from ${buildPath} to ${workspace}
   cp -r ${buildPath}/* ${workspace}
   
   envsubst < ${workspace}/dockerfile/DockerfileTemplate > ${workspace}/dockerfile/Dockerfile
-  sed -i '/^ARG /d' ${workspace}/dockerfile/Dockerfile
 
   options=""
   if [[ $insecure == true ]]; then options="${options} --insecure"; fi
   if [[ $insecure_pull == true ]]; then options="${options} --insecure-pull"; fi
   if [[ $skip_tls_verify == true ]]; then options="${options} --skip-tls-verify"; fi
   if [[ $skip_tls_verify_pull == true ]]; then options="${options} --skip-tls-verify-pull"; fi
-  
+  if [[ $NO_PUSH == true ]]; then options="${options} --no-push"; fi
   echo "/kaniko/executor \
     --dockerfile ./dockerfile/Dockerfile \
     ${options} --context dir:///workspace/ \
@@ -117,6 +117,7 @@ dockerBuildKaniko() {
     --build-arg packagesRegistryUser=${packagesRegistryUser} \
     --build-arg packagesToken=${packagesToken} \
     --build-arg baseImage=${baseImage} \
+    --build-arg dependency_install_cmd=${dependency_install_cmd} \
     --destination $image" > ${commands}/run
   
   chmod +x ${commands}/run

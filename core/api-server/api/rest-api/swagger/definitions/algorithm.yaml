@@ -97,6 +97,12 @@ properties:
       - url
   entryPoint:
     type: string
+  dependencyInstallCmd:
+    type: string
+    description: |
+      Command to run to install algorithm dependencies. CWD is the algorithm root folder
+      Defaults to language specific defaults.
+      e.g. For python: pip install -r requirements.txt
   baseImage:
     type: string
     description: Custom docker image to be used as base to the newly built algorithm image

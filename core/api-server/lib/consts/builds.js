@@ -1,4 +1,4 @@
-const BUILD_TRIGGERS = ['checksum', 'env', 'commit', 'baseImage'];
+const BUILD_TRIGGERS = ['checksum', 'env', 'commit', 'baseImage', 'dependencyInstallCmd'];
 
 const BUILD_GUIDE = 'use the Hkube dashboard or the Hkube API to follow the build progress';
 

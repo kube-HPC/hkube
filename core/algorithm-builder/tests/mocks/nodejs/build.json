@@ -3,6 +3,7 @@
     "algorithmName": "sort-alg",
     "env": "nodejs",
     "version": "5.0.0",
+    "imageTag": "5.0.0",
     "fileExt": "gz",
     "status": "pending",
     "error": null,
