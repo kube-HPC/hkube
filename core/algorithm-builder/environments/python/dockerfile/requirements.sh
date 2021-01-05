@@ -22,7 +22,7 @@ if [ ! -z ${dependency_install_cmd} ]; then
      echo "found dependency install script"
      SCRIPT_CWD="${PWD}/algorithm_unique_folder"
      echo "running ${dependency_install_cmd} in folder ${SCRIPT_CWD}"
-     sh -c "cd ${SCRIPT_CWD} && ${dependency_install_cmd}"
+     sh -c "cd ${SCRIPT_CWD} && sh ${dependency_install_cmd}"
      echo "${dependency_install_cmd} execution done with code $?"
 elif [ -f ${REQUIRMENTS} ]; then
      echo "found requirements.txt"

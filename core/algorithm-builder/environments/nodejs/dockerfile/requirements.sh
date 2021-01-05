@@ -21,7 +21,7 @@ if [ ! -z ${dependency_install_cmd} ]; then
     echo "found dependency install script"
     SCRIPT_CWD="${PWD}"
     echo "running ${dependency_install_cmd} in folder ${SCRIPT_CWD}"
-    sh -c "cd ${SCRIPT_CWD} && ${dependency_install_cmd}"
+    sh -c "cd ${SCRIPT_CWD} && sh ${dependency_install_cmd}"
     echo "${dependency_install_cmd} execution done with code $?"
 elif [ ! -z ${PACKAGES_REGISTRY} ]; then
     npm install --registry=${PACKAGES_REGISTRY}
