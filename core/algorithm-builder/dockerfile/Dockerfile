@@ -11,4 +11,5 @@ RUN apt update && apt install -y git gettext-base && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /hkube/algorithm-builder
 WORKDIR /hkube/algorithm-builder
 COPY . /hkube/algorithm-builder
+COPY --from=install /hkube/algorithm-builder/node_modules /hkube/algorithm-builder/node_modules
 CMD ["npm", "start"]

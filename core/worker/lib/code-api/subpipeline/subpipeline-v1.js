@@ -15,7 +15,7 @@ class SubPipelineHandler {
     async _fillMissing(element) {
         if (element?.info?.isBigData) {
             const res = await storageManager.getCustomData(element.info);
-            element.result = res.payload;
+            element.result = res.payload; // eslint-disable-line no-param-reassign
         }
     }
 }
