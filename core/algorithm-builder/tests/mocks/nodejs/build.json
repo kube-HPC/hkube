@@ -11,5 +11,6 @@
     "result": null,
     "progress": 0,
     "startTime": 1556799896273,
-    "endTime": null
+    "endTime": null,
+    "dependencyInstallCmd": "./install.sh"
 }
