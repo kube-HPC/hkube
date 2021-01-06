@@ -10,7 +10,7 @@ const {
 } = require('./utils');
 
 describe('download', () => {
-    it.only('generate a download link', async () => {
+    it('generate a download link', async () => {
         sinon.restore();
         const name = uuid();
         await createDataSource({ body: { name } });
