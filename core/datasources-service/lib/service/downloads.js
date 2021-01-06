@@ -20,6 +20,10 @@ class Downloads {
         fse.ensureDirSync(this.config.directories.zipFiles);
     }
 
+    get zipDir() {
+        return this.config.directories.zipFiles;
+    }
+
     createZip(rootDir, downloadId) {
         return new Promise((res, rej) => {
             const archive = archiver('zip', { zlib: { level: 9 } });
@@ -88,6 +92,11 @@ class Downloads {
         await this.createZip(`${repository.cwd}/data`, downloadId);
         await fse.remove(repository.cwd);
         return downloadId;
+    }
+
+    getZipPath(downloadId) {
+        validator.downloads.validateDownloadId(downloadId);
+        return `${this.config.directories.zipFiles}/${downloadId}.zip`;
     }
 }
 

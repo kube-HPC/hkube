@@ -30,3 +30,5 @@ components:
         $ref: ./swagger/definitions/index.yaml
     parameters:
         $ref: ./swagger/paths/parameters.yaml
+schemasInternal:
+  $ref: ./swagger/definitions-internal/index.yaml

@@ -203,6 +203,23 @@ const createDownloadLink = ({ dataSourceId, fileIds }) =>
         body: { fileIds },
     });
 
+/**
+ * @param {    | { downloadLink: string }
+ *     | { dataSourceId: string; downloadId: string }} props
+ */
+const fetchDownloadLink = ({ dataSourceId, downloadId, downloadLink }) =>
+    downloadLink
+        ? request({
+              uri: downloadLink,
+              method: 'GET',
+          })
+        : request({
+              uri: `${setupUrl({
+                  id: dataSourceId,
+              })}/download?download_id=${downloadId}`,
+              method: 'GET',
+          });
+
 module.exports = {
     fetchDataSource,
     deleteDataSource,
@@ -217,4 +234,5 @@ module.exports = {
     createSnapshot,
     fetchAllSnapshots,
     createDownloadLink,
+    fetchDownloadLink,
 };

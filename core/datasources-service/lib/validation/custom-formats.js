@@ -18,6 +18,8 @@ class ApiValidator {
             'dataSource-name',
             this._validateDataSourceName
         );
+        validatorInstance.addFormat('download-id', this._validateDownloadId);
+
         validatorInstance.addFormat('binary', this._validateBinary);
 
         Object.entries(definitions).forEach(([k, v]) => {
@@ -31,6 +33,10 @@ class ApiValidator {
             'dataSource-name',
             validationMessages.DATASOURCE_NAME_FORMAT
         );
+        formatMessages.set(
+            'download-id',
+            validationMessages.DOWNLOAD_ID_FORMAT
+        );
     }
 
     _validateBinary(file) {
@@ -39,6 +45,10 @@ class ApiValidator {
 
     _validateDataSourceName(name) {
         return regex.DATASOURCE_NAME_REGEX.test(name);
+    }
+
+    _validateDownloadId(downloadId) {
+        return regex.DOWNLOAD_ID_REGEX.test(downloadId);
     }
 
     wrapErrorMessageFn(wrappedFn) {

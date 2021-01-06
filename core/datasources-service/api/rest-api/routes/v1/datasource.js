@@ -171,7 +171,19 @@ const routes = () => {
             next();
         })
         .get(async (req, res, next) => {
-            next();
+            const { download_id: downloadId } = req.query;
+            res.sendFile(
+                downloads.getZipPath(downloadId),
+                { root: '.' },
+                err => {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        console.info('done!');
+                    }
+                    next();
+                }
+            );
         });
 
     router.use(dbErrorsMiddleware);

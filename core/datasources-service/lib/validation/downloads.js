@@ -9,6 +9,13 @@ class Downloads {
             { dataSourceId, fileIds }
         );
     }
+
+    async validateDownloadId(downloadId) {
+        this._validator.validate(
+            this._validator.definitions.DownloadId,
+            downloadId
+        );
+    }
 }
 
 module.exports = Downloads;

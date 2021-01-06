@@ -1,0 +1,6 @@
+type: object
+properties:
+    downloadId:
+        $ref: '#/components/schemas/DownloadId'
+required:
+    - downloadId

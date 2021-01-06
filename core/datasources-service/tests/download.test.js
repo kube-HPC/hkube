@@ -7,10 +7,11 @@ const {
     createDataSource,
     updateVersion,
     createDownloadLink,
+    fetchDownloadLink,
 } = require('./utils');
 
 describe('download', () => {
-    it('generate a download link', async () => {
+    it.only('generate a download link', async () => {
         sinon.restore();
         const name = uuid();
         await createDataSource({ body: { name } });
@@ -52,5 +53,13 @@ describe('download', () => {
                 `${global.testParams.directories.zipFiles}/${downloadId}.zip`
             )
         ).to.be.true;
+    });
+
+    it.only('should fail with non valid downloadId', async () => {
+        const { error } = await fetchDownloadLink({
+            dataSourceId: '5ff5ba21d3ace12d33fdb826',
+            downloadId: 'yptes',
+        });
+        console.log({ error });
     });
 });
