@@ -248,34 +248,16 @@ class Repository {
     }
 
     /**
+     * Filters files from a local copy of the repository
+     *
      * @param {string} query
      * @param {FileMeta[]} files
      */
-    async filterFiles(files, query) {
-        const queryRegexp = new RegExp(query, 'i');
-        /** @type {{ filesToKeep: FileMeta[]; filesToDelete: FileMeta[] }} */
-        const { filesToKeep, filesToDelete } = files.reduce(
-            (acc, file) =>
-                file.meta.match(queryRegexp)
-                    ? {
-                          ...acc,
-                          filesToKeep: acc.filesToKeep.concat(file),
-                      }
-                    : {
-                          ...acc,
-                          filesToDelete: acc.filesToDelete.concat(file),
-                      },
-            {
-                filesToKeep: [],
-                filesToDelete: [],
-            }
-        );
-        const deletePromises = filesToDelete.map(file => {
+    filterFilesFromClone(filesToDrop) {
+        return filesToDrop.map(file => {
             const filePath = `${this.cwd}/${getFilePath(file)}`;
             return [fse.remove(filePath), fse.remove(`${filePath}.dvc`), fse.remove(`${filePath}.meta`)];
         });
-        await Promise.all(deletePromises.flat());
-        return filesToKeep;
     }
 }
 
