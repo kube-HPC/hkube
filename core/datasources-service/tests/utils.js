@@ -19,6 +19,7 @@ const setupUrl = ({ name, id }) => {
 /**
  * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
+ * @typedef {import('@hkube/db/lib/DataSource').DataSourceWithMeta} DataSourceWithMeta
  */
 /**
  * @type {(props?: {
@@ -44,19 +45,21 @@ const createDataSource = ({
 };
 
 /**
- * @typedef {{
- *     id: string;
- *     name: string;
- *     path: string;
- * }} MappingFile
- * @param {object} props
- * @param {string} props.dataSourceName
- * @param {string=} props.versionDescription
- * @param {string[]=} props.fileNames - Provide file names to be uploaded
- *     instead of a complete array of file objects
- * @param {{id: string, name: string}[]=} props.files
- * @param {MappingFile[]=} props.mapping
- * @param {string[]=} props.droppedFileIds
+ * Provide file names to be uploaded, or a complete array of file objects
+ *
+ * @param {{
+ *     dataSourceName: string;
+ *     versionDescription?: string;
+ *     fileNames?: string[];
+ *     files?: { id: string; name: string }[];
+ *     mapping?: {
+ *         id: string;
+ *         name: string;
+ *         path: string;
+ *     }[];
+ *     droppedFileIds?: string[];
+ * }} props
+ * @returns {Promise<{ body: DataSourceWithMeta }>}
  */
 const updateVersion = async ({
     dataSourceName,
@@ -96,7 +99,10 @@ const updateVersion = async ({
     return request(options);
 };
 
-/** @param {{ name?: string; id?: string }} query */
+/**
+ * @param {{ name?: string; id?: string }} query
+ * @returns {Promise<{ body: DataSource }>}
+ */
 const fetchDataSource = ({ name, id }) => {
     const getOptions = {
         uri: setupUrl({ name, id }),
@@ -186,6 +192,17 @@ const createSnapshot = ({ name, id, snapshot }) =>
         body: snapshot,
     });
 
+/**
+ * @param {{ dataSourceId: string; fileIds: string[] }} query
+ * @returns {Promise<{ body: { href: string } }>}
+ */
+const createDownloadLink = ({ dataSourceId, fileIds }) =>
+    request({
+        uri: `${setupUrl({ id: dataSourceId })}/download`,
+        method: 'POST',
+        body: { fileIds },
+    });
+
 module.exports = {
     fetchDataSource,
     deleteDataSource,
@@ -199,4 +216,5 @@ module.exports = {
     fetchSnapshot,
     createSnapshot,
     fetchAllSnapshots,
+    createDownloadLink,
 };

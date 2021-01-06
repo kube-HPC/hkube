@@ -34,3 +34,6 @@ deleteRequest:
     $ref: ./delete.request.yaml
 update:
     $ref: ./update.yaml
+
+PrepareForDownloadRequest:
+    $ref: ./download.request.yaml

@@ -25,15 +25,12 @@ const isMetaFile = fileName => fileName.match(metaRegex);
 
 const extractFileName = metaData => metaData.input.slice(0, metaData.index);
 
-/** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
-let db = null;
-
 class DataSource {
     /** @param {config} config */
     async init(config) {
         this.config = config;
-        db = dbConnection.connection;
-        fse.ensureDirSync(this.config.directories.temporaryGitRepositories);
+        this.db = dbConnection.connection;
+        fse.ensureDirSync(this.config.directories.gitRepositories);
     }
 
     /** @type {(file: MulterFile, path?: string) => FileMeta} */
@@ -287,7 +284,7 @@ class DataSource {
             versionDescription,
         });
         // validates the datasource exists, adds a partial flag on the version
-        const createdVersion = await db.dataSources.createVersion({
+        const createdVersion = await this.db.dataSources.createVersion({
             versionDescription,
             name,
         });
@@ -295,7 +292,7 @@ class DataSource {
         const repository = new Repository(
             name,
             this.config,
-            this.config.directories.temporaryGitRepositories
+            this.config.directories.gitRepositories
         );
 
         const { commitHash, files } = await this.commitChange({
@@ -305,10 +302,10 @@ class DataSource {
             currentFiles: createdVersion.files,
         });
         if (!commitHash) {
-            await db.dataSources.delete({ id: createdVersion.id });
+            await this.db.dataSources.delete({ id: createdVersion.id });
             return null;
         }
-        return db.dataSources.updateFiles({
+        return this.db.dataSources.updateFiles({
             name,
             files,
             versionId: commitHash,
@@ -318,13 +315,13 @@ class DataSource {
     /** @param {{ name: string; files: MulterFile[] }} query */
     async createDataSource({ name, files: _files }) {
         validator.dataSources.create({ name, files: _files });
-        const createdDataSource = await db.dataSources.create({ name });
+        const createdDataSource = await this.db.dataSources.create({ name });
         let updatedDataSource;
         try {
             const repository = new Repository(
                 name,
                 this.config,
-                this.config.directories.temporaryGitRepositories
+                this.config.directories.gitRepositories
             );
             await repository.setup();
             const { commitHash, files } = await this.commitChange({
@@ -333,13 +330,13 @@ class DataSource {
                 files: { added: _files },
             });
 
-            updatedDataSource = await db.dataSources.updateFiles({
+            updatedDataSource = await this.db.dataSources.updateFiles({
                 id: createdDataSource.id,
                 files,
                 versionId: commitHash,
             });
         } catch (error) {
-            await db.dataSources.delete({ name });
+            await this.db.dataSources.delete({ name });
             throw error;
         }
         return updatedDataSource;
@@ -347,7 +344,7 @@ class DataSource {
 
     /** @param {{ name?: string; id?: string }} query */
     fetchDataSource({ name, id }) {
-        return db.dataSources.fetch({
+        return this.db.dataSources.fetch({
             name,
             id,
             isPartial: false,
@@ -356,7 +353,7 @@ class DataSource {
 
     async deleteDataSource({ name }) {
         validator.dataSources.delete({ name });
-        const response = await db.dataSources.delete({ name });
+        const response = await this.db.dataSources.delete({ name });
         return response;
     }
 
@@ -367,25 +364,25 @@ class DataSource {
      * }) => Promise<DataSourceItem[]>}
      */
     async fetchDataSources({ names, ids }) {
-        return db.dataSources.fetchMany({ names, ids });
+        return this.db.dataSources.fetchMany({ names, ids });
     }
 
     async list() {
-        return db.dataSources.listDataSources();
+        return this.db.dataSources.listDataSources();
     }
 
     /** @param {string} name */
     async listVersions(name) {
-        return db.dataSources.listVersions({ name });
+        return this.db.dataSources.listVersions({ name });
     }
 
     async createSnapshot({ id, snapshot }) {
         validator.dataSources.validateSnapshot(snapshot);
-        return db.dataSources.createSnapshot({ id, snapshot });
+        return this.db.dataSources.createSnapshot({ id, snapshot });
     }
 
     async fetchSnapshot({ snapshotName }) {
-        const entry = await db.dataSources.fetch(
+        const entry = await this.db.dataSources.fetch(
             { 'snapshots.name': snapshotName },
             { fields: { snapshots: 1 } }
         );

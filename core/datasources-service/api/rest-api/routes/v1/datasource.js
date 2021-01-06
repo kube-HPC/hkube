@@ -5,6 +5,7 @@ const fse = require('fs-extra');
 const { InvalidDataError } = require('../../../../lib/errors');
 const dataSource = require('../../../../lib/service/dataSource');
 const snapshots = require('../../../../lib/service/snapshots');
+const downloads = require('../../../../lib/service/downloads');
 const dbErrorsMiddleware = require('./../../middlewares/dbErrors');
 
 const upload = multer({ dest: 'uploads/datasource/' });
@@ -154,6 +155,22 @@ const routes = () => {
                 });
             }
             res.json(response);
+            next();
+        });
+
+    router
+        .route('/id/:id/download')
+        .post(async (req, res, next) => {
+            const { id: dataSourceId } = req.params;
+            const downloadId = await downloads.prepareForDownload({
+                dataSourceId,
+                fileIds: req.body.fileIds,
+            });
+            const href = `/id/${dataSourceId}/download?download_id=${downloadId}`;
+            res.status(201).json({ href });
+            next();
+        })
+        .get(async (req, res, next) => {
             next();
         });
 

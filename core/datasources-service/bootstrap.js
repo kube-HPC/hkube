@@ -11,6 +11,7 @@ const modules = [
     require('./api/rest-api/app-server'),
     require('./lib/service/dataSource'),
     require('./lib/service/snapshots'),
+    require('./lib/service/downloads'),
     require('./lib/service/jobs-consumer'),
 ];
 

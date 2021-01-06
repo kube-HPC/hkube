@@ -12,7 +12,6 @@ class Snapshots {
     /** @param {config} config */
     async init(config) {
         this.config = config;
-        /** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
         this.db = dbConnection.connection;
     }
 

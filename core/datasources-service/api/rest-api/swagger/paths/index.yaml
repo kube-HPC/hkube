@@ -8,3 +8,5 @@
     $ref: ./snapshot.yaml
 /datasource/id/{id}/snapshot:
     $ref: ./snapshotById.yaml
+/datasource/id/{id}/files:
+    $ref: ./files.yaml

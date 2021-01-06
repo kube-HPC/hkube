@@ -1,0 +1,11 @@
+type: object
+properties:
+    dataSourceId:
+        type: string
+    fileIds:
+        type: array
+        items:
+            type: string
+required:
+    - dataSourceId
+    - fileIds

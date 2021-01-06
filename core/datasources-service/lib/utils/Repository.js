@@ -1,6 +1,6 @@
 const fse = require('fs-extra');
 const { parse: parsePath } = require('path');
-const glob = require('glob');
+const _glob = require('glob');
 const { default: simpleGit } = require('simple-git');
 const yaml = require('js-yaml');
 const normalize = require('./normalize');
@@ -21,6 +21,13 @@ const extractRelativePath = filePath => {
     if (response === '') return '/';
     return `/${response}`;
 };
+
+const glob = (pattern, cwd) =>
+    new Promise((res, rej) =>
+        _glob(pattern, { cwd }, (err, matches) =>
+            err ? rej(err) : res(matches)
+        )
+    );
 
 /**
  * @template T
@@ -182,12 +189,7 @@ class Repository {
 
     /** @returns {FileMeta[]} */
     async scanDir() {
-        const metaFiles = await new Promise((res, rej) =>
-            glob('**/*.dvc', { cwd: this.cwd }, (err, matches) =>
-                err ? rej(err) : res(matches)
-            )
-        );
-
+        const metaFiles = await glob('**/*.dvc', this.cwd);
         return Promise.all(
             metaFiles.map(async filePath => {
                 const content = yaml.load(
@@ -198,6 +200,20 @@ class Repository {
                     ...content,
                 };
             })
+        );
+    }
+
+    /** Drop .git, .dvc dirs from the local copy, removes .gitignore and .dvcignore files */
+    async dropNonDataFiles() {
+        const metaFiles = await Promise.all([
+            glob('**/*.dvc', this.cwd),
+            glob('**/.gitignore', this.cwd),
+        ]);
+
+        await Promise.all(
+            [...['.git', '.dvcignore', '.dvc'], ...metaFiles.flat()].map(file =>
+                fse.remove(`${this.cwd}/${file}`)
+            )
         );
     }
 
