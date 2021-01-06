@@ -50,8 +50,7 @@ class DataSource {
     }
 
     /**
-     * Converts temporary ids given by the client to permanent ids. fills in
-     * missing details for all the files
+     * Converts temporary ids given by the client to permanent ids. fills in missing details for all the files
      *
      * @param {NormalizedFileMeta} normalizedMapping
      * @param {MulterFile[]} files
@@ -66,10 +65,7 @@ class DataSource {
         return files.reduce(
             (acc, file) => {
                 const tmpFileName = file.originalname;
-                let fileMeta = this.createFileMeta(
-                    file,
-                    normalizedMapping[tmpFileName]?.path
-                );
+                let fileMeta = this.createFileMeta(file, normalizedMapping[tmpFileName]?.path);
                 const mappingEntry = normalizedMapping[tmpFileName];
                 if (mappingEntry) {
                     fileMeta = {
@@ -104,10 +100,7 @@ class DataSource {
                     };
                 }
 
-                const {
-                    [tmpFileName]: droppedId,
-                    ...nextMapping
-                } = acc.normalizedAddedFiles;
+                const { [tmpFileName]: droppedId, ...nextMapping } = acc.normalizedAddedFiles;
 
                 return {
                     ...acc,
@@ -137,9 +130,8 @@ class DataSource {
     }
 
     /**
-     * Splits the inputs to groups by their respective actions. **note**: the
-     * normalizedAddedFiles collection includes all the added files including
-     * updated file
+     * Splits the inputs to groups by their respective actions. **note**: the normalizedAddedFiles collection includes
+     * all the added files including updated file
      *
      * @param {{
      *     currentFiles?: FileMeta[];
@@ -156,11 +148,7 @@ class DataSource {
      *     metaFilesByPath: { [path: string]: MulterFile };
      * }}
      */
-    _categorizeFiles({
-        currentFiles = [],
-        mapping,
-        addedFiles: _addedFiles = [],
-    }) {
+    _categorizeFiles({ currentFiles = [], mapping, addedFiles: _addedFiles = [] }) {
         /** @type {{ [fileID: string]: FileMeta }} */
         const normalizedMapping = normalize(mapping, 'id', file => ({
             ...file,
@@ -180,11 +168,7 @@ class DataSource {
          *     touchedFileIds: string[];
          * }}
          */
-        const {
-            movedFiles,
-            updatedFiles,
-            touchedFileIds,
-        } = currentFiles.reduce(
+        const { movedFiles, updatedFiles, touchedFileIds } = currentFiles.reduce(
             (acc, srcFile) => {
                 const movedFile = normalizedMapping[srcFile.id];
                 const updatedFileId = byPath[getFilePath(srcFile)];
@@ -192,10 +176,7 @@ class DataSource {
                 if (updatedFile) {
                     return {
                         ...acc,
-                        updatedFiles: [
-                            ...acc.updatedFiles,
-                            [srcFile, updatedFile],
-                        ],
+                        updatedFiles: [...acc.updatedFiles, [srcFile, updatedFile]],
                         touchedFileIds: acc.touchedFileIds.concat(srcFile.id),
                     };
                 }
@@ -234,12 +215,7 @@ class DataSource {
      *     currentFiles?: FileMeta[];
      * }} props
      */
-    async commitChange({
-        repository,
-        commitMessage,
-        files: { added, dropped = [], mapping = [] },
-        currentFiles = [],
-    }) {
+    async commitChange({ repository, commitMessage, files: { added, dropped = [], mapping = [] }, currentFiles = [] }) {
         await repository.ensureClone();
         const groups = this._categorizeFiles({
             currentFiles,
@@ -252,11 +228,7 @@ class DataSource {
             groups.byPath,
             groups.metaFilesByPath
         );
-        await repository.addFiles(
-            normalizedAddedFiles,
-            groups.allAddedFiles,
-            metaByPath
-        );
+        await repository.addFiles(normalizedAddedFiles, groups.allAddedFiles, metaByPath);
         await repository.moveExistingFiles(groups.movedFiles);
         await repository.dropFiles(dropped, currentFiles);
         /** Cleanups: - drop empty git ignore files */
@@ -292,11 +264,7 @@ class DataSource {
             name,
         });
 
-        const repository = new Repository(
-            name,
-            this.config,
-            this.config.directories.temporaryGitRepositories
-        );
+        const repository = new Repository(name, this.config, this.config.directories.temporaryGitRepositories);
 
         const { commitHash, files } = await this.commitChange({
             repository,
@@ -321,11 +289,7 @@ class DataSource {
         const createdDataSource = await db.dataSources.create({ name });
         let updatedDataSource;
         try {
-            const repository = new Repository(
-                name,
-                this.config,
-                this.config.directories.temporaryGitRepositories
-            );
+            const repository = new Repository(name, this.config, this.config.directories.temporaryGitRepositories);
             await repository.setup();
             const { commitHash, files } = await this.commitChange({
                 repository,
@@ -360,12 +324,7 @@ class DataSource {
         return response;
     }
 
-    /**
-     * @type {(query: {
-     *     names?: string[];
-     *     ids?: string[];
-     * }) => Promise<DataSourceItem[]>}
-     */
+    /** @type {(query: { names?: string[]; ids?: string[] }) => Promise<DataSourceItem[]>} */
     async fetchDataSources({ names, ids }) {
         return db.dataSources.fetchMany({ names, ids });
     }
@@ -385,13 +344,8 @@ class DataSource {
     }
 
     async fetchSnapshot({ snapshotName }) {
-        const entry = await db.dataSources.fetch(
-            { 'snapshots.name': snapshotName },
-            { fields: { snapshots: 1 } }
-        );
-        const snapshot = entry.snapshots.find(
-            item => item.name === snapshotName
-        );
+        const entry = await db.dataSources.fetch({ 'snapshots.name': snapshotName }, { fields: { snapshots: 1 } });
+        const snapshot = entry.snapshots.find(item => item.name === snapshotName);
         return {
             dataSource: { id: entry.id },
             snapshot,

@@ -59,15 +59,11 @@ describe('Datasource', () => {
                 uri: `${restPath}/${nonExistingId}`,
                 method: 'GET',
             };
-            sinon
-                .stub(dbConnection.connection.dataSources, 'fetch')
-                .rejects({ message: 'i should throw' });
+            sinon.stub(dbConnection.connection.dataSources, 'fetch').rejects({ message: 'i should throw' });
             const response = await request(options);
             sinon.restore();
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(
-                HttpStatus.INTERNAL_SERVER_ERROR
-            );
+            expect(response.body.error.code).to.equal(HttpStatus.INTERNAL_SERVER_ERROR);
             expect(response.body.error.message).to.eq('i should throw');
         });
         it('should fetch a datasource', async () => {
@@ -127,17 +123,13 @@ describe('Datasource', () => {
             });
             expect(errorBody).to.have.property('error');
             expect(errorBody.error.code).to.eq(400);
-            expect(errorBody.error.message).to.match(
-                /version_id (.+) does not exist for name (.+)/i
-            );
+            expect(errorBody.error.message).to.match(/version_id (.+) does not exist for name (.+)/i);
         });
     });
     describe('/datasource GET', () => {
         it('should succeed list all dataSources', async () => {
             const names = new Array(3).fill(0).map(() => uuid());
-            await Promise.all(
-                names.map(name => createDataSource({ body: { name } }))
-            );
+            await Promise.all(names.map(name => createDataSource({ body: { name } })));
             const options = {
                 uri: restPath,
                 method: 'GET',
@@ -164,10 +156,7 @@ describe('Datasource', () => {
             const { body } = await request(options);
             const ds = body.find(item => item.name === name);
             const { fileTypes } = ds;
-            expect(fileTypes).to.have.members([
-                'text/markdown',
-                'application/json',
-            ]);
+            expect(fileTypes).to.have.members(['text/markdown', 'application/json']);
             expect(fileTypes).to.have.lengthOf([...new Set(fileTypes)].length);
         });
     });
@@ -217,16 +206,9 @@ describe('Datasource', () => {
                 body: { name },
             });
             const [existingFile] = dataSource.files;
-            expect(
-                await fse.pathExists(
-                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`
-                )
-            ).to.be.true;
-            expect(
-                await fse.statSync(
-                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`
-                ).size
-            ).to.eq(107);
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be
+                .true;
+            expect(await fse.statSync(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`).size).to.eq(107);
             const uploadResponse = await updateVersion({
                 dataSourceName: name,
                 fileNames: ['updatedVersions/README-1.md'],

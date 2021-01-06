@@ -75,9 +75,7 @@ class Repository {
         await fse.ensureDir(this.cwd);
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
         if (!hasClone) {
-            await simpleGit({ baseDir: this.rootDir }).clone(
-                this.repositoryUrl
-            );
+            await simpleGit({ baseDir: this.rootDir }).clone(this.repositoryUrl);
         }
         this.gitClient = simpleGit({ baseDir: this.cwd });
         if (versionId) await this.gitClient.checkout(versionId);
@@ -106,10 +104,7 @@ class Repository {
         const { dirs, filePaths } = Object.values(normalizedMapping).reduce(
             (acc, fileMeta) => {
                 const filePath = getFilePath(fileMeta);
-                const dirPath = filePath.slice(
-                    0,
-                    filePath.length - fileMeta.name.length - 1
-                );
+                const dirPath = filePath.slice(0, filePath.length - fileMeta.name.length - 1);
                 return {
                     dirs: acc.dirs.concat(dirPath),
                     filePaths: acc.filePaths.concat(filePath),
@@ -120,20 +115,14 @@ class Repository {
 
         const uniqueDirs = [...new Set(dirs)];
 
-        await Promise.all(
-            uniqueDirs.map(dir => fse.ensureDir(`${this.cwd}/${dir}`))
-        );
+        await Promise.all(uniqueDirs.map(dir => fse.ensureDir(`${this.cwd}/${dir}`)));
 
         await Promise.all(
             allAddedFiles.map(file => {
                 const fileMeta = normalizedMapping[file.filename];
-                return fse.move(
-                    file.path,
-                    `${this.cwd}/${getFilePath(fileMeta)}`,
-                    {
-                        overwrite: true,
-                    }
-                );
+                return fse.move(file.path, `${this.cwd}/${getFilePath(fileMeta)}`, {
+                    overwrite: true,
+                });
             })
         );
         // creates .dvc files and update/create the relevant gitignore files
@@ -183,16 +172,12 @@ class Repository {
     /** @returns {FileMeta[]} */
     async scanDir() {
         const metaFiles = await new Promise((res, rej) =>
-            glob('**/*.dvc', { cwd: this.cwd }, (err, matches) =>
-                err ? rej(err) : res(matches)
-            )
+            glob('**/*.dvc', { cwd: this.cwd }, (err, matches) => (err ? rej(err) : res(matches)))
         );
 
         return Promise.all(
             metaFiles.map(async filePath => {
-                const content = yaml.load(
-                    await fse.readFile(`${this.cwd}/${filePath}`)
-                ).meta.hkube;
+                const content = yaml.load(await fse.readFile(`${this.cwd}/${filePath}`)).meta.hkube;
                 return {
                     path: extractRelativePath(filePath),
                     ...content,
@@ -243,10 +228,7 @@ class Repository {
                 const fileId = byPath[filePath];
                 const meta = content.toString('utf8');
                 const fileMeta = normalizedMapping[fileId];
-                await fse.move(
-                    file.path,
-                    `${this.cwd}/${getFilePath(fileMeta)}.meta`
-                );
+                await fse.move(file.path, `${this.cwd}/${getFilePath(fileMeta)}.meta`);
                 return [filePath, meta];
             })
         );
@@ -290,11 +272,7 @@ class Repository {
         );
         const deletePromises = filesToDelete.map(file => {
             const filePath = `${this.cwd}/${getFilePath(file)}`;
-            return [
-                fse.remove(filePath),
-                fse.remove(`${filePath}.dvc`),
-                fse.remove(`${filePath}.meta`),
-            ];
+            return [fse.remove(filePath), fse.remove(`${filePath}.dvc`), fse.remove(`${filePath}.meta`)];
         });
         await Promise.all(deletePromises.flat());
         return filesToKeep;

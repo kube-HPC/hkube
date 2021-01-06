@@ -9,10 +9,7 @@ class DataSources {
 
     /** @param {{ name: string; files: Express.Multer.File[] }} props */
     create(props) {
-        const files =
-            props.files?.length > 0
-                ? props.files.map(file => file.originalname)
-                : undefined;
+        const files = props.files?.length > 0 ? props.files.map(file => file.originalname) : undefined;
         this._validator.validate(this._validator.definitions.createRequest, {
             ...props,
             files,
@@ -31,10 +28,7 @@ class DataSources {
      * }} props
      */
     update(props) {
-        const filesAdded =
-            props.files.added?.length > 0
-                ? props.files.added.map(file => file.originalname)
-                : undefined;
+        const filesAdded = props.files.added?.length > 0 ? props.files.added.map(file => file.originalname) : undefined;
         this._validator.validate(this._validator.definitions.update, {
             ...props,
             files: { added: filesAdded },
@@ -55,18 +49,12 @@ class DataSources {
         const namesSet = new Set(entries.map(entry => entry.name));
         const intersections = dataSources.filter(entry => !namesSet.has(entry));
         if (intersections.length > 0) {
-            throw new ResourceNotFoundError(
-                'dataSource',
-                intersections.join(', ')
-            );
+            throw new ResourceNotFoundError('dataSource', intersections.join(', '));
         }
     }
 
     async validateSnapshot(snapshot) {
-        this._validator.validate(
-            this._validator.definitions.Snapshot,
-            snapshot
-        );
+        this._validator.validate(this._validator.definitions.Snapshot, snapshot);
     }
 }
 

@@ -21,9 +21,7 @@ describe('/datasource POST', () => {
             const response = await createDataSource();
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(
-                "data should have required property 'name'"
-            );
+            expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should throw validation error of long datasource name', async () => {
             const response = await createDataSource({
@@ -33,9 +31,7 @@ describe('/datasource POST', () => {
             });
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(
-                'data.name should NOT be longer than 32 characters'
-            );
+            expect(response.body.error.message).to.equal('data.name should NOT be longer than 32 characters');
         });
         it('should throw validation error of data.name should be string', async () => {
             // @ts-expect-error
@@ -44,17 +40,13 @@ describe('/datasource POST', () => {
             });
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(
-                'data.name should be string'
-            );
+            expect(response.body.error.message).to.equal('data.name should be string');
         });
         it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
             const response = await createDataSource({ body: { name: '' } });
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(
-                'data.name should NOT be shorter than 1 characters'
-            );
+            expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
         });
         it('should throw missing file error', async () => {
             const options = {
@@ -66,9 +58,7 @@ describe('/datasource POST', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(
-                "data should have required property 'files'"
-            );
+            expect(response.body.error.message).to.equal("data should have required property 'files'");
         });
         const invalidChars = ['/', '*', '#', '"', '%'];
         invalidChars.forEach(v => {
@@ -77,12 +67,8 @@ describe('/datasource POST', () => {
                     body: { name: `not-valid${v}name` },
                 });
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(
-                    HttpStatus.BAD_REQUEST
-                );
-                expect(response.body.error.message).to.equal(
-                    validationMessages.DATASOURCE_NAME_FORMAT
-                );
+                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(validationMessages.DATASOURCE_NAME_FORMAT);
             });
         });
         const invalidStartAndEndChars = ['/', '*', '#', '"', '%'];
@@ -92,24 +78,16 @@ describe('/datasource POST', () => {
                     body: { name: `${v}notvalidname` },
                 });
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(
-                    HttpStatus.BAD_REQUEST
-                );
-                expect(response.body.error.message).to.equal(
-                    validationMessages.DATASOURCE_NAME_FORMAT
-                );
+                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(validationMessages.DATASOURCE_NAME_FORMAT);
             });
             it(`should throw invalid if dataSource name if end with ${v}`, async () => {
                 const response = await createDataSource({
                     body: { name: `notvalidname${v}` },
                 });
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(
-                    HttpStatus.BAD_REQUEST
-                );
-                expect(response.body.error.message).to.equal(
-                    validationMessages.DATASOURCE_NAME_FORMAT
-                );
+                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(validationMessages.DATASOURCE_NAME_FORMAT);
             });
         });
     });
@@ -120,9 +98,7 @@ describe('/datasource POST', () => {
             sinon.replace(fse, 'remove', removeDirectoryMock);
             const { response } = await createDataSource({ body: { name } });
 
-            expect(removeDirectoryMock.getCall(0).firstArg).to.match(
-                new RegExp(name)
-            );
+            expect(removeDirectoryMock.getCall(0).firstArg).to.match(new RegExp(name));
             expect(response.statusCode).to.eql(HttpStatus.CREATED);
             expect(response.body).to.have.property('id');
             expect(response.body).to.have.property('name');
@@ -136,27 +112,18 @@ describe('/datasource POST', () => {
             const firstResponse = await createDataSource({
                 body: { name },
             });
-            expect(firstResponse.response.statusCode).to.eql(
-                HttpStatus.CREATED
-            );
+            expect(firstResponse.response.statusCode).to.eql(HttpStatus.CREATED);
             const secondResponse = await createDataSource({
                 body: { name },
             });
-            expect(secondResponse.response.statusCode).to.equal(
-                HttpStatus.CONFLICT
-            );
+            expect(secondResponse.response.statusCode).to.equal(HttpStatus.CONFLICT);
             expect(secondResponse.body).to.have.property('error');
-            expect(secondResponse.body.error.message).to.contain(
-                'already exists'
-            );
+            expect(secondResponse.body.error.message).to.contain('already exists');
         });
         it('should configure storage for the datasource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
-            const config = fse.readFileSync(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config`,
-                'utf8'
-            );
+            const config = fse.readFileSync(`${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config`, 'utf8');
             expect(config).to.match(new RegExp(name));
         });
         it('should push to dvc host', async () => {
@@ -170,16 +137,8 @@ describe('/datasource POST', () => {
                 body: { name },
                 fileNames: ['logo.svg', 'logo.svg.meta'],
             });
-            expect(
-                await fse.pathExists(
-                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg`
-                )
-            ).to.be.true;
-            expect(
-                await fse.pathExists(
-                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg.meta`
-                )
-            ).to.be.true;
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg`)).to.be.true;
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg.meta`)).to.be.true;
         });
     });
 });

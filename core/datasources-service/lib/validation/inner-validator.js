@@ -44,10 +44,7 @@ class ApiValidator {
             });
             if (errors[0].params && errors[0].params.allowedValues) {
                 error += ` (${errors[0].params.allowedValues.join(',')})`;
-            } else if (
-                errors[0].params &&
-                errors[0].params.additionalProperty
-            ) {
+            } else if (errors[0].params && errors[0].params.additionalProperty) {
                 error += ` (${errors[0].params.additionalProperty})`;
             }
             throw new InvalidDataError(error);

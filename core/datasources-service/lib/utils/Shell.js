@@ -17,9 +17,7 @@ const Shell = cwd => async (command, args) => {
         });
         cmd.stdout.on('error', () => rej(cache));
         cmd.on('error', rej);
-        cmd.on('close', errorCode =>
-            errorCode !== 0 ? rej(cache) : res(cache)
-        );
+        cmd.on('close', errorCode => (errorCode !== 0 ? rej(cache) : res(cache)));
     });
 };
 

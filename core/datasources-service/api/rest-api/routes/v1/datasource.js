@@ -63,9 +63,7 @@ const routes = () => {
                     id: versionId,
                 });
                 if (dataSourceEntry?.name !== name) {
-                    throw new InvalidDataError(
-                        `version_id ${versionId} does not exist for name ${name}`
-                    );
+                    throw new InvalidDataError(`version_id ${versionId} does not exist for name ${name}`);
                 }
             } else {
                 dataSourceEntry = await dataSource.fetchDataSource({ name });
@@ -88,9 +86,7 @@ const routes = () => {
                     versionDescription,
                     files: {
                         added: req.files,
-                        dropped: droppedFileIds
-                            ? JSON.parse(droppedFileIds)
-                            : undefined,
+                        dropped: droppedFileIds ? JSON.parse(droppedFileIds) : undefined,
                         mapping: mapping ? JSON.parse(mapping) : undefined,
                     },
                 });

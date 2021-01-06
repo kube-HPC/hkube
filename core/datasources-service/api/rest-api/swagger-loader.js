@@ -4,9 +4,7 @@ const YAML = require('js-yaml');
 
 class SwaggerLoader {
     async load({ path }) {
-        const root = YAML.safeLoad(
-            fs.readFileSync(`${path}/index.yaml`).toString()
-        );
+        const root = YAML.safeLoad(fs.readFileSync(`${path}/index.yaml`).toString());
         const swaggerOptions = {
             filter: ['relative', 'remote'],
             location: path,

@@ -41,14 +41,7 @@ class DvcClient {
 
     /** @param {string=} file */
     pull(filePath) {
-        if (filePath)
-            return this._execute(
-                'get',
-                this.repositoryUrl,
-                filePath,
-                '-o',
-                filePath
-            );
+        if (filePath) return this._execute('get', this.repositoryUrl, filePath, '-o', filePath);
         return this._execute(`pull`);
     }
 
@@ -62,8 +55,7 @@ class DvcClient {
         const fileContent = await fse.readFile(dvcFilePath);
         const dvcData = yaml.load(fileContent);
 
-        if (dvcData.meta && dvcData.meta[rootField] && !shouldOverride)
-            return null;
+        if (dvcData.meta && dvcData.meta[rootField] && !shouldOverride) return null;
         const extendedData = {
             ...dvcData,
             meta: {

@@ -14,10 +14,7 @@ class ApiValidator {
         validatorInstance.errorsText = this.wrapErrorMessageFn(
             validatorInstance.errorsText.bind(validatorInstance)
         ).bind(this); // eslint-disable-line
-        validatorInstance.addFormat(
-            'dataSource-name',
-            this._validateDataSourceName
-        );
+        validatorInstance.addFormat('dataSource-name', this._validateDataSourceName);
         validatorInstance.addFormat('binary', this._validateBinary);
 
         Object.entries(definitions).forEach(([k, v]) => {
@@ -27,10 +24,7 @@ class ApiValidator {
 
     _addFormatMessages() {
         formatMessages.set('binary', validationMessages.BINARY_FILE_NAME);
-        formatMessages.set(
-            'dataSource-name',
-            validationMessages.DATASOURCE_NAME_FORMAT
-        );
+        formatMessages.set('dataSource-name', validationMessages.DATASOURCE_NAME_FORMAT);
     }
 
     _validateBinary(file) {

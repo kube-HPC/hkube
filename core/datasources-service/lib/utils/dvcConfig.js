@@ -2,9 +2,7 @@ const storage = require('@hkube/storage-manager');
 /** @typedef {import('./types').config} config */
 
 /** @param {config} config */
-const getS3Config = ({
-    s3: { endpoint, accessKeyId, secretAccessKey, useSSL },
-}) => repositoryName => `
+const getS3Config = ({ s3: { endpoint, accessKeyId, secretAccessKey, useSSL } }) => repositoryName => `
 ['remote "storage"']
     url = s3://${storage.hkubeDataSource.prefix}/${repositoryName}
     endpointurl = ${endpoint}

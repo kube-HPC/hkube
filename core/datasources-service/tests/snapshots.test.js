@@ -1,12 +1,7 @@
 const { uid } = require('@hkube/uid');
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const {
-    createDataSource,
-    fetchSnapshot,
-    createSnapshot,
-    fetchAllSnapshots,
-} = require('./utils');
+const { createDataSource, fetchSnapshot, createSnapshot, fetchAllSnapshots } = require('./utils');
 let restUrl;
 
 const generateSnapshot = (name, query) => ({
@@ -24,9 +19,7 @@ const setupDataSource = async (numberOfSnapshots = 1) => {
     const name = uid();
     // something broke with the logger's debug
     const { body: dataSource } = await createDataSource({ body: { name } });
-    const generatedSnapshots = new Array(numberOfSnapshots)
-        .fill(0)
-        .map((_, ii) => generateSnapshot(`snapshot-${ii}`));
+    const generatedSnapshots = new Array(numberOfSnapshots).fill(0).map((_, ii) => generateSnapshot(`snapshot-${ii}`));
     /** @type {import('@hkube/db/lib/Snapshots').Snapshot[]} */
     const createdSnapshots = await Promise.all(
         generatedSnapshots.map(snapshot =>
@@ -69,8 +62,7 @@ describe('snapshots', () => {
     it('should fetch snapshot by dataSource and snapshot name', async () => {
         const count = 5;
         const { dataSource, createdSnapshots } = await setupDataSource(count);
-        const randomSnapshot =
-            createdSnapshots[Math.floor(Math.random() * count)];
+        const randomSnapshot = createdSnapshots[Math.floor(Math.random() * count)];
         const response = await fetchSnapshot({
             dataSourceName: dataSource.name,
             snapshotName: randomSnapshot.name,
@@ -84,8 +76,7 @@ describe('snapshots', () => {
     it('should fetch snapshot by dataSource and snapshot name', async () => {
         const count = 5;
         const { dataSource, createdSnapshots } = await setupDataSource(count);
-        const randomSnapshot =
-            createdSnapshots[Math.floor(Math.random() * count)];
+        const randomSnapshot = createdSnapshots[Math.floor(Math.random() * count)];
         const response = await fetchSnapshot({
             dataSourceName: dataSource.name,
             snapshotName: randomSnapshot.name,

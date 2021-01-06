@@ -50,33 +50,28 @@ class JobConsumer {
         const { snapshotName } = dataSourceDescriptor;
         try {
             if (snapshotName) {
-                const resolvedSnapshot = await this.db.snapshots.fetchDataSource(
-                    {
-                        snapshotName,
-                        dataSourceName: dataSourceDescriptor.name,
-                    }
-                );
+                const resolvedSnapshot = await this.db.snapshots.fetchDataSource({
+                    snapshotName,
+                    dataSourceName: dataSourceDescriptor.name,
+                });
                 dataSource = resolvedSnapshot.dataSource;
             } else {
                 const shouldGetLatest = !dataSourceDescriptor.version;
                 dataSource = await this.db.dataSources.fetch(
-                    shouldGetLatest
-                        ? { name: dataSourceDescriptor.name }
-                        : { id: dataSourceDescriptor.version }
+                    shouldGetLatest ? { name: dataSourceDescriptor.name } : { id: dataSourceDescriptor.version }
                 );
             }
         } catch (e) {
             return this.handleFail({ ...job, error: e.message });
         }
 
-        const repository = new Repository(
-            dataSourceDescriptor.name,
-            this.config,
-            `${this.rootDir}/${jobId}`
-        );
+        const repository = new Repository(dataSourceDescriptor.name, this.config, `${this.rootDir}/${jobId}`);
 
         try {
-            log.info(`starting to clone dataSource ${dataSource.name}`, { component, taskId });
+            log.info(`starting to clone dataSource ${dataSource.name}`, {
+                component,
+                taskId,
+            });
             await repository.ensureClone(dataSource.versionId);
             await repository.pullFiles();
         } catch (e) {
@@ -88,13 +83,13 @@ class JobConsumer {
 
         let payload = dataSource.files;
         if (dataSource.query) {
-            payload = await repository.filterFiles(
-                dataSource.files,
-                dataSource.query
-            );
+            payload = await repository.filterFiles(dataSource.files, dataSource.query);
         }
         await this.storeResult({ payload, ...job });
-        log.info(`successfully cloned and stored dataSource ${dataSource.name}`, { component, taskId });
+        log.info(`successfully cloned and stored dataSource ${dataSource.name}`, {
+            component,
+            taskId,
+        });
         return null;
     }
 

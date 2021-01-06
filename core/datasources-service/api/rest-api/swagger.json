@@ -161,12 +161,7 @@
                                                         "policy": {
                                                             "type": "string",
                                                             "default": "OnCrash",
-                                                            "enum": [
-                                                                "Never",
-                                                                "Always",
-                                                                "OnError",
-                                                                "OnCrash"
-                                                            ]
+                                                            "enum": ["Never", "Always", "OnError", "OnCrash"]
                                                         },
                                                         "limit": {
                                                             "type": "integer",
@@ -178,17 +173,11 @@
                                                 },
                                                 "batchOperation": {
                                                     "type": "string",
-                                                    "enum": [
-                                                        "indexed",
-                                                        "cartesian"
-                                                    ]
+                                                    "enum": ["indexed", "cartesian"]
                                                 },
                                                 "stateType": {
                                                     "type": "string",
-                                                    "enum": [
-                                                        "stateless",
-                                                        "stateful"
-                                                    ]
+                                                    "enum": ["stateless", "stateful"]
                                                 }
                                             },
                                             "required": ["nodeName"]
@@ -256,14 +245,7 @@
                                                 "type": "string",
                                                 "default": "info",
                                                 "example": "info",
-                                                "enum": [
-                                                    "trace",
-                                                    "debug",
-                                                    "info",
-                                                    "warn",
-                                                    "error",
-                                                    "critical"
-                                                ]
+                                                "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                                             }
                                         },
                                         "description": "optional properties"
@@ -500,14 +482,7 @@
                                                 "type": "string",
                                                 "default": "info",
                                                 "example": "info",
-                                                "enum": [
-                                                    "trace",
-                                                    "debug",
-                                                    "info",
-                                                    "warn",
-                                                    "error",
-                                                    "critical"
-                                                ]
+                                                "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                                             }
                                         },
                                         "description": "optional properties"
@@ -1235,12 +1210,7 @@
                                                             "policy": {
                                                                 "type": "string",
                                                                 "default": "OnCrash",
-                                                                "enum": [
-                                                                    "Never",
-                                                                    "Always",
-                                                                    "OnError",
-                                                                    "OnCrash"
-                                                                ]
+                                                                "enum": ["Never", "Always", "OnError", "OnCrash"]
                                                             },
                                                             "limit": {
                                                                 "type": "integer",
@@ -1252,17 +1222,11 @@
                                                     },
                                                     "batchOperation": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "indexed",
-                                                            "cartesian"
-                                                        ]
+                                                        "enum": ["indexed", "cartesian"]
                                                     },
                                                     "stateType": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "stateless",
-                                                            "stateful"
-                                                        ]
+                                                        "enum": ["stateless", "stateful"]
                                                     }
                                                 },
                                                 "required": ["nodeName"]
@@ -1330,14 +1294,7 @@
                                                     "type": "string",
                                                     "default": "info",
                                                     "example": "info",
-                                                    "enum": [
-                                                        "trace",
-                                                        "debug",
-                                                        "info",
-                                                        "warn",
-                                                        "error",
-                                                        "critical"
-                                                    ]
+                                                    "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                                                 }
                                             },
                                             "description": "optional properties"
@@ -1571,12 +1528,7 @@
                                                             "policy": {
                                                                 "type": "string",
                                                                 "default": "OnCrash",
-                                                                "enum": [
-                                                                    "Never",
-                                                                    "Always",
-                                                                    "OnError",
-                                                                    "OnCrash"
-                                                                ]
+                                                                "enum": ["Never", "Always", "OnError", "OnCrash"]
                                                             },
                                                             "limit": {
                                                                 "type": "integer",
@@ -1588,17 +1540,11 @@
                                                     },
                                                     "batchOperation": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "indexed",
-                                                            "cartesian"
-                                                        ]
+                                                        "enum": ["indexed", "cartesian"]
                                                     },
                                                     "stateType": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "stateless",
-                                                            "stateful"
-                                                        ]
+                                                        "enum": ["stateless", "stateful"]
                                                     }
                                                 },
                                                 "required": ["nodeName"]
@@ -1666,14 +1612,7 @@
                                                     "type": "string",
                                                     "default": "info",
                                                     "example": "info",
-                                                    "enum": [
-                                                        "trace",
-                                                        "debug",
-                                                        "info",
-                                                        "warn",
-                                                        "error",
-                                                        "critical"
-                                                    ]
+                                                    "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                                                 }
                                             },
                                             "description": "optional properties"
@@ -3308,10 +3247,7 @@
                                                 },
                                                 "gitKind": {
                                                     "type": "string",
-                                                    "enum": [
-                                                        "github",
-                                                        "gitlab"
-                                                    ],
+                                                    "enum": ["github", "gitlab"],
                                                     "default": "github"
                                                 }
                                             },
@@ -3752,11 +3688,7 @@
                                             },
                                             "env": {
                                                 "type": "string",
-                                                "enum": [
-                                                    "nodejs",
-                                                    "python",
-                                                    "java"
-                                                ]
+                                                "enum": ["nodejs", "python", "java"]
                                             },
                                             "algorithmImage": {
                                                 "type": "string",
@@ -3835,10 +3767,7 @@
                                                             "description": "the mount path in the algorithm container"
                                                         }
                                                     },
-                                                    "required": [
-                                                        "pvcName",
-                                                        "path"
-                                                    ]
+                                                    "required": ["pvcName", "path"]
                                                 },
                                                 "uniqueItems": true,
                                                 "example": []
@@ -3885,10 +3814,7 @@
                                                     },
                                                     "gitKind": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "github",
-                                                            "gitlab"
-                                                        ],
+                                                        "enum": ["github", "gitlab"],
                                                         "default": "github"
                                                     }
                                                 },
@@ -3930,11 +3856,7 @@
                                             "type": {
                                                 "type": "string",
                                                 "description": "type of algorithm code resource",
-                                                "enum": [
-                                                    "Git",
-                                                    "Code",
-                                                    "Image"
-                                                ],
+                                                "enum": ["Git", "Code", "Image"],
                                                 "default": "Image"
                                             },
                                             "downloadFileExt": {
@@ -4528,11 +4450,7 @@
                                             },
                                             "env": {
                                                 "type": "string",
-                                                "enum": [
-                                                    "nodejs",
-                                                    "python",
-                                                    "java"
-                                                ]
+                                                "enum": ["nodejs", "python", "java"]
                                             },
                                             "algorithmImage": {
                                                 "type": "string",
@@ -4611,10 +4529,7 @@
                                                             "description": "the mount path in the algorithm container"
                                                         }
                                                     },
-                                                    "required": [
-                                                        "pvcName",
-                                                        "path"
-                                                    ]
+                                                    "required": ["pvcName", "path"]
                                                 },
                                                 "uniqueItems": true,
                                                 "example": []
@@ -4661,10 +4576,7 @@
                                                     },
                                                     "gitKind": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "github",
-                                                            "gitlab"
-                                                        ],
+                                                        "enum": ["github", "gitlab"],
                                                         "default": "github"
                                                     }
                                                 },
@@ -4706,11 +4618,7 @@
                                             "type": {
                                                 "type": "string",
                                                 "description": "type of algorithm code resource",
-                                                "enum": [
-                                                    "Git",
-                                                    "Code",
-                                                    "Image"
-                                                ],
+                                                "enum": ["Git", "Code", "Image"],
                                                 "default": "Image"
                                             },
                                             "downloadFileExt": {
@@ -4766,11 +4674,7 @@
                                                 },
                                                 "env": {
                                                     "type": "string",
-                                                    "enum": [
-                                                        "nodejs",
-                                                        "python",
-                                                        "java"
-                                                    ]
+                                                    "enum": ["nodejs", "python", "java"]
                                                 },
                                                 "algorithmImage": {
                                                     "type": "string",
@@ -4849,10 +4753,7 @@
                                                                 "description": "the mount path in the algorithm container"
                                                             }
                                                         },
-                                                        "required": [
-                                                            "pvcName",
-                                                            "path"
-                                                        ]
+                                                        "required": ["pvcName", "path"]
                                                     },
                                                     "uniqueItems": true,
                                                     "example": []
@@ -4899,10 +4800,7 @@
                                                         },
                                                         "gitKind": {
                                                             "type": "string",
-                                                            "enum": [
-                                                                "github",
-                                                                "gitlab"
-                                                            ],
+                                                            "enum": ["github", "gitlab"],
                                                             "default": "github"
                                                         }
                                                     },
@@ -4944,11 +4842,7 @@
                                                 "type": {
                                                     "type": "string",
                                                     "description": "type of algorithm code resource",
-                                                    "enum": [
-                                                        "Git",
-                                                        "Code",
-                                                        "Image"
-                                                    ],
+                                                    "enum": ["Git", "Code", "Image"],
                                                     "default": "Image"
                                                 },
                                                 "downloadFileExt": {
@@ -5112,12 +5006,7 @@
                                                             "policy": {
                                                                 "type": "string",
                                                                 "default": "OnCrash",
-                                                                "enum": [
-                                                                    "Never",
-                                                                    "Always",
-                                                                    "OnError",
-                                                                    "OnCrash"
-                                                                ]
+                                                                "enum": ["Never", "Always", "OnError", "OnCrash"]
                                                             },
                                                             "limit": {
                                                                 "type": "integer",
@@ -5129,17 +5018,11 @@
                                                     },
                                                     "batchOperation": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "indexed",
-                                                            "cartesian"
-                                                        ]
+                                                        "enum": ["indexed", "cartesian"]
                                                     },
                                                     "stateType": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "stateless",
-                                                            "stateful"
-                                                        ]
+                                                        "enum": ["stateless", "stateful"]
                                                     }
                                                 },
                                                 "required": ["nodeName"]
@@ -5207,14 +5090,7 @@
                                                     "type": "string",
                                                     "default": "info",
                                                     "example": "info",
-                                                    "enum": [
-                                                        "trace",
-                                                        "debug",
-                                                        "info",
-                                                        "warn",
-                                                        "error",
-                                                        "critical"
-                                                    ]
+                                                    "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                                                 }
                                             },
                                             "description": "optional properties"
@@ -5549,12 +5425,7 @@
                                                                 "policy": {
                                                                     "type": "string",
                                                                     "default": "OnCrash",
-                                                                    "enum": [
-                                                                        "Never",
-                                                                        "Always",
-                                                                        "OnError",
-                                                                        "OnCrash"
-                                                                    ]
+                                                                    "enum": ["Never", "Always", "OnError", "OnCrash"]
                                                                 },
                                                                 "limit": {
                                                                     "type": "integer",
@@ -5566,17 +5437,11 @@
                                                         },
                                                         "batchOperation": {
                                                             "type": "string",
-                                                            "enum": [
-                                                                "indexed",
-                                                                "cartesian"
-                                                            ]
+                                                            "enum": ["indexed", "cartesian"]
                                                         },
                                                         "stateType": {
                                                             "type": "string",
-                                                            "enum": [
-                                                                "stateless",
-                                                                "stateful"
-                                                            ]
+                                                            "enum": ["stateless", "stateful"]
                                                         }
                                                     },
                                                     "required": ["nodeName"]
@@ -5644,14 +5509,7 @@
                                                         "type": "string",
                                                         "default": "info",
                                                         "example": "info",
-                                                        "enum": [
-                                                            "trace",
-                                                            "debug",
-                                                            "info",
-                                                            "warn",
-                                                            "error",
-                                                            "critical"
-                                                        ]
+                                                        "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                                                     }
                                                 },
                                                 "description": "optional properties"
@@ -5844,12 +5702,7 @@
                                                         "policy": {
                                                             "type": "string",
                                                             "default": "OnCrash",
-                                                            "enum": [
-                                                                "Never",
-                                                                "Always",
-                                                                "OnError",
-                                                                "OnCrash"
-                                                            ]
+                                                            "enum": ["Never", "Always", "OnError", "OnCrash"]
                                                         },
                                                         "limit": {
                                                             "type": "integer",
@@ -5861,17 +5714,11 @@
                                                 },
                                                 "batchOperation": {
                                                     "type": "string",
-                                                    "enum": [
-                                                        "indexed",
-                                                        "cartesian"
-                                                    ]
+                                                    "enum": ["indexed", "cartesian"]
                                                 },
                                                 "stateType": {
                                                     "type": "string",
-                                                    "enum": [
-                                                        "stateless",
-                                                        "stateful"
-                                                    ]
+                                                    "enum": ["stateless", "stateful"]
                                                 }
                                             },
                                             "required": ["nodeName"]
@@ -5939,14 +5786,7 @@
                                                 "type": "string",
                                                 "default": "info",
                                                 "example": "info",
-                                                "enum": [
-                                                    "trace",
-                                                    "debug",
-                                                    "info",
-                                                    "warn",
-                                                    "error",
-                                                    "critical"
-                                                ]
+                                                "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                                             }
                                         },
                                         "description": "optional properties"
@@ -6117,12 +5957,7 @@
                                                             "policy": {
                                                                 "type": "string",
                                                                 "default": "OnCrash",
-                                                                "enum": [
-                                                                    "Never",
-                                                                    "Always",
-                                                                    "OnError",
-                                                                    "OnCrash"
-                                                                ]
+                                                                "enum": ["Never", "Always", "OnError", "OnCrash"]
                                                             },
                                                             "limit": {
                                                                 "type": "integer",
@@ -6134,17 +5969,11 @@
                                                     },
                                                     "batchOperation": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "indexed",
-                                                            "cartesian"
-                                                        ]
+                                                        "enum": ["indexed", "cartesian"]
                                                     },
                                                     "stateType": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "stateless",
-                                                            "stateful"
-                                                        ]
+                                                        "enum": ["stateless", "stateful"]
                                                     }
                                                 },
                                                 "required": ["nodeName"]
@@ -6212,14 +6041,7 @@
                                                     "type": "string",
                                                     "default": "info",
                                                     "example": "info",
-                                                    "enum": [
-                                                        "trace",
-                                                        "debug",
-                                                        "info",
-                                                        "warn",
-                                                        "error",
-                                                        "critical"
-                                                    ]
+                                                    "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                                                 }
                                             },
                                             "description": "optional properties"
@@ -6449,12 +6271,7 @@
                                                         "policy": {
                                                             "type": "string",
                                                             "default": "OnCrash",
-                                                            "enum": [
-                                                                "Never",
-                                                                "Always",
-                                                                "OnError",
-                                                                "OnCrash"
-                                                            ]
+                                                            "enum": ["Never", "Always", "OnError", "OnCrash"]
                                                         },
                                                         "limit": {
                                                             "type": "integer",
@@ -6466,17 +6283,11 @@
                                                 },
                                                 "batchOperation": {
                                                     "type": "string",
-                                                    "enum": [
-                                                        "indexed",
-                                                        "cartesian"
-                                                    ]
+                                                    "enum": ["indexed", "cartesian"]
                                                 },
                                                 "stateType": {
                                                     "type": "string",
-                                                    "enum": [
-                                                        "stateless",
-                                                        "stateful"
-                                                    ]
+                                                    "enum": ["stateless", "stateful"]
                                                 }
                                             },
                                             "required": ["nodeName"]
@@ -6544,14 +6355,7 @@
                                                 "type": "string",
                                                 "default": "info",
                                                 "example": "info",
-                                                "enum": [
-                                                    "trace",
-                                                    "debug",
-                                                    "info",
-                                                    "warn",
-                                                    "error",
-                                                    "critical"
-                                                ]
+                                                "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                                             }
                                         },
                                         "description": "optional properties"
@@ -6722,12 +6526,7 @@
                                                             "policy": {
                                                                 "type": "string",
                                                                 "default": "OnCrash",
-                                                                "enum": [
-                                                                    "Never",
-                                                                    "Always",
-                                                                    "OnError",
-                                                                    "OnCrash"
-                                                                ]
+                                                                "enum": ["Never", "Always", "OnError", "OnCrash"]
                                                             },
                                                             "limit": {
                                                                 "type": "integer",
@@ -6739,17 +6538,11 @@
                                                     },
                                                     "batchOperation": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "indexed",
-                                                            "cartesian"
-                                                        ]
+                                                        "enum": ["indexed", "cartesian"]
                                                     },
                                                     "stateType": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "stateless",
-                                                            "stateful"
-                                                        ]
+                                                        "enum": ["stateless", "stateful"]
                                                     }
                                                 },
                                                 "required": ["nodeName"]
@@ -6817,14 +6610,7 @@
                                                     "type": "string",
                                                     "default": "info",
                                                     "example": "info",
-                                                    "enum": [
-                                                        "trace",
-                                                        "debug",
-                                                        "info",
-                                                        "warn",
-                                                        "error",
-                                                        "critical"
-                                                    ]
+                                                    "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                                                 }
                                             },
                                             "description": "optional properties"
@@ -8961,11 +8747,7 @@
                                             },
                                             "env": {
                                                 "type": "string",
-                                                "enum": [
-                                                    "nodejs",
-                                                    "python",
-                                                    "java"
-                                                ]
+                                                "enum": ["nodejs", "python", "java"]
                                             },
                                             "algorithmImage": {
                                                 "type": "string",
@@ -9044,10 +8826,7 @@
                                                             "description": "the mount path in the algorithm container"
                                                         }
                                                     },
-                                                    "required": [
-                                                        "pvcName",
-                                                        "path"
-                                                    ]
+                                                    "required": ["pvcName", "path"]
                                                 },
                                                 "uniqueItems": true,
                                                 "example": []
@@ -9094,10 +8873,7 @@
                                                     },
                                                     "gitKind": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "github",
-                                                            "gitlab"
-                                                        ],
+                                                        "enum": ["github", "gitlab"],
                                                         "default": "github"
                                                     }
                                                 },
@@ -9139,11 +8915,7 @@
                                             "type": {
                                                 "type": "string",
                                                 "description": "type of algorithm code resource",
-                                                "enum": [
-                                                    "Git",
-                                                    "Code",
-                                                    "Image"
-                                                ],
+                                                "enum": ["Git", "Code", "Image"],
                                                 "default": "Image"
                                             },
                                             "downloadFileExt": {
@@ -9265,11 +9037,7 @@
                                             },
                                             "env": {
                                                 "type": "string",
-                                                "enum": [
-                                                    "nodejs",
-                                                    "python",
-                                                    "java"
-                                                ]
+                                                "enum": ["nodejs", "python", "java"]
                                             },
                                             "algorithmImage": {
                                                 "type": "string",
@@ -9348,10 +9116,7 @@
                                                             "description": "the mount path in the algorithm container"
                                                         }
                                                     },
-                                                    "required": [
-                                                        "pvcName",
-                                                        "path"
-                                                    ]
+                                                    "required": ["pvcName", "path"]
                                                 },
                                                 "uniqueItems": true,
                                                 "example": []
@@ -9398,10 +9163,7 @@
                                                     },
                                                     "gitKind": {
                                                         "type": "string",
-                                                        "enum": [
-                                                            "github",
-                                                            "gitlab"
-                                                        ],
+                                                        "enum": ["github", "gitlab"],
                                                         "default": "github"
                                                     }
                                                 },
@@ -9443,11 +9205,7 @@
                                             "type": {
                                                 "type": "string",
                                                 "description": "type of algorithm code resource",
-                                                "enum": [
-                                                    "Git",
-                                                    "Code",
-                                                    "Image"
-                                                ],
+                                                "enum": ["Git", "Code", "Image"],
                                                 "default": "Image"
                                             },
                                             "downloadFileExt": {
@@ -11707,16 +11465,10 @@
                                 },
                                 "anyOf": [
                                     {
-                                        "required": [
-                                            "versionDescription",
-                                            "filesDropped"
-                                        ]
+                                        "required": ["versionDescription", "filesDropped"]
                                     },
                                     {
-                                        "required": [
-                                            "versionDescription",
-                                            "filesAdded"
-                                        ]
+                                        "required": ["versionDescription", "filesAdded"]
                                     }
                                 ]
                             }
@@ -12800,14 +12552,7 @@
                         "type": "string",
                         "default": "info",
                         "example": "info",
-                        "enum": [
-                            "trace",
-                            "debug",
-                            "info",
-                            "warn",
-                            "error",
-                            "critical"
-                        ]
+                        "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                     }
                 },
                 "description": "optional properties"
@@ -12893,12 +12638,7 @@
                                         "policy": {
                                             "type": "string",
                                             "default": "OnCrash",
-                                            "enum": [
-                                                "Never",
-                                                "Always",
-                                                "OnError",
-                                                "OnCrash"
-                                            ]
+                                            "enum": ["Never", "Always", "OnError", "OnCrash"]
                                         },
                                         "limit": {
                                             "type": "integer",
@@ -12982,14 +12722,7 @@
                                 "type": "string",
                                 "default": "info",
                                 "example": "info",
-                                "enum": [
-                                    "trace",
-                                    "debug",
-                                    "info",
-                                    "warn",
-                                    "error",
-                                    "critical"
-                                ]
+                                "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                             }
                         },
                         "description": "optional properties"
@@ -13132,12 +12865,7 @@
                             "policy": {
                                 "type": "string",
                                 "default": "OnCrash",
-                                "enum": [
-                                    "Never",
-                                    "Always",
-                                    "OnError",
-                                    "OnCrash"
-                                ]
+                                "enum": ["Never", "Always", "OnError", "OnCrash"]
                             },
                             "limit": {
                                 "type": "integer",
@@ -13322,14 +13050,7 @@
                                 "type": "string",
                                 "default": "info",
                                 "example": "info",
-                                "enum": [
-                                    "trace",
-                                    "debug",
-                                    "info",
-                                    "warn",
-                                    "error",
-                                    "critical"
-                                ]
+                                "enum": ["trace", "debug", "info", "warn", "error", "critical"]
                             }
                         },
                         "description": "optional properties"

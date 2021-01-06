@@ -3,34 +3,34 @@ post:
         - Snapshot
     summary: create a new snapshot for a given datasource version
     parameters:
-        - $ref: "#components/parameters/nameParam"
-        - $ref: "#components/parameters/idQueryRequired"
+        - $ref: '#components/parameters/nameParam'
+        - $ref: '#components/parameters/idQueryRequired'
     requestBody:
         content:
             application/json:
                 schema:
-                    $ref: "#/components/schemas/SnapshotRequest"
+                    $ref: '#/components/schemas/SnapshotRequest'
     responses:
-        "201":
+        '201':
             description: A collection of snapshots
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/Snapshot"
+                        $ref: '#/components/schemas/Snapshot'
 get:
     tags:
         - Snapshot
     summary: fetch snapshots for a given datasource
     parameters:
-        - $ref: "#components/parameters/nameParam"
-        - $ref: "#components/parameters/snapshotNameParam"
+        - $ref: '#components/parameters/nameParam'
+        - $ref: '#components/parameters/snapshotNameParam'
         - name: resolve
           in: query
           description: return the entire dataSource with the snapshot
           schema:
               type: boolean
     responses:
-        "200":
+        '200':
             description: A collection of snapshots
             content:
                 application/json:
@@ -44,5 +44,5 @@ get:
                                           id:
                                               type: string
                                   snapshot:
-                                      $ref: "#/components/schemas/Snapshot"
-                            - $ref: "#/components/schemas/ResolvedSnapshot"
+                                      $ref: '#/components/schemas/Snapshot'
+                            - $ref: '#/components/schemas/ResolvedSnapshot'

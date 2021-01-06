@@ -12,10 +12,7 @@ const build = async () => {
     });
     swagger.info.version = version;
     await swaggerParser.validate(swagger);
-    fs.writeFileSync(
-        path.join(__dirname, FILE),
-        JSON.stringify(swagger, null, 2)
-    );
+    fs.writeFileSync(path.join(__dirname, FILE), JSON.stringify(swagger, null, 2));
     console.log(`successfully build ${FILE}`);
 };
 

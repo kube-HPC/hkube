@@ -9,11 +9,7 @@ const fileName = 'README-1.md';
 
 const setupUrl = ({ name, id }) => {
     const uri = `${global.testParams.restUrl}/datasource`;
-    return id && name
-        ? `${uri}/${name}?version_id=${id}`
-        : id
-        ? `${uri}/id/${id}`
-        : `${uri}/${name}`;
+    return id && name ? `${uri}/${name}?version_id=${id}` : id ? `${uri}/id/${id}` : `${uri}/${name}`;
 };
 
 /**
@@ -27,17 +23,11 @@ const setupUrl = ({ name, id }) => {
  *     fileNames?: string[];
  * }) => Promise<{ body: DataSource }>}
  */
-const createDataSource = ({
-    body = {},
-    withFile = true,
-    fileNames = [fileName],
-} = {}) => {
+const createDataSource = ({ body = {}, withFile = true, fileNames = [fileName] } = {}) => {
     const uri = `${global.testParams.restUrl}/datasource`;
     const formData = {
         ...body,
-        files: withFile
-            ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`))
-            : undefined,
+        files: withFile ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`)) : undefined,
     };
     const options = { uri, formData };
     return request(options);
@@ -67,10 +57,7 @@ const updateVersion = async ({
     droppedFileIds: _droppedFileIds = [],
 }) => {
     const uri = setupUrl({ name: dataSourceName });
-    const normalizedMapping = _mapping.reduce(
-        (acc, item) => ({ ...acc, [item.id]: item }),
-        {}
-    );
+    const normalizedMapping = _mapping.reduce((acc, item) => ({ ...acc, [item.id]: item }), {});
     const files = fileNames
         .map(name => ({ name, id: uuid() }))
         .concat(_files)
@@ -83,8 +70,7 @@ const updateVersion = async ({
 
     const mapping = _mapping.length > 0 ? JSON.stringify(_mapping) : [];
 
-    const droppedFileIds =
-        _droppedFileIds.length > 0 ? JSON.stringify(_droppedFileIds) : [];
+    const droppedFileIds = _droppedFileIds.length > 0 ? JSON.stringify(_droppedFileIds) : [];
 
     const formData = {
         versionDescription,
@@ -154,11 +140,7 @@ const delay = d => new Promise(r => setTimeout(r, d));
  *     shouldResolve?: boolean;
  * }} query
  */
-const fetchSnapshot = ({
-    dataSourceName,
-    snapshotName,
-    shouldResolve = false,
-}) =>
+const fetchSnapshot = ({ dataSourceName, snapshotName, shouldResolve = false }) =>
     request({
         uri: `${setupUrl({
             name: dataSourceName,

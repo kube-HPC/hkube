@@ -3,7 +3,7 @@ properties:
     versionDescription:
         type: string
     filesAdded:
-        $ref: "#/components/schemas/Files"
+        $ref: '#/components/schemas/Files'
     filesDropped:
         type: array
         items:
@@ -12,7 +12,7 @@ properties:
     mapping:
         type: array
         items:
-            $ref: "#/components/schemas/FileMeta"
+            $ref: '#/components/schemas/FileMeta'
 anyOf:
     - required:
           - versionDescription

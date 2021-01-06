@@ -6,10 +6,12 @@ const logger = (filter = []) => (req, res, next) => {
         return next();
     }
     const { route, jobId, pipelineName } = res._internalMetadata || {};
-    log.info(
-        `response sent for ${req.method} ${req.originalUrl} ${res.statusCode}`,
-        { component, route, jobId, pipelineName }
-    );
+    log.info(`response sent for ${req.method} ${req.originalUrl} ${res.statusCode}`, {
+        component,
+        route,
+        jobId,
+        pipelineName,
+    });
     return next();
 };
 

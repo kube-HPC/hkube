@@ -1,12 +1,7 @@
 const { expect } = require('chai');
 const { uid: uuid } = require('@hkube/uid');
 let jobConsumer;
-const {
-    createDataSource,
-    createSnapshot,
-    createJob,
-    delay,
-} = require('./utils');
+const { createDataSource, createSnapshot, createJob, delay } = require('./utils');
 
 describe('JobsConsumer', () => {
     before(() => {
@@ -19,9 +14,7 @@ describe('JobsConsumer', () => {
         const { jobId, taskId } = job.data;
         const state = await jobConsumer.state.get({ jobId, taskId });
         expect(state.status).to.equal('failed');
-        expect(state.error).to.equal(
-            `could not find dataSource:${dataSource.name}`
-        );
+        expect(state.error).to.equal(`could not find dataSource:${dataSource.name}`);
     });
     it('should succeed get datasource and update job', async () => {
         const name = uuid();
