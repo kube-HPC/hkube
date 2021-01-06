@@ -84,9 +84,7 @@ class JobConsumer {
             } else {
                 const shouldGetLatest = !dataSourceDescriptor.version;
                 dataSource = await this.db.dataSources.fetch(
-                    shouldGetLatest
-                        ? { name: dataSourceDescriptor.name }
-                        : { id: dataSourceDescriptor.version }
+                    shouldGetLatest ? { name: dataSourceDescriptor.name } : { id: dataSourceDescriptor.version }
                 );
             }
         } catch (e) {

@@ -1,13 +1,12 @@
 const fs = require('fs');
 const path = require('path');
-const swaggerParser = require('swagger-parser');
 const RestServer = require('@hkube/rest-server');
+const { swaggerUtils } = require('@hkube/rest-server');
 const log = require('@hkube/logger').GetLogFromContanier();
 const { metrics } = require('@hkube/metrics');
 require('express-async-errors');
 const HttpStatus = require('http-status-codes');
 const internal = require('./internal/index');
-const swaggerLoader = require('./swagger-loader.js');
 const validator = require('../../lib/validation/api-validator');
 const component = require('../../lib/consts/componentNames').REST_API;
 const afterRequest = require('./middlewares/after-request');
@@ -27,7 +26,7 @@ class AppServer {
             }
         });
 
-        const { schemasInternal, ...swagger } = await swaggerLoader.load({ path: path.join(__dirname, 'swagger') });
+        const { schemasInternal, ...swagger } = await swaggerUtils.loader.load({ path: path.join(__dirname, 'swagger') });
         swagger.info.version = options.version;
 
         const { prefix, port, rateLimit, poweredBy } = options.rest;
@@ -47,7 +46,7 @@ class AppServer {
             });
         });
 
-        await swaggerParser.validate(swagger);
+        await swaggerUtils.validator.validate(swagger);
         validator.init(swagger.components.schemas, schemasInternal);
 
         const { beforeRoutesMiddlewares, afterRoutesMiddlewares } = metrics.getMiddleware();
