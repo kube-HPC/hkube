@@ -3,21 +3,17 @@ const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const sinon = require('sinon');
-const { request } = require('./request');
-const dbConnection = require('../lib/db');
 const {
     createDataSource,
     updateVersion,
     createDownloadLink,
 } = require('./utils');
 
-describe.only('download', () => {
-    it('generate a download link', async () => {
+describe('download', () => {
+    it.only('generate a download link', async () => {
         sinon.restore();
         const name = uuid();
-        await createDataSource({
-            body: { name },
-        });
+        await createDataSource({ body: { name } });
         const { body: dataSource } = await updateVersion({
             dataSourceName: name,
             files: [
@@ -40,10 +36,21 @@ describe.only('download', () => {
             ],
         });
         const fileIds = dataSource.files.slice(0, 2).map(file => file.id);
-        const { body: response } = await createDownloadLink({
+        const {
+            body,
+            response: { statusCode },
+        } = await createDownloadLink({
             dataSourceId: dataSource.id,
             fileIds,
         });
-        console.log(response);
+        expect(body).to.have.ownProperty('href');
+        const { href } = body;
+        const [, downloadId] = href.split('download_id=');
+        expect(statusCode).to.eq(HttpStatus.CREATED);
+        expect(
+            await fse.pathExists(
+                `${global.testParams.directories.zipFiles}/${downloadId}.zip`
+            )
+        ).to.be.true;
     });
 });

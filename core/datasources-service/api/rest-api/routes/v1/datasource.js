@@ -166,7 +166,7 @@ const routes = () => {
                 dataSourceId,
                 fileIds: req.body.fileIds,
             });
-            const href = `/id/${dataSourceId}/download?download_id=${downloadId}`;
+            const href = `datasource/id/${dataSourceId}/download?download_id=${downloadId}`;
             res.status(201).json({ href });
             next();
         })
