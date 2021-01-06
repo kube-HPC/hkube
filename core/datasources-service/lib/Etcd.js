@@ -9,13 +9,8 @@ class StateManager {
         });
     }
 
-    set({ jobId, taskId, nodeName, status }) {
-        return this._etcd.jobs.tasks.set({
-            jobId,
-            taskId,
-            nodeName,
-            status,
-        });
+    set(task) {
+        return this._etcd.jobs.tasks.set(task);
     }
 
     get({ jobId, taskId }) {
@@ -25,15 +20,8 @@ class StateManager {
         });
     }
 
-    update({ jobId, taskId, nodeName, status, result, error }) {
-        return this._etcd.jobs.tasks.update({
-            jobId,
-            taskId,
-            nodeName,
-            status,
-            result,
-            error,
-        });
+    update(task) {
+        return this._etcd.jobs.tasks.update(task);
     }
 
     startWatch() {
