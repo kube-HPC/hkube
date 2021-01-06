@@ -8,7 +8,12 @@ const logger = (filter = []) => (req, res, next) => {
     const { route, jobId, pipelineName } = res._internalMetadata || {};
     log.info(
         `response sent for ${req.method} ${req.originalUrl} ${res.statusCode}`,
-        { component, route, jobId, pipelineName }
+        {
+            component,
+            route,
+            jobId,
+            pipelineName,
+        }
     );
     return next();
 };
