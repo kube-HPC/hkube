@@ -21,6 +21,44 @@ class JobConsumer {
         this._inactiveTimer = null;
     }
 
+    /**
+     * Init the consumer and register for jobs, initialize connection to the state manager
+     *
+     * @param {config} config
+     */
+    async init(config) {
+        this.config = config;
+        await fse.ensureDir(config.directories.dataSourcesInUse);
+        const { type, prefix } = config.jobs.consumer;
+        const consumerSettings = {
+            job: { type, prefix },
+            setting: {
+                redis: config.redis,
+                prefix,
+            },
+        };
+        this.rootDir = this.config.directories.dataSourcesInUse;
+        this.state = new Etcd(config);
+        this.consumer = new Consumer(consumerSettings);
+        this.consumer.register(consumerSettings);
+        /** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
+        this.db = dbConnection.connection;
+        await this.state.startWatch();
+        // register to events
+        this.consumer.on(
+            'job',
+            /** @type {onJobHandler} */
+            async job => {
+                await this.fetchDataSource(job.data);
+                job.done(); // send job done to redis
+            }
+        );
+
+        this.state.onDone(job => {
+            this.unmountDataSource(job.jobId);
+        });
+    }
+
     handleFail({ jobId, taskId, error }) {
         log.error(error, { component, taskId });
         return this.state.update({
@@ -188,44 +226,6 @@ class JobConsumer {
 
     unmountDataSource(jobId) {
         return fse.remove(`${this.rootDir}/${jobId}`);
-    }
-
-    /**
-     * Init the consumer and register for jobs, initialize connection to the state manager
-     *
-     * @param {config} config
-     */
-    async init(config) {
-        this.config = config;
-        await fse.ensureDir(config.directories.dataSourcesInUse);
-        const { type, prefix } = config.jobs.consumer;
-        const consumerSettings = {
-            job: { type, prefix },
-            setting: {
-                redis: config.redis,
-                prefix,
-            },
-        };
-        this.rootDir = this.config.directories.dataSourcesInUse;
-        this.state = new Etcd(config);
-        this.consumer = new Consumer(consumerSettings);
-        this.consumer.register(consumerSettings);
-        /** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
-        this.db = dbConnection.connection;
-        await this.state.startWatch();
-        // register to events
-        this.consumer.on(
-            'job',
-            /** @type {onJobHandler} */
-            async job => {
-                await this.fetchDataSource(job.data);
-                job.done(); // send job done to redis
-            }
-        );
-
-        this.state.onDone(job => {
-            this.unmountDataSource(job.jobId);
-        });
     }
 }
 

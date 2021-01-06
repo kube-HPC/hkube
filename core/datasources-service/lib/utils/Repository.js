@@ -268,18 +268,19 @@ class Repository {
     /**
      * Filters files from a local copy of the repository
      *
-     * @param {string} query
-     * @param {FileMeta[]} files
+     * @param {FileMeta[]} filesToDrop
      */
     filterFilesFromClone(filesToDrop) {
-        return filesToDrop.map(file => {
-            const filePath = `${this.cwd}/${getFilePath(file)}`;
-            return [
-                fse.remove(filePath),
-                fse.remove(`${filePath}.dvc`),
-                fse.remove(`${filePath}.meta`),
-            ];
-        });
+        return Promise.all(
+            filesToDrop
+                .map(file => {
+                    const filePath = `${this.cwd}/${getFilePath(file)}`;
+                    return ['', '.dvc', '.meta'].map(ext =>
+                        fse.remove(`${filePath}${ext}`)
+                    );
+                })
+                .flat()
+        );
     }
 }
 
