@@ -15,7 +15,7 @@ class DataSources {
         if (dataSources.length > 0) {
             const { error } = await dataSourceService.validate(dataSources);
             if (error) {
-                throw new InvalidDataError(error.message);
+                throw new InvalidDataError(error);
             }
         }
     }

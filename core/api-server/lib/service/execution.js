@@ -81,7 +81,7 @@ class ExecutionService {
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline);
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
-            // await validator.dataSources.validate(pipeline);
+            await validator.dataSources.validate(pipeline);
             const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
             validator.algorithms.validateAlgorithmImage(algorithms);
             const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline);
@@ -207,7 +207,7 @@ class ExecutionService {
     }
 
     async getRunningPipelines() {
-        const list = await stateManager.searchJobs({ hasResult: false, fields: { pipeline: true } });
+        const list = await stateManager.searchJobs({ hasResult: false, fields: { jobId: true, pipeline: true } });
         return list.map(l => ({ jobId: l.jobId, ...l.pipeline }));
     }
 

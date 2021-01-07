@@ -2,9 +2,5 @@ type: object
 properties:
   name:
     type: string
-  version:
-    type: string
-  query:
-    type: string
 required:
   - name

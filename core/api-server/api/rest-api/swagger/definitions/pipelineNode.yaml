@@ -53,8 +53,9 @@ properties:
     enum:
       - dataSource
   dataSource:
-    oneOf:
-      - $ref: "#/components/schemas/dataSource-raw"
+    anyOf:
+      - $ref: "#/components/schemas/dataSource-name"
       - $ref: "#/components/schemas/dataSource-snapshot"
+      - $ref: "#/components/schemas/dataSource-version"
 required:
   - nodeName

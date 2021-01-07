@@ -293,6 +293,26 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.servingStatus, () => {
             this._algorithmServingLastUpdate = Date.now();
         });
+        algoRunnerCommunication.on(messages.incomming.dataSourceMetadataRequest, async (message) => {
+            let error;
+            let response;
+            const { requestId } = message.data;
+            try {
+                response = await stateAdapter.getDataSource(message.data);
+            }
+            catch (e) {
+                error = e.message;
+            }
+            algoRunnerCommunication.send({
+                command: messages.outgoing.dataSourceMetadataResponse,
+                data: {
+                    requestId,
+                    response,
+                    error
+                },
+
+            });
+        });
     }
 
     async _handleRetry(options) {
