@@ -64,26 +64,38 @@ class LoggingProxy {
     }
 
     _getLogMessage(rawLine) {
+        let stream;
+        let parsedLogWithoutLogMessage;
+        let logMessage = rawLine;
+        const logParsed = this._jsonTryParse(rawLine);
+
+        if (logParsed?.log) {
+            const internalLog = this._jsonTryParse(logParsed.log);
+            let logObject = logParsed;
+            if (internalLog?.log) {
+                logObject = internalLog;
+            }
+            const { log: logStr, stream: streamLog, ...rest } = logObject;
+            logMessage = logStr;
+            stream = streamLog;
+            parsedLogWithoutLogMessage = rest;
+        }
+        return { logMessage, stream, parsedLogWithoutLogMessage };
+    }
+
+    _jsonTryParse(str) {
+        let result;
         try {
-            const logParsed = JSON.parse(rawLine);
-            if (logParsed?.log) {
-                try {
-                    const internalLog = JSON.parse(logParsed.log);
-                    const { log: logMessage, stream, ...parsedLogWithoutLogMessage } = internalLog;
-                    return { logMessage, stream, parsedLogWithoutLogMessage };
-                }
-                catch (error) {
-                    const { log: logMessage, stream, ...parsedLogWithoutLogMessage } = logParsed;
-                    return { logMessage, stream, parsedLogWithoutLogMessage };
-                }
+            if (typeof str === 'string') {
+                result = JSON.parse(str);
+                return result;
             }
-            else {
-                return { logMessage: rawLine };
-            }
+            return str;
         }
         catch (error) {
-            return { logMessage: rawLine };
+            result = str;
         }
+        return result;
     }
 
     _startWatch() {
