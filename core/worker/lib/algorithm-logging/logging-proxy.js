@@ -11,8 +11,7 @@ let log;
 class LoggingProxy {
     async init(options) {
         log = Logger.GetLogFromContainer();
-        const loggingOptions = (options && options.algorunnerLogging);
-        if (!loggingOptions) {
+        if (!options?.algorunnerLogging) {
             log.warning('Algorunner logging proxy not started.', { component });
             return;
         }
@@ -67,7 +66,7 @@ class LoggingProxy {
     _getLogMessage(rawLine) {
         try {
             const logParsed = JSON.parse(rawLine);
-            if (logParsed.log) {
+            if (logParsed?.log) {
                 try {
                     const internalLog = JSON.parse(logParsed.log);
                     const { log: logMessage, stream, ...parsedLogWithoutLogMessage } = internalLog;
@@ -79,8 +78,7 @@ class LoggingProxy {
                 }
             }
             else {
-                const { log: logMessage, stream, ...parsedLogWithoutLogMessage } = logParsed;
-                return { logMessage, stream, parsedLogWithoutLogMessage };
+                return { logMessage: rawLine };
             }
         }
         catch (error) {
