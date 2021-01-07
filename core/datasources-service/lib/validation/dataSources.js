@@ -1,5 +1,5 @@
 const dbConnect = require('../db');
-const { ResourceNotFoundError } = require('../errors');
+const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 /** @typedef {import('express')} Express */
 
 class DataSources {
@@ -35,6 +35,11 @@ class DataSources {
             props.files.added?.length > 0
                 ? props.files.added.map(file => file.originalname)
                 : undefined;
+        if (!filesAdded && !props.files.dropped && !props.files.mapping) {
+            throw new InvalidDataError(
+                'you must provide at least one of (files | droppedFileIds | mapping)'
+            );
+        }
         this._validator.validate(this._validator.definitions.update, {
             ...props,
             files: { added: filesAdded },
@@ -65,7 +70,7 @@ class DataSources {
         }
     }
 
-    async validateSnapshot(snapshot) {
+    validateSnapshot(snapshot) {
         this._validator.validate(
             this._validator.definitions.Snapshot,
             snapshot

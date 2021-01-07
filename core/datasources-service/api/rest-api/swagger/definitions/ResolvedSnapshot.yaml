@@ -1,7 +1,7 @@
 type: object
 properties:
     name:
-        type: string
+        $ref: '#/components/schemas/DataSourceName'
     query:
         type: string
     dataSource:

@@ -3,14 +3,15 @@ class Downloads {
         this._validator = validator;
     }
 
-    async validatePrepareForDownload({ dataSourceId, fileIds }) {
+    /** @param {{ dataSourceId: string; fileIds: string[] }} props */
+    validatePrepareForDownload({ dataSourceId, fileIds }) {
         this._validator.validate(
-            this._validator.definitions.PrepareForDownloadRequest,
-            { dataSourceId, fileIds }
+            this._validator.definitions.CreateDownloadLinkRequest,
+            { dataSourceId: dataSourceId.trim(), fileIds }
         );
     }
 
-    async validateDownloadId(downloadId) {
+    validateDownloadId(downloadId) {
         this._validator.validate(
             this._validator.definitions.DownloadId,
             downloadId

@@ -35,3 +35,11 @@ idQueryRequired:
     required: true
     schema:
         type: string
+
+downloadIdQuery:
+    name: version_id
+    in: query
+    description: request a specific version, if not stated the latest is returned
+    required: true
+    schema:
+        $ref: '#components/schemas/DownloadId'

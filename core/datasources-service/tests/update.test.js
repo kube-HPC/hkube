@@ -10,20 +10,16 @@ describe('/datasource/:name POST', () => {
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
         STORAGE_DIR = global.testParams.STORAGE_DIR;
     });
-    // update after adding ajv validation on the service
-    it.skip('should throw missing filesAdded and filesDropped error', async () => {
+    it('should throw missing filesAdded, filesDropped and mapping error', async () => {
         const name = uuid();
         await createDataSource({ body: { name } });
         const { response: uploadResponse } = await updateVersion({
             dataSourceName: name,
         });
         expect(uploadResponse.body).to.have.property('error');
-        expect(uploadResponse.body.error.message).to.match(
-            /data should have required property '.filesAdded'/i
-        );
-        expect(uploadResponse.body.error.message).to.match(
-            /data should have required property '.filesDropped'/i
-        );
+        const { error } = uploadResponse.body;
+        expect(error.message).to.match(/you must provide at least one of/i);
+        expect(error.code).to.eq(HttpStatus.BAD_REQUEST);
     });
     it('should fail uploading a file to a non existing dataSource', async () => {
         const { response: uploadResponse } = await updateVersion({

@@ -11,7 +11,41 @@ const {
 } = require('./utils');
 
 describe('download', () => {
-    it.only('generate a download link', async () => {
+    describe('validation', () => {
+        it('should fail too long downloadId', async () => {
+            const {
+                body: { error },
+            } = await fetchDownloadLink({
+                dataSourceId: '5ff5ba21d3ace12d33fdb826',
+                downloadId: 'yptes',
+            });
+            expect(error.message).to.match(/not be longer than/i);
+            expect(error.code).to.eql(HttpStatus.BAD_REQUEST);
+        });
+
+        it('should fail too short downloadId', async () => {
+            const {
+                body: { error },
+            } = await fetchDownloadLink({
+                dataSourceId: '5ff5ba21d3ace12d33fdb826',
+                downloadId: 'ypt',
+            });
+            expect(error.message).to.match(/not be shorter than/i);
+            expect(error.code).to.eql(HttpStatus.BAD_REQUEST);
+        });
+        it('should fail with non valid downloadId', async () => {
+            const {
+                body: { error },
+            } = await fetchDownloadLink({
+                dataSourceId: '5ff5ba21d3ace12d33fdb826',
+                downloadId: 'ypt-',
+            });
+            expect(error.message).to.match(/alphanumeric value/i);
+            expect(error.code).to.eql(HttpStatus.BAD_REQUEST);
+        });
+    });
+
+    it('generate a download link and fetch it', async () => {
         sinon.restore();
         const name = uuid();
         await createDataSource({ body: { name } });
@@ -53,13 +87,15 @@ describe('download', () => {
                 `${global.testParams.directories.zipFiles}/${downloadId}.zip`
             )
         ).to.be.true;
+        const { response } = await fetchDownloadLink({ href });
+        expect(response.statusCode).to.eq(HttpStatus.OK);
     });
 
-    it.only('should fail with non valid downloadId', async () => {
-        const { error } = await fetchDownloadLink({
+    it('should fail with non existing download Id', async () => {
+        const { response } = await fetchDownloadLink({
             dataSourceId: '5ff5ba21d3ace12d33fdb826',
-            downloadId: 'yptes',
+            downloadId: 'nope',
         });
-        console.log({ error });
+        expect(response.statusCode).to.eq(HttpStatus.NOT_FOUND);
     });
 });

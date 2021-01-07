@@ -1,14 +1,13 @@
 type: object
 properties:
     versionDescription:
-        type: string
-    filesAdded:
+        $ref: '#/components/schemas/VersionDescription'
+    files:
         $ref: '#/components/schemas/Files'
-    filesDropped:
+    droppedFileIds:
         type: array
         items:
             type: string
-        minItems: 1
     mapping:
         type: array
         items:
@@ -19,4 +18,4 @@ anyOf:
           - filesDropped
     - required:
           - versionDescription
-          - filesAdded
+          - files

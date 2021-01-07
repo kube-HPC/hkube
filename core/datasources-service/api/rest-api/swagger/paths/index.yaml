@@ -4,9 +4,11 @@
     $ref: ./byName.yaml
 /datasource/{name}/versions:
     $ref: ./versions.yaml
-/datasource/{name}/snapshot/{snapshotName}:
+/datasource/{name}/snapshot:
     $ref: ./snapshot.yaml
+/datasource/{name}/snapshot/{snapshotName}:
+    $ref: ./snapshotByName.yaml
 /datasource/id/{id}/snapshot:
     $ref: ./snapshotById.yaml
-/datasource/id/{id}/files:
-    $ref: ./files.yaml
+/datasource/id/{id}/download:
+    $ref: ./download.yaml
