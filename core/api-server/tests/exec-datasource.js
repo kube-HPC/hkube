@@ -21,12 +21,12 @@ describe('DataSources', () => {
         restPath = testParams.restUrl;
         config = testParams.config;
         const { protocol, host, port, prefix } = config.dataSourceService;
-        const serviceURI = `${protocol}://${host}:${port}`;
-        const path = `/${prefix}`;
-        nock(serviceURI).persist().post(path, [{ name: 'exist' }]).reply(200);
-        nock(serviceURI).persist().post(path, [{ snapshot: 'exist' }]).reply(200);
-        nock(serviceURI).persist().post(path, [{ name: 'non-exist' }]).reply(400, { error: { code: 400, message: 'dataSource non-exist Not Found' } });
-        nock(serviceURI).persist().post(path, [{ snapshot: 'non-exist' }]).reply(400, { error: { code: 400, message: 'snapshot non-exist Not Found' } });
+        const serviceURI = `${protocol}://${host}:${port}/${prefix}/datasource`;
+        const path = ``;
+        nock(serviceURI).persist().get('/exist').reply(200);
+        nock(serviceURI).persist().get(path, [{ snapshot: 'exist' }]).reply(200);
+        nock(serviceURI).persist().get(path, [{ name: 'non-exist' }]).reply(400, { error: { code: 400, message: 'dataSource non-exist Not Found' } });
+        nock(serviceURI).persist().get(path, [{ snapshot: 'non-exist' }]).reply(400, { error: { code: 400, message: 'snapshot non-exist Not Found' } });
     });
     describe('/exec/raw', () => {
         it('should throw invalid kind', async () => {
@@ -99,7 +99,7 @@ describe('DataSources', () => {
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`data.nodes[0].dataSource should match exactly one schema in oneOf`);
         });
-        it('should success to exec pipeline with data-source name', async () => {
+        it.only('should success to exec pipeline with data-source name', async () => {
             const pipeline = {
                 nodes: [{
                     nodeName: 'A',

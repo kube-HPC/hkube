@@ -184,6 +184,28 @@ class StateAdapter extends EventEmitter {
         return this._db.algorithms.fetchAll();
     }
 
+    async getDataSource(options) {
+        let dataSource;
+        const { dataSource: name, snapshotName, versionId } = options;
+        if (snapshotName) {
+            dataSource = await this._db.snapshots.fetch(
+                { name: snapshotName, 'dataSource.name': name },
+                { allowNotFound: false }
+            );
+        }
+        else if (versionId) {
+            dataSource = await this._db.dataSources.fetch({
+                id: versionId,
+                name,
+                isPartial: false,
+            });
+        }
+        else {
+            dataSource = await this._db.dataSources.fetch({ name });
+        }
+        return dataSource;
+    }
+
     async unwatch(options) {
         try {
             log.debug('start unwatch', { component });

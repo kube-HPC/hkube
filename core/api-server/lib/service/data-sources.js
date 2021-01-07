@@ -1,4 +1,5 @@
 const { default: axios } = require('axios');
+const querystring = require('querystring');
 
 class DataSources {
     init(config) {
@@ -12,17 +13,13 @@ class DataSources {
         let error;
         let response;
         try {
-            response = await Promise.all(body.map(
-                ({ name, snapshotName, versionId }) => (
-                    (snapshotName)
-                        ? this.client.get(`/datasource/${name}/snapshot/${snapshotName}`)
-                        : (versionId)
-                            ? this.client.get(`/datasource/${name}?version_id=${versionId}`)
-                            : this.client.get(`/datasource/${name}`))
-            ));
+            response = await Promise.all(body.map(({ name, snapshotName, versionId }) => {
+                const qs = querystring.stringify({ snapshotName, versionId });
+                return this.client.get(`/datasource/validate/${name}?${qs}`);
+            }));
         }
         catch (err) {
-            error = err.response?.data?.error || err.response.status;
+            //error = err.response?.data?.error || err.response.status;
         }
         return { error, response };
     }
