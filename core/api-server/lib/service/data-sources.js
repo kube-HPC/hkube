@@ -19,7 +19,7 @@ class DataSources {
             }));
         }
         catch (err) {
-            error = err.response?.data?.error || err.response.status;
+            //error = err.response?.data?.error || err.response.status;
         }
         return { error, response };
     }
