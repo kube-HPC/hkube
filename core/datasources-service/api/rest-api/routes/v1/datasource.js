@@ -9,6 +9,7 @@ const dataSource = require('../../../../lib/service/dataSource');
 const snapshots = require('../../../../lib/service/snapshots');
 const downloads = require('../../../../lib/service/downloads');
 const dbErrorsMiddleware = require('./../../middlewares/dbErrors');
+const validation = require('./../../../../lib/service/validation');
 
 const upload = multer({ dest: 'uploads/datasource/' });
 
@@ -62,9 +63,7 @@ const routes = () => {
             const { name } = req.params;
             let dataSourceEntry;
             if (versionId) {
-                dataSourceEntry = await dataSource.fetch({
-                    id: versionId,
-                });
+                dataSourceEntry = await dataSource.fetch({ id: versionId });
                 if (dataSourceEntry?.name !== name) {
                     throw new InvalidDataError(
                         `version_id ${versionId} does not exist for name ${name}`
@@ -202,6 +201,21 @@ const routes = () => {
                 }
             );
         });
+
+    router.get('/validate/:name', async (req, res, next) => {
+        const {
+            version_id: versionId,
+            snapshot_name: snapshotName,
+        } = req.query;
+        const { name } = req.params;
+        await validation.dataSourceExists({
+            dataSourceName: name,
+            snapshotName,
+            versionId,
+        });
+        res.json({ exists: true });
+        next();
+    });
 
     router.use(dbErrorsMiddleware);
     return router;

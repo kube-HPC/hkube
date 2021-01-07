@@ -9,20 +9,21 @@ DataSourceMeta:
     $ref: ./DataSourceMeta.yaml
 DataSource:
     $ref: ./DataSource.yaml
-
 DataSourceId:
     $ref: ./DataSourceId.yaml
-
 DataSourceWithMeta:
     $ref: ./DataSourceWithMeta.yaml
 DataSourceName:
     $ref: ./DataSourceName.yaml
 DataSourceVersion:
     $ref: ./DataSourceVersion.yaml
-
 VersionDescription:
     $ref: ./VersionDescription.yaml
+dataSourceExists:
+    $ref: ./dataSourceExists.yaml
 
+SnapshotName:
+    $ref: ./SnapshotName.yaml
 SnapshotRequest:
     $ref: ./Snapshot.request.yaml
 SnapshotCreate:

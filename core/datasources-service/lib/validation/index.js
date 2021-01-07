@@ -2,6 +2,7 @@ const innerValidator = require('./inner-validator');
 const DataSources = require('./dataSources');
 const Snapshots = require('./snapshots');
 const Downloads = require('./downloads');
+const Validation = require('./validation');
 
 class ApiValidator {
     constructor() {
@@ -11,6 +12,8 @@ class ApiValidator {
         this.snapshots = null;
         /** @type {Downloads} */
         this.downloads = null;
+        /** @type {Validation} */
+        this.validation = null;
     }
 
     init(schemas, schemasInternal) {
@@ -18,6 +21,7 @@ class ApiValidator {
         this.dataSources = new DataSources(innerValidator);
         this.snapshots = new Snapshots(innerValidator);
         this.downloads = new Downloads(innerValidator);
+        this.validation = new Validation(innerValidator);
     }
 }
 

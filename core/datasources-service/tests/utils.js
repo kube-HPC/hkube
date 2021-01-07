@@ -217,6 +217,15 @@ const fetchDownloadLink = ({ dataSourceId, downloadId, href }) =>
               method: 'GET',
           });
 
+const requestValidation = ({ dataSourceName, versionId, snapshotName }) => {
+    const url = new URL(
+        `${global.testParams.restUrl}/datasource/validate/${dataSourceName}`
+    );
+    if (versionId) url.searchParams.set('version_id', versionId);
+    if (snapshotName) url.searchParams.set('snapshot_name', snapshotName);
+    return request({ uri: url.toString(), method: 'GET' });
+};
+
 module.exports = {
     fetchDataSource,
     deleteDataSource,
@@ -232,4 +241,5 @@ module.exports = {
     fetchAllSnapshots,
     createDownloadLink,
     fetchDownloadLink,
+    requestValidation,
 };

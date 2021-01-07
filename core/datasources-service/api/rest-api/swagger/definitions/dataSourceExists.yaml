@@ -1,0 +1,10 @@
+type: object
+properties:
+    name:
+        $ref: '#/components/schemas/DataSourceName'
+    versionId:
+        $ref: '#/components/schemas/DataSourceId'
+    snapshotName:
+        $ref: '#/components/schemas/SnapshotName'
+required:
+    - name

@@ -12,6 +12,7 @@ const modules = [
     require('./lib/service/dataSource'),
     require('./lib/service/snapshots'),
     require('./lib/service/downloads'),
+    require('./lib/service/validation'),
     require('./lib/service/jobs-consumer'),
 ];
 

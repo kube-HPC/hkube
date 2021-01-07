@@ -21,6 +21,13 @@ snapshotNameParam:
     schema:
         type: string
 
+snapshotNameQuery:
+    name: snapshot_name
+    in: query
+    description: A Snapshot name
+    schema:
+        type: string
+
 idQuery:
     name: version_id
     in: query

@@ -12,3 +12,5 @@
     $ref: ./snapshotById.yaml
 /datasource/id/{id}/download:
     $ref: ./download.yaml
+/datasource/validate/{name}:
+    $ref: ./validate.yaml

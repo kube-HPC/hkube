@@ -1,48 +1,9 @@
-const { uid } = require('@hkube/uid');
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const {
-    createDataSource,
-    fetchSnapshot,
-    createSnapshot,
-    fetchAllSnapshots,
-} = require('./utils');
-let restUrl;
+const { fetchSnapshot, createSnapshot, fetchAllSnapshots } = require('./utils');
+const setupDataSource = require('./setupDataSource');
 
-const generateSnapshot = (name, query) => ({
-    name,
-    query: query || `${name} query`,
-});
-/**
- * @returns {{
- *     dataSource: import('@hkube/db/lib/DataSource').DataSource;
- *     generatedSnapshots: { name: string; query: string }[];
- *     createdSnapshots: import('@hkube/db/lib/DataSource').Snapshot;
- * }}
- */
-const setupDataSource = async (numberOfSnapshots = 1) => {
-    const name = uid();
-    // something broke with the logger's debug
-    const { body: dataSource } = await createDataSource({ body: { name } });
-    const generatedSnapshots = new Array(numberOfSnapshots)
-        .fill(0)
-        .map((_, ii) => generateSnapshot(`snapshot-${ii}`));
-    /** @type {import('@hkube/db/lib/Snapshots').Snapshot[]} */
-    const createdSnapshots = await Promise.all(
-        generatedSnapshots.map(snapshot =>
-            createSnapshot({
-                name: dataSource.name,
-                id: dataSource.id,
-                snapshot,
-            })
-        )
-    );
-    return {
-        dataSource,
-        generatedSnapshots,
-        createdSnapshots: createdSnapshots.map(res => res.body),
-    };
-};
+let restUrl;
 
 describe('snapshots', () => {
     before(() => {
