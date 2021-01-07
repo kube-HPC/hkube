@@ -1,5 +1,6 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
+const sinon = require('sinon');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const { createDataSource, fetchDataSource, updateVersion } = require('./utils');
@@ -141,27 +142,13 @@ describe('/datasource/:name POST', () => {
             )
         ).to.be.true;
 
-        await updateVersion({
+        const { body: updatedVersion } = await updateVersion({
             dataSourceName: name,
             fileNames: ['algorithms.json'],
             droppedFileIds: [existingFile.id],
         });
-        expect(
-            await fse.pathExists(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/algorithms.json`
-            )
-        ).to.be.true;
-        // the data file is not deleted only the .dvc file
-        expect(
-            await fse.pathExists(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`
-            )
-        ).to.be.false;
-        expect(
-            await fse.pathExists(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`
-            )
-        ).to.be.false;
+        expect(updatedVersion.files).to.have.lengthOf(1);
+        expect(updatedVersion.files[0].name).to.eq('algorithms.json');
     });
     it('should return status 200 if nothing was updated', async () => {
         const name = uuid();

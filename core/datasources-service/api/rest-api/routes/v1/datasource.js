@@ -86,11 +86,16 @@ const routes = () => {
             const { name } = req.params;
             const { versionDescription, droppedFileIds, mapping } = req.body;
             let droppedIds = [];
-            if (typeof droppedFileIds === 'string') {
-                droppedIds = droppedFileIds.split(',').filter(item => item);
-            } else if (Array.isArray(droppedFileIds)) {
-                droppedIds = droppedFileIds;
+            try {
+                droppedIds = JSON.parse(droppedFileIds);
+            } catch (e) {
+                if (typeof droppedFileIds === 'string') {
+                    droppedIds = droppedFileIds.split(',').filter(item => item);
+                } else if (Array.isArray(droppedFileIds)) {
+                    droppedIds = droppedFileIds;
+                }
             }
+
             try {
                 const createdVersion = await dataSource.update({
                     name,
