@@ -186,12 +186,12 @@ describe('Datasource', () => {
             const delRes = await deleteDataSource({ name });
             const fetchDel = await fetchDataSource({ name });
             expect(fetchRes.body.name).to.eql(name);
-            expect(delRes.body).to.eql({ delete: 1 });
+            expect(delRes.body).to.eql({ deleted: 1 });
             expect(fetchDel.body).to.have.property('error');
             expect(fetchDel.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(fetchDel.body.error.message).to.match(/Not Found/i);
         });
-        it('should create and delete many datasources by name', async () => {
+        it('should create and delete multiple versions of a datasource by name', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const secondFileName = 'README-2.md';
@@ -204,7 +204,7 @@ describe('Datasource', () => {
             const fetchDel = await fetchDataSource({ name });
             expect(fetchRes.body.name).to.eql(name);
             expect(fetchRes.body.files).to.have.lengthOf(2);
-            expect(delRes.body).to.eql({ delete: 2 });
+            expect(delRes.body).to.eql({ deleted: 2 });
             expect(fetchDel.body).to.have.property('error');
             expect(fetchDel.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(fetchDel.body.error.message).to.match(/Not Found/i);

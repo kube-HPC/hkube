@@ -10,12 +10,18 @@ DataSourceMeta:
 DataSource:
     $ref: ./DataSource.yaml
 
+DataSourceId:
+    $ref: ./DataSourceId.yaml
+
 DataSourceWithMeta:
     $ref: ./DataSourceWithMeta.yaml
 DataSourceName:
     $ref: ./DataSourceName.yaml
 DataSourceVersion:
     $ref: ./DataSourceVersion.yaml
+
+VersionDescription:
+    $ref: ./VersionDescription.yaml
 
 SnapshotRequest:
     $ref: ./Snapshot.request.yaml
@@ -35,7 +41,7 @@ deleteRequest:
 update:
     $ref: ./update.yaml
 
-PrepareForDownloadRequest:
-    $ref: ./download.request.yaml
+CreateDownloadLinkRequest:
+    $ref: ./DownloadLink.request.yaml
 DownloadId:
     $ref: ./DownloadId.yaml

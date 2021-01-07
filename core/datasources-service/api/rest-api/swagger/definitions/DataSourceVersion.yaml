@@ -1,8 +1,8 @@
 type: object
 properties:
     id:
-        type: string
+        $ref: '#/components/schemas/DataSourceId'
     versionDescription:
-        type: string
+        $ref: '#/components/schemas/VersionDescription'
     versionId:
         type: string

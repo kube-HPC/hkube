@@ -1,9 +1,9 @@
 type: object
 properties:
     name:
-        type: string
+        $ref: '#/components/schemas/DataSourceName'
     versionDescription:
-        type: string
+        $ref: '#/components/schemas/VersionDescription'
     files:
         type: object
         properties:

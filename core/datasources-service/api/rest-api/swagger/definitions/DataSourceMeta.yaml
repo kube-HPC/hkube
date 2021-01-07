@@ -1,11 +1,11 @@
 type: object
 properties:
     id:
-        type: string
+        $ref: '#/components/schemas/DataSourceId'
     name:
-        type: string
+        $ref: '#/components/schemas/DataSourceName'
     versionDescription:
-        type: string
+        $ref: '#/components/schemas/VersionDescription'
     filesCount:
         type: number
     avgFileSize:

@@ -203,14 +203,11 @@ const createDownloadLink = ({ dataSourceId, fileIds }) =>
         body: { fileIds },
     });
 
-/**
- * @param {    | { downloadLink: string }
- *     | { dataSourceId: string; downloadId: string }} props
- */
-const fetchDownloadLink = ({ dataSourceId, downloadId, downloadLink }) =>
-    downloadLink
+/** @param {{ href: string } | { dataSourceId: string; downloadId: string }} props */
+const fetchDownloadLink = ({ dataSourceId, downloadId, href }) =>
+    href
         ? request({
-              uri: downloadLink,
+              uri: `${global.testParams.restUrl}/${href}`,
               method: 'GET',
           })
         : request({

@@ -4,3 +4,4 @@ allOf:
       properties:
           id:
               type: string
+              minLength: 25

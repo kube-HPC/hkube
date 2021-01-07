@@ -2,6 +2,8 @@ const { Router } = require('express');
 const multer = require('multer');
 const HttpStatus = require('http-status-codes');
 const fse = require('fs-extra');
+const log = require('@hkube/logger').GetLogFromContainer();
+const component = require('../../../../lib/consts/componentNames').MAIN;
 const { InvalidDataError } = require('../../../../lib/errors');
 const dataSource = require('../../../../lib/service/dataSource');
 const snapshots = require('../../../../lib/service/snapshots');
@@ -28,7 +30,7 @@ const routes = () => {
         .post(upload.array('files'), async (req, res, next) => {
             const { name } = req.body;
             try {
-                const response = await dataSource.createDataSource({
+                const response = await dataSource.create({
                     name,
                     files: req.files,
                 });
@@ -41,7 +43,7 @@ const routes = () => {
 
     router.route('/id/:id').get(async (req, res, next) => {
         const { id } = req.params;
-        const dataSourceEntry = await dataSource.fetchDataSource({ id });
+        const dataSourceEntry = await dataSource.fetch({ id });
 
         const { files, ...rest } = dataSourceEntry;
         res.json({
@@ -60,7 +62,7 @@ const routes = () => {
             const { name } = req.params;
             let dataSourceEntry;
             if (versionId) {
-                dataSourceEntry = await dataSource.fetchDataSource({
+                dataSourceEntry = await dataSource.fetch({
                     id: versionId,
                 });
                 if (dataSourceEntry?.name !== name) {
@@ -69,7 +71,7 @@ const routes = () => {
                     );
                 }
             } else {
-                dataSourceEntry = await dataSource.fetchDataSource({ name });
+                dataSourceEntry = await dataSource.fetch({ name });
             }
 
             const { files, ...rest } = dataSourceEntry;
@@ -83,15 +85,19 @@ const routes = () => {
         .post(upload.array('files'), async (req, res, next) => {
             const { name } = req.params;
             const { versionDescription, droppedFileIds, mapping } = req.body;
+            let droppedIds = [];
+            if (typeof droppedFileIds === 'string') {
+                droppedIds = droppedFileIds.split(',').filter(item => item);
+            } else if (Array.isArray(droppedFileIds)) {
+                droppedIds = droppedFileIds;
+            }
             try {
-                const createdVersion = await dataSource.updateDataSource({
+                const createdVersion = await dataSource.update({
                     name,
                     versionDescription,
                     files: {
                         added: req.files,
-                        dropped: droppedFileIds
-                            ? JSON.parse(droppedFileIds)
-                            : undefined,
+                        dropped: droppedIds.length > 0 ? droppedIds : undefined,
                         mapping: mapping ? JSON.parse(mapping) : undefined,
                     },
                 });
@@ -107,7 +113,7 @@ const routes = () => {
         })
         .delete(async (req, res, next) => {
             const { name } = req.params;
-            const response = await dataSource.deleteDataSource({ name });
+            const response = await dataSource.delete({ name });
             res.json(response);
             next();
         });
@@ -176,10 +182,16 @@ const routes = () => {
                 downloads.getZipPath(downloadId),
                 { root: '.' },
                 err => {
-                    if (err) {
-                        console.error(err);
+                    if (!err) {
+                        console.info('done, i should clear the file');
+                    } else if (err.code === 'ENOENT') {
+                        log.debug(`requested file ${downloadId} not existing`);
                     } else {
-                        console.info('done!');
+                        log.error(
+                            'failed fetching zip file',
+                            { component },
+                            err
+                        );
                     }
                     next();
                 }

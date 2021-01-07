@@ -277,7 +277,7 @@ class DataSource {
      *     };
      * }} props
      */
-    async updateDataSource({ name, files: _files, versionDescription }) {
+    async update({ name, files: _files, versionDescription }) {
         validator.dataSources.update({
             name,
             files: _files,
@@ -313,7 +313,7 @@ class DataSource {
     }
 
     /** @param {{ name: string; files: MulterFile[] }} query */
-    async createDataSource({ name, files: _files }) {
+    async create({ name, files: _files }) {
         validator.dataSources.create({ name, files: _files });
         const createdDataSource = await this.db.dataSources.create({ name });
         let updatedDataSource;
@@ -343,7 +343,7 @@ class DataSource {
     }
 
     /** @param {{ name?: string; id?: string }} query */
-    fetchDataSource({ name, id }) {
+    fetch({ name, id }) {
         return this.db.dataSources.fetch({
             name,
             id,
@@ -351,9 +351,12 @@ class DataSource {
         });
     }
 
-    async deleteDataSource({ name }) {
+    async delete({ name }) {
         validator.dataSources.delete({ name });
-        const response = await this.db.dataSources.delete({ name });
+        const response = await this.db.dataSources.delete(
+            { name },
+            { allowNotFound: false }
+        );
         return response;
     }
 
@@ -376,24 +379,24 @@ class DataSource {
         return this.db.dataSources.listVersions({ name });
     }
 
-    async createSnapshot({ id, snapshot }) {
-        validator.dataSources.validateSnapshot(snapshot);
-        return this.db.dataSources.createSnapshot({ id, snapshot });
-    }
+    // async createSnapshot({ id, snapshot }) {
+    //     validator.dataSources.validateSnapshot(snapshot);
+    //     return this.db.dataSources.createSnapshot({ id, snapshot });
+    // }
 
-    async fetchSnapshot({ snapshotName }) {
-        const entry = await this.db.dataSources.fetch(
-            { 'snapshots.name': snapshotName },
-            { fields: { snapshots: 1 } }
-        );
-        const snapshot = entry.snapshots.find(
-            item => item.name === snapshotName
-        );
-        return {
-            dataSource: { id: entry.id },
-            snapshot,
-        };
-    }
+    // async fetchSnapshot({ snapshotName }) {
+    //     const entry = await this.db.dataSources.fetch(
+    //         { 'snapshots.name': snapshotName },
+    //         { fields: { snapshots: 1 } }
+    //     );
+    //     const snapshot = entry.snapshots.find(
+    //         item => item.name === snapshotName
+    //     );
+    //     return {
+    //         dataSource: { id: entry.id },
+    //         snapshot,
+    //     };
+    // }
 }
 
 module.exports = new DataSource();

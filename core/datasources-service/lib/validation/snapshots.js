@@ -3,7 +3,7 @@ class Snapshots {
         this._validator = validator;
     }
 
-    async validateSnapshot(snapshot) {
+    validateSnapshot(snapshot) {
         this._validator.validate(
             this._validator.definitions.SnapshotCreate,
             snapshot

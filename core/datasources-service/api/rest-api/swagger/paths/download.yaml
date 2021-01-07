@@ -10,7 +10,7 @@ post:
                 schema:
                     type: object
                     properties:
-                        fileIDs:
+                        fileIds:
                             type: array
                             items:
                                 type: string
@@ -32,12 +32,7 @@ get:
     summary: download an archive of the selected files
     parameters:
         - $ref: '#components/parameters/idParam'
-        - name: download_id
-          in: query
-          description: a downloadId received after creating a new download
-          required: true
-          schema:
-              type: string
+        - $ref: '#components/parameters/downloadIdQuery'
     responses:
         '200':
             description: A Zip file
