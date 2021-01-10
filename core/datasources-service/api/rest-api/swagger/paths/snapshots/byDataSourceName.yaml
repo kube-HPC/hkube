@@ -3,7 +3,7 @@ post:
         - Snapshot
     summary: create a new snapshot for a given datasource version
     parameters:
-        - $ref: '#components/parameters/nameParam'
+        - $ref: '#/components/parameters/nameParam'
     requestBody:
         content:
             application/json:
@@ -21,7 +21,7 @@ get:
         - Snapshot
     summary: fetch all snapshots for a given datasource
     parameters:
-        - $ref: '#components/parameters/nameParam'
+        - $ref: '#/components/parameters/nameParam'
     responses:
         '200':
             description: A collection of snapshots

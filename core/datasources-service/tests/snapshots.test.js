@@ -5,6 +5,7 @@ const {
     createSnapshot,
     fetchAllSnapshots,
     createDataSource,
+    requestPreview,
 } = require('./utils');
 const setupDataSource = require('./setupDataSource');
 const { uid } = require('@hkube/uid');
@@ -143,15 +144,20 @@ describe('snapshots', () => {
         });
     });
     describe('filtering files', () => {
-        it('should create a file and mark files to keep and files to drop', async () => {
-            const name = uid();
-            const dataSource = await createDataSource({
-                body: { name },
+        /** @type {DataSource} */
+        let dataSource = null;
+        const query = 'exciting information';
+        before(async () => {
+            const _dataSource = await createDataSource({
+                body: { name: uid() },
                 fileNames: ['algorithms.json', 'logo.svg', 'logo.svg.meta'],
             });
+            dataSource = _dataSource.body;
+        });
+        it('should create a file and mark files to keep and files to drop', async () => {
             const snapshot = await createSnapshot({
-                name: dataSource.body.name,
-                snapshot: { name: 'with-query', query: 'exciting information' },
+                name: dataSource.name,
+                snapshot: { name: 'with-query', query },
             });
             const {
                 body: { filteredFilesList, droppedFiles },
@@ -160,6 +166,14 @@ describe('snapshots', () => {
             expect(droppedFiles).to.have.lengthOf(1);
             expect(filteredFilesList[0].name).to.eq('logo.svg');
             expect(droppedFiles[0].name).to.eq('algorithms.json');
+        });
+        it('should show a preview of a query', async () => {
+            const { body: files } = await requestPreview({
+                dataSourceId: dataSource.id,
+                query,
+            });
+            expect(files).to.have.lengthOf(1);
+            expect(files[0].name).to.eq('logo.svg');
         });
     });
 });

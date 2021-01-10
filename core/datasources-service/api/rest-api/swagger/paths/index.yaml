@@ -6,6 +6,8 @@
     $ref: ./versions.yaml
 /datasource/id/{id}/snapshot:
     $ref: ./snapshots/byDataSourceId.yaml
+/datasource/id/{id}/snapshot/preview:
+    $ref: ./snapshots/preview.yaml
 /datasource/{name}/snapshot:
     $ref: ./snapshots/byDataSourceName.yaml
 /datasource/{name}/snapshot/{snapshotName}:

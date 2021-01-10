@@ -24,6 +24,8 @@ dataSourceExists:
 
 SnapshotName:
     $ref: ./SnapshotName.yaml
+SnapshotQuery:
+    $ref: ./SnapshotQuery.yaml
 SnapshotRequest:
     $ref: ./Snapshot.request.yaml
 SnapshotCreate:
@@ -32,6 +34,8 @@ Snapshot:
     $ref: ./Snapshot.yaml
 ResolvedSnapshot:
     $ref: ./ResolvedSnapshot.yaml
+SnapshotPreviewRequest:
+    $ref: ./snapshotPreview.request.yaml
 
 createRequest:
     $ref: ./create.request.yaml

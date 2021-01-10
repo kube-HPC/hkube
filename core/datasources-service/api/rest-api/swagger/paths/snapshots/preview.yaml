@@ -1,0 +1,27 @@
+post:
+    tags:
+        - Snapshot
+    summary: |
+        post a query for *preview only*,
+        the results are NOT persisted to the database
+    parameters:
+        - $ref: '#/components/parameters/idParam'
+    requestBody:
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        query:
+                            $ref: '#/components/schemas/SnapshotQuery'
+                    required:
+                        - query
+    responses:
+        '201':
+            description: a list of files
+            content:
+                application/json:
+                    schema:
+                        type: array
+                        items:
+                            $ref: '#/components/schemas/FileMeta'

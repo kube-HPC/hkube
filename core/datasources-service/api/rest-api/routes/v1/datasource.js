@@ -147,12 +147,19 @@ const routes = () => {
             res.json(response);
             next();
         });
-
     router.post('/id/:id/snapshot', async (req, res, next) => {
         const response = await snapshots.create(req.body.snapshot, {
             id: req.params.id,
         });
         res.json(response);
+        next();
+    });
+    router.post('/id/:id/snapshot/preview', async (req, res, next) => {
+        const files = await snapshots.previewSnapshot({
+            id: req.params.id,
+            query: req.body.query,
+        });
+        res.json(files);
         next();
     });
 

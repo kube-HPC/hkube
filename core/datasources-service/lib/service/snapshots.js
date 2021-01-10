@@ -29,12 +29,15 @@ class Snapshots {
      * ) => Promise<Snapshot>}
      */
     async create(snapshot, { name, id }) {
+        validator.snapshots.validateSnapshot({
+            ...snapshot,
+            dataSource: { id, name },
+        });
         const dataSourceEntry = await this.db.dataSources.fetch({ id, name });
         const dataSource = {
             id: dataSourceEntry.id,
             name: dataSourceEntry.name,
         };
-        validator.snapshots.validateSnapshot({ ...snapshot, dataSource });
         const { matching, nonMatching } = this.filterFilesListByQuery({
             files: dataSourceEntry.files,
             query: snapshot.query,
@@ -92,6 +95,15 @@ class Snapshots {
                       },
             { matching: [], nonMatching: [] }
         );
+    }
+
+    async previewSnapshot({ id, query }) {
+        validator.snapshots.validatePreview({ id, query });
+        const { files } = await this.db.dataSources.fetch(
+            { id },
+            { fields: { files: 1 } }
+        );
+        return this.filterFilesListByQuery({ files, query }).matching;
     }
 }
 

@@ -6,7 +6,7 @@ properties:
             name:
                 $ref: '#/components/schemas/SnapshotName'
             query:
-                type: string
+                $ref: '#/components/schemas/SnapshotQuery'
 required:
     - name
     - query

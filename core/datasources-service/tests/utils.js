@@ -229,6 +229,13 @@ const requestValidation = ({ dataSourceName, versionId, snapshotName }) => {
     return request({ uri: url.toString(), method: 'GET' });
 };
 
+/** @returns {Promise<{ body: FileMeta[] }>} */
+const requestPreview = ({ dataSourceId, query }) =>
+    request({
+        uri: `${setupUrl({ id: dataSourceId })}/snapshot/preview`,
+        body: { query },
+    });
+
 module.exports = {
     fetchDataSource,
     deleteDataSource,
@@ -245,4 +252,5 @@ module.exports = {
     createDownloadLink,
     fetchDownloadLink,
     requestValidation,
+    requestPreview,
 };
