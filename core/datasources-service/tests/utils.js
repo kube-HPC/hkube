@@ -221,11 +221,10 @@ const fetchDownloadLink = ({ dataSourceId, downloadId, href }) =>
           });
 
 const requestValidation = ({ dataSourceName, versionId, snapshotName }) => {
-    const url = new URL(
-        `${global.testParams.restUrl}/datasource/validate/${dataSourceName}`
-    );
+    const url = new URL(`${global.testParams.restUrl}/datasource/validate`);
     if (versionId) url.searchParams.set('version_id', versionId);
     if (snapshotName) url.searchParams.set('snapshot_name', snapshotName);
+    if (dataSourceName) url.searchParams.set('datasource_name', dataSourceName);
     return request({ uri: url.toString(), method: 'GET' });
 };
 

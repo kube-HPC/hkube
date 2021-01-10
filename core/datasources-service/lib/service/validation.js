@@ -1,4 +1,3 @@
-const { InvalidDataError } = require('../errors');
 const validator = require('../validation');
 const dbConnection = require('../db');
 
@@ -21,14 +20,9 @@ class Validation {
             snapshotName,
             versionId,
         });
-        if (versionId && snapshotName) {
-            throw new InvalidDataError(
-                'you must provide *only* one of (version_id | snapshot_name)'
-            );
-        }
         if (versionId) {
             const dataSourceEntry = await this.db.dataSources.fetch(
-                { id: versionId, name: dataSourceName },
+                { id: versionId },
                 { allowNotFound: false, fields: { _id: 1 } }
             );
             return dataSourceEntry;

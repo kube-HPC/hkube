@@ -30,9 +30,8 @@ describe('validation', () => {
         expect(response.statusCode).to.eq(HttpStatus.OK);
         expect(response.body).to.eql({ exists: true });
     });
-    it('should validate dataSource by name and version', async () => {
+    it('should validate dataSource by version', async () => {
         const { response } = await requestValidation({
-            dataSourceName: dataSource.name,
             versionId: dataSource.id,
         });
         expect(response.statusCode).to.eq(HttpStatus.OK);
@@ -50,7 +49,6 @@ describe('validation', () => {
     it('should fail for sending both snapshot and version', async () => {
         const [snapshot] = createdSnapshots;
         const { response } = await requestValidation({
-            dataSourceName: dataSource.name,
             versionId: dataSource.id,
             snapshotName: snapshot.name,
         });
@@ -67,7 +65,6 @@ describe('validation', () => {
     });
     it('should fail with non existing version', async () => {
         const { response } = await requestValidation({
-            dataSourceName: dataSource.name,
             versionId: nonExistingId,
         });
         expect(response.statusCode).to.eq(HttpStatus.NOT_FOUND);
@@ -77,6 +74,16 @@ describe('validation', () => {
             dataSourceName: dataSource.name,
             snapshotName: 'nope----------------nope',
         });
-        expect(response.statusCode).to.eq(HttpStatus.NOT_FOUND);
+        expect(response.body.error.code).to.eq(HttpStatus.NOT_FOUND);
+    });
+    it('should fail with snapshot name and no datasource name', async () => {
+        const [snapshot] = createdSnapshots;
+        const { response } = await requestValidation({
+            snapshotName: snapshot.name,
+        });
+        expect(response.statusCode).to.eq(HttpStatus.BAD_REQUEST);
+        expect(response.body.error.message).to.match(
+            /you must provide datasource_name/
+        );
     });
 });

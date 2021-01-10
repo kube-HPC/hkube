@@ -35,6 +35,13 @@ idQuery:
     schema:
         type: string
 
+nameQuery:
+    name: datasource_name
+    in: query
+    description: a datasource name
+    schema:
+        type: string
+
 idQueryRequired:
     name: version_id
     in: query
