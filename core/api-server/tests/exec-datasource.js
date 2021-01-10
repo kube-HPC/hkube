@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const nock = require('nock');
 const { StatusCodes } = require('http-status-codes');
+const querystring = require('querystring');
 const { request } = require('./utils');
 let restPath = null;
 const pipelineName = 'exec_raw';
@@ -22,11 +23,18 @@ describe('DataSources', () => {
         config = testParams.config;
         const { protocol, host, port, prefix } = config.dataSourceService;
         const serviceURI = `${protocol}://${host}:${port}/${prefix}/datasource`;
-        const path = ``;
-        nock(serviceURI).persist().get('/exist').reply(200);
-        nock(serviceURI).persist().get(path, [{ snapshot: 'exist' }]).reply(200);
-        nock(serviceURI).persist().get(path, [{ name: 'non-exist' }]).reply(400, { error: { code: 400, message: 'dataSource non-exist Not Found' } });
-        nock(serviceURI).persist().get(path, [{ snapshot: 'non-exist' }]).reply(400, { error: { code: 400, message: 'snapshot non-exist Not Found' } });
+        const qs0 = querystring.stringify({ name: 'exist' });
+        const qs1 = querystring.stringify({ name: 'exist', version_id: 'exist' });
+        const qs2 = querystring.stringify({ name: 'exist', snapshot_name: 'exist' });
+        const qs3 = querystring.stringify({ name: 'exist', version_id: 'non-exist' });
+        const qs4 = querystring.stringify({ name: 'exist', snapshot_name: 'non-exist' });
+        const qs5 = querystring.stringify({ name: 'non-exist' });
+        nock(serviceURI).persist().get(`/validate?${qs0}`).reply(200);
+        nock(serviceURI).persist().get(`/validate?${qs1}`).reply(200);
+        nock(serviceURI).persist().get(`/validate?${qs2}`).reply(200);
+        nock(serviceURI).persist().get(`/validate?${qs3}`).reply(400, { error: { code: 400, message: 'versionId non-exist Not Found' } });
+        nock(serviceURI).persist().get(`/validate?${qs4}`).reply(400, { error: { code: 400, message: 'snapshotName non-exist Not Found' } });
+        nock(serviceURI).persist().get(`/validate?${qs5}`).reply(400, { error: { code: 400, message: 'dataSource non-exist Not Found' } });
     });
     describe('/exec/raw', () => {
         it('should throw invalid kind', async () => {
@@ -53,13 +61,13 @@ describe('DataSources', () => {
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`you must provide a valid dataSource`);
         });
-        it('should throw dataSource non-exist Not Found', async () => {
+        it('should throw dataSource Not Found', async () => {
             const pipeline = {
                 nodes: [{
                     nodeName: 'A',
                     kind: 'dataSource',
                     dataSource: {
-                        name: "non-exist"
+                        name: 'non-exist'
                     }
                 }]
             };
@@ -68,38 +76,39 @@ describe('DataSources', () => {
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`dataSource non-exist Not Found`);
         });
-        it('should throw snapshot non-exist Not Found', async () => {
-            const pipeline = {
-                nodes: [{
-                    nodeName: 'A',
-                    kind: 'dataSource',
-                    dataSource: {
-                        snapshot: "non-exist"
-                    }
-                }]
-            };
-            const response = await runRaw(pipeline);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(`snapshot non-exist Not Found`);
-        });
-        it('should throw need exactly one schema', async () => {
+        it('should throw snapshotName Not Found', async () => {
             const pipeline = {
                 nodes: [{
                     nodeName: 'A',
                     kind: 'dataSource',
                     dataSource: {
                         name: 'exist',
-                        snapshot: 'exist'
+                        snapshotName: 'non-exist'
                     }
                 }]
             };
             const response = await runRaw(pipeline);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(`data.nodes[0].dataSource should match exactly one schema in oneOf`);
+            expect(response.body.error.message).to.equal(`snapshotName non-exist Not Found`);
         });
-        it.only('should success to exec pipeline with data-source name', async () => {
+        it('should throw versionId Not Found', async () => {
+            const pipeline = {
+                nodes: [{
+                    nodeName: 'A',
+                    kind: 'dataSource',
+                    dataSource: {
+                        name: 'exist',
+                        versionId: 'non-exist'
+                    }
+                }]
+            };
+            const response = await runRaw(pipeline);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(`versionId non-exist Not Found`);
+        });
+        it('should success to exec pipeline with data-source name', async () => {
             const pipeline = {
                 nodes: [{
                     nodeName: 'A',
@@ -112,13 +121,28 @@ describe('DataSources', () => {
             const response = await runRaw(pipeline);
             expect(response.body).to.have.property('jobId');
         });
-        it('should success to exec pipeline with data-source snapshot', async () => {
+        it('should success to exec pipeline with data-source snapshotName', async () => {
             const pipeline = {
                 nodes: [{
                     nodeName: 'A',
                     kind: 'dataSource',
                     dataSource: {
-                        snapshot: 'exist'
+                        name: 'exist',
+                        snapshotName: 'exist'
+                    }
+                }]
+            };
+            const response = await runRaw(pipeline);
+            expect(response.body).to.have.property('jobId');
+        });
+        it('should success to exec pipeline with data-source versionId', async () => {
+            const pipeline = {
+                nodes: [{
+                    nodeName: 'A',
+                    kind: 'dataSource',
+                    dataSource: {
+                        name: 'exist',
+                        versionId: 'exist'
                     }
                 }]
             };

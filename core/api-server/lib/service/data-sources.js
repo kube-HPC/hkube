@@ -1,5 +1,5 @@
 const { default: axios } = require('axios');
-const querystring = require('querystring');
+const querystring = require('query-string');
 
 class DataSources {
     init(config) {
@@ -8,18 +8,17 @@ class DataSources {
         this.client = axios.create({ baseURL: this._baseUrl });
     }
 
-    /** @param {{ name: string;versionId?: string; snapshotName?:string }[] } body */
-    async validate(body) {
+    async validate(dataSources) {
         let error;
         let response;
         try {
-            response = await Promise.all(body.map(({ name, snapshotName, versionId }) => {
-                const qs = querystring.stringify({ snapshotName, versionId });
-                return this.client.get(`/datasource/validate/${name}?${qs}`);
+            response = await Promise.all(dataSources.map(({ name, snapshotName, versionId }) => {
+                const qs = querystring.stringify({ name, snapshot_name: snapshotName, version_id: versionId }, { skipNull: null });
+                return this.client.get(`/datasource/validate?${qs}`);
             }));
         }
         catch (err) {
-            //error = err.response?.data?.error || err.response.status;
+            error = err.response?.data?.error?.message || err.response?.message || err.message;
         }
         return { error, response };
     }
