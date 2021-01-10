@@ -21,6 +21,22 @@ const cleanTmpFile = async (files = []) => {
 
 const routes = () => {
     const router = Router();
+    // ---- validate ---- //
+    router.get('/validate', async (req, res, next) => {
+        const {
+            version_id: versionId,
+            snapshot_name: snapshotName,
+            datasource_name: dataSourceName,
+        } = req.query;
+        await validation.dataSourceExists({
+            dataSourceName,
+            snapshotName,
+            versionId,
+        });
+        res.json({ exists: true });
+        next();
+    });
+
     router
         .route('/')
         .get(async (req, res, next) => {
@@ -215,22 +231,6 @@ const routes = () => {
                 }
             );
         });
-
-    // ---- validate ---- //
-    router.get('/validate/:name', async (req, res, next) => {
-        const {
-            version_id: versionId,
-            snapshot_name: snapshotName,
-        } = req.query;
-        const { name } = req.params;
-        await validation.dataSourceExists({
-            dataSourceName: name,
-            snapshotName,
-            versionId,
-        });
-        res.json({ exists: true });
-        next();
-    });
 
     router.use(dbErrorsMiddleware);
     return router;

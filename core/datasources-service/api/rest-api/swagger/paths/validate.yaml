@@ -3,7 +3,7 @@ get:
         - DataSource
     summary: Fetch all dataSources meta data
     parameters:
-        - $ref: '#/components/parameters/nameParam'
+        - $ref: '#/components/parameters/nameQuery'
         - $ref: '#/components/parameters/snapshotNameQuery'
         - $ref: '#/components/parameters/idQuery'
     responses:
