@@ -77,8 +77,8 @@ class Repository {
         return { ...response, commit: response.commit.replace(/(.+) /, '') };
     }
 
-    /** @param {string=} versionId */
-    async ensureClone(versionId) {
+    /** @param {string=} commitHash */
+    async ensureClone(commitHash) {
         await fse.ensureDir(this.cwd);
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
         if (!hasClone) {
@@ -87,7 +87,7 @@ class Repository {
             );
         }
         this.gitClient = simpleGit({ baseDir: this.cwd });
-        if (versionId) await this.gitClient.checkout(versionId);
+        if (commitHash) await this.gitClient.checkout(commitHash);
     }
 
     get repositoryUrl() {
