@@ -23,7 +23,6 @@ const setupDataSource = async (numberOfSnapshots = 1) => {
     const createdSnapshots = await Promise.all(
         generatedSnapshots.map(snapshot =>
             createSnapshot({
-                name: dataSource.name,
                 id: dataSource.id,
                 snapshot,
             })

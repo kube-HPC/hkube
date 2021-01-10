@@ -1,9 +1,12 @@
 type: object
 properties:
-    name:
-        $ref: '#/components/schemas/SnapshotName'
-    query:
-        type: string
+    snapshot:
+        type: object
+        properties:
+            name:
+                $ref: '#/components/schemas/SnapshotName'
+            query:
+                type: string
 required:
     - name
     - query

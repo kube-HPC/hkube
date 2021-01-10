@@ -5,3 +5,18 @@ allOf:
           id:
               type: string
               minLength: 25
+          dataSource:
+              type: object
+              properties:
+                  id:
+                      $ref: '#/components/schemas/DataSourceId'
+                  name:
+                      $ref: '#/components/schemas/DataSourceName'
+                  filteredFilesList:
+                      type: array
+                      items:
+                          $ref: '#/components/schemas/FileMeta'
+                  droppedFiles:
+                      type: array
+                      items:
+                          $ref: '#/components/schemas/FileMeta'

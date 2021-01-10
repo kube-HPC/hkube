@@ -122,6 +122,7 @@ const routes = () => {
             next();
         });
 
+    // ---- versions ---- //
     router.get('/:name/versions', async (req, res, next) => {
         const { name } = req.params;
         const versions = await dataSource.listVersions(name);
@@ -129,45 +130,51 @@ const routes = () => {
         return next();
     });
 
+    // ---- snapshots ---- //
     router
-        .post('/:name/snapshot', async (req, res, next) => {
-            /** @type {{ version_id: string }} */
-            const { version_id: id } = req.query;
-            const { name, query } = req.body;
-            const response = await snapshots.create({
-                dataSource: {
-                    id,
-                    name: req.params.name,
-                },
-                name,
-                query,
+        .route('/:name/snapshot')
+        .post(async (req, res, next) => {
+            const response = await snapshots.create(req.body.snapshot, {
+                name: req.params.name,
             });
             res.json(response);
             next();
         })
-        .get('/id/:id/snapshot', async (req, res, next) => {
-            const response = await snapshots.fetchAll({ id: req.params.id });
-            res.json(response);
-            next();
-        })
-        .get('/:name/snapshot/:snapshotName', async (req, res, next) => {
-            const shouldResolve = req.query.resolve === 'true';
-            let response;
-            if (shouldResolve) {
-                response = await snapshots.fetchDataSource({
-                    dataSourceName: req.params.name,
-                    snapshotName: req.params.snapshotName,
-                });
-            } else {
-                response = await snapshots.fetch({
-                    dataSourceName: req.params.name,
-                    snapshotName: req.params.snapshotName,
-                });
-            }
+        .get(async (req, res, next) => {
+            const response = await snapshots.fetchAll({
+                name: req.params.name,
+            });
             res.json(response);
             next();
         });
 
+    router.post('/id/:id/snapshot', async (req, res, next) => {
+        const response = await snapshots.create(req.body.snapshot, {
+            id: req.params.id,
+        });
+        res.json(response);
+        next();
+    });
+
+    router.get('/:name/snapshot/:snapshotName', async (req, res, next) => {
+        const shouldResolve = req.query.resolve === 'true';
+        let response;
+        if (shouldResolve) {
+            response = await snapshots.fetchDataSource({
+                dataSourceName: req.params.name,
+                snapshotName: req.params.snapshotName,
+            });
+        } else {
+            response = await snapshots.fetch({
+                dataSourceName: req.params.name,
+                snapshotName: req.params.snapshotName,
+            });
+        }
+        res.json(response);
+        next();
+    });
+
+    // ---- download ---- //
     router
         .route('/id/:id/download')
         .post(async (req, res, next) => {
@@ -202,6 +209,7 @@ const routes = () => {
             );
         });
 
+    // ---- validate ---- //
     router.get('/validate/:name', async (req, res, next) => {
         const {
             version_id: versionId,
