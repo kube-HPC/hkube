@@ -4,8 +4,9 @@ const dbConnection = require('../db');
 
 /**
  * @typedef {import('./../utils/types').config} config
- * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} SnapshotItem;
+ * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot;
  * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
+ * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
  */
 
 class Snapshots {
@@ -15,13 +16,41 @@ class Snapshots {
         this.db = dbConnection.connection;
     }
 
-    async fetchAll({ id }) {
-        return this.db.snapshots.fetchAll({ query: { 'dataSource.id': id } });
+    async fetchAll({ name }) {
+        return this.db.snapshots.fetchAll({
+            query: { 'dataSource.name': name },
+        });
     }
 
-    async create(snapshot) {
-        validator.snapshots.validateSnapshot(snapshot);
-        return this.db.snapshots.create(snapshot);
+    /**
+     * @type {(
+     *     snapshot: { name: string; query: string },
+     *     dataSource: { name?: string; id?: string }
+     * ) => Promise<Snapshot>}
+     */
+    async create(snapshot, { name, id }) {
+        validator.snapshots.validateSnapshot({
+            ...snapshot,
+            dataSource: { id, name },
+        });
+        const dataSourceEntry = await this.db.dataSources.fetch({ id, name });
+        const dataSource = {
+            id: dataSourceEntry.id,
+            name: dataSourceEntry.name,
+        };
+        const { matching, nonMatching } = this.filterFilesListByQuery({
+            files: dataSourceEntry.files,
+            query: snapshot.query,
+        });
+        return this.db.snapshots.create(
+            {
+                ...snapshot,
+                dataSource,
+                filteredFilesList: matching,
+                droppedFiles: nonMatching,
+            },
+            { applyId: true }
+        );
     }
 
     async fetch({ dataSourceName, snapshotName }) {
@@ -45,6 +74,36 @@ class Snapshots {
     /** @param {{ id: string; filesList: FileMeta[] }} props */
     async updateSnapshotResult({ id, filesList }) {
         return this.db.snapshots.updateFilesList({ id, filesList });
+    }
+
+    /**
+     * @param {{ files: FileMeta; query: string }}
+     * @returns {{ matching: FileMeta[]; nonMatching: FileMeta[] }}
+     */
+    filterFilesListByQuery({ files, query }) {
+        const queryRegexp = new RegExp(query, 'i');
+        return files.reduce(
+            (acc, file) =>
+                file.meta.match(queryRegexp)
+                    ? {
+                          ...acc,
+                          matching: acc.matching.concat(file),
+                      }
+                    : {
+                          ...acc,
+                          nonMatching: acc.nonMatching.concat(file),
+                      },
+            { matching: [], nonMatching: [] }
+        );
+    }
+
+    async previewSnapshot({ id, query }) {
+        validator.snapshots.validatePreview({ id, query });
+        const { files } = await this.db.dataSources.fetch(
+            { id },
+            { fields: { files: 1 } }
+        );
+        return this.filterFilesListByQuery({ files, query }).matching;
     }
 }
 

@@ -79,27 +79,6 @@ class JobConsumer {
         });
     }
 
-    /** @returns {{ filesToKeep: FileMeta[]; filesToDelete: FileMeta[] }} */
-    filterFilesList(files, query) {
-        const queryRegexp = new RegExp(query, 'i');
-        return files.reduce(
-            (acc, file) =>
-                file.meta.match(queryRegexp)
-                    ? {
-                          ...acc,
-                          filesToKeep: acc.filesToKeep.concat(file),
-                      }
-                    : {
-                          ...acc,
-                          filesToDelete: acc.filesToDelete.concat(file),
-                      },
-            {
-                filesToKeep: [],
-                filesToDelete: [],
-            }
-        );
-    }
-
     /** @param {Job} props */
     async fetchDataSource({ dataSource: dataSourceDescriptor, ...job }) {
         const { jobId, taskId } = job;
@@ -153,24 +132,10 @@ class JobConsumer {
 
         let filesList = dataSource.files;
         if (resolvedSnapshot) {
-            let filesToDelete;
-            if (resolvedSnapshot.filteredFilesList) {
-                filesList = resolvedSnapshot.filteredFilesList;
-                filesToDelete = resolvedSnapshot.droppedFiles;
-            } else {
-                const categorizedList = this.filterFilesList(
-                    filesList,
-                    resolvedSnapshot.query
-                );
-                filesList = categorizedList.filesToKeep;
-                filesToDelete = categorizedList.filesToDelete;
-                await this.db.snapshots.updateFilesList({
-                    id: resolvedSnapshot.id,
-                    filesList,
-                    droppedFiles: filesToDelete,
-                });
-            }
-            await repository.filterFilesFromClone(filesToDelete);
+            filesList = resolvedSnapshot.filteredFilesList;
+            await repository.filterFilesFromClone(
+                resolvedSnapshot.droppedFiles
+            );
         }
 
         filesList = filesList.map(fileMeta => ({

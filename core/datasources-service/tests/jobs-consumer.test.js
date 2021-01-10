@@ -52,14 +52,10 @@ describe('JobsConsumer', () => {
         });
         await createSnapshot({
             name: dataSource.name,
-            id: dataSource.id,
             snapshot: { name: snapshotName, query: 'about the logo' },
         });
         const job = await createJob({
-            dataSource: {
-                name: dataSource.name,
-                snapshotName,
-            },
+            dataSource: { name: dataSource.name, snapshotName },
         });
         await delay(10000);
 

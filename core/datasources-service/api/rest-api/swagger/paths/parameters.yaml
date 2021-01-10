@@ -49,4 +49,4 @@ downloadIdQuery:
     description: request a specific version, if not stated the latest is returned
     required: true
     schema:
-        $ref: '#components/schemas/DownloadId'
+        $ref: '#/components/schemas/DownloadId'

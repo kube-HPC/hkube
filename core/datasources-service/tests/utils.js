@@ -20,6 +20,7 @@ const setupUrl = ({ name, id }) => {
  * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
  * @typedef {import('@hkube/db/lib/DataSource').DataSourceWithMeta} DataSourceWithMeta
+ * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
  */
 /**
  * @type {(props?: {
@@ -159,6 +160,7 @@ const delay = d => new Promise(r => setTimeout(r, d));
  *     snapshotName?: string;
  *     shouldResolve?: boolean;
  * }} query
+ * @returns {Promise<{ body: Snapshot }>}
  */
 const fetchSnapshot = ({
     dataSourceName,
@@ -172,10 +174,10 @@ const fetchSnapshot = ({
         method: 'GET',
     });
 
-/** @param {{ dataSourceId: string }} query */
-const fetchAllSnapshots = ({ dataSourceId }) =>
+/** @param {{ dataSourceName: string }} query */
+const fetchAllSnapshots = ({ dataSourceName }) =>
     request({
-        uri: `${setupUrl({ id: dataSourceId })}/snapshot`,
+        uri: `${setupUrl({ name: dataSourceName })}/snapshot`,
         method: 'GET',
     });
 
@@ -185,11 +187,12 @@ const fetchAllSnapshots = ({ dataSourceId }) =>
  *     id?: string;
  *     snapshot: { name: string; query: string };
  * }} query
+ * @returns {Promise<{ body: Snapshot }>}
  */
 const createSnapshot = ({ name, id, snapshot }) =>
     request({
-        uri: `${global.testParams.restUrl}/datasource/${name}/snapshot?version_id=${id}`,
-        body: snapshot,
+        uri: `${setupUrl({ id, name })}/snapshot`,
+        body: { snapshot },
     });
 
 /**
@@ -226,6 +229,13 @@ const requestValidation = ({ dataSourceName, versionId, snapshotName }) => {
     return request({ uri: url.toString(), method: 'GET' });
 };
 
+/** @returns {Promise<{ body: FileMeta[] }>} */
+const requestPreview = ({ dataSourceId, query }) =>
+    request({
+        uri: `${setupUrl({ id: dataSourceId })}/snapshot/preview`,
+        body: { query },
+    });
+
 module.exports = {
     fetchDataSource,
     deleteDataSource,
@@ -242,4 +252,5 @@ module.exports = {
     createDownloadLink,
     fetchDownloadLink,
     requestValidation,
+    requestPreview,
 };

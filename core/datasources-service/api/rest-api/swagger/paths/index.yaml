@@ -4,12 +4,14 @@
     $ref: ./byName.yaml
 /datasource/{name}/versions:
     $ref: ./versions.yaml
-/datasource/{name}/snapshot:
-    $ref: ./snapshot.yaml
-/datasource/{name}/snapshot/{snapshotName}:
-    $ref: ./snapshotByName.yaml
 /datasource/id/{id}/snapshot:
-    $ref: ./snapshotById.yaml
+    $ref: ./snapshots/byDataSourceId.yaml
+/datasource/id/{id}/snapshot/preview:
+    $ref: ./snapshots/preview.yaml
+/datasource/{name}/snapshot:
+    $ref: ./snapshots/byDataSourceName.yaml
+/datasource/{name}/snapshot/{snapshotName}:
+    $ref: ./snapshots/byName.yaml
 /datasource/id/{id}/download:
     $ref: ./download.yaml
 /datasource/validate/{name}:

@@ -9,6 +9,13 @@ class Snapshots {
             snapshot
         );
     }
+
+    validatePreview({ id, query }) {
+        this._validator.validate(
+            this._validator.definitions.SnapshotPreviewRequest,
+            { id, query }
+        );
+    }
 }
 
 module.exports = Snapshots;

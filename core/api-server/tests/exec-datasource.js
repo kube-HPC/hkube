@@ -24,9 +24,9 @@ describe('DataSources', () => {
         const { protocol, host, port, prefix } = config.dataSourceService;
         const serviceURI = `${protocol}://${host}:${port}/${prefix}/datasource`;
         const qs0 = querystring.stringify({ name: 'exist' });
-        const qs1 = querystring.stringify({ id: 'exist' });
+        const qs1 = querystring.stringify({ version_id: 'exist' });
         const qs2 = querystring.stringify({ name: 'exist', snapshot_name: 'exist' });
-        const qs3 = querystring.stringify({ id: 'non-exist' });
+        const qs3 = querystring.stringify({ version_id: 'non-exist' });
         const qs4 = querystring.stringify({ name: 'exist', snapshot_name: 'non-exist' });
         const qs5 = querystring.stringify({ name: 'non-exist' });
         nock(serviceURI).persist().get(`/validate?${qs0}`).reply(200);
@@ -98,7 +98,7 @@ describe('DataSources', () => {
                     nodeName: 'A',
                     kind: 'dataSource',
                     dataSource: {
-                        id: 'non-exist'
+                        versionId: 'non-exist'
                     }
                 }]
             };
@@ -113,7 +113,7 @@ describe('DataSources', () => {
                     nodeName: 'A',
                     kind: 'dataSource',
                     dataSource: {
-                        id: 'exist'
+                        versionId: 'exist'
                     }
                 }]
             };

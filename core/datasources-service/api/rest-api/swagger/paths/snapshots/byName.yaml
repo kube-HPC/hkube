@@ -3,8 +3,8 @@ get:
         - Snapshot
     summary: fetch snapshots for a given datasource
     parameters:
-        - $ref: '#components/parameters/nameParam'
-        - $ref: '#components/parameters/snapshotNameParam'
+        - $ref: '#/components/parameters/nameParam'
+        - $ref: '#/components/parameters/snapshotNameParam'
         - name: resolve
           in: query
           description: return the entire dataSource with the snapshot

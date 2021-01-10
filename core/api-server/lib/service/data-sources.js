@@ -12,9 +12,9 @@ class DataSources {
         let error;
         let response;
         try {
-            response = await Promise.all(dataSources.map(({ id, name, snapshotName }) => {
-                const qs = querystring.stringify({ id, name, snapshot_name: snapshotName }, { skipNull: null });
-                return this.client.get(`/datasource/validate?${qs}`);
+            response = await Promise.all(dataSources.map(({ versionId, name, snapshotName }) => {
+                const qs = querystring.stringify({ version_id: versionId, name, snapshot_name: snapshotName }, { skipNull: null });
+                return this.client.get(`/datasource/validate/${name}?${qs}`);
             }));
         }
         catch (err) {

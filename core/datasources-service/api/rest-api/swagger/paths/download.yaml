@@ -3,7 +3,7 @@ post:
         - Download
     summary: create download link
     parameters:
-        - $ref: '#components/parameters/idParam'
+        - $ref: '#/components/parameters/idParam'
     requestBody:
         content:
             application/json:
@@ -31,8 +31,8 @@ get:
         - Download
     summary: download an archive of the selected files
     parameters:
-        - $ref: '#components/parameters/idParam'
-        - $ref: '#components/parameters/downloadIdQuery'
+        - $ref: '#/components/parameters/idParam'
+        - $ref: '#/components/parameters/downloadIdQuery'
     responses:
         '200':
             description: A Zip file
