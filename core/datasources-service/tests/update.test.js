@@ -201,7 +201,7 @@ describe('/datasource/:name POST', () => {
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`
             ).size
         ).to.eq(131);
-        expect(dataSource.versionId).not.to.eq(uploadResponseBody.versionId);
+        expect(dataSource.commitHash).not.to.eq(uploadResponseBody.commitHash);
         expect(dataSource.files.length).to.eq(uploadResponseBody.files.length);
         expect(uploadResponseBody.files[0].size).to.eq(131);
     });

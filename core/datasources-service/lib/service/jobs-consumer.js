@@ -142,7 +142,7 @@ class JobConsumer {
                 component,
                 taskId,
             });
-            await repository.ensureClone(dataSource.versionId);
+            await repository.ensureClone(dataSource.commitHash);
             await repository.pullFiles();
         } catch (e) {
             return this.handleFail({

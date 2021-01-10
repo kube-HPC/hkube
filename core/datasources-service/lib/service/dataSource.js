@@ -308,7 +308,7 @@ class DataSource {
         return this.db.dataSources.updateFiles({
             name,
             files,
-            versionId: commitHash,
+            commitHash,
         });
     }
 
@@ -333,7 +333,7 @@ class DataSource {
             updatedDataSource = await this.db.dataSources.updateFiles({
                 id: createdDataSource.id,
                 files,
-                versionId: commitHash,
+                commitHash,
             });
         } catch (error) {
             await this.db.dataSources.delete({ name });

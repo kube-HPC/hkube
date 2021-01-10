@@ -12,8 +12,8 @@ class DataSources {
         let error;
         let response;
         try {
-            response = await Promise.all(dataSources.map(({ name, snapshotName, versionId }) => {
-                const qs = querystring.stringify({ name, snapshot_name: snapshotName, version_id: versionId }, { skipNull: null });
+            response = await Promise.all(dataSources.map(({ id, name, snapshotName }) => {
+                const qs = querystring.stringify({ id, name, snapshot_name: snapshotName }, { skipNull: null });
                 return this.client.get(`/datasource/validate?${qs}`);
             }));
         }
