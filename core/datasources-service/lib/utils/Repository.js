@@ -46,7 +46,6 @@ class Repository {
         this.config = config;
         this.repositoryName = repositoryName;
         this.rootDir = rootDir;
-        // this._execute = Shell(this.cwd);
         this.dvc = new DvcClient(this.cwd, this.repositoryUrl);
     }
 
@@ -216,8 +215,6 @@ class Repository {
             )
         );
     }
-
-    // prepareForDownload(currentMapping, fileIds) {}
 
     /**
      * @param {string[]} fileIds

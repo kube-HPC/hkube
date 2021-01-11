@@ -7,7 +7,7 @@ const component = require('../consts/componentNames').MAIN;
 const Etcd = require('../Etcd');
 const dbConnection = require('../db');
 const Repository = require('../utils/Repository');
-const getFilePath = require('../utils/getFilePath');
+const { ResourceNotFoundError } = require('./../errors');
 /**
  * @typedef {import('./../utils/types').config} config
  * @typedef {import('./types').onJobHandler} onJobHandler
@@ -44,7 +44,6 @@ class JobConsumer {
         /** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
         this.db = dbConnection.connection;
         await this.state.startWatch();
-        // register to events
         this.consumer.on(
             'job',
             /** @type {onJobHandler} */
@@ -81,7 +80,7 @@ class JobConsumer {
 
     /** @param {Job} props */
     async fetchDataSource({ dataSource: dataSourceDescriptor, ...job }) {
-        const { jobId, taskId } = job;
+        const { taskId } = job;
         log.info(`got job, starting to fetch dataSource`, {
             component,
             taskId,
@@ -97,6 +96,11 @@ class JobConsumer {
                     snapshotName,
                     dataSourceName: dataSourceDescriptor.name,
                 });
+                if (!resolvedSnapshot)
+                    throw new ResourceNotFoundError(
+                        'snapshot',
+                        `${dataSourceDescriptor.name}:${snapshotName}`
+                    );
                 dataSource = resolvedSnapshot.dataSource;
             } else {
                 const shouldGetLatest = !dataSourceDescriptor.version;
@@ -111,9 +115,9 @@ class JobConsumer {
         }
 
         const repository = new Repository(
-            dataSourceDescriptor.name,
+            dataSource.name,
             this.config,
-            `${this.rootDir}/${jobId}`
+            `${this.rootDir}/${dataSource.name}/${dataSource.id}`
         );
 
         try {
@@ -130,22 +134,20 @@ class JobConsumer {
             });
         }
 
-        let filesList = dataSource.files;
         if (resolvedSnapshot) {
-            filesList = resolvedSnapshot.filteredFilesList;
             await repository.filterFilesFromClone(
                 resolvedSnapshot.droppedFiles
             );
+            await this.storeResult({
+                payload: { snapshotId: resolvedSnapshot.id },
+                ...job,
+            });
+        } else {
+            await this.storeResult({
+                payload: { dataSourceId: dataSource.id },
+                ...job,
+            });
         }
-
-        filesList = filesList.map(fileMeta => ({
-            ...fileMeta,
-            fullPath: `${job.jobId}/${dataSource.name}/${getFilePath(
-                fileMeta
-            )}`,
-        }));
-
-        await this.storeResult({ filesList, ...job });
 
         log.info(
             `successfully cloned and stored dataSource ${dataSource.name}`,
@@ -154,27 +156,23 @@ class JobConsumer {
         return null;
     }
 
-    /** @param {{ payload: FileMeta[] } & Job} props */
-    async storeResult({ filesList, ...job }) {
+    /** @param {{ payload: { dataSourceId?: string; snapshotId?: string } } & Job} props */
+    async storeResult({ payload, ...job }) {
         const { jobId, taskId } = job;
         try {
             /** @type {{ path: string }} */
-            const filesStorageInfo = await storageManager.hkube.put({
-                jobId,
-                taskId: `${taskId}-0`,
-                data: filesList,
-            });
-            const linkStorageInfo = await storageManager.hkube.put({
+            const storageInfo = await storageManager.hkube.put({
                 jobId,
                 taskId,
-                data: filesStorageInfo,
+                data: payload,
             });
+
             await this.state.update({
                 ...job,
                 status: taskStatuses.STORING,
-                result: { storageInfo: linkStorageInfo },
+                result: { storageInfo },
             });
-            await this.db.snapshots.updateFilesList({});
+
             await this.state.update({
                 ...job,
                 endTime: Date.now(),
