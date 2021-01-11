@@ -189,7 +189,7 @@ class StateAdapter extends EventEmitter {
         let dsName;
         let subPath;
         let dsFiles;
-        const { dataSourceId, snapshotId } = options;
+        const { dataSourceId, snapshotId } = options.dataSource || {};
 
         if (dataSourceId) {
             const dataSource = await this._db.dataSources.fetch({
@@ -207,11 +207,15 @@ class StateAdapter extends EventEmitter {
             );
             dsName = snapshot.dataSource.name;
             subPath = snapshot.name;
-            dsFiles = snapshot.files;
+            dsFiles = snapshot.filteredFilesList;
         }
+        else {
+            throw new Error('unable to find matching data-source');
+        }
+        dsFiles = dsFiles || [];
         const files = dsFiles.map(f => ({
             ...f,
-            path: `${this._dataSourcesVolume}/${dsName}/${subPath}`
+            path: `${this._dataSourcesVolume}/${dsName}/${subPath}/${f.name}`
         }));
         const dataSource = {
             name: dsName,
