@@ -156,6 +156,10 @@ const openshiftVolumes = {
         {
             name: 'builds',
             mountPath: '/hkube/algorithm-builder/builds'
+        },
+        {
+            name: 'kube',
+            mountPath: '/.kube'
         }
     ],
     volumes: [
@@ -178,6 +182,10 @@ const openshiftVolumes = {
         {
             name: 'builds',
             emptyDir: {}
+        },
+        {
+            name: 'kube',
+            emptyDir: {}
         }
     ]
 };
@@ -198,6 +206,16 @@ const kanikoContainer = {
 const openshiftContainer = {
     name: OC_BUILDER,
     image: `hkube/${OC_BUILDER}`,
+    env: [
+        {
+            name: 'NAMESPACE',
+            valueFrom: {
+                fieldRef: {
+                    fieldPath: 'metadata.namespace'
+                }
+            }
+        }
+    ],
     volumeMounts: [
         {
             name: 'commands',

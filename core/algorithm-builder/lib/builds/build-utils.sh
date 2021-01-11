@@ -58,7 +58,7 @@ dockerBuildOpenshift() {
   echo 'oc login \
   --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
   --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) \
-  ${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}'  >> ${commands}/run
+  ${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT} -n ${NAMESPACE}'  >> ${commands}/run
   echo "oc apply -f /commands/buildConfig.yaml" >> ${commands}/run
   echo "oc apply -f /commands/dockerCredsSecret.yaml" >> ${commands}/run
   echo "oc secrets link builder build-registry-secret" >> ${commands}/run
