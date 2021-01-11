@@ -12,7 +12,7 @@ const {
 } = require('./utils');
 let rootDir = null;
 
-describe('JobsConsumer', () => {
+describe.only('JobsConsumer', () => {
     before(() => {
         jobConsumer = require('../lib/service/jobs-consumer');
         rootDir = global.testParams.directories.dataSourcesInUse;
@@ -63,18 +63,19 @@ describe('JobsConsumer', () => {
         const state = await jobConsumer.state.get({ jobId, taskId });
         expect(state.status).to.equal('succeed');
         expect(state).to.have.property('result');
+        const mountedDir = `${rootDir}/${dataSource.name}/${dataSource.id}/${dataSource.name}`;
         const existingFiles = await Promise.all(
             [
-                `${rootDir}/${jobId}`,
-                `${rootDir}/${jobId}/${dataSource.name}/data/logo.svg`,
-                `${rootDir}/${jobId}/${dataSource.name}/data/logo.svg.dvc`,
-                `${rootDir}/${jobId}/${dataSource.name}/data/logo.svg.meta`,
+                `${mountedDir}`,
+                `${mountedDir}/data/logo.svg`,
+                `${mountedDir}/data/logo.svg.dvc`,
+                `${mountedDir}/data/logo.svg.meta`,
             ].map(p => fse.pathExists(p))
         );
         const nonExistingFiles = await Promise.all(
             [
-                `${rootDir}/${jobId}/${dataSource.name}/data/README-1.md`,
-                `${rootDir}/${jobId}/${dataSource.name}/data/README-1.md.dvc`,
+                `${mountedDir}/data/README-1.md`,
+                `${mountedDir}/data/README-1.md.dvc`,
             ].map(p => fse.pathExists(p))
         );
         expect(existingFiles.every(item => item)).to.be.true;
