@@ -12,7 +12,7 @@ const {
 } = require('./utils');
 let rootDir = null;
 
-describe.only('JobsConsumer', () => {
+describe('JobsConsumer', () => {
     before(() => {
         jobConsumer = require('../lib/service/jobs-consumer');
         rootDir = global.testParams.directories.dataSourcesInUse;

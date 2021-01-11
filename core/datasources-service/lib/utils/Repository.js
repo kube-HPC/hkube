@@ -63,7 +63,6 @@ class Repository {
     }
 
     async setup() {
-        await fse.ensureDir(`${this.cwd}`);
         await fse.ensureDir(`${this.cwd}/data`);
         const git = simpleGit({
             baseDir: `${this.cwd}`,
@@ -294,6 +293,10 @@ class Repository {
                 })
                 .flat()
         );
+    }
+
+    async deleteClone() {
+        return fse.remove(this.cwd);
     }
 }
 

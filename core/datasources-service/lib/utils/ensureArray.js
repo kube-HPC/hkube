@@ -11,8 +11,9 @@ const arrayEndRegex = /\]$/;
  */
 module.exports = (payload, fieldName) => {
     let collection = [];
-    let _payload = payload;
+    if (!payload) return collection;
     if (Array.isArray(payload)) return payload;
+    let _payload = payload;
     if (!arrayStartRegex.test(payload)) {
         _payload = `[${_payload}`;
     }
