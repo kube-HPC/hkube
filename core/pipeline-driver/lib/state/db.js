@@ -32,8 +32,8 @@ class DB {
         return this._db.jobs.updatePipeline(options);
     }
 
-    patchPipeline(options, cb) {
-        return this._db.jobs.patchPipeline(options, cb);
+    async createJob({ jobId, pipeline, status }) {
+        await this._db.jobs.create({ jobId, pipeline, status });
     }
 }
 

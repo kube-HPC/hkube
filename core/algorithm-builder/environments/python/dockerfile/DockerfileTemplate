@@ -7,7 +7,7 @@ COPY ./dockerfile/* /hkube/algorithm-runner/dockerfile/
 COPY ./packages/* /hkube/packages/
 COPY ./nodemon ./docker-entrypoint.sh /hkube/
 WORKDIR /hkube/algorithm-runner
-RUN ./dockerfile/requirements.sh ${packagesRegistry} ${packagesToken}
+RUN export dependency_install_cmd=${dependency_install_cmd} && ./dockerfile/requirements.sh ${packagesRegistry} ${packagesToken} 
 
 ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm_unique_folder
 ENTRYPOINT ["/hkube/docker-entrypoint.sh"]

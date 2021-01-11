@@ -223,7 +223,7 @@ class TaskRunner extends EventEmitter {
             sendProgress: (...args) => this._stateManager.setJobStatus(...args)
         });
 
-        this._boards = new Boards({ updateBoard: (task, cb) => this._stateManager.updateExecution(task, cb) });
+        this._boards = new Boards({ types: pipeline.types, updateBoard: (task) => this._stateManager.updatePipeline(task) });
 
         pipelineMetrics.startMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, spanId: this._job.data && this._job.data.spanId });
         const graph = await graphStore.getGraph({ jobId: this._jobId });
