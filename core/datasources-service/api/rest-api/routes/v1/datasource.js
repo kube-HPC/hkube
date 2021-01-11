@@ -10,6 +10,7 @@ const snapshots = require('../../../../lib/service/snapshots');
 const downloads = require('../../../../lib/service/downloads');
 const dbErrorsMiddleware = require('./../../middlewares/dbErrors');
 const validation = require('./../../../../lib/service/validation');
+const ensureArray = require('../../../../lib/utils/ensureArray');
 
 const upload = multer({ dest: 'uploads/datasource/' });
 
@@ -99,18 +100,13 @@ const routes = () => {
         })
         .post(upload.array('files'), async (req, res, next) => {
             const { name } = req.params;
-            const { versionDescription, droppedFileIds, mapping } = req.body;
-            let droppedIds = [];
-            try {
-                droppedIds = JSON.parse(droppedFileIds);
-            } catch (e) {
-                if (typeof droppedFileIds === 'string') {
-                    droppedIds = droppedFileIds.split(',').filter(item => item);
-                } else if (Array.isArray(droppedFileIds)) {
-                    droppedIds = droppedFileIds;
-                }
-            }
-
+            const {
+                versionDescription,
+                droppedFileIds,
+                mapping: _mapping,
+            } = req.body;
+            const mapping = ensureArray(_mapping, 'mapping');
+            const droppedIds = ensureArray(droppedFileIds, 'droppedFileIds');
             try {
                 const createdVersion = await dataSource.update({
                     name,
@@ -118,7 +114,7 @@ const routes = () => {
                     files: {
                         added: req.files,
                         dropped: droppedIds.length > 0 ? droppedIds : undefined,
-                        mapping: mapping ? JSON.parse(mapping) : undefined,
+                        mapping: mapping.length > 0 ? mapping : undefined,
                     },
                 });
                 if (createdVersion) {

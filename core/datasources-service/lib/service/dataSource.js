@@ -301,6 +301,7 @@ class DataSource {
             commitMessage: versionDescription,
             currentFiles: createdVersion.files,
         });
+        repository.deleteClone();
         if (!commitHash) {
             await this.db.dataSources.delete({ id: createdVersion.id });
             return null;
@@ -317,12 +318,13 @@ class DataSource {
         validator.dataSources.create({ name, files: _files });
         const createdDataSource = await this.db.dataSources.create({ name });
         let updatedDataSource;
+        /** @type {Repository} */
+        const repository = new Repository(
+            name,
+            this.config,
+            this.config.directories.gitRepositories
+        );
         try {
-            const repository = new Repository(
-                name,
-                this.config,
-                this.config.directories.gitRepositories
-            );
             await repository.setup();
             const { commitHash, files } = await this.commitChange({
                 repository,
@@ -338,6 +340,8 @@ class DataSource {
         } catch (error) {
             await this.db.dataSources.delete({ name });
             throw error;
+        } finally {
+            if (repository) await repository.deleteClone();
         }
         return updatedDataSource;
     }
@@ -378,25 +382,6 @@ class DataSource {
     async listVersions(name) {
         return this.db.dataSources.listVersions({ name });
     }
-
-    // async createSnapshot({ id, snapshot }) {
-    //     validator.dataSources.validateSnapshot(snapshot);
-    //     return this.db.dataSources.createSnapshot({ id, snapshot });
-    // }
-
-    // async fetchSnapshot({ snapshotName }) {
-    //     const entry = await this.db.dataSources.fetch(
-    //         { 'snapshots.name': snapshotName },
-    //         { fields: { snapshots: 1 } }
-    //     );
-    //     const snapshot = entry.snapshots.find(
-    //         item => item.name === snapshotName
-    //     );
-    //     return {
-    //         dataSource: { id: entry.id },
-    //         snapshot,
-    //     };
-    // }
 }
 
 module.exports = new DataSource();
