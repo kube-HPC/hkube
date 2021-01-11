@@ -310,7 +310,6 @@ class Worker {
                     response,
                     error
                 },
-
             });
         });
     }

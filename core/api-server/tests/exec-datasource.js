@@ -23,12 +23,12 @@ describe('DataSources', () => {
         config = testParams.config;
         const { protocol, host, port, prefix } = config.dataSourceService;
         const serviceURI = `${protocol}://${host}:${port}/${prefix}/datasource`;
-        const qs0 = querystring.stringify({ name: 'exist' });
+        const qs0 = querystring.stringify({ datasource_name: 'exist' });
         const qs1 = querystring.stringify({ version_id: 'exist' });
-        const qs2 = querystring.stringify({ name: 'exist', snapshot_name: 'exist' });
+        const qs2 = querystring.stringify({ datasource_name: 'exist', snapshot_name: 'exist' });
         const qs3 = querystring.stringify({ version_id: 'non-exist' });
-        const qs4 = querystring.stringify({ name: 'exist', snapshot_name: 'non-exist' });
-        const qs5 = querystring.stringify({ name: 'non-exist' });
+        const qs4 = querystring.stringify({ datasource_name: 'exist', snapshot_name: 'non-exist' });
+        const qs5 = querystring.stringify({ datasource_name: 'non-exist' });
         nock(serviceURI).persist().get(`/validate?${qs0}`).reply(200);
         nock(serviceURI).persist().get(`/validate?${qs1}`).reply(200);
         nock(serviceURI).persist().get(`/validate?${qs2}`).reply(200);

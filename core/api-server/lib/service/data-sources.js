@@ -13,8 +13,12 @@ class DataSources {
         let response;
         try {
             response = await Promise.all(dataSources.map(({ versionId, name, snapshotName }) => {
-                const qs = querystring.stringify({ version_id: versionId, name, snapshot_name: snapshotName }, { skipNull: null });
-                return this.client.get(`/datasource/validate/${name}?${qs}`);
+                const qs = querystring.stringify({
+                    version_id: versionId,
+                    datasource_name: name,
+                    snapshot_name: snapshotName
+                }, { skipNull: null });
+                return this.client.get(`/datasource/validate?${qs}`);
             }));
         }
         catch (err) {
