@@ -136,14 +136,17 @@ class Worker {
             }
         });
         stateAdapter.on(workerCommands.scaleDown, () => {
-            this._scaleDown({ status: workerCommands.scaleDown, reason: workerCommands.scaleDown });
+            const reason = 'got scaling down command';
+            this._scaleDown({ reason });
         });
     }
 
-    async _scaleDown({ status, reason }) {
-        const { jobId } = jobConsumer.jobData;
-        log.warning(`got status: ${status}`, { component });
-        await this._stopAllPipelinesAndExecutions({ jobId, reason: `parent pipeline ${status}. ${reason || ''}` });
+    async _scaleDown({ reason }) {
+        log.warning(reason, { component });
+        const { jobId } = jobConsumer.jobData || {};
+        if (jobId) {
+            await this._stopAllPipelinesAndExecutions({ jobId, reason });
+        }
         stateManager.stop();
     }
 
@@ -156,11 +159,8 @@ class Worker {
             });
         });
         streamHandler.on(streamingEvents.DISCOVERY_PARENTS_DOWN, () => {
-            log.info('service discovery detected all parents down', { component });
-            const data = {
-                shouldCompleteJob: true
-            };
-            stateManager.done(data);
+            const reason = 'service discovery detected all parents down';
+            this._scaleDown({ reason });
         });
         streamHandler.on(streamingEvents.THROUGHPUT_CHANGED, (throughput) => {
             jobConsumer.updateThroughput(throughput);
