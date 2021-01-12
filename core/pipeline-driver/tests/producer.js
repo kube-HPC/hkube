@@ -31,8 +31,7 @@ describe('Producer', function () {
             const status = 'active';
             const workerStub = new WorkerStub(options);
             const taskRunner = new TaskRunner(config);
-            await stateManager.setExecution({ jobId, ...pipeline });
-            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
+            await stateManager.createJob({ jobId, pipeline, status: { status } });
             await taskRunner.start(job)
             await delay(500);
             const node = taskRunner._nodes.getNode('green');
@@ -54,8 +53,7 @@ describe('Producer', function () {
             const result = 'test-result';
             const workerStub = new WorkerStub(options);
             const taskRunner = new TaskRunner(config);
-            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
-            await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
             await taskRunner.start(job)
             await delay(500);
             const node = taskRunner._nodes.getNode('green');
@@ -78,8 +76,7 @@ describe('Producer', function () {
             const error = 'test-error';
             const workerStub = new WorkerStub(options);
             const taskRunner = new TaskRunner(config);
-            await stateManager.setExecution({ jobId, ...pipeline });
-            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
             await taskRunner.start(job)
             await delay(500);
             const node = taskRunner._nodes.getNode('green');
@@ -102,8 +99,7 @@ describe('Producer', function () {
             const error = 'test-stalled';
             const workerStub = new WorkerStub(options);
             const taskRunner = new TaskRunner(config);
-            await stateManager.setExecution({ jobId, ...pipeline });
-            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
             await taskRunner.start(job)
             await delay(500);
             const node = taskRunner._nodes.getNode('green');
@@ -127,8 +123,7 @@ describe('Producer', function () {
             const error = 'test-crashed';
             const workerStub = new WorkerStub(options);
             const taskRunner = new TaskRunner(config);
-            await stateManager.setExecution({ jobId, ...pipeline });
-            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
             await taskRunner.start(job)
             await delay(500);
             const node = taskRunner._nodes.getNode('green');
@@ -144,13 +139,9 @@ describe('Producer', function () {
                 done: () => { }
             }
             const pipeline = pipelines.find(p => p.name === 'two-nodes');
-            const options = {
-                type: 'test-job'
-            }
             const status = 'invalid';
             const taskRunner = new TaskRunner(config);
-            await stateManager.setExecution({ jobId, ...pipeline });
-            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
             await taskRunner.start(job)
             await delay(200);
             const node = taskRunner._nodes.getNode('green');
@@ -166,13 +157,11 @@ describe('Producer', function () {
             }
             const status = 'completed';
             const error = `pipeline already in ${status} status`;
-
             const taskRunner = new TaskRunner(config);
             const spy = sinon.spy(taskRunner, "_cleanJob");
-
-            await stateManager._etcd.jobs.status.set({ jobId, status });
+            const pipeline = pipelines.find(p => p.name === 'two-nodes');
+            await stateManager.createJob({ jobId, pipeline, status: { status } });
             await taskRunner.start(job);
-
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0].message).to.equal(error);

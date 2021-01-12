@@ -116,6 +116,60 @@ describe('Builds', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body.baseImage).to.equal('userOwnBaseImage');
         });
+        it('should succeed to get dependencyInstallCmd', async () => {
+            const payload = {
+                name: `my-alg-${uuid()}`,
+                mem: "50Mi",
+                cpu: 1,
+                version: '1.9.0',
+                env: 'nodejs',
+                baseImage: 'userOwnBaseImage',
+                dependencyInstallCmd: 'install.sh'
+            }
+            const formData = {
+                payload: JSON.stringify(payload),
+                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+            };
+            const opt = {
+                uri: restUrl + '/store/algorithms/apply',
+                formData
+            };
+            const res = await request(opt);
+
+            const options = {
+                uri: restPath + `/${res.body.buildId}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.body.dependencyInstallCmd).to.equal('install.sh');
+        });
+        it('should work without dependencyInstallCmd', async () => {
+            const payload = {
+                name: `my-alg-${uuid()}`,
+                mem: "50Mi",
+                cpu: 1,
+                version: '1.9.0',
+                env: 'nodejs',
+            }
+            const formData = {
+                payload: JSON.stringify(payload),
+                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+            };
+            const opt = {
+                uri: restUrl + '/store/algorithms/apply',
+                formData
+            };
+            const res = await request(opt);
+
+            const options = {
+                uri: restPath + `/${res.body.buildId}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.body.dependencyInstallCmd).to.not.exist;
+        });
     });
     describe('stop', () => {
         let restPath = null;

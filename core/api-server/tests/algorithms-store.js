@@ -1109,6 +1109,32 @@ describe('Store/Algorithms', () => {
                 expect(response2.body).to.have.property('buildId');
                 expect(response2.body.messages[0]).to.contains('a build was triggered due to change in checksum');
             });
+            it('should succeed to apply algorithm with buildId due to change in dependencyInstallCmd', async () => {
+                const body1 = {
+                    name: `my-alg-${uuid()}`,
+                    env: 'python'
+                }
+                const body2 = {
+                    ...body1,
+                    dependencyInstallCmd: './foo'
+                }
+                const formData1 = {
+                    payload: JSON.stringify(body1),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify(body2),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const uri = applyPath;
+                const options1 = { uri, formData: formData1 };
+                const options2 = { uri, formData: formData2 };
+                const response1 = await request(options1);
+                const response2 = await request(options2)
+                expect(response1.body).to.have.property('buildId');
+                expect(response2.body).to.have.property('buildId');
+                expect(response2.body.messages[0]).to.contains('a build was triggered due to change in dependencyInstallCmd');
+            });
             it('should succeed to apply with build due to change in baseImage', async () => {
                 const body1 = {
                     name: `my-alg-${uuid()}`,

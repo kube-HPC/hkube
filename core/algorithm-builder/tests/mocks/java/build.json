@@ -3,6 +3,7 @@
     "algorithmName": "sort-alg",
     "env": "java",
     "version": "1.0.0",
+    "imageTag": "1.0.0",
     "fileExt": "gz",
     "status": "pending",
     "baseImage": "",
@@ -11,5 +12,6 @@
     "result": null,
     "progress": 0,
     "startTime": 1556799896273,
-    "endTime": null
+    "endTime": null,
+    "dependencyInstallCmd": "./install.sh"
 }
