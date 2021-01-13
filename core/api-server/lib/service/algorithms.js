@@ -161,15 +161,12 @@ class AlgorithmStore {
         const oldAlgorithm = await stateManager.getAlgorithm(payload);
         const newAlgorithm = this._mergeAlgorithm(oldAlgorithm, payload);
 
-        if (!newAlgorithm.type) {
+        if (!payload.type) {
             newAlgorithm.type = this._resolveType(newAlgorithm, file.path);
         }
-
-        // this is useless...
         if (oldAlgorithm && oldAlgorithm.type !== newAlgorithm.type) {
             throw new InvalidDataError(`algorithm type cannot be changed from "${oldAlgorithm.type}" to "${newAlgorithm.type}"`);
         }
-
         await this._validateAlgorithm(newAlgorithm);
         const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
         const buildId = await buildsService.tryToCreateBuild(oldAlgorithm, newAlgorithm, file, forceBuild, messages);
@@ -213,7 +210,7 @@ class AlgorithmStore {
         if (payload.gitRepository) {
             return buildTypes.GIT;
         }
-        return buildTypes.IMAGE;
+        return payload.type || buildTypes.IMAGE;
     }
 
     _validateApplyParams(newAlgorithm) {
