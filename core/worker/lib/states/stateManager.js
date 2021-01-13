@@ -217,7 +217,7 @@ class StateManager extends EventEmitter {
         try {
             this._isTtlExpired = false;
             this._stateMachine.cleanup();
-            this._forceStop = false;
+            this._forceStop = true;
         }
         catch (error) {
             log.warning(error, { component });
