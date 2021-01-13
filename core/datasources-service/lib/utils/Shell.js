@@ -4,9 +4,9 @@ const childProcess = require('child_process');
 const Shell = cwd => async (command, args) => {
     // console.info({ command, args, cwd });
     const cmd = childProcess.spawn(command, args, { cwd });
-    // log.debug(
-    //     `running shell command: ${command} with args: ${args} on dir: ${cwd}`
-    // );
+    log.debug(
+        `running shell command: ${command} with args: ${args} on dir: ${cwd}`
+    );
     return new Promise((res, rej) => {
         let cache = '';
         cmd.stdout.on('data', d => {

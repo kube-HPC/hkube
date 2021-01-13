@@ -62,12 +62,12 @@ class DvcClient {
         const fileContent = await fse.readFile(dvcFilePath);
         const dvcData = yaml.load(fileContent);
 
-        if (dvcData.meta && dvcData.meta[rootField] && !shouldOverride)
-            return null;
+        const { meta = {} } = dvcData;
+        if (meta[rootField] && !shouldOverride) return null;
         const extendedData = {
             ...dvcData,
             meta: {
-                ...(dvcData?.meta ?? {}),
+                ...meta,
                 [rootField]: payload,
             },
         };

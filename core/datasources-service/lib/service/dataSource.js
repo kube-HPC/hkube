@@ -341,7 +341,7 @@ class DataSource {
             await this.db.dataSources.delete({ name });
             throw error;
         } finally {
-            if (repository) await repository.deleteClone();
+            await repository.deleteClone();
         }
         return updatedDataSource;
     }

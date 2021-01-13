@@ -222,11 +222,9 @@ class Repository {
     async dropFiles(fileIds, currentFiles) {
         if (fileIds.length === 0) return;
         const normalizedCurrentFiles = normalize(currentFiles);
-        const filePaths = fileIds.map(id => {
-            const path = getFilePath(normalizedCurrentFiles[id]);
-            if (!path) return null;
-            return path;
-        });
+        const filePaths = fileIds.map(id =>
+            getFilePath(normalizedCurrentFiles[id])
+        );
         await this.dvc.remove({ paths: filePaths });
         await Promise.all(
             filePaths.map(async filePath => {
