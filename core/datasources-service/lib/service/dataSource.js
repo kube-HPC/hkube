@@ -30,7 +30,7 @@ class DataSource {
     async init(config) {
         this.config = config;
         this.db = dbConnection.connection;
-        fse.ensureDirSync(this.config.directories.gitRepositories);
+        await fse.ensureDir(this.config.directories.gitRepositories);
     }
 
     /** @type {(file: MulterFile, path?: string) => FileMeta} */
