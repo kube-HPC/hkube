@@ -21,9 +21,10 @@ before(async function () {
         directories: config.directories,
     };
     // avoid actually deleting files for testing changes on the fs
-    sinon
-        .stub(fse, 'remove')
-        .callsFake(() => Promise.resolve('The remove method is mocked!'));
+    sinon.stub(fse, 'remove').callsFake((...args) => {
+        // console.info(`mocked call to remove with ${args}`);
+        return Promise.resolve('The remove method is mocked!');
+    });
 });
 
 afterEach(() => {
