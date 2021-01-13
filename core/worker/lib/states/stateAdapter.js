@@ -23,6 +23,7 @@ class StateAdapter extends EventEmitter {
             this.getExistingAlgorithms = cacheResults(this.getExistingAlgorithms.bind(this), options.cacheResults.updateFrequency);
         }
         log = Logger.GetLogFromContainer();
+        this._dataSourcesVolume = options.dataSourcesVolume;
         this._etcd = new Etcd(options.etcd);
         this._workerId = this._etcd.discovery._instanceId;
         this._discoveryInfo = {
@@ -185,24 +186,41 @@ class StateAdapter extends EventEmitter {
     }
 
     async getDataSource(options) {
-        let dataSource;
-        const { dataSource: name, snapshotName, versionId } = options;
-        if (snapshotName) {
-            dataSource = await this._db.snapshots.fetch(
-                { name: snapshotName, 'dataSource.name': name },
-                { allowNotFound: false }
-            );
-        }
-        else if (versionId) {
-            dataSource = await this._db.dataSources.fetch({
-                id: versionId,
-                name,
+        let dsName;
+        let subPath;
+        let dsFiles;
+        const { dataSourceId, snapshotId } = options.dataSource || {};
+
+        if (dataSourceId) {
+            const dataSource = await this._db.dataSources.fetch({
+                id: dataSourceId,
                 isPartial: false,
             });
+            dsName = dataSource.name;
+            subPath = dataSourceId;
+            dsFiles = dataSource.files;
+        }
+        else if (snapshotId) {
+            const snapshot = await this._db.snapshots.fetch(
+                { id: snapshotId },
+                { allowNotFound: false }
+            );
+            dsName = snapshot.dataSource.name;
+            subPath = snapshot.name;
+            dsFiles = snapshot.filteredFilesList;
         }
         else {
-            dataSource = await this._db.dataSources.fetch({ name });
+            throw new Error('unable to find matching data-source');
         }
+        dsFiles = dsFiles || [];
+        const files = dsFiles.map(f => ({
+            ...f,
+            path: `${this._dataSourcesVolume}/${dsName}/${subPath}/${f.name}`
+        }));
+        const dataSource = {
+            name: dsName,
+            files
+        };
         return dataSource;
     }
 

@@ -54,8 +54,8 @@ properties:
       - dataSource
   dataSource:
     anyOf:
+      - $ref: "#/components/schemas/dataSource-id"
       - $ref: "#/components/schemas/dataSource-name"
       - $ref: "#/components/schemas/dataSource-snapshot"
-      - $ref: "#/components/schemas/dataSource-version"
 required:
   - nodeName

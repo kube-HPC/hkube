@@ -84,6 +84,7 @@ config.apiServer = {
 
 config.defaultStorageProtocol = process.env.DEFAULT_STORAGE_PROTOCOL || 'v1';
 config.defaultWorkerAlgorithmEncoding = process.env.DEFAULT_WORKER_ALGORITHM_ENCODING || 'json';
+config.dataSourcesVolume = 'hkube-data-sources';
 
 config.workerCommunication = {
     adapterName: process.env.WORKER_ALGORITHM_PROTOCOL || 'ws',

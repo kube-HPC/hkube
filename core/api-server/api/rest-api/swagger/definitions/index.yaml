@@ -42,8 +42,8 @@ dataSource-name:
   $ref: ./dataSource-name.yaml
 dataSource-snapshot:
   $ref: ./dataSource-snapshot.yaml
-dataSource-version:
-  $ref: ./dataSource-version.yaml
+dataSource-id:
+  $ref: ./dataSource-id.yaml
 defaultResponse:
   $ref: ./defaultResponse.yaml
 defaultResponseWithName:
