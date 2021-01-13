@@ -110,11 +110,11 @@ jobs:
         name: ${{ needs.build_job.outputs.chart }}
     - name: set values
       run: |
-        echo "$DEV1_VALUES" > ${{ github.workspace }}/dev1.yaml
-        cat ${{ github.workspace }}/dev1.yaml
+        envsubst < ${{ github.workspace }}/scripts/values-dev1-template.yml > /tmp/dev1.yml
       shell: bash
       env:
-        DEV1_VALUES: ${{secrets.DEV1_VALUES}}
+        DOCKER_BUILD_PUSH_PASSWORD: ${{ secrets.DOCKER_BUILD_PUSH_PASSWORD }}
+        DOCKER_BUILD_PUSH_USERNAME: ${{ secrets.DOCKER_BUILD_PUSH_USERNAME }}
     - name: create kubeconfig
       run: |
           echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/config
@@ -125,7 +125,8 @@ jobs:
       run: kubectl cluster-info
     - name: deploy
       run: |
-          helm upgrade -i hkube --wait -f ${{ github.workspace }}/dev1.yaml ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
+          helm ls
+          helm upgrade -i hkube --wait -f /tmp/dev1.yml ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
           helm ls
     - name: set deployment status to success
       id: successful_deployment
