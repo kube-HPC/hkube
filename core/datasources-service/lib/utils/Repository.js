@@ -257,7 +257,8 @@ class Repository {
                 const fileMeta = normalizedMapping[fileId];
                 await fse.move(
                     file.path,
-                    `${this.cwd}/${getFilePath(fileMeta)}.meta`
+                    `${this.cwd}/${getFilePath(fileMeta)}.meta`,
+                    { overwrite: true }
                 );
                 return [filePath, meta];
             })
