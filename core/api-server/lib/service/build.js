@@ -13,6 +13,7 @@ class Build {
         this.gitRepository = options.gitRepository;
         this.type = options.type;
         this.baseImage = options.baseImage;
+        this.dependencyInstallCmd = options.dependencyInstallCmd;
     }
 
     _createBuildID(algorithmName) {

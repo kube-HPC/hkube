@@ -12,9 +12,9 @@ class InternalService {
         const rootJobName = execPipeline.name;
         const pipeline = { name };
 
-        const results = await stateManager.getJobResultClean({ jobId: parentJobId });
-        if (results?.data?.storageInfo) {
-            pipeline.flowInputMetadata = results.data;
+        const results = await stateManager.getJobResult({ jobId: parentJobId });
+        if (results?.data) {
+            pipeline.flowInput = { parent: results.data };
         }
         const jobId = await execution._runStored({ pipeline, rootJobId, mergeFlowInput: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
         await stateManager.updateTriggersTree({ name, rootJobName, jobId, rootJobId, parentJobId });
