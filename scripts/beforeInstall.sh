@@ -11,5 +11,5 @@ docker run -d -p 27017:27017 --name mongodb -e MONGO_INITDB_ROOT_USERNAME=tester
 docker run -d -p 3010:3010 --name gitea hkube/gitea-dev:v1.13.0-0
 
 # install dvc and git
-curl https://dvc.org/deb/dvc.list -L --output /etc/apt/sources.list.d/dvc.list
-apt update && apt install -y git-all dvc && rm -rf /var/lib/apt/lists/*
+sudo curl https://dvc.org/deb/dvc.list -L --output /etc/apt/sources.list.d/dvc.list
+sudo apt update && apt install -y git-all dvc
