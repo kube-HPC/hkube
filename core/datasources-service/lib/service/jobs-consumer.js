@@ -88,18 +88,19 @@ class JobConsumer {
         await this.setActive(job);
 
         let dataSource;
-        const { snapshotName } = dataSourceDescriptor;
+        const { snapshot } = dataSourceDescriptor;
+
         let resolvedSnapshot;
         try {
-            if (snapshotName) {
+            if (snapshot) {
                 resolvedSnapshot = await this.db.snapshots.fetchDataSource({
-                    snapshotName,
+                    snapshotName: snapshot.name,
                     dataSourceName: dataSourceDescriptor.name,
                 });
                 if (!resolvedSnapshot)
                     throw new ResourceNotFoundError(
                         'snapshot',
-                        `${dataSourceDescriptor.name}:${snapshotName}`
+                        `${dataSourceDescriptor.name}:${snapshot.name}`
                     );
                 dataSource = resolvedSnapshot.dataSource;
             } else {

@@ -14,26 +14,26 @@ class Validation {
         this.db = dbConnection.connection;
     }
 
-    async dataSourceExists({ dataSourceName, snapshotName, versionId }) {
+    /** @param {{ name?: string; versionId?: string; snapshot?: { name: string } }} props */
+    async dataSourceExists({ name, snapshot, versionId }) {
         validator.validation.dataSourceExists({
-            dataSourceName,
-            snapshotName,
+            name,
+            snapshot,
             versionId,
         });
         if (versionId) {
-            const dataSourceEntry = await this.db.dataSources.fetch(
+            return this.db.dataSources.fetch(
                 { id: versionId },
                 { allowNotFound: false, fields: { _id: 1 } }
             );
-            return dataSourceEntry;
         }
-        if (snapshotName)
+        if (snapshot.name)
             return this.db.snapshots.fetch(
-                { name: snapshotName, 'dataSource.name': dataSourceName },
+                { name: snapshot.name, 'dataSource.name': name },
                 { allowNotFound: false, fields: { _id: 1 } }
             );
         return this.db.dataSources.fetch(
-            { name: dataSourceName },
+            { name },
             { allowNotFound: false, fields: { _id: 1 } }
         );
     }

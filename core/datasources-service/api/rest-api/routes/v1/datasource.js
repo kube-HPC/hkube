@@ -25,14 +25,14 @@ const routes = () => {
     // ---- validate ---- //
     router.get('/validate', async (req, res, next) => {
         const {
+            name,
             version_id: versionId,
             snapshot_name: snapshotName,
-            datasource_name: dataSourceName,
         } = req.query;
         await validation.dataSourceExists({
-            dataSourceName,
-            snapshotName,
+            name,
             versionId,
+            snapshot: { name: snapshotName },
         });
         res.json({ exists: true });
         next();

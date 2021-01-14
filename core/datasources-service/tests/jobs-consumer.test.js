@@ -44,7 +44,7 @@ describe('JobsConsumer', () => {
         expect(state.status).to.equal('succeed');
         expect(state).to.have.property('result');
     });
-    it('should succeed pulling a datasource by snapshot and filter the files by query', async () => {
+    it.only('should succeed pulling a datasource by snapshot and filter the files by query', async () => {
         const name = uuid();
         const snapshotName = uuid();
         const { body: dataSource } = await createDataSource({
@@ -55,13 +55,18 @@ describe('JobsConsumer', () => {
             name: dataSource.name,
             snapshot: { name: snapshotName, query: 'about the logo' },
         });
-        // sinon.restore();
+
+        sinon.reset();
         const job = await createJob({
-            dataSource: { name: dataSource.name, snapshotName },
+            dataSource: {
+                name: dataSource.name,
+                snapshot: { name: snapshotName },
+            },
         });
 
         const { jobId, taskId } = job.data;
         const state = await waitForStatus({ jobId, taskId }, 'succeed');
+
         expect(state.status).to.equal('succeed');
         expect(state).to.have.property('result');
 
