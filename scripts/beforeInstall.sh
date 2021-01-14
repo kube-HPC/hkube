@@ -4,6 +4,7 @@ set -ev
 # install dvc and git
 sudo curl https://dvc.org/deb/dvc.list -L --output /etc/apt/sources.list.d/dvc.list
 sudo apt update && sudo apt install -y dvc
+git config --global user.email "hkube@hkube.io" && git config --global user.name "hkube"
 
 # run all the required containers
 docker run -d --name etcd -p 2380:2380 -p 4001:4001 quay.io/coreos/etcd:latest /usr/local/bin/etcd \
