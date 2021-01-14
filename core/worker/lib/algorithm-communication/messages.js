@@ -3,6 +3,7 @@ module.exports = {
         initialized: 'initialized',
         started: 'started',
         stopped: 'stopped',
+        stopping: 'stopping',
         progress: 'progress',
         error: 'errorMessage',
         servingStatus: 'servingStatus',
