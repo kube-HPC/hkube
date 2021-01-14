@@ -81,15 +81,12 @@ describe('Executions', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body).to.have.property('jobId');
-
             const response1 = await request(options);
-            expect(response1.body).to.have.property('jobId');
-
             const response2 = await request(options);
+            expect(response.body).to.have.property('jobId');
+            expect(response1.body).to.have.property('jobId');
             expect(response2.body).to.have.property('error');
             expect(response2.body.error.message).to.equal(`maximum number [${pipeline.options.concurrentPipelines.amount}] of concurrent pipelines has been reached`);
-
         });
         it('should exec stored pipeline with concurrent and success if reached the max number', async () => {
             const rp = await stateManager._etcd.executions.running.list({ jobId: 'concurrentPipelinesResolve:' });

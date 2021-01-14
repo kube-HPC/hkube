@@ -20,6 +20,7 @@ class StateManager extends EventEmitter {
         this._job = null;
         this._results = null;
         this._isTtlExpired = false;
+        this._forceStop = true;
         this._inactiveTimer = null;
     }
 
@@ -109,7 +110,8 @@ class StateManager extends EventEmitter {
                 job: this._job,
                 state: this._stateMachine.state,
                 ...this.results && { results: this.results },
-                isTtlExpired: this._isTtlExpired
+                isTtlExpired: this._isTtlExpired,
+                forceStop: this._forceStop
             };
 
             this.emit(stateEvents.stateEntered, data);
@@ -164,9 +166,10 @@ class StateManager extends EventEmitter {
     /**
      * transitions to stop state.
      */
-    stop(isTtlExpired = false) {
+    stop(isTtlExpired = false, forceStop = true) {
         try {
             this._isTtlExpired = isTtlExpired;
+            this._forceStop = forceStop;
             this._stateMachine.stop();
         }
         catch (error) {
@@ -214,6 +217,7 @@ class StateManager extends EventEmitter {
         try {
             this._isTtlExpired = false;
             this._stateMachine.cleanup();
+            this._forceStop = true;
         }
         catch (error) {
             log.warning(error, { component });

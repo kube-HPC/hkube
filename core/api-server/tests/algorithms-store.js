@@ -631,11 +631,11 @@ describe('Store/Algorithms', () => {
                         url,
                     },
                     env: 'nodejs',
-                    type: "Git"
+                    type: 'Git'
                 }
                 const body2 = {
                     ...body1,
-                    type: "Code"
+                    type: 'Code'
                 }
                 const options1 = {
                     uri: applyPath,
@@ -1150,8 +1150,7 @@ describe('Store/Algorithms', () => {
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
                 const formData2 = {
-                    payload: JSON.stringify(body2),
-                    file: ''
+                    payload: JSON.stringify(body2)
                 };
                 const uri = applyPath;
                 const options1 = {
