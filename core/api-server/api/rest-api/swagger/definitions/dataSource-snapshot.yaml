@@ -2,8 +2,11 @@ type: object
 properties:
   name:
     type: string
-  snapshotName:
-    type: string
+  snapshot:
+    type: object
+    properties:
+      name:
+        type: string
 required:
   - name
-  - snapshotName
+  - snapshot

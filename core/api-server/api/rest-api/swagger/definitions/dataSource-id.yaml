@@ -1,6 +1,6 @@
 type: object
 properties:
-  versionId:
+  id:
     type: string
 required:
-  - versionId
+  - id
