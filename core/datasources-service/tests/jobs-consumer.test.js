@@ -44,7 +44,7 @@ describe('JobsConsumer', () => {
         expect(state.status).to.equal('succeed');
         expect(state).to.have.property('result');
     });
-    it.only('should succeed pulling a datasource by snapshot and filter the files by query', async () => {
+    it('should succeed pulling a datasource by snapshot and filter the files by query', async () => {
         const name = uuid();
         const snapshotName = uuid();
         const { body: dataSource } = await createDataSource({
