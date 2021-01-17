@@ -4,7 +4,7 @@ const component = require('../../../lib/consts/componentNames').REST_API;
 const logger = (blackListedUrls = []) => (req, res, next) => {
     next();
 
-    if (blackListedUrls.some(f => req.url.startsWith(f))) return;
+    if (blackListedUrls.some(url => req.url.startsWith(url))) return;
 
     const { route, jobId, pipelineName } = res._internalMetadata || {};
     log.info(

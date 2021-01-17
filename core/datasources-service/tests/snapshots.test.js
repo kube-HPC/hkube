@@ -9,6 +9,7 @@ const {
 } = require('./utils');
 const setupDataSource = require('./setupDataSource');
 const { uid } = require('@hkube/uid');
+const sortBy = require('lodash.sortby');
 
 let restUrl;
 /**
@@ -92,7 +93,11 @@ describe('snapshots', () => {
                 expect(entry.dataSource.id).to.eql(dataSource.id);
                 expect(entry.dataSource.name).to.eql(dataSource.name);
             });
-            expect(items).to.eql(generatedSnapshots);
+
+            // the snapshots are sorted by their creation order -
+            // when created in a loop for testing the creation order tends to get mixed up
+            const sortedSnapshots = sortBy(items, 'name');
+            expect(sortedSnapshots).to.eql(generatedSnapshots);
         });
         it('should fetch snapshot by dataSource and snapshot name', async () => {
             const randomSnapshot =
