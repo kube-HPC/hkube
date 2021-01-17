@@ -165,7 +165,7 @@ describe('/datasource/:name POST', () => {
             mapping: [existingFile],
         });
         expect(uploadResponse.response.statusCode).to.eq(HttpStatus.OK);
-    }).timeout(15000);
+    });
     it('should update a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
@@ -246,4 +246,4 @@ describe('/datasource/:name POST', () => {
             expect(isExisting).to.be.true;
         });
     });
-}).timeout(20000);
+});

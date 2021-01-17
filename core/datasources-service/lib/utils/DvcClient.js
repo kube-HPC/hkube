@@ -57,7 +57,7 @@ class DvcClient {
         return this._execute('move', srcPath, targetPath);
     }
 
-    async enrichMeta(file, rootField, payload, shouldOverride = false) {
+    async enrichMeta(file, rootField, payload, shouldOverride = true) {
         const dvcFilePath = `${this.cwd}/${file}.dvc`;
         const fileContent = await fse.readFile(dvcFilePath);
         const dvcData = yaml.load(fileContent);

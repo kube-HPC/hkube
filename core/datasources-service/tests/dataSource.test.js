@@ -247,4 +247,4 @@ describe('Datasource', () => {
             expect(versionsList).to.have.length(0);
         });
     });
-}).timeout(20000);
+});
