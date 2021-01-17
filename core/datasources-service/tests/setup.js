@@ -32,6 +32,7 @@ afterEach(() => {
 });
 
 after(() => {
-    // fse.removeSync(DATASOURCE_GIT_REPOS_DIR);
-    // fse.removeSync(STORAGE_DIR);
+    fse.removeSync('temp/');
+    fse.removeSync('uploads/');
+    fse.removeSync(STORAGE_DIR);
 });

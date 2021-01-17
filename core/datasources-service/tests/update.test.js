@@ -166,25 +166,28 @@ describe('/datasource/:name POST', () => {
         });
         expect(uploadResponse.response.statusCode).to.eq(HttpStatus.OK);
     }).timeout(15000);
-    it('should update a file', async () => {
+    it.only('should update a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
             body: { name },
         });
         const [existingFile] = dataSource.files;
-        expect(dataSource.files[0].size).to.eq(107);
+        expect(existingFile.size).to.eq(107);
 
         const uploadResponse = await updateVersion({
             dataSourceName: name,
             fileNames: ['updatedVersions/README-1.md'],
             mapping: [existingFile],
         });
-        const { body: uploadResponseBody } = uploadResponse;
-        expect(dataSource.commitHash).not.to.eq(uploadResponseBody.commitHash);
-        expect(dataSource.files.length).to.eq(uploadResponseBody.files.length);
-        expect(uploadResponseBody.files[0].size).to.eq(131);
+        const { body: updatedDataSource } = uploadResponse;
+        expect(dataSource.commitHash).not.to.eq(updatedDataSource.commitHash);
+        expect(dataSource.files.length).to.eq(updatedDataSource.files.length);
+
+        const [updatedFile] = updatedDataSource.files;
+        expect(updatedFile.id).not.to.eq(existingFile.id);
+        expect(updatedFile.size).to.eq(131);
     });
-    it("should upload a file with spaces in it's name", async () => {
+    it('should upload a file with spaces in its name', async () => {
         const name = uuid();
         await createDataSource({
             body: { name },
