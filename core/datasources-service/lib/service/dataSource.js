@@ -374,6 +374,17 @@ class DataSource {
         return this.db.dataSources.fetchMany({ names, ids });
     }
 
+    // eslint-disable-next-line
+    async sync({ name }) {
+        // validator.dataSources.sync({ name });
+        // pull the repo
+        // list all the files and match dvc file and meta file
+        // ensure the .dvc file has the required content and append the meta content
+        // ISSUE:
+        // there will be missing file info - it can be fetched from the storage or fetch the file
+        // * consider, moving this behavior to the front-end
+    }
+
     async list() {
         return this.db.dataSources.listDataSources();
     }

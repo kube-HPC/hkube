@@ -5,23 +5,23 @@ class Snapshots {
         this._validator = validator;
     }
 
-    dataSourceExists({ dataSourceName, versionId, snapshotName }) {
+    dataSourceExists({ name, versionId, snapshot }) {
         this._validator.validate(this._validator.definitions.dataSourceExists, {
-            name: dataSourceName,
+            name,
             versionId,
-            snapshotName,
+            snapshot,
         });
-        if (versionId && snapshotName) {
+        if (versionId && snapshot.name) {
             throw new InvalidDataError(
                 'you must provide *only* one of (version_id | snapshot_name)'
             );
         }
-        if (versionId && dataSourceName) {
+        if (versionId && name) {
             throw new InvalidDataError(
                 'you must not provide both datasource_name and version_id'
             );
         }
-        if (snapshotName && !dataSourceName) {
+        if (snapshot.name && !name) {
             throw new InvalidDataError(
                 'you must provide datasource_name when validating by snapshot_name'
             );

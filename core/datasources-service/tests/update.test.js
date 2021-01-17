@@ -1,6 +1,5 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
-const sinon = require('sinon');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const { createDataSource, fetchDataSource, updateVersion } = require('./utils');
