@@ -16,6 +16,7 @@ const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
 let log;
+const DEFAULT_STOPPING_INTERVAL = 200;
 
 class Worker {
     constructor() {
@@ -42,6 +43,7 @@ class Worker {
         this._registerToEtcdEvents();
         this._registerToAutoScalerChangesEvents();
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
+        this._stoppingCountMax = options.timeouts.stoppingIntervalCount || DEFAULT_STOPPING_INTERVAL;
         this._setInactiveTimeout();
         this._isInit = true;
         this._doTheBootstrap();
@@ -140,11 +142,13 @@ class Worker {
         });
     }
 
-    async _scaleDown({ status, reason }) {
-        const { jobId } = jobConsumer.jobData;
-        log.warning(`got status: ${status}`, { component });
-        await this._stopAllPipelinesAndExecutions({ jobId, reason: `parent pipeline ${status}. ${reason || ''}` });
-        stateManager.stop();
+    async _scaleDown({ reason }) {
+        log.warning(reason, { component });
+        const { jobId } = jobConsumer.jobData || {};
+        if (jobId) {
+            await this._stopAllPipelinesAndExecutions({ jobId, reason });
+        }
+        stateManager.stop(false, false);
     }
 
     _registerToAutoScalerChangesEvents() {
@@ -156,11 +160,8 @@ class Worker {
             });
         });
         streamHandler.on(streamingEvents.DISCOVERY_PARENTS_DOWN, () => {
-            log.info('service discovery detected all parents down', { component });
-            const data = {
-                shouldCompleteJob: true
-            };
-            stateManager.done(data);
+            const reason = 'service discovery detected all parents down';
+            this._scaleDown({ reason });
         });
         streamHandler.on(streamingEvents.THROUGHPUT_CHANGED, (throughput) => {
             jobConsumer.updateThroughput(throughput);
@@ -273,6 +274,15 @@ class Worker {
                 clearTimeout(this._stopTimeout);
             }
             stateManager.done(message);
+        });
+        algoRunnerCommunication.on(messages.incomming.stopping, () => {
+            this._stoppingCount += 1;
+            if (this._stoppingCount < this._stoppingCountMax) {
+                if (this._stopTimeout) {
+                    clearTimeout(this._stopTimeout);
+                }
+                this._stopTimeout = setTimeout(this._onStopTimeOut, this._stopTimeoutMs);
+            }
         });
         algoRunnerCommunication.on(messages.incomming.progress, (message) => {
             if (message.data) {
@@ -518,7 +528,7 @@ class Worker {
     }
 
     _registerToStateEvents() {
-        stateManager.on(stateEvents.stateEntered, async ({ job, state, results, isTtlExpired }) => {
+        stateManager.on(stateEvents.stateEntered, async ({ job, state, results, isTtlExpired, forceStop }) => {
             const { jobId } = jobConsumer.jobData || {};
             let pendingTransition = null;
             let reason = null;
@@ -567,14 +577,16 @@ class Worker {
                 case workerStates.error:
                     break;
                 case workerStates.stop:
+                    this._stoppingCount = 0;
                     this._handleTtlEnd();
-                    this._stopTimeout = setTimeout(() => {
+                    this._onStopTimeOut = () => {
                         log.warning('Timeout exceeded trying to stop algorithm.', { component });
                         stateManager.done('Timeout exceeded trying to stop algorithm');
                         this.handleExit(0, jobId);
-                    }, this._stopTimeoutMs);
+                    };
+                    this._stopTimeout = setTimeout(this._onStopTimeOut, this._stopTimeoutMs);
                     algoRunnerCommunication.send({
-                        command: messages.outgoing.stop
+                        command: messages.outgoing.stop, data: { forceStop }
                     });
                     break;
                 default:
