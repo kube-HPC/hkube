@@ -7,7 +7,7 @@ const { metrics } = require('@hkube/metrics');
 require('express-async-errors');
 const HttpStatus = require('http-status-codes');
 const validator = require('../../lib/validation');
-const afterRequest = require('./middlewares/after-request');
+const responseLogger = require('./middlewares/responseLogger');
 const component = require('../../lib/consts/componentNames').REST_API;
 
 const rest = new RestServer();
@@ -87,11 +87,11 @@ class AppServer {
             rateLimit,
             poweredBy,
             name: options.serviceName,
-            beforeRoutesMiddlewares,
-            afterRoutesMiddlewares: [
-                ...afterRoutesMiddlewares,
-                afterRequest(routeLogBlacklist),
+            beforeRoutesMiddlewares: [
+                ...beforeRoutesMiddlewares,
+                responseLogger(routeLogBlacklist),
             ],
+            afterRoutesMiddlewares,
         };
         const data = await rest.start(opt);
         log.info(`🚀 ${data.message}`, { component });
