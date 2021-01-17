@@ -110,6 +110,7 @@ jobs:
         name: ${{ needs.build_job.outputs.chart }}
     - name: set values
       run: |
+        ls -la ${{ github.workspace }}
         envsubst < ${{ github.workspace }}/scripts/values-dev1-template.yml > /tmp/dev1.yml
       shell: bash
       env:
