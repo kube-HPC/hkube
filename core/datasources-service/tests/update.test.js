@@ -166,7 +166,7 @@ describe('/datasource/:name POST', () => {
         });
         expect(uploadResponse.response.statusCode).to.eq(HttpStatus.OK);
     }).timeout(15000);
-    it.only('should update a file', async () => {
+    it('should update a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
             body: { name },
