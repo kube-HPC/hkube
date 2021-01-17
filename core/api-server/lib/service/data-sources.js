@@ -17,7 +17,7 @@ class DataSources {
                     id,
                     name,
                     snapshot_name: snapshot?.name
-                }, { skipNull: null });
+                }, { skipNull: true });
                 return this.client.get(`/datasource/validate?${qs}`);
             }));
         }

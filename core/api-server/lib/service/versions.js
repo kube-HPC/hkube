@@ -1,4 +1,5 @@
 const semverLib = require('semver');
+const asyncQueue = require('async.queue');
 const { uid } = require('@hkube/uid');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
@@ -9,13 +10,20 @@ const SETTINGS = {
         FIRST: '1.0.0',
         MAX_PATCH: 500,
         MAX_MINOR: 500,
-        MAX_MAJOR: 500,
-        MAX_LOCK_ATTEMPTS: 5
+        MAX_MAJOR: 500
     },
     VERSION_LENGTH: 10
 };
 
 class AlgorithmVersions {
+    constructor() {
+        this._versionsQueue = asyncQueue((task, callback) => {
+            this._createVersion(task)
+                .then(r => callback(null, r))
+                .catch(e => callback(e));
+        }, 1);
+    }
+
     async getVersions(options) {
         validator.algorithms.validateAlgorithmName(options);
         const { name } = options;
@@ -92,42 +100,31 @@ class AlgorithmVersions {
      * 6) create the version.
      */
     async createVersion(algorithm, buildId) {
+        return new Promise((resolve, reject) => {
+            this._versionsQueue.push({ algorithm, buildId }, (err, res) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(res);
+            });
+        });
+    }
+
+    async _createVersion({ algorithm, buildId }) {
         const { name } = algorithm;
         const version = uid({ length: SETTINGS.VERSION_LENGTH });
         const latestSemver = await this._getLatestSemver({ name });
-        let semver = this._incSemver(latestSemver);
-
-        try {
-            semver = await this._lockSemver(name, semver);
-            const newVersion = {
-                version,
-                semver,
-                buildId,
-                created: Date.now(),
-                name,
-                algorithm: { ...algorithm, version }
-            };
-            await stateManager.createVersion(newVersion);
-        }
-        finally {
-            await stateManager.releaseVersionLock({ name, version: semver });
-        }
+        const semver = this._incSemver(latestSemver);
+        const newVersion = {
+            version,
+            semver,
+            buildId,
+            created: Date.now(),
+            name,
+            algorithm: { ...algorithm, version }
+        };
+        await stateManager.createVersion(newVersion);
         return version;
-    }
-
-    async _lockSemver(name, semver) {
-        let attempts = 0;
-        let success = false;
-        let semVersion = semver;
-        while (!success && attempts < SETTINGS.SEMVER.MAX_LOCK_ATTEMPTS) {
-            const lock = await stateManager.acquireVersionLock({ name, version: semVersion }); // eslint-disable-line
-            success = lock.success;
-            if (!success) {
-                attempts += 1;
-                semVersion = this._incSemver(semVersion);
-            }
-        }
-        return semVersion;
     }
 
     async _getLatestSemver({ name }) {
