@@ -25,14 +25,14 @@ describe('validation', () => {
 
     it('should validate dataSource by name only', async () => {
         const { response } = await requestValidation({
-            dataSourceName: dataSource.name,
+            name: dataSource.name,
         });
         expect(response.statusCode).to.eq(HttpStatus.OK);
         expect(response.body).to.eql({ exists: true });
     });
     it('should validate dataSource by version', async () => {
         const { response } = await requestValidation({
-            versionId: dataSource.id,
+            id: dataSource.id,
         });
         expect(response.statusCode).to.eq(HttpStatus.OK);
         expect(response.body).to.eql({ exists: true });
@@ -40,7 +40,7 @@ describe('validation', () => {
     it('should validate dataSource by name and snapshot', async () => {
         const [snapshot] = createdSnapshots;
         const { response } = await requestValidation({
-            dataSourceName: dataSource.name,
+            name: dataSource.name,
             snapshotName: snapshot.name,
         });
         expect(response.statusCode).to.eq(HttpStatus.OK);
@@ -49,29 +49,29 @@ describe('validation', () => {
     it('should fail for sending both snapshot and version', async () => {
         const [snapshot] = createdSnapshots;
         const { response } = await requestValidation({
-            versionId: dataSource.id,
+            id: dataSource.id,
             snapshotName: snapshot.name,
         });
         expect(response.statusCode).to.eq(HttpStatus.BAD_REQUEST);
         expect(response.body.error.message).to.eql(
-            'you must provide *only* one of (version_id | snapshot_name)'
+            'you must provide *only* one of (id | snapshot.name)'
         );
     });
     it('should fail with non existing name', async () => {
         const { response } = await requestValidation({
-            dataSourceName: 'non-existing',
+            name: 'non-existing',
         });
         expect(response.statusCode).to.eq(HttpStatus.NOT_FOUND);
     });
     it('should fail with non existing version', async () => {
         const { response } = await requestValidation({
-            versionId: nonExistingId,
+            id: nonExistingId,
         });
         expect(response.statusCode).to.eq(HttpStatus.NOT_FOUND);
     });
     it('should fail with non existing snapshot', async () => {
         const { response } = await requestValidation({
-            dataSourceName: dataSource.name,
+            name: dataSource.name,
             snapshotName: 'nope----------------nope',
         });
         expect(response.body.error.code).to.eq(HttpStatus.NOT_FOUND);
@@ -83,7 +83,7 @@ describe('validation', () => {
         });
         expect(response.statusCode).to.eq(HttpStatus.BAD_REQUEST);
         expect(response.body.error.message).to.match(
-            /you must provide datasource_name/
+            /you must provide "name" when/i
         );
     });
 });

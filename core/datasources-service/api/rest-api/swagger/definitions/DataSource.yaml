@@ -2,7 +2,7 @@ type: object
 properties:
     id:
         type: string
-    versionId:
+    commitHash:
         description: a commit hash
         type: string
     name:

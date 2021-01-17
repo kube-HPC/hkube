@@ -108,7 +108,7 @@ describe('Datasource', () => {
             });
             expect(oldVersion.id).to.eq(firstVersion.id);
         });
-        it('should fail if version_id does not match the name', async () => {
+        it('should fail if id does not match the name', async () => {
             const name = uuid();
             const { body: firstVersion } = await createDataSource({
                 body: { name },
@@ -128,7 +128,7 @@ describe('Datasource', () => {
             expect(errorBody).to.have.property('error');
             expect(errorBody.error.code).to.eq(400);
             expect(errorBody.error.message).to.match(
-                /version_id (.+) does not exist for name (.+)/i
+                /id (.+) does not exist for name (.+)/i
             );
         });
     });
