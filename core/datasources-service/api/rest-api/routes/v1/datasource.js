@@ -24,14 +24,10 @@ const routes = () => {
     const router = Router();
     // ---- validate ---- //
     router.get('/validate', async (req, res, next) => {
-        const {
-            name,
-            version_id: versionId,
-            snapshot_name: snapshotName,
-        } = req.query;
+        const { name, id, snapshot_name: snapshotName } = req.query;
         await validation.dataSourceExists({
             name,
-            versionId,
+            id,
             snapshot: { name: snapshotName },
         });
         res.json({ exists: true });
@@ -75,15 +71,14 @@ const routes = () => {
     router
         .route('/:name')
         .get(async (req, res, next) => {
-            /** @type {{ version_id: string }} */
-            const { version_id: versionId } = req.query;
+            const { id } = req.query;
             const { name } = req.params;
             let dataSourceEntry;
-            if (versionId) {
-                dataSourceEntry = await dataSource.fetch({ id: versionId });
+            if (id) {
+                dataSourceEntry = await dataSource.fetch({ id });
                 if (dataSourceEntry?.name !== name) {
                     throw new InvalidDataError(
-                        `version_id ${versionId} does not exist for name ${name}`
+                        `id ${id} does not exist for name ${name}`
                     );
                 }
             } else {

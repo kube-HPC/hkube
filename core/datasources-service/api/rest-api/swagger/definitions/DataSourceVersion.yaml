@@ -4,5 +4,5 @@ properties:
         $ref: '#/components/schemas/DataSourceId'
     versionDescription:
         $ref: '#/components/schemas/VersionDescription'
-    versionId:
+    commitHash:
         type: string

@@ -2,6 +2,7 @@ const { uuid } = require('@hkube/uid');
 const { Producer } = require('@hkube/producer-consumer');
 const fse = require('fs-extra');
 const { request } = require('./request');
+const qs = require('query-string');
 
 // a valid mongo ObjectID;
 const nonExistingId = '5f953d50dd38c8291924a0a3';
@@ -10,7 +11,7 @@ const fileName = 'README-1.md';
 const setupUrl = ({ name, id }) => {
     const uri = `${global.testParams.restUrl}/datasource`;
     return id && name
-        ? `${uri}/${name}?version_id=${id}`
+        ? `${uri}/${name}?id=${id}`
         : id
         ? `${uri}/id/${id}`
         : `${uri}/${name}`;
@@ -220,11 +221,12 @@ const fetchDownloadLink = ({ dataSourceId, downloadId, href }) =>
               method: 'GET',
           });
 
-const requestValidation = ({ dataSourceName, versionId, snapshotName }) => {
-    const url = new URL(`${global.testParams.restUrl}/datasource/validate`);
-    if (versionId) url.searchParams.set('version_id', versionId);
-    if (snapshotName) url.searchParams.set('snapshot_name', snapshotName);
-    if (dataSourceName) url.searchParams.set('name', dataSourceName);
+const requestValidation = ({ name = null, id = null, snapshotName = null }) => {
+    const query = qs.stringify(
+        { id, name, snapshot_name: snapshotName },
+        { skipNull: true }
+    );
+    const url = `${global.testParams.restUrl}/datasource/validate?${query}`;
     return request({ uri: url.toString(), method: 'GET' });
 };
 

@@ -1,6 +1,6 @@
 export type PipelineDatasourceDescriptor =
     | { name: string }
-    | { versionId: string }
+    | { id: string }
     | { name: string; snapshot: { name: string } };
 
 export type Job = {
