@@ -19,12 +19,12 @@
     "download-java-packages": "./dockerfile/get-deps-java.sh"
   },
   "dependencies": {
-    "@hkube/config": "^2.0.10",
-    "@hkube/consts": "^1.0.29",
-    "@hkube/db": "^1.0.16",
+    "@hkube/config": "^2.0.11",
+    "@hkube/consts": "^1.0.31",
+    "@hkube/db": "^1.0.19",
     "@hkube/etcd": "^5.1.2",
-    "@hkube/kubernetes-client": "^1.0.30",
-    "@hkube/logger": "^1.0.25",
+    "@hkube/kubernetes-client": "^1.0.33",
+    "@hkube/logger": "^1.0.27",
     "@hkube/storage-manager": "^2.0.32",
     "adm-zip": "^0.4.13",
     "fs-extra": "^8.1.0",
