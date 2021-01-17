@@ -81,6 +81,17 @@ jobs:
       with:
         name: chart.tgz
         path: /tmp/chart.tgz
+    - name: set values
+      run: |
+        envsubst < ${{ github.workspace }}/scripts/values-dev1-template.yml > /tmp/dev1.yml
+      shell: bash
+      env:
+        DOCKER_BUILD_PUSH_PASSWORD: ${{ secrets.DOCKER_BUILD_PUSH_PASSWORD }}
+        DOCKER_BUILD_PUSH_USERNAME: ${{ secrets.DOCKER_BUILD_PUSH_USERNAME }}
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dev1.yml
+        path: /tmp/dev1.yml
     - name: set deployment status to failure
       id: failed_deployment
       uses: octokit/request-action@v2.x
@@ -98,6 +109,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     outputs:
       chart: chart.tgz
+      values: dev1.yml
   deploy:
     runs-on: ubuntu-latest
     needs:
@@ -108,13 +120,10 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: ${{ needs.build_job.outputs.chart }}
-    - name: set values
-      run: |
-        envsubst < ${{ github.workspace }}/scripts/values-dev1-template.yml > /tmp/dev1.yml
-      shell: bash
-      env:
-        DOCKER_BUILD_PUSH_PASSWORD: ${{ secrets.DOCKER_BUILD_PUSH_PASSWORD }}
-        DOCKER_BUILD_PUSH_USERNAME: ${{ secrets.DOCKER_BUILD_PUSH_USERNAME }}
+    - name: download values
+      uses: actions/download-artifact@v2
+      with:
+        name: ${{ needs.build_job.outputs.values }}
     - name: create kubeconfig
       run: |
           echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/config
@@ -126,7 +135,7 @@ jobs:
     - name: deploy
       run: |
           helm ls
-          helm upgrade -i hkube --wait -f /tmp/dev1.yml ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
+          helm upgrade -i hkube --wait -f ${{ github.workspace }}/${{ needs.build_job.outputs.values }} ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
           helm ls
     - name: set deployment status to success
       id: successful_deployment
