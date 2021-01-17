@@ -175,7 +175,10 @@ const fetchSnapshot = ({
         method: 'GET',
     });
 
-/** @param {{ dataSourceName: string }} query */
+/**
+ * @param {{ dataSourceName: string }} query
+ * @returns {Promise<{ body: Snapshot[] }>}
+ */
 const fetchAllSnapshots = ({ dataSourceName }) =>
     request({
         uri: `${setupUrl({ name: dataSourceName })}/snapshot`,
