@@ -184,7 +184,7 @@ describe('/datasource/:name POST', () => {
         expect(dataSource.files.length).to.eq(uploadResponseBody.files.length);
         expect(uploadResponseBody.files[0].size).to.eq(131);
     });
-    it.only("should upload a file with spaces in it's name", async () => {
+    it("should upload a file with spaces in it's name", async () => {
         const name = uuid();
         await createDataSource({
             body: { name },
@@ -202,7 +202,7 @@ describe('/datasource/:name POST', () => {
             expect(hasFiles).to.be.true;
         });
     });
-    it.only('should upload a file with meta data to a sub-dir', async () => {
+    it('should upload a file with meta data to a sub-dir', async () => {
         const name = uuid();
         await createDataSource({
             body: { name },
