@@ -100,14 +100,6 @@ class StateManager {
         return this._db.algorithms.versions.create(version);
     }
 
-    async acquireVersionLock({ name, version }) {
-        return this._etcd.algorithms.versions.acquireLock({ name, version });
-    }
-
-    async releaseVersionLock({ name, version }) {
-        return this._etcd.algorithms.versions.releaseLock({ name, version });
-    }
-
     // Builds
     async createBuilds(list) {
         return this._db.algorithms.builds.createMany(list);
