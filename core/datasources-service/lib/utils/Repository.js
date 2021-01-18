@@ -193,9 +193,10 @@ class Repository {
                 const content = yaml.load(
                     await fse.readFile(`${this.cwd}/${filePath}`)
                 ).meta.hkube;
+                const { hash, ...meta } = content;
                 return {
                     path: extractRelativePath(filePath),
-                    ...content,
+                    ...meta,
                 };
             })
         );
