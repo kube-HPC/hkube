@@ -290,7 +290,7 @@ class Worker {
             }
         });
         algoRunnerCommunication.on(messages.incomming.error, async (data) => {
-            const message = data.error && data.error.message;
+            const message = data?.error?.message || 'unknown error';
             log.info(`got error from algorithm: ${message}`, { component });
             await this._handleRetry({ error: { message }, isAlgorithmError: true });
         });
@@ -327,31 +327,32 @@ class Worker {
     async _handleRetry(options) {
         const retry = jobConsumer.jobRetry;
         const { isAlgorithmError, isCrashed } = options;
+        log.info(`starting retry policy from type ${retry.policy}`, { component });
 
         switch (retry.policy) {
             case retryPolicy.Never:
-                this._endJob(options);
+                await this._endJob(options);
                 break;
             case retryPolicy.OnError:
                 if (isAlgorithmError) {
-                    this._startRetry(options);
+                    await this._startRetry(options);
                     return;
                 }
                 this._endJob(options);
                 break;
             case retryPolicy.Always:
-                this._startRetry(options);
+                await this._startRetry(options);
                 break;
             case retryPolicy.OnCrash:
                 if (isCrashed) {
-                    this._startRetry(options);
+                    await this._startRetry(options);
                     return;
                 }
-                this._endJob(options);
+                await this._endJob(options);
                 break;
             default:
                 log.warning(`unknown retry policy ${retry.policy}`, { component });
-                this._endJob(options);
+                await this._endJob(options);
                 break;
         }
     }

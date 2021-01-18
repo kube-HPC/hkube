@@ -1,7 +1,7 @@
 const mergeWith = require('lodash.mergewith');
 const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
-const { pipelineKind } = require('@hkube/consts');
+const { pipelineKind, stateType, retryPolicy } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
@@ -117,7 +117,6 @@ class PipelineCreator {
             }
             return pipeline;
         }
-
         if (!flows) {
             throw new InvalidDataError('please specify a stream flow');
         }
@@ -127,6 +126,19 @@ class PipelineCreator {
             }
             [defaultFlow] = Object.keys(flows);
         }
+
+        pipeline.nodes.forEach(node => {
+            if (!node.retry) {
+                let policy;
+                if (node.stateType === stateType.Stateful) {
+                    policy = { policy: retryPolicy.Always, limit: Number.MAX_SAFE_INTEGER };
+                }
+                else {
+                    policy = { policy: retryPolicy.Never };
+                }
+                node.retry = policy; // eslint-disable-line
+            }
+        });
 
         const parsedFlow = {};
         const edges = [];
