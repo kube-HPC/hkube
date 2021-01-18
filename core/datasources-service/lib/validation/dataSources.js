@@ -9,10 +9,10 @@ class DataSources {
 
     /** @param {{ name: string; files: Express.Multer.File[] }} props */
     create(props) {
-        const files =
-            props.files?.length > 0
-                ? props.files.map(file => file.originalname)
-                : undefined;
+        const files = Array.isArray(props.files)
+            ? props.files.map(file => file.originalname)
+            : [];
+
         this._validator.validate(this._validator.definitions.createRequest, {
             ...props,
             files,

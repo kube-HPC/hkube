@@ -9,7 +9,7 @@ const sinon = require('sinon');
 
 let restUrl, restPath, DATASOURCE_GIT_REPOS_DIR, STORAGE_DIR;
 
-describe('/datasource POST', () => {
+describe.only('/datasource POST', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
@@ -54,20 +54,6 @@ describe('/datasource POST', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(
                 'data.name should NOT be shorter than 1 characters'
-            );
-        });
-        it('should throw missing file error', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'my-dataSource',
-                },
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(
-                "data should have required property 'files'"
             );
         });
         const invalidChars = ['/', '*', '#', '"', '%'];
@@ -131,6 +117,16 @@ describe('/datasource POST', () => {
             expect(response.body.name).to.eq(name);
             expect(response.body.files).to.have.lengthOf(1);
         });
+        it('should create an empty dataSource', async () => {
+            const name = uuid();
+            const { response } = await createDataSource({
+                body: { name },
+                fileNames: [],
+            });
+            expect(response.statusCode).to.eql(HttpStatus.CREATED);
+            expect(response.body).to.have.property('files');
+            expect(response.body.files).to.have.lengthOf(0);
+        });
         it('should throw conflict error', async () => {
             const name = uuid();
             const firstResponse = await createDataSource({
@@ -158,11 +154,6 @@ describe('/datasource POST', () => {
                 'utf8'
             );
             expect(config).to.match(new RegExp(name));
-        });
-        it('should push to dvc host', async () => {
-            const name = uuid();
-            await createDataSource({ body: { name } });
-            expect(await fse.pathExists(`${STORAGE_DIR}/${name}`)).to.be.true;
         });
         it('should upload a file with meta data', async () => {
             const name = uuid();
