@@ -591,7 +591,7 @@ class TaskRunner extends EventEmitter {
     }
 
     _onTaskError(task) {
-        if (!this._active) {
+        if (!this._active || this._isStreaming) {
             return;
         }
         const error = this._checkTaskErrors(task);
