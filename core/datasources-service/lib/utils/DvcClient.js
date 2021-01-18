@@ -19,6 +19,12 @@ class DvcClient {
         return fse.writeFile(`${this.cwd}/.dvc/config`, config);
     }
 
+    /**
+     * Creates .dvc files, updates the respective .gitignore file. **NOTE**: in
+     * case of an *update*, if any data was stored on the .dvc file it will be deleted!
+     *
+     * @param {string} filePaths
+     */
     add(filePaths) {
         return this._execute(`add`, filePaths);
     }
@@ -52,23 +58,29 @@ class DvcClient {
         return this._execute(`pull`);
     }
 
+    /**
+     * Moves .dvc files and updates gitignore
+     *
+     * @param {string} srcPath
+     * @param {string} targetPath
+     */
     move(srcPath, targetPath) {
-        // moves .dvc files and updates gitignore
         return this._execute('move', srcPath, targetPath);
     }
 
-    async enrichMeta(file, rootField, payload, shouldOverride = true) {
+    async enrichMeta(file, rootField, payload) {
         const dvcFilePath = `${this.cwd}/${file}.dvc`;
         const fileContent = await fse.readFile(dvcFilePath);
         const dvcData = yaml.load(fileContent);
-
         const { meta = {} } = dvcData;
-        if (meta[rootField] && !shouldOverride) return null;
+        const dvcHash = dvcData.outs[0].md5;
+        if (meta[rootField] && dvcHash === meta._hkube_hash) return null;
         const extendedData = {
             ...dvcData,
             meta: {
                 ...meta,
                 [rootField]: payload,
+                _hkube_hash: dvcHash,
             },
         };
         return fse.writeFile(dvcFilePath, yaml.dump(extendedData));
