@@ -3,7 +3,10 @@ const { uid: uuid } = require('@hkube/uid');
 const fse = require('fs-extra');
 const waitFor = require('./waitFor');
 const sinon = require('sinon');
+
+/** @type {import('../lib/service/jobs-consumer')} */
 let jobConsumer;
+
 const { createDataSource, createSnapshot, createJob } = require('./utils');
 let rootDir = null;
 
@@ -76,13 +79,13 @@ describe('JobsConsumer', () => {
                 `${mountedDir}`,
                 `${mountedDir}/data/logo.svg`,
                 `${mountedDir}/data/logo.svg.dvc`,
-                `${mountedDir}/data/logo.svg.meta`,
             ].map(p => fse.pathExists(p))
         );
 
         const nonExistingFiles = [
             `${mountedDir}/data/README-1.md`,
             `${mountedDir}/data/README-1.md.dvc`,
+            `${mountedDir}/data/logo.svg.meta`,
         ].map(p => fse.remove.calledWith(p));
 
         expect(existingFiles.every(item => item)).to.be.true;

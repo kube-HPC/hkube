@@ -16,7 +16,7 @@ class DvcClient {
     }
 
     config(config) {
-        return fse.writeFile(`${this.cwd}/.dvc/config`, config);
+        return fse.writeFile(`${this.cwd}/.dvc/config.local`, config);
     }
 
     /**

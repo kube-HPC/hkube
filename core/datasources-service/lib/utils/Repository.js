@@ -22,6 +22,7 @@ const extractRelativePath = filePath => {
     return `/${response}`;
 };
 
+/** @type {(pattern: string, cwd: string) => string[]} */
 const glob = (pattern, cwd) =>
     new Promise((res, rej) =>
         _glob(pattern, { cwd }, (err, matches) =>
@@ -33,7 +34,6 @@ const glob = (pattern, cwd) =>
  * @template T
  * @typedef {{ [path: string]: T }} ByPath
  */
-
 class Repository {
     /**
      * @param {string} repositoryName
@@ -47,15 +47,13 @@ class Repository {
         this.repositoryName = repositoryName;
         this.rootDir = rootDir;
         this.dvc = new DvcClient(this.cwd, this.repositoryUrl);
+        this.generateDvcConfig = dvcConfig(this.config);
     }
 
     /** @param {string} name */
     async _setupDvcRepository() {
-        const { config } = this;
-        const storage = config.defaultStorage;
-        const generateDvcConfig = dvcConfig[storage](config);
         await this.dvc.init();
-        await this.dvc.config(generateDvcConfig(this.repositoryName));
+        await this.dvc.config(this.generateDvcConfig(this.repositoryName));
     }
 
     _enrichDvcFile(fileMeta, metaData) {
@@ -64,9 +62,7 @@ class Repository {
 
     async setup() {
         await fse.ensureDir(`${this.cwd}/data`);
-        const git = simpleGit({
-            baseDir: `${this.cwd}`,
-        });
+        const git = simpleGit({ baseDir: `${this.cwd}` });
         await git.init().addRemote('origin', this.repositoryUrl);
         await this._setupDvcRepository();
         await git.add('.');
@@ -86,6 +82,7 @@ class Repository {
         }
         this.gitClient = simpleGit({ baseDir: this.cwd });
         if (commitHash) await this.gitClient.checkout(commitHash);
+        await this.dvc.config(this.generateDvcConfig(this.repositoryName));
     }
 
     get repositoryUrl() {
@@ -292,6 +289,13 @@ class Repository {
                     );
                 })
                 .flat()
+        );
+    }
+
+    async filterMetaFilesFromClone() {
+        const metaFiles = await glob('**/*.meta', this.cwd);
+        return Promise.all(
+            metaFiles.map(filePath => fse.remove(`${this.cwd}/${filePath}`))
         );
     }
 

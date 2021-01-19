@@ -139,6 +139,7 @@ class JobConsumer {
             await repository.filterFilesFromClone(
                 resolvedSnapshot.droppedFiles
             );
+            await repository.filterMetaFilesFromClone();
             await this.storeResult({
                 payload: { snapshotId: resolvedSnapshot.id },
                 ...job,

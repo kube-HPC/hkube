@@ -1,8 +1,8 @@
 const storage = require('@hkube/storage-manager');
-/** @typedef {import('./types').config} config */
+/** @typedef {import('./types').config} Config */
 
-/** @param {config} config */
-const getS3Config = ({
+/** @param {Config} config */
+const S3Config = ({
     s3: { endpoint, accessKeyId, secretAccessKey, useSSL },
 }) => repositoryName => `
 ['remote "storage"']
@@ -15,16 +15,19 @@ const getS3Config = ({
     remote = storage
 `;
 
-const getFSConfig = () => repositoryName => `
-['remote "storage"']
-    url = /var/tmp/fs/storage/${storage.hkubeDataSource.prefix}/${repositoryName}
-[core]
-    remote = storage
-`;
-
 const configMap = {
-    fs: getFSConfig,
-    s3: getS3Config,
+    s3: S3Config,
 };
 
-module.exports = configMap;
+/** @type {(config: Config) => (repositoryName: string) => string} */
+module.exports = config => {
+    const generator = configMap[config.defaultStorage];
+    if (!generator) {
+        throw new Error(
+            `Invalid config.defaultStorage, the available options are ${Object.keys(
+                configMap
+            ).join(', ')}`
+        );
+    }
+    return generator(config);
+};

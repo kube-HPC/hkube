@@ -9,7 +9,7 @@ const sinon = require('sinon');
 
 let restUrl, restPath, DATASOURCE_GIT_REPOS_DIR, STORAGE_DIR;
 
-describe.only('/datasource POST', () => {
+describe('/datasource POST', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
@@ -150,7 +150,7 @@ describe.only('/datasource POST', () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const config = fse.readFileSync(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config`,
+                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config.local`,
                 'utf8'
             );
             expect(config).to.match(new RegExp(name));
@@ -161,16 +161,9 @@ describe.only('/datasource POST', () => {
                 body: { name },
                 fileNames: ['logo.svg', 'logo.svg.meta'],
             });
-            expect(
-                await fse.pathExists(
-                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg`
-                )
-            ).to.be.true;
-            expect(
-                await fse.pathExists(
-                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/logo.svg.meta`
-                )
-            ).to.be.true;
+            const dataDir = `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/`;
+            expect(await fse.pathExists(`${dataDir}/logo.svg`)).to.be.true;
+            expect(await fse.pathExists(`${dataDir}/logo.svg.meta`)).to.be.true;
         });
     });
 });
