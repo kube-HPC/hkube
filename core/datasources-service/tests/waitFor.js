@@ -12,6 +12,7 @@ module.exports = (cb, timeout = 10000) =>
             const cbResponse = cb();
             if (cbResponse.then) {
                 cbResponse.then(r => r && resolve());
+                cbResponse.catch(reject);
             } else if (cbResponse === true) {
                 resolve();
             }
@@ -21,8 +22,8 @@ module.exports = (cb, timeout = 10000) =>
             rej('waitFor timeout!');
         };
         const resolve = () => {
-            res();
             clearInterval(interval);
             clearTimeout(timeOut);
+            res();
         };
     });
