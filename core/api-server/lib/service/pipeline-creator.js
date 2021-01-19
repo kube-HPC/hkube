@@ -1,7 +1,7 @@
 const mergeWith = require('lodash.mergewith');
 const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
-const { pipelineKind, stateType, retryPolicy } = require('@hkube/consts');
+const { pipelineKind, retryPolicy } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
