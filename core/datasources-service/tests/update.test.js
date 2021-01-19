@@ -2,7 +2,12 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
-const { createDataSource, fetchDataSource, updateVersion } = require('./utils');
+const {
+    createDataSource,
+    fetchDataSource,
+    updateVersion,
+    mockRemove,
+} = require('./utils');
 const sortBy = require('lodash.sortby');
 
 let DATASOURCE_GIT_REPOS_DIR;
@@ -62,6 +67,7 @@ describe('/datasource/:name POST', () => {
     it('should upload multiple files to the dataSource', async () => {
         const name = uuid();
         await createDataSource({ body: { name } });
+        mockRemove();
         const { response: uploadResponse } = await updateVersion({
             dataSourceName: name,
             files: [
@@ -154,11 +160,6 @@ describe('/datasource/:name POST', () => {
             body: { name },
         });
         const [existingFile] = dataSource.files;
-        expect(
-            await fse.pathExists(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`
-            )
-        ).to.be.true;
         const uploadResponse = await updateVersion({
             dataSourceName: name,
             fileNames: [existingFile.name],
@@ -192,12 +193,17 @@ describe('/datasource/:name POST', () => {
         await createDataSource({
             body: { name },
         });
+
         const fileNames = ['algorithm spaces.json', 'algorithms.json'];
 
-        await updateVersion({
+        mockRemove();
+        const { body: dataSource } = await updateVersion({
             dataSourceName: name,
             fileNames,
         });
+        expect(
+            dataSource.files.find(file => file.name === 'algorithm spaces.json')
+        ).not.to.be.undefined;
         fileNames.forEach(async fileName => {
             const hasFiles = await fse.pathExists(
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${fileName}`
@@ -235,18 +241,11 @@ describe('/datasource/:name POST', () => {
         const {
             body: { files },
         } = uploadResponse;
+        expect(files).to.have.lengthOf(3);
         const logoFile = files.find(file => file.name === 'logo.svg');
         expect(logoFile.meta).to.match(/information about the logo/i);
-
-        const existingFiles = await Promise.all(
-            [
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/someSubDir/README-2.md`,
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/new-dir/logo.svg`,
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/new-dir/logo.svg.meta`,
-            ].map(address => fse.pathExists(address))
-        );
-        existingFiles.forEach(isExisting => {
-            expect(isExisting).to.be.true;
-        });
+        expect(logoFile.path).to.eq('/new-dir');
+        const metaFile = files.find(file => file.name === 'logo.svg.meta');
+        expect(metaFile).to.be.undefined;
     });
 });

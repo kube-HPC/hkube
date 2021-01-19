@@ -157,24 +157,21 @@ class Repository {
         return null;
     }
 
-    /** @type {(filePath: string) => Promise<void>} */
-    _pullDvcFile(filePath) {
-        if (!filePath) {
-            throw new Error(`_pullDvcFile: missing filePath ${filePath}`);
-        }
-        return this.dvc.pull(filePath);
-    }
-
-    pullFiles() {
-        return this.dvc.pull();
+    /** @type {(filePaths: string[]) => Promise<void>} */
+    pullFiles(filePaths) {
+        return this.dvc.pull(filePaths);
     }
 
     /** @param {SourceTargetArray[]} sourceTargetArray */
     async moveExistingFiles(sourceTargetArray) {
+        if (sourceTargetArray.length === 0) return null;
+        const filesToPull = sourceTargetArray
+            .map(([source]) => source)
+            .map(f => getFilePath(f));
+        await this.dvc.pull(filesToPull);
         return Promise.all(
             sourceTargetArray.map(async ([srcFile, targetFile]) => {
                 const srcPath = getFilePath(srcFile);
-                await this._pullDvcFile(srcPath);
                 const targetPath = getFilePath(targetFile);
                 await fse.ensureDir(parsePath(`${this.cwd}/${targetPath}`).dir);
                 return this.dvc.move(srcPath, targetPath);
@@ -182,7 +179,7 @@ class Repository {
         );
     }
 
-    /** @returns {FileMeta[]} */
+    /** @returns {Promise<FileMeta[]>} */
     async scanDir() {
         const metaFiles = await glob('**/*.dvc', this.cwd);
         return Promise.all(

@@ -84,9 +84,9 @@ class Downloads {
         );
 
         await repository.ensureClone();
-        await Promise.allSettled(
-            filesToKeep.map(file => repository._pullDvcFile(getFilePath(file)))
-        );
+        const filesPaths = filesToKeep.map(f => getFilePath(f));
+        await repository.pullFiles(filesPaths);
+
         await repository.filterFilesFromClone(filesToDrop, true);
         await repository.dropNonDataFiles();
         await this.createZip(`${repository.cwd}/data`, downloadId);

@@ -45,17 +45,13 @@ class DvcClient {
         return this._execute('push', '-r', storageName || this.storageName);
     }
 
-    /** @param {string=} file */
-    pull(filePath) {
-        if (filePath)
-            return this._execute(
-                'get',
-                this.repositoryUrl,
-                filePath,
-                '-o',
-                filePath
-            );
-        return this._execute(`pull`);
+    /** @param {string[]=} file */
+    pull(filePaths = []) {
+        return filePaths.length > 0
+            ? typeof filePaths === 'string'
+                ? this._execute('pull', filePaths)
+                : this._execute('pull', ...filePaths)
+            : this._execute(`pull`);
     }
 
     /**
@@ -91,7 +87,11 @@ class DvcClient {
                 [rootField]: { ...payload, hash: dvcHash },
             },
         };
-        return fse.writeFile(dvcFilePath, yaml.dump(extendedData));
+        const yamlDump = yaml.dump(extendedData, {
+            indent: 2,
+            noArrayIndent: true,
+        });
+        return fse.writeFile(dvcFilePath, yamlDump);
     }
 }
 

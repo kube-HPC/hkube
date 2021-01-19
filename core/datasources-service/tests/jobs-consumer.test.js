@@ -7,7 +7,12 @@ const sinon = require('sinon');
 /** @type {import('../lib/service/jobs-consumer')} */
 let jobConsumer;
 
-const { createDataSource, createSnapshot, createJob } = require('./utils');
+const {
+    createDataSource,
+    createSnapshot,
+    createJob,
+    mockRemove,
+} = require('./utils');
 let rootDir = null;
 
 const waitForStatus = async ({ jobId, taskId }, status) => {
@@ -49,6 +54,7 @@ describe('JobsConsumer', () => {
     });
     it('should succeed pulling a datasource by snapshot and filter the files by query', async () => {
         const name = uuid();
+        const mockedRemove = mockRemove();
         const snapshotName = uuid();
         const { body: dataSource } = await createDataSource({
             body: { name },
@@ -59,7 +65,6 @@ describe('JobsConsumer', () => {
             snapshot: { name: snapshotName, query: 'about the logo' },
         });
 
-        sinon.reset();
         const job = await createJob({
             dataSource: {
                 name: dataSource.name,
@@ -86,7 +91,7 @@ describe('JobsConsumer', () => {
             `${mountedDir}/data/README-1.md`,
             `${mountedDir}/data/README-1.md.dvc`,
             `${mountedDir}/data/logo.svg.meta`,
-        ].map(p => fse.remove.calledWith(p));
+        ].map(p => mockedRemove.calledWith(p));
 
         expect(existingFiles.every(item => item)).to.be.true;
         expect(nonExistingFiles.every(item => item)).to.be.true;

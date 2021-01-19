@@ -1,8 +1,9 @@
 const { uuid } = require('@hkube/uid');
 const { Producer } = require('@hkube/producer-consumer');
 const fse = require('fs-extra');
-const { request } = require('./request');
 const qs = require('query-string');
+const sinon = require('sinon');
+const { request } = require('./request');
 
 // a valid mongo ObjectID;
 const nonExistingId = '5f953d50dd38c8291924a0a3';
@@ -240,6 +241,12 @@ const requestPreview = ({ dataSourceId, query }) =>
         body: { query },
     });
 
+const mockRemove = () => {
+    const removeMock = sinon.fake.resolves('The remove method is mocked!');
+    sinon.replace(fse, 'remove', removeMock);
+    return removeMock;
+};
+
 module.exports = {
     fetchDataSource,
     deleteDataSource,
@@ -257,4 +264,5 @@ module.exports = {
     fetchDownloadLink,
     requestValidation,
     requestPreview,
+    mockRemove,
 };

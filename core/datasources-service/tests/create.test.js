@@ -3,18 +3,13 @@ const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const validationMessages = require('../lib/consts/validationMessages.js');
-const { request } = require('./request');
-const { createDataSource } = require('./utils');
-const sinon = require('sinon');
+const { createDataSource, mockRemove } = require('./utils');
 
-let restUrl, restPath, DATASOURCE_GIT_REPOS_DIR, STORAGE_DIR;
+let DATASOURCE_GIT_REPOS_DIR;
 
 describe('/datasource POST', () => {
     before(() => {
-        restUrl = global.testParams.restUrl;
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
-        STORAGE_DIR = global.testParams.STORAGE_DIR;
-        restPath = `${restUrl}/datasource`;
     });
     describe('validation', () => {
         it('should throw validation error of required property name', async () => {
@@ -102,20 +97,24 @@ describe('/datasource POST', () => {
     describe('create', () => {
         it("should create a new dataSource and return it's newly created id and files list", async () => {
             const name = uuid();
-            const removeDirectoryMock = sinon.fake();
-            sinon.replace(fse, 'remove', removeDirectoryMock);
-            const { response } = await createDataSource({ body: { name } });
+            const removeDirectoryMock = mockRemove();
+            const {
+                response: { statusCode },
+                body: dataSource,
+            } = await createDataSource({
+                body: { name },
+            });
 
             expect(removeDirectoryMock.getCall(0).firstArg).to.match(
                 new RegExp(name)
             );
-            expect(response.statusCode).to.eql(HttpStatus.CREATED);
-            expect(response.body).to.have.property('id');
-            expect(response.body).to.have.property('name');
-            expect(response.body).to.have.property('files');
-            expect(response.body.id).to.be.string;
-            expect(response.body.name).to.eq(name);
-            expect(response.body.files).to.have.lengthOf(1);
+            expect(statusCode).to.eql(HttpStatus.CREATED);
+            expect(dataSource).to.have.property('id');
+            expect(dataSource).to.have.property('name');
+            expect(dataSource).to.have.property('files');
+            expect(dataSource.id).to.be.string;
+            expect(dataSource.name).to.eq(name);
+            expect(dataSource.files).to.have.lengthOf(1);
         });
         it('should create an empty dataSource', async () => {
             const name = uuid();
@@ -148,6 +147,7 @@ describe('/datasource POST', () => {
         });
         it('should configure storage for the datasource', async () => {
             const name = uuid();
+            mockRemove();
             await createDataSource({ body: { name } });
             const config = fse.readFileSync(
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config.local`,
@@ -157,13 +157,13 @@ describe('/datasource POST', () => {
         });
         it('should upload a file with meta data', async () => {
             const name = uuid();
-            await createDataSource({
+            const { body: dataSource } = await createDataSource({
                 body: { name },
                 fileNames: ['logo.svg', 'logo.svg.meta'],
             });
-            const dataDir = `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/`;
-            expect(await fse.pathExists(`${dataDir}/logo.svg`)).to.be.true;
-            expect(await fse.pathExists(`${dataDir}/logo.svg.meta`)).to.be.true;
+            const [createdFile] = dataSource.files;
+            expect(createdFile).to.have.ownProperty('meta');
+            expect(createdFile.meta).to.match(/information about the logo/i);
         });
     });
 });
