@@ -129,14 +129,7 @@ class PipelineCreator {
 
         pipeline.nodes.forEach(node => {
             if (!node.retry) {
-                let policy;
-                if (node.stateType === stateType.Stateful) {
-                    policy = { policy: retryPolicy.Always, limit: Number.MAX_SAFE_INTEGER };
-                }
-                else {
-                    policy = { policy: retryPolicy.Never };
-                }
-                node.retry = policy; // eslint-disable-line
+                node.retry = { policy: retryPolicy.Always, limit: Number.MAX_SAFE_INTEGER }; // eslint-disable-line
             }
         });
 
