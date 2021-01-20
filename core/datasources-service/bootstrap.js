@@ -30,9 +30,16 @@ class Bootstrap {
             if (config.tracer) {
                 await tracer.init(config.tracer);
             }
-            await storageManager.init(config, log, true, [
-                storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE,
-            ]);
+
+            const dedicatedStorage = new storageManager.StorageManager();
+
+            await dedicatedStorage.init(
+                { ...config, defaultStorage: 's3' },
+                log,
+                true,
+                [storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE]
+            );
+            await storageManager.init(config, log);
 
             for (const m of modules) {
                 await m.init(config);

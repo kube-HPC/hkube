@@ -8,7 +8,7 @@ const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
 const secured = !!process.env.DATASOURCE_SERVICE_SSL;
-config.defaultStorage = 's3';
+config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.version = packageJson.version;
@@ -128,6 +128,11 @@ config.storageAdapters = {
         connection: config.redis,
         moduleName:
             process.env.STORAGE_MODULE || '@hkube/redis-storage-adapter',
+    },
+    fs: {
+        connection: config.fs,
+        encoding: storageEncoding,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter',
     },
 };
 
