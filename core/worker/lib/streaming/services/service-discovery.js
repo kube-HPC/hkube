@@ -103,7 +103,7 @@ class ServiceDiscovery extends EventEmitter {
     }
 
     _isJobDiscovery(data, jobId, taskId) {
-        return data.jobId === jobId && data.taskId !== taskId && data.workerStatus === workerStates.working;
+        return data.jobId === jobId && data.taskId !== taskId && (data.workerStatus === workerStates.working || data.workerStatus === workerStates.stop);
     }
 }
 
