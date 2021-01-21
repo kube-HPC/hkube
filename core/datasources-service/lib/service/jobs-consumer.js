@@ -8,6 +8,7 @@ const Etcd = require('../Etcd');
 const dbConnection = require('../db');
 const Repository = require('../utils/Repository');
 const { ResourceNotFoundError } = require('./../errors');
+const { getDatasourcesInUseFolder } = require('../utils/pathUtils');
 /**
  * @typedef {import('./../utils/types').config} config
  * @typedef {import('./types').onJobHandler} onJobHandler
@@ -28,7 +29,8 @@ class JobConsumer {
      */
     async init(config) {
         this.config = config;
-        await fse.ensureDir(config.directories.dataSourcesInUse);
+        this.rootDir = getDatasourcesInUseFolder(config);
+        await fse.ensureDir(this.rootDir);
         const { type, prefix } = config.jobs.consumer;
         const consumerSettings = {
             job: { type, prefix },
@@ -37,7 +39,6 @@ class JobConsumer {
                 prefix,
             },
         };
-        this.rootDir = this.config.directories.dataSourcesInUse;
         this.state = new Etcd(config);
         this.consumer = new Consumer(consumerSettings);
         this.consumer.register(consumerSettings);
@@ -147,6 +148,7 @@ class JobConsumer {
         } else {
             await this.storeResult({
                 payload: { dataSourceId: dataSource.id },
+                dataSource,
                 ...job,
             });
         }
@@ -159,7 +161,7 @@ class JobConsumer {
     }
 
     /** @param {{ payload: { dataSourceId?: string; snapshotId?: string } } & Job} props */
-    async storeResult({ payload, ...job }) {
+    async storeResult({ payload, dataSource, ...job }) {
         const { jobId, taskId } = job;
         try {
             /** @type {{ path: string }} */
@@ -183,7 +185,7 @@ class JobConsumer {
         } catch (e) {
             return this.handleFail({
                 ...job,
-                error: `failed storing datasource ${job.dataSource.name}. ${e.message}`,
+                error: `failed storing datasource ${dataSource.name}. ${e.message}`,
             });
         }
         return null;

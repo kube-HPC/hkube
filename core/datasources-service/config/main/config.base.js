@@ -9,6 +9,7 @@ const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
 const secured = !!process.env.DATASOURCE_SERVICE_SSL;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+config.dvcStorage = process.env.DVC_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.version = packageJson.version;
@@ -75,6 +76,7 @@ config.s3 = {
     useSSL: false,
 };
 
+
 config.git = {
     user: {
         name: process.env.GIT_USER_NAME || 'hkube',
@@ -82,10 +84,13 @@ config.git = {
     },
     endpoint: process.env.GIT_ENDPOINT_URL || 'localhost:3010',
 };
-
+config.fs = {
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+    baseDatasourcesDirectory: process.env.BASE_DATASOURCES_DIRECTORY || '/var/tmp/fs/datasources-storage'
+};
 config.directories = {
     gitRepositories: 'temp/git-repositories',
-    dataSourcesInUse: 'temp/dataSources-in-use',
+    dataSourcesInUse: process.env.DATASOURCES_IN_USE_FOLDER || 'dataSources-in-use',
     prepareForDownload: 'temp/prepare-for-download',
     zipFiles: 'temp/zip-files',
 };

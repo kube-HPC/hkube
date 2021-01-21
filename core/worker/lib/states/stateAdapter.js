@@ -1,9 +1,11 @@
 const EventEmitter = require('events');
+const path = require('path');
 const asyncQueue = require('async.queue');
 const Etcd = require('@hkube/etcd');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 const { cacheResults } = require('../utils');
+const { getDatasourcesInUseFolder } = require('../helpers/pathUtils');
 const { EventMessages, Components, jobStatus, workerCommands } = require('../consts');
 const component = Components.ETCD;
 let log;
@@ -23,7 +25,7 @@ class StateAdapter extends EventEmitter {
             this.getExistingAlgorithms = cacheResults(this.getExistingAlgorithms.bind(this), options.cacheResults.updateFrequency);
         }
         log = Logger.GetLogFromContainer();
-        this._dataSourcesVolume = options.dataSourcesVolume;
+        this._dataSourcesVolume = getDatasourcesInUseFolder(options);
         this._etcd = new Etcd(options.etcd);
         this._workerId = this._etcd.discovery._instanceId;
         this._discoveryInfo = {
@@ -215,7 +217,7 @@ class StateAdapter extends EventEmitter {
         dsFiles = dsFiles || [];
         const files = dsFiles.map(f => ({
             ...f,
-            path: `${this._dataSourcesVolume}/${dsName}/${subPath}/${f.name}`
+            path: path.join(this._dataSourcesVolume, dsName, subPath, dsName, 'data', f.name)
         }));
         const dataSource = {
             name: dsName,

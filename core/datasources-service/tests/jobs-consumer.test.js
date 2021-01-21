@@ -1,8 +1,9 @@
 const { expect } = require('chai');
+const pathLib = require('path');
 const { uid: uuid } = require('@hkube/uid');
 const fse = require('fs-extra');
 const waitFor = require('./waitFor');
-const sinon = require('sinon');
+const { getDatasourcesInUseFolder } = require('../lib/utils/pathUtils');
 
 /** @type {import('../lib/service/jobs-consumer')} */
 let jobConsumer;
@@ -27,7 +28,7 @@ const waitForStatus = async ({ jobId, taskId }, status) => {
 describe('JobsConsumer', () => {
     before(() => {
         jobConsumer = require('../lib/service/jobs-consumer');
-        rootDir = global.testParams.directories.dataSourcesInUse;
+        rootDir = getDatasourcesInUseFolder(global.testParams.config);
     });
     after(() => {
         fse.remove(rootDir);

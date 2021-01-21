@@ -34,7 +34,7 @@ class Bootstrap {
             const dedicatedStorage = new storageManager.StorageManager();
 
             await dedicatedStorage.init(
-                { ...config, defaultStorage: 's3' },
+                { ...config, defaultStorage: config.dvcStorage },
                 log,
                 true,
                 [storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE]

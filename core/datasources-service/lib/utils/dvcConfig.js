@@ -21,10 +21,10 @@ const configMap = {
 
 /** @type {(config: Config) => (repositoryName: string) => string} */
 module.exports = config => {
-    const generator = configMap[config.defaultStorage];
+    const generator = configMap[config.dvcStorage];
     if (!generator) {
         throw new Error(
-            `Invalid config.defaultStorage, the available options are ${Object.keys(
+            `Invalid config.dvcStorage, the available options are ${Object.keys(
                 configMap
             ).join(', ')}`
         );
