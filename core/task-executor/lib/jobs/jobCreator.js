@@ -174,20 +174,19 @@ const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, cluster
     return spec;
 };
 
-const applyDataSourcesVolumes = (inputSpec, { clusterOptions = {} }) => {
+const applyDataSourcesVolumes = (inputSpec) => {
     let spec = clonedeep(inputSpec);
-    if (!clusterOptions.dataSourcesEnabled) {
-        return spec;
-    }
+    // if (!clusterOptions.dataSourcesEnabled) {
+    //     return spec;
+    // }
     spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
-        name: 'hkube-datasource',
-        mountPath: '/hkube/algorithm-runner/algorithm_unique_folder',
-        subPath: 'hkube-data-sources'
+        name: 'datasources-storage',
+        mountPath: '/hkube/datasources-storage'
     });
     spec = applyVolumes(spec, {
-        name: 'hkube-datasource',
+        name: 'datasources-storage',
         persistentVolumeClaim: {
-            claimName: 'hkube-datasource-pvc'
+            claimName: 'hkube-datasources'
         }
     });
     return spec;

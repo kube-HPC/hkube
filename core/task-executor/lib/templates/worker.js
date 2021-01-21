@@ -325,6 +325,10 @@ const workerTemplate = {
                                     }
                                 }
                             },
+                            {
+                                name: 'BASE_DATASOURCES_DIRECTORY',
+                                value: '/hkube/datasources-storage'
+                            },
                         ]
                     }
                 ],

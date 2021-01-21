@@ -149,6 +149,18 @@ describe('jobCreator', () => {
                 }
             });
             expect(res.metadata.name).to.include('myalgo1-');
+            expect(res.spec.template.spec.volumes).to.deep.include(
+                {
+                    name: 'datasources-storage',
+                    persistentVolumeClaim: { claimName: 'hkube-datasources' }
+                }
+            );
+            expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
+                {
+                    name: 'datasources-storage',
+                    mountPath: '/hkube/datasources-storage'
+                }
+            );
         });
         it('should apply with worker', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
@@ -228,13 +240,13 @@ describe('jobCreator', () => {
         it('should apply 0 mounts', () => {
 
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, mounts: [] });
-            expect(res.spec.template.spec.volumes).to.have.length(3)
+            expect(res.spec.template.spec.volumes).to.have.length(4)
 
         });
         it('should apply no mounts', () => {
 
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
-            expect(res.spec.template.spec.volumes).to.have.length(3)
+            expect(res.spec.template.spec.volumes).to.have.length(4)
         });
         it('should apply opengl params', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, algorithmOptions: { opengl: true } });
