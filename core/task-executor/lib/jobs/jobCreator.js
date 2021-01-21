@@ -284,7 +284,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyJaeger(spec, CONTAINERS.WORKER, options);
     spec = applyJaeger(spec, CONTAINERS.ALGORITHM, options);
     spec = applyDevMode(spec, { options, algorithmOptions, clusterOptions, algorithmName });
-    spec = applyDataSourcesVolumes(spec, { clusterOptions });
+    spec = applyDataSourcesVolumes(spec);
     spec = applyMounts(spec, mounts);
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
