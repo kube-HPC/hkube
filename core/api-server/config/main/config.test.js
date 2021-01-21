@@ -1,6 +1,6 @@
 const config = {};
 
-config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+config.defaultStorage = process.env.DEFAULT_STORAGE || 'fs';
 config.rest = {
     rateLimit: null
 };
