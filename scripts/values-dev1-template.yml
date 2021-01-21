@@ -46,3 +46,5 @@ etcd_cleaner:
   pattern: "30 7 * * *"
 jaeger:
   enable: true  
+minio:
+  enable: true
