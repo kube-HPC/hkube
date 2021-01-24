@@ -4,6 +4,8 @@ const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const getFilePath = require('../utils/getFilePath');
+const HttpStatus = require('http-status-codes');
+const { ResourceNotFoundError } = require('../errors');
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
  * @typedef {import('./../utils/types').MulterFile} MulterFile
@@ -362,7 +364,18 @@ class DataSource {
             this.config,
             this.config.directories.gitRepositories
         );
-        await repository.delete();
+        try {
+            await repository.delete();
+        } catch (error) {
+            if (
+                error.isAxiosError &&
+                error.response.status === HttpStatus.NOT_FOUND
+            ) {
+                throw new ResourceNotFoundError('dataSource', name, error);
+            } else {
+                throw error;
+            }
+        }
         const response = await this.db.dataSources.delete(
             { name },
             { allowNotFound: false }
