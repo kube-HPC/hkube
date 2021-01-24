@@ -39,7 +39,7 @@ class Bootstrap {
                 true,
                 [storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE]
             );
-            await storageManager.init(config, log);
+            await storageManager.init(config, log );
 
             for (const m of modules) {
                 await m.init(config);
