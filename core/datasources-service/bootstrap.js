@@ -2,10 +2,11 @@ const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { tracer, metrics } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
+const { default: axios } = require('axios');
 const component = require('./lib/consts/componentNames').MAIN;
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
-
+const dedicatedStorage = require('./lib/DedicatedStorage');
 const modules = [
     require('./lib/db'),
     require('./api/rest-api/app-server'),
@@ -31,14 +32,13 @@ class Bootstrap {
                 await tracer.init(config.tracer);
             }
 
-            const dedicatedStorage = new storageManager.StorageManager();
-
             await dedicatedStorage.init(
                 { ...config, defaultStorage: config.dvcStorage },
                 log,
                 true,
                 [storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE]
             );
+
             await storageManager.init(config, log);
 
             for (const m of modules) {

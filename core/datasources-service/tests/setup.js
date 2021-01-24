@@ -1,7 +1,10 @@
 const fse = require('fs-extra');
 const sinon = require('sinon');
 const DATASOURCE_GIT_REPOS_DIR = 'temp/git-repositories';
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 
+chai.use(chaiAsPromised);
 const STORAGE_DIR = '/var/tmp/fs/storage/local-hkube-datasource';
 
 before(async function () {
@@ -12,6 +15,10 @@ before(async function () {
     const baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
     const restUrl = `${baseUrl}/${config.rest.prefix}/v1`;
     const internalUrl = `${baseUrl}/internal/v1`;
+    const {
+        user: { name: userName, password },
+        endpoint,
+    } = config.git;
     global.testParams = {
         restUrl,
         internalUrl,
@@ -19,6 +26,7 @@ before(async function () {
         DATASOURCE_GIT_REPOS_DIR,
         STORAGE_DIR,
         directories: config.directories,
+        gitUrl: `http://${userName}:${password}@${endpoint}/api/v1/repos/hkube`,
     };
 });
 

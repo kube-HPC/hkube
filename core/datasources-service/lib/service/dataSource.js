@@ -4,7 +4,6 @@ const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const getFilePath = require('../utils/getFilePath');
-
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
  * @typedef {import('./../utils/types').MulterFile} MulterFile
@@ -339,6 +338,7 @@ class DataSource {
             });
         } catch (error) {
             await this.db.dataSources.delete({ name });
+            await repository.delete();
             throw error;
         } finally {
             await repository.deleteClone();
@@ -357,6 +357,12 @@ class DataSource {
 
     async delete({ name }) {
         validator.dataSources.delete({ name });
+        const repository = new Repository(
+            name,
+            this.config,
+            this.config.directories.gitRepositories
+        );
+        await repository.delete();
         const response = await this.db.dataSources.delete(
             { name },
             { allowNotFound: false }

@@ -2,11 +2,13 @@ const fse = require('fs-extra');
 const { parse: parsePath } = require('path');
 const _glob = require('glob');
 const { default: simpleGit } = require('simple-git');
+const { default: axios } = require('axios');
 const yaml = require('js-yaml');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
 const getFilePath = require('./getFilePath');
 const DvcClient = require('./DvcClient');
+const dedicatedStorage = require('./../DedicatedStorage');
 
 /**
  * @typedef {import('./types').FileMeta} FileMeta
@@ -91,6 +93,15 @@ class Repository {
             user: { name: userName, password },
         } = this.config.git;
         return `http://${userName}:${password}@${endpoint}/hkube/${this.repositoryName}.git`;
+    }
+
+    get repositoryApiUrl() {
+        const {
+            endpoint,
+            user: { name: userName, password },
+        } = this.config.git;
+
+        return `http://${userName}:${password}@${endpoint}/api/v1/repos/hkube/${this.repositoryName}`;
     }
 
     get cwd() {
@@ -298,6 +309,17 @@ class Repository {
 
     async deleteClone() {
         return fse.remove(this.cwd);
+    }
+
+    /**
+     * **PERMANENTLY** delete the repository from db, storage and git. if you
+     * want to delete a local copy use *Repository.deleteClone*
+     */
+    async delete() {
+        await dedicatedStorage.delete({
+            path: `${dedicatedStorage.hkubeDataSource.prefix}/${this.repositoryName}`,
+        });
+        return axios.delete(this.repositoryApiUrl);
     }
 }
 

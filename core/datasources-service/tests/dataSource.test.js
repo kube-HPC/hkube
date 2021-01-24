@@ -3,6 +3,7 @@ const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const sinon = require('sinon');
+const { default: axios } = require('axios');
 const { request } = require('./request');
 const dbConnection = require('../lib/db');
 const {
@@ -14,8 +15,7 @@ const {
     fetchDataSourceVersions,
     mockRemove,
 } = require('./utils');
-
-let DATASOURCE_GIT_REPOS_DIR, restUrl, restPath;
+let DATASOURCE_GIT_REPOS_DIR, restUrl, restPath, gitUrl;
 
 describe('Datasource', () => {
     before(() => {
@@ -23,6 +23,7 @@ describe('Datasource', () => {
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
         STORAGE_DIR = global.testParams.STORAGE_DIR;
         restPath = `${restUrl}/datasource`;
+        gitUrl = global.testParams.gitUrl;
     });
     describe('datasource/id/:id GET', () => {
         it('should fetch by id', async () => {
@@ -184,7 +185,12 @@ describe('Datasource', () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const fetchRes = await fetchDataSource({ name });
+            // ensure the datasource is delete on the git repo
+            const checkExist = await axios.get(`${gitUrl}/${name}`);
+            expect(checkExist.status).to.eq(HttpStatus.OK);
             const delRes = await deleteDataSource({ name });
+            await expect(axios.get(`${gitUrl}/${name}`)).to.eventually.be
+                .rejected;
             const fetchDel = await fetchDataSource({ name });
             expect(fetchRes.body.name).to.eql(name);
             expect(delRes.body).to.eql({ deleted: 1 });
