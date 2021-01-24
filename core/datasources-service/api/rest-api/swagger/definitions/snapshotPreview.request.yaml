@@ -1,0 +1,9 @@
+type: object
+properties:
+    id:
+        $ref: '#/components/schemas/DataSourceId'
+    query:
+        $ref: '#/components/schemas/SnapshotQuery'
+required:
+    - query
+    - id

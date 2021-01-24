@@ -1,4 +1,5 @@
 const converter = require('@hkube/units-converter');
+const { nodeKind } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
@@ -83,7 +84,9 @@ class ApiValidator {
     }
 
     async validateAlgorithmExists(pipeline) {
-        const pipelineAlgorithms = pipeline.nodes.filter(n => n.algorithmName).map(p => p.algorithmName);
+        const pipelineAlgorithms = pipeline.nodes
+            .filter(n => n.algorithmName && n.kind !== nodeKind.DataSource)
+            .map(p => p.algorithmName);
         const algorithmsMap = await stateManager.getAlgorithmsMapByNames({ names: pipelineAlgorithms });
         pipelineAlgorithms.forEach((a) => {
             const algorithm = algorithmsMap.get(a);

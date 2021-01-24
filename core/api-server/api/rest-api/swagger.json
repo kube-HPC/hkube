@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.0.15",
+    "version": "2.0.16",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -189,6 +189,48 @@
                           "enum": [
                             "stateless",
                             "stateful"
+                          ]
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "dataSource"
+                          ]
+                        },
+                        "dataSource": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "type": "string"
+                                },
+                                "query": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "snapshot": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "snapshot"
+                              ]
+                            }
                           ]
                         }
                       },
@@ -544,6 +586,48 @@
                           "enum": [
                             "stateless",
                             "stateful"
+                          ]
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "dataSource"
+                          ]
+                        },
+                        "dataSource": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "type": "string"
+                                },
+                                "query": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "snapshot": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "snapshot"
+                              ]
+                            }
                           ]
                         }
                       },
@@ -1474,6 +1558,48 @@
                               "stateless",
                               "stateful"
                             ]
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "dataSource"
+                            ]
+                          },
+                          "dataSource": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  },
+                                  "query": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "snapshot": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "snapshot"
+                                ]
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -1827,6 +1953,48 @@
                             "enum": [
                               "stateless",
                               "stateful"
+                            ]
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "dataSource"
+                            ]
+                          },
+                          "dataSource": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  },
+                                  "query": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "snapshot": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "snapshot"
+                                ]
+                              }
                             ]
                           }
                         },
@@ -5506,6 +5674,48 @@
                               "stateless",
                               "stateful"
                             ]
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "dataSource"
+                            ]
+                          },
+                          "dataSource": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  },
+                                  "query": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "snapshot": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "snapshot"
+                                ]
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -5963,6 +6173,48 @@
                                 "stateless",
                                 "stateful"
                               ]
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "dataSource"
+                              ]
+                            },
+                            "dataSource": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "version": {
+                                      "type": "string"
+                                    },
+                                    "query": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "snapshot": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "snapshot"
+                                  ]
+                                }
+                              ]
                             }
                           },
                           "required": [
@@ -6276,6 +6528,48 @@
                             "stateless",
                             "stateful"
                           ]
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "dataSource"
+                          ]
+                        },
+                        "dataSource": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "type": "string"
+                                },
+                                "query": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "snapshot": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "snapshot"
+                              ]
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -6564,6 +6858,48 @@
                             "enum": [
                               "stateless",
                               "stateful"
+                            ]
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "dataSource"
+                            ]
+                          },
+                          "dataSource": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  },
+                                  "query": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "snapshot": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "snapshot"
+                                ]
+                              }
                             ]
                           }
                         },
@@ -6915,6 +7251,48 @@
                             "stateless",
                             "stateful"
                           ]
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "dataSource"
+                          ]
+                        },
+                        "dataSource": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "type": "string"
+                                },
+                                "query": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "snapshot": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "snapshot"
+                              ]
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -7203,6 +7581,48 @@
                             "enum": [
                               "stateless",
                               "stateful"
+                            ]
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "dataSource"
+                            ]
+                          },
+                          "dataSource": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "version": {
+                                    "type": "string"
+                                  },
+                                  "query": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "snapshot": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "snapshot"
+                                ]
+                              }
                             ]
                           }
                         },
@@ -12724,6 +13144,38 @@
           "name"
         ]
       },
+      "dataSource-raw": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "dataSource-snapshot": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "snapshot": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "snapshot"
+        ]
+      },
       "defaultResponse": {
         "type": "object",
         "properties": {
@@ -12960,6 +13412,48 @@
                   "enum": [
                     "stateless",
                     "stateful"
+                  ]
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "dataSource"
+                  ]
+                },
+                "dataSource": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        },
+                        "query": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "snapshot": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "snapshot"
+                      ]
+                    }
                   ]
                 }
               },
@@ -13221,6 +13715,48 @@
             "enum": [
               "stateless",
               "stateful"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "dataSource"
+            ]
+          },
+          "dataSource": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "query": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "snapshot": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "snapshot"
+                ]
+              }
             ]
           }
         },

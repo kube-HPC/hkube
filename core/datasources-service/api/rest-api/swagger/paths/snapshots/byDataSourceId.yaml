@@ -1,0 +1,18 @@
+post:
+    tags:
+        - Snapshot
+    summary: create a new snapshot for a given datasource version
+    parameters:
+        - $ref: '#/components/parameters/idParam'
+    requestBody:
+        content:
+            application/json:
+                schema:
+                    $ref: '#/components/schemas/SnapshotRequest'
+    responses:
+        '201':
+            description: A newly created snapshot
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Snapshot'

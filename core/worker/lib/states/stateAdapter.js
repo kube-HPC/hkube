@@ -1,9 +1,11 @@
 const EventEmitter = require('events');
+const path = require('path');
 const asyncQueue = require('async.queue');
 const Etcd = require('@hkube/etcd');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 const { cacheResults } = require('../utils');
+const { getDatasourcesInUseFolder } = require('../helpers/pathUtils');
 const { EventMessages, Components, jobStatus, workerCommands } = require('../consts');
 const component = Components.ETCD;
 let log;
@@ -23,6 +25,7 @@ class StateAdapter extends EventEmitter {
             this.getExistingAlgorithms = cacheResults(this.getExistingAlgorithms.bind(this), options.cacheResults.updateFrequency);
         }
         log = Logger.GetLogFromContainer();
+        this._dataSourcesVolume = getDatasourcesInUseFolder(options);
         this._etcd = new Etcd(options.etcd);
         this._workerId = this._etcd.discovery._instanceId;
         this._discoveryInfo = {
@@ -182,6 +185,45 @@ class StateAdapter extends EventEmitter {
 
     async getExistingAlgorithms() {
         return this._db.algorithms.fetchAll();
+    }
+
+    async getDataSource(options) {
+        let dsName;
+        let subPath;
+        let dsFiles;
+        const { dataSourceId, snapshotId } = options.dataSource || {};
+
+        if (dataSourceId) {
+            const dataSource = await this._db.dataSources.fetch({
+                id: dataSourceId,
+                isPartial: false,
+            });
+            dsName = dataSource.name;
+            subPath = dataSourceId;
+            dsFiles = dataSource.files;
+        }
+        else if (snapshotId) {
+            const snapshot = await this._db.snapshots.fetch(
+                { id: snapshotId },
+                { allowNotFound: false }
+            );
+            dsName = snapshot.dataSource.name;
+            subPath = snapshot.name;
+            dsFiles = snapshot.filteredFilesList;
+        }
+        else {
+            throw new Error('unable to find matching data-source');
+        }
+        dsFiles = dsFiles || [];
+        const files = dsFiles.map(f => ({
+            ...f,
+            path: path.join(this._dataSourcesVolume, dsName, subPath, dsName, 'data', f.name)
+        }));
+        const dataSource = {
+            name: dsName,
+            files
+        };
+        return dataSource;
     }
 
     async unwatch(options) {

@@ -84,6 +84,7 @@ config.apiServer = {
 
 config.defaultStorageProtocol = process.env.DEFAULT_STORAGE_PROTOCOL || 'v1';
 config.defaultWorkerAlgorithmEncoding = process.env.DEFAULT_WORKER_ALGORITHM_ENCODING || 'json';
+config.dataSourcesVolume = process.env.DATASOURCES_IN_USE_FOLDER || 'dataSources-in-use';
 
 config.workerCommunication = {
     adapterName: process.env.WORKER_ALGORITHM_PROTOCOL || 'ws',
@@ -148,7 +149,8 @@ config.s3 = {
 };
 
 config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+    baseDatasourcesDirectory: process.env.BASE_DATASOURCES_DIRECTORY || '/var/tmp/fs/datasources-storage'
 };
 
 config.storageAdapters = {

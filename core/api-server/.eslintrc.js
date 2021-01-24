@@ -32,6 +32,7 @@ module.exports = {
         "arrow-body-style": "off",
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
-        "arrow-parens": "off"
+        "arrow-parens": "off",
+        "no-nested-ternary": "off",
     }
 };

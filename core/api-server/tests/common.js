@@ -4,7 +4,8 @@ const swagger = require('../api/rest-api/swagger.json')
 const { request } = require('./utils');
 const httpMethods = ['GET', 'POST', 'PUT', 'DELETE'];
 const stateManager = require('../lib/state/state-manager');
-let updater;
+let updater, restUrl;
+
 describe('Common', () => {
     before(() => {
         updater = require('../lib/examples/pipelines-updater');

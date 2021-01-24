@@ -1,0 +1,12 @@
+type: object
+properties:
+    dataSourceId:
+        $ref: '#/components/schemas/DataSourceId'
+    fileIds:
+        type: array
+        items:
+            type: string
+        minItems: 1
+required:
+    - dataSourceId
+    - fileIds

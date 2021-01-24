@@ -1,0 +1,10 @@
+# vscode local config files
+.vscode
+
+# Coverage directory used by tools like istanbul
+coverage
+
+# nyc test coverage
+.nyc_output
+
+temp

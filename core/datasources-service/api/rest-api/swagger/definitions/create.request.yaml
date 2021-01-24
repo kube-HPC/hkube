@@ -1,0 +1,9 @@
+type: object
+properties:
+    name:
+        $ref: '#/components/schemas/DataSourceName'
+    files:
+        $ref: '#/components/schemas/Files'
+required:
+    - name
+    - files

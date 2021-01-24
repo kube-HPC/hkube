@@ -1,0 +1,58 @@
+nameParam:
+    name: name
+    in: path
+    description: A dataSource name
+    required: true
+    schema:
+        type: string
+idParam:
+    name: id
+    in: path
+    description: A datasource id (indicating a version)
+    required: true
+    schema:
+        type: string
+
+snapshotNameParam:
+    name: snapshotName
+    in: path
+    description: A Snapshot name
+    required: true
+    schema:
+        type: string
+
+snapshotNameQuery:
+    name: snapshot_name
+    in: query
+    description: A Snapshot name
+    schema:
+        type: string
+
+nameQuery:
+    name: datasource_name
+    in: query
+    description: a datasource name
+    schema:
+        type: string
+
+idQuery:
+    name: id
+    in: query
+    description: request a specific version, if not stated the latest is returned
+    schema:
+        type: string
+
+idQueryRequired:
+    name: id
+    in: query
+    description: request a specific version, if not stated the latest is returned
+    required: true
+    schema:
+        type: string
+
+downloadIdQuery:
+    name: id
+    in: query
+    required: true
+    schema:
+        $ref: '#/components/schemas/DownloadId'

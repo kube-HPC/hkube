@@ -1,0 +1,33 @@
+post:
+    tags:
+        - Snapshot
+    summary: create a new snapshot for a given datasource version
+    parameters:
+        - $ref: '#/components/parameters/nameParam'
+    requestBody:
+        content:
+            application/json:
+                schema:
+                    $ref: '#/components/schemas/SnapshotRequest'
+    responses:
+        '201':
+            description: A newly created snapshot
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Snapshot'
+get:
+    tags:
+        - Snapshot
+    summary: fetch all snapshots for a given datasource
+    parameters:
+        - $ref: '#/components/parameters/nameParam'
+    responses:
+        '200':
+            description: A collection of snapshots
+            content:
+                application/json:
+                    schema:
+                        type: array
+                        items:
+                            $ref: '#/components/schemas/Snapshot'

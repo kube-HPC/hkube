@@ -43,22 +43,22 @@ const pipeline = {
         {
             nodeName: "D",
             algorithmName: "eval-alg",
-            input: [
-                "@A",
-                "@B",
-                "@C"
-            ],
+            input: [],
             stateType: "stateless"
         },
         {
             nodeName: "E",
             algorithmName: "eval-alg",
-            input: [
-                "@A",
-                "@B",
-            ],
+            input: [],
             stateType: "stateless"
         }
+    ],
+    edges: [
+        { source: "A", target: "D" },
+        { source: "B", target: "D" },
+        { source: "C", target: "D" },
+        { source: "A", target: "E" },
+        { source: "B", target: "E" }
     ],
     flowInputMetadata: {
         metadata: {

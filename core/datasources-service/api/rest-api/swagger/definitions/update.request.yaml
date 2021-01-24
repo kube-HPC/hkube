@@ -1,0 +1,21 @@
+type: object
+properties:
+    versionDescription:
+        $ref: '#/components/schemas/VersionDescription'
+    files:
+        $ref: '#/components/schemas/Files'
+    droppedFileIds:
+        type: array
+        items:
+            type: string
+    mapping:
+        type: array
+        items:
+            $ref: '#/components/schemas/FileMeta'
+anyOf:
+    - required:
+          - versionDescription
+          - filesDropped
+    - required:
+          - versionDescription
+          - files

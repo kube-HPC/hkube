@@ -1,0 +1,15 @@
+get:
+    tags:
+        - DataSource
+    summary: list a all the versions of a given dataSource name
+    parameters:
+        - $ref: '#/components/parameters/nameParam'
+    responses:
+        '200':
+            description: A datasource item
+            content:
+                application/json:
+                    schema:
+                        type: array
+                        items:
+                            $ref: '#/components/schemas/DataSourceVersion'

@@ -1,0 +1,18 @@
+/datasource:
+    $ref: ./root.yaml
+/datasource/{name}:
+    $ref: ./byName.yaml
+/datasource/{name}/versions:
+    $ref: ./versions.yaml
+/datasource/id/{id}/snapshot:
+    $ref: ./snapshots/byDataSourceId.yaml
+/datasource/id/{id}/snapshot/preview:
+    $ref: ./snapshots/preview.yaml
+/datasource/{name}/snapshot:
+    $ref: ./snapshots/byDataSourceName.yaml
+/datasource/{name}/snapshot/{snapshotName}:
+    $ref: ./snapshots/byName.yaml
+/datasource/id/{id}/download:
+    $ref: ./download.yaml
+/datasource/validate:
+    $ref: ./validate.yaml

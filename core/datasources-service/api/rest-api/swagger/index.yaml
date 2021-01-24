@@ -1,0 +1,34 @@
+openapi: 3.0.0
+info:
+    title: HKube DataSources
+    description: HKube DataSources API
+    version: 1.0.0
+    contact:
+        email: hkube.dev@gmail.com
+    license:
+        name: MIT
+        url: 'https://opensource.org/licenses/MIT'
+
+tags:
+    - name: DataSource
+      description: DataSources and their related files
+    - name: Snapshot
+      description: A Snapshot is a bundle of dataSource version and a query
+    - name: Download
+      description: links to a zip containing specified files
+externalDocs:
+    description: Find out more about Hkube
+    url: 'http://hkube.io'
+
+servers: []
+
+paths:
+    $ref: ./swagger/paths/index.yaml
+
+components:
+    schemas:
+        $ref: ./swagger/definitions/index.yaml
+    parameters:
+        $ref: ./swagger/paths/parameters.yaml
+schemasInternal:
+  $ref: ./swagger/definitions-internal/index.yaml

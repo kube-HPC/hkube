@@ -215,7 +215,11 @@ const workerTemplate = {
                                         key: 'mongodb-database'
                                     }
                                 }
-                            }
+                            },
+                            {
+                                name: 'BASE_DATASOURCES_DIRECTORY',
+                                value: '/hkube/datasources-storage'
+                            },
 
                         ],
                     },
@@ -324,7 +328,7 @@ const workerTemplate = {
                                         key: 'CLUSTER_NAME'
                                     }
                                 }
-                            },
+                            }
                         ]
                     }
                 ],

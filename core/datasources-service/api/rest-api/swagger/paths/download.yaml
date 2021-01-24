@@ -1,0 +1,43 @@
+post:
+    tags:
+        - Download
+    summary: create download link
+    parameters:
+        - $ref: '#/components/parameters/idParam'
+    requestBody:
+        content:
+            application/json:
+                schema:
+                    type: object
+                    properties:
+                        fileIds:
+                            type: array
+                            items:
+                                type: string
+        description: a list of file ids to include in the generated zip file
+        required: true
+    responses:
+        '201':
+            description: A Zip file
+            content:
+                application/octet-stream:
+                    schema:
+                        type: object
+                        properties:
+                            href:
+                                type: string
+get:
+    tags:
+        - Download
+    summary: download an archive of the selected files
+    parameters:
+        - $ref: '#/components/parameters/idParam'
+        - $ref: '#/components/parameters/downloadIdQuery'
+    responses:
+        '200':
+            description: A Zip file
+            content:
+                application/octet-stream:
+                    schema:
+                        type: string
+                        format: binary

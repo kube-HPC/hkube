@@ -41,6 +41,10 @@ jobs:
       - run: |
           npm ci
           echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
+      - name: setup-git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
       - name: bootstrap
         run: |
           export CHANGED=$(lerna changed --includeMergedTags)||true

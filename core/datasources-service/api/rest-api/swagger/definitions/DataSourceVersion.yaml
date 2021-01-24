@@ -1,0 +1,8 @@
+type: object
+properties:
+    id:
+        $ref: '#/components/schemas/DataSourceId'
+    versionDescription:
+        $ref: '#/components/schemas/VersionDescription'
+    commitHash:
+        type: string
