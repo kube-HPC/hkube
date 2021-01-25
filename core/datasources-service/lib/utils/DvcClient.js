@@ -1,6 +1,6 @@
 const fse = require('fs-extra');
 const yaml = require('js-yaml');
-const Shell = require('./Shell');
+const { Shell, ShellFast } = require('./Shell');
 const { timeWrap } = require('./timeWarp');
 
 class DvcClient {
@@ -8,8 +8,9 @@ class DvcClient {
         this.cwd = cwd;
         this.repositoryUrl = repositoryUrl;
         this._shell = Shell(cwd);
+        this._shellFast = ShellFast(cwd);
         this.storageName = storageName;
-        this._execute = (...args) => this._shell('dvc', args.flat());
+        this._execute = (...args) => this._shellFast('dvc', args.flat());
         ['init', 'config', 'add', 'remove', 'push', 'pull', 'move', 'enrichMeta'].forEach(m => this[m] = timeWrap(this[m], this));
     }
 
