@@ -11,8 +11,8 @@ before(async function () {
     const bootstrap = require('../bootstrap');
     /** @type {import('./../lib/utils/types').config} */
     const config = await bootstrap.init();
-    const dedicatedStorage = new storageManager.StorageManager();
-    await dedicatedStorage.init(
+    const storage = new storageManager.StorageManager();
+    await storage.init(
         { ...config},
         null,
         true
