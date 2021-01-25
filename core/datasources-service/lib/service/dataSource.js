@@ -1,10 +1,10 @@
 const fse = require('fs-extra');
+const HttpStatus = require('http-status-codes');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const getFilePath = require('../utils/getFilePath');
-const HttpStatus = require('http-status-codes');
 const { ResourceNotFoundError } = require('../errors');
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
