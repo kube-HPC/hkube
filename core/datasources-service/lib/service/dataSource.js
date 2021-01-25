@@ -4,6 +4,7 @@ const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const getFilePath = require('../utils/getFilePath');
+const { timeWrap } = require('../utils/timeWarp');
 
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
@@ -26,6 +27,10 @@ const isMetaFile = fileName => fileName.match(metaRegex);
 const extractFileName = metaData => metaData.input.slice(0, metaData.index);
 
 class DataSource {
+    constructor() {
+        ['createFileMeta', 'prepareAddedFiles', '_categorizeFiles', 'commitChange', 'update', 'create', 'fetch', 'delete', 'fetchDataSources', 'sync', 'list', 'listVersions'].forEach(m => this[m] = timeWrap(this[m], this));
+    }
+
     /** @param {config} config */
     async init(config) {
         this.config = config;

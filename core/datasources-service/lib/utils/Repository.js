@@ -7,6 +7,7 @@ const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
 const getFilePath = require('./getFilePath');
 const DvcClient = require('./DvcClient');
+const { timeWrap } = require('./timeWarp');
 
 /**
  * @typedef {import('./types').FileMeta} FileMeta
@@ -48,6 +49,8 @@ class Repository {
         this.rootDir = rootDir;
         this.dvc = new DvcClient(this.cwd, this.repositoryUrl);
         this.generateDvcConfig = dvcConfig(this.config);
+        ['_setupDvcRepository', '_enrichDvcFile', 'setup', 'ensureClone', 'addFiles', 'pullFiles', 'moveExistingFiles', 'scanDir', 'dropNonDataFiles', 'dropFiles', 'loadMetaDataFiles', 'push', 'cleanup', 'filterFilesFromClone', 'filterMetaFilesFromClone', 'deleteClone'].forEach(m => this[m] = timeWrap(this[m], this));
+
     }
 
     /** @param {string} name */
@@ -140,7 +143,6 @@ class Repository {
         );
         // creates .dvc files and update/create the relevant gitignore files
         await this.dvc.add(filePaths);
-
         await Promise.all(
             allAddedFiles.map(async file => {
                 const fileMeta = normalizedMapping[file.filename];
