@@ -2,27 +2,25 @@ const fse = require('fs-extra');
 const { parse: parsePath } = require('path');
 const _glob = require('glob');
 const { default: simpleGit } = require('simple-git');
-const yaml = require('js-yaml');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
-const getFilePath = require('./getFilePath');
+const { getFilePath, extractRelativePath } = require('./filePath');
 const DvcClient = require('./DvcClient');
 
 /**
  * @typedef {import('./types').FileMeta} FileMeta
+ * @typedef {import('./types').LocalFileMeta} LocalFileMeta
  * @typedef {import('./types').MulterFile} MulterFile
  * @typedef {import('./types').NormalizedFileMeta} NormalizedFileMeta
  * @typedef {import('./types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./types').config} config
  */
+/**
+ * @template T
+ * @typedef {{ [path: string]: T }} ByPath
+ */
 
-const extractRelativePath = filePath => {
-    const response = parsePath(filePath.replace('data/', '')).dir;
-    if (response === '') return '/';
-    return `/${response}`;
-};
-
-/** @type {(pattern: string, cwd: string) => string[]} */
+/** @type {(pattern: string, cwd: string) => Promise<string[]>} */
 const glob = (pattern, cwd) =>
     new Promise((res, rej) =>
         _glob(pattern, { cwd }, (err, matches) =>
@@ -30,10 +28,6 @@ const glob = (pattern, cwd) =>
         )
     );
 
-/**
- * @template T
- * @typedef {{ [path: string]: T }} ByPath
- */
 class Repository {
     /**
      * @param {string} repositoryName
@@ -50,21 +44,42 @@ class Repository {
         this.generateDvcConfig = dvcConfig(this.config);
     }
 
-    /** @param {string} name */
     async _setupDvcRepository() {
         await this.dvc.init();
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
     }
 
-    _enrichDvcFile(fileMeta, metaData) {
-        return this.dvc.enrichMeta(getFilePath(fileMeta), 'hkube', metaData);
+    /**
+     * @param {FileMeta} fileMeta
+     * @param {LocalFileMeta} metaData
+     */
+    async _enrichDvcFile(fileMeta, metaData) {
+        const nextMeta = { ...(metaData || {}) };
+        const filePath = getFilePath(fileMeta);
+        const dvcContent = await this.dvc.loadDvcContent(filePath);
+        if (dvcContent?.meta?.hkube?.hash === dvcContent.outs[0].md5) {
+            // retain the id and upload time if no actual change was made to the file
+            // avoids "faking" a change to git if no actual change was made
+            nextMeta.id = dvcContent.meta.hkube.id;
+            nextMeta.uploadedAt = dvcContent.meta.hkube.uploadedAt;
+        }
+        return this.dvc.enrichMeta(filePath, dvcContent, 'hkube', nextMeta);
+    }
+
+    setupHkubeFile() {
+        const content = { repositoryName: this.repositoryName };
+        return fse.writeFile(
+            `${this.cwd}/.dvc/hkube`,
+            JSON.stringify(content, null, 2)
+        );
     }
 
     async setup() {
         await fse.ensureDir(`${this.cwd}/data`);
-        const git = simpleGit({ baseDir: `${this.cwd}` });
+        const git = simpleGit({ baseDir: this.cwd });
         await git.init().addRemote('origin', this.repositoryUrl);
         await this._setupDvcRepository();
+        await this.setupHkubeFile();
         await git.add('.');
         const response = await git.commit('initialized');
         await git.push(['--set-upstream', 'origin', 'master']);
@@ -184,10 +199,8 @@ class Repository {
         const metaFiles = await glob('**/*.dvc', this.cwd);
         return Promise.all(
             metaFiles.map(async filePath => {
-                const content = yaml.load(
-                    await fse.readFile(`${this.cwd}/${filePath}`)
-                ).meta.hkube;
-                const { hash, ...meta } = content;
+                const content = await this.dvc.loadDvcContent(filePath);
+                const { hash, ...meta } = content.meta.hkube;
                 return {
                     path: extractRelativePath(filePath),
                     ...meta,

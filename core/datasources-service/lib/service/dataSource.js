@@ -3,7 +3,8 @@ const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
-const getFilePath = require('../utils/getFilePath');
+const { getFilePath } = require('../utils/filePath');
+const { createFileMeta } = require('./../utils/createFileMeta');
 
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
@@ -33,19 +34,6 @@ class DataSource {
         await fse.ensureDir(this.config.directories.gitRepositories);
     }
 
-    /** @type {(file: MulterFile, path?: string) => FileMeta} */
-    createFileMeta(file, path = null) {
-        return {
-            id: file.filename,
-            name: file.originalname,
-            path: path || '/',
-            size: file.size,
-            type: file.mimetype,
-            meta: '',
-            uploadedAt: new Date().getTime(),
-        };
-    }
-
     /**
      * Converts temporary ids given by the client to permanent ids. fills in
      * missing details for all the files
@@ -63,7 +51,7 @@ class DataSource {
         return files.reduce(
             (acc, file) => {
                 const tmpFileName = file.originalname;
-                let fileMeta = this.createFileMeta(
+                let fileMeta = createFileMeta(
                     file,
                     normalizedMapping[tmpFileName]?.path
                 );
@@ -100,8 +88,8 @@ class DataSource {
                         },
                     };
                 }
-
                 const {
+                    // @ts-ignore
                     [tmpFileName]: droppedId,
                     ...nextMapping
                 } = acc.normalizedAddedFiles;

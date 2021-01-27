@@ -3,7 +3,7 @@ const fse = require('fs-extra');
 const archiver = require('archiver');
 const dbConnection = require('../db');
 const Repository = require('../utils/Repository');
-const getFilePath = require('../utils/getFilePath');
+const { getFilePath } = require('../utils/filePath');
 const validator = require('../validation');
 
 /**
@@ -51,7 +51,7 @@ class Downloads {
     /**
      * @type {(props: {
      *     dataSourceId: string;
-     *     fileIds: string;
+     *     fileIds: string[];
      * }) => Promise<string>} }
      */
     async prepareForDownload({ dataSourceId, fileIds }) {
@@ -87,7 +87,7 @@ class Downloads {
         const filesPaths = filesToKeep.map(f => getFilePath(f));
         await repository.pullFiles(filesPaths);
 
-        await repository.filterFilesFromClone(filesToDrop, true);
+        await repository.filterFilesFromClone(filesToDrop);
         await repository.dropNonDataFiles();
         await this.createZip(`${repository.cwd}/data`, downloadId);
         await fse.remove(repository.cwd);
