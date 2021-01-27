@@ -1,10 +1,12 @@
 const fse = require('fs-extra');
+const {
+    filePath: { getFilePath },
+    createFileMeta,
+} = require('@hkube/datasource-utils');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
-const { getFilePath } = require('../utils/filePath');
-const { createFileMeta } = require('./../utils/createFileMeta');
 const { ResourceNotFoundError } = require('../errors');
 
 /**
@@ -248,7 +250,6 @@ class DataSource {
         /** Cleanups: - drop empty git ignore files */
         const commit = await repository.push(commitMessage);
         const finalMapping = await repository.scanDir();
-        await repository.cleanup();
         return {
             commitHash: commit,
             files: finalMapping,
@@ -290,7 +291,7 @@ class DataSource {
             commitMessage: versionDescription,
             currentFiles: createdVersion.files,
         });
-        repository.deleteClone();
+        await repository.deleteClone();
         if (!commitHash) {
             await this.db.dataSources.delete({ id: createdVersion.id });
             return null;

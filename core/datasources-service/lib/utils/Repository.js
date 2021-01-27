@@ -1,11 +1,13 @@
 const fse = require('fs-extra');
 const { parse: parsePath } = require('path');
-const _glob = require('glob');
+const {
+    glob,
+    Repository: _Repository,
+    filePath: { extractRelativePath, getFilePath },
+} = require('@hkube/datasource-utils');
 const { default: simpleGit } = require('simple-git');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
-const { getFilePath, extractRelativePath } = require('./filePath');
-const DvcClient = require('./DvcClient');
 
 /**
  * @typedef {import('./types').FileMeta} FileMeta
@@ -20,32 +22,16 @@ const DvcClient = require('./DvcClient');
  * @typedef {{ [path: string]: T }} ByPath
  */
 
-/** @type {(pattern: string, cwd: string) => Promise<string[]>} */
-const glob = (pattern, cwd) =>
-    new Promise((res, rej) =>
-        _glob(pattern, { cwd }, (err, matches) =>
-            err ? rej(err) : res(matches)
-        )
-    );
-
-class Repository {
+class Repository extends _Repository {
     /**
      * @param {string} repositoryName
      * @param {config} config
      * @param {string} rootDir
      */
     constructor(repositoryName, config, rootDir) {
-        /** @type {import('simple-git').SimpleGit} */
-        this.gitClient = null;
+        super(repositoryName, rootDir);
         this.config = config;
-        this.repositoryName = repositoryName;
-        this.rootDir = rootDir;
-        this.dvc = new DvcClient(this.cwd, this.repositoryUrl);
         this.generateDvcConfig = dvcConfig(this.config);
-    }
-
-    getLog() {
-        return this.gitClient.log();
     }
 
     async _setupDvcRepository() {
@@ -70,20 +56,12 @@ class Repository {
         return this.dvc.enrichMeta(filePath, dvcContent, 'hkube', nextMeta);
     }
 
-    setupHkubeFile() {
-        const content = { repositoryName: this.repositoryName };
-        return fse.writeFile(
-            `${this.cwd}/.dvc/hkube`,
-            JSON.stringify(content, null, 2)
-        );
-    }
-
     async setup() {
         await fse.ensureDir(`${this.cwd}/data`);
         const git = simpleGit({ baseDir: this.cwd });
         await git.init().addRemote('origin', this.repositoryUrl);
         await this._setupDvcRepository();
-        await this.setupHkubeFile();
+        await this.createHkubeFile();
         await git.add('.');
         const response = await git.commit('initialized');
         await git.push(['--set-upstream', 'origin', 'master']);
@@ -99,6 +77,7 @@ class Repository {
                 this.repositoryUrl
             );
         }
+        // @ts-ignore
         this.gitClient = simpleGit({ baseDir: this.cwd });
         if (commitHash) await this.gitClient.checkout(commitHash);
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
@@ -110,10 +89,6 @@ class Repository {
             user: { name: userName, password },
         } = this.config.git;
         return `http://${userName}:${password}@${endpoint}/hkube/${this.repositoryName}.git`;
-    }
-
-    get cwd() {
-        return `${this.rootDir}/${this.repositoryName}`;
     }
 
     /**
@@ -174,11 +149,6 @@ class Repository {
         );
 
         return null;
-    }
-
-    /** @type {(filePaths: string[]) => Promise<void>} */
-    pullFiles(filePaths) {
-        return this.dvc.pull(filePaths);
     }
 
     /** @param {SourceTargetArray[]} sourceTargetArray */
@@ -276,18 +246,6 @@ class Repository {
         return Object.fromEntries(entries);
     }
 
-    async push(commitMessage) {
-        await this.dvc.push();
-        await this.gitClient.add('.');
-        const { commit } = await this.gitClient.commit(commitMessage);
-        await this.gitClient.push();
-        return commit;
-    }
-
-    async cleanup() {
-        await fse.remove(this.cwd);
-    }
-
     /**
      * Filters files from a local copy of the repository
      *
@@ -311,10 +269,6 @@ class Repository {
         return Promise.all(
             metaFiles.map(filePath => fse.remove(`${this.cwd}/${filePath}`))
         );
-    }
-
-    async deleteClone() {
-        return fse.remove(this.cwd);
     }
 }
 

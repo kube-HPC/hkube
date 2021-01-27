@@ -1,9 +1,11 @@
 const { uid } = require('@hkube/uid');
 const fse = require('fs-extra');
 const archiver = require('archiver');
+const {
+    filePath: { getFilePath },
+} = require('@hkube/datasource-utils');
 const dbConnection = require('../db');
 const Repository = require('../utils/Repository');
-const { getFilePath } = require('../utils/filePath');
 const validator = require('../validation');
 
 /**
