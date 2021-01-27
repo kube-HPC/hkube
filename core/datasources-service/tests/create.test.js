@@ -9,6 +9,7 @@ let DATASOURCE_GIT_REPOS_DIR;
 
 describe('/datasource POST', () => {
     before(() => {
+        // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
     });
     describe('validation', () => {
@@ -33,8 +34,8 @@ describe('/datasource POST', () => {
             );
         });
         it('should throw validation error of data.name should be string', async () => {
-            // @ts-expect-error
             const response = await createDataSource({
+                // @ts-expect-error
                 body: { name: [1, 2] },
             });
             expect(response.body).to.have.property('error');
@@ -101,9 +102,7 @@ describe('/datasource POST', () => {
             const {
                 response: { statusCode },
                 body: dataSource,
-            } = await createDataSource({
-                body: { name },
-            });
+            } = await createDataSource({ body: { name } });
 
             expect(removeDirectoryMock.getCall(0).firstArg).to.match(
                 new RegExp(name)
@@ -115,6 +114,11 @@ describe('/datasource POST', () => {
             expect(dataSource.id).to.be.string;
             expect(dataSource.name).to.eq(name);
             expect(dataSource.files).to.have.lengthOf(1);
+            const hkubeFile = await fse.readFile(
+                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/hkube`,
+                'utf8'
+            );
+            expect(JSON.parse(hkubeFile)).to.eql({ repositoryName: name });
         });
         it('should create an empty dataSource', async () => {
             const name = uuid();

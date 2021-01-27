@@ -13,7 +13,9 @@ const sortBy = require('lodash.sortby');
 let DATASOURCE_GIT_REPOS_DIR;
 describe('/datasource/:name POST', () => {
     before(() => {
+        // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
+        // @ts-ignore
         STORAGE_DIR = global.testParams.STORAGE_DIR;
     });
     it('should throw missing filesAdded, filesDropped and mapping error', async () => {
@@ -154,7 +156,7 @@ describe('/datasource/:name POST', () => {
         expect(updatedVersion.files).to.have.lengthOf(1);
         expect(updatedVersion.files[0].name).to.eq('algorithms.json');
     });
-    it('should return status 200 if nothing was updated', async () => {
+    it.only('should return status 200 if nothing was updated', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
             body: { name },
@@ -211,7 +213,7 @@ describe('/datasource/:name POST', () => {
             expect(hasFiles).to.be.true;
         });
     });
-    it('should upload a file with meta data to a sub-dir', async () => {
+    it.only('should upload a file with meta data to a sub-dir', async () => {
         const name = uuid();
         await createDataSource({
             body: { name },

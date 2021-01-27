@@ -4,12 +4,22 @@ const fse = require('fs-extra');
 const qs = require('query-string');
 const sinon = require('sinon');
 const { request } = require('./request');
+/** @typedef {{ message: string; code: number }} ErrorResponse */
+/**
+ * @template T
+ * @typedef {Promise<{
+ *     body: T & { error: ErrorResponse };
+ *     response: { statusCode: number; body: T & { error: ErrorResponse } };
+ * }>} Response
+ */
 
 // a valid mongo ObjectID;
 const nonExistingId = '5f953d50dd38c8291924a0a3';
 const fileName = 'README-1.md';
 
+/** @param {{ name?: string; id?: string }} props */
 const setupUrl = ({ name, id }) => {
+    // @ts-ignore
     const uri = `${global.testParams.restUrl}/datasource`;
     return id && name
         ? `${uri}/${name}?id=${id}`
@@ -29,13 +39,14 @@ const setupUrl = ({ name, id }) => {
  *     body?: { name?: string };
  *     withFile?: boolean;
  *     fileNames?: string[];
- * }) => Promise<{ body: DataSource }>}
+ * }) => Response<DataSource>}
  */
 const createDataSource = ({
     body = {},
     withFile = true,
     fileNames = [fileName],
 } = {}) => {
+    // @ts-ignore
     const uri = `${global.testParams.restUrl}/datasource`;
     const formData = {
         ...body,
@@ -62,7 +73,7 @@ const createDataSource = ({
  *     }[];
  *     droppedFileIds?: string[];
  * }} props
- * @returns {Promise<{ body: DataSourceWithMeta }>}
+ * @returns {Response<DataSourceWithMeta>}
  */
 const updateVersion = async ({
     dataSourceName,
@@ -104,7 +115,7 @@ const updateVersion = async ({
 
 /**
  * @param {{ name?: string; id?: string }} query
- * @returns {Promise<{ body: DataSource }>}
+ * @returns {Response<DataSource>}
  */
 const fetchDataSource = ({ name, id }) => {
     const getOptions = {
@@ -133,6 +144,7 @@ const fetchDataSourceVersions = ({ name }) => {
 };
 
 const createJob = async ({ dataSource }) => {
+    // @ts-ignore
     const config = global.testParams.config;
     const producer = new Producer({
         setting: {
@@ -162,7 +174,7 @@ const delay = d => new Promise(r => setTimeout(r, d));
  *     snapshotName?: string;
  *     shouldResolve?: boolean;
  * }} query
- * @returns {Promise<{ body: Snapshot }>}
+ * @returns {Response<Snapshot>}
  */
 const fetchSnapshot = ({
     dataSourceName,
@@ -178,7 +190,7 @@ const fetchSnapshot = ({
 
 /**
  * @param {{ dataSourceName: string }} query
- * @returns {Promise<{ body: Snapshot[] }>}
+ * @returns {Response<Snapshot[]>}
  */
 const fetchAllSnapshots = ({ dataSourceName }) =>
     request({
@@ -188,11 +200,11 @@ const fetchAllSnapshots = ({ dataSourceName }) =>
 
 /**
  * @param {{
- *     name: string;
+ *     name?: string;
  *     id?: string;
  *     snapshot: { name: string; query: string };
  * }} query
- * @returns {Promise<{ body: Snapshot }>}
+ * @returns {Response<Snapshot>}
  */
 const createSnapshot = ({ name, id, snapshot }) =>
     request({
@@ -202,7 +214,7 @@ const createSnapshot = ({ name, id, snapshot }) =>
 
 /**
  * @param {{ dataSourceId: string; fileIds: string[] }} query
- * @returns {Promise<{ body: { href: string } }>}
+ * @returns {Response<{ href: string }>}
  */
 const createDownloadLink = ({ dataSourceId, fileIds }) =>
     request({
@@ -212,9 +224,11 @@ const createDownloadLink = ({ dataSourceId, fileIds }) =>
     });
 
 /** @param {{ href: string } | { dataSourceId: string; downloadId: string }} props */
+// @ts-ignore
 const fetchDownloadLink = ({ dataSourceId, downloadId, href }) =>
     href
         ? request({
+              // @ts-ignore
               uri: `${global.testParams.restUrl}/${href}`,
               method: 'GET',
           })
@@ -230,11 +244,12 @@ const requestValidation = ({ name = null, id = null, snapshotName = null }) => {
         { id, name, snapshot_name: snapshotName },
         { skipNull: true }
     );
+    // @ts-ignore
     const url = `${global.testParams.restUrl}/datasource/validate?${query}`;
     return request({ uri: url.toString(), method: 'GET' });
 };
 
-/** @returns {Promise<{ body: FileMeta[] }>} */
+/** @returns {Response<FileMeta[]>} */
 const requestPreview = ({ dataSourceId, query }) =>
     request({
         uri: `${setupUrl({ id: dataSourceId })}/snapshot/preview`,

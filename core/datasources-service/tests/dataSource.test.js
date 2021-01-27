@@ -19,9 +19,10 @@ let DATASOURCE_GIT_REPOS_DIR, restUrl, restPath;
 
 describe('Datasource', () => {
     before(() => {
+        // @ts-ignore
         restUrl = global.testParams.restUrl;
+        // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
-        STORAGE_DIR = global.testParams.STORAGE_DIR;
         restPath = `${restUrl}/datasource`;
     });
     describe('datasource/id/:id GET', () => {
