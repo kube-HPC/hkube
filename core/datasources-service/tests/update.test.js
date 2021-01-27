@@ -156,7 +156,7 @@ describe('/datasource/:name POST', () => {
         expect(updatedVersion.files).to.have.lengthOf(1);
         expect(updatedVersion.files[0].name).to.eq('algorithms.json');
     });
-    it.only('should return status 200 if nothing was updated', async () => {
+    it('should return status 200 if nothing was updated', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
             body: { name },
@@ -213,7 +213,7 @@ describe('/datasource/:name POST', () => {
             expect(hasFiles).to.be.true;
         });
     });
-    it.only('should upload a file with meta data to a sub-dir', async () => {
+    it('should upload a file with meta data to a sub-dir', async () => {
         const name = uuid();
         await createDataSource({
             body: { name },

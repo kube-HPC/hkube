@@ -256,6 +256,10 @@ const requestPreview = ({ dataSourceId, query }) =>
         body: { query },
     });
 
+/** @returns {Response<DataSourceWithMeta>} */
+const syncDataSource = ({ name }) =>
+    request({ uri: `${setupUrl({ name })}/sync` });
+
 const mockRemove = () => {
     const removeMock = sinon.fake.resolves('The remove method is mocked!');
     sinon.replace(fse, 'remove', removeMock);
@@ -280,4 +284,5 @@ module.exports = {
     requestValidation,
     requestPreview,
     mockRemove,
+    syncDataSource,
 };

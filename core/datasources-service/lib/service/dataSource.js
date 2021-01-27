@@ -5,6 +5,7 @@ const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const { getFilePath } = require('../utils/filePath');
 const { createFileMeta } = require('./../utils/createFileMeta');
+const { ResourceNotFoundError } = require('../errors');
 
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
@@ -364,13 +365,55 @@ class DataSource {
 
     // eslint-disable-next-line
     async sync({ name }) {
-        // validator.dataSources.sync({ name });
-        // pull the repo
-        // list all the files and match dvc file and meta file
-        // ensure the .dvc file has the required content and append the meta content
-        // ISSUE:
-        // there will be missing file info - it can be fetched from the storage or fetch the file
-        // * consider, moving this behavior to the front-end
+        validator.dataSources.sync({ name });
+        const repository = new Repository(
+            name,
+            this.config,
+            this.config.directories.gitRepositories
+        );
+        try {
+            await repository.ensureClone();
+        } catch (error) {
+            await repository.deleteClone();
+            if (error.message.match(/not found/i)) {
+                throw new ResourceNotFoundError('datasource', name, error);
+            }
+            throw error;
+        }
+        const gitLog = await repository.getLog();
+        const { latest } = gitLog;
+        const files = await repository.scanDir();
+        const createdVersion = await this.db.dataSources.createVersion({
+            name,
+            versionDescription: latest.message,
+        });
+        const updatedDataSource = await this.db.dataSources.updateFiles({
+            id: createdVersion.id,
+            commitHash: latest.hash.slice(0, 7),
+            files,
+        });
+
+        const {
+            id,
+            versionDescription,
+            commitHash,
+            filesCount,
+            avgFileSize,
+            totalSize,
+            fileTypes,
+        } = updatedDataSource;
+
+        await repository.deleteClone();
+        return {
+            id,
+            name,
+            versionDescription,
+            commitHash,
+            filesCount,
+            avgFileSize,
+            totalSize,
+            fileTypes,
+        };
     }
 
     async list() {

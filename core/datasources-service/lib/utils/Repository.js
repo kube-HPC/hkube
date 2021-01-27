@@ -44,6 +44,10 @@ class Repository {
         this.generateDvcConfig = dvcConfig(this.config);
     }
 
+    getLog() {
+        return this.gitClient.log();
+    }
+
     async _setupDvcRepository() {
         await this.dvc.init();
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
@@ -196,9 +200,9 @@ class Repository {
 
     /** @returns {Promise<FileMeta[]>} */
     async scanDir() {
-        const metaFiles = await glob('**/*.dvc', this.cwd);
+        const dvcFiles = await glob('**/*.dvc', this.cwd);
         return Promise.all(
-            metaFiles.map(async filePath => {
+            dvcFiles.map(async filePath => {
                 const content = await this.dvc.loadDvcContent(filePath);
                 const { hash, ...meta } = content.meta.hkube;
                 return {
