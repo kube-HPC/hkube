@@ -2,12 +2,8 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
-const {
-    createDataSource,
-    fetchDataSource,
-    updateVersion,
-    mockRemove,
-} = require('./utils');
+const { mockDeleteClone } = require('./utils');
+const { createDataSource, fetchDataSource, updateVersion } = require('./api');
 const sortBy = require('lodash.sortby');
 
 let DATASOURCE_GIT_REPOS_DIR;
@@ -69,7 +65,7 @@ describe('/datasource/:name POST', () => {
     it('should upload multiple files to the dataSource', async () => {
         const name = uuid();
         await createDataSource({ body: { name } });
-        mockRemove();
+        mockDeleteClone();
         const { response: uploadResponse } = await updateVersion({
             dataSourceName: name,
             files: [
@@ -198,7 +194,7 @@ describe('/datasource/:name POST', () => {
 
         const fileNames = ['algorithm spaces.json', 'algorithms.json'];
 
-        mockRemove();
+        mockDeleteClone();
         const { body: dataSource } = await updateVersion({
             dataSourceName: name,
             fileNames,

@@ -3,16 +3,12 @@ const { uid: uuid } = require('@hkube/uid');
 const fse = require('fs-extra');
 const waitFor = require('./waitFor');
 const { getDatasourcesInUseFolder } = require('../lib/utils/pathUtils');
+const { mockRemove } = require('./utils');
+const { createDataSource, createSnapshot, createJob } = require('./api');
 
 /** @type {import('../lib/service/jobs-consumer')} */
 let jobConsumer;
 
-const {
-    createDataSource,
-    createSnapshot,
-    createJob,
-    mockRemove,
-} = require('./utils');
 let rootDir = null;
 
 const waitForStatus = async ({ jobId, taskId }, status) => {

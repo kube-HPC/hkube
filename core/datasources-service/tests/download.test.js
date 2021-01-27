@@ -8,7 +8,7 @@ const {
     updateVersion,
     createDownloadLink,
     fetchDownloadLink,
-} = require('./utils');
+} = require('./api');
 
 let ZIP_DIRECTORY;
 

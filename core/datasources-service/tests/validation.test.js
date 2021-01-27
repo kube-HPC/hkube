@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const { requestValidation, nonExistingId } = require('./utils');
+const { nonExistingId } = require('./utils');
+const { requestValidation } = require('./api');
 const setupDataSource = require('./setupDataSource');
 
 /** @type {import('@hkube/db/lib/DataSource').DataSource} */

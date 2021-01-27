@@ -1,5 +1,5 @@
 const { uid } = require('@hkube/uid');
-const { createDataSource, createSnapshot } = require('./utils');
+const { createDataSource, createSnapshot } = require('./api');
 
 const generateSnapshot = (name, query) => ({
     name,

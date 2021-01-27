@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
-const { syncDataSource, createDataSource } = require('./utils');
+const { syncDataSource, createDataSource } = require('./api');
 
 describe('sync', () => {
     describe('validation', () => {

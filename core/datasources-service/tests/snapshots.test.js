@@ -6,7 +6,7 @@ const {
     fetchAllSnapshots,
     createDataSource,
     requestPreview,
-} = require('./utils');
+} = require('./api');
 const setupDataSource = require('./setupDataSource');
 const { uid } = require('@hkube/uid');
 const sortBy = require('lodash.sortby');
