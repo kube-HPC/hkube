@@ -248,7 +248,8 @@ class DataSource {
         await repository.moveExistingFiles(groups.movedFiles);
         await repository.dropFiles(dropped, currentFiles);
         /** Cleanups: - drop empty git ignore files */
-        const commit = await repository.push(commitMessage);
+        const commit = await repository.commit(commitMessage);
+        await repository.push();
         const finalMapping = await repository.scanDir();
         return {
             commitHash: commit,
