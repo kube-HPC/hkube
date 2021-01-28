@@ -16,6 +16,13 @@ const runRaw = ({ nodes, name = pipelineName }) => {
     };
     return request(options);
 };
+const getJob = (jobId) => {
+    const options = {
+        uri: `${restPath}/exec/pipelines/${jobId}`,
+        method: 'GET'
+    };
+    return request(options);
+};
 
 describe('DataSources', () => {
     before(() => {
@@ -29,7 +36,7 @@ describe('DataSources', () => {
         const qs3 = querystring.stringify({ id: 'non-exist' });
         const qs4 = querystring.stringify({ name: 'exist', snapshot_name: 'non-exist' });
         const qs5 = querystring.stringify({ name: 'non-exist' });
-        nock(serviceURI).persist().get(`/validate?${qs0}`).reply(200);
+        nock(serviceURI).persist().get(`/validate?${qs0}`).reply(200, { id: '123' });
         nock(serviceURI).persist().get(`/validate?${qs1}`).reply(200);
         nock(serviceURI).persist().get(`/validate?${qs2}`).reply(200);
         nock(serviceURI).persist().get(`/validate?${qs3}`).reply(400, { error: { code: 400, message: 'id non-exist Not Found' } });
@@ -134,6 +141,36 @@ describe('DataSources', () => {
             };
             const response = await runRaw(pipeline);
             expect(response.body).to.have.property('jobId');
+        });
+        it('should update pipeline.dataSource descriptor to id when running by name only', async () => {
+            const pipeline = {
+                nodes: [{
+                    nodeName: 'A',
+                    kind: 'dataSource',
+                    dataSource: { name: 'exist' }
+                }, {
+                    nodeName: 'B',
+                    kind: 'dataSource',
+                    dataSource: { id: 'exist' }
+                }, {
+                    nodeName: 'C',
+                    kind: 'dataSource',
+                    dataSource:
+                    {
+                        name: 'exist',
+                        snapshot: {
+                            name: 'exist'
+                        }
+                    }
+                }]
+            };
+            const response = await runRaw(pipeline);
+            expect(response.body).to.have.property('jobId');
+            const job = await getJob(response.body.jobId);
+            const [byName, ...rest] = job.body.nodes;
+            expect(byName.dataSource).to.not.haveOwnProperty('name');
+            expect(byName.dataSource).to.haveOwnProperty('id');
+            expect(rest).to.eql(pipeline.nodes.slice(1).map(node => ({ ...node, input: [] })));
         });
         it('should success to exec pipeline with data-source snapshotName', async () => {
             const pipeline = {
