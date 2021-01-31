@@ -147,6 +147,7 @@ describe('DataSources', () => {
                 nodes: [{
                     nodeName: 'A',
                     kind: 'dataSource',
+                    // this dataSource should be replaced to an id
                     dataSource: { name: 'exist' }
                 }, {
                     nodeName: 'B',
@@ -170,6 +171,7 @@ describe('DataSources', () => {
             const [byName, ...rest] = job.body.nodes;
             expect(byName.dataSource).to.not.haveOwnProperty('name');
             expect(byName.dataSource).to.haveOwnProperty('id');
+            expect(byName.dataSource.id).to.eql('123');
             expect(rest).to.eql(pipeline.nodes.slice(1).map(node => ({ ...node, input: [] })));
         });
         it('should success to exec pipeline with data-source snapshotName', async () => {
