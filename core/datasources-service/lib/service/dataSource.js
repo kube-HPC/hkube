@@ -11,7 +11,7 @@ const getFilePath = require('../utils/getFilePath');
  * @typedef {import('./../utils/types').NormalizedFileMeta} NormalizedFileMeta
  * @typedef {import('./../utils/types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./../utils/types').config} config
- * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
+ * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem
  * @typedef {{ createdPath: string; fileName: string }} uploadFileResponse
  * @typedef {{ name?: string; id?: string }} NameOrId
  */
@@ -102,6 +102,7 @@ class DataSource {
                 }
 
                 const {
+                    // @ts-ignore
                     [tmpFileName]: droppedId,
                     ...nextMapping
                 } = acc.normalizedAddedFiles;

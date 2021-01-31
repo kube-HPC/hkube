@@ -45,7 +45,7 @@ class DvcClient {
         return this._execute('push', '-r', storageName || this.storageName);
     }
 
-    /** @param {string[]=} file */
+    /** @param {string[]=} filePaths */
     pull(filePaths = []) {
         return filePaths.length > 0
             ? typeof filePaths === 'string'

@@ -1,13 +1,12 @@
 const fse = require('fs-extra');
 const { parse: parsePath } = require('path');
-const _glob = require('glob');
 const { default: simpleGit } = require('simple-git');
 const yaml = require('js-yaml');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
 const getFilePath = require('./getFilePath');
 const DvcClient = require('./DvcClient');
-
+const glob = require('./glob');
 /**
  * @typedef {import('./types').FileMeta} FileMeta
  * @typedef {import('./types').MulterFile} MulterFile
@@ -21,14 +20,6 @@ const extractRelativePath = filePath => {
     if (response === '') return '/';
     return `/${response}`;
 };
-
-/** @type {(pattern: string, cwd: string) => string[]} */
-const glob = (pattern, cwd) =>
-    new Promise((res, rej) =>
-        _glob(pattern, { cwd }, (err, matches) =>
-            err ? rej(err) : res(matches)
-        )
-    );
 
 /**
  * @template T
@@ -50,7 +41,6 @@ class Repository {
         this.generateDvcConfig = dvcConfig(this.config);
     }
 
-    /** @param {string} name */
     async _setupDvcRepository() {
         await this.dvc.init();
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
@@ -157,8 +147,8 @@ class Repository {
         return null;
     }
 
-    /** @type {(filePaths: string[]) => Promise<void>} */
-    pullFiles(filePaths) {
+    /** @type {(filePaths?: string[]) => Promise<void>} */
+    pullFiles(filePaths = []) {
         return this.dvc.pull(filePaths);
     }
 
