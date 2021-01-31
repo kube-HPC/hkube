@@ -80,6 +80,11 @@ class StreamService extends EventEmitter {
             this._adapters.report(d);
         });
     }
+
+    get isMaster() {
+        const masters = this._adapters?.getMasters();
+        return masters?.length > 0;
+    }
 }
 
 module.exports = new StreamService();

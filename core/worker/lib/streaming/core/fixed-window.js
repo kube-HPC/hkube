@@ -24,6 +24,10 @@ class FixedWindow {
     get items() {
         return this._array;
     }
+
+    get size() {
+        return this._array.length;
+    }
 }
 
 module.exports = FixedWindow;

@@ -36,6 +36,10 @@ class StreamHandler extends EventEmitter {
     reportStats(data) {
         streamService.reportStats(data);
     }
+
+    get isMaster() {
+        return streamService.isMaster;
+    }
 }
 
 module.exports = new StreamHandler();

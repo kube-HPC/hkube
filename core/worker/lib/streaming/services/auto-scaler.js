@@ -99,6 +99,7 @@ class AutoScaler {
         for (const stat of this._statistics) {
             const { source, data } = stat;
             currentSize = data.currentSize || discovery.countInstances(target);
+            const windowSize = data.requests.size;
             const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.calcRates(data);
 
             const metric = { source, target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses };
@@ -107,7 +108,10 @@ class AutoScaler {
             this._updateThroughput(metric);
             this._printRatesStats(metric);
 
-            if (!this._isStateful) {
+            // in case new scaler is up with not enough statistics, we will continue to accumulate
+            const newScaleStats = currentSize > 0 && windowSize < this._config.maxSizeWindow;
+
+            if (!this._isStateful && !newScaleStats) {
                 const result = this._getScaleDetails({ source, reqRate, resRate, durationsRate, currentSize });
                 if (result.up) {
                     upList.push({ source, count: result.up, reason: result.reason });
@@ -127,7 +131,7 @@ class AutoScaler {
         this._pendingScale.check(currentSize);
 
         if (upList.length > 0 && downList.length > 0) {
-            log.warning(`scaling collision detected, node ${upList[0].source} scale up ${upList[0].count}, and node ${downList[0].source} scale down ${downList[0].count}, scaling up...`, { component });
+            log.throttle.warning(`scaling collision detected, node ${upList[0].source} scale up ${upList[0].count}, and node ${downList[0].source} scale down ${downList[0].count}, scaling up...`, { component });
             scaleUp = this._createScaleUp(upList, currentSize);
         }
         else if (upList.length > 0) {
@@ -315,8 +319,10 @@ class AutoScaler {
             return null;
         }
         this._logScaling({ action: 'down', ...scale });
-        const { replicas } = scale;
-        const instances = discovery.getInstances(this._nodeName);
+        const { replicas, scaleTo } = scale;
+        const discoveryWorkers = discovery.getInstances(this._nodeName);
+        // we will prefer not to scale-down masters, unless we scaling down to zero
+        const instances = scaleTo === 0 ? discoveryWorkers : discoveryWorkers.filter(d => !d.isMaster);
         const workers = instances.slice(0, replicas);
         return Promise.all(workers.map(w => stateAdapter.stopWorker({ workerId: w.workerId })));
     }
