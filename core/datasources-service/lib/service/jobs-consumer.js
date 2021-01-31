@@ -23,7 +23,8 @@ class JobConsumer {
     }
 
     /**
-     * Init the consumer and register for jobs, initialize connection to the state manager
+     * Init the consumer and register for jobs, initialize connection to the
+     * state manager
      *
      * @param {config} config
      */
@@ -45,6 +46,7 @@ class JobConsumer {
         /** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
         this.db = dbConnection.connection;
         await this.state.startWatch();
+        // @ts-ignore
         this.consumer.on(
             'job',
             /** @type {onJobHandler} */
@@ -89,11 +91,11 @@ class JobConsumer {
         await this.setActive(job);
 
         let dataSource;
-        const { snapshot } = dataSourceDescriptor;
-
         let resolvedSnapshot;
+
         try {
-            if (snapshot) {
+            if (dataSourceDescriptor.snapshot) {
+                const { snapshot } = dataSourceDescriptor;
                 resolvedSnapshot = await this.db.snapshots.fetchDataSource({
                     snapshotName: snapshot.name,
                     dataSourceName: dataSourceDescriptor.name,
@@ -104,13 +106,15 @@ class JobConsumer {
                         `${dataSourceDescriptor.name}:${snapshot.name}`
                     );
                 dataSource = resolvedSnapshot.dataSource;
+            } else if (dataSourceDescriptor.id) {
+                dataSource = await this.db.dataSources.fetch({
+                    id: dataSourceDescriptor.id,
+                });
             } else {
-                const shouldGetLatest = !dataSourceDescriptor.version;
-                dataSource = await this.db.dataSources.fetch(
-                    shouldGetLatest
-                        ? { name: dataSourceDescriptor.name }
-                        : { id: dataSourceDescriptor.version }
-                );
+                return this.handleFail({
+                    ...job,
+                    error: 'invalid datasource descriptor',
+                });
             }
         } catch (e) {
             return this.handleFail({ ...job, error: e.message });
