@@ -78,9 +78,13 @@ describe('Kubernetes API', () => {
         expect(res).to.have.property('clusterOptions');
     });
     it('should throw', async () => {
-        await instance.init(optionsDummy);
-        const { versions } = await instance.getVersionsConfigMap();
-        expect(versions).to.be.undefined
+        try {
+            await instance.init(optionsDummy);
+            await instance.getVersionsConfigMap();
+            expect.fail();
+        } catch (error) {
+            expect(error.message).to.eql('Invalid URI "no.such.url/api/v1/namespaces/default/configmaps/hkube-versions"');     
+        }
     });
     it('should get nodes and pods', async () => {
         const res = await instance.getResourcesPerNode();
