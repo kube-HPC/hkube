@@ -102,14 +102,8 @@ class KubernetesApi extends EventEmitter {
     }
 
     async getVersionsConfigMap() {
-        try {
-            const res = await this._client.configMaps.get({ name: 'hkube-versions' });
-            return this._client.configMaps.extractConfigMap(res);
-        }
-        catch (error) {
-            log.error(`unable to get configmap. error: ${error.message}`, { component }, error);
-            return {};
-        }
+        const res = await this._client.configMaps.get({ name: 'hkube-versions' });
+        return this._client.configMaps.extractConfigMap(res);
     }
 
     async deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name }, type) {
