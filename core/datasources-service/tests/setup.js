@@ -12,11 +12,7 @@ before(async function () {
     /** @type {import('./../lib/utils/types').config} */
     const config = await bootstrap.init();
     const storage = new storageManager.StorageManager();
-    await storage.init(
-        { ...config},
-        null,
-        true
-    );
+    await storage.init({ ...config }, null, true);
     const baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
     const restUrl = `${baseUrl}/${config.rest.prefix}/v1`;
     const internalUrl = `${baseUrl}/internal/v1`;
