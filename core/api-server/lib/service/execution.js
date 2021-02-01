@@ -61,7 +61,13 @@ class ExecutionService {
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }
-        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' && mergeFlowInput ? undefined : src || obj));
+        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => {
+            // by default we are not merging the stored flowInput with the payload flowInput
+            if (key === 'flowInput' && !mergeFlowInput) {
+                return src;
+            }
+            return undefined;
+        });
         return this._run({ pipeline: newPipeline, jobId, rootJobId, options: { parentSpan }, types });
     }
 
