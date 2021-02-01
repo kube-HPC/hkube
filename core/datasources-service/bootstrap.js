@@ -14,6 +14,7 @@ const modules = [
     require('./lib/service/downloads'),
     require('./lib/service/validation'),
     require('./lib/service/jobs-consumer'),
+    require('./lib/service/cleanup')
 ];
 
 class Bootstrap {

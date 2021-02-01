@@ -247,6 +247,12 @@ const mockRemove = () => {
     return removeMock;
 };
 
+const requestCleanup = () =>
+    request({
+        uri: `${global.testParams.restUrl}/datasource/cleanup`,
+        method: 'DELETE',
+    });
+
 module.exports = {
     fetchDataSource,
     deleteDataSource,
@@ -265,4 +271,5 @@ module.exports = {
     requestValidation,
     requestPreview,
     mockRemove,
+    requestCleanup,
 };
