@@ -1,5 +1,8 @@
 
 const mockery = require('mockery');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+chai.use(chaiAsPromised);
 const etcd = require('../lib/helpers/etcd');
 const { callCount, mock, clearCount } = (require('./mocks/kubernetes.mock')).kubernetes();
 const templateStore = require('./stub/templateStore');
