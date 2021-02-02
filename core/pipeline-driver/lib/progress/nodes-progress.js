@@ -101,7 +101,7 @@ class ProgressManager {
     _calcProgressStream(options) {
         const edges = this._getGraphEdges();
         const { reduceStates, textStates } = options;
-        const throughput = edges.filter(n => n.value.throughput).map(n => n.value.throughput);
+        const throughput = edges.filter(n => n.value.metrics).map(n => n.value.metrics.throughput);
         const progress = median(throughput);
         const states = reduceStates;
         const details = textStates;

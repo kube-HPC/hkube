@@ -49,8 +49,8 @@ class MasterAdapter extends Adapter {
         await stateAdapter.unWatchStreamingStats({ jobId: this.jobId, nodeName: this.nodeName });
     }
 
-    getThroughput() {
-        return this._autoScaler.getThroughput();
+    getMetrics() {
+        return this._autoScaler.getMetrics();
     }
 
     scale() {

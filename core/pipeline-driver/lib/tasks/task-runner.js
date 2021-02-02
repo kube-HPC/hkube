@@ -622,8 +622,9 @@ class TaskRunner extends EventEmitter {
         if (!this._active) {
             return;
         }
-        task.throughput.forEach((t) => {
-            this._nodes.updateEdge(t.source, t.target, { throughput: t.throughput });
+        task.metrics.forEach((t) => {
+            const { source, target, ...metrics } = t;
+            this._nodes.updateEdge(t.source, t.target, { metrics });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }

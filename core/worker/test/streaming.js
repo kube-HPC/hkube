@@ -127,8 +127,8 @@ const autoScale = () => {
     return masters[0].scale();
 }
 
-const checkThroughput = () => {
-    return streamService._throughput._checkThroughput();
+const checkMetrics = () => {
+    return streamService._metrics._checkMetrics();
 }
 
 describe('Streaming', () => {
@@ -616,8 +616,8 @@ describe('Streaming', () => {
             expect(durations.items).to.have.lengthOf(maxSizeWindow);
         });
     });
-    describe('throughput', () => {
-        it('should scale and update throughput', async () => {
+    describe('metrics', () => {
+        it('should scale and update metrics', async () => {
             const nodeName = 'D';
             const scale = async (stats) => {
                 streamService.reportStats(stats);
@@ -632,10 +632,10 @@ describe('Streaming', () => {
             const stats = [stat];
             await scale(stats);
             autoScale();
-            const throughput = checkThroughput()[0];
-            expect(throughput.source).to.eql('C');
-            expect(throughput.target).to.eql('D');
-            expect(throughput.throughput).to.eql(percent);
+            const metrics = checkMetrics()[0];
+            expect(metrics.source).to.eql('C');
+            expect(metrics.target).to.eql('D');
+            expect(metrics.throughput).to.eql(percent);
         });
     });
     describe('master-slaves', () => {
@@ -705,10 +705,10 @@ describe('Streaming', () => {
             await delay(500);
 
             const { scaleUp, scaleDown } = autoScale();
-            const throughput = checkThroughput();
+            const metrics = checkMetrics();
 
-            expect(throughput.map(t => t.source).sort()).to.eql(['A', 'B', 'C']);
-            expect(throughput).to.have.lengthOf(3);
+            expect(metrics.map(t => t.source).sort()).to.eql(['A', 'B', 'C']);
+            expect(metrics).to.have.lengthOf(3);
             expect(scaleUp.currentSize).to.eql(currentSize);
             expect(scaleUp.nodes).to.have.lengthOf(4);
             expect(scaleUp.replicas).to.eql(2);
@@ -719,14 +719,14 @@ describe('Streaming', () => {
             expect(streamService._jobData).to.be.not.null;
             expect(streamService._election).to.be.not.null;
             expect(streamService._adapters).to.be.not.null;
-            expect(streamService._throughput).to.be.not.null;
+            expect(streamService._metrics).to.be.not.null;
             expect(streamService._scalerService).to.be.not.null;
             expect(streamService._active).to.eql(true);
             await streamService.finish(job);
             expect(streamService._jobData).to.be.null;
             expect(streamService._election).to.be.null;
             expect(streamService._adapters).to.be.null;
-            expect(streamService._throughput).to.be.null;
+            expect(streamService._metrics).to.be.null;
             expect(streamService._scalerService).to.be.null;
             await streamService.start(job);
         });

@@ -1,5 +1,5 @@
 const Logger = require('@hkube/logger');
-const { median } = require('@hkube/stats');
+const { median, sum } = require('@hkube/stats');
 const { MasterAdapter, SlaveAdapter } = require('./index');
 const { Components } = require('../../consts');
 let log;
@@ -57,25 +57,40 @@ class AdaptersProxy {
         return masters.map(m => m.scale());
     }
 
-    throughput() {
+    metrics() {
         const masters = this.getMasters();
         const result = [];
         masters.forEach(m => {
             const target = m.nodeName;
-            const throughput = m.getThroughput();
-            const sources = Object.entries(throughput).reduce((acc, [k, v]) => {
-                const [nodeName] = k.split('-');
-                if (!acc[nodeName]) {
-                    acc[nodeName] = [];
+            const metrics = m.getMetrics();
+            const sources = metrics.reduce((acc, cur) => {
+                const [source] = cur.source.split('-');
+                const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = cur;
+                if (!acc[source]) {
+                    acc[source] = [];
                 }
-                acc[nodeName].push(v);
+                let throughput = 0;
+                if (reqRate && resRate) {
+                    throughput = parseFloat(((resRate / reqRate) * 100).toFixed(2));
+                }
+                acc[source].push({ reqRate, resRate, durationsRate, totalRequests, totalResponses, throughput });
                 return acc;
             }, {});
             Object.entries(sources).forEach(([k, v]) => {
-                result.push({ source: k, target, throughput: median(v) });
+                const reqRate = this._formatNumber(median(v.map(r => r.reqRate)));
+                const resRate = this._formatNumber(median(v.map(r => r.resRate)));
+                const durationsRate = this._formatNumber(median(v.map(r => r.durationsRate)));
+                const totalRequests = sum(v.map(r => r.totalRequests));
+                const totalResponses = sum(v.map(r => r.totalResponses));
+                const throughput = this._formatNumber(median(v.map(r => r.throughput)));
+                result.push({ source: k, target, reqRate, resRate, durationsRate, totalRequests, totalResponses, throughput });
             });
         });
         return result;
+    }
+
+    _formatNumber(num) {
+        return parseFloat(num.toFixed(2));
     }
 
     getMasters() {

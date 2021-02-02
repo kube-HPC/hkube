@@ -163,8 +163,8 @@ class Worker {
             const reason = 'service discovery detected all parents down';
             this._scaleDown({ reason });
         });
-        streamHandler.on(streamingEvents.THROUGHPUT_CHANGED, (throughput) => {
-            jobConsumer.updateThroughput(throughput);
+        streamHandler.on(streamingEvents.METRICS_CHANGED, (metrics) => {
+            jobConsumer.updateMetrics(metrics);
         });
     }
 

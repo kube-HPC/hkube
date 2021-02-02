@@ -324,8 +324,8 @@ class JobConsumer extends EventEmitter {
         return this.updateStatus({ status: taskStatuses.STORING, result });
     }
 
-    updateThroughput(throughput) {
-        return this.updateStatus({ status: taskStatuses.THROUGHPUT, throughput });
+    updateMetrics(metrics) {
+        return this.updateStatus({ status: taskStatuses.THROUGHPUT, metrics });
     }
 
     currentTaskInfo() {

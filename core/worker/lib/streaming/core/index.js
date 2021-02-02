@@ -4,7 +4,6 @@ const Interval = require('./interval');
 const Metrics = require('./metrics');
 const PendingScale = require('./pending-scale');
 const ScaleReasons = require('./scale-reasons');
-const Throughput = require('./throughput');
 const Statistics = require('./statistics');
 
 module.exports = {
@@ -14,6 +13,5 @@ module.exports = {
     Metrics,
     PendingScale,
     ScaleReasons,
-    Throughput,
     Statistics
 };
