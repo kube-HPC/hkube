@@ -81,6 +81,7 @@ config.git = {
         name: process.env.GIT_USER_NAME || 'hkube',
         password: process.env.GIT_PASSWORD || '123456',
     },
+    organization: 'hkube',
     endpoint: process.env.GIT_ENDPOINT_URL || 'http://localhost:3010',
 };
 config.fs = {

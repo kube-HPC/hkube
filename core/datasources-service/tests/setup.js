@@ -28,7 +28,10 @@ before(async function () {
         DATASOURCE_GIT_REPOS_DIR,
         STORAGE_DIR,
         storage: config.s3,
-        git: { endpoint: gitConfig.endpoint, token: token.sha1 },
+        git: {
+            endpoint: gitConfig.endpoint,
+            token: token.sha1,
+        },
         directories: config.directories,
     };
 });

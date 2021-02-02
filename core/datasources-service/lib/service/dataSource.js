@@ -104,6 +104,7 @@ class DataSource {
                 }
 
                 const {
+                    // @ts-ignore
                     [tmpFileName]: droppedId,
                     ...nextMapping
                 } = acc.normalizedAddedFiles;
@@ -295,6 +296,7 @@ class DataSource {
             name,
             this.config,
             this.config.directories.gitRepositories,
+            createdVersion.repositoryUrl,
             createdVersion._credentials
         );
 
@@ -337,10 +339,15 @@ class DataSource {
             name,
             this.config,
             this.config.directories.gitRepositories,
+            null,
             { git, storage }
         );
         try {
-            await repository.setup();
+            const { repositoryUrl } = await repository.setup();
+            await this.db.dataSources.setRepositoryUrl(
+                { name },
+                { url: repositoryUrl }
+            );
             const { commitHash, files } = await this.commitChange({
                 repository,
                 commitMessage: 'initial upload',

@@ -31,6 +31,7 @@ const setupUrl = ({ name, id }) => {
  *     fileNames?: string[];
  *     ignoreGit?: boolean;
  *     ignoreStorage?: boolean;
+ *     useGitOrganization?: boolean;
  * }) => Promise<{ body: DataSource }>}
  */
 const createDataSource = ({
@@ -39,6 +40,7 @@ const createDataSource = ({
     fileNames = [fileName],
     ignoreGit = false,
     ignoreStorage = false,
+    useGitOrganization = false,
 } = {}) => {
     const { storage, git } = global.testParams;
     const uri = `${global.testParams.restUrl}/datasource`;
@@ -48,7 +50,16 @@ const createDataSource = ({
             ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`))
             : undefined,
         ...(ignoreStorage ? {} : { storage: JSON.stringify(storage) }),
-        ...(ignoreGit ? {} : { git: JSON.stringify(git) }),
+        ...(ignoreGit
+            ? {}
+            : {
+                  git: JSON.stringify({
+                      ...git,
+                      organization: useGitOrganization
+                          ? 'hkube-org'
+                          : undefined,
+                  }),
+              }),
     };
     const options = { uri, formData };
     return request(options);

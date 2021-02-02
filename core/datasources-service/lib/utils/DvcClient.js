@@ -3,9 +3,8 @@ const yaml = require('js-yaml');
 const Shell = require('./Shell');
 
 class DvcClient {
-    constructor(cwd, repositoryUrl, storageName = 'storage') {
+    constructor(cwd, storageName = 'storage') {
         this.cwd = cwd;
-        this.repositoryUrl = repositoryUrl;
         this._shell = Shell(cwd);
         this.storageName = storageName;
         this._execute = (...args) => this._shell('dvc', args.flat());

@@ -69,6 +69,7 @@ class Downloads {
             dataSource.name,
             this.config,
             `${this.config.directories.prepareForDownload}/${downloadId}`,
+            dataSource.repositoryUrl,
             dataSource._credentials
         );
 

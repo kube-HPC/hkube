@@ -3,11 +3,12 @@ const { parse: parsePath } = require('path');
 const _glob = require('glob');
 const { default: simpleGit } = require('simple-git');
 const yaml = require('js-yaml');
+const log = require('@hkube/logger').GetLogFromContainer();
+const { Octokit: GitRestClient } = require('@octokit/rest');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
 const getFilePath = require('./getFilePath');
 const DvcClient = require('./DvcClient');
-
 /**
  * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
  * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage
@@ -41,11 +42,16 @@ class Repository {
      * @param {string} repositoryName
      * @param {config} config
      * @param {string} rootDir
+     * @param {string} repositoryUrl
      * @param {{ git: ExternalGit; storage: ExternalStorage }} credentials
      */
-    constructor(repositoryName, config, rootDir, credentials) {
+    constructor(repositoryName, config, rootDir, repositoryUrl, credentials) {
         /** @type {import('simple-git').SimpleGit} */
         this.gitClient = null;
+        this.gitRestClient = new GitRestClient({
+            baseUrl: `${credentials.git.endpoint}/api/v1`,
+            auth: credentials.git.token,
+        });
         this.config = config;
         this.repositoryName = repositoryName;
         this.rootDir = rootDir;
@@ -55,15 +61,24 @@ class Repository {
             this.config.dvcStorage,
             this.storageConfig
         );
-        this.repositoryUrl = this._extractRepositoryUrl();
+        this.repositoryUrl = repositoryUrl;
         this.cwd = `${this.rootDir}/${this.repositoryName}`;
-        this.dvc = new DvcClient(this.cwd, this.repositoryUrl);
+        this.dvc = new DvcClient(this.cwd);
     }
 
-    _extractRepositoryUrl() {
-        const url = new URL(this.gitConfig.endpoint);
-        const { token } = this.gitConfig;
-        return `${url.protocol}//${token}@${url.host}/hkube/${this.repositoryName}.git`;
+    get repositoryUrl() {
+        return this._repositoryUrl;
+    }
+
+    /** @param {string} value */
+    set repositoryUrl(value) {
+        if (!value) {
+            this._repositoryUrl = null;
+        } else {
+            const url = new URL(value);
+            url.username = this.gitConfig.token;
+            this._repositoryUrl = url.toString();
+        }
     }
 
     async _setupDvcRepository() {
@@ -75,8 +90,38 @@ class Repository {
         return this.dvc.enrichMeta(getFilePath(fileMeta), 'hkube', metaData);
     }
 
+    async _createRemoteGitRepository() {
+        let response = null;
+        if (this.gitConfig.organization) {
+            log.debug(
+                `creating repository for organization ${this.gitConfig.organization}`
+            );
+            response = await this.gitRestClient.repos.createInOrg({
+                name: this.repositoryName,
+                org: this.gitConfig.organization,
+            });
+        } else {
+            log.debug(`creating repository for user`);
+            response = await this.gitRestClient.repos.createForAuthenticatedUser(
+                {
+                    private: true,
+                    name: this.repositoryName,
+                }
+            );
+        }
+        const repositoryUrl = response.data.clone_url;
+        this.repositoryUrl = repositoryUrl;
+        return repositoryUrl;
+    }
+
     async setup() {
         await fse.ensureDir(`${this.cwd}/data`);
+        let repositoryUrl = null;
+        try {
+            repositoryUrl = await this._createRemoteGitRepository();
+        } catch (error) {
+            throw new Error('failed creating remote repository');
+        }
         const git = simpleGit({ baseDir: `${this.cwd}` });
         await git.init();
         await git.addRemote('origin', this.repositoryUrl);
@@ -84,7 +129,11 @@ class Repository {
         await git.add('.');
         const response = await git.commit('initialized');
         await git.push(['--set-upstream', 'origin', 'master']);
-        return { ...response, commit: response.commit.replace(/(.+) /, '') };
+        return {
+            ...response,
+            commit: response.commit.replace(/(.+) /, ''),
+            repositoryUrl,
+        };
     }
 
     /** @param {string=} commitHash */

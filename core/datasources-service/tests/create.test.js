@@ -125,10 +125,7 @@ describe('/datasource POST', () => {
             const {
                 response: { statusCode },
                 body: dataSource,
-            } = await createDataSource({
-                body: { name },
-            });
-
+            } = await createDataSource({ body: { name } });
             expect(removeDirectoryMock.getCall(0).firstArg).to.match(
                 new RegExp(name)
             );
@@ -140,6 +137,7 @@ describe('/datasource POST', () => {
                 'fileTypes',
                 'commitHash',
                 'avgFileSize',
+                'repositoryUrl',
                 'versionDescription',
                 'filesCount',
                 'totalSize'
@@ -147,6 +145,23 @@ describe('/datasource POST', () => {
             expect(dataSource.id).to.be.string;
             expect(dataSource.name).to.eq(name);
             expect(dataSource.files).to.have.lengthOf(1);
+            expect(dataSource.repositoryUrl).to.match(/\/hkube\//i);
+        });
+        it('should create a datasource under a git organization', async () => {
+            const name = uuid();
+            const removeDirectoryMock = mockRemove();
+            const {
+                response: { statusCode },
+                body: dataSource,
+            } = await createDataSource({
+                body: { name },
+                useGitOrganization: true,
+            });
+            expect(removeDirectoryMock.getCall(0).firstArg).to.match(
+                new RegExp(name)
+            );
+            expect(statusCode).to.eql(HttpStatus.CREATED);
+            expect(dataSource.repositoryUrl).to.match(/\/hkube-org\//i);
         });
         it('should create an empty dataSource', async () => {
             const name = uuid();

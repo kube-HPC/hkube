@@ -122,6 +122,7 @@ class JobConsumer {
             dataSource.name,
             this.config,
             `${this.rootDir}/${dataSource.name}/${dataSource.id}`,
+            dataSource.repositoryUrl,
             dataSource._credentials
         );
 
