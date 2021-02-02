@@ -60,7 +60,7 @@ class Downloads {
             fileIds,
         });
         const downloadId = uid();
-        const dataSource = await this.db.dataSources.fetch({
+        const dataSource = await this.db.dataSources.fetchWithCredentials({
             id: dataSourceId,
         });
         const fileIdsSet = new Set(fileIds);
@@ -68,7 +68,8 @@ class Downloads {
         const repository = new Repository(
             dataSource.name,
             this.config,
-            `${this.config.directories.prepareForDownload}/${downloadId}`
+            `${this.config.directories.prepareForDownload}/${downloadId}`,
+            dataSource._credentials
         );
 
         /** @type {{ filesToKeep: FileMeta[]; filesToDrop: FileMeta[] }} */

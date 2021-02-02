@@ -42,10 +42,12 @@ const routes = () => {
             next();
         })
         .post(upload.array('files'), async (req, res, next) => {
-            const { name } = req.body;
+            const { name, storage, git } = req.body;
             try {
                 const response = await dataSource.create({
                     name,
+                    storage: storage ? JSON.parse(storage) : undefined,
+                    git: git ? JSON.parse(git) : undefined,
                     files: req.files,
                 });
                 res.status(HttpStatus.CREATED).json(response);

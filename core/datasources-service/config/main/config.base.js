@@ -76,21 +76,24 @@ config.s3 = {
     useSSL: false,
 };
 
-
 config.git = {
     user: {
         name: process.env.GIT_USER_NAME || 'hkube',
         password: process.env.GIT_PASSWORD || '123456',
     },
-    endpoint: process.env.GIT_ENDPOINT_URL || 'localhost:3010',
+    endpoint: process.env.GIT_ENDPOINT_URL || 'http://localhost:3010',
 };
 config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
-    baseDatasourcesDirectory: process.env.BASE_DATASOURCES_DIRECTORY || '/var/tmp/fs/datasources-storage'
+    baseDirectory:
+        process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+    baseDatasourcesDirectory:
+        process.env.BASE_DATASOURCES_DIRECTORY ||
+        '/var/tmp/fs/datasources-storage',
 };
 config.directories = {
     gitRepositories: 'temp/git-repositories',
-    dataSourcesInUse: process.env.DATASOURCES_IN_USE_FOLDER || 'dataSources-in-use',
+    dataSourcesInUse:
+        process.env.DATASOURCES_IN_USE_FOLDER || 'dataSources-in-use',
     prepareForDownload: 'temp/prepare-for-download',
     zipFiles: 'temp/zip-files',
 };

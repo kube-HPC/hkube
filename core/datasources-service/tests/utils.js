@@ -29,19 +29,26 @@ const setupUrl = ({ name, id }) => {
  *     body?: { name?: string };
  *     withFile?: boolean;
  *     fileNames?: string[];
+ *     ignoreGit?: boolean;
+ *     ignoreStorage?: boolean;
  * }) => Promise<{ body: DataSource }>}
  */
 const createDataSource = ({
     body = {},
     withFile = true,
     fileNames = [fileName],
+    ignoreGit = false,
+    ignoreStorage = false,
 } = {}) => {
+    const { storage, git } = global.testParams;
     const uri = `${global.testParams.restUrl}/datasource`;
     const formData = {
         ...body,
         files: withFile
             ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`))
             : undefined,
+        ...(ignoreStorage ? {} : { storage: JSON.stringify(storage) }),
+        ...(ignoreGit ? {} : { git: JSON.stringify(git) }),
     };
     const options = { uri, formData };
     return request(options);
@@ -247,6 +254,9 @@ const mockRemove = () => {
     return removeMock;
 };
 
+// a list of properties that should not be returned to the client
+const hiddenProperties = ['_id', '_credentials', 'isPartial'];
+
 module.exports = {
     fetchDataSource,
     deleteDataSource,
@@ -265,4 +275,5 @@ module.exports = {
     requestValidation,
     requestPreview,
     mockRemove,
+    hiddenProperties,
 };

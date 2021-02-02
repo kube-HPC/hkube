@@ -1,5 +1,4 @@
 const { expect } = require('chai');
-const pathLib = require('path');
 const { uid: uuid } = require('@hkube/uid');
 const fse = require('fs-extra');
 const waitFor = require('./waitFor');

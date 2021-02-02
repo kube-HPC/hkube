@@ -9,6 +9,8 @@ const getFilePath = require('./getFilePath');
 const DvcClient = require('./DvcClient');
 
 /**
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage
  * @typedef {import('./types').FileMeta} FileMeta
  * @typedef {import('./types').MulterFile} MulterFile
  * @typedef {import('./types').NormalizedFileMeta} NormalizedFileMeta
@@ -39,18 +41,31 @@ class Repository {
      * @param {string} repositoryName
      * @param {config} config
      * @param {string} rootDir
+     * @param {{ git: ExternalGit; storage: ExternalStorage }} credentials
      */
-    constructor(repositoryName, config, rootDir) {
+    constructor(repositoryName, config, rootDir, credentials) {
         /** @type {import('simple-git').SimpleGit} */
         this.gitClient = null;
         this.config = config;
         this.repositoryName = repositoryName;
         this.rootDir = rootDir;
+        this.gitConfig = credentials.git;
+        this.storageConfig = credentials.storage;
+        this.generateDvcConfig = dvcConfig(
+            this.config.dvcStorage,
+            this.storageConfig
+        );
+        this.repositoryUrl = this._extractRepositoryUrl();
+        this.cwd = `${this.rootDir}/${this.repositoryName}`;
         this.dvc = new DvcClient(this.cwd, this.repositoryUrl);
-        this.generateDvcConfig = dvcConfig(this.config);
     }
 
-    /** @param {string} name */
+    _extractRepositoryUrl() {
+        const url = new URL(this.gitConfig.endpoint);
+        const { token } = this.gitConfig;
+        return `${url.protocol}//${token}@${url.host}/hkube/${this.repositoryName}.git`;
+    }
+
     async _setupDvcRepository() {
         await this.dvc.init();
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
@@ -63,7 +78,8 @@ class Repository {
     async setup() {
         await fse.ensureDir(`${this.cwd}/data`);
         const git = simpleGit({ baseDir: `${this.cwd}` });
-        await git.init().addRemote('origin', this.repositoryUrl);
+        await git.init();
+        await git.addRemote('origin', this.repositoryUrl);
         await this._setupDvcRepository();
         await git.add('.');
         const response = await git.commit('initialized');
@@ -83,18 +99,6 @@ class Repository {
         this.gitClient = simpleGit({ baseDir: this.cwd });
         if (commitHash) await this.gitClient.checkout(commitHash);
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
-    }
-
-    get repositoryUrl() {
-        const {
-            endpoint,
-            user: { name: userName, password },
-        } = this.config.git;
-        return `http://${userName}:${password}@${endpoint}/hkube/${this.repositoryName}.git`;
-    }
-
-    get cwd() {
-        return `${this.rootDir}/${this.repositoryName}`;
     }
 
     /**

@@ -24,7 +24,7 @@ describe('snapshots', () => {
         restPath = `${restUrl}/datasource`;
     });
     describe('create', () => {
-        /** @type */
+        /** @type {DataSource} */
         let dataSource = null;
         before(async () => {
             const { body: _dataSource } = await createDataSource({

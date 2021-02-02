@@ -12,6 +12,30 @@ describe('/datasource POST', () => {
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
     });
     describe('validation', () => {
+        it('should throw missing git information', async () => {
+            const name = uuid();
+            const response = await createDataSource({
+                body: { name: name },
+                ignoreGit: true,
+            });
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.eq(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.match(
+                /should have required property 'git'/i
+            );
+        });
+        it('should throw missing storage information', async () => {
+            const name = uuid();
+            const response = await createDataSource({
+                body: { name: name },
+                ignoreStorage: true,
+            });
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.eq(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.match(
+                /should have required property 'storage'/i
+            );
+        });
         it('should throw validation error of required property name', async () => {
             const response = await createDataSource();
             expect(response.body).to.have.property('error');
@@ -33,8 +57,8 @@ describe('/datasource POST', () => {
             );
         });
         it('should throw validation error of data.name should be string', async () => {
-            // @ts-expect-error
             const response = await createDataSource({
+                // @ts-expect-error
                 body: { name: [1, 2] },
             });
             expect(response.body).to.have.property('error');
@@ -109,9 +133,17 @@ describe('/datasource POST', () => {
                 new RegExp(name)
             );
             expect(statusCode).to.eql(HttpStatus.CREATED);
-            expect(dataSource).to.have.property('id');
-            expect(dataSource).to.have.property('name');
-            expect(dataSource).to.have.property('files');
+            expect(dataSource).to.have.keys(
+                'id',
+                'name',
+                'files',
+                'fileTypes',
+                'commitHash',
+                'avgFileSize',
+                'versionDescription',
+                'filesCount',
+                'totalSize'
+            );
             expect(dataSource.id).to.be.string;
             expect(dataSource.name).to.eq(name);
             expect(dataSource.files).to.have.lengthOf(1);

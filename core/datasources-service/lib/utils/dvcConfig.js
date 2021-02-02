@@ -1,9 +1,13 @@
 const storage = require('@hkube/storage-manager');
-/** @typedef {import('./types').config} Config */
 
-/** @param {Config} config */
+/** @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage */
+
+/** @param {ExternalStorage} config */
 const S3Config = ({
-    s3: { endpoint, accessKeyId, secretAccessKey, useSSL },
+    endpoint,
+    accessKeyId,
+    secretAccessKey,
+    useSSL,
 }) => repositoryName => `
 ['remote "storage"']
     url = s3://${storage.hkubeDataSource.prefix}/${repositoryName}
@@ -19,9 +23,14 @@ const configMap = {
     s3: S3Config,
 };
 
-/** @type {(config: Config) => (repositoryName: string) => string} */
-module.exports = config => {
-    const generator = configMap[config.dvcStorage];
+/**
+ * @type {(
+ *     type: string,
+ *     config: ExternalStorage
+ * ) => (repositoryName: string) => string}
+ */
+module.exports = (type, config) => {
+    const generator = configMap[type];
     if (!generator) {
         throw new Error(
             `Invalid config.dvcStorage, the available options are ${Object.keys(

@@ -12,6 +12,8 @@ const getFilePath = require('../utils/getFilePath');
  * @typedef {import('./../utils/types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./../utils/types').config} config
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage;
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit;
  * @typedef {{ createdPath: string; fileName: string }} uploadFileResponse
  * @typedef {{ name?: string; id?: string }} NameOrId
  */
@@ -292,7 +294,8 @@ class DataSource {
         const repository = new Repository(
             name,
             this.config,
-            this.config.directories.gitRepositories
+            this.config.directories.gitRepositories,
+            createdVersion._credentials
         );
 
         const { commitHash, files } = await this.commitChange({
@@ -313,16 +316,28 @@ class DataSource {
         });
     }
 
-    /** @param {{ name: string; files: MulterFile[] }} query */
-    async create({ name, files: _files }) {
-        validator.dataSources.create({ name, files: _files });
-        const createdDataSource = await this.db.dataSources.create({ name });
+    /**
+     * @param {{
+     *     name: string;
+     *     files: MulterFile[];
+     *     git: ExternalGit;
+     *     storage: ExternalStorage;
+     * }} query
+     */
+    async create({ name, git, storage, files: _files }) {
+        validator.dataSources.create({ name, git, storage, files: _files });
+        const createdDataSource = await this.db.dataSources.create({
+            name,
+            git,
+            storage,
+        });
         let updatedDataSource;
         /** @type {Repository} */
         const repository = new Repository(
             name,
             this.config,
-            this.config.directories.gitRepositories
+            this.config.directories.gitRepositories,
+            { git, storage }
         );
         try {
             await repository.setup();

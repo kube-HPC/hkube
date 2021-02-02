@@ -7,6 +7,7 @@ const {
     fetchDataSource,
     updateVersion,
     mockRemove,
+    hiddenProperties,
 } = require('./utils');
 const sortBy = require('lodash.sortby');
 
@@ -47,6 +48,9 @@ describe('/datasource/:name POST', () => {
             fileNames: [secondFileName],
         });
         const { body: updatedVersion } = uploadResponse;
+        hiddenProperties.forEach(prop => {
+            expect(updatedVersion).not.to.haveOwnProperty(prop);
+        });
         expect(firstVersion.id).not.to.eq(updatedVersion.id);
         expect(firstVersion.name).to.eq(updatedVersion.name);
         const { files } = updatedVersion;
@@ -181,6 +185,7 @@ describe('/datasource/:name POST', () => {
             mapping: [existingFile],
         });
         const { body: updatedDataSource } = uploadResponse;
+
         expect(dataSource.commitHash).not.to.eq(updatedDataSource.commitHash);
         expect(dataSource.files.length).to.eq(updatedDataSource.files.length);
 

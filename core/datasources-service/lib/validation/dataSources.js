@@ -1,13 +1,25 @@
 const dbConnect = require('../db');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
-/** @typedef {import('express')} Express */
+/**
+ * @typedef {import('express')} Express
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage;
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit;
+ * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta;
+ */
 
 class DataSources {
     constructor(validator) {
         this._validator = validator;
     }
 
-    /** @param {{ name: string; files: Express.Multer.File[] }} props */
+    /**
+     * @param {{
+     *     name: string;
+     *     files: Express.Multer.File[];
+     *     git: ExternalGit;
+     *     storage: ExternalStorage;
+     * }} props
+     */
     create(props) {
         const files = Array.isArray(props.files)
             ? props.files.map(file => file.originalname)
@@ -25,7 +37,7 @@ class DataSources {
      *     versionDescription: string;
      *     files: {
      *         mapping: FileMeta[];
-     *         added: MulterFile[];
+     *         added: Express.Multer.File[];
      *         dropped: string[];
      *     };
      * }} props

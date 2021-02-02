@@ -31,6 +31,7 @@
         "simple-git": "^2.24.0"
     },
     "devDependencies": {
+        "axios": "^0.21.1",
         "chai": "^4.2.0",
         "coveralls": "^3.0.11",
         "eslint": "^6.8.0",

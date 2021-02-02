@@ -94,10 +94,12 @@ class JobConsumer {
         let resolvedSnapshot;
         try {
             if (snapshot) {
-                resolvedSnapshot = await this.db.snapshots.fetchDataSource({
-                    snapshotName: snapshot.name,
-                    dataSourceName: dataSourceDescriptor.name,
-                });
+                resolvedSnapshot = await this.db.snapshots.fetchDataSourceWithCredentials(
+                    {
+                        snapshotName: snapshot.name,
+                        dataSourceName: dataSourceDescriptor.name,
+                    }
+                );
                 if (!resolvedSnapshot)
                     throw new ResourceNotFoundError(
                         'snapshot',
@@ -106,7 +108,7 @@ class JobConsumer {
                 dataSource = resolvedSnapshot.dataSource;
             } else {
                 const shouldGetLatest = !dataSourceDescriptor.version;
-                dataSource = await this.db.dataSources.fetch(
+                dataSource = await this.db.dataSources.fetchWithCredentials(
                     shouldGetLatest
                         ? { name: dataSourceDescriptor.name }
                         : { id: dataSourceDescriptor.version }
@@ -119,7 +121,8 @@ class JobConsumer {
         const repository = new Repository(
             dataSource.name,
             this.config,
-            `${this.rootDir}/${dataSource.name}/${dataSource.id}`
+            `${this.rootDir}/${dataSource.name}/${dataSource.id}`,
+            dataSource._credentials
         );
 
         try {
