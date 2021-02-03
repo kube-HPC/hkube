@@ -8,7 +8,10 @@ const _calcRate = (list) => {
     const last = list[list.length - 1];
     const timeDiff = (last.time - first.time) / 1000;
     const countDiff = last.count - first.count;
-    const rate = countDiff / timeDiff;
+    let rate = 0;
+    if (countDiff && timeDiff) {
+        rate = countDiff / timeDiff;
+    }
     return rate;
 };
 

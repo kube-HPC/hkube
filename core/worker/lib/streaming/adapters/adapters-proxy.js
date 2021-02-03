@@ -61,30 +61,8 @@ class AdaptersProxy {
         const masters = this.getMasters();
         const result = [];
         masters.forEach(m => {
-            const target = m.nodeName;
             const metrics = m.getMetrics();
-            const sources = metrics.reduce((acc, cur) => {
-                const [source] = cur.source.split('-');
-                const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = cur;
-                if (!acc[source]) {
-                    acc[source] = [];
-                }
-                let throughput = 0;
-                if (reqRate && resRate) {
-                    throughput = parseFloat(((resRate / reqRate) * 100).toFixed(2));
-                }
-                acc[source].push({ reqRate, resRate, durationsRate, totalRequests, totalResponses, throughput });
-                return acc;
-            }, {});
-            Object.entries(sources).forEach(([k, v]) => {
-                const reqRate = this._formatNumber(median(v.map(r => r.reqRate)));
-                const resRate = this._formatNumber(median(v.map(r => r.resRate)));
-                const durationsRate = this._formatNumber(median(v.map(r => r.durationsRate)));
-                const totalRequests = sum(v.map(r => r.totalRequests));
-                const totalResponses = sum(v.map(r => r.totalResponses));
-                const throughput = this._formatNumber(median(v.map(r => r.throughput)));
-                result.push({ source: k, target, reqRate, resRate, durationsRate, totalRequests, totalResponses, throughput });
-            });
+            result.push(...metrics);
         });
         return result;
     }

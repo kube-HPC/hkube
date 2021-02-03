@@ -7,7 +7,7 @@ class Adapter {
     constructor(options) {
         this.isMaster = options.isMaster;
         this.jobId = options.jobId;
-        this.source = `${options.source}-${uid()}`; // uid because multiple sources have the same node name
+        this.source = `${options.source}-${options.jobId}-${uid()}`; // uid because multiple sources have the same node name
         this.nodeName = options.nodeName;
     }
 }

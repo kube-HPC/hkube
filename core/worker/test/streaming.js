@@ -6,7 +6,7 @@ const streamHandler = require('../lib/streaming/services/stream-handler');
 const streamService = require('../lib/streaming/services/stream-service');
 const discovery = require('../lib/streaming/services/service-discovery');
 const SlaveAdapter = require('../lib/streaming/adapters/slave-adapter');
-const { ScaleReasonsCodes, ScaleReasonsMessages } = require('../lib/streaming/core/scale-reasons');
+const { ScaleReasonsCodes } = require('../lib/streaming/core/scale-reasons');
 
 
 const pipeline = {
@@ -216,6 +216,43 @@ describe('Streaming', () => {
             expect(scaleUp.replicas).to.eql(1);
             expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
             expect(scaleDown).to.be.null;
+        });
+        it.only('should scale based on queueSize only', async () => {
+            const scale = async (data) => {
+                data[0].currentSize = 1;
+                data[0].queueSize += 500;
+                data[0].responses += 200;
+                streamService.reportStats(data);
+            }
+            const list = [{
+                nodeName: 'D',
+                queueSize: 500,
+                responses: 200
+            }];
+            await scale(list);
+            await delay(50);
+            await scale(list);
+            await delay(50);
+            await scale(list);
+            await delay(50);
+            await scale(list);
+            const scale1 = autoScale();
+            const scale2 = autoScale();
+            const scale3 = autoScale();
+
+            await delay(200);
+            const scale4 = autoScale();
+
+            expect(scale1.scaleUp).to.be.null;
+            expect(scale1.scaleDown).to.be.null;
+            expect(scale2.scaleUp).to.be.null;
+            expect(scale2.scaleDown).to.be.null;
+            expect(scale3.scaleUp).to.be.null;
+            expect(scale3.scaleDown).to.be.null;
+            expect(scale4.scaleUp.replicas).to.eql(2);
+            expect(scale4.scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
+            expect(scale4.scaleDown).to.be.null;
+
         });
         it('should scale based on queueSize and responses only', async () => {
             const scale = async (data) => {

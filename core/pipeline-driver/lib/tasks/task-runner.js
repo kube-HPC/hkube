@@ -648,9 +648,6 @@ class TaskRunner extends EventEmitter {
         else if (this._nodes.isAllNodesCompleted()) {
             this.stop();
         }
-        else if (task.isScaled) {
-            this._nodes.removeTaskFromBatch(task);
-        }
     }
 
     _isStreamingDone(task) {
@@ -691,7 +688,12 @@ class TaskRunner extends EventEmitter {
             this._nodes.updateAlgorithmExecution(task);
         }
         else if (isScaled) {
-            this._nodes.addTaskToBatch(task);
+            if (status === taskStatuses.ACTIVE) {
+                this._nodes.addTaskToBatch(task);
+            }
+            else {
+                this._nodes.removeTaskFromBatch(task);
+            }
         }
 
         this._updateTaskState(taskId, task);

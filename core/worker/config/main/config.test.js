@@ -9,6 +9,7 @@ config.streaming = {
     autoScaler: {
         interval: 60000,
         minTimeWaitForReplicaUp: 0,
+        minTimeWaitBeforeScaleUp: 100,
         maxSizeWindow: 4,
         maxScaleUpReplicas: 10,
         minRatioToScaleUp: 1.2,

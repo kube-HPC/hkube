@@ -1,5 +1,6 @@
 const { parser } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
+const { median, sum } = require('@hkube/stats');
 const { stateType } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
 const { Statistics, PendingScale, ScaleReasons, Metrics, IdleMarker } = require('../core');
@@ -90,14 +91,36 @@ class AutoScaler {
         let currentSize = 0;
         const target = this._nodeName;
         const sources = [];
+        const stats = Object.create(null);
 
         for (const stat of this._statistics) {
             const { source, data } = stat;
-            currentSize = data.currentSize || discovery.countInstances(target);
             const windowSize = data.requests.size;
-            const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.calcRates(data);
+            currentSize = data.currentSize || discovery.countInstances(target);
+            const [nodeName] = source.split(`-${this._options.jobId}-`);
+            const rates = Metrics.calcRates(data);
+            if (!stats[nodeName]) {
+                stats[nodeName] = { windowSize, rates: [] };
+            }
+            rates.throughput = 0;
+            if (rates.reqRate && rates.resRate) {
+                rates.throughput = parseFloat(((rates.resRate / rates.reqRate) * 100).toFixed(2));
+            }
+            stats[nodeName].rates.push(rates);
+        }
 
-            const metric = { source, target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses };
+        Object.entries(stats).forEach(([k, v]) => {
+            const source = k;
+            const { rates, windowSize } = v;
+            const reqRate = this._formatNumber(median(rates.map(r => r.reqRate)));
+            const resRate = this._formatNumber(median(rates.map(r => r.resRate)));
+            const durationsRate = this._formatNumber(median(rates.map(r => r.durationsRate)));
+            const totalRequests = sum(rates.map(r => r.totalRequests));
+            const totalResponses = sum(rates.map(r => r.totalResponses));
+            const throughput = this._formatNumber(median(rates.map(r => r.throughput)));
+            const requiredUp = this._pendingScale.requiredUp || 0;
+            const requiredDown = this._pendingScale.requiredDown || 0;
+            const metric = { source, target, currentSize, requiredUp, requiredDown, reqRate, resRate, durationsRate, totalRequests, totalResponses, throughput };
             metrics.push(metric);
             sources.push(source);
             this._printRatesStats(metric);
@@ -114,10 +137,14 @@ class AutoScaler {
                     downList.push({ source, count: result.down, reason: result.reason });
                 }
             }
-        }
+        });
         this._metrics = metrics;
         const { scaleUp, scaleDown } = this._resolveConflicts(upList, downList, sources, currentSize);
         return { scaleUp, scaleDown };
+    }
+
+    _formatNumber(num) {
+        return parseFloat(num.toFixed(2));
     }
 
     _resolveConflicts(upList, downList, sources, currentSize) {
@@ -140,12 +167,16 @@ class AutoScaler {
 
     _createScaleUp(upList, currentSize) {
         let scaleUp = null;
-        const up = this._findMaxIndex(upList);
+        const up = this._findMinIndex(upList);
         const count = Math.min(this._config.maxScaleUpTotalReplicas, up.count);
+
         if (this._pendingScale.canScaleUp(count)) {
-            const scaleTo = currentSize + count;
-            scaleUp = { source: up.source, replicas: count, currentSize, scaleTo, reason: up.reason, nodes: upList.map(l => l.count) };
-            this._pendingScale.updateRequiredUp(count);
+            this._pendingScale.markAsCandidateScaleUp();
+            if (this._pendingScale.isMinTimeWaitBeforeScaleUp() || currentSize === 0) {
+                const scaleTo = currentSize + count;
+                scaleUp = { source: up.source, replicas: count, currentSize, scaleTo, reason: up.reason, nodes: upList.map(l => l.count) };
+                this._pendingScale.updateRequiredUp(count);
+            }
         }
         return scaleUp;
     }
@@ -186,7 +217,7 @@ class AutoScaler {
     }
 
     _printRatesStats(metric) {
-        const [source] = metric.source.split('-');
+        const { source } = metric;
         if (!this._statsPrint[source] || Date.now() - this._statsPrint[source] >= this._config.logStatsInterval) {
             const { target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses } = metric;
             const req = this._pendingScale.required;
