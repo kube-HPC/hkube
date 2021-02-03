@@ -1,5 +1,7 @@
 const fse = require('fs-extra');
 const sinon = require('sinon');
+const storageManager = require('@hkube/storage-manager');
+
 const DATASOURCE_GIT_REPOS_DIR = 'temp/git-repositories';
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
@@ -12,6 +14,8 @@ before(async function () {
     const bootstrap = require('../bootstrap');
     /** @type {import('./../lib/utils/types').config} */
     const config = await bootstrap.init();
+    const storage = new storageManager.StorageManager();
+    await storage.init({ ...config }, null, true);
     const baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
     const restUrl = `${baseUrl}/${config.rest.prefix}/v1`;
     const internalUrl = `${baseUrl}/internal/v1`;
@@ -19,6 +23,7 @@ before(async function () {
         user: { name: userName, password },
         endpoint,
     } = config.git;
+    // @ts-ignore
     global.testParams = {
         restUrl,
         internalUrl,

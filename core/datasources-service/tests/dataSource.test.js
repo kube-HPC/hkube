@@ -6,22 +6,23 @@ const sinon = require('sinon');
 const { default: axios } = require('axios');
 const { request } = require('./request');
 const dbConnection = require('../lib/db');
+const { nonExistingId, mockDeleteClone } = require('./utils');
 const {
     createDataSource,
     fetchDataSource,
     deleteDataSource,
     updateVersion,
-    nonExistingId,
     fetchDataSourceVersions,
-    mockRemove,
-} = require('./utils');
-let DATASOURCE_GIT_REPOS_DIR, restUrl, restPath, gitUrl;
+} = require('./api');
+
+let DATASOURCE_GIT_REPOS_DIR, restUrl, restPath;
 
 describe('Datasource', () => {
     before(() => {
+        // @ts-ignore
         restUrl = global.testParams.restUrl;
+        // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
-        STORAGE_DIR = global.testParams.STORAGE_DIR;
         restPath = `${restUrl}/datasource`;
         gitUrl = global.testParams.gitUrl;
     });
@@ -173,7 +174,7 @@ describe('Datasource', () => {
             expect(fileTypes).to.have.lengthOf([...new Set(fileTypes)].length);
         });
     });
-    describe('datasource/:name DELETE', () => {
+    describe.skip('datasource/:name DELETE', () => {
         it('should throw not found on delete by name', async () => {
             const name = uuid();
             const delRes = await deleteDataSource({ name });
@@ -220,11 +221,11 @@ describe('Datasource', () => {
     describe('/datasource/:name/versions GET', () => {
         it('should fetch the versions listing of a datasource', async () => {
             const name = uuid();
-            const mockedRemove = mockRemove();
+            const deleteClone = mockDeleteClone();
             const { body: dataSource } = await createDataSource({
                 body: { name },
             });
-            expect(mockedRemove.callCount).to.be.gt(1);
+            expect(deleteClone.callCount).to.eq(1);
             const [existingFile] = dataSource.files;
             expect(
                 await fse.pathExists(
@@ -235,7 +236,6 @@ describe('Datasource', () => {
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`
             );
             expect(fileStats.size).to.eq(107);
-            mockedRemove.resetHistory();
             const uploadResponse = await updateVersion({
                 dataSourceName: name,
                 fileNames: ['updatedVersions/README-1.md'],
@@ -244,7 +244,7 @@ describe('Datasource', () => {
             const { body: versionsList } = await fetchDataSourceVersions({
                 name,
             });
-            expect(mockedRemove.callCount).to.be.gt(1);
+            expect(deleteClone.callCount).to.eq(2);
             expect(versionsList).to.have.lengthOf(2);
             // validates the order of the array
             const [, latestVersion] = versionsList;

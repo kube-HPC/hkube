@@ -18,3 +18,5 @@
   - core/trigger-service/**/*
 "HKube: Worker":
   - core/worker/**/*
+"HKube: Datasources":
+  - core/datasources-service/**/*

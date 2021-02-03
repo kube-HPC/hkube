@@ -3,12 +3,14 @@ const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const validationMessages = require('../lib/consts/validationMessages.js');
-const { createDataSource, mockRemove } = require('./utils');
+const { createDataSource } = require('./api');
+const { mockRemove, mockDeleteClone } = require('./utils');
 
 let DATASOURCE_GIT_REPOS_DIR;
 
 describe('/datasource POST', () => {
     before(() => {
+        // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
     });
     describe('validation', () => {
@@ -33,8 +35,8 @@ describe('/datasource POST', () => {
             );
         });
         it('should throw validation error of data.name should be string', async () => {
-            // @ts-expect-error
             const response = await createDataSource({
+                // @ts-expect-error
                 body: { name: [1, 2] },
             });
             expect(response.body).to.have.property('error');
@@ -97,17 +99,12 @@ describe('/datasource POST', () => {
     describe('create', () => {
         it("should create a new dataSource and return it's newly created id and files list", async () => {
             const name = uuid();
-            const removeDirectoryMock = mockRemove();
+            const deleteClone = mockDeleteClone();
             const {
                 response: { statusCode },
                 body: dataSource,
-            } = await createDataSource({
-                body: { name },
-            });
-
-            expect(removeDirectoryMock.getCall(0).firstArg).to.match(
-                new RegExp(name)
-            );
+            } = await createDataSource({ body: { name } });
+            expect(deleteClone.getCalls()).to.have.lengthOf(1);
             expect(statusCode).to.eql(HttpStatus.CREATED);
             expect(dataSource).to.have.property('id');
             expect(dataSource).to.have.property('name');
@@ -115,6 +112,16 @@ describe('/datasource POST', () => {
             expect(dataSource.id).to.be.string;
             expect(dataSource.name).to.eq(name);
             expect(dataSource.files).to.have.lengthOf(1);
+            const hkubeFile = await fse.readFile(
+                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/hkube`,
+                'utf8'
+            );
+            expect(JSON.parse(hkubeFile)).to.eql({ repositoryName: name });
+            const config = fse.readFileSync(
+                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config.local`,
+                'utf8'
+            );
+            expect(config).to.match(new RegExp(name));
         });
         it('should create an empty dataSource', async () => {
             const name = uuid();
@@ -144,16 +151,6 @@ describe('/datasource POST', () => {
             expect(secondResponse.body.error.message).to.contain(
                 'already exists'
             );
-        });
-        it('should configure storage for the datasource', async () => {
-            const name = uuid();
-            mockRemove();
-            await createDataSource({ body: { name } });
-            const config = fse.readFileSync(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config.local`,
-                'utf8'
-            );
-            expect(config).to.match(new RegExp(name));
         });
         it('should upload a file with meta data', async () => {
             const name = uuid();

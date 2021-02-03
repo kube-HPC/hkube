@@ -1,13 +1,17 @@
 const dbConnect = require('../db');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
-/** @typedef {import('express')} Express */
+/**
+ * @typedef {import('express')} Express
+ * @typedef {import('../utils/types').FileMeta} FileMeta
+ * @typedef {Express.Multer.File[]} MulterFile
+ */
 
 class DataSources {
     constructor(validator) {
         this._validator = validator;
     }
 
-    /** @param {{ name: string; files: Express.Multer.File[] }} props */
+    /** @param {{ name: string; files: MulterFile[] }} props */
     create(props) {
         const files = Array.isArray(props.files)
             ? props.files.map(file => file.originalname)
@@ -49,6 +53,13 @@ class DataSources {
     delete(props) {
         this._validator.validate(
             this._validator.definitions.deleteRequest,
+            props
+        );
+    }
+
+    sync(props) {
+        this._validator.validate(
+            this._validator.definitions.syncRequest,
             props
         );
     }

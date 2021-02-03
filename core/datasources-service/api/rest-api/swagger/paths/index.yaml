@@ -4,6 +4,8 @@
     $ref: ./byName.yaml
 /datasource/{name}/versions:
     $ref: ./versions.yaml
+/datasource/{name}/sync:
+    $ref: ./sync.yaml
 /datasource/id/{id}/snapshot:
     $ref: ./snapshots/byDataSourceId.yaml
 /datasource/id/{id}/snapshot/preview:
