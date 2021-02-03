@@ -6,23 +6,16 @@ const {
     fetchAllSnapshots,
     createDataSource,
     requestPreview,
-} = require('./utils');
+} = require('./api');
 const setupDataSource = require('./setupDataSource');
 const { uid } = require('@hkube/uid');
 const sortBy = require('lodash.sortby');
 
-let restUrl;
 /**
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
  */
 describe('snapshots', () => {
-    before(() => {
-        restUrl = global.testParams.restUrl;
-        DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
-        STORAGE_DIR = global.testParams.STORAGE_DIR;
-        restPath = `${restUrl}/datasource`;
-    });
     describe('create', () => {
         /** @type */
         let dataSource = null;
@@ -66,7 +59,7 @@ describe('snapshots', () => {
     describe('fetch', () => {
         /** @type {DataSource} */
         let dataSource = null;
-        /** @type {Snapshot[]} */
+        /** @type {{ name: string; query: string }[]} */
         let generatedSnapshots = null;
         /** @type {Snapshot[]} */
         let createdSnapshots = null;

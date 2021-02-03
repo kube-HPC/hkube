@@ -45,6 +45,8 @@ deleteRequest:
     $ref: ./delete.request.yaml
 update:
     $ref: ./update.yaml
+syncRequest:
+    $ref: ./sync.request.yaml
 
 CreateDownloadLinkRequest:
     $ref: ./DownloadLink.request.yaml

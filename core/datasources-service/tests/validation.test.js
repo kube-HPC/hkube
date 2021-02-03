@@ -1,9 +1,9 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const { requestValidation, nonExistingId } = require('./utils');
+const { nonExistingId } = require('./utils');
+const { requestValidation } = require('./api');
 const setupDataSource = require('./setupDataSource');
 
-let restUrl;
 /** @type {import('@hkube/db/lib/DataSource').DataSource} */
 let dataSource;
 /** @type {import('@hkube/db/lib/Snapshots').Snapshot[]} */
@@ -11,10 +11,10 @@ let createdSnapshots;
 
 describe('validation', () => {
     before(async () => {
-        restUrl = global.testParams.restUrl;
+        // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
+        // @ts-ignore
         STORAGE_DIR = global.testParams.STORAGE_DIR;
-        restPath = `${restUrl}/datasource`;
         const {
             dataSource: _dataSource,
             createdSnapshots: _createdSnapshots,
