@@ -47,11 +47,13 @@ class Repository extends RepositoryBase {
         const nextMeta = { ...(metaData || {}) };
         const filePath = getFilePath(fileMeta);
         const dvcContent = await this.dvc.loadDvcContent(filePath);
-        if (dvcContent?.meta?.hkube?.hash === dvcContent.outs[0].md5) {
-            // retain the id and upload time if no actual change was made to the file
-            // avoids "faking" a change to git if no actual change was made
-            nextMeta.id = dvcContent.meta.hkube.id;
-            nextMeta.uploadedAt = dvcContent.meta.hkube.uploadedAt;
+        if (dvcContent?.meta?.hkube?.hash) {
+            if (dvcContent.meta.hkube.hash === dvcContent.outs[0].md5) {
+                // retain the id and upload time if no actual change was made to the file
+                // avoids "faking" a change to git if no actual change was made
+                nextMeta.id = dvcContent.meta.hkube.id;
+                nextMeta.uploadedAt = dvcContent.meta.hkube.uploadedAt;
+            }
         }
         return this.dvc.enrichMeta(filePath, dvcContent, 'hkube', nextMeta);
     }
