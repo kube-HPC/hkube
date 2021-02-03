@@ -1,0 +1,20 @@
+post:
+    tags:
+        - DataSource
+    summary: sync a version from git to the database
+    parameters:
+        - $ref: '#/components/parameters/nameParam'
+    requestBody:
+        content:
+            application/json:
+                schema:
+                    $ref: '#/components/schemas/syncRequest'
+        description: DataSource name
+        required: true
+    responses:
+        '201':
+            description: new datasource version
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/DataSourceWithMeta'

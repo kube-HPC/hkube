@@ -227,8 +227,8 @@ const routes = () => {
 
     router.post('/:name/sync', async (req, res, next) => {
         const { name } = req.params;
-        const createdVersions = await dataSource.sync({ name });
-        res.status(201).json({ dataSource: createdVersions });
+        const createdVersion = await dataSource.sync({ name });
+        res.status(201).json(createdVersion);
         next();
     });
     router.use(dbErrorsMiddleware);

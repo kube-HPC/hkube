@@ -1,43 +1,31 @@
 const fse = require('fs-extra');
 const { parse: parsePath } = require('path');
-const _glob = require('glob');
-const { default: simpleGit } = require('simple-git');
-const yaml = require('js-yaml');
-const log = require('@hkube/logger').GetLogFromContainer();
 const { Octokit: GitRestClient } = require('@octokit/rest');
+const Log = require('@hkube/logger');
+const {
+    glob,
+    Repository: RepositoryBase,
+    filePath: { extractRelativePath, getFilePath },
+} = require('@hkube/datasource-utils');
+const { default: simpleGit } = require('simple-git');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
-const getFilePath = require('./getFilePath');
-const DvcClient = require('./DvcClient');
 /**
  * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
  * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage
  * @typedef {import('./types').FileMeta} FileMeta
+ * @typedef {import('./types').LocalFileMeta} LocalFileMeta
  * @typedef {import('./types').MulterFile} MulterFile
  * @typedef {import('./types').NormalizedFileMeta} NormalizedFileMeta
  * @typedef {import('./types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./types').config} config
  */
-
-const extractRelativePath = filePath => {
-    const response = parsePath(filePath.replace('data/', '')).dir;
-    if (response === '') return '/';
-    return `/${response}`;
-};
-
-/** @type {(pattern: string, cwd: string) => string[]} */
-const glob = (pattern, cwd) =>
-    new Promise((res, rej) =>
-        _glob(pattern, { cwd }, (err, matches) =>
-            err ? rej(err) : res(matches)
-        )
-    );
-
 /**
  * @template T
  * @typedef {{ [path: string]: T }} ByPath
  */
-class Repository {
+
+class Repository extends RepositoryBase {
     /**
      * @param {string} repositoryName
      * @param {config} config
@@ -46,15 +34,12 @@ class Repository {
      * @param {{ git: ExternalGit; storage: ExternalStorage }} credentials
      */
     constructor(repositoryName, config, rootDir, repositoryUrl, credentials) {
-        /** @type {import('simple-git').SimpleGit} */
-        this.gitClient = null;
+        super(repositoryName, rootDir, repositoryName);
         this.gitRestClient = new GitRestClient({
             baseUrl: `${credentials.git.endpoint}/api/v1`,
             auth: credentials.git.token,
         });
         this.config = config;
-        this.repositoryName = repositoryName;
-        this.rootDir = rootDir;
         this.gitConfig = credentials.git;
         this.storageConfig = credentials.storage;
         this.generateDvcConfig = dvcConfig(
@@ -62,8 +47,7 @@ class Repository {
             this.storageConfig
         );
         this.repositoryUrl = repositoryUrl;
-        this.cwd = `${this.rootDir}/${this.repositoryName}`;
-        this.dvc = new DvcClient(this.cwd);
+        this.log = Log.GetLogFromContainer(config.serviceName);
     }
 
     get repositoryUrl() {
@@ -86,14 +70,29 @@ class Repository {
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
     }
 
-    _enrichDvcFile(fileMeta, metaData) {
-        return this.dvc.enrichMeta(getFilePath(fileMeta), 'hkube', metaData);
+    /**
+     * @param {FileMeta} fileMeta
+     * @param {LocalFileMeta} metaData
+     */
+    async _enrichDvcFile(fileMeta, metaData) {
+        const nextMeta = { ...(metaData || {}) };
+        const filePath = getFilePath(fileMeta);
+        const dvcContent = await this.dvc.loadDvcContent(filePath);
+        if (dvcContent?.meta?.hkube?.hash) {
+            if (dvcContent.meta.hkube.hash === dvcContent.outs[0].md5) {
+                // retain the id and upload time if no actual change was made to the file
+                // avoids "faking" a change to git if no actual change was made
+                nextMeta.id = dvcContent.meta.hkube.id;
+                nextMeta.uploadedAt = dvcContent.meta.hkube.uploadedAt;
+            }
+        }
+        return this.dvc.enrichMeta(filePath, dvcContent, 'hkube', nextMeta);
     }
 
     async _createRemoteGitRepository() {
         let response = null;
         if (this.gitConfig.organization) {
-            log.debug(
+            this.log.debug(
                 `creating repository for organization ${this.gitConfig.organization}`
             );
             response = await this.gitRestClient.repos.createInOrg({
@@ -101,7 +100,7 @@ class Repository {
                 org: this.gitConfig.organization,
             });
         } else {
-            log.debug(`creating repository for user`);
+            this.log.debug(`creating repository for user`);
             response = await this.gitRestClient.repos.createForAuthenticatedUser(
                 {
                     private: true,
@@ -126,6 +125,7 @@ class Repository {
         await git.init();
         await git.addRemote('origin', this.repositoryUrl);
         await this._setupDvcRepository();
+        await this.createHkubeFile();
         await git.add('.');
         const response = await git.commit('initialized');
         await git.push(['--set-upstream', 'origin', 'master']);
@@ -145,6 +145,7 @@ class Repository {
                 this.repositoryUrl
             );
         }
+        // @ts-ignore
         this.gitClient = simpleGit({ baseDir: this.cwd });
         if (commitHash) await this.gitClient.checkout(commitHash);
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
@@ -210,11 +211,6 @@ class Repository {
         return null;
     }
 
-    /** @type {(filePaths: string[]) => Promise<void>} */
-    pullFiles(filePaths) {
-        return this.dvc.pull(filePaths);
-    }
-
     /** @param {SourceTargetArray[]} sourceTargetArray */
     async moveExistingFiles(sourceTargetArray) {
         if (sourceTargetArray.length === 0) return null;
@@ -234,13 +230,11 @@ class Repository {
 
     /** @returns {Promise<FileMeta[]>} */
     async scanDir() {
-        const metaFiles = await glob('**/*.dvc', this.cwd);
+        const dvcFiles = await glob('**/*.dvc', this.cwd);
         return Promise.all(
-            metaFiles.map(async filePath => {
-                const content = yaml.load(
-                    await fse.readFile(`${this.cwd}/${filePath}`)
-                ).meta.hkube;
-                const { hash, ...meta } = content;
+            dvcFiles.map(async filePath => {
+                const content = await this.dvc.loadDvcContent(filePath);
+                const { hash, ...meta } = content.meta.hkube;
                 return {
                     path: extractRelativePath(filePath),
                     ...meta,
@@ -312,18 +306,6 @@ class Repository {
         return Object.fromEntries(entries);
     }
 
-    async push(commitMessage) {
-        await this.dvc.push();
-        await this.gitClient.add('.');
-        const { commit } = await this.gitClient.commit(commitMessage);
-        await this.gitClient.push();
-        return commit;
-    }
-
-    async cleanup() {
-        await fse.remove(this.cwd);
-    }
-
     /**
      * Filters files from a local copy of the repository
      *
@@ -347,10 +329,6 @@ class Repository {
         return Promise.all(
             metaFiles.map(filePath => fse.remove(`${this.cwd}/${filePath}`))
         );
-    }
-
-    async deleteClone() {
-        return fse.remove(this.cwd);
     }
 }
 

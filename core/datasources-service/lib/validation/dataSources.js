@@ -4,7 +4,8 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
  * @typedef {import('express')} Express
  * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage;
  * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit;
- * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta;
+ * @typedef {import('../utils/types').FileMeta} FileMeta
+ * @typedef {Express.Multer.File[]} MulterFile
  */
 
 class DataSources {
@@ -61,6 +62,13 @@ class DataSources {
     delete(props) {
         this._validator.validate(
             this._validator.definitions.deleteRequest,
+            props
+        );
+    }
+
+    sync(props) {
+        this._validator.validate(
+            this._validator.definitions.syncRequest,
             props
         );
     }

@@ -7,7 +7,7 @@ const arrayEndRegex = /\]$/;
  * Takes a stringified payload and converts it to an array
  *
  * @template T
- * @type {(payload: any) => T[]}
+ * @type {(payload: any, fieldName: string) => T[]}
  */
 module.exports = (payload, fieldName) => {
     let collection = [];
