@@ -32,7 +32,7 @@ afterEach(() => {
 });
 
 after(() => {
-    // fse.removeSync('temp/');
-    // fse.removeSync('uploads/');
-    // fse.removeSync(STORAGE_DIR);
+    fse.removeSync('temp/');
+    fse.removeSync('uploads/');
+    fse.removeSync(STORAGE_DIR);
 });

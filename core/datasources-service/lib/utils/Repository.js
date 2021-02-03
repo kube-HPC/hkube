@@ -2,7 +2,7 @@ const fse = require('fs-extra');
 const { parse: parsePath } = require('path');
 const {
     glob,
-    Repository: _Repository,
+    Repository: RepositoryBase,
     filePath: { extractRelativePath, getFilePath },
 } = require('@hkube/datasource-utils');
 const { default: simpleGit } = require('simple-git');
@@ -22,7 +22,7 @@ const dvcConfig = require('./dvcConfig');
  * @typedef {{ [path: string]: T }} ByPath
  */
 
-class Repository extends _Repository {
+class Repository extends RepositoryBase {
     /**
      * @param {string} repositoryName
      * @param {config} config
