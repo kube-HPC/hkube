@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { pipelineTypes } = require('@hkube/consts');
 const validationMessages = require('../lib/consts/validationMessages.js');
+const { pipelines } = require('./mocks');
 const { request } = require('./utils');
 let restUrl;
 
@@ -132,6 +133,28 @@ describe('Executions', () => {
             };
             const res2 = await request(optionsGET);
             expect(res2.body.types).to.eql([pipelineTypes.STORED, pipelineTypes.DEBUG, pipelineTypes.DEV_MODE]);
+        });
+        it('should succeed to execute and merge options', async () => {
+            const pipeline = pipelines.find(p => p.name === 'options');
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'options',
+                    options: {
+                        ttl: 255
+                    }
+                }
+            };
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            const storedOptions = Object.keys(pipeline.options);
+            const execOptions = Object.keys(res2.body.options);
+            expect(res2.body.options.ttl).to.eql(options.body.options.ttl);
+            expect(storedOptions).to.eql(execOptions);
         });
         it('should succeed to execute and override flowInput', async () => {
             const options = {
