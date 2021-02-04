@@ -1,4 +1,5 @@
 const fse = require('fs-extra');
+const pathLib = require('path');
 const { Consumer } = require('@hkube/producer-consumer');
 const { taskStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
@@ -121,7 +122,7 @@ class JobConsumer {
         const repository = new Repository(
             dataSource.name,
             this.config,
-            `${this.rootDir}/${dataSource.name}/${dataSource.id}`,
+            pathLib.join(this.rootDir, dataSource.name, dataSource.id),
             dataSource.repositoryUrl,
             dataSource._credentials
         );
@@ -196,7 +197,7 @@ class JobConsumer {
     }
 
     unmountDataSource(jobId) {
-        return fse.remove(`${this.rootDir}/${jobId}`);
+        return fse.remove(pathLib.join(this.rootDir, jobId));
     }
 }
 

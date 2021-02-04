@@ -30,16 +30,7 @@ const setupUrl = ({ name, id }) => {
  * @typedef {import('@hkube/db/lib/DataSource').DataSourceWithMeta} DataSourceWithMeta
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
  */
-/**
- * @type {(props?: {
- *     body?: { name?: string };
- *     withFile?: boolean;
- *     fileNames?: string[];
- *     ignoreGit?: boolean;
- *     ignoreStorage?: boolean;
- *     useGitOrganization?: boolean;
- * }) => Response<DataSource>}
- */
+/** @returns {Response<DataSource>} */
 const createDataSource = ({
     body = {},
     withFile = true,
@@ -47,6 +38,7 @@ const createDataSource = ({
     ignoreGit = false,
     ignoreStorage = false,
     useGitOrganization = false,
+    useGitlab = false,
 } = {}) => {
     // @ts-ignore
     const { storage, git, restUrl } = global.testParams;
@@ -62,6 +54,7 @@ const createDataSource = ({
             : {
                   git: JSON.stringify({
                       ...git,
+                      kind: useGitlab ? 'gitlab' : 'github',
                       organization: useGitOrganization
                           ? 'hkube-org'
                           : undefined,

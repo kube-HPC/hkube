@@ -15,6 +15,13 @@ properties:
                 type: string
             useSSL:
                 type: boolean
+            bucketName:
+                type: string
+        required:
+            - accessKeyId
+            - secretAccessKey
+            - endpoint
+            - bucketName
     git:
         type: object
         properties:
@@ -24,6 +31,14 @@ properties:
                 type: string
             token:
                 type: string
+            kind:
+                type: string
+                enum:
+                    - github
+                    - gitlab
+        required:
+            - endpoint
+            - token
 required:
     - name
     - files

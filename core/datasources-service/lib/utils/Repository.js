@@ -1,15 +1,15 @@
 const fse = require('fs-extra');
 const { parse: parsePath } = require('path');
-const { Octokit: GitRestClient } = require('@octokit/rest');
-const Log = require('@hkube/logger');
 const {
     glob,
     Repository: RepositoryBase,
     filePath: { extractRelativePath, getFilePath },
 } = require('@hkube/datasource-utils');
 const { default: simpleGit } = require('simple-git');
+const { Github, Gitlab } = require('./GitRemoteClient');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
+const { serviceName } = require('../../config/main/config.base');
 /**
  * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
  * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage
@@ -35,10 +35,13 @@ class Repository extends RepositoryBase {
      */
     constructor(repositoryName, config, rootDir, repositoryUrl, credentials) {
         super(repositoryName, rootDir, repositoryName);
-        this.gitRestClient = new GitRestClient({
-            baseUrl: `${credentials.git.endpoint}/api/v1`,
-            auth: credentials.git.token,
-        });
+        const RemoteGitClientConstructor =
+            credentials.git.kind === 'github' ? Github : Gitlab;
+        this.remoteGitClient = new RemoteGitClientConstructor(
+            credentials.git,
+            repositoryUrl,
+            serviceName
+        );
         this.config = config;
         this.gitConfig = credentials.git;
         this.storageConfig = credentials.storage;
@@ -46,23 +49,6 @@ class Repository extends RepositoryBase {
             this.config.dvcStorage,
             this.storageConfig
         );
-        this.repositoryUrl = repositoryUrl;
-        this.log = Log.GetLogFromContainer(config.serviceName);
-    }
-
-    get repositoryUrl() {
-        return this._repositoryUrl;
-    }
-
-    /** @param {string} value */
-    set repositoryUrl(value) {
-        if (!value) {
-            this._repositoryUrl = null;
-        } else {
-            const url = new URL(value);
-            url.username = this.gitConfig.token;
-            this._repositoryUrl = url.toString();
-        }
     }
 
     async _setupDvcRepository() {
@@ -89,41 +75,19 @@ class Repository extends RepositoryBase {
         return this.dvc.enrichMeta(filePath, dvcContent, 'hkube', nextMeta);
     }
 
-    async _createRemoteGitRepository() {
-        let response = null;
-        if (this.gitConfig.organization) {
-            this.log.debug(
-                `creating repository for organization ${this.gitConfig.organization}`
-            );
-            response = await this.gitRestClient.repos.createInOrg({
-                name: this.repositoryName,
-                org: this.gitConfig.organization,
-            });
-        } else {
-            this.log.debug(`creating repository for user`);
-            response = await this.gitRestClient.repos.createForAuthenticatedUser(
-                {
-                    private: true,
-                    name: this.repositoryName,
-                }
-            );
-        }
-        const repositoryUrl = response.data.clone_url;
-        this.repositoryUrl = repositoryUrl;
-        return repositoryUrl;
-    }
-
     async setup() {
         await fse.ensureDir(`${this.cwd}/data`);
         let repositoryUrl = null;
         try {
-            repositoryUrl = await this._createRemoteGitRepository();
+            repositoryUrl = await this.remoteGitClient.createRepository(
+                this.repositoryName
+            );
         } catch (error) {
             throw new Error('failed creating remote repository');
         }
         const git = simpleGit({ baseDir: `${this.cwd}` });
         await git.init();
-        await git.addRemote('origin', this.repositoryUrl);
+        await git.addRemote('origin', this.remoteGitClient.repositoryUrl);
         await this._setupDvcRepository();
         await this.createHkubeFile();
         await git.add('.');
@@ -142,7 +106,7 @@ class Repository extends RepositoryBase {
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
         if (!hasClone) {
             await simpleGit({ baseDir: this.rootDir }).clone(
-                this.repositoryUrl
+                this.remoteGitClient.repositoryUrl
             );
         }
         // @ts-ignore

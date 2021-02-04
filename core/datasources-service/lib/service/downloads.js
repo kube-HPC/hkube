@@ -1,4 +1,5 @@
 const { uid } = require('@hkube/uid');
+const pathLib = require('path');
 const fse = require('fs-extra');
 const archiver = require('archiver');
 const {
@@ -31,9 +32,7 @@ class Downloads {
             const archive = archiver('zip', { zlib: { level: 9 } });
             archive.directory(rootDir, false);
             archive.finalize();
-            const output = fse.createWriteStream(
-                `${this.config.directories.zipFiles}/${downloadId}.zip`
-            );
+            const output = fse.createWriteStream(this.getZipPath(downloadId));
             archive.pipe(output);
             output.on('close', () => res(archive.pointer()));
             output.on('end', () => {
@@ -70,7 +69,10 @@ class Downloads {
         const repository = new Repository(
             dataSource.name,
             this.config,
-            `${this.config.directories.prepareForDownload}/${downloadId}`,
+            pathLib.join(
+                this.config.directories.prepareForDownload,
+                downloadId
+            ),
             dataSource.repositoryUrl,
             dataSource._credentials
         );
@@ -100,7 +102,10 @@ class Downloads {
 
     getZipPath(downloadId) {
         validator.downloads.validateDownloadId(downloadId);
-        return `${this.config.directories.zipFiles}/${downloadId}.zip`;
+        return pathLib.join(
+            this.config.directories.zipFiles,
+            `${downloadId}.zip`
+        );
     }
 }
 

@@ -31,6 +31,7 @@ before(async function () {
         git: {
             endpoint: gitConfig.endpoint,
             token: token.sha1,
+            kind: gitConfig.kind,
         },
         directories: config.directories,
     };

@@ -1,5 +1,6 @@
 const packageJson = require(process.cwd() + '/package.json');
 const formatter = require(process.cwd() + '/lib/utils/formatters');
+const storageManager = require('@hkube/storage-manager');
 
 const config = {};
 config.serviceName = packageJson.name;
@@ -74,6 +75,7 @@ config.s3 = {
         'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
     endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
     useSSL: false,
+    bucketName: storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE,
 };
 
 config.git = {
@@ -81,8 +83,12 @@ config.git = {
         name: process.env.GIT_USER_NAME || 'hkube',
         password: process.env.GIT_PASSWORD || '123456',
     },
-    organization: 'hkube',
+    organization: 'hkube-org',
     endpoint: process.env.GIT_ENDPOINT_URL || 'http://localhost:3010',
+    /** @type {string} */
+    token: null,
+    /** @type {'github' | 'gitlab'} */
+    kind: 'github',
 };
 config.fs = {
     baseDirectory:
