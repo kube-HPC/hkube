@@ -41,8 +41,10 @@ config.dataSourceService = {
     prefix: 'api/v1'
 };
 
+config.ingressPrefix = process.env.INGRESS_PREFIX || '';
+
 config.debugUrl = {
-    path: path.join(process.env.INGRESS_PREFIX || '', 'hkube/debug')
+    path: path.join(config.ingressPrefix, 'hkube/debug')
 };
 
 config.addDefaultAlgorithms = process.env.ADD_DEFAULT_ALGORITHMS || true;
@@ -51,7 +53,7 @@ config.swagger = {
     protocol: secured ? 'https' : 'http',
     host: process.env.BASE_URL_HOST || 'localhost',
     port: process.env.BASE_URL_PORT || config.rest.port,
-    path: (process.env.BASE_URL_PATH || '')
+    path: process.env.BASE_URL_PATH? path.join(config.ingressPrefix, process.env.BASE_URL_PATH): config.ingressPrefix
 };
 
 config.jobs = {

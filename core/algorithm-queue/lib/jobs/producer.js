@@ -5,7 +5,9 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { uuid: uuidv4 } = require('@hkube/uid');
 const producerSingleton = require('./producer-singleton');
 const { componentName } = require('../consts/index');
+const { isCompletedState } = require('../utils/pipelineStatuses');
 const queueRunner = require('../queue-runner');
+const db = require('../persistency/db');
 
 const MAX_JOB_ATTEMPTS = 3;
 
@@ -47,6 +49,14 @@ class JobProducer {
         });
         this._producer.on(Events.STUCK, async (job) => {
             const { jobId, taskId, nodeName, batchIndex, retry } = job.options;
+            const data = await db.getJob({ jobId });
+            if (data) {
+                log.info(`job stalled with ${data.status} status`, { component: componentName.JOBS_PRODUCER });
+                if (isCompletedState({ status: data.status })) {
+                    log.info(`completed job stalled with ${data.status} status. Skipping`, { component: componentName.JOBS_PRODUCER });
+                    return;
+                }
+            }
             let err;
             let status;
             const maxAttempts = (retry && retry.limit) || MAX_JOB_ATTEMPTS;
