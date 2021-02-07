@@ -2,11 +2,17 @@ const fse = require('fs-extra');
 const sinon = require('sinon');
 const storageManager = require('@hkube/storage-manager');
 const DATASOURCE_GIT_REPOS_DIR = 'temp/git-repositories';
-const { setupToken, removeToken } = require('./gitToken');
+const {
+    setupGithubToken,
+    removeGithubToken,
+    getGitlabToken,
+} = require('./gitToken');
+const { Gitlab } = require('@gitbeaker/node');
 
 const STORAGE_DIR = '/var/tmp/fs/storage/local-hkube-datasource';
 
-let token = null;
+let githubToken = null;
+let gitlabToken = null;
 let gitConfig = null;
 
 before(async function () {
@@ -20,7 +26,12 @@ before(async function () {
     const baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
     const restUrl = `${baseUrl}/${config.rest.prefix}/v1`;
     const internalUrl = `${baseUrl}/internal/v1`;
-    token = await setupToken(config.git);
+
+    githubToken = await setupGithubToken(config.git.github);
+    const githubTokenHash = githubToken.sha1;
+    gitlabToken = getGitlabToken(config.git.gitlab);
+
+    // @ts-ignore
     global.testParams = {
         restUrl,
         internalUrl,
@@ -29,9 +40,11 @@ before(async function () {
         STORAGE_DIR,
         storage: config.s3,
         git: {
-            endpoint: gitConfig.endpoint,
-            token: token.sha1,
-            kind: gitConfig.kind,
+            ...config.git,
+            github: {
+                ...config.git.github,
+                token: githubTokenHash,
+            },
         },
         directories: config.directories,
     };
@@ -45,5 +58,19 @@ after(async () => {
     fse.removeSync('temp/');
     fse.removeSync('uploads/');
     fse.removeSync(STORAGE_DIR);
-    return removeToken(gitConfig, token);
+    // --- on local tests clear the git server --- //
+    // removeGithubToken(gitConfig, githubToken);
+    // const gitClient = new Gitlab({
+    //     host: gitConfig.endpoint,
+    //     token: gitlabToken,
+    // });
+
+    // try {
+    //     const projects = await gitClient.Projects.all();
+    //     await Promise.all(
+    //         projects.map(project => gitClient.Projects.remove(project.id))
+    //     );
+    // } catch (error) {
+    //     console.error(error);
+    // }
 });

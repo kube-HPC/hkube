@@ -172,6 +172,29 @@ describe('/datasource POST', () => {
             );
             expect(config).to.match(new RegExp(name));
         });
+        it('should create a datasource using gitlab', async () => {
+            const name = uuid();
+            const deleteClone = mockDeleteClone();
+            const {
+                response: { statusCode },
+                body: dataSource,
+            } = await createDataSource({
+                body: { name },
+                useGitlab: true,
+            });
+            expect(deleteClone.getCalls()).to.have.lengthOf(1);
+            expect(statusCode).to.eql(HttpStatus.CREATED);
+            const hkubeFile = await fse.readFile(
+                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/hkube`,
+                'utf8'
+            );
+            expect(JSON.parse(hkubeFile)).to.eql({ repositoryName: name });
+            const config = fse.readFileSync(
+                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config.local`,
+                'utf8'
+            );
+            expect(config).to.match(new RegExp(name));
+        });
         it('should create an empty dataSource', async () => {
             const name = uuid();
             const { response } = await createDataSource({

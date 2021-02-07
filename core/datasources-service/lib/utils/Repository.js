@@ -93,6 +93,7 @@ class Repository extends RepositoryBase {
         await git.add('.');
         const response = await git.commit('initialized');
         await git.push(['--set-upstream', 'origin', 'master']);
+        // await git.push(['-u', 'origin', 'master']);
         return {
             ...response,
             commit: response.commit.replace(/(.+) /, ''),

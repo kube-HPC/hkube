@@ -1,5 +1,6 @@
 const { default: axios } = require('axios');
 const { uid } = require('@hkube/uid');
+
 const constructUrl = ({ name, password, endpoint }) => {
     const url = new URL(endpoint);
     return `${url.protocol}//${name}:${password}@${url.host}/api/v1/users/${name}/tokens`;
@@ -16,7 +17,7 @@ const constructUrl = ({ name, password, endpoint }) => {
  */
 
 /** @returns {Promise<GitToken>} */
-const setupToken = async ({ user: { name, password }, endpoint }) => {
+const setupGithubToken = async ({ user: { name, password }, endpoint }) => {
     const url = constructUrl({ name, password, endpoint });
     const response = await axios.post(url, { name: `test-token-${uid()}` });
     return response.data;
@@ -26,13 +27,20 @@ const setupToken = async ({ user: { name, password }, endpoint }) => {
  * @param {any} any
  * @param {GitToken} token
  */
-const removeToken = async ({ user: { name, password }, endpoint }, token) => {
+const removeGithubToken = async (
+    { user: { name, password }, endpoint },
+    token
+) => {
     const url = constructUrl({ name, password, endpoint });
     await axios.delete(`${url}/${token.id}`);
     return null;
 };
 
+/** @param {{ token: string }} config */
+const getGitlabToken = config => config.token;
+
 module.exports = {
-    setupToken,
-    removeToken,
+    setupGithubToken,
+    removeGithubToken,
+    getGitlabToken,
 };

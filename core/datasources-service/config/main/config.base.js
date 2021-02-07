@@ -79,17 +79,27 @@ config.s3 = {
 };
 
 config.git = {
-    user: {
-        name: process.env.GIT_USER_NAME || 'hkube',
-        password: process.env.GIT_PASSWORD || '123456',
+    github: {
+        user: {
+            name: process.env.GIT_USER_NAME || 'hkube',
+            password: process.env.GIT_PASSWORD || '123456',
+        },
+        organization: 'hkube-org',
+        endpoint: process.env.GIT_ENDPOINT_URL || 'http://localhost:3010',
+        /** @type {string} */
+        token: null,
+        kind: 'github',
     },
-    organization: 'hkube-org',
-    endpoint: process.env.GIT_ENDPOINT_URL || 'http://localhost:3010',
-    /** @type {string} */
-    token: null,
-    /** @type {'github' | 'gitlab'} */
-    kind: 'github',
+    gitlab: {
+        token: 'buBPxyFrzqHEfmthVSuy',
+        kind: 'gitlab',
+        endpoint: process.env.GIT_ENDPOINT_URL || 'http://localhost:3080',
+        test: {
+            gitlabTestEndpointToken: 'replace-me.com',
+        },
+    },
 };
+
 config.fs = {
     baseDirectory:
         process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',

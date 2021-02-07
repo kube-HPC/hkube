@@ -1,5 +1,3 @@
-const storage = require('@hkube/storage-manager');
-
 /** @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage */
 
 /** @param {ExternalStorage} config */
@@ -8,9 +6,10 @@ const S3Config = ({
     accessKeyId,
     secretAccessKey,
     useSSL,
+    bucketName,
 }) => repositoryName => `
 ['remote "storage"']
-    url = s3://${storage.hkubeDataSource.prefix}/${repositoryName}
+    url = s3://${bucketName}/${repositoryName}
     endpointurl = ${endpoint}
     access_key_id = ${accessKeyId}
     secret_access_key = ${secretAccessKey}

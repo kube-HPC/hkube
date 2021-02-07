@@ -42,6 +42,17 @@ const createDataSource = ({
 } = {}) => {
     // @ts-ignore
     const { storage, git, restUrl } = global.testParams;
+    /** @type {import('../lib/utils/types').gitConfig} */
+    const { github, gitlab } = git;
+
+    const gitConfig = (() => {
+        if (ignoreGit) return;
+        if (useGitlab) return gitlab;
+        if (useGitOrganization) return github;
+        const { organization, ...rest } = github;
+        return rest;
+    })();
+
     const uri = `${restUrl}/datasource`;
     const formData = {
         ...body,
@@ -49,17 +60,7 @@ const createDataSource = ({
             ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`))
             : undefined,
         ...(ignoreStorage ? {} : { storage: JSON.stringify(storage) }),
-        ...(ignoreGit
-            ? {}
-            : {
-                  git: JSON.stringify({
-                      ...git,
-                      kind: useGitlab ? 'gitlab' : 'github',
-                      organization: useGitOrganization
-                          ? 'hkube-org'
-                          : undefined,
-                  }),
-              }),
+        ...(ignoreGit ? {} : { git: JSON.stringify(gitConfig) }),
     };
     const options = { uri, formData };
     return request(options);

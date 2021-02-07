@@ -2,21 +2,13 @@ const Log = require('@hkube/logger');
 
 /** @typedef {import('./../types').gitConfig} gitConfig */
 
+/** @template T */
 class Base {
-    /** @param {gitConfig} config */
+    /** @param {T} config */
     constructor(config, rawRepositoryUrl, serviceName) {
         this.config = config;
         this.rawRepositoryUrl = rawRepositoryUrl;
         this.log = Log.GetLogFromContainer(serviceName);
-    }
-
-    get repositoryUrl() {
-        if (!this.rawRepositoryUrl) return null;
-        const url = new URL(this.rawRepositoryUrl);
-        if (this.config.token) {
-            url.username = this.config.token;
-        }
-        return url.toString();
     }
 }
 

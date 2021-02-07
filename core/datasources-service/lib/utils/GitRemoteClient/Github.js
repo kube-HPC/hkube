@@ -1,6 +1,8 @@
 const { Octokit } = require('@octokit/rest');
 const Base = require('./Base');
+/** @typedef {import('./../types').githubConfig} githubConfig */
 
+/** @augments {Base<githubConfig>} */
 class Github extends Base {
     constructor(config, rawRepositoryUrl, serviceName) {
         super(config, rawRepositoryUrl, serviceName);
@@ -8,6 +10,15 @@ class Github extends Base {
             baseUrl: new URL('api/v1', this.config.endpoint).toString(),
             auth: this.config.token,
         });
+    }
+
+    get repositoryUrl() {
+        if (!this.rawRepositoryUrl) return null;
+        const url = new URL(this.rawRepositoryUrl);
+        if (this.config.token) {
+            url.username = this.config.token;
+        }
+        return url.toString();
     }
 
     async createRepository(name) {
