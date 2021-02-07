@@ -50,7 +50,7 @@ class DataSources {
                 : undefined;
         if (!filesAdded && !props.files.dropped && !props.files.mapping) {
             throw new InvalidDataError(
-                'you must provide at least one of (files | droppedFileIds | mapping)'
+                'provide at least one of (files | droppedFileIds | mapping)'
             );
         }
         this._validator.validate(this._validator.definitions.update, {

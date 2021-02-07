@@ -23,7 +23,7 @@ describe('/datasource/:name POST', () => {
         });
         expect(uploadResponse.body).to.have.property('error');
         const { error } = uploadResponse.body;
-        expect(error.message).to.match(/you must provide at least one of/i);
+        expect(error.message).to.match(/provide at least one of/i);
         expect(error.code).to.eq(HttpStatus.BAD_REQUEST);
     });
     it('should fail uploading a file to a non existing dataSource', async () => {

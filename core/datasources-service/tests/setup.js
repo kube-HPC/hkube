@@ -9,6 +9,7 @@ const {
     getGitlabToken,
 } = require('./gitToken');
 const { STORAGE_DIR } = require('./utils');
+const { removeAllRepos } = require('./clearGitlab');
 const { getDatasourcesInUseFolder } = require('./../lib/utils/pathUtils');
 const { Gitlab } = require('@gitbeaker/node');
 let githubToken = null;
@@ -61,17 +62,5 @@ after(async () => {
     fse.removeSync(STORAGE_DIR);
     // --- on local tests clear the git server --- //
     // removeGithubToken(gitConfig, githubToken);
-    // const gitClient = new Gitlab({
-    //     host: gitConfig.endpoint,
-    //     token: gitlabToken,
-    // });
-
-    // try {
-    //     const projects = await gitClient.Projects.all();
-    //     await Promise.all(
-    //         projects.map(project => gitClient.Projects.remove(project.id))
-    //     );
-    // } catch (error) {
-    //     console.error(error);
-    // }
+    // await removeAllRepos(gitConfig.gitlab);
 });

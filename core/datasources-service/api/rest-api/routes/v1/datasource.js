@@ -50,7 +50,7 @@ const routes = () => {
                 storageConfig = storage ? JSON.parse(storage) : undefined;
             } catch (error) {
                 throw new InvalidDataError(
-                    "you provided invalid 'git' or 'storage' settings"
+                    "invalid 'git' or 'storage' settings provided"
                 );
             }
             try {
