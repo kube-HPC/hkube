@@ -1,4 +1,5 @@
 const { Gitlab: GitlabClient } = require('@gitbeaker/node');
+const { InvalidDataError } = require('../../errors');
 const Base = require('./Base');
 /** @typedef {import('./../types').gitlabConfig} gitlabConfig */
 
@@ -15,9 +16,11 @@ class Gitlab extends Base {
     get repositoryUrl() {
         if (!this.rawRepositoryUrl) return null;
         const url = new URL(this.rawRepositoryUrl);
-        if (this.config.token) {
+        if (this.config.token && this.config.tokenName) {
             url.username = this.config.tokenName;
             url.password = this.config.token;
+        } else {
+            throw new InvalidDataError("missing gitlab 'token' or 'tokenName'");
         }
         return url.toString();
     }

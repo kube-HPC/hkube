@@ -31,6 +31,9 @@ properties:
                 type: string
             token:
                 type: string
+            tokenName:
+                description: the token name is *required* when using a *gitlab* account
+                type: string
             kind:
                 type: string
                 enum:
@@ -39,6 +42,7 @@ properties:
         required:
             - endpoint
             - token
+            - kind
 required:
     - name
     - files

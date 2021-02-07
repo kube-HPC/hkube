@@ -5,6 +5,7 @@ const Repository = require('./../lib/utils/Repository');
 // a valid mongo ObjectID;
 const nonExistingId = '5f953d50dd38c8291924a0a3';
 const fileName = 'README-1.md';
+const STORAGE_DIR = '/var/tmp/fs/storage/local-hkube-datasource';
 
 const delay = d => new Promise(r => setTimeout(r, d));
 
@@ -29,4 +30,5 @@ module.exports = {
     mockRemove,
     hiddenProperties,
     mockDeleteClone,
+    STORAGE_DIR,
 };

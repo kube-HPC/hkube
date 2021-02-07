@@ -2,15 +2,15 @@ const fse = require('fs-extra');
 const sinon = require('sinon');
 const storageManager = require('@hkube/storage-manager');
 const DATASOURCE_GIT_REPOS_DIR = 'temp/git-repositories';
+const pathLib = require('path');
 const {
     setupGithubToken,
     removeGithubToken,
     getGitlabToken,
 } = require('./gitToken');
+const { STORAGE_DIR } = require('./utils');
+const { getDatasourcesInUseFolder } = require('./../lib/utils/pathUtils');
 const { Gitlab } = require('@gitbeaker/node');
-
-const STORAGE_DIR = '/var/tmp/fs/storage/local-hkube-datasource';
-
 let githubToken = null;
 let gitlabToken = null;
 let gitConfig = null;
@@ -38,6 +38,7 @@ before(async function () {
         config,
         DATASOURCE_GIT_REPOS_DIR,
         STORAGE_DIR,
+        mountedDir: getDatasourcesInUseFolder(config),
         storage: config.s3,
         git: {
             ...config.git,
