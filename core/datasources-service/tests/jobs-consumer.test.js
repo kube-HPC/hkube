@@ -56,7 +56,7 @@ describe('JobsConsumer', () => {
         );
         expect(await fse.pathExists(mountedPath)).to.be.true;
     });
-    it('should succeed mounting the datasource - gitlab and update job', async () => {
+    it.skip('should succeed mounting the datasource - gitlab and update job', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource({
             body: { name },

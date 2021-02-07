@@ -171,7 +171,7 @@ describe('/datasource POST', () => {
             );
             expect(config).to.match(new RegExp(name));
         });
-        it('should create a datasource using gitlab', async () => {
+        it.skip('should create a datasource using gitlab', async () => {
             const name = uuid();
             const deleteClone = mockDeleteClone();
             const {
