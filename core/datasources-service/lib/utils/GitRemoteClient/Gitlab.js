@@ -16,7 +16,7 @@ class Gitlab extends Base {
         if (!this.rawRepositoryUrl) return null;
         const url = new URL(this.rawRepositoryUrl);
         if (this.config.token) {
-            url.username = `test-token`;
+            url.username = this.config.tokenName;
             url.password = this.config.token;
         }
         return url.toString();
@@ -32,13 +32,13 @@ class Gitlab extends Base {
             );
             response = await this.client.Projects.create({
                 name,
-                // repository_access_level: 'private',
+                visibility: 'private',
             });
         } else {
             this.log.debug(`creating repository for user`);
             response = await this.client.Projects.create({
                 name,
-                // repository_access_level: 'private',
+                visibility: 'private',
             });
         }
 

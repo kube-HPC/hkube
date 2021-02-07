@@ -177,7 +177,6 @@ describe('/datasource POST', () => {
             const deleteClone = mockDeleteClone();
             const {
                 response: { statusCode },
-                body: dataSource,
             } = await createDataSource({
                 body: { name },
                 useGitlab: true,

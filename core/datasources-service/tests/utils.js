@@ -14,8 +14,6 @@ const mockRemove = () => {
     return mock;
 };
 const mockDeleteClone = () => {
-    // const x = new Repository();
-    // x.deleteClone
     const mock = sinon.fake.resolves('The method is mocked!');
     sinon.replace(Repository.prototype, 'deleteClone', mock);
     return mock;
