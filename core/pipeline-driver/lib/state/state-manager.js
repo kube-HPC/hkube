@@ -213,6 +213,10 @@ class StateManager extends EventEmitter {
         return this._etcd.jobs.tasks.delete(options, { isPrefix: true });
     }
 
+    deleteStreamingStats(options) {
+        return this._etcd.streaming.statistics.delete(options, { isPrefix: true });
+    }
+
     watchJobStatus(options) {
         return this._etcd.jobs.status.watch(options);
     }

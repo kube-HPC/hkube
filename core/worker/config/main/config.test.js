@@ -10,10 +10,9 @@ config.streaming = {
         interval: 60000,
         minTimeWaitForReplicaUp: 0,
         minTimeWaitBeforeScaleUp: 100,
+        minTimeWaitBeforeScaleDown: 0,
         maxSizeWindow: 4,
         maxScaleUpReplicas: 10,
-        minRatioToScaleUp: 1.2,
-        minRatioToScaleDown: 0.8,
         maxTimeIdleBeforeReplicaDown: 0
     },
     serviceDiscovery: {

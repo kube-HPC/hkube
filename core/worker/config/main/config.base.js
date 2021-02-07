@@ -27,12 +27,12 @@ config.streaming = {
         interval: formatters.parseInt(process.env.AUTO_SCALER_INTERVAL, 2000),
         logStatsInterval: formatters.parseInt(process.env.AUTO_SCALER_STATS_INTERVAL, 30000),
         maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 10),
-        minRatioToScaleUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_UP, 1.4),
-        minRatioToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_DOWN, 0.9),
-        maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 3),
+        maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 2),
         maxScaleUpTotalReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_TOTAL_REPLICAS, 100),
-        minTimeWaitBeforeScaleUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_BEFORE_SCALE_UP, 20000),
+        minTimeWaitBeforeScaleUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_BEFORE_SCALE_UP, 30000),
+        minTimeWaitBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_BEFORE_SCALE_DOWN, 30000),
         minTimeWaitForReplicaUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_UP, 30000),
+        minTimeWaitForReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_UP, 30000),
         maxTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 60000)
     },
     election: {

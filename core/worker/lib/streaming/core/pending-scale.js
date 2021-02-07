@@ -7,36 +7,45 @@ class PendingScale {
     constructor(options) {
         this._minTimeWaitForReplicaUp = options.minTimeWaitForReplicaUp;
         this._minTimeWaitBeforeScaleUp = options.minTimeWaitBeforeScaleUp;
-        this._timeWait = null;
+        this._minTimeWaitForReplicaDown = options.minTimeWaitForReplicaDown;
+        this._minTimeWaitBeforeScaleDown = options.minTimeWaitBeforeScaleDown;
+        this._scaleUpTime = null;
+        this._scaleDownTime = null;
         this._timeWaitForScaleUp = null;
-        this._requiredUp = null;
-        this._requiredDown = null;
-        this._currentSize = 0;
+        this._timeWaitForScaleDown = null;
         this._required = 0;
     }
 
     check(currentSize) {
-        this._currentSize = currentSize;
         this._checkRequiredUp(currentSize);
         this._checkRequiredDown(currentSize);
     }
 
     _checkRequiredUp(currentSize) {
-        if (this._requiredUp && this._requiredUp <= currentSize) {
-            if (!this._timeWait) {
-                this._timeWait = Date.now();
+        if (this._required <= currentSize) {
+            if (!this._timeWaitForScaleUp) {
+                this._timeWaitForScaleUp = Date.now();
             }
-            if (Date.now() - this._timeWait >= this._minTimeWaitForReplicaUp) {
-                this._requiredUp = null;
-                this._timeWait = null;
+            if (Date.now() - this._timeWaitForScaleUp >= this._minTimeWaitForReplicaUp) {
                 this._timeWaitForScaleUp = null;
             }
+        }
+        if (Date.now() - this._scaleUpTime >= this._minTimeWaitBeforeScaleUp) {
+            this._scaleUpTime = null;
         }
     }
 
     _checkRequiredDown(currentSize) {
-        if (this._requiredDown === null || this._requiredDown >= currentSize) {
-            this._requiredDown = null;
+        if (this._required >= currentSize) {
+            if (!this._timeWaitForScaleDown) {
+                this._timeWaitForScaleDown = Date.now();
+            }
+            if (Date.now() - this._timeWaitForScaleDown >= this._minTimeWaitForReplicaDown) {
+                this._timeWaitForScaleDown = null;
+            }
+        }
+        if (Date.now() - this._scaleDownTime >= this._minTimeWaitBeforeScaleDown) {
+            this._scaleDownTime = null;
         }
     }
 
@@ -44,43 +53,26 @@ class PendingScale {
         return this._required;
     }
 
-    get requiredUp() {
-        return this._requiredUp;
+    updateRequiredUp(required) {
+        this._required = required;
+        if (!this._scaleUpTime) {
+            this._scaleUpTime = Date.now();
+        }
     }
 
-    get requiredDown() {
-        return this._requiredDown;
-    }
-
-    updateRequiredUp(replicas) {
-        this._requiredUp = this._currentSize + replicas;
-        this._required = this._requiredUp;
-    }
-
-    updateRequiredDown(replicas) {
-        this._requiredDown = this._currentSize - replicas;
-        this._required = this._requiredDown;
-    }
-
-    markAsCandidateScaleUp() {
-        if (!this._timeWaitForScaleUp) {
-            this._timeWaitForScaleUp = Date.now();
-            if (this.isMinTimeWaitBeforeScaleUp()) {
-                this._timeWaitForScaleUp = null;
-            }
+    updateRequiredDown(required) {
+        this._required = required;
+        if (!this._scaleDownTime) {
+            this._scaleDownTime = Date.now();
         }
     }
 
     canScaleUp(count) {
-        return count > 0 && this._requiredUp === null;
-    }
-
-    isMinTimeWaitBeforeScaleUp() {
-        return !this._timeWaitForScaleUp || Date.now() - this._timeWaitForScaleUp >= this._minTimeWaitBeforeScaleUp;
+        return count > 0 && !this._timeWaitForScaleUp && !this._scaleUpTime;
     }
 
     canScaleDown(count) {
-        return count > 0 && this._requiredDown === null;
+        return count >= 0 && !this._timeWaitForScaleDown && !this._scaleDownTime;
     }
 }
 

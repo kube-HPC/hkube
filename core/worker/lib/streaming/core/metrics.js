@@ -17,12 +17,12 @@ const _calcRate = (list) => {
 
 const calcRatio = (rate1, rate2) => {
     const ratio = (rate1 && rate2) ? (rate1 / rate2) : 1;
-    return ratio;
+    return Math.floor(ratio);
 };
 
 const _totalCount = (list) => {
     const last = list[list.length - 1];
-    return (last && last.count) || 0;
+    return last?.count || 0;
 };
 
 /**
@@ -44,12 +44,16 @@ const calcRates = (data) => {
     const durMedian = median(data.durations.items);
     const totalRequests = _totalCount(data.requests.items);
     const totalResponses = _totalCount(data.responses.items);
+    const dropped = _totalCount(data.dropped.items);
     let durationsRate = 0;
 
     if (durMedian) {
         durationsRate = 1 / (durMedian / 1000);
     }
-    return { reqRate, resRate, durationsRate, totalRequests, totalResponses };
+    else {
+        durationsRate = resRate;
+    }
+    return { reqRate, resRate, durationsRate, totalRequests, totalResponses, dropped };
 };
 
 module.exports = {

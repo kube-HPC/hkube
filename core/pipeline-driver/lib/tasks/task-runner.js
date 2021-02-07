@@ -104,7 +104,7 @@ class TaskRunner extends EventEmitter {
                 this._onTaskComplete(task);
                 break;
             case taskStatuses.THROUGHPUT:
-                this._onStreamingThroughput(task);
+                this._onStreamingMetrics(task);
                 break;
             default:
                 log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
@@ -178,6 +178,7 @@ class TaskRunner extends EventEmitter {
             await this._unWatchJob();
             await this._cleanJob(error);
             await this._updateDiscovery();
+            await this._deleteStreamingStats();
         }
     }
 
@@ -356,6 +357,15 @@ class TaskRunner extends EventEmitter {
                 this._stateManager.unWatchJobStatus({ jobId: this._jobId }),
                 this._stateManager.unWatchTasks({ jobId: this._jobId })
             ]);
+        }
+        catch (e) {
+            log.error(e.message, { component, jobId: this._jobId }, e);
+        }
+    }
+
+    async _deleteStreamingStats() {
+        try {
+            await this._stateManager.deleteStreamingStats({ jobId: this._jobId });
         }
         catch (e) {
             log.error(e.message, { component, jobId: this._jobId }, e);
@@ -618,13 +628,21 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    _onStreamingThroughput(task) {
+    _onStreamingMetrics(task) {
         if (!this._active) {
             return;
         }
         task.metrics.forEach((t) => {
             const { source, target, ...metrics } = t;
-            this._nodes.updateEdge(t.source, t.target, { metrics });
+            let { totalRequests } = metrics;
+            let { totalResponses } = metrics;
+            let { totalDropped } = metrics;
+            const edge = this._nodes.getEdge(t.source, t.target);
+            if (edge.metrics) {
+                totalRequests = edge.metrics.totalRequests + totalRequests;
+                totalResponses = edge.metrics.totalResponses + totalResponses;
+            }
+            this._nodes.updateEdge(t.source, t.target, { metrics: { ...metrics, totalRequests, totalResponses, totalDropped } });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
@@ -692,7 +710,7 @@ class TaskRunner extends EventEmitter {
                 this._nodes.addTaskToBatch(task);
             }
             else {
-                this._nodes.removeTaskFromBatch(task);
+                // this._nodes.removeTaskFromBatch(task);
             }
         }
 

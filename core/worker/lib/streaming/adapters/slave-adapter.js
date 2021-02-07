@@ -7,7 +7,12 @@ const stateAdapter = require('../../states/stateAdapter');
  */
 class SlaveAdapter extends Adapter {
     report(data) {
-        stateAdapter.reportStreamingStats({ ...data, jobId: this.jobId, source: this.source });
+        stateAdapter.reportStreamingStats({
+            ...data,
+            jobId: this.jobId,
+            source: this.source,
+            timestamp: Date.now()
+        });
     }
 
     async finish() {

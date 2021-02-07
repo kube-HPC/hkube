@@ -1,5 +1,4 @@
 const Logger = require('@hkube/logger');
-const { median, sum } = require('@hkube/stats');
 const { MasterAdapter, SlaveAdapter } = require('./index');
 const { Components } = require('../../consts');
 let log;
@@ -65,10 +64,6 @@ class AdaptersProxy {
             result.push(...metrics);
         });
         return result;
-    }
-
-    _formatNumber(num) {
-        return parseFloat(num.toFixed(2));
     }
 
     getMasters() {

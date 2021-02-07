@@ -131,7 +131,7 @@ const checkMetrics = () => {
     return streamService._metrics._checkMetrics();
 }
 
-describe('Streaming', () => {
+describe.only('Streaming', () => {
     before(async () => {
         await stateAdapter._db.jobs.create({ pipeline, jobId });
         await streamHandler.start(job);
@@ -217,17 +217,18 @@ describe('Streaming', () => {
             expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
             expect(scaleDown).to.be.null;
         });
-        it.only('should scale based on queueSize only', async () => {
+        it.only('should scale based on all params', async () => {
             const scale = async (data) => {
-                data[0].currentSize = 1;
-                data[0].queueSize += 500;
-                data[0].responses += 200;
+                data[0].currentSize = 0;
+                data[0].queueSize += 2;
+                data[0].responses += 1;
                 streamService.reportStats(data);
             }
             const list = [{
                 nodeName: 'D',
-                queueSize: 500,
-                responses: 200
+                queueSize: 2,
+                responses: 1,
+                durations: [100, 200, 100, 50, 80, 120, 110, 100, 90]
             }];
             await scale(list);
             await delay(50);
