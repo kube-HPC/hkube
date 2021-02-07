@@ -60,7 +60,6 @@ describe('/datasource POST', () => {
         });
         it('should throw validation error of data.name should be string', async () => {
             const response = await createDataSource({
-                // @ts-expect-error
                 body: { name: [1, 2] },
             });
             expect(response.body).to.have.property('error');
