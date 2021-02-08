@@ -43,8 +43,19 @@ class Github extends Base {
         return this.rawRepositoryUrl;
     }
 
-    async deleteRepository() {
-        throw new Error('Github deleteRepository: not implemented!');
+    async deleteRepository(name) {
+        let owner;
+        if (this.config.organization) {
+            owner = this.config.organization;
+        } else {
+            const user = await this.client.request('GET /user');
+            // @ts-ignore
+            owner = user.data.username;
+        }
+        return this.client.repos.delete({
+            repo: name,
+            owner,
+        });
     }
 }
 

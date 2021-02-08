@@ -5,7 +5,7 @@ const storageManager = require('@hkube/storage-manager');
 const component = require('./lib/consts/componentNames').MAIN;
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
-
+const dedicatedStorage = require('./lib/DedicatedStorage');
 const modules = [
     require('./lib/db'),
     require('./api/rest-api/app-server'),
@@ -30,8 +30,6 @@ class Bootstrap {
             if (config.tracer) {
                 await tracer.init(config.tracer);
             }
-
-            const dedicatedStorage = new storageManager.StorageManager();
 
             await dedicatedStorage.init(
                 { ...config, defaultStorage: config.dvcStorage },

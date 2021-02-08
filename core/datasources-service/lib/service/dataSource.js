@@ -3,12 +3,12 @@ const {
     filePath: { getFilePath },
     createFileMeta,
 } = require('@hkube/datasource-utils');
+const HttpStatus = require('http-status-codes');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const { ResourceNotFoundError } = require('../errors');
-
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
  * @typedef {import('./../utils/types').MulterFile} MulterFile
@@ -351,6 +351,7 @@ class DataSource {
             });
         } catch (error) {
             await this.db.dataSources.delete({ name });
+            await repository.delete();
             throw error;
         } finally {
             await repository.deleteClone();
@@ -369,6 +370,28 @@ class DataSource {
 
     async delete({ name }) {
         validator.dataSources.delete({ name });
+        const dataSource = await this.db.dataSources.fetchWithCredentials({
+            name,
+        });
+        const repository = new Repository(
+            name,
+            this.config,
+            this.config.directories.gitRepositories,
+            dataSource.repositoryUrl,
+            dataSource._credentials
+        );
+        try {
+            await repository.delete();
+        } catch (error) {
+            if (
+                error.isAxiosError &&
+                error.response.status === HttpStatus.NOT_FOUND
+            ) {
+                throw new ResourceNotFoundError('dataSource', name, error);
+            } else {
+                throw error;
+            }
+        }
         const response = await this.db.dataSources.delete(
             { name },
             { allowNotFound: false }
