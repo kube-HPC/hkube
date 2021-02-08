@@ -33,8 +33,4 @@ const request = options => {
     });
 };
 
-module.exports = {
-    delay,
-    request,
-    defaultProps,
-};
+module.exports = { delay, request, defaultProps };

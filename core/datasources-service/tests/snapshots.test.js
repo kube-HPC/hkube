@@ -17,7 +17,7 @@ const sortBy = require('lodash.sortby');
  */
 describe('snapshots', () => {
     describe('create', () => {
-        /** @type */
+        /** @type {DataSource} */
         let dataSource = null;
         before(async () => {
             const { body: _dataSource } = await createDataSource({

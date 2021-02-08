@@ -6,10 +6,13 @@ const {
     filePath: { extractRelativePath, getFilePath },
 } = require('@hkube/datasource-utils');
 const { default: simpleGit } = require('simple-git');
+const { Github, Gitlab } = require('./GitRemoteClient');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
-
+const { serviceName } = require('../../config/main/config.base');
 /**
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage
  * @typedef {import('./types').FileMeta} FileMeta
  * @typedef {import('./types').LocalFileMeta} LocalFileMeta
  * @typedef {import('./types').MulterFile} MulterFile
@@ -27,11 +30,25 @@ class Repository extends RepositoryBase {
      * @param {string} repositoryName
      * @param {config} config
      * @param {string} rootDir
+     * @param {string} repositoryUrl
+     * @param {{ git: ExternalGit; storage: ExternalStorage }} credentials
      */
-    constructor(repositoryName, config, rootDir) {
-        super(repositoryName, rootDir);
+    constructor(repositoryName, config, rootDir, repositoryUrl, credentials) {
+        super(repositoryName, rootDir, repositoryName);
+        const RemoteGitClientConstructor =
+            credentials.git.kind === 'github' ? Github : Gitlab;
+        this.remoteGitClient = new RemoteGitClientConstructor(
+            credentials.git,
+            repositoryUrl,
+            serviceName
+        );
         this.config = config;
-        this.generateDvcConfig = dvcConfig(this.config);
+        this.gitConfig = credentials.git;
+        this.storageConfig = credentials.storage;
+        this.generateDvcConfig = dvcConfig(
+            this.config.dvcStorage,
+            this.storageConfig
+        );
     }
 
     async _setupDvcRepository() {
@@ -60,14 +77,27 @@ class Repository extends RepositoryBase {
 
     async setup() {
         await fse.ensureDir(`${this.cwd}/data`);
-        const git = simpleGit({ baseDir: this.cwd });
-        await git.init().addRemote('origin', this.repositoryUrl);
+        let repositoryUrl = null;
+        try {
+            repositoryUrl = await this.remoteGitClient.createRepository(
+                this.repositoryName
+            );
+        } catch (error) {
+            throw new Error('failed creating remote repository');
+        }
+        const git = simpleGit({ baseDir: `${this.cwd}` });
+        await git.init();
+        await git.addRemote('origin', this.remoteGitClient.repositoryUrl);
         await this._setupDvcRepository();
         await this.createHkubeFile();
         await git.add('.');
         const response = await git.commit('initialized');
         await git.push(['--set-upstream', 'origin', 'master']);
-        return { ...response, commit: response.commit.replace(/(.+) /, '') };
+        return {
+            ...response,
+            commit: response.commit.replace(/(.+) /, ''),
+            repositoryUrl,
+        };
     }
 
     /** @param {string=} commitHash */
@@ -76,21 +106,13 @@ class Repository extends RepositoryBase {
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
         if (!hasClone) {
             await simpleGit({ baseDir: this.rootDir }).clone(
-                this.repositoryUrl
+                this.remoteGitClient.repositoryUrl
             );
         }
         // @ts-ignore
         this.gitClient = simpleGit({ baseDir: this.cwd });
         if (commitHash) await this.gitClient.checkout(commitHash);
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
-    }
-
-    get repositoryUrl() {
-        const {
-            endpoint,
-            user: { name: userName, password },
-        } = this.config.git;
-        return `http://${userName}:${password}@${endpoint}/hkube/${this.repositoryName}.git`;
     }
 
     /**

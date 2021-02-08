@@ -42,10 +42,22 @@ const routes = () => {
             next();
         })
         .post(upload.array('files'), async (req, res, next) => {
-            const { name } = req.body;
+            const { name, storage, git } = req.body;
+            let gitConfig;
+            let storageConfig;
+            try {
+                gitConfig = git ? JSON.parse(git) : undefined;
+                storageConfig = storage ? JSON.parse(storage) : undefined;
+            } catch (error) {
+                throw new InvalidDataError(
+                    "invalid 'git' or 'storage' settings provided"
+                );
+            }
             try {
                 const response = await dataSource.create({
                     name,
+                    storage: storageConfig,
+                    git: gitConfig,
                     files: req.files,
                 });
                 res.status(HttpStatus.CREATED).json(response);

@@ -4,11 +4,12 @@
     "description": "Hkube DataSources Service",
     "main": "app.js",
     "dependencies": {
+        "@gitbeaker/node": "^28.0.4",
         "@hkube/config": "^2.0.11",
         "@hkube/consts": "^1.0.31",
         "@hkube/dag": "^2.1.10",
         "@hkube/datasource-utils": "^1.0.2",
-        "@hkube/db": "^1.0.20",
+        "@hkube/db": "^1.0.21",
         "@hkube/etcd": "^5.1.2",
         "@hkube/logger": "^1.0.27",
         "@hkube/metrics": "^1.0.42",
@@ -16,6 +17,7 @@
         "@hkube/rest-server": "^1.0.16",
         "@hkube/storage-manager": "^2.0.33",
         "@hkube/uid": "^1.0.4",
+        "@octokit/rest": "^18.1.0",
         "ajv": "^6.12.0",
         "archiver": "^5.1.0",
         "cron": "^1.8.2",
@@ -32,6 +34,7 @@
         "simple-git": "^2.24.0"
     },
     "devDependencies": {
+        "axios": "^0.21.1",
         "chai": "^4.2.0",
         "coveralls": "^3.0.11",
         "eslint": "^6.8.0",
