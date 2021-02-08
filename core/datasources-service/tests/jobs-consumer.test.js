@@ -4,7 +4,7 @@ const fse = require('fs-extra');
 const waitFor = require('./waitFor');
 const pathLib = require('path');
 const { getDatasourcesInUseFolder } = require('../lib/utils/pathUtils');
-const { mockRemove } = require('./utils');
+const { mockRemove, nonExistingId } = require('./utils');
 const { createDataSource, createSnapshot, createJob } = require('./api');
 /** @type {import('../lib/service/jobs-consumer')} */
 let jobConsumer;
@@ -30,13 +30,13 @@ describe('JobsConsumer', () => {
         fse.remove(rootDir);
     });
     it('should throw error if dataSource not exist', async () => {
-        const dataSource = { name: 'ds-1' };
+        const dataSource = { id: nonExistingId };
         const job = await createJob({ dataSource });
         const { jobId, taskId } = job.data;
         const state = await waitForStatus({ jobId, taskId }, 'failed');
         expect(state.status).to.equal('failed');
         expect(state.error).to.equal(
-            `could not find dataSource:${dataSource.name}`
+            `could not find dataSource:${nonExistingId.toString()}`
         );
     });
     it('should succeed mounting the datasource - github and update job', async () => {

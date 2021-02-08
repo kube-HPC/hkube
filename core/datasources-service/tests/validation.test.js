@@ -28,14 +28,14 @@ describe('validation', () => {
             name: dataSource.name,
         });
         expect(response.statusCode).to.eq(HttpStatus.OK);
-        expect(response.body).to.eql({ exists: true });
+        expect(response.body).to.eql({ exists: true, id: dataSource.id });
     });
     it('should validate dataSource by version', async () => {
         const { response } = await requestValidation({
             id: dataSource.id,
         });
         expect(response.statusCode).to.eq(HttpStatus.OK);
-        expect(response.body).to.eql({ exists: true });
+        expect(response.body).to.eql({ exists: true, id: dataSource.id });
     });
     it('should validate dataSource by name and snapshot', async () => {
         const [snapshot] = createdSnapshots;
@@ -44,7 +44,7 @@ describe('validation', () => {
             snapshotName: snapshot.name,
         });
         expect(response.statusCode).to.eq(HttpStatus.OK);
-        expect(response.body).to.eql({ exists: true });
+        expect(response.body).to.eql({ exists: true, id: snapshot.id });
     });
     it('should fail for sending both snapshot and version', async () => {
         const [snapshot] = createdSnapshots;

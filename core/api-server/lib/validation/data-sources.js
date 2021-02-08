@@ -8,16 +8,25 @@ class DataSources {
     }
 
     async validate(pipeline) {
-        const dataSources = pipeline.nodes
-            .filter(n => n.kind === nodeKind.DataSource)
-            .map(n => n.dataSource);
-
-        if (dataSources.length > 0) {
-            const { error } = await dataSourceService.validate(dataSources);
-            if (error) {
-                throw new InvalidDataError(error);
-            }
-        }
+        const { nodes } = pipeline;
+        const promises = nodes
+            .map(async node => {
+                if (node.kind === nodeKind.DataSource) {
+                    const { dataSource } = node;
+                    const { response, error } = await dataSourceService.validate(dataSource);
+                    if (error) {
+                        throw new InvalidDataError(error);
+                    }
+                    if (dataSource?.snapshot?.name || dataSource.id) return node;
+                    return { ...node, dataSource: { id: response.id } };
+                }
+                return node;
+            });
+        const nextNodes = await Promise.all(promises);
+        return {
+            ...pipeline,
+            nodes: nextNodes
+        };
     }
 }
 

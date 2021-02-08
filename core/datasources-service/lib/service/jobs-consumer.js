@@ -23,11 +23,7 @@ class JobConsumer {
         this._inactiveTimer = null;
     }
 
-    /**
-     * Init the consumer and register for jobs, initialize connection to the state manager
-     *
-     * @param {config} config
-     */
+    /** @param {config} config */
     async init(config) {
         this.config = config;
         this.rootDir = getDatasourcesInUseFolder(config);
@@ -46,6 +42,7 @@ class JobConsumer {
         /** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
         this.db = dbConnection.connection;
         await this.state.startWatch();
+        // @ts-ignore
         this.consumer.on(
             'job',
             /** @type {onJobHandler} */
@@ -90,11 +87,11 @@ class JobConsumer {
         await this.setActive(job);
 
         let dataSource;
-        const { snapshot } = dataSourceDescriptor;
-
         let resolvedSnapshot;
+
         try {
-            if (snapshot) {
+            if (dataSourceDescriptor.snapshot) {
+                const { snapshot } = dataSourceDescriptor;
                 resolvedSnapshot = await this.db.snapshots.fetchDataSourceWithCredentials(
                     {
                         snapshotName: snapshot.name,
@@ -107,13 +104,21 @@ class JobConsumer {
                         `${dataSourceDescriptor.name}:${snapshot.name}`
                     );
                 dataSource = resolvedSnapshot.dataSource;
+            } else if (dataSourceDescriptor.id) {
+                dataSource = await this.db.dataSources.fetchWithCredentials({
+                    id: dataSourceDescriptor.id,
+                });
             } else {
-                const shouldGetLatest = !dataSourceDescriptor.version;
-                dataSource = await this.db.dataSources.fetchWithCredentials(
-                    shouldGetLatest
-                        ? { name: dataSourceDescriptor.name }
-                        : { id: dataSourceDescriptor.version }
-                );
+                return this.handleFail({
+                    ...job,
+                    error: 'invalid datasource descriptor',
+                });
+                // const shouldGetLatest = !dataSourceDescriptor.version;
+                // dataSource = await this.db.dataSources.fetchWithCredentials(
+                //     shouldGetLatest
+                //         ? { name: dataSourceDescriptor.name }
+                //         : { id: dataSourceDescriptor.version }
+                // );
             }
         } catch (e) {
             return this.handleFail({ ...job, error: e.message });
@@ -148,12 +153,13 @@ class JobConsumer {
             await repository.filterMetaFilesFromClone();
             await this.storeResult({
                 payload: { snapshotId: resolvedSnapshot.id },
+                dataSource: dataSourceDescriptor,
                 ...job,
             });
         } else {
             await this.storeResult({
                 payload: { dataSourceId: dataSource.id },
-                dataSource,
+                dataSource: dataSourceDescriptor,
                 ...job,
             });
         }
@@ -165,7 +171,11 @@ class JobConsumer {
         return null;
     }
 
-    /** @param {{ payload: { dataSourceId?: string; snapshotId?: string } } & Job} props */
+    /**
+     * @param {{
+     *     payload: { dataSourceId?: string; snapshotId?: string };
+     * } & Job} props
+     */
     async storeResult({ payload, dataSource, ...job }) {
         const { jobId, taskId } = job;
         try {

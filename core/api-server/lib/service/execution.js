@@ -87,7 +87,7 @@ class ExecutionService {
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline);
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
-            await validator.dataSources.validate(pipeline);
+            pipeline = await validator.dataSources.validate(pipeline);
             const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
             validator.algorithms.validateAlgorithmImage(algorithms);
             const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline);
