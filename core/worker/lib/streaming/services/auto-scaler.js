@@ -167,7 +167,7 @@ class AutoScaler {
 
     _createScaleUp({ upList, currentSize }) {
         let scaleUp = null;
-        const replicas = Math.ceil(median(upList.map(l => l.count)));
+        const replicas = Math.round(median(upList.map(l => l.count)));
         const scaleTo = currentSize + replicas;
 
         if (this._pendingScale.canScaleUp(scaleTo)) {
@@ -179,7 +179,7 @@ class AutoScaler {
 
     _createScaleDown({ downList, sources, currentSize }) {
         let scaleDown = null;
-        const replicas = Math.ceil(median(downList.map(l => l.count)));
+        const replicas = Math.round(median(downList.map(l => l.count)));
         const scaleTo = currentSize - replicas;
 
         if (scaleTo === 0 && downList.length !== sources.length) {
@@ -213,8 +213,7 @@ class AutoScaler {
 
     _getScaleDetails({ source, reqRate, resRate, durationsRate, currentSize }) {
         const result = { up: 0, down: 0 };
-        const requiredByRate = Metrics.calcRatio(reqRate, resRate);
-        const requiredByDuration = Metrics.calcRatio(reqRate, durationsRate * (currentSize || 1));
+        const required = Metrics.calcRatio(reqRate, durationsRate);
         const scaleUp = this._shouldScaleUp({ reqRate, resRate });
         const scaleDown = this._shouldScaleDown({ source, reqRate, resRate });
 
@@ -223,9 +222,10 @@ class AutoScaler {
             result.up = currentSize > 0 ? 0 : 1;
             result.reason = scaleUp.reason;
         }
-        else if (currentSize < requiredByRate && reqRate > 0) {
-            result.up = Math.min(requiredByRate, this._config.maxScaleUpReplicas);
-            result.reason = ScaleReasonsMessages.REQ_RES({ reqResRatio: requiredByRate });
+        else if (currentSize < required && reqRate > 0) {
+            const requiredByDuration = required - currentSize;
+            result.up = Math.min(requiredByDuration, this._config.maxScaleUpReplicas);
+            result.reason = ScaleReasonsMessages.REQ_RES({ reqResRatio: requiredByDuration });
         }
 
         // need to scale down
@@ -233,9 +233,9 @@ class AutoScaler {
             result.down = currentSize;
             result.reason = scaleDown.reason;
         }
-        else if (currentSize > requiredByDuration && requiredByDuration > 0) {
-            result.down = currentSize - requiredByDuration;
-            result.reason = ScaleReasonsMessages.DUR_RATIO({ durationsRatio: requiredByDuration });
+        else if (currentSize > required && required > 0) {
+            result.down = currentSize - required;
+            result.reason = ScaleReasonsMessages.DUR_RATIO({ durationsRatio: required });
         }
         return result;
     }

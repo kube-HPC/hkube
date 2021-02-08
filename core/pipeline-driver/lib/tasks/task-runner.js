@@ -710,7 +710,7 @@ class TaskRunner extends EventEmitter {
                 this._nodes.addTaskToBatch(task);
             }
             else {
-                // this._nodes.removeTaskFromBatch(task);
+                this._nodes.removeTaskFromBatch(task);
             }
         }
 

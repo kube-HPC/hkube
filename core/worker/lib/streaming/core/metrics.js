@@ -17,7 +17,7 @@ const _calcRate = (list) => {
 
 const calcRatio = (rate1, rate2) => {
     const ratio = (rate1 && rate2) ? (rate1 / rate2) : 1;
-    return Math.floor(ratio);
+    return Math.ceil(ratio);
 };
 
 const _totalCount = (list) => {
@@ -41,18 +41,14 @@ const _totalCount = (list) => {
 const calcRates = (data) => {
     const reqRate = _calcRate(data.requests.items);
     const resRate = _calcRate(data.responses.items);
-    const durMedian = median(data.durations.items);
+    const durationMedian = median(data.durations.items);
     const totalRequests = _totalCount(data.requests.items);
     const totalResponses = _totalCount(data.responses.items);
     const dropped = _totalCount(data.dropped.items);
-    let durationsRate = 0;
 
-    if (durMedian) {
-        durationsRate = 1 / (durMedian / 1000);
-    }
-    else {
-        durationsRate = resRate;
-    }
+    const durMedian = durationMedian || 0.1;
+    const durationsRate = 1 / (durMedian / 1000);
+
     return { reqRate, resRate, durationsRate, totalRequests, totalResponses, dropped };
 };
 
