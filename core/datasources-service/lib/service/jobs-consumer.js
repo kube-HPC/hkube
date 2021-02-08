@@ -23,11 +23,7 @@ class JobConsumer {
         this._inactiveTimer = null;
     }
 
-    /**
-     * Init the consumer and register for jobs, initialize connection to the state manager
-     *
-     * @param {config} config
-     */
+    /** @param {config} config */
     async init(config) {
         this.config = config;
         this.rootDir = getDatasourcesInUseFolder(config);

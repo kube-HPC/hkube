@@ -12,10 +12,6 @@ const secured = !!process.env.DATASOURCE_SERVICE_SSL;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.dvcStorage = process.env.DVC_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
-config.keepDataSourceHotDuration = formatter.parseInt(
-    process.env.KEEP_DATASOURCE_HOT_DURATION,
-    0
-);
 
 config.version = packageJson.version;
 config.podName = process.env.POD_NAME;
