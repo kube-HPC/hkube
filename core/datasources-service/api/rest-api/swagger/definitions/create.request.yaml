@@ -4,6 +4,47 @@ properties:
         $ref: '#/components/schemas/DataSourceName'
     files:
         $ref: '#/components/schemas/Files'
+    storage:
+        type: object
+        properties:
+            accessKeyId:
+                type: string
+            secretAccessKey:
+                type: string
+            endpoint:
+                type: string
+            useSSL:
+                type: boolean
+            bucketName:
+                type: string
+        required:
+            - accessKeyId
+            - secretAccessKey
+            - endpoint
+            - bucketName
+    git:
+        type: object
+        properties:
+            organization:
+                type: string
+            endpoint:
+                type: string
+            token:
+                type: string
+            tokenName:
+                description: the token name is *required* when using a *gitlab* account
+                type: string
+            kind:
+                type: string
+                enum:
+                    - github
+                    - gitlab
+        required:
+            - endpoint
+            - token
+            - kind
 required:
     - name
     - files
+    - storage
+    - git

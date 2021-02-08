@@ -54,7 +54,7 @@ describe('validation', () => {
         });
         expect(response.statusCode).to.eq(HttpStatus.BAD_REQUEST);
         expect(response.body.error.message).to.eql(
-            'you must provide *only* one of (id | snapshot.name)'
+            'must provide *only* one of (id | snapshot.name)'
         );
     });
     it('should fail with non existing name', async () => {
@@ -83,7 +83,7 @@ describe('validation', () => {
         });
         expect(response.statusCode).to.eq(HttpStatus.BAD_REQUEST);
         expect(response.body.error.message).to.match(
-            /you must provide "name" when/i
+            /must provide "name" when/i
         );
     });
 });

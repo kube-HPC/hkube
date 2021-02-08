@@ -1,4 +1,5 @@
 const fse = require('fs-extra');
+const pathLib = require('path');
 const { Consumer } = require('@hkube/producer-consumer');
 const { taskStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
@@ -94,10 +95,12 @@ class JobConsumer {
         let resolvedSnapshot;
         try {
             if (snapshot) {
-                resolvedSnapshot = await this.db.snapshots.fetchDataSource({
-                    snapshotName: snapshot.name,
-                    dataSourceName: dataSourceDescriptor.name,
-                });
+                resolvedSnapshot = await this.db.snapshots.fetchDataSourceWithCredentials(
+                    {
+                        snapshotName: snapshot.name,
+                        dataSourceName: dataSourceDescriptor.name,
+                    }
+                );
                 if (!resolvedSnapshot)
                     throw new ResourceNotFoundError(
                         'snapshot',
@@ -106,7 +109,7 @@ class JobConsumer {
                 dataSource = resolvedSnapshot.dataSource;
             } else {
                 const shouldGetLatest = !dataSourceDescriptor.version;
-                dataSource = await this.db.dataSources.fetch(
+                dataSource = await this.db.dataSources.fetchWithCredentials(
                     shouldGetLatest
                         ? { name: dataSourceDescriptor.name }
                         : { id: dataSourceDescriptor.version }
@@ -119,7 +122,9 @@ class JobConsumer {
         const repository = new Repository(
             dataSource.name,
             this.config,
-            `${this.rootDir}/${dataSource.name}/${dataSource.id}`
+            pathLib.join(this.rootDir, dataSource.name, dataSource.id),
+            dataSource.repositoryUrl,
+            dataSource._credentials
         );
 
         try {
@@ -192,7 +197,7 @@ class JobConsumer {
     }
 
     unmountDataSource(jobId) {
-        return fse.remove(`${this.rootDir}/${jobId}`);
+        return fse.remove(pathLib.join(this.rootDir, jobId));
     }
 }
 

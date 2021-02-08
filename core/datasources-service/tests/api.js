@@ -30,25 +30,37 @@ const setupUrl = ({ name, id }) => {
  * @typedef {import('@hkube/db/lib/DataSource').DataSourceWithMeta} DataSourceWithMeta
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
  */
-/**
- * @type {(props?: {
- *     body?: { name?: string };
- *     withFile?: boolean;
- *     fileNames?: string[];
- * }) => Response<DataSource>}
- */
+/** @returns {Response<DataSource>} */
 const createDataSource = ({
     body = {},
     withFile = true,
     fileNames = [fileName],
+    ignoreGit = false,
+    ignoreStorage = false,
+    useGitOrganization = false,
+    useGitlab = false,
 } = {}) => {
     // @ts-ignore
-    const uri = `${global.testParams.restUrl}/datasource`;
+    const { storage, git, restUrl } = global.testParams;
+    /** @type {import('../lib/utils/types').gitConfig} */
+    const { github, gitlab } = git;
+
+    const gitConfig = (() => {
+        if (ignoreGit) return;
+        if (useGitlab) return gitlab;
+        if (useGitOrganization) return github;
+        const { organization, ...rest } = github;
+        return rest;
+    })();
+
+    const uri = `${restUrl}/datasource`;
     const formData = {
         ...body,
         files: withFile
             ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`))
             : undefined,
+        ...(ignoreStorage ? {} : { storage: JSON.stringify(storage) }),
+        ...(ignoreGit ? {} : { git: JSON.stringify(gitConfig) }),
     };
     const options = { uri, formData };
     return request(options);

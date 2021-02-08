@@ -2,6 +2,8 @@ const dbConnect = require('../db');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 /**
  * @typedef {import('express')} Express
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage;
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit;
  * @typedef {import('../utils/types').FileMeta} FileMeta
  * @typedef {Express.Multer.File[]} MulterFile
  */
@@ -11,7 +13,14 @@ class DataSources {
         this._validator = validator;
     }
 
-    /** @param {{ name: string; files: MulterFile[] }} props */
+    /**
+     * @param {{
+     *     name: string;
+     *     files: Express.Multer.File[];
+     *     git: ExternalGit;
+     *     storage: ExternalStorage;
+     * }} props
+     */
     create(props) {
         const files = Array.isArray(props.files)
             ? props.files.map(file => file.originalname)
@@ -29,7 +38,7 @@ class DataSources {
      *     versionDescription: string;
      *     files: {
      *         mapping: FileMeta[];
-     *         added: MulterFile[];
+     *         added: Express.Multer.File[];
      *         dropped: string[];
      *     };
      * }} props
@@ -41,7 +50,7 @@ class DataSources {
                 : undefined;
         if (!filesAdded && !props.files.dropped && !props.files.mapping) {
             throw new InvalidDataError(
-                'you must provide at least one of (files | droppedFileIds | mapping)'
+                'provide at least one of (files | droppedFileIds | mapping)'
             );
         }
         this._validator.validate(this._validator.definitions.update, {

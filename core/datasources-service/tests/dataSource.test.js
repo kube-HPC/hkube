@@ -171,6 +171,7 @@ describe('Datasource', () => {
                 'text/markdown',
                 'application/json',
             ]);
+            // @ts-ignore
             expect(fileTypes).to.have.lengthOf([...new Set(fileTypes)].length);
         });
     });
