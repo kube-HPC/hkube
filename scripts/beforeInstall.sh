@@ -15,4 +15,4 @@ docker run -d -p 9000:9000 --name minio1 -e "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMP
   -e "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" minio/minio server /data
 docker run -d -p 27017:27017 --name mongodb -e MONGO_INITDB_ROOT_USERNAME=tester \
   -e MONGO_INITDB_ROOT_PASSWORD=password mongo:4.4.1-bionic
-docker run -d -p 3010:3010 --name gitea hkube/gitea-dev:v1.13.0-0
+docker run -d -p 3010:3010 --name gitea hkube/gitea-dev:v1.13.0-1
