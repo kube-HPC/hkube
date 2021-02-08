@@ -59,7 +59,11 @@ class Gitlab extends Base {
     }
 
     async deleteRepository() {
-        throw new Error('Gitlab deleteRepository: not implemented!');
+        const url = new URL(this.rawRepositoryUrl).pathname
+            .replace(/^\//, '')
+            .replace('.git', '');
+
+        return this.client.Projects.remove(url);
     }
 }
 

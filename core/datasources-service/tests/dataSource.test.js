@@ -1,10 +1,12 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
-const { uid: uuid } = require('@hkube/uid');
+const { Octokit } = require('@octokit/rest');
+const { Gitlab: GitlabClient } = require('@gitbeaker/node');
 const sinon = require('sinon');
-const { default: axios } = require('axios');
+const { uid: uuid } = require('@hkube/uid');
 const { request } = require('./request');
+const dedicatedStorage = require('./../lib/DedicatedStorage');
 const dbConnection = require('../lib/db');
 const { nonExistingId, mockDeleteClone } = require('./utils');
 const {
@@ -17,6 +19,36 @@ const {
 
 let DATASOURCE_GIT_REPOS_DIR, restUrl, restPath;
 
+const fetchGithubRepo = async name => {
+    // @ts-ignore
+    const { github } = global.testParams.git;
+    const client = new Octokit({
+        baseUrl: `${github.endpoint}/api/v1`,
+        auth: github.token,
+    });
+    return client.repos.get({
+        repo: name,
+        owner: github.user.name,
+    });
+};
+
+/** @returns {Promise<any>} */
+const fetchGitlabRepo = async repositoryUrl => {
+    // @ts-ignore
+    const { gitlab } = global.testParams.git;
+    const client = new GitlabClient({
+        host: gitlab.endpoint,
+        token: gitlab.token,
+        tokenName: gitlab.tokenName,
+    });
+    const url = new URL(repositoryUrl).pathname
+        .replace(/^\//, '')
+        .replace('.git', '');
+    return client.Projects.show(url);
+};
+
+const listDvcRepository = async name => dedicatedStorage.list({ path: name });
+
 describe('Datasource', () => {
     before(() => {
         // @ts-ignore
@@ -24,7 +56,6 @@ describe('Datasource', () => {
         // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
         restPath = `${restUrl}/datasource`;
-        gitUrl = global.testParams.gitUrl;
     });
     describe('datasource/id/:id GET', () => {
         it('should fetch by id', async () => {
@@ -175,7 +206,7 @@ describe('Datasource', () => {
             expect(fileTypes).to.have.lengthOf([...new Set(fileTypes)].length);
         });
     });
-    describe.skip('datasource/:name DELETE', () => {
+    describe('datasource/:name DELETE', () => {
         it('should throw not found on delete by name', async () => {
             const name = uuid();
             const delRes = await deleteDataSource({ name });
@@ -183,15 +214,40 @@ describe('Datasource', () => {
             expect(delRes.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(delRes.body.error.message).to.match(/Not Found/i);
         });
-        it('should create and delete one datasource by name', async () => {
+        it('should create and delete one datasource by name - github', async () => {
             const name = uuid();
+
             await createDataSource({ body: { name } });
             const fetchRes = await fetchDataSource({ name });
-            // ensure the datasource is delete on the git repo
-            const checkExist = await axios.get(`${gitUrl}/${name}`);
+            const checkExist = await fetchGithubRepo(name);
             expect(checkExist.status).to.eq(HttpStatus.OK);
+            const dvcFiles = await listDvcRepository(name);
+            expect(dvcFiles).to.have.lengthOf(1);
             const delRes = await deleteDataSource({ name });
-            await expect(axios.get(`${gitUrl}/${name}`)).to.eventually.be
+            const dvcFilesAfterDelete = await listDvcRepository(name);
+            expect(dvcFilesAfterDelete).to.have.lengthOf(0);
+            await expect(fetchGithubRepo(name)).to.eventually.be.rejected;
+            const fetchDel = await fetchDataSource({ name });
+            expect(fetchRes.body.name).to.eql(name);
+            expect(delRes.body).to.eql({ deleted: 1 });
+            expect(fetchDel.body).to.have.property('error');
+            expect(fetchDel.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(fetchDel.body.error.message).to.match(/Not Found/i);
+        });
+
+        it.skip('should create and delete one datasource by name - gitlab', async () => {
+            const name = uuid();
+            await createDataSource({ body: { name }, useGitlab: true });
+            const fetchRes = await fetchDataSource({ name });
+            const { repositoryUrl } = fetchRes.body;
+            const dvcFiles = await listDvcRepository(name);
+            expect(dvcFiles).to.have.lengthOf(1);
+            const checkExist = await fetchGitlabRepo(repositoryUrl);
+            expect(checkExist.name).to.eq(name);
+            const delRes = await deleteDataSource({ name });
+            const dvcFilesAfterDelete = await listDvcRepository(name);
+            expect(dvcFilesAfterDelete).to.have.lengthOf(0);
+            await expect(fetchGitlabRepo(repositoryUrl)).to.eventually.be
                 .rejected;
             const fetchDel = await fetchDataSource({ name });
             expect(fetchRes.body.name).to.eql(name);
@@ -211,6 +267,7 @@ describe('Datasource', () => {
             const fetchRes = await fetchDataSource({ name });
             const delRes = await deleteDataSource({ name });
             const fetchDel = await fetchDataSource({ name });
+
             expect(fetchRes.body.name).to.eql(name);
             expect(fetchRes.body.files).to.have.lengthOf(2);
             expect(delRes.body).to.eql({ deleted: 2 });

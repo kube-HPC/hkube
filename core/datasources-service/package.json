@@ -9,7 +9,7 @@
         "@hkube/consts": "^1.0.31",
         "@hkube/dag": "^2.1.10",
         "@hkube/datasource-utils": "^1.0.2",
-        "@hkube/db": "^1.0.21",
+        "@hkube/db": "^1.0.22",
         "@hkube/etcd": "^5.1.2",
         "@hkube/logger": "^1.0.27",
         "@hkube/metrics": "^1.0.42",

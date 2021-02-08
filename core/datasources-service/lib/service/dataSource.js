@@ -370,10 +370,15 @@ class DataSource {
 
     async delete({ name }) {
         validator.dataSources.delete({ name });
+        const dataSource = await this.db.dataSources.fetchWithCredentials({
+            name,
+        });
         const repository = new Repository(
             name,
             this.config,
-            this.config.directories.gitRepositories
+            this.config.directories.gitRepositories,
+            dataSource.repositoryUrl,
+            dataSource._credentials
         );
         try {
             await repository.delete();

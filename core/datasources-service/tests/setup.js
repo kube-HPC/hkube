@@ -54,7 +54,6 @@ before(async function () {
             },
         },
         directories: config.directories,
-        gitUrl: `http://${userName}:${password}@${endpoint}/api/v1/repos/hkube`,
     };
 });
 
