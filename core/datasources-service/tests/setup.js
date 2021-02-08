@@ -2,6 +2,11 @@ const fse = require('fs-extra');
 const sinon = require('sinon');
 const storageManager = require('@hkube/storage-manager');
 const DATASOURCE_GIT_REPOS_DIR = 'temp/git-repositories';
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+
+chai.use(chaiAsPromised);
+
 const pathLib = require('path');
 const {
     setupGithubToken,
@@ -10,8 +15,8 @@ const {
 } = require('./gitToken');
 const { STORAGE_DIR } = require('./utils');
 const { removeAllRepos } = require('./clearGitlab');
-const { getDatasourcesInUseFolder } = require('./../lib/utils/pathUtils');
 const { Gitlab } = require('@gitbeaker/node');
+const { getDatasourcesInUseFolder } = require('./../lib/utils/pathUtils');
 let githubToken = null;
 let gitlabToken = null;
 let gitConfig = null;

@@ -75,7 +75,7 @@ config.s3 = {
         'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
     endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
     useSSL: false,
-    bucketName: storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE,
+    bucketName: `${config.clusterName}-${storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE}`,
 };
 
 config.git = {

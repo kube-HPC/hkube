@@ -1,5 +1,5 @@
 const fse = require('fs-extra');
-const { parse: parsePath } = require('path');
+const pathLib = require('path');
 const {
     glob,
     Repository: RepositoryBase,
@@ -10,6 +10,9 @@ const { Github, Gitlab } = require('./GitRemoteClient');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
 const { serviceName } = require('../../config/main/config.base');
+const dedicatedStorage = require('./../DedicatedStorage');
+const { ResourceNotFoundError } = require('../errors');
+
 /**
  * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
  * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage
@@ -186,7 +189,9 @@ class Repository extends RepositoryBase {
             sourceTargetArray.map(async ([srcFile, targetFile]) => {
                 const srcPath = getFilePath(srcFile);
                 const targetPath = getFilePath(targetFile);
-                await fse.ensureDir(parsePath(`${this.cwd}/${targetPath}`).dir);
+                await fse.ensureDir(
+                    pathLib.parse(`${this.cwd}/${targetPath}`).dir
+                );
                 return this.dvc.move(srcPath, targetPath);
             })
         );
@@ -293,6 +298,20 @@ class Repository extends RepositoryBase {
         return Promise.all(
             metaFiles.map(filePath => fse.remove(`${this.cwd}/${filePath}`))
         );
+    }
+
+    /**
+     * **PERMANENTLY** delete the repository from db, storage and git. if you
+     * want to delete a local copy use *Repository.deleteClone*
+     */
+    async delete() {
+        const response = await dedicatedStorage.delete({
+            path: this.repositoryName,
+        });
+        if (response.length === 0) {
+            throw new ResourceNotFoundError('datasource', this.repositoryName);
+        }
+        return this.remoteGitClient.deleteRepository(this.repositoryName);
     }
 }
 
