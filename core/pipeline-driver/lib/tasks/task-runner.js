@@ -634,14 +634,13 @@ class TaskRunner extends EventEmitter {
         }
         task.metrics.forEach((t) => {
             const { source, target, ...metrics } = t;
-            let { totalRequests } = metrics;
-            let { totalResponses } = metrics;
-            let { totalDropped } = metrics;
-            const edge = this._nodes.getEdge(t.source, t.target);
-            if (edge.metrics) {
-                totalRequests = edge.metrics.totalRequests + totalRequests;
-                totalResponses = edge.metrics.totalResponses + totalResponses;
-            }
+            const { totalRequests, totalResponses, totalDropped } = metrics;
+            // let { totalDropped } = metrics;
+            // const edge = this._nodes.getEdge(t.source, t.target);
+            // if (edge.metrics) {
+            //     totalRequests = edge.metrics.totalRequests + totalRequests;
+            //     totalResponses = edge.metrics.totalResponses + totalResponses;
+            // }
             this._nodes.updateEdge(t.source, t.target, { metrics: { ...metrics, totalRequests, totalResponses, totalDropped } });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });

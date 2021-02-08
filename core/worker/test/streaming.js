@@ -130,7 +130,7 @@ const checkMetrics = () => {
     return streamService._metrics._checkMetrics();
 }
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     before(async () => {
         await stateAdapter._db.jobs.create({ pipeline, jobId });
         await streamHandler.start(job);
@@ -562,7 +562,7 @@ describe.only('Streaming', () => {
                 slave.report(data);
                 await delay(50)
             }
-            const currentSize = 1;
+            const currentSize = 0;
             const list1 = { nodeName, queueSize: 300, responses: 40, currentSize };
             const list2 = { nodeName, queueSize: 300, responses: 60, currentSize };
             const list3 = { nodeName, queueSize: 300, responses: 80, currentSize };
@@ -571,15 +571,15 @@ describe.only('Streaming', () => {
             const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
             const slave3 = new SlaveAdapter({ jobId, nodeName, source: 'C' });
             const slave4 = new SlaveAdapter({ jobId, nodeName, source: 'D' });
-            reportSlave(slave1, list1);
-            reportSlave(slave1, list1);
-            reportSlave(slave1, list1);
-            reportSlave(slave1, list1);
+            await reportSlave(slave1, list1);
+            await reportSlave(slave1, list1);
+            await reportSlave(slave1, list1);
+            await reportSlave(slave1, list1);
 
-            reportSlave(slave2, list2);
-            reportSlave(slave2, list2);
-            reportSlave(slave2, list2);
-            reportSlave(slave2, list2);
+            await reportSlave(slave2, list2);
+            await reportSlave(slave2, list2);
+            await reportSlave(slave2, list2);
+            await reportSlave(slave2, list2);
 
             slave3.report(list3);
             slave3.report(list3);
@@ -671,8 +671,8 @@ describe.only('Streaming', () => {
             const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
             const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
             await requests(list);
-            await slave1.report(list1);
-            await slave2.report(list2);
+            slave1.report(list1);
+            slave2.report(list2);
             await delay(500);
             const masters = getMasters();
             const slaves = masters[0].slaves();
@@ -686,7 +686,6 @@ describe.only('Streaming', () => {
                 streamService.reportStats(data);
                 await delay(20);
             }
-
             const reportSlave = async (slave, data) => {
                 data.queueSize += 100;
                 data.responses += 50;
