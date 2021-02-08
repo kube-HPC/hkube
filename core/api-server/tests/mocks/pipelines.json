@@ -622,5 +622,22 @@
                 "stateType": "stateful"
             }
         ]
+    },
+    {
+        "name": "options",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "flowInput"
+                ]
+            }
+        ],
+        "options": {
+            "batchTolerance": 45,
+            "progressVerbosityLevel": "debug",
+            "ttl": 85900
+        }
     }
 ]

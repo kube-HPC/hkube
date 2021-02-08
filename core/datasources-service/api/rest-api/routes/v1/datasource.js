@@ -11,7 +11,6 @@ const downloads = require('../../../../lib/service/downloads');
 const dbErrorsMiddleware = require('./../../middlewares/dbErrors');
 const validation = require('./../../../../lib/service/validation');
 const ensureArray = require('../../../../lib/utils/ensureArray');
-const cleanup = require('../../../../lib/service/cleanup');
 
 const upload = multer({ dest: 'uploads/datasource/' });
 
@@ -23,12 +22,6 @@ const cleanTmpFile = async (files = []) => {
 
 const routes = () => {
     const router = Router();
-
-    router.delete('/cleanup', async (req, res, next) => {
-        await cleanup.subtractDirs();
-        res.sendStatus(200);
-        next();
-    });
 
     // ---- validate ---- //
     router.get('/validate', async (req, res, next) => {
@@ -51,13 +44,27 @@ const routes = () => {
             next();
         })
         .post(upload.array('files'), async (req, res, next) => {
-            /** @type {any} */
             const {
                 files,
-                body: { name },
+                body: { name, storage, git },
             } = req;
+            let gitConfig;
+            let storageConfig;
             try {
-                const response = await dataSource.create({ name, files });
+                gitConfig = git ? JSON.parse(git) : undefined;
+                storageConfig = storage ? JSON.parse(storage) : undefined;
+            } catch (error) {
+                throw new InvalidDataError(
+                    "invalid 'git' or 'storage' settings provided"
+                );
+            }
+            try {
+                const response = await dataSource.create({
+                    name,
+                    storage: storageConfig,
+                    git: gitConfig,
+                    files: req.files,
+                });
                 res.status(HttpStatus.CREATED).json(response);
             } finally {
                 await cleanTmpFile(files);
@@ -238,8 +245,8 @@ const routes = () => {
 
     router.post('/:name/sync', async (req, res, next) => {
         const { name } = req.params;
-        const createdVersions = await dataSource.sync({ name });
-        res.status(201).json({ dataSource: createdVersions });
+        const createdVersion = await dataSource.sync({ name });
+        res.status(201).json(createdVersion);
         next();
     });
 

@@ -1,5 +1,6 @@
 const packageJson = require(process.cwd() + '/package.json');
 const formatter = require(process.cwd() + '/lib/utils/formatters');
+const storageManager = require('@hkube/storage-manager');
 
 const config = {};
 config.serviceName = packageJson.name;
@@ -78,15 +79,32 @@ config.s3 = {
         'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
     endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
     useSSL: false,
+    bucketName: storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE,
 };
 
 config.git = {
-    user: {
-        name: process.env.GIT_USER_NAME || 'hkube',
-        password: process.env.GIT_PASSWORD || '123456',
+    github: {
+        user: {
+            name: process.env.GIT_USER_NAME || 'hkube',
+            password: process.env.GIT_PASSWORD || '123456',
+        },
+        organization: process.env.GIT_ORGANIZATION || 'hkube-org',
+        endpoint: process.env.GITHUB_ENDPOINT_URL || 'http://localhost:3010',
+        /** @type {string} */
+        token: null,
+        kind: 'github',
     },
-    endpoint: process.env.GIT_ENDPOINT_URL || 'localhost:3010',
+    gitlab: {
+        tokenName: process.env.GITLAB_TOKEN_NAME || `test-token`,
+        token: process.env.GITLAB_TOKEN || 'buBPxyFrzqHEfmthVSuy',
+        kind: 'gitlab',
+        endpoint: process.env.GITLAB_ENDPOINT_URL || 'http://localhost:3080',
+        test: {
+            gitlabTestEndpointToken: 'replace-me.com',
+        },
+    },
 };
+
 config.fs = {
     baseDirectory:
         process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',

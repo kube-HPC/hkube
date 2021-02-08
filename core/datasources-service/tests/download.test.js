@@ -8,9 +8,15 @@ const {
     updateVersion,
     createDownloadLink,
     fetchDownloadLink,
-} = require('./utils');
+} = require('./api');
+
+let ZIP_DIRECTORY;
 
 describe('download', () => {
+    before(() => {
+        // @ts-ignore
+        ZIP_DIRECTORY = global.testParams.directories.zipFiles;
+    });
     describe('validation', () => {
         it('should fail too long downloadId', async () => {
             const {
@@ -82,11 +88,8 @@ describe('download', () => {
         const { href } = body;
         const [, downloadId] = href.split('download_id=');
         expect(statusCode).to.eq(HttpStatus.CREATED);
-        expect(
-            await fse.pathExists(
-                `${global.testParams.directories.zipFiles}/${downloadId}.zip`
-            )
-        ).to.be.true;
+        expect(await fse.pathExists(`${ZIP_DIRECTORY}/${downloadId}.zip`)).to.be
+            .true;
         const { response } = await fetchDownloadLink({ href });
         expect(response.statusCode).to.eq(HttpStatus.OK);
     });

@@ -1,5 +1,5 @@
 const { uid } = require('@hkube/uid');
-const { createDataSource, createSnapshot } = require('./utils');
+const { createDataSource, createSnapshot } = require('./api');
 
 const generateSnapshot = (name, query) => ({
     name,
@@ -10,7 +10,7 @@ const generateSnapshot = (name, query) => ({
  * @returns {Promise<{
  *     dataSource: import('@hkube/db/lib/DataSource').DataSource;
  *     generatedSnapshots: { name: string; query: string }[];
- *     createdSnapshots: import('@hkube/db/lib/Snapshots').Snapshot;
+ *     createdSnapshots: import('@hkube/db/lib/Snapshots').Snapshot[];
  * }>}
  */
 const setupDataSource = async (numberOfSnapshots = 1) => {

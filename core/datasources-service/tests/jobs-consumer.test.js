@@ -2,17 +2,13 @@ const { expect } = require('chai');
 const { uid: uuid } = require('@hkube/uid');
 const fse = require('fs-extra');
 const waitFor = require('./waitFor');
+const pathLib = require('path');
 const { getDatasourcesInUseFolder } = require('../lib/utils/pathUtils');
-
+const { mockRemove, nonExistingId } = require('./utils');
+const { createDataSource, createSnapshot, createJob } = require('./api');
 /** @type {import('../lib/service/jobs-consumer')} */
 let jobConsumer;
 
-const {
-    createDataSource,
-    createSnapshot,
-    createJob,
-    mockRemove,
-} = require('./utils');
 let rootDir = null;
 
 const waitForStatus = async ({ jobId, taskId }, status) => {
@@ -34,24 +30,51 @@ describe('JobsConsumer', () => {
         fse.remove(rootDir);
     });
     it('should throw error if dataSource not exist', async () => {
-        const dataSource = { name: 'ds-1' };
+        const dataSource = { id: nonExistingId };
         const job = await createJob({ dataSource });
         const { jobId, taskId } = job.data;
         const state = await waitForStatus({ jobId, taskId }, 'failed');
         expect(state.status).to.equal('failed');
         expect(state.error).to.equal(
-            `could not find dataSource:${dataSource.name}`
+            `could not find dataSource:${nonExistingId.toString()}`
         );
     });
-    it('should succeed get datasource and update job', async () => {
+    it('should succeed mounting the datasource - github and update job', async () => {
         const name = uuid();
-        await createDataSource({ body: { name } });
-        const dataSource = { name };
+        const { body: dataSource } = await createDataSource({ body: { name } });
         const job = await createJob({ dataSource });
         const { jobId, taskId } = job.data;
         const state = await waitForStatus({ jobId, taskId }, 'succeed');
         expect(state.status).to.equal('succeed');
         expect(state).to.have.property('result');
+        const mountedPath = pathLib.join(
+            // @ts-ignore
+            global.testParams.mountedDir,
+            dataSource.name,
+            dataSource.id,
+            dataSource.name
+        );
+        expect(await fse.pathExists(mountedPath)).to.be.true;
+    });
+    it.skip('should succeed mounting the datasource - gitlab and update job', async () => {
+        const name = uuid();
+        const { body: dataSource } = await createDataSource({
+            body: { name },
+            useGitlab: true,
+        });
+        const job = await createJob({ dataSource });
+        const { jobId, taskId } = job.data;
+        const state = await waitForStatus({ jobId, taskId }, 'succeed');
+        expect(state.status).to.equal('succeed');
+        expect(state).to.have.property('result');
+        const mountedPath = pathLib.join(
+            // @ts-ignore
+            global.testParams.mountedDir,
+            dataSource.name,
+            dataSource.id,
+            dataSource.name
+        );
+        expect(await fse.pathExists(mountedPath)).to.be.true;
     });
     it('should succeed pulling a datasource by snapshot and filter the files by query', async () => {
         const name = uuid();

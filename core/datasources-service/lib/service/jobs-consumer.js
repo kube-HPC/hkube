@@ -1,4 +1,5 @@
 const fse = require('fs-extra');
+const pathLib = require('path');
 const { Consumer } = require('@hkube/producer-consumer');
 const { taskStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
@@ -23,8 +24,7 @@ class JobConsumer {
     }
 
     /**
-     * Init the consumer and register for jobs, initialize connection to the
-     * state manager
+     * Init the consumer and register for jobs, initialize connection to the state manager
      *
      * @param {config} config
      */
@@ -96,10 +96,12 @@ class JobConsumer {
         try {
             if (dataSourceDescriptor.snapshot) {
                 const { snapshot } = dataSourceDescriptor;
-                resolvedSnapshot = await this.db.snapshots.fetchDataSource({
-                    snapshotName: snapshot.name,
-                    dataSourceName: dataSourceDescriptor.name,
-                });
+                resolvedSnapshot = await this.db.snapshots.fetchDataSourceWithCredentials(
+                    {
+                        snapshotName: snapshot.name,
+                        dataSourceName: dataSourceDescriptor.name,
+                    }
+                );
                 if (!resolvedSnapshot)
                     throw new ResourceNotFoundError(
                         'snapshot',
@@ -107,7 +109,7 @@ class JobConsumer {
                     );
                 dataSource = resolvedSnapshot.dataSource;
             } else if (dataSourceDescriptor.id) {
-                dataSource = await this.db.dataSources.fetch({
+                dataSource = await this.db.dataSources.fetchWithCredentials({
                     id: dataSourceDescriptor.id,
                 });
             } else {
@@ -115,6 +117,12 @@ class JobConsumer {
                     ...job,
                     error: 'invalid datasource descriptor',
                 });
+                // const shouldGetLatest = !dataSourceDescriptor.version;
+                // dataSource = await this.db.dataSources.fetchWithCredentials(
+                //     shouldGetLatest
+                //         ? { name: dataSourceDescriptor.name }
+                //         : { id: dataSourceDescriptor.version }
+                // );
             }
         } catch (e) {
             return this.handleFail({ ...job, error: e.message });
@@ -123,7 +131,9 @@ class JobConsumer {
         const repository = new Repository(
             dataSource.name,
             this.config,
-            `${this.rootDir}/${dataSource.name}/${dataSource.id}`
+            pathLib.join(this.rootDir, dataSource.name, dataSource.id),
+            dataSource.repositoryUrl,
+            dataSource._credentials
         );
 
         try {
@@ -147,12 +157,13 @@ class JobConsumer {
             await repository.filterMetaFilesFromClone();
             await this.storeResult({
                 payload: { snapshotId: resolvedSnapshot.id },
+                dataSource: dataSourceDescriptor,
                 ...job,
             });
         } else {
             await this.storeResult({
                 payload: { dataSourceId: dataSource.id },
-                dataSource,
+                dataSource: dataSourceDescriptor,
                 ...job,
             });
         }
@@ -164,7 +175,11 @@ class JobConsumer {
         return null;
     }
 
-    /** @param {{ payload: { dataSourceId?: string; snapshotId?: string } } & Job} props */
+    /**
+     * @param {{
+     *     payload: { dataSourceId?: string; snapshotId?: string };
+     * } & Job} props
+     */
     async storeResult({ payload, dataSource, ...job }) {
         const { jobId, taskId } = job;
         try {
@@ -196,7 +211,7 @@ class JobConsumer {
     }
 
     unmountDataSource(jobId) {
-        return fse.remove(`${this.rootDir}/${jobId}`);
+        return fse.remove(pathLib.join(this.rootDir, jobId));
     }
 }
 

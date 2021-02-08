@@ -7,9 +7,9 @@ const { tracer } = require('@hkube/metrics');
 const db = require('../persistency/db');
 const { heuristicsName } = require('../consts/index');
 const queueRunner = require('../queue-runner');
+const { isCompletedState } = require('../utils/pipelineStatuses');
 const component = require('../consts/component-name').JOBS_CONSUMER;
-
-const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
+const producerSingleton = require('./producer-singleton');
 
 class JobConsumer extends EventEmitter {
     constructor() {
@@ -33,10 +33,11 @@ class JobConsumer extends EventEmitter {
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
-        this.etcd.jobs.status.on('change', (data) => {
+        this.etcd.jobs.status.on('change', async (data) => {
             const { status, jobId } = data;
-            if (this._isCompletedState({ status })) {
+            if (isCompletedState({ status })) {
                 this._removeInvalidJob({ jobId });
+                await this._removeWaitingJobs({ jobId, status });
             }
         });
         this.etcd.algorithms.executions.on('change', (data) => {
@@ -48,12 +49,34 @@ class JobConsumer extends EventEmitter {
         this._consumer.register({ job: { type: algorithmType, concurrency: options.consumer.concurrency } });
     }
 
-    _isCompletedState({ status }) {
-        return pipelineDoneStatus.includes(status);
-    }
-
     _removeInvalidJob({ jobId }) {
         queueRunner.queue.removeJobs([{ jobId }]);
+    }
+
+    async _removeWaitingJobs({ jobId, status }) {
+        const removeJob = async (job) => {
+            try {
+                await job.discard();
+                await job.remove();
+                return { removed: true };
+            }
+            catch (error) {
+                return { removed: false, error: error.message };
+            }
+        };
+        try {
+            const waitingJobs = await producerSingleton.queue.getWaiting();
+            const pendingJobs = waitingJobs.filter(j => j.data?.jobId === jobId);
+            const removeResults = await Promise.all(pendingJobs.map(removeJob));
+            const failedToRemove = removeResults.filter(r => r.error);
+            log.info(`job ${jobId} with state ${status}: removed ${pendingJobs.length} waiting tasks.`, { component });
+            if (failedToRemove.length) {
+                log.warning(`${failedToRemove.length} failed to remove`, { component });
+            }
+        }
+        catch (error) {
+            log.error(`Failed to remove pending jobs for jobId ${jobId}`, { component }, error);
+        }
     }
 
     async _handleJob(job) {
@@ -61,7 +84,7 @@ class JobConsumer extends EventEmitter {
             const { jobId } = job.data;
             const data = await db.getJob({ jobId });
             log.info(`job arrived with ${data.status} state and ${job.data.tasks.length} tasks`, { component });
-            if (this._isCompletedState({ status: data.status })) {
+            if (isCompletedState({ status: data.status })) {
                 this._removeInvalidJob({ jobId });
             }
             else {
