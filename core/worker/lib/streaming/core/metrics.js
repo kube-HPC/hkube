@@ -16,8 +16,9 @@ const _calcRate = (list) => {
 };
 
 const calcRatio = (rate1, rate2) => {
-    const ratio = (rate1 && rate2) ? (rate1 / rate2) : 1;
-    return Math.ceil(ratio);
+    const rates = (rate1 && rate2) ? (rate1 / rate2) : 1;
+    const ratio = Math.round(rates) || 1;
+    return ratio;
 };
 
 const _totalCount = (list) => {
