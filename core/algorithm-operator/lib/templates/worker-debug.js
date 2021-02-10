@@ -154,7 +154,11 @@ const deploymentDebugTemplate = (algorithmName = '') => ({
                                         key: 'mongodb-database'
                                     }
                                 }
-                            }
+                            },
+                            {
+                                name: 'BASE_DATASOURCES_DIRECTORY',
+                                value: '/hkube/datasources-storage'
+                            },
                         ],
                         port: {
                             containerPort: 3000

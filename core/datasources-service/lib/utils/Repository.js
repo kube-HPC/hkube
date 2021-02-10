@@ -1,74 +1,109 @@
 const fse = require('fs-extra');
-const { parse: parsePath } = require('path');
-const _glob = require('glob');
+const pathLib = require('path');
+const {
+    glob,
+    Repository: RepositoryBase,
+    filePath: { extractRelativePath, getFilePath },
+} = require('@hkube/datasource-utils');
 const { default: simpleGit } = require('simple-git');
-const yaml = require('js-yaml');
+const { Github, Gitlab } = require('./GitRemoteClient');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
-const getFilePath = require('./getFilePath');
-const DvcClient = require('./DvcClient');
+const { serviceName } = require('../../config/main/config.base');
+const dedicatedStorage = require('./../DedicatedStorage');
+const { ResourceNotFoundError } = require('../errors');
 
 /**
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage
  * @typedef {import('./types').FileMeta} FileMeta
+ * @typedef {import('./types').LocalFileMeta} LocalFileMeta
  * @typedef {import('./types').MulterFile} MulterFile
  * @typedef {import('./types').NormalizedFileMeta} NormalizedFileMeta
  * @typedef {import('./types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./types').config} config
  */
-
-const extractRelativePath = filePath => {
-    const response = parsePath(filePath.replace('data/', '')).dir;
-    if (response === '') return '/';
-    return `/${response}`;
-};
-
-/** @type {(pattern: string, cwd: string) => string[]} */
-const glob = (pattern, cwd) =>
-    new Promise((res, rej) =>
-        _glob(pattern, { cwd }, (err, matches) =>
-            err ? rej(err) : res(matches)
-        )
-    );
-
 /**
  * @template T
  * @typedef {{ [path: string]: T }} ByPath
  */
-class Repository {
+
+class Repository extends RepositoryBase {
     /**
      * @param {string} repositoryName
      * @param {config} config
      * @param {string} rootDir
+     * @param {string} repositoryUrl
+     * @param {{ git: ExternalGit; storage: ExternalStorage }} credentials
      */
-    constructor(repositoryName, config, rootDir) {
-        /** @type {import('simple-git').SimpleGit} */
-        this.gitClient = null;
+    constructor(repositoryName, config, rootDir, repositoryUrl, credentials) {
+        super(repositoryName, rootDir, repositoryName);
+        const RemoteGitClientConstructor =
+            credentials.git.kind === 'github' ? Github : Gitlab;
+        this.remoteGitClient = new RemoteGitClientConstructor(
+            credentials.git,
+            repositoryUrl,
+            serviceName
+        );
         this.config = config;
-        this.repositoryName = repositoryName;
-        this.rootDir = rootDir;
-        this.dvc = new DvcClient(this.cwd, this.repositoryUrl);
-        this.generateDvcConfig = dvcConfig(this.config);
+        this.gitConfig = credentials.git;
+        this.storageConfig = credentials.storage;
+        this.generateDvcConfig = dvcConfig(
+            this.config.dvcStorage,
+            this.storageConfig
+        );
     }
 
-    /** @param {string} name */
     async _setupDvcRepository() {
         await this.dvc.init();
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
     }
 
-    _enrichDvcFile(fileMeta, metaData) {
-        return this.dvc.enrichMeta(getFilePath(fileMeta), 'hkube', metaData);
+    /**
+     * @param {FileMeta} fileMeta
+     * @param {LocalFileMeta} metaData
+     */
+    async _enrichDvcFile(fileMeta, metaData) {
+        const nextMeta = { ...(metaData || {}) };
+        const filePath = getFilePath(fileMeta);
+        const dvcContent = await this.dvc.loadDvcContent(filePath);
+        if (dvcContent?.meta?.hkube?.hash) {
+            if (dvcContent.meta.hkube.hash === dvcContent.outs[0].md5) {
+                // retain the id and upload time if no actual change was made to the file
+                // avoids "faking" a change to git if no actual change was made
+                nextMeta.id = dvcContent.meta.hkube.id;
+                nextMeta.uploadedAt = dvcContent.meta.hkube.uploadedAt;
+            }
+        }
+        return this.dvc.enrichMeta(filePath, dvcContent, 'hkube', nextMeta);
     }
 
     async setup() {
         await fse.ensureDir(`${this.cwd}/data`);
+        let repositoryUrl = null;
+        try {
+            repositoryUrl = await this.remoteGitClient.createRepository(
+                this.repositoryName
+            );
+        } catch (error) {
+            if (error.status) {
+                throw error;
+            }
+            throw new Error('failed creating remote repository');
+        }
         const git = simpleGit({ baseDir: `${this.cwd}` });
-        await git.init().addRemote('origin', this.repositoryUrl);
+        await git.init();
+        await git.addRemote('origin', this.remoteGitClient.repositoryUrl);
         await this._setupDvcRepository();
+        await this.createHkubeFile();
         await git.add('.');
         const response = await git.commit('initialized');
         await git.push(['--set-upstream', 'origin', 'master']);
-        return { ...response, commit: response.commit.replace(/(.+) /, '') };
+        return {
+            ...response,
+            commit: response.commit.replace(/(.+) /, ''),
+            repositoryUrl,
+        };
     }
 
     /** @param {string=} commitHash */
@@ -77,24 +112,13 @@ class Repository {
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
         if (!hasClone) {
             await simpleGit({ baseDir: this.rootDir }).clone(
-                this.repositoryUrl
+                this.remoteGitClient.repositoryUrl
             );
         }
+        // @ts-ignore
         this.gitClient = simpleGit({ baseDir: this.cwd });
         if (commitHash) await this.gitClient.checkout(commitHash);
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
-    }
-
-    get repositoryUrl() {
-        const {
-            endpoint,
-            user: { name: userName, password },
-        } = this.config.git;
-        return `http://${userName}:${password}@${endpoint}/hkube/${this.repositoryName}.git`;
-    }
-
-    get cwd() {
-        return `${this.rootDir}/${this.repositoryName}`;
     }
 
     /**
@@ -157,11 +181,6 @@ class Repository {
         return null;
     }
 
-    /** @type {(filePaths: string[]) => Promise<void>} */
-    pullFiles(filePaths) {
-        return this.dvc.pull(filePaths);
-    }
-
     /** @param {SourceTargetArray[]} sourceTargetArray */
     async moveExistingFiles(sourceTargetArray) {
         if (sourceTargetArray.length === 0) return null;
@@ -173,7 +192,9 @@ class Repository {
             sourceTargetArray.map(async ([srcFile, targetFile]) => {
                 const srcPath = getFilePath(srcFile);
                 const targetPath = getFilePath(targetFile);
-                await fse.ensureDir(parsePath(`${this.cwd}/${targetPath}`).dir);
+                await fse.ensureDir(
+                    pathLib.parse(`${this.cwd}/${targetPath}`).dir
+                );
                 return this.dvc.move(srcPath, targetPath);
             })
         );
@@ -181,13 +202,11 @@ class Repository {
 
     /** @returns {Promise<FileMeta[]>} */
     async scanDir() {
-        const metaFiles = await glob('**/*.dvc', this.cwd);
+        const dvcFiles = await glob('**/*.dvc', this.cwd);
         return Promise.all(
-            metaFiles.map(async filePath => {
-                const content = yaml.load(
-                    await fse.readFile(`${this.cwd}/${filePath}`)
-                ).meta.hkube;
-                const { hash, ...meta } = content;
+            dvcFiles.map(async filePath => {
+                const content = await this.dvc.loadDvcContent(filePath);
+                const { hash, ...meta } = content.meta.hkube;
                 return {
                     path: extractRelativePath(filePath),
                     ...meta,
@@ -259,18 +278,6 @@ class Repository {
         return Object.fromEntries(entries);
     }
 
-    async push(commitMessage) {
-        await this.dvc.push();
-        await this.gitClient.add('.');
-        const { commit } = await this.gitClient.commit(commitMessage);
-        await this.gitClient.push();
-        return commit;
-    }
-
-    async cleanup() {
-        await fse.remove(this.cwd);
-    }
-
     /**
      * Filters files from a local copy of the repository
      *
@@ -296,8 +303,18 @@ class Repository {
         );
     }
 
-    async deleteClone() {
-        return fse.remove(this.cwd);
+    /**
+     * **PERMANENTLY** delete the repository from db, storage and git. if you
+     * want to delete a local copy use *Repository.deleteClone*
+     */
+    async delete(allowNotFound = false) {
+        const response = await dedicatedStorage.delete({
+            path: this.repositoryName,
+        });
+        if (response.length === 0 && !allowNotFound) {
+            throw new ResourceNotFoundError('datasource', this.repositoryName);
+        }
+        return this.remoteGitClient.deleteRepository(this.repositoryName);
     }
 }
 

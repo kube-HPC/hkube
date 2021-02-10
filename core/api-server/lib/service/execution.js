@@ -61,7 +61,13 @@ class ExecutionService {
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }
-        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' && mergeFlowInput ? undefined : src || obj));
+        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => {
+            // by default we are not merging the stored flowInput with the payload flowInput
+            if (key === 'flowInput' && !mergeFlowInput) {
+                return src;
+            }
+            return undefined;
+        });
         return this._run({ pipeline: newPipeline, jobId, rootJobId, options: { parentSpan }, types });
     }
 
@@ -81,7 +87,7 @@ class ExecutionService {
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline);
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
-            await validator.dataSources.validate(pipeline);
+            pipeline = await validator.dataSources.validate(pipeline);
             const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
             validator.algorithms.validateAlgorithmImage(algorithms);
             const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline);

@@ -1,9 +1,12 @@
 const { uid } = require('@hkube/uid');
+const pathLib = require('path');
 const fse = require('fs-extra');
 const archiver = require('archiver');
+const {
+    filePath: { getFilePath },
+} = require('@hkube/datasource-utils');
 const dbConnection = require('../db');
 const Repository = require('../utils/Repository');
-const getFilePath = require('../utils/getFilePath');
 const validator = require('../validation');
 
 /**
@@ -29,9 +32,7 @@ class Downloads {
             const archive = archiver('zip', { zlib: { level: 9 } });
             archive.directory(rootDir, false);
             archive.finalize();
-            const output = fse.createWriteStream(
-                `${this.config.directories.zipFiles}/${downloadId}.zip`
-            );
+            const output = fse.createWriteStream(this.getZipPath(downloadId));
             archive.pipe(output);
             output.on('close', () => res(archive.pointer()));
             output.on('end', () => {
@@ -51,7 +52,7 @@ class Downloads {
     /**
      * @type {(props: {
      *     dataSourceId: string;
-     *     fileIds: string;
+     *     fileIds: string[];
      * }) => Promise<string>} }
      */
     async prepareForDownload({ dataSourceId, fileIds }) {
@@ -60,7 +61,7 @@ class Downloads {
             fileIds,
         });
         const downloadId = uid();
-        const dataSource = await this.db.dataSources.fetch({
+        const dataSource = await this.db.dataSources.fetchWithCredentials({
             id: dataSourceId,
         });
         const fileIdsSet = new Set(fileIds);
@@ -68,7 +69,12 @@ class Downloads {
         const repository = new Repository(
             dataSource.name,
             this.config,
-            `${this.config.directories.prepareForDownload}/${downloadId}`
+            pathLib.join(
+                this.config.directories.prepareForDownload,
+                downloadId
+            ),
+            dataSource.repositoryUrl,
+            dataSource._credentials
         );
 
         /** @type {{ filesToKeep: FileMeta[]; filesToDrop: FileMeta[] }} */
@@ -87,7 +93,7 @@ class Downloads {
         const filesPaths = filesToKeep.map(f => getFilePath(f));
         await repository.pullFiles(filesPaths);
 
-        await repository.filterFilesFromClone(filesToDrop, true);
+        await repository.filterFilesFromClone(filesToDrop);
         await repository.dropNonDataFiles();
         await this.createZip(`${repository.cwd}/data`, downloadId);
         await fse.remove(repository.cwd);
@@ -96,7 +102,10 @@ class Downloads {
 
     getZipPath(downloadId) {
         validator.downloads.validateDownloadId(downloadId);
-        return `${this.config.directories.zipFiles}/${downloadId}.zip`;
+        return pathLib.join(
+            this.config.directories.zipFiles,
+            `${downloadId}.zip`
+        );
     }
 }
 

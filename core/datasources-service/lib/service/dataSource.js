@@ -1,10 +1,14 @@
 const fse = require('fs-extra');
+const {
+    filePath: { getFilePath },
+    createFileMeta,
+} = require('@hkube/datasource-utils');
+const HttpStatus = require('http-status-codes');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
-const getFilePath = require('../utils/getFilePath');
-
+const { ResourceNotFoundError } = require('../errors');
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
  * @typedef {import('./../utils/types').MulterFile} MulterFile
@@ -12,6 +16,8 @@ const getFilePath = require('../utils/getFilePath');
  * @typedef {import('./../utils/types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./../utils/types').config} config
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage;
+ * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit;
  * @typedef {{ createdPath: string; fileName: string }} uploadFileResponse
  * @typedef {{ name?: string; id?: string }} NameOrId
  */
@@ -33,19 +39,6 @@ class DataSource {
         await fse.ensureDir(this.config.directories.gitRepositories);
     }
 
-    /** @type {(file: MulterFile, path?: string) => FileMeta} */
-    createFileMeta(file, path = null) {
-        return {
-            id: file.filename,
-            name: file.originalname,
-            path: path || '/',
-            size: file.size,
-            type: file.mimetype,
-            meta: '',
-            uploadedAt: new Date().getTime(),
-        };
-    }
-
     /**
      * Converts temporary ids given by the client to permanent ids. fills in
      * missing details for all the files
@@ -63,7 +56,7 @@ class DataSource {
         return files.reduce(
             (acc, file) => {
                 const tmpFileName = file.originalname;
-                let fileMeta = this.createFileMeta(
+                let fileMeta = createFileMeta(
                     file,
                     normalizedMapping[tmpFileName]?.path
                 );
@@ -100,8 +93,8 @@ class DataSource {
                         },
                     };
                 }
-
                 const {
+                    // @ts-ignore
                     [tmpFileName]: droppedId,
                     ...nextMapping
                 } = acc.normalizedAddedFiles;
@@ -257,9 +250,9 @@ class DataSource {
         await repository.moveExistingFiles(groups.movedFiles);
         await repository.dropFiles(dropped, currentFiles);
         /** Cleanups: - drop empty git ignore files */
-        const commit = await repository.push(commitMessage);
+        const commit = await repository.commit(commitMessage);
+        await repository.push();
         const finalMapping = await repository.scanDir();
-        await repository.cleanup();
         return {
             commitHash: commit,
             files: finalMapping,
@@ -292,7 +285,9 @@ class DataSource {
         const repository = new Repository(
             name,
             this.config,
-            this.config.directories.gitRepositories
+            this.config.directories.gitRepositories,
+            createdVersion.repositoryUrl,
+            createdVersion._credentials
         );
 
         const { commitHash, files } = await this.commitChange({
@@ -301,7 +296,7 @@ class DataSource {
             commitMessage: versionDescription,
             currentFiles: createdVersion.files,
         });
-        repository.deleteClone();
+        await repository.deleteClone();
         if (!commitHash) {
             await this.db.dataSources.delete({ id: createdVersion.id });
             return null;
@@ -313,19 +308,36 @@ class DataSource {
         });
     }
 
-    /** @param {{ name: string; files: MulterFile[] }} query */
-    async create({ name, files: _files }) {
-        validator.dataSources.create({ name, files: _files });
-        const createdDataSource = await this.db.dataSources.create({ name });
+    /**
+     * @param {{
+     *     name: string;
+     *     files: MulterFile[];
+     *     git: ExternalGit;
+     *     storage: ExternalStorage;
+     * }} query
+     */
+    async create({ name, git, storage, files: _files }) {
+        validator.dataSources.create({ name, git, storage, files: _files });
+        const createdDataSource = await this.db.dataSources.create({
+            name,
+            git,
+            storage,
+        });
         let updatedDataSource;
         /** @type {Repository} */
         const repository = new Repository(
             name,
             this.config,
-            this.config.directories.gitRepositories
+            this.config.directories.gitRepositories,
+            null,
+            { git, storage }
         );
         try {
-            await repository.setup();
+            const { repositoryUrl } = await repository.setup();
+            await this.db.dataSources.setRepositoryUrl(
+                { name },
+                { url: repositoryUrl }
+            );
             const { commitHash, files } = await this.commitChange({
                 repository,
                 commitMessage: 'initial upload',
@@ -338,7 +350,8 @@ class DataSource {
                 commitHash,
             });
         } catch (error) {
-            await this.db.dataSources.delete({ name });
+            await this.db.dataSources.delete({ name }, { allowNotFound: true });
+            await repository.delete(true);
             throw error;
         } finally {
             await repository.deleteClone();
@@ -357,6 +370,28 @@ class DataSource {
 
     async delete({ name }) {
         validator.dataSources.delete({ name });
+        const dataSource = await this.db.dataSources.fetchWithCredentials({
+            name,
+        });
+        const repository = new Repository(
+            name,
+            this.config,
+            this.config.directories.gitRepositories,
+            dataSource.repositoryUrl,
+            dataSource._credentials
+        );
+        try {
+            await repository.delete();
+        } catch (error) {
+            if (
+                error.isAxiosError &&
+                error.response.status === HttpStatus.NOT_FOUND
+            ) {
+                throw new ResourceNotFoundError('dataSource', name, error);
+            } else {
+                throw error;
+            }
+        }
         const response = await this.db.dataSources.delete(
             { name },
             { allowNotFound: false }
@@ -376,13 +411,61 @@ class DataSource {
 
     // eslint-disable-next-line
     async sync({ name }) {
-        // validator.dataSources.sync({ name });
-        // pull the repo
-        // list all the files and match dvc file and meta file
-        // ensure the .dvc file has the required content and append the meta content
-        // ISSUE:
-        // there will be missing file info - it can be fetched from the storage or fetch the file
-        // * consider, moving this behavior to the front-end
+        validator.dataSources.sync({ name });
+        const {
+            _credentials,
+            repositoryUrl,
+        } = await this.db.dataSources.fetchWithCredentials({ name });
+        const repository = new Repository(
+            name,
+            this.config,
+            this.config.directories.gitRepositories,
+            repositoryUrl,
+            _credentials
+        );
+        try {
+            await repository.ensureClone();
+        } catch (error) {
+            await repository.deleteClone();
+            if (error.message.match(/not found/i)) {
+                throw new ResourceNotFoundError('datasource', name, error);
+            }
+            throw error;
+        }
+        const gitLog = await repository.getLog();
+        const { latest } = gitLog;
+        const files = await repository.scanDir();
+        const createdVersion = await this.db.dataSources.createVersion({
+            name,
+            versionDescription: latest.message,
+        });
+        const updatedDataSource = await this.db.dataSources.updateFiles({
+            id: createdVersion.id,
+            commitHash: latest.hash.slice(0, 7),
+            files,
+        });
+
+        const {
+            id,
+            versionDescription,
+            commitHash,
+            filesCount,
+            avgFileSize,
+            totalSize,
+            fileTypes,
+        } = updatedDataSource;
+
+        await repository.deleteClone();
+        return {
+            id,
+            name,
+            versionDescription,
+            commitHash,
+            filesCount,
+            avgFileSize,
+            totalSize,
+            fileTypes,
+        };
     }
 
     async list() {
