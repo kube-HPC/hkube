@@ -260,6 +260,12 @@ class DataSource {
                         'invalid S3 accessKeyId or invalid accessKey'
                     );
                 }
+                if (error.match(/Invalid endpoint/i)) {
+                    throw new InvalidDataError('invalid S3 endpoint');
+                }
+                if (error.match(/Bucket '.+' does not exist/i)) {
+                    throw new InvalidDataError('S3 bucket name does not exist');
+                }
             }
             throw error;
         }
