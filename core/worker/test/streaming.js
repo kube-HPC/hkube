@@ -6,7 +6,6 @@ const streamHandler = require('../lib/streaming/services/stream-handler');
 const streamService = require('../lib/streaming/services/stream-service');
 const discovery = require('../lib/streaming/services/service-discovery');
 const SlaveAdapter = require('../lib/streaming/adapters/slave-adapter');
-const { del } = require('object-path');
 
 const pipeline = {
     name: "stream",

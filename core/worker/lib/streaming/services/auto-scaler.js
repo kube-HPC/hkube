@@ -17,37 +17,24 @@ let log;
  * Each tick, it looks at statistics data and then
  * calculating ratios and rates (see: metrics.calcRates).
  *
- * The ratios are:
- *  - reqResRatio: reqRate / resRate
- *  - durationsRatio: reqRate / durationsRate
+ * The AutoScaler always calculates the desired replicas by
+ * dividing the reqRate with the durationsRate.
+ *
+ * Example:
+ * required = (reqRate 300 / durationsRate 100) = 3
+ * There are 300 requests per sec and the processing rate is 100 per sec.
+ * So we need to scale up to 3 replicas.
+ * If there are less replicas we scale-up, else scale-down.
  *
  * --Scale-Up--
- * There are two conditions for scale-up:
- * 1. reqResRatio >= minRatioToScaleUp --> (default: 1.2)
- * 2. !resRate && reqRate > 0
- *
- * Example:
- * 1. reqResRatio = (reqRate 300 / resRate 120) = 2.5
- *    The response rate is 2.5 times slower than request rate.
- *    In this case, the first condition is kicked in.
- *    so, it will scale-up current replicas * Math.abs(1 - 2.5).
- * 2. If there were only requests and no responses,
- *    it will scale-up current replicas * 1.
- *    Scaling up is done by sending jobs to the Algorithm-Queue
- *    and then do not scale-up until desired replicas are fulfilled.
+ * another condition to scale up is when there were only requests and no
+ * responses and there are no replicas so we scale-up 1 replica (first scale)
+ * Scaling up is done by sending jobs to the Algorithm-Queue
+ * and then do not scale-up until desired replicas are fulfilled.
  *
  * --Scale-Down--
- * There are two conditions for scale-down:
- * 1. !reqRate && !resRate
- * 2. durationsRatio <= minRatioToScaleDown --> (default: 0.8)
- *
- * Example:
- * 1. If there are no requests and no responses for x time,
- *    it will scale-down the current size to zero.
- * 2. If the durationsRatio is 0.5 for x time,
- *    it will scale-down current replicas * 0.5.
- *
- * The desired ratio to not scale at all is ~1 (0.8 <= desired <= 1.2)
+ * another condition to scale down is when there are no requests and no
+ * responses for x time, it will scale-down the current size to zero.
  * Scaling down is done by sending commands to the workers.
  *
  */
