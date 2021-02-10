@@ -39,6 +39,7 @@ const createDataSource = ({
     ignoreStorage = false,
     useGitOrganization = false,
     useGitlab = false,
+    storageKeys = {},
 } = {}) => {
     // @ts-ignore
     const { storage, git, restUrl } = global.testParams;
@@ -59,7 +60,9 @@ const createDataSource = ({
         files: withFile
             ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`))
             : undefined,
-        ...(ignoreStorage ? {} : { storage: JSON.stringify(storage) }),
+        ...(ignoreStorage
+            ? {}
+            : { storage: JSON.stringify({ ...storage, ...storageKeys }) }),
         ...(ignoreGit ? {} : { git: JSON.stringify(gitConfig) }),
     };
     const options = { uri, formData };
