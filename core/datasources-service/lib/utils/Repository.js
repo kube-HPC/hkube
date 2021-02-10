@@ -11,7 +11,7 @@ const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
 const { serviceName } = require('../../config/main/config.base');
 const dedicatedStorage = require('./../DedicatedStorage');
-const { ResourceNotFoundError } = require('../errors');
+const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 /**
  * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
@@ -104,6 +104,29 @@ class Repository extends RepositoryBase {
             commit: response.commit.replace(/(.+) /, ''),
             repositoryUrl,
         };
+    }
+
+    async push() {
+        let response;
+        try {
+            response = await super.push();
+        } catch (error) {
+            if (typeof error === 'string') {
+                if (error.match(/SignatureDoesNotMatch|InvalidAccessKeyId/i)) {
+                    throw new InvalidDataError(
+                        'invalid S3 accessKeyId or invalid accessKey'
+                    );
+                }
+                if (error.match(/Invalid endpoint/i)) {
+                    throw new InvalidDataError('invalid S3 endpoint');
+                }
+                if (error.match(/Bucket '.+' does not exist/i)) {
+                    throw new InvalidDataError('S3 bucket name does not exist');
+                }
+            }
+            throw error;
+        }
+        return response;
     }
 
     /** @param {string=} commitHash */

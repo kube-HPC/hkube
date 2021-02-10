@@ -8,7 +8,7 @@ const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
-const { ResourceNotFoundError, InvalidDataError } = require('../errors');
+const { ResourceNotFoundError } = require('../errors');
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
  * @typedef {import('./../utils/types').MulterFile} MulterFile
@@ -251,24 +251,7 @@ class DataSource {
         await repository.dropFiles(dropped, currentFiles);
         /** Cleanups: - drop empty git ignore files */
         const commit = await repository.commit(commitMessage);
-        try {
-            await repository.push();
-        } catch (error) {
-            if (typeof error === 'string') {
-                if (error.match(/SignatureDoesNotMatch|InvalidAccessKeyId/i)) {
-                    throw new InvalidDataError(
-                        'invalid S3 accessKeyId or invalid accessKey'
-                    );
-                }
-                if (error.match(/Invalid endpoint/i)) {
-                    throw new InvalidDataError('invalid S3 endpoint');
-                }
-                if (error.match(/Bucket '.+' does not exist/i)) {
-                    throw new InvalidDataError('S3 bucket name does not exist');
-                }
-            }
-            throw error;
-        }
+        await repository.push();
         const finalMapping = await repository.scanDir();
         return {
             commitHash: commit,
