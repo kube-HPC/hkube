@@ -24,6 +24,18 @@ describe('jobCreator', () => {
             expect(deploymentSpec).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
             expect(deploymentSpec).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/worker:v1.2.3' });
             expect(deploymentSpec.metadata.name).to.include('myalgo1');
+            expect(deploymentSpec.spec.template.spec.volumes).to.deep.include(
+                {
+                    name: 'datasources-storage',
+                    persistentVolumeClaim: { claimName: 'hkube-datasources' }
+                }
+            );
+            expect(deploymentSpec.spec.template.spec.containers[0].volumeMounts).to.deep.include(
+                {
+                    name: 'datasources-storage',
+                    mountPath: '/hkube/datasources-storage'
+                }
+            );
             expect(ingressSpec.spec.rules[0].host).to.be.undefined;
             expect(ingressSpec).to.nested.include({ 'spec.rules[0].http.paths[0].path': '/hkube/debug/myalgo1' });
         });
