@@ -1,9 +1,9 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const { requestValidation, nonExistingId } = require('./utils');
+const { nonExistingId } = require('./utils');
+const { requestValidation } = require('./api');
 const setupDataSource = require('./setupDataSource');
 
-let restUrl;
 /** @type {import('@hkube/db/lib/DataSource').DataSource} */
 let dataSource;
 /** @type {import('@hkube/db/lib/Snapshots').Snapshot[]} */
@@ -11,10 +11,10 @@ let createdSnapshots;
 
 describe('validation', () => {
     before(async () => {
-        restUrl = global.testParams.restUrl;
+        // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
+        // @ts-ignore
         STORAGE_DIR = global.testParams.STORAGE_DIR;
-        restPath = `${restUrl}/datasource`;
         const {
             dataSource: _dataSource,
             createdSnapshots: _createdSnapshots,
@@ -28,14 +28,14 @@ describe('validation', () => {
             name: dataSource.name,
         });
         expect(response.statusCode).to.eq(HttpStatus.OK);
-        expect(response.body).to.eql({ exists: true });
+        expect(response.body).to.eql({ exists: true, id: dataSource.id });
     });
     it('should validate dataSource by version', async () => {
         const { response } = await requestValidation({
             id: dataSource.id,
         });
         expect(response.statusCode).to.eq(HttpStatus.OK);
-        expect(response.body).to.eql({ exists: true });
+        expect(response.body).to.eql({ exists: true, id: dataSource.id });
     });
     it('should validate dataSource by name and snapshot', async () => {
         const [snapshot] = createdSnapshots;
@@ -44,7 +44,7 @@ describe('validation', () => {
             snapshotName: snapshot.name,
         });
         expect(response.statusCode).to.eq(HttpStatus.OK);
-        expect(response.body).to.eql({ exists: true });
+        expect(response.body).to.eql({ exists: true, id: snapshot.id });
     });
     it('should fail for sending both snapshot and version', async () => {
         const [snapshot] = createdSnapshots;
@@ -54,7 +54,7 @@ describe('validation', () => {
         });
         expect(response.statusCode).to.eq(HttpStatus.BAD_REQUEST);
         expect(response.body.error.message).to.eql(
-            'you must provide *only* one of (id | snapshot.name)'
+            'must provide *only* one of (id | snapshot.name)'
         );
     });
     it('should fail with non existing name', async () => {
@@ -83,7 +83,7 @@ describe('validation', () => {
         });
         expect(response.statusCode).to.eq(HttpStatus.BAD_REQUEST);
         expect(response.body.error.message).to.match(
-            /you must provide "name" when/i
+            /must provide "name" when/i
         );
     });
 });

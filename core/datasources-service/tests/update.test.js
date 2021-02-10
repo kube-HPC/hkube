@@ -2,18 +2,17 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
-const {
-    createDataSource,
-    fetchDataSource,
-    updateVersion,
-    mockRemove,
-} = require('./utils');
+const { hiddenProperties } = require('./utils');
+const { mockDeleteClone } = require('./utils');
+const { createDataSource, fetchDataSource, updateVersion } = require('./api');
 const sortBy = require('lodash.sortby');
 
 let DATASOURCE_GIT_REPOS_DIR;
 describe('/datasource/:name POST', () => {
     before(() => {
+        // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
+        // @ts-ignore
         STORAGE_DIR = global.testParams.STORAGE_DIR;
     });
     it('should throw missing filesAdded, filesDropped and mapping error', async () => {
@@ -24,7 +23,7 @@ describe('/datasource/:name POST', () => {
         });
         expect(uploadResponse.body).to.have.property('error');
         const { error } = uploadResponse.body;
-        expect(error.message).to.match(/you must provide at least one of/i);
+        expect(error.message).to.match(/provide at least one of/i);
         expect(error.code).to.eq(HttpStatus.BAD_REQUEST);
     });
     it('should fail uploading a file to a non existing dataSource', async () => {
@@ -47,6 +46,9 @@ describe('/datasource/:name POST', () => {
             fileNames: [secondFileName],
         });
         const { body: updatedVersion } = uploadResponse;
+        hiddenProperties.forEach(prop => {
+            expect(updatedVersion).not.to.haveOwnProperty(prop);
+        });
         expect(firstVersion.id).not.to.eq(updatedVersion.id);
         expect(firstVersion.name).to.eq(updatedVersion.name);
         const { files } = updatedVersion;
@@ -67,7 +69,7 @@ describe('/datasource/:name POST', () => {
     it('should upload multiple files to the dataSource', async () => {
         const name = uuid();
         await createDataSource({ body: { name } });
-        mockRemove();
+        mockDeleteClone();
         const { response: uploadResponse } = await updateVersion({
             dataSourceName: name,
             files: [
@@ -181,6 +183,7 @@ describe('/datasource/:name POST', () => {
             mapping: [existingFile],
         });
         const { body: updatedDataSource } = uploadResponse;
+
         expect(dataSource.commitHash).not.to.eq(updatedDataSource.commitHash);
         expect(dataSource.files.length).to.eq(updatedDataSource.files.length);
 
@@ -196,7 +199,7 @@ describe('/datasource/:name POST', () => {
 
         const fileNames = ['algorithm spaces.json', 'algorithms.json'];
 
-        mockRemove();
+        mockDeleteClone();
         const { body: dataSource } = await updateVersion({
             dataSourceName: name,
             fileNames,

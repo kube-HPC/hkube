@@ -1,7 +1,8 @@
-export type PipelineDatasourceDescriptor =
-    | { name: string }
-    | { id: string }
-    | { name: string; snapshot: { name: string } };
+export type SnapshotDescriptor = { name: string; snapshot: { name: string } };
+export type VersionDescriptor = { id: string };
+
+export type PipelineDatasourceDescriptor = SnapshotDescriptor &
+    VersionDescriptor;
 
 export type Job = {
     jobId: string;
@@ -23,4 +24,7 @@ export type DoneJob = {
     timeTook: number;
 };
 
-export type onJobHandler = (job: { data: Job }) => Promise<void>;
+export type onJobHandler = (job: {
+    data: Job;
+    done: () => void;
+}) => Promise<void>;

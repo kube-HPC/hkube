@@ -22,15 +22,17 @@ const cleanTmpFile = async (files = []) => {
 
 const routes = () => {
     const router = Router();
+
     // ---- validate ---- //
     router.get('/validate', async (req, res, next) => {
+        /** @type {any} */
         const { name, id, snapshot_name: snapshotName } = req.query;
-        await validation.dataSourceExists({
+        const { id: resultedId } = await validation.dataSourceExists({
             name,
             id,
             snapshot: { name: snapshotName },
         });
-        res.json({ exists: true });
+        res.json({ exists: true, id: resultedId });
         next();
     });
 
@@ -42,15 +44,30 @@ const routes = () => {
             next();
         })
         .post(upload.array('files'), async (req, res, next) => {
-            const { name } = req.body;
+            const {
+                files,
+                body: { name, storage, git },
+            } = req;
+            let gitConfig;
+            let storageConfig;
+            try {
+                gitConfig = git ? JSON.parse(git) : undefined;
+                storageConfig = storage ? JSON.parse(storage) : undefined;
+            } catch (error) {
+                throw new InvalidDataError(
+                    "invalid 'git' or 'storage' settings provided"
+                );
+            }
             try {
                 const response = await dataSource.create({
                     name,
+                    storage: storageConfig,
+                    git: gitConfig,
                     files: req.files,
                 });
                 res.status(HttpStatus.CREATED).json(response);
             } finally {
-                await cleanTmpFile(req.files);
+                await cleanTmpFile(files);
             }
             next();
         });
@@ -71,8 +88,11 @@ const routes = () => {
     router
         .route('/:name')
         .get(async (req, res, next) => {
-            const { id } = req.query;
-            const { name } = req.params;
+            /** @type {any} */
+            const {
+                query: { id },
+                params: { name },
+            } = req;
             let dataSourceEntry;
             if (id) {
                 dataSourceEntry = await dataSource.fetch({ id });
@@ -225,10 +245,11 @@ const routes = () => {
 
     router.post('/:name/sync', async (req, res, next) => {
         const { name } = req.params;
-        const createdVersions = await dataSource.sync({ name });
-        res.status(201).json({ dataSource: createdVersions });
+        const createdVersion = await dataSource.sync({ name });
+        res.status(201).json(createdVersion);
         next();
     });
+
     router.use(dbErrorsMiddleware);
     return router;
 };
