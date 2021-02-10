@@ -28,21 +28,30 @@ class Gitlab extends Base {
     // eslint-disable-next-line
     async createRepository(name) {
         let response = null;
-
-        if (this.config.organization) {
-            this.log.debug(
-                `creating repository for organization ${this.config.organization}`
-            );
-            response = await this.client.Projects.create({
-                name,
-                visibility: 'private',
-            });
-        } else {
-            this.log.debug(`creating repository for user`);
-            response = await this.client.Projects.create({
-                name,
-                visibility: 'private',
-            });
+        try {
+            if (this.config.organization) {
+                this.log.debug(
+                    `creating repository for organization ${this.config.organization}`
+                );
+                response = await this.client.Projects.create({
+                    name,
+                    visibility: 'private',
+                });
+            } else {
+                this.log.debug(`creating repository for user`);
+                response = await this.client.Projects.create({
+                    name,
+                    visibility: 'private',
+                });
+            }
+        } catch (error) {
+            const { statusCode } = error.response;
+            if (statusCode === 401) {
+                throw new InvalidDataError('provided invalid token');
+            } else if (statusCode === 404) {
+                throw new InvalidDataError('provided invalid endpoint');
+            }
+            throw error;
         }
 
         this.rawRepositoryUrl = response.http_url_to_repo;
@@ -54,11 +63,11 @@ class Gitlab extends Base {
                 host
             );
         }
-
         return this.rawRepositoryUrl;
     }
 
     async deleteRepository() {
+        if (!this.rawRepositoryUrl) return null;
         const url = new URL(this.rawRepositoryUrl).pathname
             .replace(/^\//, '')
             .replace('.git', '');

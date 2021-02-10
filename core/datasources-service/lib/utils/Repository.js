@@ -86,6 +86,9 @@ class Repository extends RepositoryBase {
                 this.repositoryName
             );
         } catch (error) {
+            if (error.status) {
+                throw error;
+            }
             throw new Error('failed creating remote repository');
         }
         const git = simpleGit({ baseDir: `${this.cwd}` });
@@ -304,11 +307,11 @@ class Repository extends RepositoryBase {
      * **PERMANENTLY** delete the repository from db, storage and git. if you
      * want to delete a local copy use *Repository.deleteClone*
      */
-    async delete() {
+    async delete(allowNotFound = false) {
         const response = await dedicatedStorage.delete({
             path: this.repositoryName,
         });
-        if (response.length === 0) {
+        if (response.length === 0 && !allowNotFound) {
             throw new ResourceNotFoundError('datasource', this.repositoryName);
         }
         return this.remoteGitClient.deleteRepository(this.repositoryName);
