@@ -10,38 +10,36 @@ class IdleMarker {
         this._idles = Object.create(null);
     }
 
-    checkIdleReason({ reqRate, resRate, source }) {
+    checkIdleReason({ reqRate, resRate }) {
         let reason;
         let scale = false;
         if (!reqRate && !resRate) {
-            const { result, time } = this._mark({ source });
+            const { result, time } = this._mark();
             if (result) {
                 scale = true;
                 reason = ScaleReasonsMessages.IDLE_TIME({ time });
             }
         }
         else {
-            this._unMark({ source });
+            this._unMark();
         }
         return { scale, reason };
     }
 
-    _mark({ source }) {
+    _mark() {
         let result = false;
-        if (!this._idles[source]) {
-            this._idles[source] = { time: Date.now() };
+        if (!this._idles.time) {
+            this._idles.time = Date.now();
         }
-        const diff = Date.now() - this._idles[source].time;
+        const diff = Date.now() - this._idles.time;
         if (diff >= this._maxTimeIdleBeforeReplicaDown) {
             result = true;
         }
         return { result, time: diff / 1000 };
     }
 
-    _unMark({ source }) {
-        if (this._idles[source]) {
-            delete this._idles[source];
-        }
+    _unMark() {
+        this._idles.time = null;
     }
 }
 

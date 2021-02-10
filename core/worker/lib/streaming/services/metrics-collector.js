@@ -1,6 +1,4 @@
 const EventEmitter = require('events');
-const isEqual = require('lodash.isequal');
-const cloneDeep = require('lodash.clonedeep');
 const Logger = require('@hkube/logger');
 const { Interval } = require('../core/index');
 const { Components, streamingEvents } = require('../../consts');
@@ -13,8 +11,7 @@ class MetricsCollector extends EventEmitter {
         log = Logger.GetLogFromContainer();
         this._options = options;
         this._getMetrics = getMetrics;
-        this._currentMetrics = [];
-        this._lastMetrics = [];
+        this._totalStats = Object.create(null);
         this._start();
     }
 
@@ -30,17 +27,29 @@ class MetricsCollector extends EventEmitter {
     }
 
     _checkMetrics() {
-        this._currentMetrics = this._getMetrics();
-        return this._check();
-    }
+        const currentMetrics = this._getMetrics();
+        const newMetrics = [];
+        currentMetrics.forEach(m => {
+            const { totalRequests, totalResponses, totalDropped, ...metrics } = m;
+            const { source, target } = m;
+            const key = `${source}->${target}`;
 
-    _check() {
-        if (!isEqual(this._currentMetrics, this._lastMetrics)) {
-            this.emit(streamingEvents.METRICS_CHANGED, this._currentMetrics);
-            this._lastMetrics = cloneDeep(this._currentMetrics);
-            return this._currentMetrics;
-        }
-        return null;
+            if (!this._totalStats[key]) {
+                this._totalStats[key] = { requests: 0, responses: 0, dropped: 0 };
+            }
+            const data = this._totalStats[key];
+            const requests = totalRequests - data.requests;
+            const responses = totalResponses - data.responses;
+            const dropped = totalDropped - data.dropped;
+
+            data.requests += requests;
+            data.responses += responses;
+            data.dropped += dropped;
+
+            newMetrics.push({ ...metrics, requests, responses, dropped });
+        });
+        this.emit(streamingEvents.METRICS_CHANGED, newMetrics);
+        return newMetrics;
     }
 }
 

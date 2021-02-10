@@ -25,14 +25,12 @@ config.servingReportInterval = formatters.parseInt(process.env.DISCOVERY_SERVING
 config.streaming = {
     autoScaler: {
         interval: formatters.parseInt(process.env.AUTO_SCALER_INTERVAL, 2000),
-        logStatsInterval: formatters.parseInt(process.env.AUTO_SCALER_STATS_INTERVAL, 30000),
         maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 10),
-        maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 5),
-        maxScaleUpTotalReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_TOTAL_REPLICAS, 100),
+        minTimeNonStatsReport: formatters.parseInt(process.env.AUTO_SCALER_NON_STATS_REPORT, 10000),
+        maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 10),
         minTimeWaitBeforeScaleUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_BEFORE_SCALE_UP, 30000),
         minTimeWaitBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_BEFORE_SCALE_DOWN, 30000),
         maxTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 60000),
-        maxPercent: formatters.parseInt(process.env.AUTO_SCALER_MAX_PERCENT, 0.2)
     },
     election: {
         interval: formatters.parseInt(process.env.ELECTION_INTERVAL, 10000),

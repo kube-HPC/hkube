@@ -45,10 +45,8 @@ const calcRates = (data) => {
     const totalRequests = _totalCount(data.requests.items);
     const totalResponses = _totalCount(data.responses.items);
     const dropped = _totalCount(data.dropped.items);
-
     const durMedian = durationMedian || 0.1;
     const durationsRate = 1 / (durMedian / 1000);
-
     return { reqRate, resRate, durationsRate, totalRequests, totalResponses, dropped };
 };
 

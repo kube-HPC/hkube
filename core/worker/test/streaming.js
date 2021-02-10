@@ -127,10 +127,10 @@ const autoScale = () => {
 }
 
 const checkMetrics = () => {
-    return streamService._metrics._checkMetrics();
+    return streamService._metrics._checkMetrics() || [];
 }
 
-describe('Streaming', () => {
+describe.only('Streaming', () => {
     before(async () => {
         await stateAdapter._db.jobs.create({ pipeline, jobId });
         await streamHandler.start(job);
@@ -628,7 +628,9 @@ describe('Streaming', () => {
             streamService.reportStats(data);
             streamService.reportStats(data);
             const masters = getMasters();
-            const stats = Object.values(masters[0]._autoScaler._statistics._data[nodeName])[0];
+            const statsData = masters[0]._autoScaler._statistics._data;
+            const key = Object.keys(statsData)[0];
+            const stats = statsData[key];
             const { requests, responses, durations } = stats;
             const maxSizeWindow = testParams.config.streaming.autoScaler.maxSizeWindow;
             expect(requests.items).to.have.lengthOf(maxSizeWindow);
@@ -639,23 +641,48 @@ describe('Streaming', () => {
     describe('metrics', () => {
         it('should scale and update metrics', async () => {
             const nodeName = 'D';
+            const requests = 30;
+            const responses = 10;
+            const dropped = 5;
             const scale = async (stats) => {
+                stats[0].queueSize += requests
+                stats[0].responses += responses;
+                stats[0].dropped += dropped;
                 streamService.reportStats(stats);
-                await delay(100);
+                autoScale();
+                await delay(20);
             }
             const stat = {
                 nodeName,
-                queueSize: 5,
-                responses: 4
+                queueSize: 0,
+                responses: 0,
+                dropped: 0
             }
-            const percent = stat.responses / stat.queueSize * 100
             const stats = [stat];
+
             await scale(stats);
-            autoScale();
-            const metrics = checkMetrics()[0];
-            expect(metrics.source).to.eql('C');
-            expect(metrics.target).to.eql('D');
-            expect(metrics.throughput).to.eql(percent);
+            const metrics1 = checkMetrics()[0];
+            await scale(stats);
+            const metrics2 = checkMetrics()[0];
+            await scale(stats);
+            const metrics3 = checkMetrics()[0];
+            expect(metrics1.source).to.eql('C');
+            expect(metrics1.target).to.eql('D');
+            expect(metrics1.requests).to.eql(requests);
+            expect(metrics1.responses).to.eql(responses);
+            expect(metrics1.dropped).to.eql(dropped);
+
+            expect(metrics2.source).to.eql('C');
+            expect(metrics2.target).to.eql('D');
+            expect(metrics2.requests).to.eql(requests);
+            expect(metrics2.responses).to.eql(responses);
+            expect(metrics2.dropped).to.eql(dropped);
+
+            expect(metrics3.source).to.eql('C');
+            expect(metrics3.target).to.eql('D');
+            expect(metrics3.requests).to.eql(requests);
+            expect(metrics3.responses).to.eql(responses);
+            expect(metrics3.dropped).to.eql(dropped);
         });
     });
     describe('master-slaves', () => {
@@ -731,7 +758,7 @@ describe('Streaming', () => {
             expect(metrics.map(t => t.source).sort()).to.eql(['A', 'B', 'C']);
             expect(metrics).to.have.lengthOf(3);
             expect(scaleUp.currentSize).to.eql(currentSize);
-            expect(scaleUp.replicas).to.eql(1);
+            expect(scaleUp.replicas).to.eql(3);
             expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
             expect(scaleDown).to.be.null;
         });

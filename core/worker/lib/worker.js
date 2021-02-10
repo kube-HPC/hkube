@@ -283,7 +283,7 @@ class Worker {
                     clearTimeout(this._stopTimeout);
                     this._stopTimeout = null;
                 }
-                if (!this._onStopTimeOut) {
+                if (!this._stopTimeout) {
                     this._stopTimeout = setTimeout(this._onStopTimeOut, this._stopTimeoutMs);
                 }
             }

@@ -11,6 +11,7 @@ config.streaming = {
         minTimeWaitBeforeScaleUp: 100,
         minTimeWaitBeforeScaleDown: 100,
         maxSizeWindow: 4,
+        minTimeNonStatsReport: 5000,
         maxScaleUpReplicas: 10,
         maxTimeIdleBeforeReplicaDown: 0
     },

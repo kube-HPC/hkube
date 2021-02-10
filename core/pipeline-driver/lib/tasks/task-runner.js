@@ -633,15 +633,13 @@ class TaskRunner extends EventEmitter {
             return;
         }
         task.metrics.forEach((t) => {
-            const { source, target, ...metrics } = t;
-            const { totalRequests, totalResponses, totalDropped } = metrics;
-            // let { totalDropped } = metrics;
-            // const edge = this._nodes.getEdge(t.source, t.target);
-            // if (edge.metrics) {
-            //     totalRequests = edge.metrics.totalRequests + totalRequests;
-            //     totalResponses = edge.metrics.totalResponses + totalResponses;
-            // }
-            this._nodes.updateEdge(t.source, t.target, { metrics: { ...metrics, totalRequests, totalResponses, totalDropped } });
+            const { source, target, requests, responses, dropped, ...metrics } = t;
+            const edge = this._nodes.getEdge(t.source, t.target);
+            let { totalRequests = 0, totalResponses = 0, totalDropped = 0 } = edge.metrics || {};
+            totalRequests += requests;
+            totalResponses += responses;
+            totalDropped += dropped;
+            this._nodes.updateEdge(source, target, { metrics: { ...metrics, totalRequests, totalResponses, totalDropped } });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
@@ -701,6 +699,7 @@ class TaskRunner extends EventEmitter {
             return;
         }
         const { taskId, execId, isScaled, status, error } = task;
+        let taskRemoved = false;
         if (execId) {
             this._nodes.updateAlgorithmExecution(task);
         }
@@ -710,10 +709,12 @@ class TaskRunner extends EventEmitter {
             }
             else {
                 this._nodes.removeTaskFromBatch(task);
+                taskRemoved = true;
             }
         }
-
-        this._updateTaskState(taskId, task);
+        if (!taskRemoved) {
+            this._updateTaskState(taskId, task);
+        }
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
