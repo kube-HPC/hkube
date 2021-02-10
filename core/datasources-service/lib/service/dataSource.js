@@ -350,8 +350,8 @@ class DataSource {
                 commitHash,
             });
         } catch (error) {
-            await this.db.dataSources.delete({ name });
-            await repository.delete();
+            await this.db.dataSources.delete({ name }, { allowNotFound: true });
+            await repository.delete(true);
             throw error;
         } finally {
             await repository.deleteClone();

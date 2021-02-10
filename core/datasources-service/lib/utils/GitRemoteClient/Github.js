@@ -1,4 +1,5 @@
 const { Octokit } = require('@octokit/rest');
+const { InvalidDataError } = require('../../errors');
 const Base = require('./Base');
 /** @typedef {import('./../types').githubConfig} githubConfig */
 
@@ -23,21 +24,30 @@ class Github extends Base {
 
     async createRepository(name) {
         let response = null;
-        if (this.config.organization) {
-            this.log.debug(
-                `creating repository for organization ${this.config.organization}`
-            );
-            response = await this.client.repos.createInOrg({
-                name,
-                org: this.config.organization,
-                private: true,
-            });
-        } else {
-            this.log.debug(`creating repository for user`);
-            response = await this.client.repos.createForAuthenticatedUser({
-                private: true,
-                name,
-            });
+        try {
+            if (this.config.organization) {
+                this.log.debug(
+                    `creating repository for organization ${this.config.organization}`
+                );
+                response = await this.client.repos.createInOrg({
+                    name,
+                    org: this.config.organization,
+                    private: true,
+                });
+            } else {
+                this.log.debug(`creating repository for user`);
+                response = await this.client.repos.createForAuthenticatedUser({
+                    private: true,
+                    name,
+                });
+            }
+        } catch (error) {
+            if (error.status === 500) {
+                throw new InvalidDataError(
+                    `could not reach git endpoint ${this.config.endpoint}`
+                );
+            }
+            return error;
         }
         this.rawRepositoryUrl = response.data.clone_url;
         return this.rawRepositoryUrl;
