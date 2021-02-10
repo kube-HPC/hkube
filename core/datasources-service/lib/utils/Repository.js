@@ -308,13 +308,22 @@ class Repository extends RepositoryBase {
      * want to delete a local copy use *Repository.deleteClone*
      */
     async delete(allowNotFound = false) {
-        const response = await dedicatedStorage.delete({
-            path: this.repositoryName,
-        });
-        if (response.length === 0 && !allowNotFound) {
+        let response;
+        try {
+            response = await Promise.allSettled([
+                dedicatedStorage.delete({
+                    path: this.repositoryName,
+                }),
+                this.remoteGitClient.deleteRepository(this.repositoryName),
+            ]);
+        } catch (error) {
+            if (allowNotFound) return null;
+            throw error;
+        }
+        if (response[0].length === 0 && !allowNotFound) {
             throw new ResourceNotFoundError('datasource', this.repositoryName);
         }
-        return this.remoteGitClient.deleteRepository(this.repositoryName);
+        return response;
     }
 }
 
