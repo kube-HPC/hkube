@@ -22,6 +22,7 @@ class Statistics {
         const { queueSize = 0, sent = 0, responses = 0, dropped = 0, durations = [] } = data;
         const requests = queueSize + sent;
         const stats = this._data[source] || this._createStatData({ maxSize: this._maxSize });
+        stats.queueSize = queueSize;
         stats.requests.add(this._createItem(requests));
         stats.responses.add(this._createItem(responses));
         stats.dropped.add(this._createItem(dropped));

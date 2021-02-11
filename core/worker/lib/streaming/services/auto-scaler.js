@@ -99,6 +99,7 @@ class AutoScaler {
         const totals = {
             reqRate: 0,
             resRate: 0,
+            queueSize: 0,
             durationsRate: []
         };
 
@@ -115,11 +116,13 @@ class AutoScaler {
             const totalResponses = sum(rates.map(r => r.totalResponses));
             const totalDropped = sum(rates.map(r => r.dropped));
             const throughput = this._formatNumber(median(rates.map(r => r.throughput)));
+            const queueSize = sum(rates.map(r => r.queueSize));
             const { required } = this._pendingScale;
-            const metric = { source, target, currentSize, required, reqRate, resRate, durationsRate, totalRequests, totalResponses, totalDropped, throughput };
+            const metric = { source, target, currentSize, required, queueSize, reqRate, resRate, durationsRate, totalRequests, totalResponses, totalDropped, throughput };
             metrics.push(metric);
             totals.reqRate += reqRate;
             totals.resRate += resRate;
+            totals.queueSize += queueSize;
             totals.durationsRate.push(durationsRate);
             if (windowSize < this._config.maxSizeWindow) {
                 hasMaxSizeWindow = false;
@@ -133,7 +136,7 @@ class AutoScaler {
 
         if (!this._isStateful && !newScaleStats) {
             const durationsRate = this._formatNumber(median(totals.durationsRate));
-            const result = this._getScaleDetails({ reqRate: totals.reqRate, resRate: totals.resRate, durationsRate, currentSize });
+            const result = this._getScaleDetails({ reqRate: totals.reqRate, resRate: totals.resRate, queueSize: totals.queueSize, durationsRate, currentSize });
             if (result.up) {
                 const replicas = result.up;
                 const scale = this._createScaleUp({ replicas, currentSize });
@@ -193,7 +196,7 @@ class AutoScaler {
         log.info(`scaling ${action} from ${currentSize} to ${scaleTo} replicas ${reason.message}`, { component });
     }
 
-    _getScaleDetails({ reqRate, resRate, durationsRate, currentSize }) {
+    _getScaleDetails({ reqRate, resRate, durationsRate, queueSize, currentSize }) {
         const result = { up: 0, down: 0 };
         const required = Metrics.calcRatio(reqRate, durationsRate);
         const scaleUp = this._shouldScaleUp({ reqRate, resRate });
@@ -211,11 +214,11 @@ class AutoScaler {
         }
 
         // need to scale down
-        else if (scaleDown.scale && currentSize > 0) {
+        else if (scaleDown.scale && currentSize > 0 && queueSize === 0) {
             result.down = currentSize;
             result.reason = scaleDown.reason;
         }
-        else if (currentSize > required && required > 0) {
+        else if (currentSize > required && required > 0 && queueSize === 0) {
             result.down = currentSize - required;
             result.reason = ScaleReasonsMessages.DUR_RATIO({ durationsRatio: required });
         }
