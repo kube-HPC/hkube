@@ -8,6 +8,7 @@ const stateManager = require('../states/stateManager');
 const boards = require('../boards/boards');
 const metricsHelper = require('../metrics/metrics');
 const stateAdapter = require('../states/stateAdapter');
+const streamHandler = require('../streaming/services/stream-handler');
 const { Components, logMessages, jobStatus } = require('../consts');
 const JobProvider = require('./job-provider');
 const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
@@ -198,6 +199,7 @@ class JobConsumer extends EventEmitter {
             jobData: this._jobData,
             nodeName: this._nodeName,
             workerStatus,
+            isMaster: streamHandler.isMaster,
             workerStartingTime: this.workerStartingTime,
             jobCurrentTime: this.jobCurrentTime,
             workerPaused: this.isConsumerPaused,
@@ -322,8 +324,8 @@ class JobConsumer extends EventEmitter {
         return this.updateStatus({ status: taskStatuses.STORING, result });
     }
 
-    updateThroughput(throughput) {
-        return this.updateStatus({ status: taskStatuses.THROUGHPUT, throughput });
+    updateMetrics(metrics) {
+        return this.updateStatus({ status: taskStatuses.THROUGHPUT, metrics });
     }
 
     currentTaskInfo() {

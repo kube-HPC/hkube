@@ -1,4 +1,4 @@
-const { ScaleReasonsCodes, ScaleReasonsMessages } = require('./scale-reasons');
+const { ScaleReasonsMessages } = require('./scale-reasons');
 
 /**
  * This class responsible to measure idle time of
@@ -6,64 +6,40 @@ const { ScaleReasonsCodes, ScaleReasonsMessages } = require('./scale-reasons');
  */
 class IdleMarker {
     constructor(options) {
-        this._minRatioToScaleDown = options.minRatioToScaleDown;
         this._maxTimeIdleBeforeReplicaDown = options.maxTimeIdleBeforeReplicaDown;
         this._idles = Object.create(null);
     }
 
-    checkDurationsReason({ durationsRatio, source }) {
+    checkIdleReason({ reqRate, resRate }) {
         let reason;
         let scale = false;
-        const code = ScaleReasonsCodes.DUR_RATIO;
-        if (durationsRatio <= this._minRatioToScaleDown) {
-            const { result, time } = this._mark({ source, code });
-            if (result) {
-                scale = true;
-                reason = ScaleReasonsMessages.DUR_RATIO({ time, durationsRatio: durationsRatio.toFixed(2) });
-            }
-        }
-        else {
-            this._unMark({ source, code });
-        }
-        return { scale, reason };
-    }
-
-    checkIdleReason({ reqRate, resRate, source }) {
-        let reason;
-        let scale = false;
-        const code = ScaleReasonsCodes.IDLE_TIME;
         if (!reqRate && !resRate) {
-            const { result, time } = this._mark({ source, code });
+            const { result, time } = this._mark();
             if (result) {
                 scale = true;
                 reason = ScaleReasonsMessages.IDLE_TIME({ time });
             }
         }
         else {
-            this._unMark({ source, code });
+            this._unMark();
         }
         return { scale, reason };
     }
 
-    _mark({ source, code }) {
+    _mark() {
         let result = false;
-        if (!this._idles[source]) {
-            this._idles[source] = {};
+        if (!this._idles.time) {
+            this._idles.time = Date.now();
         }
-        if (!this._idles[source][code]) {
-            this._idles[source][code] = { time: Date.now() };
-        }
-        const diff = Date.now() - this._idles[source][code].time;
+        const diff = Date.now() - this._idles.time;
         if (diff >= this._maxTimeIdleBeforeReplicaDown) {
             result = true;
         }
         return { result, time: diff / 1000 };
     }
 
-    _unMark({ source, code }) {
-        if (this._idles[source] && this._idles[source][code]) {
-            delete this._idles[source][code];
-        }
+    _unMark() {
+        this._idles.time = null;
     }
 }
 

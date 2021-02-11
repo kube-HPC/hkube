@@ -8,8 +8,11 @@ config.workerCommunication = {
 config.streaming = {
     autoScaler: {
         interval: 60000,
-        minTimeWaitForReplicaUp: 0,
+        minTimeWaitBeforeScaleUp: 100,
+        minTimeWaitBeforeScaleDown: 100,
         maxSizeWindow: 4,
+        minTimeNonStatsReport: 5000,
+        maxScaleUpReplicas: 10,
         maxTimeIdleBeforeReplicaDown: 0
     },
     serviceDiscovery: {
@@ -18,7 +21,7 @@ config.streaming = {
     election: {
         interval: 60000
     },
-    throughput: {
+    metrics: {
         interval: 60000
     }
 };

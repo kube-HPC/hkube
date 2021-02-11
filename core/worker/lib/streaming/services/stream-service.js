@@ -3,7 +3,7 @@ const { NodesMap: DAG } = require('@hkube/dag');
 const stateAdapter = require('../../states/stateAdapter');
 const Election = require('./election');
 const AdaptersProxy = require('../adapters/adapters-proxy');
-const ThroughputCollector = require('./throughput-collector');
+const MetricsCollector = require('./metrics-collector');
 const ScalerService = require('./scaler-service');
 const { streamingEvents } = require('../../consts');
 
@@ -12,7 +12,7 @@ const { streamingEvents } = require('../../consts');
  * 1. Auto-scaler
  * 2. Adapters-proxy
  * 3. Election-service
- * 4. Throughput-collector
+ * 4. Metrics-collector
  */
 
 class StreamService extends EventEmitter {
@@ -26,9 +26,9 @@ class StreamService extends EventEmitter {
         this._adapters = new AdaptersProxy();
         this._election = new Election(this._options, (a) => this._adapters.addAdapter(a), () => this._adapters.getMasters(),);
         await this._election.start(nodes);
-        this._throughput = new ThroughputCollector(this._options, () => this._adapters.throughput());
-        this._throughput.on(streamingEvents.THROUGHPUT_CHANGED, (changes) => {
-            this.emit(streamingEvents.THROUGHPUT_CHANGED, changes);
+        this._metrics = new MetricsCollector(this._options, () => this._adapters.metrics());
+        this._metrics.on(streamingEvents.METRICS_CHANGED, (changes) => {
+            this.emit(streamingEvents.METRICS_CHANGED, changes);
         });
         this._scalerService = new ScalerService(this._options, () => this._adapters.scale());
         this._active = true;
@@ -63,11 +63,11 @@ class StreamService extends EventEmitter {
         this._active = false;
         this._jobData = null;
         this._scalerService?.stop();
-        this._throughput?.stop();
+        this._metrics?.stop();
         await this._election?.stop();
         await this._adapters?.stop();
         this._scalerService = null;
-        this._throughput = null;
+        this._metrics = null;
         this._election = null;
         this._adapters = null;
     }
@@ -79,6 +79,11 @@ class StreamService extends EventEmitter {
         data.forEach((d) => {
             this._adapters.report(d);
         });
+    }
+
+    get isMaster() {
+        const masters = this._adapters?.getMasters();
+        return masters?.length > 0;
     }
 }
 

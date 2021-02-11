@@ -1,5 +1,4 @@
 const Logger = require('@hkube/logger');
-const { median } = require('@hkube/stats');
 const { MasterAdapter, SlaveAdapter } = require('./index');
 const { Components } = require('../../consts');
 let log;
@@ -57,23 +56,12 @@ class AdaptersProxy {
         return masters.map(m => m.scale());
     }
 
-    throughput() {
+    metrics() {
         const masters = this.getMasters();
         const result = [];
         masters.forEach(m => {
-            const target = m.nodeName;
-            const throughput = m.getThroughput();
-            const sources = Object.entries(throughput).reduce((acc, [k, v]) => {
-                const [nodeName] = k.split('-');
-                if (!acc[nodeName]) {
-                    acc[nodeName] = [];
-                }
-                acc[nodeName].push(v);
-                return acc;
-            }, {});
-            Object.entries(sources).forEach(([k, v]) => {
-                result.push({ source: k, target, throughput: median(v) });
-            });
+            const metrics = m.getMetrics();
+            result.push(...metrics);
         });
         return result;
     }
