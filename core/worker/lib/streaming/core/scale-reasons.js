@@ -14,10 +14,10 @@ const Codes = {
 };
 
 const Messages = {
-    [Codes.REQ_RES]: 'based on req/res ratio of {reqResRatio} (min is {minRatioToScaleUp})',
+    [Codes.REQ_RES]: 'based on req/res ratio of {reqResRatio}',
     [Codes.REQ_ONLY]: 'based on no responses and requests rate of {reqRate} msg per sec',
     [Codes.IDLE_TIME]: 'based on no requests and no responses for {time} sec',
-    [Codes.DUR_RATIO]: 'based on durations ratio of {durationsRatio} for {time} sec',
+    [Codes.DUR_RATIO]: 'based on durations ratio of {durationsRatio}',
 };
 
 const createReason = (code, ...args) => {

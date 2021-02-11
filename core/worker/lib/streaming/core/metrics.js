@@ -8,18 +8,22 @@ const _calcRate = (list) => {
     const last = list[list.length - 1];
     const timeDiff = (last.time - first.time) / 1000;
     const countDiff = last.count - first.count;
-    const rate = countDiff / timeDiff;
+    let rate = 0;
+    if (countDiff && timeDiff) {
+        rate = countDiff / timeDiff;
+    }
     return rate;
 };
 
 const calcRatio = (rate1, rate2) => {
-    const ratio = (rate1 && rate2) ? (rate1 / rate2) : 1;
+    const rates = (rate1 && rate2) ? (rate1 / rate2) : 1;
+    const ratio = Math.round(rates) || 1;
     return ratio;
 };
 
 const _totalCount = (list) => {
     const last = list[list.length - 1];
-    return (last && last.count) || 0;
+    return last?.count || 0;
 };
 
 /**
@@ -38,15 +42,13 @@ const _totalCount = (list) => {
 const calcRates = (data) => {
     const reqRate = _calcRate(data.requests.items);
     const resRate = _calcRate(data.responses.items);
-    const durMedian = median(data.durations.items);
+    const durationMedian = median(data.durations.items);
     const totalRequests = _totalCount(data.requests.items);
     const totalResponses = _totalCount(data.responses.items);
-    let durationsRate = 0;
-
-    if (durMedian) {
-        durationsRate = 1 / (durMedian / 1000);
-    }
-    return { reqRate, resRate, durationsRate, totalRequests, totalResponses };
+    const dropped = _totalCount(data.dropped.items);
+    const durMedian = durationMedian || 0.1;
+    const durationsRate = 1 / (durMedian / 1000);
+    return { reqRate, resRate, durationsRate, totalRequests, totalResponses, dropped };
 };
 
 module.exports = {
