@@ -42,12 +42,17 @@ class Github extends Base {
                 });
             }
         } catch (error) {
-            if (error.status === 500) {
-                throw new InvalidDataError(
-                    `could not reach git endpoint ${this.config.endpoint}`
-                );
+            switch (error.status) {
+                case 500:
+                case 404:
+                    throw new InvalidDataError(
+                        `Invalid Git endpoint or organization name`
+                    );
+                case 401:
+                    throw new InvalidDataError(`Invalid git token`);
+                default:
+                    throw error;
             }
-            return error;
         }
         this.rawRepositoryUrl = response.data.clone_url;
         return this.rawRepositoryUrl;

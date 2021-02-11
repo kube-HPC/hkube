@@ -52,3 +52,6 @@ CreateDownloadLinkRequest:
     $ref: ./DownloadLink.request.yaml
 DownloadId:
     $ref: ./DownloadId.yaml
+
+URL:
+    $ref: ./URL.yaml
