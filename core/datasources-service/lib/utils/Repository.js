@@ -117,7 +117,11 @@ class Repository extends RepositoryBase {
                         'invalid S3 accessKeyId or invalid accessKey'
                     );
                 }
-                if (error.match(/Invalid endpoint/i)) {
+                if (
+                    error.match(
+                        /Invalid endpoint|Could not connect to the endpoint URL/i
+                    )
+                ) {
                     throw new InvalidDataError('invalid S3 endpoint');
                 }
                 if (error.match(/Bucket '.+' does not exist/i)) {
@@ -343,6 +347,7 @@ class Repository extends RepositoryBase {
             if (allowNotFound) return null;
             throw error;
         }
+        // @ts-ignore
         if (response[0].length === 0 && !allowNotFound) {
             throw new ResourceNotFoundError('datasource', this.repositoryName);
         }

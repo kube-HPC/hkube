@@ -133,17 +133,29 @@ describe('/datasource POST', () => {
                     'invalid S3 accessKeyId or invalid accessKey'
                 );
             });
-            it('should throw invalid host', async () => {
+            it('should throw invalid host - non existing', async () => {
                 const name = uuid();
                 const { body } = await createDataSource({
                     body: { name },
                     storageOverrides: {
-                        endpoint: 'non valid',
+                        endpoint: 'https://non-valid.com',
                     },
                 });
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
                 expect(body.error.message).to.eq('invalid S3 endpoint');
+            });
+            it('should throw invalid host - bad url', async () => {
+                const name = uuid();
+                const { body } = await createDataSource({
+                    body: { name },
+                    storageOverrides: {
+                        endpoint: 'non-valid',
+                    },
+                });
+                expect(body).to.have.ownProperty('error');
+                expect(body.error.code).to.eq(400);
+                expect(body.error.message).to.match(/invalid url/i);
             });
             it('should throw invalid bucket name', async () => {
                 const name = uuid();
@@ -172,6 +184,74 @@ describe('/datasource POST', () => {
                 expect(body.error.message).to.eq(
                     'invalid S3 accessKeyId or invalid accessKey'
                 );
+            });
+        });
+        describe('Git config', () => {
+            it('should throw invalid kind', async () => {
+                const name = uuid();
+                const { body } = await createDataSource({
+                    body: { name },
+                    gitOverrides: {
+                        kind: 'non-existing',
+                    },
+                });
+                expect(body).to.have.ownProperty('error');
+                expect(body.error.code).to.eq(400);
+                expect(body.error.message).to.match(
+                    /be equal to one of the allowed values \(github,gitlab\)/
+                );
+            });
+            it('should throw invalid token', async () => {
+                const name = uuid();
+                const { body } = await createDataSource({
+                    body: { name },
+                    gitOverrides: {
+                        token: 'bad-token',
+                    },
+                });
+                expect(body).to.have.ownProperty('error');
+                expect(body.error.code).to.eq(400);
+                expect(body.error.message).to.match(/Invalid git token/);
+            });
+            it('should throw invalid organization', async () => {
+                const name = uuid();
+                const { body } = await createDataSource({
+                    body: { name },
+                    gitOverrides: {
+                        organization: 'non-existing',
+                    },
+                });
+                expect(body).to.have.ownProperty('error');
+                expect(body.error.code).to.eq(400);
+                expect(body.error.message).to.match(
+                    /Invalid Git endpoint or organization/i
+                );
+            });
+            it('should throw invalid endpoint', async () => {
+                const name = uuid();
+                const { body } = await createDataSource({
+                    body: { name },
+                    gitOverrides: {
+                        endpoint: 'https://not-existing.com',
+                    },
+                });
+                expect(body).to.have.ownProperty('error');
+                expect(body.error.code).to.eq(400);
+                expect(body.error.message).to.match(
+                    /invalid git endpoint or organization name/i
+                );
+            });
+            it('should throw invalid endpoint - bad format', async () => {
+                const name = uuid();
+                const { body } = await createDataSource({
+                    body: { name },
+                    gitOverrides: {
+                        endpoint: 'non-existing',
+                    },
+                });
+                expect(body).to.have.ownProperty('error');
+                expect(body.error.code).to.eq(400);
+                expect(body.error.message).to.match(/invalid url/i);
             });
         });
     });
