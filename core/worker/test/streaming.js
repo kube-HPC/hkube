@@ -129,7 +129,7 @@ const checkMetrics = () => {
     return streamService._metrics._checkMetrics() || [];
 }
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     before(async () => {
         await stateAdapter._db.jobs.create({ pipeline, jobId });
         await streamHandler.start(job);
