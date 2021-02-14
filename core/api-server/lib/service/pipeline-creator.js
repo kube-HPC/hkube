@@ -1,7 +1,7 @@
 const mergeWith = require('lodash.mergewith');
 const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
-const { pipelineKind, retryPolicy } = require('@hkube/consts');
+const { pipelineKind, retryPolicy, stateType } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
@@ -9,6 +9,11 @@ const SEPARATORS = {
     EXPRESSION: ',',
     RELATION: '>>',
     AND: '&'
+};
+
+const StreamRetryPolicy = {
+    [stateType.Stateless]: { policy: retryPolicy.Never },
+    [stateType.Stateful]: { policy: retryPolicy.Always, limit: 10000 }
 };
 
 class PipelineCreator {
@@ -128,7 +133,8 @@ class PipelineCreator {
         }
 
         pipeline.nodes.forEach(node => {
-            node.retry = { policy: retryPolicy.Always, limit: Number.MAX_SAFE_INTEGER }; // eslint-disable-line
+            const type = node.stateType || stateType.Stateless;
+            node.retry = StreamRetryPolicy[type]; // eslint-disable-line
         });
 
         const parsedFlow = {};

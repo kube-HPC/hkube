@@ -370,7 +370,7 @@ class Worker {
             ...options,
             shouldCompleteJob: true
         };
-        stateManager.done(data);
+        stateManager.exit(data);
     }
 
     async _startRetry(options) {
