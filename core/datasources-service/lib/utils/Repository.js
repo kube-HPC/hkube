@@ -11,7 +11,7 @@ const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
 const { serviceName } = require('../../config/main/config.base');
 const dedicatedStorage = require('./../DedicatedStorage');
-const { ResourceNotFoundError } = require('../errors');
+const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 /**
  * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
@@ -104,6 +104,33 @@ class Repository extends RepositoryBase {
             commit: response.commit.replace(/(.+) /, ''),
             repositoryUrl,
         };
+    }
+
+    async push() {
+        let response;
+        try {
+            response = await super.push();
+        } catch (error) {
+            if (typeof error === 'string') {
+                if (error.match(/SignatureDoesNotMatch|InvalidAccessKeyId/i)) {
+                    throw new InvalidDataError(
+                        'invalid S3 accessKeyId or invalid accessKey'
+                    );
+                }
+                if (
+                    error.match(
+                        /Invalid endpoint|Could not connect to the endpoint URL/i
+                    )
+                ) {
+                    throw new InvalidDataError('invalid S3 endpoint');
+                }
+                if (error.match(/Bucket '.+' does not exist/i)) {
+                    throw new InvalidDataError('S3 bucket name does not exist');
+                }
+            }
+            throw error;
+        }
+        return response;
     }
 
     /** @param {string=} commitHash */
@@ -308,13 +335,23 @@ class Repository extends RepositoryBase {
      * want to delete a local copy use *Repository.deleteClone*
      */
     async delete(allowNotFound = false) {
-        const response = await dedicatedStorage.delete({
-            path: this.repositoryName,
-        });
-        if (response.length === 0 && !allowNotFound) {
+        let response;
+        try {
+            response = await Promise.allSettled([
+                dedicatedStorage.delete({
+                    path: this.repositoryName,
+                }),
+                this.remoteGitClient.deleteRepository(this.repositoryName),
+            ]);
+        } catch (error) {
+            if (allowNotFound) return null;
+            throw error;
+        }
+        // @ts-ignore
+        if (response[0].length === 0 && !allowNotFound) {
             throw new ResourceNotFoundError('datasource', this.repositoryName);
         }
-        return this.remoteGitClient.deleteRepository(this.repositoryName);
+        return response;
     }
 }
 
