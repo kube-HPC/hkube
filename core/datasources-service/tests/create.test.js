@@ -130,7 +130,7 @@ describe('/datasource POST', () => {
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
                 expect(body.error.message).to.eq(
-                    'invalid S3 accessKeyId or invalid accessKey'
+                    'Invalid S3 accessKeyId or secretAccessKey'
                 );
             });
             it('should throw invalid host - non existing', async () => {
@@ -143,7 +143,7 @@ describe('/datasource POST', () => {
                 });
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
-                expect(body.error.message).to.eq('invalid S3 endpoint');
+                expect(body.error.message).to.eq('Invalid S3 endpoint');
             });
             it('should throw invalid host - bad url', async () => {
                 const name = uuid();
@@ -171,6 +171,36 @@ describe('/datasource POST', () => {
                     'S3 bucket name does not exist'
                 );
             });
+            it('should throw invalid bucket name - without uploading files', async () => {
+                const name = uuid();
+                const { body } = await createDataSource({
+                    body: { name },
+                    storageOverrides: {
+                        bucketName: 'not-exist',
+                    },
+                    fileNames: [],
+                });
+                expect(body).to.have.ownProperty('error');
+                expect(body.error.code).to.eq(400);
+                expect(body.error.message).to.eq(
+                    'S3 bucket name does not exist'
+                );
+            });
+            it('should throw invalid token - without uploading files', async () => {
+                const name = uuid();
+                const { body } = await createDataSource({
+                    body: { name },
+                    storageOverrides: {
+                        accessKeyId: 'bad key id',
+                    },
+                    fileNames: [],
+                });
+                expect(body).to.have.ownProperty('error');
+                expect(body.error.code).to.eq(400);
+                expect(body.error.message).to.eq(
+                    'Invalid S3 accessKeyId or secretAccessKey'
+                );
+            });
             it('should throw invalid secretAccessKey', async () => {
                 const name = uuid();
                 const { body } = await createDataSource({
@@ -182,7 +212,7 @@ describe('/datasource POST', () => {
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
                 expect(body.error.message).to.eq(
-                    'invalid S3 accessKeyId or invalid accessKey'
+                    'Invalid S3 accessKeyId or secretAccessKey'
                 );
             });
         });

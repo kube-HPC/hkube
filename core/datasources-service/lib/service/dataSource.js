@@ -317,7 +317,12 @@ class DataSource {
      * }} query
      */
     async create({ name, git, storage, files: _files }) {
-        validator.dataSources.create({ name, git, storage, files: _files });
+        await validator.dataSources.create({
+            name,
+            git,
+            storage,
+            files: _files,
+        });
         const createdDataSource = await this.db.dataSources.create({
             name,
             git,

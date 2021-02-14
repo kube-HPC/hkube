@@ -73,7 +73,7 @@ config.s3 = {
     secretAccessKey:
         process.env.AWS_SECRET_ACCESS_KEY ||
         'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
+    endpoint: process.env.S3_ENDPOINT_URL || 'http://localhost:9000',
     useSSL: false,
     bucketName: `${config.clusterName}-${storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE}`,
 };
@@ -87,7 +87,7 @@ config.git = {
         organization: process.env.GIT_ORGANIZATION || 'hkube-org',
         endpoint: process.env.GITHUB_ENDPOINT_URL || 'http://localhost:3010',
         /** @type {string} */
-        token: null,
+        token: process.env.GITHUB_TOKEN || null,
         kind: 'github',
     },
     gitlab: {

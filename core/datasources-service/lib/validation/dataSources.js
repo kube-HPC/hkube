@@ -1,5 +1,7 @@
+const { S3 } = require('aws-sdk');
 const dbConnect = require('../db');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
+
 /**
  * @typedef {import('express')} Express
  * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage;
@@ -21,15 +23,51 @@ class DataSources {
      *     storage: ExternalStorage;
      * }} props
      */
-    create(props) {
+    async create(props) {
         const files = Array.isArray(props.files)
             ? props.files.map(file => file.originalname)
             : [];
-
         this._validator.validate(this._validator.definitions.createRequest, {
             ...props,
             files,
         });
+        const url = new URL(props.storage.endpoint);
+        const s3Client = new S3({
+            endpoint: {
+                host: url.host,
+                href: url.href,
+                protocol: url.protocol,
+                hostname: url.hostname,
+                port: parseInt(url.port, 10),
+            },
+            s3ForcePathStyle: true,
+            s3BucketEndpoint: false,
+            credentials: {
+                accessKeyId: props.storage.accessKeyId,
+                secretAccessKey: props.storage.secretAccessKey,
+            },
+        });
+        try {
+            // validate the bucket exists and the permissions are valid
+            await s3Client
+                .headBucket({
+                    Bucket: props.storage.bucketName,
+                })
+                .promise();
+        } catch (error) {
+            if (error.code === 'NotFound') {
+                throw new InvalidDataError('S3 bucket name does not exist');
+            }
+            if (error.code === 'Forbidden') {
+                throw new InvalidDataError(
+                    'Invalid S3 accessKeyId or secretAccessKey'
+                );
+            }
+            if (error.code === 'UnknownEndpoint') {
+                throw new InvalidDataError('Invalid S3 endpoint');
+            }
+            throw error;
+        }
     }
 
     /**
