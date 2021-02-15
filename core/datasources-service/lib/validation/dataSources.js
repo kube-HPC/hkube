@@ -4,8 +4,8 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 /**
  * @typedef {import('express')} Express
- * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage;
- * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit;
+ * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig;
+ * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig;
  * @typedef {import('../utils/types').FileMeta} FileMeta
  * @typedef {Express.Multer.File[]} MulterFile
  */
@@ -19,8 +19,8 @@ class DataSources {
      * @param {{
      *     name: string;
      *     files: Express.Multer.File[];
-     *     git: ExternalGit;
-     *     storage: ExternalStorage;
+     *     git: GitConfig;
+     *     storage: StorageConfig;
      * }} props
      */
     async create(props) {

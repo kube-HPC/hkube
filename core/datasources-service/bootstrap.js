@@ -6,8 +6,11 @@ const component = require('./lib/consts/componentNames').MAIN;
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 const dedicatedStorage = require('./lib/DedicatedStorage');
+const gitToken = require('./lib/service/gitToken');
+
 const modules = [
     require('./lib/db'),
+    require('./lib/service/gitToken'),
     require('./api/rest-api/app-server'),
     require('./lib/service/dataSource'),
     require('./lib/service/snapshots'),
@@ -19,6 +22,7 @@ const modules = [
 class Bootstrap {
     async init() {
         try {
+            this._handleExit();
             this._handleErrors();
             log.info(
                 `running application with env: ${configIt.env()}, version: ${
@@ -51,6 +55,12 @@ class Bootstrap {
     _onInitFailed(error) {
         log.error(error.message, { component }, error);
         process.exit(1);
+    }
+
+    _handleExit() {
+        process.on('beforeExit', async () => {
+            await gitToken.removeStoredToken();
+        });
     }
 
     _handleErrors() {

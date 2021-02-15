@@ -9,6 +9,7 @@ const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const { ResourceNotFoundError } = require('../errors');
+const gitToken = require('./gitToken');
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
  * @typedef {import('./../utils/types').MulterFile} MulterFile
@@ -16,8 +17,8 @@ const { ResourceNotFoundError } = require('../errors');
  * @typedef {import('./../utils/types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./../utils/types').config} config
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
- * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage;
- * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit;
+ * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig;
+ * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig;
  * @typedef {{ createdPath: string; fileName: string }} uploadFileResponse
  * @typedef {{ name?: string; id?: string }} NameOrId
  */
@@ -312,17 +313,31 @@ class DataSource {
      * @param {{
      *     name: string;
      *     files: MulterFile[];
-     *     git: ExternalGit;
-     *     storage: ExternalStorage;
+     *     git: GitConfig;
+     *     storage: StorageConfig;
      * }} query
      */
-    async create({ name, git, storage, files: _files }) {
+    async create({ name, git: _git, storage: _storage, files: _files }) {
+        /** @type {GitConfig} */
+        const git =
+            _git?.kind === 'internal'
+                ? {
+                      kind: _git.kind,
+                      endpoint: this.config.git.github.endpoint,
+                      token: gitToken.hash,
+                  }
+                : _git;
+        const storage =
+            _storage?.kind === 'internal'
+                ? { kind: _storage.kind, ...this.config.s3 }
+                : _storage;
         await validator.dataSources.create({
             name,
             git,
             storage,
             files: _files,
         });
+
         const createdDataSource = await this.db.dataSources.create({
             name,
             git,

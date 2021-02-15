@@ -14,8 +14,8 @@ const dedicatedStorage = require('./../DedicatedStorage');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 /**
- * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
- * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage
+ * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig
+ * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig
  * @typedef {import('./types').FileMeta} FileMeta
  * @typedef {import('./types').LocalFileMeta} LocalFileMeta
  * @typedef {import('./types').MulterFile} MulterFile
@@ -28,18 +28,26 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
  * @typedef {{ [path: string]: T }} ByPath
  */
 
+const GitClients = {
+    internal: Github,
+    github: Github,
+    gitlab: Gitlab,
+};
+
 class Repository extends RepositoryBase {
     /**
      * @param {string} repositoryName
      * @param {config} config
      * @param {string} rootDir
      * @param {string} repositoryUrl
-     * @param {{ git: ExternalGit; storage: ExternalStorage }} credentials
+     * @param {{ git: GitConfig; storage: StorageConfig }} credentials
      */
     constructor(repositoryName, config, rootDir, repositoryUrl, credentials) {
         super(repositoryName, rootDir, repositoryName);
-        const RemoteGitClientConstructor =
-            credentials.git.kind === 'github' ? Github : Gitlab;
+        const RemoteGitClientConstructor = GitClients[credentials.git.kind];
+        if (!RemoteGitClientConstructor) {
+            throw new InvalidDataError('invalid git kind');
+        }
         this.remoteGitClient = new RemoteGitClientConstructor(
             credentials.git,
             repositoryUrl,

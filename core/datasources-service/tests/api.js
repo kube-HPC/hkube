@@ -41,6 +41,8 @@ const createDataSource = ({
     useGitlab = false,
     storageOverrides = {},
     gitOverrides = {},
+    useInternalStorage = false,
+    useInternalGit = false,
 } = {}) => {
     // @ts-ignore
     const { storage, git, restUrl } = global.testParams;
@@ -63,10 +65,22 @@ const createDataSource = ({
             : undefined,
         ...(ignoreStorage
             ? {}
-            : { storage: JSON.stringify({ ...storage, ...storageOverrides }) }),
+            : {
+                  storage: JSON.stringify(
+                      useInternalStorage
+                          ? { kind: 'internal' }
+                          : { ...storage, ...storageOverrides }
+                  ),
+              }),
         ...(ignoreGit
             ? {}
-            : { git: JSON.stringify({ ...gitConfig, ...gitOverrides }) }),
+            : {
+                  git: JSON.stringify(
+                      useInternalGit
+                          ? { kind: 'internal' }
+                          : { ...gitConfig, ...gitOverrides }
+                  ),
+              }),
     };
     const options = { uri, formData };
     return request(options);

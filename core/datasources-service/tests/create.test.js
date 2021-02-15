@@ -8,7 +8,7 @@ const { mockDeleteClone } = require('./utils');
 
 let DATASOURCE_GIT_REPOS_DIR;
 
-describe('/datasource POST', () => {
+describe('/dataSource POST', () => {
     before(() => {
         // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
@@ -46,10 +46,10 @@ describe('/datasource POST', () => {
                 "data should have required property 'name'"
             );
         });
-        it('should throw validation error of long datasource name', async () => {
+        it('should throw validation error of long dataSource name', async () => {
             const response = await createDataSource({
                 body: {
-                    name: 'this-is-33-length-datasource-name',
+                    name: 'this-is-33-length-dataSource-name',
                 },
             });
             expect(response.body).to.have.property('error');
@@ -228,7 +228,7 @@ describe('/datasource POST', () => {
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
                 expect(body.error.message).to.match(
-                    /be equal to one of the allowed values \(github,gitlab\)/
+                    /be equal to one of the allowed values/
                 );
             });
             it('should throw invalid token', async () => {
@@ -312,7 +312,7 @@ describe('/datasource POST', () => {
             expect(dataSource.files).to.have.lengthOf(1);
             expect(dataSource.repositoryUrl).to.match(/\/hkube\//i);
         });
-        it('should create a datasource under a git organization', async () => {
+        it('should create a dataSource under a git organization', async () => {
             const name = uuid();
             const deleteClone = mockDeleteClone();
             const {
@@ -337,7 +337,27 @@ describe('/datasource POST', () => {
             );
             expect(config).to.match(new RegExp(name));
         });
-        it.skip('should create a datasource using gitlab', async () => {
+        it('should create a dataSource using internal git', async () => {
+            const name = uuid();
+            const {
+                response: { statusCode },
+            } = await createDataSource({
+                body: { name },
+                useInternalGit: true,
+            });
+            expect(statusCode).to.eq(201);
+        });
+        it('should create a dataSource using internal storage', async () => {
+            const name = uuid();
+            const {
+                response: { statusCode },
+            } = await createDataSource({
+                body: { name },
+                useInternalStorage: true,
+            });
+            expect(statusCode).to.eq(201);
+        });
+        it.skip('should create a dataSource using gitlab', async () => {
             const name = uuid();
             const deleteClone = mockDeleteClone();
             const {
