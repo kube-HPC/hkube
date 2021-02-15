@@ -3,8 +3,8 @@
  * value objects while running
  *
  * @param {object[]} collection
- * @param {string=} id
- * @param {function=} mapper
+ * @param {string} [id]
+ * @param {function} [mapper]
  */
 const normalize = (collection, id = 'id', mapper) =>
     collection.reduce(

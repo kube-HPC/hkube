@@ -8,6 +8,7 @@ const { fileName } = require('./utils');
 /** @typedef {{ message: string; code: number }} ErrorResponse */
 /**
  * @template T
+ *
  * @typedef {Promise<{
  *     body: T & { error: ErrorResponse };
  *     response: { statusCode: number; body: T & { error: ErrorResponse } };
@@ -26,8 +27,11 @@ const setupUrl = ({ name, id }) => {
 };
 /**
  * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
+ *
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
+ *
  * @typedef {import('@hkube/db/lib/DataSource').DataSourceWithMeta} DataSourceWithMeta
+ *
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
  */
 /** @returns {Response<DataSource>} */

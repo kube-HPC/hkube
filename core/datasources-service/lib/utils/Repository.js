@@ -15,16 +15,24 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 /**
  * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig
+ *
  * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig
+ *
  * @typedef {import('./types').FileMeta} FileMeta
+ *
  * @typedef {import('./types').LocalFileMeta} LocalFileMeta
+ *
  * @typedef {import('./types').MulterFile} MulterFile
+ *
  * @typedef {import('./types').NormalizedFileMeta} NormalizedFileMeta
+ *
  * @typedef {import('./types').SourceTargetArray} SourceTargetArray
+ *
  * @typedef {import('./types').config} config
  */
 /**
  * @template T
+ *
  * @typedef {{ [path: string]: T }} ByPath
  */
 
@@ -141,7 +149,7 @@ class Repository extends RepositoryBase {
         return response;
     }
 
-    /** @param {string=} commitHash */
+    /** @param {string} [commitHash] */
     async ensureClone(commitHash) {
         await fse.ensureDir(this.cwd);
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);

@@ -8,6 +8,7 @@ const constructUrl = ({ name, password, endpoint }) => {
 
 /**
  * @typedef {import('./../lib/utils/types').config} Config
+ *
  * @typedef {{
  *     id: 1;
  *     name: 'my-token';

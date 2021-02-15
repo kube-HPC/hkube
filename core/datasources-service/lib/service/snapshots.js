@@ -4,8 +4,11 @@ const dbConnection = require('../db');
 
 /**
  * @typedef {import('./../utils/types').config} config
+ *
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot;
+ *
  * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
+ *
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
  */
 
@@ -71,13 +74,8 @@ class Snapshots {
         return response;
     }
 
-    /** @param {{ id: string; filesList: FileMeta[] }} props */
-    async updateSnapshotResult({ id, filesList }) {
-        return this.db.snapshots.updateFilesList({ id, filesList });
-    }
-
     /**
-     * @param {{ files: FileMeta; query: string }}
+     * @param {{ files: FileMeta[]; query: string }} props
      * @returns {{ matching: FileMeta[]; nonMatching: FileMeta[] }}
      */
     filterFilesListByQuery({ files, query }) {

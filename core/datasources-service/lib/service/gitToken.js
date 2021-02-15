@@ -27,7 +27,7 @@ class GitToken {
         await this._setupToken();
     }
 
-    /** @param {string=} name */
+    /** @param {string} [name] */
     async _setupToken(name) {
         /** @type {import('axios').AxiosResponse<Token>} */
         const response = await this.client.post('/', {
