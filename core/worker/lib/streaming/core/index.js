@@ -1,5 +1,5 @@
 const FixedWindow = require('./fixed-window');
-const IdleMarker = require('./idle-marker');
+const TimeMarker = require('./time-marker');
 const Interval = require('./interval');
 const Metrics = require('./metrics');
 const PendingScale = require('./pending-scale');
@@ -8,7 +8,7 @@ const Statistics = require('./statistics');
 
 module.exports = {
     FixedWindow,
-    IdleMarker,
+    TimeMarker,
     Interval,
     Metrics,
     PendingScale,

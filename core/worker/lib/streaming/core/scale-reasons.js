@@ -9,15 +9,17 @@ const format = require('string-template');
 const Codes = {
     REQ_RES: 'REQ_RES', // scale-up
     REQ_ONLY: 'REQ_ONLY', // scale-up
+    QUEUE_SIZE: 'QUEUE_SIZE', // scale-up
     IDLE_TIME: 'IDLE_TIME', // scale-down
     DUR_RATIO: 'DUR_RATIO' // scale-down
 };
 
 const Messages = {
-    [Codes.REQ_RES]: 'based on req/res ratio of {reqResRatio}',
+    [Codes.REQ_RES]: 'based on req/res ratio of {ratio}',
     [Codes.REQ_ONLY]: 'based on no responses and requests rate of {reqRate} msg per sec',
+    [Codes.QUEUE_SIZE]: 'based on queue size of {queueSize} for {time} sec',
     [Codes.IDLE_TIME]: 'based on no requests and no responses for {time} sec',
-    [Codes.DUR_RATIO]: 'based on durations ratio of {durationsRatio}',
+    [Codes.DUR_RATIO]: 'based on durations ratio of {ratio} for {time} sec',
 };
 
 const createReason = (code, ...args) => {
@@ -31,6 +33,7 @@ const createReason = (code, ...args) => {
 const ScaleReasonsMessages = {
     [Codes.REQ_RES]: (...args) => createReason(Codes.REQ_RES, ...args),
     [Codes.REQ_ONLY]: (...args) => createReason(Codes.REQ_ONLY, ...args),
+    [Codes.QUEUE_SIZE]: (...args) => createReason(Codes.QUEUE_SIZE, ...args),
     [Codes.IDLE_TIME]: (...args) => createReason(Codes.IDLE_TIME, ...args),
     [Codes.DUR_RATIO]: (...args) => createReason(Codes.DUR_RATIO, ...args)
 };

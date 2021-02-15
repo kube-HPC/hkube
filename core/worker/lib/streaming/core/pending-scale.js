@@ -5,8 +5,8 @@
  */
 class PendingScale {
     constructor(options) {
-        this._minTimeWaitBeforeScaleUp = options.minTimeWaitBeforeScaleUp;
-        this._minTimeWaitBeforeScaleDown = options.minTimeWaitBeforeScaleDown;
+        this._minTimeWaitBeforeScaleUp = options.scaleUp.minTimeWaitBeforeScaleUp;
+        this._minTimeWaitBeforeScaleDown = options.scaleDown.minTimeWaitBeforeScaleDown;
         this._scaleUpTime = null;
         this._scaleDownTime = null;
         this._required = 0;

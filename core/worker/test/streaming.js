@@ -129,7 +129,7 @@ const checkMetrics = () => {
     return streamService._metrics._checkMetrics() || [];
 }
 
-describe('Streaming', () => {
+describe.only('Streaming', () => {
     before(async () => {
         await stateAdapter._db.jobs.create({ pipeline, jobId });
         await streamHandler.start(job);
@@ -630,7 +630,7 @@ describe('Streaming', () => {
             const key = Object.keys(statsData)[0];
             const stats = statsData[key];
             const { requests, responses, durations } = stats;
-            const maxSizeWindow = testParams.config.streaming.autoScaler.maxSizeWindow;
+            const maxSizeWindow = testParams.config.streaming.autoScaler.statistics.maxSizeWindow;
             expect(requests.items).to.have.lengthOf(maxSizeWindow);
             expect(responses.items).to.have.lengthOf(maxSizeWindow);
             expect(durations.items).to.have.lengthOf(maxSizeWindow);

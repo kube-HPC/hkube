@@ -11,8 +11,8 @@ const FixedWindow = require('./fixed-window');
  */
 class Statistics {
     constructor(options, onSourceRemove) {
-        this._maxSize = options.maxSizeWindow;
-        this._minTimeNonStatsReport = options.minTimeNonStatsReport;
+        this._maxSize = options.statistics.maxSizeWindow;
+        this._minTimeNonStatsReport = options.statistics.minTimeNonStatsReport;
         this._onSourceRemove = onSourceRemove;
         this._data = Object.create(null);
     }
