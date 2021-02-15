@@ -85,16 +85,16 @@ config.git = {
             password: process.env.GIT_PASSWORD || '123456',
         },
         organization: process.env.GIT_ORGANIZATION || 'hkube-org',
-        endpoint: process.env.GITHUB_ENDPOINT_URL || 'http://localhost:3010',
+        endpoint: process.env.GIT_ENDPOINT_URL || 'http://localhost:3010',
         /** @type {string} */
-        token: process.env.GITHUB_TOKEN || null,
+        token: process.env.GIT_TOKEN || null,
         kind: 'github',
     },
     gitlab: {
-        tokenName: process.env.GITLAB_TOKEN_NAME || `test-token`,
-        token: process.env.GITLAB_TOKEN || 'buBPxyFrzqHEfmthVSuy',
+        tokenName: `test-token`,
+        token: 'buBPxyFrzqHEfmthVSuy',
         kind: 'gitlab',
-        endpoint: process.env.GITLAB_ENDPOINT_URL || 'http://localhost:3080',
+        endpoint: 'http://localhost:3080',
         test: {
             gitlabTestEndpointToken: 'replace-me.com',
         },

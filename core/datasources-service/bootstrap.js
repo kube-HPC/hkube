@@ -22,7 +22,6 @@ const modules = [
 class Bootstrap {
     async init() {
         try {
-            this._handleExit();
             this._handleErrors();
             log.info(
                 `running application with env: ${configIt.env()}, version: ${
@@ -57,18 +56,17 @@ class Bootstrap {
         process.exit(1);
     }
 
-    _handleExit() {
-        process.on('beforeExit', async () => {
-            await gitToken.removeStoredToken();
-        });
+    async _handleExit() {
+        await gitToken.removeStoredToken();
     }
 
     _handleErrors() {
         process.on('exit', code => {
             log.info(`exit code ${code}`, { component });
         });
-        process.on('SIGINT', () => {
+        process.on('SIGINT', async () => {
             log.info('SIGINT', { component });
+            await gitToken.removeStoredToken();
             process.exit(0);
         });
         process.on('SIGTERM', () => {

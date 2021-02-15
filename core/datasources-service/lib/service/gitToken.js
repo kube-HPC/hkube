@@ -21,16 +21,19 @@ class GitToken {
             user: { name, password },
         } = config.git.github;
         const url = new URL(endpoint);
+        url.username = name;
+        url.password = password;
         this.client = axios.create({
-            baseURL: `${url.protocol}//${name}:${password}@${url.host}/api/v1/users/${name}/tokens`,
+            baseURL: new URL(`/api/v1/users/${name}/tokens`, url).toString(),
         });
+
         await this._setupToken();
     }
 
     /** @param {string} [name] */
     async _setupToken(name) {
         /** @type {import('axios').AxiosResponse<Token>} */
-        const response = await this.client.post('/', {
+        const response = await this.client.post('', {
             name: name || `service-token-${uid()}`,
         });
         this.token = response.data;
