@@ -42,7 +42,10 @@ class GitToken {
     }
 
     async removeStoredToken() {
-        return this.client.delete(`/${this.token.id}`);
+        if (this.token === null) return;
+        await this.client.delete(`/${this.token.id}`);
+        this.token = null;
+        this.hash = null;
     }
 }
 
