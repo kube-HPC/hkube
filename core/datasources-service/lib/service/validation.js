@@ -3,9 +3,7 @@ const dbConnection = require('../db');
 
 /**
  * @typedef {import('../utils/types').config} config
- *
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} SnapshotItem;
- *
  * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
  */
 
@@ -16,7 +14,13 @@ class Validation {
         this.db = dbConnection.connection;
     }
 
-    /** @param {{ name?: string; id?: string; snapshot?: { name: string } }} props */
+    /**
+     * @param {{
+     *     name?: string;
+     *     id?: string;
+     *     snapshot?: { name: string };
+     * }} props
+     */
     async dataSourceExists({ name, snapshot, id }) {
         validator.validation.dataSourceExists({
             name,

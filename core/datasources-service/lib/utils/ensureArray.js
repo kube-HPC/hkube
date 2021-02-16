@@ -4,10 +4,10 @@ const arrayStartRegex = /^\[/;
 const arrayEndRegex = /\]$/;
 
 /**
- * Takes a stringified payload and converts it to an array
+ * Takes a stringified payload and converts it to an array.
  *
- * @template T
  * @type {(payload: any, fieldName: string) => T[]}
+ * @template T
  */
 module.exports = (payload, fieldName) => {
     let collection = [];

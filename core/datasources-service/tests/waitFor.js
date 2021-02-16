@@ -1,10 +1,10 @@
 // @ts-nocheck
 /**
- * Accepts a callback that returns a boolean, executes polling on this callback
- * until it returns true or the timeout has reached
+ * Accepts a callback that returns a boolean, executes polling on this callback until it returns
+ * true or the timeout has reached.
  *
  * @param {() => boolean | Promise<boolean>} cb
- * @param {number} [timeout]
+ * @param {number}                           [timeout]
  */
 module.exports = (cb, timeout = 10000) =>
     new Promise((res, rej) => {

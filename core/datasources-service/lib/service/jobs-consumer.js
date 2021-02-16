@@ -12,13 +12,9 @@ const { ResourceNotFoundError } = require('./../errors');
 const { getDatasourcesInUseFolder } = require('../utils/pathUtils');
 /**
  * @typedef {import('./../utils/types').config} config
- *
  * @typedef {import('./types').onJobHandler} onJobHandler
- *
  * @typedef {import('./types').PipelineDatasourceDescriptor} PipelineDatasourceDescriptor
- *
  * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
- *
  * @typedef {import('./types').Job} Job
  */
 

@@ -7,12 +7,11 @@ const { fileName } = require('./utils');
 
 /** @typedef {{ message: string; code: number }} ErrorResponse */
 /**
- * @template T
- *
  * @typedef {Promise<{
  *     body: T & { error: ErrorResponse };
  *     response: { statusCode: number; body: T & { error: ErrorResponse } };
  * }>} Response
+ * @template T
  */
 
 /** @param {{ name?: string; id?: string }} props */
@@ -27,11 +26,8 @@ const setupUrl = ({ name, id }) => {
 };
 /**
  * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
- *
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
- *
  * @typedef {import('@hkube/db/lib/DataSource').DataSourceWithMeta} DataSourceWithMeta
- *
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
  */
 /** @returns {Response<DataSource>} */
@@ -91,7 +87,7 @@ const createDataSource = ({
 };
 
 /**
- * Provide file names to be uploaded, or a complete array of file objects
+ * Provide file names to be uploaded, or a complete array of file objects.
  *
  * @param {{
  *     dataSourceName: string;
@@ -253,7 +249,13 @@ const createDownloadLink = ({ dataSourceId, fileIds }) =>
         body: { fileIds },
     });
 
-/** @param {{ href: string } | { dataSourceId: string; downloadId: string }} props */
+/**
+ * @param {Partial<{
+ *     href: string;
+ *     dataSourceId: string;
+ *     downloadId: string;
+ * }>} props
+ */
 // @ts-ignore
 const fetchDownloadLink = ({ dataSourceId, downloadId, href }) =>
     href

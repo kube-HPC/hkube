@@ -11,7 +11,6 @@ const validator = require('../validation');
 
 /**
  * @typedef {import('../utils/types').config} config
- *
  * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
  */
 

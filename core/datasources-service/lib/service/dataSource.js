@@ -12,23 +12,14 @@ const { ResourceNotFoundError } = require('../errors');
 const gitToken = require('./gitToken');
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
- *
  * @typedef {import('./../utils/types').MulterFile} MulterFile
- *
  * @typedef {import('./../utils/types').NormalizedFileMeta} NormalizedFileMeta
- *
  * @typedef {import('./../utils/types').SourceTargetArray} SourceTargetArray
- *
  * @typedef {import('./../utils/types').config} config
- *
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
- *
  * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig;
- *
  * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig;
- *
  * @typedef {{ createdPath: string; fileName: string }} uploadFileResponse
- *
  * @typedef {{ name?: string; id?: string }} NameOrId
  */
 
@@ -50,8 +41,8 @@ class DataSource {
     }
 
     /**
-     * Converts temporary ids given by the client to permanent ids. fills in
-     * missing details for all the files
+     * Converts temporary ids given by the client to permanent ids. fills in missing details for all
+     * the files.
      *
      * @param {NormalizedFileMeta} normalizedMapping
      * @param {MulterFile[]} files
@@ -137,9 +128,8 @@ class DataSource {
     }
 
     /**
-     * Splits the inputs to groups by their respective actions. **note**: the
-     * normalizedAddedFiles collection includes all the added files including
-     * updated file
+     * Splits the inputs to groups by their respective actions. **note**: the normalizedAddedFiles
+     * collection includes all the added files including updated file.
      *
      * @param {{
      *     currentFiles?: FileMeta[];

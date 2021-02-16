@@ -4,13 +4,9 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 /**
  * @typedef {import('express')} Express
- *
  * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig;
- *
  * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig;
- *
  * @typedef {import('../utils/types').FileMeta} FileMeta
- *
  * @typedef {Express.Multer.File[]} MulterFile
  */
 

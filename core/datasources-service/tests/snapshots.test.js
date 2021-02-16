@@ -13,7 +13,6 @@ const sortBy = require('lodash.sortby');
 
 /**
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
- *
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
  */
 describe('snapshots', () => {

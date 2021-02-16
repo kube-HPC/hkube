@@ -15,25 +15,17 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 /**
  * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig
- *
  * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig
- *
  * @typedef {import('./types').FileMeta} FileMeta
- *
  * @typedef {import('./types').LocalFileMeta} LocalFileMeta
- *
  * @typedef {import('./types').MulterFile} MulterFile
- *
  * @typedef {import('./types').NormalizedFileMeta} NormalizedFileMeta
- *
  * @typedef {import('./types').SourceTargetArray} SourceTargetArray
- *
  * @typedef {import('./types').config} config
  */
 /**
- * @template T
- *
  * @typedef {{ [path: string]: T }} ByPath
+ * @template T
  */
 
 const GitClients = {
@@ -76,7 +68,7 @@ class Repository extends RepositoryBase {
     }
 
     /**
-     * @param {FileMeta} fileMeta
+     * @param {FileMeta}      fileMeta
      * @param {LocalFileMeta} metaData
      */
     async _enrichDvcFile(fileMeta, metaData) {
@@ -166,8 +158,8 @@ class Repository extends RepositoryBase {
 
     /**
      * @param {NormalizedFileMeta} normalizedMapping
-     * @param {MulterFile[]} allAddedFiles
-     * @param {ByPath<string>} metaByPath
+     * @param {MulterFile[]}       allAddedFiles
+     * @param {ByPath<string>}     metaByPath
      */
     async addFiles(normalizedMapping, allAddedFiles, metaByPath) {
         if (allAddedFiles.length === 0) return null;
@@ -273,7 +265,7 @@ class Repository extends RepositoryBase {
     }
 
     /**
-     * @param {string[]} fileIds
+     * @param {string[]}   fileIds
      * @param {FileMeta[]} currentFiles
      */
     async dropFiles(fileIds, currentFiles) {
@@ -296,10 +288,10 @@ class Repository extends RepositoryBase {
     }
 
     /**
-     * Loads the .meta files, adds their content to the .dvc files
+     * Loads the .meta files, adds their content to the .dvc files.
      *
      * @param {NormalizedFileMeta} normalizedMapping
-     * @param {ByPath<string>} byPath
+     * @param {ByPath<string>}     byPath
      * @param {ByPath<MulterFile>} metaFilesByPath
      * @returns {Promise<ByPath<string>>}
      */
@@ -322,7 +314,7 @@ class Repository extends RepositoryBase {
     }
 
     /**
-     * Filters files from a local copy of the repository
+     * Filters files from a local copy of the repository.
      *
      * @param {FileMeta[]} filesToDrop
      */
