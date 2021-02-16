@@ -3,7 +3,7 @@ const Logger = require('@hkube/logger');
 const { median, sum } = require('@hkube/stats');
 const { stateType } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
-const { Statistics, PendingScale, ScaleReasons, Metrics, TimeMarker } = require('../core');
+const { Statistics, PendingScale, ScaleReasons, Metrics, TimeMarker, FixedWindow } = require('../core');
 const { ScaleReasonsMessages } = ScaleReasons;
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
@@ -51,6 +51,7 @@ class AutoScaler {
 
     reset() {
         this._metrics = [];
+        this._queueSize = new FixedWindow(this._config.queue.minSamples);
         this._lastQueueSize = 0;
         this._scaleBasedOnQueueSize = false;
         this._timeForDown = new TimeMarker(this._config.scaleDown.maxTimeIdleBeforeReplicaDown);
@@ -116,13 +117,32 @@ class AutoScaler {
             const reqRate = this._formatNumber(median(rates.map(r => r.reqRate)) * count);
             const resRate = this._formatNumber(median(rates.map(r => r.resRate)) * count);
             const durationsRate = this._formatNumber(median(rates.map(r => r.durationsRate)));
+            const grossDurationsRate = this._formatNumber(median(rates.map(r => r.grossDurationsRate)));
             const totalRequests = sum(rates.map(r => r.totalRequests));
             const totalResponses = sum(rates.map(r => r.totalResponses));
             const totalDropped = sum(rates.map(r => r.dropped));
             const throughput = this._formatNumber(median(rates.map(r => r.throughput)));
             const queueSize = sum(rates.map(r => r.queueSize));
             const { required } = this._pendingScale;
-            const metric = { source, target, currentSize, required, queueSize, reqRate, resRate, durationsRate, totalRequests, totalResponses, totalDropped, throughput };
+            const metric = {
+                source,
+                target,
+                calc: this._currentCalc,
+                currentSize,
+                required,
+                requiredByRate: this._requiredByRate,
+                requiredByDuration: this._requiredByDuration,
+                queueSize,
+                avgQueueSize: this._avgQueueSize,
+                reqRate,
+                resRate,
+                durationsRate,
+                grossDurationsRate,
+                totalRequests,
+                totalResponses,
+                totalDropped,
+                throughput
+            };
             metrics.push(metric);
             totals.reqRate += reqRate;
             totals.resRate += resRate;
@@ -134,6 +154,7 @@ class AutoScaler {
             }
         });
 
+        this._queueSize.add(totals.queueSize);
         this._pendingScale.check(currentSize);
 
         // in case new scaler is up with not enough statistics, we will continue to accumulate
@@ -175,13 +196,13 @@ class AutoScaler {
         return parseFloat(num.toFixed(2));
     }
 
-    _createScaleUp({ replicas, currentSize }) {
+    _createScaleUp({ replicas, currentSize, calc }) {
         let scaleUp = { shouldScale: false };
         const scaleTo = currentSize + replicas;
 
         if (this._pendingScale.canScaleUp(scaleTo)) {
             scaleUp = { shouldScale: true, scaleTo };
-            this._pendingScale.updateRequiredUp(scaleTo);
+            this._pendingScale.updateRequiredUp(scaleTo, calc);
         }
         return scaleUp;
     }
@@ -197,50 +218,85 @@ class AutoScaler {
         return scaleDown;
     }
 
-    _logScaling({ action, currentSize, scaleTo, reason }) {
-        log.info(`scaling ${action} from ${currentSize} to ${scaleTo} replicas ${reason.message}`, { component });
+    _logScaling({ action, replicas, currentSize, scaleTo, reason }) {
+        log.info(`scaling ${action} ${replicas} replicas for node ${this._nodeName} from ${currentSize} to ${scaleTo} replicas ${reason.message}`, { component });
     }
 
-    _getScaleDetails({ reqRate, resRate, durationsRate, queueSize, currentSize }) {
+    _getScaleDetails({ reqRate, resRate, durationsRate, currentSize }) {
         const result = { up: 0, down: 0 };
-        const msgPerSec = Math.ceil(durationsRate * currentSize) || 1;
-        const required = Metrics.calcRatio(reqRate, durationsRate);
         const scaleUp = this._shouldScaleUp({ reqRate, resRate });
-        const scaleDown = this._shouldScaleDown({ reqRate, resRate });
-        const scaleUpBasedOnQueue = this._scaleUpBasedOnQueue({ queueSize });
+        const requiredByRate = Metrics.calcRatio(reqRate, resRate, false);
+        const requiredByDuration = Metrics.calcRatio(reqRate, durationsRate);
 
-        // need to scale up
-        if (scaleUp.scale) {
-            result.up = currentSize > 0 ? 0 : this._config.scaleUp.replicasOnFirstScale;
+        if (scaleUp.scale && currentSize === 0) {
+            result.up = this._config.scaleUp.replicasOnFirstScale;
             result.reason = scaleUp.reason;
         }
-        else if (currentSize < required && reqRate > 0) {
-            const ratio = required - currentSize;
-            result.up = Math.min(ratio, this._config.scaleUp.maxScaleUpReplicas);
-            result.reason = ScaleReasonsMessages.REQ_RES({ ratio });
-        }
-        else if (scaleUpBasedOnQueue.scale) {
-            this._scaleBasedOnQueueSize = true;
-            const { percentReplicasQueueSizeNonEmpty } = this._config.queue;
-            result.up = Math.ceil(currentSize * percentReplicasQueueSizeNonEmpty) || 1;
-            result.reason = scaleUpBasedOnQueue.reason;
-        }
-
-        // need to scale down
-        else if (scaleDown.scale && currentSize > 0 && queueSize === 0) {
-            result.down = currentSize;
-            result.reason = scaleDown.reason;
-            this._lastQueueSize = queueSize;
-        }
-        else if (currentSize > required && required > 0 && queueSize === 0 && !this._scaleBasedOnQueueSize) {
-            const timeMark = this._timeForQueueEmpty.mark();
-            if (timeMark.result) {
-                this._lastQueueSize = queueSize;
-                result.down = currentSize - required;
-                result.reason = ScaleReasonsMessages.DUR_RATIO({ ratio: required, time: timeMark.time });
-                this._timeForQueueEmpty.unMark();
+        else {
+            const isSampleFull = this._queueSize.size === this._queueSize.maxSize;
+            if (isSampleFull) {
+                this._avgQueueSize = Math.ceil(sum(this._queueSize.items) / this._queueSize.size);
+                const msgPerSec = Math.ceil(durationsRate * currentSize);
+                const replicas = (this._avgQueueSize - msgPerSec);
+                const required = Math.ceil(replicas / durationsRate);
+                const maxScale = this._config.scaleUp.maxScaleUpReplicas;
+                if (required > 0) {
+                    result.up = maxScale;
+                    result.reason = ScaleReasonsMessages.REQ_RES({ ratio: result.up });
+                }
+                else if (required < 0) {
+                    const canScaleDown = currentSize - maxScale >= 1;
+                    if (canScaleDown) {
+                        result.down = maxScale;
+                        result.reason = ScaleReasonsMessages.REQ_RES({ ratio: result.down });
+                    }
+                }
+                this._currentCalc = `(${durationsRate} * ${currentSize}) = ${msgPerSec} --> (${this._avgQueueSize} - ${msgPerSec}) = ${replicas} --> (${replicas} / ${durationsRate}) = ${required}`;
+            }
+            if (requiredByRate > 0 && currentSize > 0) {
+                const required = Math.round(requiredByRate * currentSize);
+                if (required > 0) {
+                    this._requiredByRate = required;
+                }
+                this._requiredByDuration = requiredByDuration;
             }
         }
+        // const required = Metrics.calcRatio(reqRate, durationsRate);
+        // const scaleDown = this._shouldScaleDown({ reqRate, resRate });
+        // const scaleUpBasedOnQueue = this._scaleUpBasedOnQueue({ queueSize });
+
+        // need to scale up
+        // if (scaleUp.scale) {
+        //     result.up = currentSize > 0 ? 0 : this._config.scaleUp.replicasOnFirstScale;
+        //     result.reason = scaleUp.reason;
+        // }
+        // else if (currentSize < required && reqRate > 0) {
+        //     const ratio = required - currentSize;
+        //     result.up = Math.min(ratio, this._config.scaleUp.maxScaleUpReplicas);
+        //     result.reason = ScaleReasonsMessages.REQ_RES({ ratio });
+        // }
+        // else if (scaleUpBasedOnQueue.scale) {
+        //     this._scaleBasedOnQueueSize = true;
+        //     const { percentReplicasQueueSizeNonEmpty } = this._config.queue;
+        //     result.up = Math.ceil(currentSize * percentReplicasQueueSizeNonEmpty) || 1;
+        //     result.reason = scaleUpBasedOnQueue.reason;
+        // }
+
+        // need to scale down
+        // else if (scaleDown.scale && currentSize > 0 && queueSize === 0) {
+        //     result.down = currentSize;
+        //     result.reason = scaleDown.reason;
+        //     this._lastQueueSize = queueSize;
+        // }
+        // else if (currentSize > required && required > 0 && queueSize === 0 && !this._scaleBasedOnQueueSize) {
+        //     const timeMark = this._timeForQueueEmpty.mark();
+        //     if (timeMark.result) {
+        //         this._lastQueueSize = queueSize;
+        //         result.down = currentSize - required;
+        //         result.reason = ScaleReasonsMessages.DUR_RATIO({ ratio: required, time: timeMark.time });
+        //         this._timeForQueueEmpty.unMark();
+        //     }
+        // }
         return result;
     }
 

@@ -20,11 +20,12 @@ config.streaming = {
             minTimeQueueSizeNonEmpty: 0,
             percentReplicasQueueSizeNonEmpty: 0.2,
             minQueueSizeForScaleUp: 1,
-            minTimeQueueSizeEmpty: 0
+            minTimeQueueSizeEmpty: 0,
+            minSamples: 2
         },
         scaleUp: {
             minTimeWaitBeforeScaleUp: 100,
-            maxScaleUpReplicas: 10,
+            maxScaleUpReplicas: 1,
         },
     },
     serviceDiscovery: {

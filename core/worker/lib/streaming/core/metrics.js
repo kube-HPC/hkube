@@ -15,15 +15,22 @@ const _calcRate = (list) => {
     return rate;
 };
 
-const calcRatio = (rate1, rate2) => {
+const calcRatio = (rate1, rate2, round = true) => {
     const rates = (rate1 && rate2) ? (rate1 / rate2) : 1;
-    const ratio = Math.round(rates) || 1;
+    const ratio = (round ? Math.round(rates) : rates) || 1;
     return ratio;
 };
 
 const _totalCount = (list) => {
     const last = list[list.length - 1];
     return last?.count || 0;
+};
+
+const _calcDurations = (list) => {
+    const durationMedian = median(list);
+    const durMedian = durationMedian || 0.1;
+    const durationsRate = 1 / (durMedian / 1000);
+    return durationsRate;
 };
 
 /**
@@ -42,14 +49,13 @@ const _totalCount = (list) => {
 const calcRates = (data) => {
     const reqRate = _calcRate(data.requests.items);
     const resRate = _calcRate(data.responses.items);
-    const durationMedian = median(data.durations.items);
     const totalRequests = _totalCount(data.requests.items);
     const totalResponses = _totalCount(data.responses.items);
     const dropped = _totalCount(data.dropped.items);
     const { queueSize } = data;
-    const durMedian = durationMedian || 0.1;
-    const durationsRate = 1 / (durMedian / 1000);
-    return { reqRate, resRate, durationsRate, queueSize, totalRequests, totalResponses, dropped };
+    const durationsRate = _calcDurations(data.durations.items);
+    const grossDurationsRate = _calcDurations(data.grossDurations.items);
+    return { reqRate, resRate, durationsRate, grossDurationsRate, queueSize, totalRequests, totalResponses, dropped };
 };
 
 module.exports = {

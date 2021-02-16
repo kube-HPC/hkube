@@ -6,6 +6,7 @@ const streamHandler = require('../lib/streaming/services/stream-handler');
 const streamService = require('../lib/streaming/services/stream-service');
 const discovery = require('../lib/streaming/services/service-discovery');
 const SlaveAdapter = require('../lib/streaming/adapters/slave-adapter');
+const SEC = 1000;
 
 const pipeline = {
     name: "stream",
@@ -215,20 +216,24 @@ describe.only('Streaming', () => {
             expect(scaleUp.scaleTo).to.eql(1);
             expect(scaleDown).to.be.null;
         });
-        it('should scale based on all params', async () => {
+        it.only('should scale based on all params', async () => {
+            const queueSize = 50;
+            const currentSize = 5;
+            const msgPerSec = 2;
+            const duration = SEC / msgPerSec;
+            const durations = Array.from(Array(10).fill(duration));
+
             const scale = async (data) => {
-                data[0].currentSize = 0;
-                data[0].queueSize += 2;
-                data[0].responses += 1;
                 streamService.reportStats(data);
                 await delay(50);
             }
             const list = [{
                 nodeName: 'D',
-                queueSize: 2,
-                responses: 1,
-                durations: [100, 200, 100, 50, 80, 120, 110, 100, 90]
+                queueSize,
+                currentSize,
+                durations
             }];
+
             await scale(list);
             await scale(list);
             await scale(list);
