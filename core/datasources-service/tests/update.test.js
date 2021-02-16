@@ -191,6 +191,30 @@ describe('/datasource/:name POST', () => {
         expect(updatedFile.id).not.to.eq(existingFile.id);
         expect(updatedFile.size).to.eq(131);
     });
+    it('should update a file - internal', async () => {
+        const name = uuid();
+        const { body: dataSource } = await createDataSource({
+            body: { name },
+            useInternalGit: true,
+            useInternalStorage: true,
+        });
+        const [existingFile] = dataSource.files;
+        expect(existingFile.size).to.eq(107);
+
+        const uploadResponse = await updateVersion({
+            dataSourceName: name,
+            fileNames: ['updatedVersions/README-1.md'],
+            mapping: [existingFile],
+        });
+        const { body: updatedDataSource } = uploadResponse;
+
+        expect(dataSource.commitHash).not.to.eq(updatedDataSource.commitHash);
+        expect(dataSource.files.length).to.eq(updatedDataSource.files.length);
+
+        const [updatedFile] = updatedDataSource.files;
+        expect(updatedFile.id).not.to.eq(existingFile.id);
+        expect(updatedFile.size).to.eq(131);
+    });
     it('should upload a file with spaces in its name', async () => {
         const name = uuid();
         await createDataSource({
