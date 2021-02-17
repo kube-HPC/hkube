@@ -32,13 +32,17 @@ class DataSources {
             files,
         });
         const url = new URL(props.storage.endpoint);
+        let port = parseInt(url.port, 10);
+        if (Number.isNaN(port)) {
+            port = url.protocol === 'https:' ? 443 : 80;
+        }
         const s3Client = new S3({
             endpoint: {
                 host: url.host,
                 href: url.href,
                 protocol: url.protocol,
                 hostname: url.hostname,
-                port: parseInt(url.port, 10),
+                port,
             },
             s3ForcePathStyle: true,
             s3BucketEndpoint: false,
