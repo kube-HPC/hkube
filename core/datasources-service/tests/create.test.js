@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { createDataSource } = require('./api');
@@ -21,7 +21,7 @@ describe('/dataSource POST', () => {
                 ignoreGit: true,
             });
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.eq(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.eq(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.match(
                 /should have required property 'git'/i
             );
@@ -33,7 +33,7 @@ describe('/dataSource POST', () => {
                 ignoreStorage: true,
             });
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.eq(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.eq(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.match(
                 /should have required property 'storage'/i
             );
@@ -41,7 +41,7 @@ describe('/dataSource POST', () => {
         it('should throw validation error of required property name', async () => {
             const response = await createDataSource();
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(
                 "data should have required property 'name'"
             );
@@ -53,7 +53,7 @@ describe('/dataSource POST', () => {
                 },
             });
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(
                 'data.name should NOT be longer than 32 characters'
             );
@@ -63,7 +63,7 @@ describe('/dataSource POST', () => {
                 body: { name: [1, 2] },
             });
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(
                 'data.name should be string'
             );
@@ -71,7 +71,7 @@ describe('/dataSource POST', () => {
         it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
             const response = await createDataSource({ body: { name: '' } });
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(
                 'data.name should NOT be shorter than 1 characters'
             );
@@ -84,7 +84,7 @@ describe('/dataSource POST', () => {
                 });
                 expect(response.body).to.have.property('error');
                 expect(response.response.statusCode).to.equal(
-                    HttpStatus.BAD_REQUEST
+                    StatusCodes.BAD_REQUEST
                 );
                 expect(response.body.error.message).to.equal(
                     validationMessages.DATASOURCE_NAME_FORMAT
@@ -99,7 +99,7 @@ describe('/dataSource POST', () => {
                 });
                 expect(response.body).to.have.property('error');
                 expect(response.response.statusCode).to.equal(
-                    HttpStatus.BAD_REQUEST
+                    StatusCodes.BAD_REQUEST
                 );
                 expect(response.body.error.message).to.equal(
                     validationMessages.DATASOURCE_NAME_FORMAT
@@ -111,7 +111,7 @@ describe('/dataSource POST', () => {
                 });
                 expect(response.body).to.have.property('error');
                 expect(response.response.statusCode).to.equal(
-                    HttpStatus.BAD_REQUEST
+                    StatusCodes.BAD_REQUEST
                 );
                 expect(response.body.error.message).to.equal(
                     validationMessages.DATASOURCE_NAME_FORMAT
@@ -294,7 +294,7 @@ describe('/dataSource POST', () => {
                 body: dataSource,
             } = await createDataSource({ body: { name } });
             expect(deleteClone.getCalls()).to.have.lengthOf(1);
-            expect(statusCode).to.eql(HttpStatus.CREATED);
+            expect(statusCode).to.eql(StatusCodes.CREATED);
             expect(dataSource).to.have.keys(
                 'id',
                 'name',
@@ -324,7 +324,7 @@ describe('/dataSource POST', () => {
             });
 
             expect(deleteClone.getCalls()).to.have.lengthOf(1);
-            expect(statusCode).to.eql(HttpStatus.CREATED);
+            expect(statusCode).to.eql(StatusCodes.CREATED);
             expect(dataSource.repositoryUrl).to.match(/\/hkube-org\//i);
             const hkubeFile = await fse.readFile(
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/hkube`,
@@ -367,7 +367,7 @@ describe('/dataSource POST', () => {
                 useGitlab: true,
             });
             expect(deleteClone.getCalls()).to.have.lengthOf(1);
-            expect(statusCode).to.eql(HttpStatus.CREATED);
+            expect(statusCode).to.eql(StatusCodes.CREATED);
             const hkubeFile = await fse.readFile(
                 `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/hkube`,
                 'utf8'
@@ -385,7 +385,7 @@ describe('/dataSource POST', () => {
                 body: { name },
                 fileNames: [],
             });
-            expect(response.statusCode).to.eql(HttpStatus.CREATED);
+            expect(response.statusCode).to.eql(StatusCodes.CREATED);
             expect(response.body).to.have.property('files');
             expect(response.body.files).to.have.lengthOf(0);
         });
@@ -395,13 +395,13 @@ describe('/dataSource POST', () => {
                 body: { name },
             });
             expect(firstResponse.response.statusCode).to.eql(
-                HttpStatus.CREATED
+                StatusCodes.CREATED
             );
             const secondResponse = await createDataSource({
                 body: { name },
             });
             expect(secondResponse.response.statusCode).to.equal(
-                HttpStatus.CONFLICT
+                StatusCodes.CONFLICT
             );
             expect(secondResponse.body).to.have.property('error');
             expect(secondResponse.body.error.message).to.contain(

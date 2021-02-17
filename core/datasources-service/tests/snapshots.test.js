@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const {
     fetchSnapshot,
     createSnapshot,
@@ -125,7 +125,7 @@ describe('snapshots', () => {
                 snapshotName: 'non-existing-snapshot',
             });
             expect(response.body).to.haveOwnProperty('error');
-            expect(response.body.error.code).to.eql(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.eql(StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.match(/not found/i);
         });
         it('should throw an error for an already occupied snapshot name', async () => {
@@ -137,7 +137,7 @@ describe('snapshots', () => {
                     query: snapshot.query,
                 },
             });
-            expect(response.body.error.code).to.eq(HttpStatus.CONFLICT);
+            expect(response.body.error.code).to.eq(StatusCodes.CONFLICT);
             expect(response.body.error.message).to.match(/already exists/i);
         });
     });

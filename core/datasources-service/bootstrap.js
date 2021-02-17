@@ -56,10 +56,6 @@ class Bootstrap {
         process.exit(1);
     }
 
-    async _handleExit() {
-        await gitToken.removeStoredToken();
-    }
-
     _handleErrors() {
         process.on('exit', code => {
             log.info(`exit code ${code}`, { component });

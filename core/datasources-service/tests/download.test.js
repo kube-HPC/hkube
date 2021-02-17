@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const sinon = require('sinon');
 const {
@@ -26,7 +26,7 @@ describe('download', () => {
                 downloadId: 'yptes',
             });
             expect(error.message).to.match(/not be longer than/i);
-            expect(error.code).to.eql(HttpStatus.BAD_REQUEST);
+            expect(error.code).to.eql(StatusCodes.BAD_REQUEST);
         });
 
         it('should fail too short downloadId', async () => {
@@ -37,7 +37,7 @@ describe('download', () => {
                 downloadId: 'ypt',
             });
             expect(error.message).to.match(/not be shorter than/i);
-            expect(error.code).to.eql(HttpStatus.BAD_REQUEST);
+            expect(error.code).to.eql(StatusCodes.BAD_REQUEST);
         });
         it('should fail with non valid downloadId', async () => {
             const {
@@ -47,7 +47,7 @@ describe('download', () => {
                 downloadId: 'ypt-',
             });
             expect(error.message).to.match(/alphanumeric value/i);
-            expect(error.code).to.eql(HttpStatus.BAD_REQUEST);
+            expect(error.code).to.eql(StatusCodes.BAD_REQUEST);
         });
     });
 
@@ -87,11 +87,11 @@ describe('download', () => {
         expect(body).to.have.ownProperty('href');
         const { href } = body;
         const [, downloadId] = href.split('download_id=');
-        expect(statusCode).to.eq(HttpStatus.CREATED);
+        expect(statusCode).to.eq(StatusCodes.CREATED);
         expect(await fse.pathExists(`${ZIP_DIRECTORY}/${downloadId}.zip`)).to.be
             .true;
         const { response } = await fetchDownloadLink({ href });
-        expect(response.statusCode).to.eq(HttpStatus.OK);
+        expect(response.statusCode).to.eq(StatusCodes.OK);
     });
 
     it('should fail with non existing download Id', async () => {
@@ -99,6 +99,6 @@ describe('download', () => {
             dataSourceId: '5ff5ba21d3ace12d33fdb826',
             downloadId: 'nope',
         });
-        expect(response.statusCode).to.eq(HttpStatus.NOT_FOUND);
+        expect(response.statusCode).to.eq(StatusCodes.NOT_FOUND);
     });
 });
