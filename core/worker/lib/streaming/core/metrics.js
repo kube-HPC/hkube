@@ -1,4 +1,4 @@
-const { median } = require('@hkube/stats');
+const { mean } = require('@hkube/stats');
 
 const _calcRate = (list) => {
     let first = list[0];
@@ -15,9 +15,9 @@ const _calcRate = (list) => {
     return rate;
 };
 
-const calcRatio = (rate1, rate2, round = true) => {
+const calcRatio = (rate1, rate2) => {
     const rates = (rate1 && rate2) ? (rate1 / rate2) : 1;
-    const ratio = (round ? Math.round(rates) : rates) || 1;
+    const ratio = Math.ceil(rates) || 1;
     return ratio;
 };
 
@@ -27,11 +27,29 @@ const _totalCount = (list) => {
 };
 
 const _calcDurations = (list) => {
-    const durationMedian = median(list);
+    const durationMedian = mean(list);
     const durMedian = durationMedian || 0.1;
     const durationsRate = 1 / (durMedian / 1000);
     return durationsRate;
 };
+
+const formatNumber = (num) => {
+    return parseFloat(num.toFixed(2));
+};
+
+const createFixedScale = (from, to) => (to[1] - to[0]) / (from[1] - from[0]);
+
+const createCappedScale = (from, to) => {
+    const scale = createFixedScale(from, to);
+    return value => {
+        const capped = Math.min(from[1], Math.max(from[0], value)) - from[0];
+        return to[0] + to[1] - (capped * scale + to[0]);
+    };
+};
+
+const fromScale = [0, 5000];
+const toScale = [3, 0];
+const scaleQueueSize = createCappedScale(fromScale, toScale);
 
 /**
  * This method calculates the rates and totals by looking at
@@ -39,7 +57,7 @@ const _calcDurations = (list) => {
  * rates are actually msg per sec.
  * - reqRate: Δ count / Δ time
  * - resRate: Δ count / Δ time
- * - durationsRate: 1 / durations median
+ * - durationsRate: 1 / durations mean
  * - Δ = last item in window - first item in window
  *
  * totals:
@@ -52,7 +70,7 @@ const calcRates = (data) => {
     const totalRequests = _totalCount(data.requests.items);
     const totalResponses = _totalCount(data.responses.items);
     const dropped = _totalCount(data.dropped.items);
-    const { queueSize } = data;
+    const queueSize = mean(data.queueSize.items.map(q => q.count));
     const durationsRate = _calcDurations(data.durations.items);
     const grossDurationsRate = _calcDurations(data.grossDurations.items);
     return { reqRate, resRate, durationsRate, grossDurationsRate, queueSize, totalRequests, totalResponses, dropped };
@@ -60,5 +78,7 @@ const calcRates = (data) => {
 
 module.exports = {
     calcRates,
-    calcRatio
+    calcRatio,
+    formatNumber,
+    scaleQueueSize
 };

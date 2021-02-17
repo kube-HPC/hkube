@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
-const { Interval } = require('../core/index');
+const { Interval } = require('../core');
 const { Components, streamingEvents } = require('../../consts');
 const component = Components.STREAM_SERVICE;
 let log;

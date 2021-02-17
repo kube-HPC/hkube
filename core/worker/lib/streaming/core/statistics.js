@@ -22,7 +22,8 @@ class Statistics {
         const { queueSize = 0, sent = 0, responses = 0, dropped = 0, durations = [], netDurations = [] } = data;
         const requests = queueSize + sent;
         const stats = this._data[source] || this._createStatData({ maxSize: this._maxSize });
-        stats.queueSize = queueSize;
+        // stats.queueSize = queueSize;
+        stats.queueSize.add(this._createItem(queueSize));
         stats.requests.add(this._createItem(requests));
         stats.responses.add(this._createItem(responses));
         stats.dropped.add(this._createItem(dropped));
@@ -59,6 +60,7 @@ class Statistics {
             requests: new FixedWindow(maxSize),
             responses: new FixedWindow(maxSize),
             dropped: new FixedWindow(maxSize),
+            queueSize: new FixedWindow(maxSize),
             durations: new FixedWindow(maxSize),
             grossDurations: new FixedWindow(maxSize),
         };

@@ -25,26 +25,21 @@ config.servingReportInterval = formatters.parseInt(process.env.DISCOVERY_SERVING
 config.streaming = {
     autoScaler: {
         interval: formatters.parseInt(process.env.AUTO_SCALER_INTERVAL, 2000),
+        scaleInterval: formatters.parseInt(process.env.AUTO_SCALER_SCALE_INTERVAL, 10000),
+        minTimeBetweenScales: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_BETWEEN_SCALE, 30000),
         statistics: {
             maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 10),
             minTimeNonStatsReport: formatters.parseInt(process.env.AUTO_SCALER_NON_STATS_REPORT, 10000),
         },
-        minTimeBetweenScales: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_BETWEEN_SCALE, 30000),
         scaleUp: {
-            maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 1),
+            maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 10),
             replicasOnFirstScale: formatters.parseInt(process.env.AUTO_SCALER_REPLICAS_FIRST_SCALE, 1),
-            minTimeWaitBeforeScaleUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_BEFORE_SCALE_UP, 30000),
         },
         scaleDown: {
-            minTimeWaitBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_BEFORE_SCALE_DOWN, 30000),
             maxTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 60000),
         },
         queue: {
-            minSamples: 5,
-            minQueueSizeForScaleUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_QUEUE_SIZE_FOR_SCALE, 1),
-            minTimeQueueSizeEmpty: formatters.parseInt(process.env.AUTO_SCALER_TIME_WAIT_QUEUE_EMPTY, 10000),
-            minTimeQueueSizeNonEmpty: formatters.parseInt(process.env.AUTO_SCALER_TIME_WAIT_QUEUE_EMPTY, 10000),
-            percentReplicasQueueSizeNonEmpty: formatters.parseInt(process.env.AUTO_SCALER_REPLICAS_FIRST_SCALE, 0.2),
+            minTimeEmptyToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_REPLICAS_FIRST_SCALE, 60000),
         }
     },
     election: {

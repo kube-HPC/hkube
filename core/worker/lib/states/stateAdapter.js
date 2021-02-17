@@ -240,6 +240,20 @@ class StateAdapter extends EventEmitter {
     async getDiscovery(filter) {
         return this._etcd.discovery.list({ serviceName: 'worker' }, filter);
     }
+
+    async getUnScheduledAlgorithms() {
+        let algorithms = {};
+        try {
+            const resources = await this._etcd.discovery.list({ serviceName: 'task-executor' });
+            if (resources && resources[0] && resources[0].unScheduledAlgorithms) {
+                algorithms = resources[0].unScheduledAlgorithms;
+            }
+        }
+        catch (e) {
+            log.throttle.error(e.message, { component });
+        }
+        return algorithms;
+    }
 }
 
 module.exports = new StateAdapter();
