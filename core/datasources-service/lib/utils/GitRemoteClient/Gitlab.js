@@ -46,7 +46,7 @@ class Gitlab extends Base {
             }
         } catch (error) {
             const { statusCode } = error.response;
-            if (statusCode === 401) {
+            if (statusCode === 401 || error.description === 'invalid_token') {
                 throw new InvalidDataError('provided invalid token');
             } else if (statusCode === 404) {
                 throw new InvalidDataError('provided invalid endpoint');
@@ -54,15 +54,13 @@ class Gitlab extends Base {
             throw error;
         }
 
-        this.rawRepositoryUrl = response.http_url_to_repo;
+        const repositoryUrl = new URL(
+            `${response.path_with_namespace}.git`,
+            this.config.endpoint
+        );
 
-        if (process.env.NODE_ENV === 'test') {
-            const { host } = new URL(this.config.endpoint);
-            this.rawRepositoryUrl = this.rawRepositoryUrl.replace(
-                this.config.test.gitlabTestEndpointToken,
-                host
-            );
-        }
+        this.rawRepositoryUrl = repositoryUrl.toString();
+
         return this.rawRepositoryUrl;
     }
 

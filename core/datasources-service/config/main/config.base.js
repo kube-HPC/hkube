@@ -92,12 +92,9 @@ config.git = {
     },
     gitlab: {
         tokenName: `test-token`,
-        token: 'buBPxyFrzqHEfmthVSuy',
+        token: 'XtU1iqa6sJb9zELYWDSy',
         kind: 'gitlab',
         endpoint: 'http://localhost:3080',
-        test: {
-            gitlabTestEndpointToken: 'replace-me.com',
-        },
     },
 };
 

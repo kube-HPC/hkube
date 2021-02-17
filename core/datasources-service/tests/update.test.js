@@ -169,51 +169,101 @@ describe('/datasource/:name POST', () => {
         });
         expect(uploadResponse.response.statusCode).to.eq(StatusCodes.OK);
     });
-    it('should update a file', async () => {
-        const name = uuid();
-        const { body: dataSource } = await createDataSource({
-            body: { name },
+    describe('update a file', () => {
+        it('github', async () => {
+            const name = uuid();
+            const {
+                body: dataSource,
+                response: { statusCode },
+            } = await createDataSource({
+                body: { name },
+            });
+            expect(statusCode).to.eq(201);
+            const [existingFile] = dataSource.files;
+            expect(existingFile.size).to.eq(107);
+
+            const uploadResponse = await updateVersion({
+                dataSourceName: name,
+                fileNames: ['updatedVersions/README-1.md'],
+                mapping: [existingFile],
+            });
+            const { body: updatedDataSource } = uploadResponse;
+
+            expect(dataSource.commitHash).not.to.eq(
+                updatedDataSource.commitHash
+            );
+            expect(dataSource.files.length).to.eq(
+                updatedDataSource.files.length
+            );
+
+            const [updatedFile] = updatedDataSource.files;
+            expect(updatedFile.id).not.to.eq(existingFile.id);
+            expect(updatedFile.size).to.eq(131);
         });
-        const [existingFile] = dataSource.files;
-        expect(existingFile.size).to.eq(107);
+        it('internal', async () => {
+            const name = uuid();
+            const {
+                body: dataSource,
+                response: { statusCode },
+            } = await createDataSource({
+                body: { name },
+                useInternalGit: true,
+                useInternalStorage: true,
+            });
+            expect(statusCode).to.eq(201);
+            const [existingFile] = dataSource.files;
+            expect(existingFile.size).to.eq(107);
 
-        const uploadResponse = await updateVersion({
-            dataSourceName: name,
-            fileNames: ['updatedVersions/README-1.md'],
-            mapping: [existingFile],
+            const uploadResponse = await updateVersion({
+                dataSourceName: name,
+                fileNames: ['updatedVersions/README-1.md'],
+                mapping: [existingFile],
+            });
+            const { body: updatedDataSource } = uploadResponse;
+
+            expect(dataSource.commitHash).not.to.eq(
+                updatedDataSource.commitHash
+            );
+            expect(dataSource.files.length).to.eq(
+                updatedDataSource.files.length
+            );
+
+            const [updatedFile] = updatedDataSource.files;
+            expect(updatedFile.id).not.to.eq(existingFile.id);
+            expect(updatedFile.size).to.eq(131);
         });
-        const { body: updatedDataSource } = uploadResponse;
+        it.skip('gitlab', async () => {
+            const name = uuid();
+            const {
+                body: dataSource,
+                response: { statusCode },
+            } = await createDataSource({
+                body: { name },
+                useGitlab: true,
+                useInternalStorage: true,
+            });
+            expect(statusCode).to.eq(201);
+            const [existingFile] = dataSource.files;
+            expect(existingFile.size).to.eq(107);
 
-        expect(dataSource.commitHash).not.to.eq(updatedDataSource.commitHash);
-        expect(dataSource.files.length).to.eq(updatedDataSource.files.length);
+            const uploadResponse = await updateVersion({
+                dataSourceName: name,
+                fileNames: ['updatedVersions/README-1.md'],
+                mapping: [existingFile],
+            });
+            const { body: updatedDataSource } = uploadResponse;
 
-        const [updatedFile] = updatedDataSource.files;
-        expect(updatedFile.id).not.to.eq(existingFile.id);
-        expect(updatedFile.size).to.eq(131);
-    });
-    it('should update a file - internal', async () => {
-        const name = uuid();
-        const { body: dataSource } = await createDataSource({
-            body: { name },
-            useInternalGit: true,
-            useInternalStorage: true,
+            expect(dataSource.commitHash).not.to.eq(
+                updatedDataSource.commitHash
+            );
+            expect(dataSource.files.length).to.eq(
+                updatedDataSource.files.length
+            );
+
+            const [updatedFile] = updatedDataSource.files;
+            expect(updatedFile.id).not.to.eq(existingFile.id);
+            expect(updatedFile.size).to.eq(131);
         });
-        const [existingFile] = dataSource.files;
-        expect(existingFile.size).to.eq(107);
-
-        const uploadResponse = await updateVersion({
-            dataSourceName: name,
-            fileNames: ['updatedVersions/README-1.md'],
-            mapping: [existingFile],
-        });
-        const { body: updatedDataSource } = uploadResponse;
-
-        expect(dataSource.commitHash).not.to.eq(updatedDataSource.commitHash);
-        expect(dataSource.files.length).to.eq(updatedDataSource.files.length);
-
-        const [updatedFile] = updatedDataSource.files;
-        expect(updatedFile.id).not.to.eq(existingFile.id);
-        expect(updatedFile.size).to.eq(131);
     });
     it('should upload a file with spaces in its name', async () => {
         const name = uuid();

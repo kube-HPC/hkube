@@ -60,7 +60,13 @@ class Github extends Base {
                     throw error;
             }
         }
-        this.rawRepositoryUrl = response.data.clone_url;
+        // Avoid using the clone_url it cannot be trusted.
+        // it requires the git server to have the right host set
+        const repositoryUrl = new URL(
+            `${response.data.full_name}.git`,
+            this.config.endpoint
+        );
+        this.rawRepositoryUrl = repositoryUrl.toString();
         return this.rawRepositoryUrl;
     }
 
