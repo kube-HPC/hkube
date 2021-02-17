@@ -1,11 +1,10 @@
-/** @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage */
+/** @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig */
 
-/** @param {ExternalStorage} config */
+/** @param {StorageConfig} config */
 const S3Config = ({
     endpoint,
     accessKeyId,
     secretAccessKey,
-    useSSL,
     bucketName,
 }) => repositoryName => `
 ['remote "storage"']
@@ -13,7 +12,7 @@ const S3Config = ({
     endpointurl = ${endpoint}
     access_key_id = ${accessKeyId}
     secret_access_key = ${secretAccessKey}
-    use_ssl = ${useSSL}
+    use_ssl = ${!!new URL(endpoint).protocol.match('https')}
 [core]
     remote = storage
 `;
@@ -25,7 +24,7 @@ const configMap = {
 /**
  * @type {(
  *     type: string,
- *     config: ExternalStorage
+ *     config: StorageConfig
  * ) => (repositoryName: string) => string}
  */
 module.exports = (type, config) => {

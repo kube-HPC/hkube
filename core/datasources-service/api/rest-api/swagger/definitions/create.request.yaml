@@ -22,8 +22,6 @@ properties:
                       type: string
                   endpoint:
                       $ref: '#/components/schemas/URL'
-                  useSSL:
-                      type: boolean
                   bucketName:
                       type: string
               required:
@@ -31,7 +29,6 @@ properties:
                   - secretAccessKey
                   - endpoint
                   - bucketName
-                  - useSSL
             - properties:
                   kind:
                       type: string
