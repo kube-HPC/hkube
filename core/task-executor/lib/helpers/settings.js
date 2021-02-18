@@ -6,10 +6,9 @@ const settingsFactory = () => (
     }
 );
 
-let settings = settingsFactory();
+const settings = settingsFactory();
 
 const setFromConfig = (config) => {
-    settings = settingsFactory();
     if (!config) {
         return;
     }
