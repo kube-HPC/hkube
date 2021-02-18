@@ -140,8 +140,7 @@ class AutoScaler {
             const throughput = formatNumber(mean(rates.map(r => r.throughput)));
             const queueSize = Math.round(sum(rates.map(r => r.queueSize)));
             const avgQueueSize = Math.round(mean(rates.map(r => r.queueSize)));
-            const required = this._scaler?.required || 0;
-            const desired = this._scaler?.desired || 0;
+            const { required = 0, desired = 0 } = this._scaler || {};
             const metric = {
                 source,
                 target,
@@ -167,7 +166,7 @@ class AutoScaler {
             totals.totalResponses += totalResponses;
             totals.durationsRate.push(durationsRate);
 
-            if (windowSize < this._config.statistics.maxSizeWindow) {
+            if (windowSize < this._config.statistics.maxSizeWindow / 2) {
                 hasMaxSizeWindow = false;
             }
         });
@@ -202,13 +201,14 @@ class AutoScaler {
         let required = null;
         let reason = null;
 
-        // need to scale up
+        // first scale up
         if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
             required = this._config.scaleUp.replicasOnFirstScale;
             reason = ScaleReasonsMessages.REQ_ONLY({ reqRate: reqRate.toFixed(2) });
         }
+        // scale based on durations
         else if (totalRequests > 0 && currentSize < requiredByDuration) {
-            required = Math.min(requiredByDuration, this._config.scaleUp.maxScaleUpReplicas);
+            required = requiredByDuration;
             reason = ScaleReasonsMessages.REQ_RES({ ratio: required });
         }
 
@@ -230,7 +230,7 @@ class AutoScaler {
 
     _markQueueSize(queueSize) {
         let resultQueueSizeTime;
-        if (queueSize <= 20) {
+        if (queueSize <= this._config.queue.minQueueSizeBeforeScaleDown) {
             resultQueueSizeTime = this._queueSizeTime.mark();
         }
         else {

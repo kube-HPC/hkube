@@ -9,9 +9,12 @@ let log;
  * of required replicas at any moment, and also
  * the logic of scale up/down feasibility
  */
-class PendingScale {
+class Scaler {
     constructor(config, methods) {
         log = Logger.GetLogFromContainer();
+        this._maxScaleUpReplicas = config.scaleUp.maxScaleUpReplicas;
+        this._maxScaleUpReplicasPerScale = config.scaleUp.maxScaleUpReplicasPerScale;
+        this._minTimeWaitBeforeRetryScale = config.minTimeWaitBeforeRetryScale;
         this._minTimeBetweenScales = config.minTimeBetweenScales;
         this._scaleInterval = config.scaleInterval;
         this._getUnScheduledAlgorithms = methods.getUnScheduledAlgorithms;
@@ -49,36 +52,39 @@ class PendingScale {
         let canScaleDown = false;
 
         if (shouldScaleUp) {
-            if (this._desired >= currentSize) {
+            if (this._desired <= currentSize) {
                 canScaleUp = true;
+                this._notFulfilledTimeUp = null;
             }
             else {
                 if (!this._notFulfilledTimeUp) {
                     this._notFulfilledTimeUp = Date.now();
                 }
-                if (Date.now() - this._notFulfilledTimeUp > 60000) {
+                if (Date.now() - this._notFulfilledTimeUp > this._minTimeWaitBeforeRetryScale) {
                     canScaleUp = true;
                     this._notFulfilledTimeUp = null;
                 }
             }
         }
         if (shouldScaleDown) {
-            if (this._desired <= currentSize) {
+            if (this._desired >= currentSize) {
                 canScaleDown = true;
+                this._notFulfilledTimeDown = null;
             }
             else {
                 if (!this._notFulfilledTimeDown) {
                     this._notFulfilledTimeDown = Date.now();
                 }
-                if (Date.now() - this._notFulfilledTimeDown > 60000) {
+                if (Date.now() - this._notFulfilledTimeDown > this._minTimeWaitBeforeRetryScale) {
                     canScaleDown = true;
                     this._notFulfilledTimeDown = null;
                 }
             }
         }
         if (canScaleUp) {
-            const replicas = this._required - currentSize;
-            const scaleTo = this._required;
+            const required = this._required - currentSize;
+            const replicas = Math.min(required, this._maxScaleUpReplicasPerScale);
+            const scaleTo = replicas + currentSize;
             this._desired = this._required;
             this._lastScaleUpTime = Date.now();
             this._scaleUp({ replicas, currentSize, scaleTo });
@@ -101,7 +107,7 @@ class PendingScale {
     }
 
     updateRequired(required) {
-        this._required = required;
+        this._required = Math.min(required, this._maxScaleUpReplicas);
     }
 
     _shouldScaleUp(currentSize) {
@@ -121,4 +127,4 @@ class PendingScale {
     }
 }
 
-module.exports = PendingScale;
+module.exports = Scaler;

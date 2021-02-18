@@ -16,8 +16,8 @@ const _calcRate = (list) => {
 };
 
 const calcRatio = (rate1, rate2) => {
-    const rates = (rate1 && rate2) ? (rate1 / rate2) : 1;
-    const ratio = Math.ceil(rates) || 1;
+    const rates = (rate1 && rate2) ? (rate1 / rate2) : 0;
+    const ratio = Math.ceil(rates);
     return ratio;
 };
 
@@ -48,7 +48,7 @@ const createCappedScale = (from, to) => {
 };
 
 const fromScale = [0, 5000];
-const toScale = [3, 0];
+const toScale = [5, 0];
 const scaleQueueSize = createCappedScale(fromScale, toScale);
 
 /**
@@ -69,10 +69,9 @@ const calcRates = (data) => {
     const resRate = _calcRate(data.responses.items);
     const totalRequests = _totalCount(data.requests.items);
     const totalResponses = _totalCount(data.responses.items);
-    const dropped = _totalCount(data.dropped.items);
-    const queueSize = mean(data.queueSize.items.map(q => q.count));
     const durationsRate = _calcDurations(data.durations.items);
     const grossDurationsRate = _calcDurations(data.grossDurations.items);
+    const { queueSize, dropped } = data;
     return { reqRate, resRate, durationsRate, grossDurationsRate, queueSize, totalRequests, totalResponses, dropped };
 };
 

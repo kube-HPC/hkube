@@ -27,19 +27,22 @@ config.streaming = {
         interval: formatters.parseInt(process.env.AUTO_SCALER_INTERVAL, 2000),
         scaleInterval: formatters.parseInt(process.env.AUTO_SCALER_SCALE_INTERVAL, 10000),
         minTimeBetweenScales: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_BETWEEN_SCALE, 30000),
+        minTimeWaitBeforeRetryScale: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_BEFORE_RETRY, 60000),
         statistics: {
             maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 10),
             minTimeNonStatsReport: formatters.parseInt(process.env.AUTO_SCALER_NON_STATS_REPORT, 10000),
         },
         scaleUp: {
-            maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 10),
+            maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 30),
+            maxScaleUpReplicasPerScale: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS_PER_SCALE, 10),
             replicasOnFirstScale: formatters.parseInt(process.env.AUTO_SCALER_REPLICAS_FIRST_SCALE, 1),
         },
         scaleDown: {
             maxTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 60000),
         },
         queue: {
-            minTimeEmptyToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_REPLICAS_FIRST_SCALE, 60000),
+            minQueueSizeBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_QUEUE_SIZE_BEFORE_SCALE_DOWN, 20),
+            minTimeEmptyToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_QUEUE_EMPTY, 60000),
         }
     },
     election: {
