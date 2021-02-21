@@ -133,7 +133,7 @@ const checkMetrics = () => {
     return streamService._metrics._checkMetrics() || [];
 }
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     before(async () => {
         await stateAdapter._db.jobs.create({ pipeline, jobId });
         await streamHandler.start(job);
@@ -683,7 +683,7 @@ describe.only('Streaming', () => {
             const slaves = masters[0].slaves();
             expect(slaves.sort()).to.deep.equal([slave1.source, slave2.source])
         });
-        it('should scale up based on avg master and slaves', async () => {
+        it.only('should scale up based on avg master and slaves', async () => {
             const nodeName = 'D';
             const requests = async (data) => {
                 data[0].queueSize += 100;

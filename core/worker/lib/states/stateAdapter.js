@@ -226,6 +226,10 @@ class StateAdapter extends EventEmitter {
         return dataSource;
     }
 
+    async getQueue(name) {
+        return this._etcd.algorithms.queue.get({ name });
+    }
+
     async unwatch(options) {
         try {
             log.debug('start unwatch', { component });

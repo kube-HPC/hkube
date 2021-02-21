@@ -43,7 +43,7 @@ class AutoScaler {
     constructor(options, onSourceRemove) {
         log = Logger.GetLogFromContainer();
         this._nodeName = options.nodeName;
-        this._algorithmName = options.jobData.algorithmName;
+        this._algorithmName = options.node.algorithmName;
         this._options = options;
         this._config = options.config;
         this._isStateful = options.node.stateType === stateType.Stateful;
@@ -62,7 +62,11 @@ class AutoScaler {
                 getCurrentSize: () => {
                     return discovery.countInstances(this._nodeName);
                 },
-                getUnScheduledAlgorithms: async () => {
+                getQueue: async () => {
+                    const queue = await stateAdapter.getQueue(this._algorithmName);
+                    return queue;
+                },
+                getUnScheduledAlgorithm: async () => {
                     const unScheduledAlgorithms = await stateAdapter.getUnScheduledAlgorithms();
                     return unScheduledAlgorithms[this._algorithmName];
                 },
@@ -108,10 +112,6 @@ class AutoScaler {
             if (!stats[source]) {
                 stats[source] = { windowSize, rates: [] };
             }
-            rates.throughput = 0;
-            if (rates.reqRate && rates.resRate) {
-                rates.throughput = formatNumber((rates.resRate / rates.reqRate) * 100);
-            }
             stats[source].rates.push(rates);
         });
 
@@ -140,13 +140,14 @@ class AutoScaler {
             const throughput = formatNumber(mean(rates.map(r => r.throughput)));
             const queueSize = Math.round(sum(rates.map(r => r.queueSize)));
             const avgQueueSize = Math.round(mean(rates.map(r => r.queueSize)));
-            const { required = 0, desired = 0 } = this._scaler || {};
+            const { required, desired, status } = this._scaler || {};
             const metric = {
                 source,
                 target,
                 currentSize,
                 required,
                 desired,
+                status,
                 queueSize,
                 avgQueueSize,
                 reqRate,
@@ -206,17 +207,18 @@ class AutoScaler {
             required = this._config.scaleUp.replicasOnFirstScale;
             reason = ScaleReasonsMessages.REQ_ONLY({ reqRate: reqRate.toFixed(2) });
         }
-        // scale based on durations
+        // scale up based on durations
         else if (totalRequests > 0 && currentSize < requiredByDuration) {
             required = requiredByDuration;
             reason = ScaleReasonsMessages.REQ_RES({ ratio: required });
         }
 
-        // need to scale down
+        // scale down based on stop streaming
         else if (idleScaleDown.scale && currentSize > 0 && canScaleDown) {
             required = 0;
             reason = ScaleReasonsMessages.IDLE_TIME({ time: idleScaleDown.time });
         }
+        // scale down based on rate
         else if (!idleScaleDown.scale && currentSize > requiredByDuration && canScaleDown) {
             required = requiredByDuration;
             reason = ScaleReasonsMessages.DUR_RATIO({ ratio: requiredByDuration, time: resultQueueSizeTime.time });

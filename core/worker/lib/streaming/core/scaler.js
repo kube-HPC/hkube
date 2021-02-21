@@ -4,6 +4,16 @@ const { Components } = require('../../consts');
 const component = Components.AUTO_SCALER;
 let log;
 
+const SCALE_STATUS = {
+    IDLE: 'idle',
+    UNABLE_SCALE: 'unable to scale',
+    PENDING_QUEUE: 'pending queue scale up',
+    PENDING_SCALE_UP: 'pending scale up',
+    PENDING_SCALE_DOWN: 'pending scale down',
+    SCALING_UP: 'scaling up',
+    SCALING_DOWN: 'scaling down'
+};
+
 /**
  * This class is responsible for holding the data
  * of required replicas at any moment, and also
@@ -17,7 +27,8 @@ class Scaler {
         this._minTimeWaitBeforeRetryScale = config.minTimeWaitBeforeRetryScale;
         this._minTimeBetweenScales = config.minTimeBetweenScales;
         this._scaleInterval = config.scaleInterval;
-        this._getUnScheduledAlgorithms = methods.getUnScheduledAlgorithms;
+        this._getQueue = methods.getQueue;
+        this._getUnScheduledAlgorithm = methods.getUnScheduledAlgorithm;
         this._getCurrentSize = methods.getCurrentSize;
         this._scaleUp = methods.scaleUp;
         this._scaleDown = methods.scaleDown;
@@ -25,6 +36,7 @@ class Scaler {
         this._desired = 0;
         this._lastScaleUpTime = null;
         this._lastScaleDownTime = null;
+        this._status = SCALE_STATUS.IDLE;
         this._startInterval();
     }
 
@@ -40,60 +52,41 @@ class Scaler {
     }
 
     async _checkScale() {
-        const currentSize = this._getCurrentSize();
-        const unScheduledAlgorithm = await this._getUnScheduledAlgorithms();
+        const unScheduledAlgorithm = await this._getUnScheduledAlgorithm();
         if (unScheduledAlgorithm) {
+            this._status = SCALE_STATUS.UNABLE_SCALE;
             return;
         }
-        const shouldScaleUp = this._shouldScaleUp(currentSize);
+        if (!this._reason) {
+            return;
+        }
+
+        this._status = SCALE_STATUS.IDLE;
+        const queue = await this._getQueue();
+        let pendingQueue = false;
+        if (queue.pendingAmount > 0 || queue.data.length) {
+            this._status = SCALE_STATUS.PENDING_QUEUE;
+            pendingQueue = true;
+        }
+        const currentSize = this._getCurrentSize();
+        const shouldScaleUp = pendingQueue ? false : this._shouldScaleUp(currentSize);
         const shouldScaleDown = this._shouldScaleDown(currentSize);
 
-        let canScaleUp = false;
-        let canScaleDown = false;
-
         if (shouldScaleUp) {
-            if (this._desired <= currentSize) {
-                canScaleUp = true;
-                this._notFulfilledTimeUp = null;
-            }
-            else {
-                if (!this._notFulfilledTimeUp) {
-                    this._notFulfilledTimeUp = Date.now();
-                }
-                if (Date.now() - this._notFulfilledTimeUp > this._minTimeWaitBeforeRetryScale) {
-                    canScaleUp = true;
-                    this._notFulfilledTimeUp = null;
-                }
-            }
-        }
-        if (shouldScaleDown) {
-            if (this._desired >= currentSize) {
-                canScaleDown = true;
-                this._notFulfilledTimeDown = null;
-            }
-            else {
-                if (!this._notFulfilledTimeDown) {
-                    this._notFulfilledTimeDown = Date.now();
-                }
-                if (Date.now() - this._notFulfilledTimeDown > this._minTimeWaitBeforeRetryScale) {
-                    canScaleDown = true;
-                    this._notFulfilledTimeDown = null;
-                }
-            }
-        }
-        if (canScaleUp) {
             const required = this._required - currentSize;
             const replicas = Math.min(required, this._maxScaleUpReplicasPerScale);
             const scaleTo = replicas + currentSize;
             this._desired = this._required;
             this._lastScaleUpTime = Date.now();
+            this._status = SCALE_STATUS.SCALING_UP;
             this._scaleUp({ replicas, currentSize, scaleTo });
         }
-        if (canScaleDown) {
+        if (shouldScaleDown) {
             const replicas = currentSize - this._required;
             const scaleTo = this._required;
             this._desired = this._required;
             this._lastScaleDownTime = Date.now();
+            this._status = SCALE_STATUS.SCALING_DOWN;
             this._scaleDown({ replicas, currentSize, scaleTo });
         }
     }
@@ -106,24 +99,61 @@ class Scaler {
         return this._desired;
     }
 
-    updateRequired(required) {
+    get status() {
+        return this._status;
+    }
+
+    updateRequired(required, reason) {
         this._required = Math.min(required, this._maxScaleUpReplicas);
+        this._reason = reason;
     }
 
     _shouldScaleUp(currentSize) {
+        let shouldScaleUp = false;
         if (currentSize < this._required
             && (!this._lastScaleDownTime || Date.now() - this._lastScaleDownTime > this._minTimeBetweenScales)) {
-            return true;
+            if (this._desired <= currentSize) {
+                shouldScaleUp = true;
+                this._notFulfilledTimeUp = null;
+            }
+            else {
+                if (!this._notFulfilledTimeUp) {
+                    this._notFulfilledTimeUp = Date.now();
+                }
+                if (Date.now() - this._notFulfilledTimeUp > this._minTimeWaitBeforeRetryScale) {
+                    shouldScaleUp = true;
+                    this._notFulfilledTimeUp = null;
+                }
+                else {
+                    this._status = SCALE_STATUS.PENDING_SCALE_UP;
+                }
+            }
         }
-        return false;
+        return shouldScaleUp;
     }
 
     _shouldScaleDown(currentSize) {
+        let shouldScaleDown = false;
         if (currentSize > this._required
             && (!this._lastScaleUpTime || Date.now() - this._lastScaleUpTime > this._minTimeBetweenScales)) {
-            return true;
+            if (this._desired >= currentSize) {
+                shouldScaleDown = true;
+                this._notFulfilledTimeDown = null;
+            }
+            else {
+                if (!this._notFulfilledTimeDown) {
+                    this._notFulfilledTimeDown = Date.now();
+                }
+                if (Date.now() - this._notFulfilledTimeDown > this._minTimeWaitBeforeRetryScale) {
+                    shouldScaleDown = true;
+                    this._notFulfilledTimeDown = null;
+                }
+                else {
+                    this._status = SCALE_STATUS.PENDING_SCALE_DOWN;
+                }
+            }
         }
-        return false;
+        return shouldScaleDown;
     }
 }
 

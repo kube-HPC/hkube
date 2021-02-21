@@ -71,8 +71,9 @@ const calcRates = (data) => {
     const totalResponses = _totalCount(data.responses.items);
     const durationsRate = _calcDurations(data.durations.items);
     const grossDurationsRate = _calcDurations(data.grossDurations.items);
+    const throughput = reqRate && resRate ? formatNumber((resRate / reqRate) * 100) : 0;
     const { queueSize, dropped } = data;
-    return { reqRate, resRate, durationsRate, grossDurationsRate, queueSize, totalRequests, totalResponses, dropped };
+    return { reqRate, resRate, durationsRate, grossDurationsRate, throughput, queueSize, totalRequests, totalResponses, dropped };
 };
 
 module.exports = {

@@ -48,7 +48,9 @@ class MetricsCollector extends EventEmitter {
 
             newMetrics.push({ ...metrics, requests, responses, dropped });
         });
-        this.emit(streamingEvents.METRICS_CHANGED, newMetrics);
+        if (newMetrics.length) {
+            this.emit(streamingEvents.METRICS_CHANGED, newMetrics);
+        }
         return newMetrics;
     }
 }
