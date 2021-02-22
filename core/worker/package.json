@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "2.0.22-beta42",
+    "version": "2.0.22",
     "description": "worker process",
     "main": "app.js",
     "scripts": {
@@ -49,7 +49,6 @@
         "request": "^2.88.2",
         "request-promise": "^4.2.5",
         "socket.io": "^2.3.0",
-        "string-template": "^1.0.0",
         "tail": "^2.0.3",
         "ws": "^7.2.3"
     },

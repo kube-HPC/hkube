@@ -683,7 +683,7 @@ describe('Streaming', () => {
             const slaves = masters[0].slaves();
             expect(slaves.sort()).to.deep.equal([slave1.source, slave2.source])
         });
-        it.only('should scale up based on avg master and slaves', async () => {
+        it('should scale up based on avg master and slaves', async () => {
             const nodeName = 'D';
             const requests = async (data) => {
                 data[0].queueSize += 100;

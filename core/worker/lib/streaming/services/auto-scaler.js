@@ -3,9 +3,8 @@ const Logger = require('@hkube/logger');
 const { sum, mean } = require('@hkube/stats');
 const { stateType } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
-const { Statistics, Scaler, ScaleReasons, Metrics, TimeMarker } = require('../core');
+const { Statistics, Scaler, Metrics, TimeMarker } = require('../core');
 const { calcRates, calcRatio, formatNumber, scaleQueueSize } = Metrics;
-const { ScaleReasonsMessages } = ScaleReasons;
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
 const { Components } = require('../../consts');
@@ -200,32 +199,27 @@ class AutoScaler {
         const requiredByDuration = requiredByDurationRate + scaledQueueSize;
 
         let required = null;
-        let reason = null;
 
         // first scale up
         if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
             required = this._config.scaleUp.replicasOnFirstScale;
-            reason = ScaleReasonsMessages.REQ_ONLY({ reqRate: reqRate.toFixed(2) });
         }
         // scale up based on durations
         else if (totalRequests > 0 && currentSize < requiredByDuration) {
             required = requiredByDuration;
-            reason = ScaleReasonsMessages.REQ_RES({ ratio: required });
         }
 
         // scale down based on stop streaming
         else if (idleScaleDown.scale && currentSize > 0 && canScaleDown) {
             required = 0;
-            reason = ScaleReasonsMessages.IDLE_TIME({ time: idleScaleDown.time });
         }
         // scale down based on rate
         else if (!idleScaleDown.scale && currentSize > requiredByDuration && canScaleDown) {
             required = requiredByDuration;
-            reason = ScaleReasonsMessages.DUR_RATIO({ ratio: requiredByDuration, time: resultQueueSizeTime.time });
         }
 
         if (required !== null) {
-            this._scaler.updateRequired(required, reason);
+            this._scaler.updateRequired(required);
         }
         return result;
     }

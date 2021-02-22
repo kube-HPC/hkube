@@ -36,6 +36,7 @@ class Scaler {
         this._desired = 0;
         this._lastScaleUpTime = null;
         this._lastScaleDownTime = null;
+        this._scale = false;
         this._status = SCALE_STATUS.IDLE;
         this._startInterval();
     }
@@ -52,12 +53,12 @@ class Scaler {
     }
 
     async _checkScale() {
+        if (!this._scale) {
+            return;
+        }
         const unScheduledAlgorithm = await this._getUnScheduledAlgorithm();
         if (unScheduledAlgorithm) {
             this._status = SCALE_STATUS.UNABLE_SCALE;
-            return;
-        }
-        if (!this._reason) {
             return;
         }
 
@@ -103,9 +104,9 @@ class Scaler {
         return this._status;
     }
 
-    updateRequired(required, reason) {
+    updateRequired(required) {
+        this._scale = true;
         this._required = Math.min(required, this._maxScaleUpReplicas);
-        this._reason = reason;
     }
 
     _shouldScaleUp(currentSize) {

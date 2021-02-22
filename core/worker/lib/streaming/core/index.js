@@ -3,7 +3,6 @@ const TimeMarker = require('./time-marker');
 const Interval = require('./interval');
 const Metrics = require('./metrics');
 const Scaler = require('./scaler');
-const ScaleReasons = require('./scale-reasons');
 const Statistics = require('./statistics');
 
 module.exports = {
@@ -12,6 +11,5 @@ module.exports = {
     Interval,
     Metrics,
     Scaler,
-    ScaleReasons,
     Statistics
 };
