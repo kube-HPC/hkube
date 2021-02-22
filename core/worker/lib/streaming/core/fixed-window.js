@@ -30,6 +30,10 @@ class FixedWindow {
     get size() {
         return this._array.length;
     }
+
+    get maxSize() {
+        return this._maxSize;
+    }
 }
 
 module.exports = FixedWindow;

@@ -99,7 +99,8 @@ class ServiceDiscovery extends EventEmitter {
 
     getInstances(nodeName) {
         const node = this._discoveryMap[nodeName];
-        return (node && node.list) || [];
+        const list = node?.list || [];
+        return list;
     }
 
     _isJobDiscovery(data, jobId, taskId) {
