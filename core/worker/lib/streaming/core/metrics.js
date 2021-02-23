@@ -27,9 +27,11 @@ const _totalCount = (list) => {
 };
 
 const _calcDurations = (list) => {
-    const durationMedian = mean(list);
-    const durMedian = durationMedian || 0.1;
-    const durationsRate = 1 / (durMedian / 1000);
+    let durationsRate = 0;
+    const durations = mean(list);
+    if (durations) {
+        durationsRate = 1 / (durations / 1000);
+    }
     return durationsRate;
 };
 
