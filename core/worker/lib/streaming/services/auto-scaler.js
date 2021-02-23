@@ -189,13 +189,8 @@ class AutoScaler {
         const result = { up: 0, down: 0 };
         const requiredByDurationRate = calcRatio(reqRate, durationsRate);
         const idleScaleDown = this._shouldIdleScaleDown({ reqRate, resRate });
-        const resultQueueSizeTime = this._markQueueSize(queueSize);
-        const canScaleDown = resultQueueSizeTime?.result;
-
-        const msgPerSec = Math.ceil(durationsRate * currentSize);
-        const replicas = (queueSize - msgPerSec);
-        const requiredByQueueSize = Math.ceil(replicas / durationsRate);
-        const scaledQueueSize = Math.ceil(scaleQueueSize(requiredByQueueSize));
+        const canScaleDown = this._markQueueSize(queueSize);
+        const scaledQueueSize = this._scaledQueueSize(durationsRate, queueSize, currentSize);
         const requiredByDuration = requiredByDurationRate + scaledQueueSize;
 
         let required = null;
@@ -224,15 +219,27 @@ class AutoScaler {
         return result;
     }
 
+    _scaledQueueSize(durationsRate, queueSize, currentSize) {
+        if (!durationsRate) {
+            return 0;
+        }
+        const msgPerSec = Math.ceil(durationsRate * currentSize);
+        const replicas = (queueSize - msgPerSec);
+        const requiredByQueueSize = Math.ceil(replicas / durationsRate);
+        const scaledQueueSize = Math.ceil(scaleQueueSize(requiredByQueueSize));
+        return scaledQueueSize;
+    }
+
     _markQueueSize(queueSize) {
-        let resultQueueSizeTime;
+        let canScaleDown = false;
         if (queueSize <= this._config.queue.minQueueSizeBeforeScaleDown) {
-            resultQueueSizeTime = this._queueSizeTime.mark();
+            const marker = this._queueSizeTime.mark();
+            canScaleDown = marker.result;
         }
         else {
             this._queueSizeTime.unMark();
         }
-        return resultQueueSizeTime;
+        return canScaleDown;
     }
 
     _shouldIdleScaleDown({ reqRate, resRate }) {
