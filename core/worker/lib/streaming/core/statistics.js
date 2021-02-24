@@ -31,6 +31,7 @@ class Statistics {
 
         this._data[source] = {
             ...stats,
+            size: stats.requests.items.length,
             time: Date.now(),
             currentSize
         };

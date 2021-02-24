@@ -65,7 +65,7 @@ class Scaler {
         this._status = SCALE_STATUS.IDLE;
         const queue = await this._getQueue();
         let pendingQueue = false;
-        if (queue.pendingAmount > 0 || queue.data.length) {
+        if (queue) {
             this._status = SCALE_STATUS.PENDING_QUEUE;
             pendingQueue = true;
         }

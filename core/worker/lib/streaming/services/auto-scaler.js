@@ -12,8 +12,8 @@ const component = Components.AUTO_SCALER;
 let log;
 
 /**
- * The AutoScaler used by the master adapter
- * in order to scale up/down stateless algorithms.
+ * The AutoScaler used by the master adapter in order
+ * to scale up/down stateless algorithms.
  * Each tick, it looks at statistics data and then
  * calculating ratios and rates (see: metrics.calcRates).
  *
@@ -52,10 +52,10 @@ class AutoScaler {
 
     reset() {
         this._metrics = [];
-        this._queueSizeTime = new TimeMarker(this._config.queue.minTimeEmptyToScaleDown);
-        this._timeForDown = new TimeMarker(this._config.scaleDown.maxTimeIdleBeforeReplicaDown);
         this._statistics = new Statistics(this._config, this._onSourceRemove);
         if (!this._isStateful) {
+            this._queueSizeTime = new TimeMarker(this._config.queue.minTimeEmptyToScaleDown);
+            this._timeForDown = new TimeMarker(this._config.scaleDown.maxTimeIdleBeforeReplicaDown);
             this._scaler?.stop();
             this._scaler = new Scaler(this._config, {
                 getCurrentSize: () => {
@@ -63,7 +63,10 @@ class AutoScaler {
                 },
                 getQueue: async () => {
                     const queue = await stateAdapter.getQueue(this._algorithmName);
-                    return queue;
+                    if (queue?.pendingAmount || queue?.data?.length) {
+                        return true;
+                    }
+                    return false;
                 },
                 getUnScheduledAlgorithm: async () => {
                     const unScheduledAlgorithms = await stateAdapter.getUnScheduledAlgorithms();
@@ -104,13 +107,14 @@ class AutoScaler {
 
         statistics.forEach((stat) => {
             const { data } = stat;
-            const windowSize = data.requests.size;
+            const windowSize = data.size;
             currentSize = data.currentSize || discovery.countInstances(target);
             const [source] = stat.source.split(`-${this._options.jobId}-`);
             const rates = calcRates(data);
             if (!stats[source]) {
-                stats[source] = { windowSize, rates: [] };
+                stats[source] = { windowSize: [], rates: [] };
             }
+            stats[source].windowSize.push(windowSize);
             stats[source].rates.push(rates);
         });
 
@@ -119,6 +123,7 @@ class AutoScaler {
             resRate: 0,
             queueSize: 0,
             durationsRate: [],
+            windowSize: [],
             totalRequests: 0,
             totalResponses: 0
         };
@@ -139,6 +144,8 @@ class AutoScaler {
             const throughput = formatNumber(mean(rates.map(r => r.throughput)));
             const queueSize = Math.round(sum(rates.map(r => r.queueSize)));
             const avgQueueSize = Math.round(mean(rates.map(r => r.queueSize)));
+            const avgWindowSize = Math.round(mean(windowSize));
+            const processingTimeMs = formatNumber(mean(rates.map(r => r.processingTime)));
             const { required, desired, status } = this._scaler || {};
             const metric = {
                 source,
@@ -147,16 +154,17 @@ class AutoScaler {
                 required,
                 desired,
                 status,
-                queueSize,
-                avgQueueSize,
                 reqRate,
                 resRate,
+                processingTimeMs,
+                queueSize,
+                avgQueueSize,
                 durationsRate,
                 grossDurationsRate,
+                throughput,
                 totalRequests,
                 totalResponses,
                 totalDropped,
-                throughput
             };
             metrics.push(metric);
             totals.reqRate += reqRate;
@@ -164,12 +172,17 @@ class AutoScaler {
             totals.queueSize += queueSize;
             totals.totalRequests += totalRequests;
             totals.totalResponses += totalResponses;
-            totals.durationsRate.push(durationsRate);
+            totals.windowSize.push(avgWindowSize);
 
-            if (windowSize < this._config.statistics.maxSizeWindow / 2) {
-                hasMaxSizeWindow = false;
+            if (durationsRate) {
+                totals.durationsRate.push(durationsRate);
             }
         });
+
+        const windowSize = mean(totals.windowSize);
+        if (windowSize < this._config.statistics.maxSizeWindow / 2) {
+            hasMaxSizeWindow = false;
+        }
 
         // in case new scaler is up with not enough statistics, we will continue to accumulate
         const newScaleStats = currentSize > 0 && !hasMaxSizeWindow;
