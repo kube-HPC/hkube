@@ -6,8 +6,11 @@ const component = require('./lib/consts/componentNames').MAIN;
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 const dedicatedStorage = require('./lib/DedicatedStorage');
+const gitToken = require('./lib/service/gitToken');
+
 const modules = [
     require('./lib/db'),
+    require('./lib/service/gitToken'),
     require('./api/rest-api/app-server'),
     require('./lib/service/dataSource'),
     require('./lib/service/snapshots'),
@@ -57,8 +60,9 @@ class Bootstrap {
         process.on('exit', code => {
             log.info(`exit code ${code}`, { component });
         });
-        process.on('SIGINT', () => {
+        process.on('SIGINT', async () => {
             log.info('SIGINT', { component });
+            await gitToken.removeStoredToken();
             process.exit(0);
         });
         process.on('SIGTERM', () => {

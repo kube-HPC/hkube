@@ -14,8 +14,8 @@ const dedicatedStorage = require('./../DedicatedStorage');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 /**
- * @typedef {import('@hkube/db/lib/DataSource').ExternalGit} ExternalGit
- * @typedef {import('@hkube/db/lib/DataSource').ExternalStorage} ExternalStorage
+ * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig
+ * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig
  * @typedef {import('./types').FileMeta} FileMeta
  * @typedef {import('./types').LocalFileMeta} LocalFileMeta
  * @typedef {import('./types').MulterFile} MulterFile
@@ -24,9 +24,15 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
  * @typedef {import('./types').config} config
  */
 /**
- * @template T
  * @typedef {{ [path: string]: T }} ByPath
+ * @template T
  */
+
+const GitClients = {
+    internal: Github,
+    github: Github,
+    gitlab: Gitlab,
+};
 
 class Repository extends RepositoryBase {
     /**
@@ -34,12 +40,14 @@ class Repository extends RepositoryBase {
      * @param {config} config
      * @param {string} rootDir
      * @param {string} repositoryUrl
-     * @param {{ git: ExternalGit; storage: ExternalStorage }} credentials
+     * @param {{ git: GitConfig; storage: StorageConfig }} credentials
      */
     constructor(repositoryName, config, rootDir, repositoryUrl, credentials) {
         super(repositoryName, rootDir, repositoryName);
-        const RemoteGitClientConstructor =
-            credentials.git.kind === 'github' ? Github : Gitlab;
+        const RemoteGitClientConstructor = GitClients[credentials.git.kind];
+        if (!RemoteGitClientConstructor) {
+            throw new InvalidDataError('invalid git kind');
+        }
         this.remoteGitClient = new RemoteGitClientConstructor(
             credentials.git,
             repositoryUrl,
@@ -60,7 +68,7 @@ class Repository extends RepositoryBase {
     }
 
     /**
-     * @param {FileMeta} fileMeta
+     * @param {FileMeta}      fileMeta
      * @param {LocalFileMeta} metaData
      */
     async _enrichDvcFile(fileMeta, metaData) {
@@ -133,7 +141,7 @@ class Repository extends RepositoryBase {
         return response;
     }
 
-    /** @param {string=} commitHash */
+    /** @param {string} [commitHash] */
     async ensureClone(commitHash) {
         await fse.ensureDir(this.cwd);
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
@@ -150,8 +158,8 @@ class Repository extends RepositoryBase {
 
     /**
      * @param {NormalizedFileMeta} normalizedMapping
-     * @param {MulterFile[]} allAddedFiles
-     * @param {ByPath<string>} metaByPath
+     * @param {MulterFile[]}       allAddedFiles
+     * @param {ByPath<string>}     metaByPath
      */
     async addFiles(normalizedMapping, allAddedFiles, metaByPath) {
         if (allAddedFiles.length === 0) return null;
@@ -257,7 +265,7 @@ class Repository extends RepositoryBase {
     }
 
     /**
-     * @param {string[]} fileIds
+     * @param {string[]}   fileIds
      * @param {FileMeta[]} currentFiles
      */
     async dropFiles(fileIds, currentFiles) {
@@ -280,10 +288,10 @@ class Repository extends RepositoryBase {
     }
 
     /**
-     * Loads the .meta files, adds their content to the .dvc files
+     * Loads the .meta files, adds their content to the .dvc files.
      *
      * @param {NormalizedFileMeta} normalizedMapping
-     * @param {ByPath<string>} byPath
+     * @param {ByPath<string>}     byPath
      * @param {ByPath<MulterFile>} metaFilesByPath
      * @returns {Promise<ByPath<string>>}
      */
@@ -306,7 +314,7 @@ class Repository extends RepositoryBase {
     }
 
     /**
-     * Filters files from a local copy of the repository
+     * Filters files from a local copy of the repository.
      *
      * @param {FileMeta[]} filesToDrop
      */

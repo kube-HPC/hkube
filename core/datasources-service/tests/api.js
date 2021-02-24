@@ -7,11 +7,11 @@ const { fileName } = require('./utils');
 
 /** @typedef {{ message: string; code: number }} ErrorResponse */
 /**
- * @template T
  * @typedef {Promise<{
  *     body: T & { error: ErrorResponse };
  *     response: { statusCode: number; body: T & { error: ErrorResponse } };
  * }>} Response
+ * @template T
  */
 
 /** @param {{ name?: string; id?: string }} props */
@@ -41,6 +41,8 @@ const createDataSource = ({
     useGitlab = false,
     storageOverrides = {},
     gitOverrides = {},
+    useInternalStorage = false,
+    useInternalGit = false,
 } = {}) => {
     // @ts-ignore
     const { storage, git, restUrl } = global.testParams;
@@ -63,17 +65,29 @@ const createDataSource = ({
             : undefined,
         ...(ignoreStorage
             ? {}
-            : { storage: JSON.stringify({ ...storage, ...storageOverrides }) }),
+            : {
+                  storage: JSON.stringify(
+                      useInternalStorage
+                          ? { kind: 'internal' }
+                          : { ...storage, ...storageOverrides }
+                  ),
+              }),
         ...(ignoreGit
             ? {}
-            : { git: JSON.stringify({ ...gitConfig, ...gitOverrides }) }),
+            : {
+                  git: JSON.stringify(
+                      useInternalGit
+                          ? { kind: 'internal' }
+                          : { ...gitConfig, ...gitOverrides }
+                  ),
+              }),
     };
     const options = { uri, formData };
     return request(options);
 };
 
 /**
- * Provide file names to be uploaded, or a complete array of file objects
+ * Provide file names to be uploaded, or a complete array of file objects.
  *
  * @param {{
  *     dataSourceName: string;
@@ -235,7 +249,13 @@ const createDownloadLink = ({ dataSourceId, fileIds }) =>
         body: { fileIds },
     });
 
-/** @param {{ href: string } | { dataSourceId: string; downloadId: string }} props */
+/**
+ * @param {Partial<{
+ *     href: string;
+ *     dataSourceId: string;
+ *     downloadId: string;
+ * }>} props
+ */
 // @ts-ignore
 const fetchDownloadLink = ({ dataSourceId, downloadId, href }) =>
     href

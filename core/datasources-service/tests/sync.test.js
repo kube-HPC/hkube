@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const { syncDataSource, createDataSource } = require('./api');
 
@@ -9,7 +9,7 @@ describe('sync', () => {
             const { response } = await syncDataSource({
                 name: 'non-existing',
             });
-            expect(response.statusCode).to.eq(HttpStatus.NOT_FOUND);
+            expect(response.statusCode).to.eq(StatusCodes.NOT_FOUND);
         });
     });
 
@@ -19,7 +19,7 @@ describe('sync', () => {
         const { body: updated, response } = await syncDataSource({
             name: dataSource.name,
         });
-        expect(response.statusCode).to.eq(HttpStatus.CREATED);
+        expect(response.statusCode).to.eq(StatusCodes.CREATED);
         expect(dataSource.commitHash).to.eq(updated.commitHash);
         expect(dataSource.id).not.to.eq(updated.id);
     });

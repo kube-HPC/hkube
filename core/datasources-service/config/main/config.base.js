@@ -73,8 +73,7 @@ config.s3 = {
     secretAccessKey:
         process.env.AWS_SECRET_ACCESS_KEY ||
         'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
-    useSSL: false,
+    endpoint: process.env.S3_ENDPOINT_URL || 'http://localhost:9000',
     bucketName: `${config.clusterName}-${storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE}`,
 };
 
@@ -85,19 +84,16 @@ config.git = {
             password: process.env.GIT_PASSWORD || '123456',
         },
         organization: process.env.GIT_ORGANIZATION || 'hkube-org',
-        endpoint: process.env.GITHUB_ENDPOINT_URL || 'http://localhost:3010',
+        endpoint: process.env.GIT_ENDPOINT_URL || 'http://localhost:3010',
         /** @type {string} */
-        token: null,
+        token: process.env.GIT_TOKEN || null,
         kind: 'github',
     },
     gitlab: {
-        tokenName: process.env.GITLAB_TOKEN_NAME || `test-token`,
-        token: process.env.GITLAB_TOKEN || 'buBPxyFrzqHEfmthVSuy',
+        tokenName: `test-token`,
+        token: 'XtU1iqa6sJb9zELYWDSy',
         kind: 'gitlab',
-        endpoint: process.env.GITLAB_ENDPOINT_URL || 'http://localhost:3080',
-        test: {
-            gitlabTestEndpointToken: 'replace-me.com',
-        },
+        endpoint: 'http://localhost:3080',
     },
 };
 

@@ -1,23 +1,29 @@
 const { Octokit } = require('@octokit/rest');
 const { InvalidDataError } = require('../../errors');
 const Base = require('./Base');
+const gitToken = require('./../../service/gitToken');
+
 /** @typedef {import('./../types').githubConfig} githubConfig */
 
 /** @augments {Base<githubConfig>} */
 class Github extends Base {
     constructor(config, rawRepositoryUrl, serviceName) {
         super(config, rawRepositoryUrl, serviceName);
+        this.token = config.token;
+        if (config.kind === 'internal') {
+            this.token = gitToken.hash;
+        }
         this.client = new Octokit({
             baseUrl: new URL('api/v1', this.config.endpoint).toString(),
-            auth: this.config.token,
+            auth: this.token,
         });
     }
 
     get repositoryUrl() {
         if (!this.rawRepositoryUrl) return null;
         const url = new URL(this.rawRepositoryUrl);
-        if (this.config.token) {
-            url.username = this.config.token;
+        if (this.token) {
+            url.username = this.token;
         }
         return url.toString();
     }
@@ -54,7 +60,13 @@ class Github extends Base {
                     throw error;
             }
         }
-        this.rawRepositoryUrl = response.data.clone_url;
+        // Avoid using the clone_url it cannot be trusted.
+        // it requires the git server to have the right host set
+        const repositoryUrl = new URL(
+            `${response.data.full_name}.git`,
+            this.config.endpoint
+        );
+        this.rawRepositoryUrl = repositoryUrl.toString();
         return this.rawRepositoryUrl;
     }
 

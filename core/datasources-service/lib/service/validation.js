@@ -14,7 +14,13 @@ class Validation {
         this.db = dbConnection.connection;
     }
 
-    /** @param {{ name?: string; id?: string; snapshot?: { name: string } }} props */
+    /**
+     * @param {{
+     *     name?: string;
+     *     id?: string;
+     *     snapshot?: { name: string };
+     * }} props
+     */
     async dataSourceExists({ name, snapshot, id }) {
         validator.validation.dataSourceExists({
             name,

@@ -20,4 +20,4 @@ RUN mkdir -p /hkube/datasource-service
 WORKDIR /hkube/datasource-service
 COPY . /hkube/datasource-service
 COPY --from=install /hkube/datasource-service/node_modules /hkube/datasource-service/node_modules
-CMD ["npm", "start"]
+CMD ["node", "app"]
