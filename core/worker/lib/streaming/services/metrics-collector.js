@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
-const { Interval } = require('../core/index');
+const { Interval } = require('../core');
 const { Components, streamingEvents } = require('../../consts');
 const component = Components.STREAM_SERVICE;
 let log;
@@ -48,7 +48,9 @@ class MetricsCollector extends EventEmitter {
 
             newMetrics.push({ ...metrics, requests, responses, dropped });
         });
-        this.emit(streamingEvents.METRICS_CHANGED, newMetrics);
+        if (newMetrics.length) {
+            this.emit(streamingEvents.METRICS_CHANGED, newMetrics);
+        }
         return newMetrics;
     }
 }

@@ -57,6 +57,7 @@ class MasterAdapter extends Adapter {
     }
 
     async finish() {
+        this._autoScaler.finish();
         await stateAdapter.unWatchStreamingStats({ jobId: this.jobId, nodeName: this.nodeName });
     }
 

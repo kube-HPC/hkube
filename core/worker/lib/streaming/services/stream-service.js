@@ -24,7 +24,7 @@ class StreamService extends EventEmitter {
         this._jobData = jobData;
         const nodes = await this._createNodesForElection(jobData);
         this._adapters = new AdaptersProxy();
-        this._election = new Election(this._options, (a) => this._adapters.addAdapter(a), () => this._adapters.getMasters(),);
+        this._election = new Election(this._options, (a) => this._adapters.addAdapter(a), () => this._adapters.getMasters());
         await this._election.start(nodes);
         this._metrics = new MetricsCollector(this._options, () => this._adapters.metrics());
         this._metrics.on(streamingEvents.METRICS_CHANGED, (changes) => {

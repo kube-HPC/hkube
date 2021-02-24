@@ -6,6 +6,7 @@ const streamHandler = require('../lib/streaming/services/stream-handler');
 const streamService = require('../lib/streaming/services/stream-service');
 const discovery = require('../lib/streaming/services/service-discovery');
 const SlaveAdapter = require('../lib/streaming/adapters/slave-adapter');
+const SEC = 1000;
 
 const pipeline = {
     name: "stream",
@@ -121,13 +122,20 @@ const createJob = (jobId) => {
 const job = createJob(jobId);
 
 const autoScale = () => {
-    const masters = getMasters();
-    return masters[0].scale();
+    const master = getMasters()[0];
+    master.scale();
+    return {
+        required: master._autoScaler._scaler.required
+    };
 }
 
 const checkMetrics = () => {
     return streamService._metrics._checkMetrics() || [];
 }
+
+const msgPerSec = 30;
+const duration = SEC / msgPerSec;
+const netDurations = Array.from(Array(10).fill(duration));
 
 describe('Streaming', () => {
     before(async () => {
@@ -147,9 +155,8 @@ describe('Streaming', () => {
                 nodeName: 'D',
             }];
             await scale(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp).to.be.null;
-            expect(scaleDown).to.be.null;
+            const { required } = autoScale();
+            expect(required).to.eql(0);
         });
         it('should scale based on queueSize equals 1', async () => {
             const scale = async (data) => {
@@ -157,13 +164,12 @@ describe('Streaming', () => {
             }
             const list = [{
                 nodeName: 'D',
-                queueSize: 1
+                queueSize: 1,
+                netDurations
             }];
             await scale(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.replicas).to.eql(1);
-            expect(scaleUp.scaleTo).to.eql(1);
-            expect(scaleDown).to.be.null;
+            const { required } = autoScale();
+            expect(required).to.eql(1);
         });
         it('should not scale if currentSize is fixed', async () => {
             const scale = async (data) => {
@@ -178,7 +184,8 @@ describe('Streaming', () => {
             }
             const list = [{
                 nodeName: 'D',
-                queueSize: 500
+                queueSize: 500,
+                netDurations
             }];
 
             await scale(list);
@@ -188,17 +195,11 @@ describe('Streaming', () => {
             await currentSize(list);
             const jobs4 = autoScale();
             const jobs5 = autoScale();
-            expect(jobs1.scaleUp.replicas).to.eql(1);
-            expect(jobs1.scaleUp.scaleTo).to.eql(1);
-            expect(jobs1.scaleDown).to.be.null;
-            expect(jobs2.scaleUp).to.be.null;
-            expect(jobs2.scaleDown).to.be.null;
-            expect(jobs3.scaleUp).to.be.null;
-            expect(jobs3.scaleDown).to.be.null;
-            expect(jobs4.scaleUp).to.be.null;
-            expect(jobs4.scaleDown).to.be.null;
-            expect(jobs5.scaleUp).to.be.null;
-            expect(jobs5.scaleDown).to.be.null;
+            expect(jobs1.required).to.eql(1);
+            expect(jobs2.required).to.eql(1);
+            expect(jobs3.required).to.eql(1);
+            expect(jobs4.required).to.gte(30);
+            expect(jobs5.required).to.gte(30);
         });
         it('should scale based on queueSize only', async () => {
             const scale = async (data) => {
@@ -207,27 +208,30 @@ describe('Streaming', () => {
             const list = [{
                 nodeName: 'D',
                 queueSize: 500,
-                responses: 0
+                responses: 0,
+                netDurations
             }];
             await scale(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.replicas).to.eql(1);
-            expect(scaleUp.scaleTo).to.eql(1);
-            expect(scaleDown).to.be.null;
+            const { required } = autoScale();
+            expect(required).to.eql(1);
         });
         it('should scale based on all params', async () => {
+            const queueSize = 0;
+            const responses = 0;
+            const currentSize = 0;
+
             const scale = async (data) => {
-                data[0].currentSize = 0;
-                data[0].queueSize += 2;
+                data[0].queueSize += 200;
                 data[0].responses += 1;
                 streamService.reportStats(data);
                 await delay(50);
             }
             const list = [{
                 nodeName: 'D',
-                queueSize: 2,
-                responses: 1,
-                durations: [100, 200, 100, 50, 80, 120, 110, 100, 90]
+                queueSize,
+                currentSize,
+                netDurations,
+                responses
             }];
             await scale(list);
             await scale(list);
@@ -236,14 +240,9 @@ describe('Streaming', () => {
             const scale1 = autoScale();
             const scale2 = autoScale();
             const scale3 = autoScale();
-
-            expect(scale1.scaleUp.replicas).to.eql(4);
-            expect(scale1.scaleUp.scaleTo).to.eql(4);
-            expect(scale1.scaleDown).to.be.null;
-            expect(scale2.scaleUp).to.be.null;
-            expect(scale2.scaleDown).to.be.null;
-            expect(scale3.scaleUp).to.be.null;
-            expect(scale3.scaleDown).to.be.null;
+            expect(scale1.required).to.gte(20);
+            expect(scale2.required).to.gte(20);
+            expect(scale3.required).to.gte(20);
         });
         it('should scale based on queueSize and responses only', async () => {
             const scale = async (data) => {
@@ -252,19 +251,18 @@ describe('Streaming', () => {
             const list = [{
                 nodeName: 'D',
                 queueSize: 500,
-                responses: 100
+                responses: 100,
+                netDurations
             }];
             await scale(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.replicas).to.eql(1);
-            expect(scaleUp.scaleTo).to.eql(1);
-            expect(scaleDown).to.be.null;
+            const { required } = autoScale();
+            expect(required).to.gte(2);
         });
         it('should scale up based on high req/res rate', async () => {
             const nodeName = 'D';
             const requests = async (data) => {
                 data[0].currentSize = 0;
-                data[0].queueSize += 100;
+                data[0].queueSize += 200;
                 data[0].responses = 100;
                 streamService.reportStats(data);
                 await delay(100);
@@ -273,15 +271,14 @@ describe('Streaming', () => {
                 nodeName,
                 sent: 0,
                 queueSize: 0,
-                responses: 0
+                responses: 0,
+                netDurations
             }];
             await requests(list);
             await requests(list);
             await requests(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.replicas).to.eql(1);
-            expect(scaleUp.scaleTo).to.eql(1);
-            expect(scaleDown).to.be.null;
+            const { required } = autoScale();
+            expect(required).to.gte(30);
         });
         it('should scale based on request rate', async () => {
             const scale = async (data) => {
@@ -292,18 +289,17 @@ describe('Streaming', () => {
             const list = [{
                 nodeName: 'D',
                 sent: 10,
-                queueSize: 0
+                queueSize: 0,
+                netDurations
             }];
             await scale(list);
             await scale(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.replicas).to.eql(1);
-            expect(scaleUp.scaleTo).to.eql(1);
-            expect(scaleDown).to.be.null;
+            const { required } = autoScale();
+            expect(required).to.eql(1);
         });
         it('should scale based on high durations', async () => {
             const scale = async (data) => {
-                data[0].sent += 100;
+                data[0].sent += 400;
                 data[0].responses += 30;
                 streamService.reportStats(data);
                 await delay(100);
@@ -312,14 +308,13 @@ describe('Streaming', () => {
                 nodeName: 'D',
                 sent: 0,
                 responses: 0,
-                durations: [2.34, 3.56, 4.88, 5.12, 2.56, 3.57, 4.59, 1.57, 2.81, 4.23]
+                netDurations
             }];
             await scale(list);
             await scale(list);
             await scale(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.replicas).to.eql(4);
-            expect(scaleDown).to.be.null;
+            const { required } = autoScale();
+            expect(required).to.gte(10);
         });
         it('should scale based on low durations', async () => {
             const scale = async (data) => {
@@ -332,14 +327,13 @@ describe('Streaming', () => {
                 nodeName: 'D',
                 sent: 0,
                 responses: 0,
-                durations: [0.3, 0.2, 0.8, 0.7, 0.01, 0.1, 0.6, 0.2, 0.1]
+                netDurations
             }];
             await scale(list);
             await scale(list);
             await scale(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.replicas).to.eql(1);
-            expect(scaleDown).to.be.null;
+            const { required } = autoScale();
+            expect(required).to.eql(1);
         });
         it('should scale only up based on req/res rate', async () => {
             const scale = async (data) => {
@@ -359,6 +353,7 @@ describe('Streaming', () => {
                 sent: 10,
                 queueSize: 0,
                 currentSize: 0,
+                netDurations,
                 responses: 3
             }];
             await scale(list);
@@ -374,18 +369,12 @@ describe('Streaming', () => {
             const jobs4 = autoScale();
             const jobs5 = autoScale();
             const jobs6 = autoScale();
-            expect(jobs1.scaleUp.replicas).to.eql(1);
-            expect(jobs2.scaleUp).to.be.null;
-            expect(jobs3.scaleUp).to.be.null;
-            expect(jobs4.scaleUp).to.be.null;
-            expect(jobs5.scaleUp).to.be.null;
-            expect(jobs6.scaleUp).to.be.null;
-            expect(jobs1.scaleDown).to.be.null;
-            expect(jobs2.scaleDown).to.be.null;
-            expect(jobs3.scaleDown).to.be.null;
-            expect(jobs4.scaleDown).to.be.null;
-            expect(jobs5.scaleDown).to.be.null;
-            expect(jobs6.scaleDown).to.be.null;
+            expect(jobs1.required).to.gte(4);
+            expect(jobs2.required).to.gte(4);
+            expect(jobs3.required).to.gte(4);
+            expect(jobs4.required).to.gte(4);
+            expect(jobs5.required).to.gte(4);
+            expect(jobs6.required).to.gte(4);
         });
     });
     describe('scale-down', () => {
@@ -410,7 +399,7 @@ describe('Streaming', () => {
                 sent: 0,
                 queueSize: 0,
                 responses: 0,
-                durations: [0.08, 0.09, 0.08, 0.02, 0.01, 0.08, 0.069, 0.05, 0.05]
+                netDurations
             }];
             await requestsUp(list);
             await requestsUp(list);
@@ -421,42 +410,36 @@ describe('Streaming', () => {
             await responsesUp(list);
             const jobs3 = autoScale();
             const jobs4 = autoScale();
-            expect(jobs1.scaleUp.replicas).to.eql(1);
-            expect(jobs2.scaleUp).to.be.null;
-            expect(jobs2.scaleUp).to.be.null;
-            expect(jobs3.scaleUp).to.be.null;
-            expect(jobs3.scaleDown.replicas).to.eql(1);
-            expect(jobs4.scaleUp).to.be.null;
-            expect(jobs4.scaleDown).to.be.null;
+            expect(jobs1.required).to.gte(1);
+            expect(jobs2.required).to.gte(1);
+            expect(jobs3.required).to.gte(7);
+            expect(jobs4.required).to.gte(7);
         });
         it('should scale up and down based on no requests and no responses', async () => {
             const nodeName = 'D';
             const requestsUp = async (data) => {
-                data[0].queueSize = 100;
+                data[0].sent = 100;
                 data[0].responses = 100;
                 streamService.reportStats(data);
                 await delay(100);
             }
             const list = [{
                 nodeName,
-                currentSize: 1,
+                currentSize: 0,
                 sent: 0,
-                queueSize: 0,
                 responses: 0,
-                durations: [0.3, 0.2, 0.8, 0.7, 0.01, 0.1, 0.6, 0.2, 0.1]
+                netDurations
             }];
             await requestsUp(list);
             await requestsUp(list);
             await requestsUp(list);
             await requestsUp(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleDown.replicas).to.eql(1);
-            expect(scaleUp).to.be.null;
+            const scale = autoScale();
+            expect(scale.required).to.eql(0);
         });
         it('should scale down based on zero ratio', async () => {
             const nodeName = 'D';
             const requests = async (data) => {
-                data[0].currentSize = 5;
                 data[0].queueSize = 100;
                 data[0].responses = 100;
                 streamService.reportStats(data);
@@ -465,6 +448,7 @@ describe('Streaming', () => {
             const list = [{
                 nodeName,
                 sent: 0,
+                currentSize: 5,
                 queueSize: 0,
                 responses: 0
             }];
@@ -472,8 +456,8 @@ describe('Streaming', () => {
             await requests(list);
             await requests(list);
             await requests(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp).to.be.null;
+            const scale = autoScale();
+            expect(scale.required).to.eql(0);
         });
         it('should not scale down based on responses', async () => {
             const nodeName = 'D';
@@ -490,9 +474,8 @@ describe('Streaming', () => {
             await requests(list);
             await requests(list);
             await requests(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp).to.be.null;
-            expect(scaleDown).to.be.null;
+            const scale = autoScale();
+            expect(scale.required).to.eql(0);
         });
         it('should not scale down based on currentSize', async () => {
             const nodeName = 'D';
@@ -512,9 +495,8 @@ describe('Streaming', () => {
             await requests(list);
             await requests(list);
             await requests(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp).to.be.null;
-            expect(scaleDown).to.be.null;
+            const scale = autoScale();
+            expect(scale.required).to.eql(0);
         });
     });
     describe('scale-conflicts', () => {
@@ -533,25 +515,19 @@ describe('Streaming', () => {
                 await delay(50);
             }
             const currentSize = 0;
-            const list1 = [{ nodeName, queueSize: 150, responses: 30, currentSize }];
-            const list2 = { nodeName, queueSize: 450, responses: 150, currentSize };
+            const list1 = [{ nodeName, queueSize: 150, responses: 30, netDurations, currentSize }];
+            const list2 = { nodeName, queueSize: 450, responses: 150, netDurations, currentSize };
             const slave = new SlaveAdapter({ jobId, nodeName, source: 'B' });
             await requests(list1);
             await requests(list1);
             await requests(list1);
             await requests(list1);
-
             await reportSlave(slave, list2);
             await reportSlave(slave, list2);
             await reportSlave(slave, list2);
             await reportSlave(slave, list2);
-
-            const { scaleUp, scaleDown } = autoScale();
-
-            expect(scaleUp.currentSize).to.eql(currentSize);
-            expect(scaleUp.replicas).to.eql(1);
-            expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
-            expect(scaleDown).to.be.null;
+            const scale = autoScale();
+            expect(scale.required).to.gte(30);
         });
         it('should not scale up based on avg master and slaves', async () => {
             const nodeName = 'D';
@@ -562,10 +538,10 @@ describe('Streaming', () => {
                 await delay(50)
             }
             const currentSize = 0;
-            const list1 = { nodeName, queueSize: 300, responses: 40, currentSize };
-            const list2 = { nodeName, queueSize: 300, responses: 60, currentSize };
-            const list3 = { nodeName, queueSize: 300, responses: 80, currentSize };
-            const list4 = { nodeName, queueSize: 300, responses: 100, currentSize };
+            const list1 = { nodeName, queueSize: 300, responses: 40, netDurations, currentSize };
+            const list2 = { nodeName, queueSize: 300, responses: 60, netDurations, currentSize };
+            const list3 = { nodeName, queueSize: 300, responses: 80, netDurations, currentSize };
+            const list4 = { nodeName, queueSize: 300, responses: 100, netDurations, currentSize };
             const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
             const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
             const slave3 = new SlaveAdapter({ jobId, nodeName, source: 'C' });
@@ -590,35 +566,31 @@ describe('Streaming', () => {
             slave4.report(list4);
             slave4.report(list4);
             await delay(200);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.currentSize).to.eql(currentSize);
-            expect(scaleUp.replicas).to.gte(1);
-            expect(scaleUp.scaleTo).to.gte(scaleUp.replicas + currentSize);
-            expect(scaleDown).to.be.null;
+            const scale = autoScale();
+            expect(scale.required).to.gte(30);
         });
     });
     describe('no-scale', () => {
         it('should not scale when no relevant data', async () => {
-            const scale = async (data) => {
+            const reportStats = async (data) => {
                 streamService.reportStats(data);
                 await delay(100);
             }
             const list = [{
                 nodeName: 'D'
             }];
-            await scale(list);
-            await scale(list);
-            await scale(list);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp).to.be.null;
-            expect(scaleDown).to.be.null;
+            await reportStats(list);
+            await reportStats(list);
+            await reportStats(list);
+            const scale = autoScale();
+            expect(scale.required).to.eql(0);
         });
         it('should not over the maxSizeWindow', async () => {
             const nodeName = 'D';
             const data = [{
                 nodeName,
                 queueSize: 10,
-                durations: [2.34, 3.56, 4.88, 5.12, 2.56, 3.57, 4.59, 1.57, 2.81, 4.23]
+                netDurations
             }];
             streamService.reportStats(data);
             streamService.reportStats(data);
@@ -631,7 +603,7 @@ describe('Streaming', () => {
             const key = Object.keys(statsData)[0];
             const stats = statsData[key];
             const { requests, responses, durations } = stats;
-            const maxSizeWindow = testParams.config.streaming.autoScaler.maxSizeWindow;
+            const maxSizeWindow = testParams.config.streaming.autoScaler.statistics.maxSizeWindow;
             expect(requests.items).to.have.lengthOf(maxSizeWindow);
             expect(responses.items).to.have.lengthOf(maxSizeWindow);
             expect(durations.items).to.have.lengthOf(maxSizeWindow);
@@ -719,9 +691,9 @@ describe('Streaming', () => {
                 await delay(20);
             }
             const currentSize = 0;
-            const list = [{ nodeName, queueSize: 150, responses: 30, currentSize }];
-            const list1 = { nodeName, queueSize: 300, responses: 80, currentSize };
-            const list2 = { nodeName, queueSize: 450, responses: 140, currentSize };
+            const list = [{ nodeName, queueSize: 150, responses: 30, netDurations, currentSize }];
+            const list1 = { nodeName, queueSize: 300, responses: 80, netDurations, currentSize };
+            const list2 = { nodeName, queueSize: 450, responses: 140, netDurations, currentSize };
             const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
             const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
             const slave3 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
@@ -751,14 +723,12 @@ describe('Streaming', () => {
             await reportSlave(slave4, list2);
             await delay(200);
 
-            const { scaleUp, scaleDown } = autoScale();
+            const scale = autoScale();
             const metrics = checkMetrics();
 
             expect(metrics.map(t => t.source).sort()).to.eql(['A', 'B', 'C']);
             expect(metrics).to.have.lengthOf(3);
-            expect(scaleUp.currentSize).to.eql(currentSize);
-            expect(scaleUp.replicas).to.gte(2);
-            expect(scaleDown).to.be.null;
+            expect(scale.required).to.gte(3);
         });
         it('should start and finish correctly', async () => {
             expect(streamService._jobData).to.be.not.null;
