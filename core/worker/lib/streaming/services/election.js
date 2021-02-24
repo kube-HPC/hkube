@@ -37,6 +37,8 @@ class Election {
     async stop() {
         this._electInterval?.stop();
         await this._unElectNodes();
+        this._addAdapter = null;
+        this._getMasters = null;
     }
 
     async _election(nodes) {
@@ -45,7 +47,9 @@ class Election {
 
     async _electNode(options) {
         const lock = await stateAdapter.acquireStreamingLock(options);
-        this._addAdapter({ isMaster: lock.success, ...options });
+        if (this._addAdapter) {
+            this._addAdapter({ isMaster: lock.success, ...options });
+        }
     }
 
     async _unElectNodes() {

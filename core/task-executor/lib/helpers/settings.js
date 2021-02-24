@@ -1,15 +1,16 @@
-const settingsFactory = () => (
-    {
-        useResourceLimits: false,
-        applyResources: false,
-        labels: {}
-    }
-);
+const settingsFactory = () => {
+    return (
+        {
+            useResourceLimits: false,
+            applyResources: false,
+            labels: {}
+        }
+    );
+};
 
-let settings = settingsFactory();
+const settings = settingsFactory();
 
 const setFromConfig = (config) => {
-    settings = settingsFactory();
     if (!config) {
         return;
     }

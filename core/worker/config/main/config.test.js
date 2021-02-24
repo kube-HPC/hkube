@@ -8,12 +8,14 @@ config.workerCommunication = {
 config.streaming = {
     autoScaler: {
         interval: 60000,
-        minTimeWaitBeforeScaleUp: 100,
-        minTimeWaitBeforeScaleDown: 100,
-        maxSizeWindow: 4,
-        minTimeNonStatsReport: 5000,
-        maxScaleUpReplicas: 10,
-        maxTimeIdleBeforeReplicaDown: 0
+        scaleInterval: 10,
+        scaleDown: {
+            maxTimeIdleBeforeReplicaDown: 0
+        },
+        statistics: {
+            maxSizeWindow: 4,
+            minTimeNonStatsReport: 5000,
+        }
     },
     serviceDiscovery: {
         interval: 60000
