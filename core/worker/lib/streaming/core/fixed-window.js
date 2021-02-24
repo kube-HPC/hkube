@@ -26,14 +26,6 @@ class FixedWindow {
     get items() {
         return this._array;
     }
-
-    get size() {
-        return this._array.length;
-    }
-
-    get maxSize() {
-        return this._maxSize;
-    }
 }
 
 module.exports = FixedWindow;
