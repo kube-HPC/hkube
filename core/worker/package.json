@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "2.0.22",
+    "version": "2.0.26",
     "description": "worker process",
     "main": "app.js",
     "scripts": {
@@ -21,7 +21,7 @@
     "dependencies": {
         "@hkube/config": "^2.0.11",
         "@hkube/consts": "^1.0.31",
-        "@hkube/dag": "^2.1.10",
+        "@hkube/dag": "^2.1.11",
         "@hkube/db": "^1.0.19",
         "@hkube/encoding": "^1.0.21",
         "@hkube/etcd": "^5.1.2",
@@ -49,7 +49,6 @@
         "request": "^2.88.2",
         "request-promise": "^4.2.5",
         "socket.io": "^2.3.0",
-        "string-template": "^1.0.0",
         "tail": "^2.0.3",
         "ws": "^7.2.3"
     },
