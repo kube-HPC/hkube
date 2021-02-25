@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const nock = require('nock');
 const HttpStatus = require('http-status-codes');
+const pathLib = require('path');
 const merge = require('lodash.merge');
 const { uid: uuid } = require('@hkube/uid');
 const stateManager = require('../lib/state/state-manager');
@@ -24,6 +25,7 @@ describe('Store/Algorithms', () => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/store/algorithms`;
         applyPath = `${restPath}/apply`;
+        debugRestUrl = `${restPath}/debug`;
         versionsPath = `${restUrl}/versions/algorithms`;
         nock(baseApi).persist().get(emptyGit).query(true).reply(HttpStatus.BAD_REQUEST, 'Git Repository is empty');
         nock(baseApi).persist().get(fullGit).query(true).reply(HttpStatus.OK, commit.data);
@@ -1725,4 +1727,19 @@ describe('Store/Algorithms', () => {
             expect(response.body).to.eql({ ...defaultProps, ...body });
         });
     });
+    describe('/store/algorithms/debug POST', () => {
+        it('should succeed to set debugUrl', async () => {
+            const body = {
+                name: uuid(),
+            }
+            const options = {
+                uri: debugRestUrl,
+                body
+            };
+            const response = await request(options);
+            const { version, created, modified, data, ...algorithm } = response.body;
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(data.path).to.eql(pathLib.join(process.env.INGRESS_PREFIX || '', 'hkube', 'debug', body.name));
+        });
+    })
 });
