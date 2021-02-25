@@ -143,6 +143,7 @@ class AutoScaler {
             const avgQueueSize = Math.round(mean(rates.map(r => r.queueSize)));
             const avgWindowSize = Math.round(mean(windowSize));
             const processingTimeMs = formatNumber(mean(rates.map(r => r.processingTime)));
+            const roundTripTimeMs = formatNumber(mean(rates.map(r => r.roundTripTime)));
             const { required, desired, status } = this._scaler || {};
             const metric = {
                 source,
@@ -153,9 +154,10 @@ class AutoScaler {
                 status,
                 reqRate,
                 resRate,
-                processingTimeMs,
                 queueSize,
                 avgQueueSize,
+                processingTimeMs,
+                roundTripTimeMs,
                 durationsRate,
                 grossDurationsRate,
                 throughput,
