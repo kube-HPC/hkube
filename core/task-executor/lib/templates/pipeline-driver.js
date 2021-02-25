@@ -72,6 +72,15 @@ const template = {
                                 }
                             },
                             {
+                                name: 'STORAGE_RESULTS_THRESHOLD',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'pipeline-driver-configmap',
+                                        key: 'STORAGE_RESULTS_THRESHOLD'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {
