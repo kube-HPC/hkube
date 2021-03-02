@@ -202,7 +202,7 @@ class AutoScaler {
         const requiredByDurationRate = calcRatio(reqRate, durationsRate);
         const idleScaleDown = this._shouldIdleScaleDown({ reqRate, resRate });
         const canScaleDown = this._markQueueSize(queueSize);
-        const requiredByQueueSize = this._scaledQueueSize(durationsRate, queueSize, currentSize);
+        const requiredByQueueSize = this._scaledQueueSize({ durationsRate, queueSize });
         const requiredByDuration = requiredByDurationRate + requiredByQueueSize;
 
         let required = null;
@@ -231,7 +231,7 @@ class AutoScaler {
         return result;
     }
 
-    _scaledQueueSize(durationsRate, queueSize) {
+    _scaledQueueSize({ durationsRate, queueSize }) {
         if (!durationsRate || !queueSize) {
             return 0;
         }
