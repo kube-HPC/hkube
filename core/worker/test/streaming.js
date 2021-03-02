@@ -137,7 +137,7 @@ const msgPerSec = 30;
 const duration = SEC / msgPerSec;
 const netDurations = Array.from(Array(10).fill(duration));
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     before(async () => {
         await stateAdapter._db.jobs.create({ pipeline, jobId });
         await streamHandler.start(job);
