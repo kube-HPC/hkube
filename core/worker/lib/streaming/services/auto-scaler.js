@@ -66,8 +66,8 @@ class AutoScaler {
                     return queue?.pendingAmount || queue?.data?.length;
                 },
                 getUnScheduledAlgorithm: async () => {
-                    const unScheduledAlgorithms = await stateAdapter.getUnScheduledAlgorithms();
-                    return unScheduledAlgorithms[this._algorithmName];
+                    const algorithm = await stateAdapter.getUnScheduledAlgorithm(this._algorithmName);
+                    return algorithm;
                 },
                 scaleUp: (scale) => {
                     this._scaleUp(scale);
