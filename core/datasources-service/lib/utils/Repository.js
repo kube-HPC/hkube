@@ -68,7 +68,7 @@ class Repository extends RepositoryBase {
 
         await fse.copyFile(
             pathLib.resolve('lib', 'utils', 'dvcConfigTemplates', 's3.txt'),
-            `${this.dvc.cwd}/.dvc/config.template`
+            pathLib.join(this.dvc.cwd, '.dvc', 'config.template')
         );
     }
 
