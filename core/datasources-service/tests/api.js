@@ -39,7 +39,6 @@ const createDataSource = async (
         fileNames = [fileName],
         ignoreGit = false,
         ignoreStorage = false,
-        useGitOrganization = false,
         useGitlab = false,
         storageOverrides = {},
         gitOverrides = {},

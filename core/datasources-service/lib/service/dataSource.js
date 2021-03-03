@@ -9,6 +9,8 @@ const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const { ResourceNotFoundError } = require('../errors');
+const { Github } = require('../utils/GitRemoteClient');
+const gitToken = require('./gitToken');
 
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
@@ -38,6 +40,38 @@ class DataSource {
         this.config = config;
         this.db = dbConnection.connection;
         await fse.ensureDir(this.config.directories.gitRepositories);
+    }
+
+    get internalGitConfig() {
+        const credentials = {
+            token: gitToken.hash,
+            tokenName: null,
+        };
+        const config = {
+            kind: 'internal',
+            endpoint: this.config.git.github.endpoint,
+        };
+        return {
+            credentials,
+            config,
+        };
+    }
+
+    get internalStorageConfig() {
+        const credentials = {
+            accessKeyId: this.config.s3.accessKeyId,
+            secretAccessKey: this.config.s3.secretAccessKey,
+        };
+        /** @type {StorageConfig} */
+        const config = {
+            kind: 'S3',
+            endpoint: this.config.s3.endpoint,
+            bucketName: this.config.s3.bucketName,
+        };
+        return {
+            credentials,
+            config,
+        };
     }
 
     /**
@@ -322,15 +356,25 @@ class DataSource {
      *     };
      * }} query
      */
-    async create({ name, git, storage, files: _files }) {
-        /** @type {GitConfig} */
+    async create({ name, git: _git, storage, files: _files }) {
+        let { repositoryUrl } = _git;
 
-        // eslint-disable-next-line
-        let { repositoryUrl } = git;
-        if (git.kind === 'internal') {
-            // create repository
-            // repositoryUrl = gitClient.createRepository(name)
+        // create repository when using internal git
+        /** @type {Github} */
+        let gitClient;
+        if (_git.kind === 'internal') {
+            const { credentials, config } = this.internalGitConfig;
+            gitClient = new Github({
+                ...credentials,
+                ...config,
+            });
+            repositoryUrl = await gitClient.createRepository(name);
         }
+
+        const git = {
+            ..._git,
+            repositoryUrl,
+        };
 
         const { token, tokenName, ...gitConfig } = git;
         const { accessKeyId, secretAccessKey, ...storageConfig } = storage;
@@ -341,8 +385,10 @@ class DataSource {
             files: _files,
         });
 
-        const credentials = (() => {
+        let credentials = (() => {
             const _credentials = {};
+            // if internal do not store the token to the db
+            // it will be appended later on
             if (git.kind !== 'internal') {
                 _credentials.git = { token, tokenName };
             }
@@ -361,6 +407,25 @@ class DataSource {
             storage: storageConfig,
             credentials,
         });
+
+        // append the internal token
+        credentials = (() => {
+            const _credentials = { ...credentials };
+            if (git.kind === 'internal') {
+                _credentials.git = this.internalGitConfig.credentials;
+            }
+            if (storage.kind === 'internal') {
+                _credentials.storage = this.internalStorageConfig.credentials;
+            }
+            return _credentials;
+        })();
+
+        // prepare config for internal storage
+        const _storageConfig =
+            storage.kind === 'internal'
+                ? this.internalStorageConfig.config
+                : storageConfig;
+
         let updatedDataSource;
         /** @type {Repository} */
         const repository = new Repository(
@@ -368,10 +433,10 @@ class DataSource {
             this.config,
             this.config.directories.gitRepositories,
             gitConfig,
-            storageConfig,
+            _storageConfig,
             credentials
         );
-        // eslint-disable-next-line
+
         try {
             await repository.setup();
             const { commitHash, files } = await this.commitChange({

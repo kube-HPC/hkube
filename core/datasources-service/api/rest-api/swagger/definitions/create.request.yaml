@@ -37,6 +37,7 @@ properties:
                           - internal
               required:
                   - kind
+
     git:
         type: object
         description: |

@@ -19,8 +19,14 @@ class DataSources {
      * @param {{
      *     name: string;
      *     files: Express.Multer.File[];
-     *     git: GitConfig;
-     *     storage: StorageConfig;
+     *     git: GitConfig & {
+     *         token: string;
+     *         tokenName?: string;
+     *     };
+     *     storage: StorageConfig & {
+     *         accessKeyId: string;
+     *         secretAccessKey: string;
+     *     };
      * }} props
      */
     async create(props) {
@@ -31,11 +37,14 @@ class DataSources {
             ...props,
             files,
         });
+        if (props.storage.kind === 'internal') return;
+
         const url = new URL(props.storage.endpoint);
         let port = parseInt(url.port, 10);
         if (Number.isNaN(port)) {
             port = url.protocol === 'https:' ? 443 : 80;
         }
+
         const s3Client = new S3({
             endpoint: {
                 host: url.host,

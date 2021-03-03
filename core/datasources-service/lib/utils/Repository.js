@@ -54,21 +54,10 @@ class Repository extends RepositoryBase {
         credentials
     ) {
         super(repositoryName, rootDir, repositoryName);
-        // the git client can be useful when using internal
-        // const RemoteGitClientConstructor = GitClients[gitConfig.kind];
-        // if (!RemoteGitClientConstructor) {
-        //     throw new InvalidDataError('invalid git kind');
-        // }
-        // this.remoteGitClient = new RemoteGitClientConstructor(
-        //     credentials.git,
-        //     repositoryUrl,
-        //     serviceName
-        // );
         this.rawRepositoryUrl = gitConfig.repositoryUrl;
-
+        this.storageConfig = storageConfig;
         this.config = config;
         this.gitConfig = gitConfig;
-        this.storageConfig = storageConfig;
         this.credentials = credentials;
         this.generateDvcConfig = dvcConfig(
             this.storageConfig.kind,
