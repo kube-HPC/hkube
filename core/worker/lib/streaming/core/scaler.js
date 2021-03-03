@@ -6,7 +6,7 @@ let log;
 
 const SCALE_STATUS = {
     IDLE: 'idle',
-    UNABLE_SCALE: 'unable to scale',
+    UNABLE_SCALE: 'unable scale up',
     PENDING_QUEUE: 'pending queue scale up',
     PENDING_SCALE_UP: 'pending scale up',
     PENDING_SCALE_DOWN: 'pending scale down',
@@ -42,11 +42,11 @@ class Scaler {
     }
 
     stop() {
-        this._scaleInterval?.stop();
+        this._interval?.stop();
     }
 
     _startInterval() {
-        this._scaleInterval = new Interval({ delay: this._scaleInterval })
+        this._interval = new Interval({ delay: this._scaleInterval })
             .onFunc(() => this._checkScale())
             .onError((e) => log.throttle.error(e.message, { component }))
             .start();
@@ -56,21 +56,25 @@ class Scaler {
         if (!this._scale) {
             return;
         }
+
+        let pendingUp = false;
+        this._status = SCALE_STATUS.IDLE;
         const unScheduledAlgorithm = await this._getUnScheduledAlgorithm();
+
         if (unScheduledAlgorithm) {
-            this._status = SCALE_STATUS.UNABLE_SCALE;
-            return;
+            this._status = `${SCALE_STATUS.UNABLE_SCALE} ${unScheduledAlgorithm.message}`;
+            pendingUp = true;
+        }
+        else {
+            const queue = await this._getQueue();
+            if (queue) {
+                this._status = SCALE_STATUS.PENDING_QUEUE;
+                pendingUp = true;
+            }
         }
 
-        this._status = SCALE_STATUS.IDLE;
-        const queue = await this._getQueue();
-        let pendingQueue = false;
-        if (queue) {
-            this._status = SCALE_STATUS.PENDING_QUEUE;
-            pendingQueue = true;
-        }
         const currentSize = this._getCurrentSize();
-        const shouldScaleUp = pendingQueue ? false : this._shouldScaleUp(currentSize);
+        const shouldScaleUp = pendingUp ? false : this._shouldScaleUp(currentSize);
         const shouldScaleDown = this._shouldScaleDown(currentSize);
 
         if (shouldScaleUp) {

@@ -39,20 +39,6 @@ const formatNumber = (num) => {
     return parseFloat(num.toFixed(2));
 };
 
-const createFixedScale = (from, to) => (to[1] - to[0]) / (from[1] - from[0]);
-
-const createCappedScale = (from, to) => {
-    const scale = createFixedScale(from, to);
-    return value => {
-        const capped = Math.min(from[1], Math.max(from[0], value)) - from[0];
-        return to[0] + to[1] - (capped * scale + to[0]);
-    };
-};
-
-const fromScale = [0, 5000];
-const toScale = [5, 0];
-const scaleQueueSize = createCappedScale(fromScale, toScale);
-
 /**
  * This method calculates the rates and totals by looking at
  * statistics inside the fixed window.
@@ -75,13 +61,13 @@ const calcRates = (data) => {
     const grossDurationsRate = _calcDurations(data.grossDurations.items);
     const throughput = reqRate && resRate ? formatNumber((resRate / reqRate) * 100) : 0;
     const processingTime = mean(data.durations.items);
+    const roundTripTime = mean(data.grossDurations.items);
     const { queueSize, dropped } = data;
-    return { reqRate, resRate, durationsRate, grossDurationsRate, processingTime, throughput, queueSize, totalRequests, totalResponses, dropped };
+    return { reqRate, resRate, durationsRate, grossDurationsRate, processingTime, roundTripTime, throughput, queueSize, totalRequests, totalResponses, dropped };
 };
 
 module.exports = {
     calcRates,
     calcRatio,
-    formatNumber,
-    scaleQueueSize
+    formatNumber
 };

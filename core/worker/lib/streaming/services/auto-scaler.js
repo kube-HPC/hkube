@@ -4,7 +4,7 @@ const { sum, mean } = require('@hkube/stats');
 const { stateType } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
 const { Statistics, Scaler, Metrics, TimeMarker } = require('../core');
-const { calcRates, calcRatio, formatNumber, scaleQueueSize } = Metrics;
+const { calcRates, calcRatio, formatNumber } = Metrics;
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
 const { Components } = require('../../consts');
@@ -66,8 +66,8 @@ class AutoScaler {
                     return queue?.pendingAmount || queue?.data?.length;
                 },
                 getUnScheduledAlgorithm: async () => {
-                    const unScheduledAlgorithms = await stateAdapter.getUnScheduledAlgorithms();
-                    return unScheduledAlgorithms[this._algorithmName];
+                    const algorithm = await stateAdapter.getUnScheduledAlgorithm(this._algorithmName);
+                    return algorithm;
                 },
                 scaleUp: (scale) => {
                     this._scaleUp(scale);
@@ -143,6 +143,7 @@ class AutoScaler {
             const avgQueueSize = Math.round(mean(rates.map(r => r.queueSize)));
             const avgWindowSize = Math.round(mean(windowSize));
             const processingTimeMs = formatNumber(mean(rates.map(r => r.processingTime)));
+            const roundTripTimeMs = formatNumber(mean(rates.map(r => r.roundTripTime)));
             const { required, desired, status } = this._scaler || {};
             const metric = {
                 source,
@@ -153,9 +154,10 @@ class AutoScaler {
                 status,
                 reqRate,
                 resRate,
-                processingTimeMs,
                 queueSize,
                 avgQueueSize,
+                processingTimeMs,
+                roundTripTimeMs,
                 durationsRate,
                 grossDurationsRate,
                 throughput,
@@ -200,8 +202,8 @@ class AutoScaler {
         const requiredByDurationRate = calcRatio(reqRate, durationsRate);
         const idleScaleDown = this._shouldIdleScaleDown({ reqRate, resRate });
         const canScaleDown = this._markQueueSize(queueSize);
-        const scaledQueueSize = this._scaledQueueSize(durationsRate, queueSize, currentSize);
-        const requiredByDuration = requiredByDurationRate + scaledQueueSize;
+        const requiredByQueueSize = this._scaledQueueSize({ durationsRate, queueSize });
+        const requiredByDuration = requiredByDurationRate + requiredByQueueSize;
 
         let required = null;
 
@@ -229,15 +231,13 @@ class AutoScaler {
         return result;
     }
 
-    _scaledQueueSize(durationsRate, queueSize, currentSize) {
-        if (!durationsRate) {
+    _scaledQueueSize({ durationsRate, queueSize }) {
+        if (!durationsRate || !queueSize) {
             return 0;
         }
-        const msgPerSec = Math.ceil(durationsRate * currentSize);
-        const replicas = (queueSize - msgPerSec);
-        const requiredByQueueSize = Math.ceil(replicas / durationsRate);
-        const scaledQueueSize = Math.ceil(scaleQueueSize(requiredByQueueSize));
-        return scaledQueueSize;
+        const msgCleanUp = Math.ceil(durationsRate * this._config.queue.minTimeToCleanUpQueue);
+        const requiredByQueueSize = Math.ceil(queueSize / msgCleanUp);
+        return requiredByQueueSize;
     }
 
     _markQueueSize(queueSize) {

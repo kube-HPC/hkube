@@ -41,6 +41,7 @@ config.streaming = {
             maxTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 60000),
         },
         queue: {
+            minTimeToCleanUpQueue: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_CLEAN_QUEUE, 60),
             minQueueSizeBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_QUEUE_SIZE_BEFORE_SCALE_DOWN, 20),
             minTimeEmptyToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_QUEUE_EMPTY, 60000),
         }
