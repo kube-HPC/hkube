@@ -311,6 +311,11 @@ describe('/dataSource POST', () => {
             expect(dataSource.name).to.eq(name);
             expect(dataSource.files).to.have.lengthOf(1);
             expect(dataSource.repositoryUrl).to.match(/\/hkube\//i);
+            expect(
+                await fse.pathExists(
+                    `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config.template`
+                )
+            ).to.be.true;
         });
         it('should create a dataSource under a git organization', async () => {
             const name = uuid();
