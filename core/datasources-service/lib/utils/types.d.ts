@@ -5,7 +5,12 @@ export type MulterFile = Express.Multer.File;
 export type SourceTargetArray = [FileMeta, FileMeta];
 
 export type config = typeof configContent;
-export type gitConfig = typeof configContent.git;
+export type gitConfig = {
+    token: string;
+    tokenName: ?string;
+    kind: 'github' | 'gitlab';
+    repositoryUrl;
+};
 
 export type githubConfig = Omit<typeof configContent.git.github, 'user'>;
 export type gitlabConfig = typeof configContent.git.gitlab;

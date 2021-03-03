@@ -118,7 +118,7 @@ describe('/dataSource POST', () => {
                 );
             });
         });
-        describe('S3 config', () => {
+        describe.skip('S3 config', () => {
             it('should throw invalid accessKeyId', async () => {
                 const name = uuid();
                 const { body } = await createDataSource({
@@ -216,7 +216,7 @@ describe('/dataSource POST', () => {
                 );
             });
         });
-        describe('Git config', () => {
+        describe.skip('Git config', () => {
             it('should throw invalid kind', async () => {
                 const name = uuid();
                 const { body } = await createDataSource({
@@ -243,26 +243,12 @@ describe('/dataSource POST', () => {
                 expect(body.error.code).to.eq(400);
                 expect(body.error.message).to.match(/Invalid git token/);
             });
-            it('should throw invalid organization', async () => {
-                const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
-                    gitOverrides: {
-                        organization: 'non-existing',
-                    },
-                });
-                expect(body).to.have.ownProperty('error');
-                expect(body.error.code).to.eq(400);
-                expect(body.error.message).to.match(
-                    /Invalid Git endpoint or organization/i
-                );
-            });
             it('should throw invalid endpoint', async () => {
                 const name = uuid();
                 const { body } = await createDataSource({
                     body: { name },
                     gitOverrides: {
-                        endpoint: 'https://not-existing.com',
+                        // : 'https://not-existing.com',
                     },
                 });
                 expect(body).to.have.ownProperty('error');
@@ -286,13 +272,13 @@ describe('/dataSource POST', () => {
         });
     });
     describe('create', () => {
-        it("should create a new dataSource and return it's newly created id and files list", async () => {
+        it.only("should create a new dataSource and return it's newly created id and files list", async () => {
             const name = uuid();
             const deleteClone = mockDeleteClone();
             const {
                 response: { statusCode },
                 body: dataSource,
-            } = await createDataSource({ body: { name } });
+            } = await createDataSource(name);
             expect(deleteClone.getCalls()).to.have.lengthOf(1);
             expect(statusCode).to.eql(StatusCodes.CREATED);
             expect(dataSource).to.have.keys(
@@ -302,7 +288,8 @@ describe('/dataSource POST', () => {
                 'fileTypes',
                 'commitHash',
                 'avgFileSize',
-                'repositoryUrl',
+                'git',
+                'storage',
                 'versionDescription',
                 'filesCount',
                 'totalSize'
@@ -310,37 +297,18 @@ describe('/dataSource POST', () => {
             expect(dataSource.id).to.be.string;
             expect(dataSource.name).to.eq(name);
             expect(dataSource.files).to.have.lengthOf(1);
-            expect(dataSource.repositoryUrl).to.match(/\/hkube\//i);
+            expect(dataSource.git).to.have.keys(['kind', 'repositoryUrl']);
+            expect(dataSource.storage).to.have.keys([
+                'kind',
+                'endpoint',
+                'bucketName',
+            ]);
+            expect(dataSource.git.repositoryUrl).to.match(/\/hkube\//i);
             expect(
                 await fse.pathExists(
                     `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config.template`
                 )
             ).to.be.true;
-        });
-        it('should create a dataSource under a git organization', async () => {
-            const name = uuid();
-            const deleteClone = mockDeleteClone();
-            const {
-                response: { statusCode },
-                body: dataSource,
-            } = await createDataSource({
-                body: { name },
-                useGitOrganization: true,
-            });
-
-            expect(deleteClone.getCalls()).to.have.lengthOf(1);
-            expect(statusCode).to.eql(StatusCodes.CREATED);
-            expect(dataSource.repositoryUrl).to.match(/\/hkube-org\//i);
-            const hkubeFile = await fse.readFile(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/hkube`,
-                'utf8'
-            );
-            expect(JSON.parse(hkubeFile)).to.eql({ repositoryName: name });
-            const config = fse.readFileSync(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config.local`,
-                'utf8'
-            );
-            expect(config).to.match(new RegExp(name));
         });
         it('should create a dataSource using internal git', async () => {
             const name = uuid();

@@ -25,6 +25,7 @@ properties:
                   bucketName:
                       type: string
               required:
+                  - kind
                   - accessKeyId
                   - secretAccessKey
                   - endpoint
@@ -44,10 +45,9 @@ properties:
             no other parameters are required
         oneOf:
             - properties:
-                  organization:
-                      type: string
-                  endpoint:
-                      $ref: '#/components/schemas/URL'
+                  repositoryUrl:
+                      description: provide an EMPTY(!) git repository
+                      $ref: '#/components/schemas/GitURL'
                   token:
                       type: string
                   tokenName:
@@ -59,7 +59,7 @@ properties:
                           - github
                           - gitlab
               required:
-                  - endpoint
+                  - repositoryUrl
                   - token
                   - kind
             - properties:

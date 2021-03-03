@@ -6,16 +6,17 @@ const {
     filePath: { extractRelativePath, getFilePath },
 } = require('@hkube/datasource-utils');
 const { default: simpleGit } = require('simple-git');
-const { Github, Gitlab } = require('./GitRemoteClient');
+// const { Github, Gitlab } = require('./GitRemoteClient');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
-const { serviceName } = require('../../config/main/config.base');
+// const { serviceName } = require('../../config/main/config.base');
 const dedicatedStorage = require('./../DedicatedStorage');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 /**
  * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig
  * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig
+ * @typedef {import('@hkube/db/lib/DataSource').Credentials} Credentials
  * @typedef {import('./types').FileMeta} FileMeta
  * @typedef {import('./types').LocalFileMeta} LocalFileMeta
  * @typedef {import('./types').MulterFile} MulterFile
@@ -23,43 +24,82 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
  * @typedef {import('./types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./types').config} config
  */
+
 /**
  * @typedef {{ [path: string]: T }} ByPath
  * @template T
  */
 
-const GitClients = {
-    internal: Github,
-    github: Github,
-    gitlab: Gitlab,
-};
+// const GitClients = {
+//     internal: Github,
+//     github: Github,
+//     gitlab: Gitlab,
+// };
 
 class Repository extends RepositoryBase {
     /**
-     * @param {string} repositoryName
-     * @param {config} config
-     * @param {string} rootDir
-     * @param {string} repositoryUrl
-     * @param {{ git: GitConfig; storage: StorageConfig }} credentials
+     * @param {string}        repositoryName
+     * @param {config}        config
+     * @param {string}        rootDir
+     * @param {GitConfig}     gitConfig
+     * @param {StorageConfig} storageConfig
+     * @param {Credentials}   credentials
      */
-    constructor(repositoryName, config, rootDir, repositoryUrl, credentials) {
+    constructor(
+        repositoryName,
+        config,
+        rootDir,
+        gitConfig,
+        storageConfig,
+        credentials
+    ) {
         super(repositoryName, rootDir, repositoryName);
-        const RemoteGitClientConstructor = GitClients[credentials.git.kind];
-        if (!RemoteGitClientConstructor) {
-            throw new InvalidDataError('invalid git kind');
-        }
-        this.remoteGitClient = new RemoteGitClientConstructor(
-            credentials.git,
-            repositoryUrl,
-            serviceName
-        );
+        // the git client can be useful when using internal
+        // const RemoteGitClientConstructor = GitClients[gitConfig.kind];
+        // if (!RemoteGitClientConstructor) {
+        //     throw new InvalidDataError('invalid git kind');
+        // }
+        // this.remoteGitClient = new RemoteGitClientConstructor(
+        //     credentials.git,
+        //     repositoryUrl,
+        //     serviceName
+        // );
+        this.rawRepositoryUrl = gitConfig.repositoryUrl;
+
         this.config = config;
-        this.gitConfig = credentials.git;
-        this.storageConfig = credentials.storage;
+        this.gitConfig = gitConfig;
+        this.storageConfig = storageConfig;
+        this.credentials = credentials;
         this.generateDvcConfig = dvcConfig(
-            this.config.dvcStorage,
-            this.storageConfig
+            this.storageConfig.kind,
+            this.storageConfig,
+            this.credentials.storage
         );
+    }
+
+    get repositoryUrl() {
+        if (!this.rawRepositoryUrl) return null;
+        const url = new URL(this.rawRepositoryUrl);
+        const { git } = this.credentials;
+        const { kind } = this.gitConfig;
+        if (kind === 'gitlab') {
+            if (git.token && git.tokenName) {
+                url.username = git.tokenName;
+                url.password = git.token;
+            } else {
+                throw new InvalidDataError(
+                    "missing gitlab 'token' or 'tokenName'"
+                );
+            }
+            return url.toString();
+        }
+        if (['github', 'internal'].includes(kind)) {
+            if (git.token) {
+                url.username = git.token;
+            }
+            return url.toString();
+        }
+        throw new InvalidDataError('invalid git kind');
     }
 
     async _setupDvcRepository() {
@@ -92,30 +132,23 @@ class Repository extends RepositoryBase {
     }
 
     async setup() {
-        await fse.ensureDir(`${this.cwd}/data`);
-        let repositoryUrl = null;
-        try {
-            repositoryUrl = await this.remoteGitClient.createRepository(
-                this.repositoryName
+        // clone the repo, setup dvc in it
+        await this.ensureClone(null, false);
+        const dir = await fse.readdir(this.cwd);
+        if (dir.length !== 1 || dir[0] !== '.git') {
+            throw new InvalidDataError(
+                'the provided git repository is not empty'
             );
-        } catch (error) {
-            if (error.status) {
-                throw error;
-            }
-            throw new Error('failed creating remote repository');
         }
-        const git = simpleGit({ baseDir: `${this.cwd}` });
-        await git.init();
-        await git.addRemote('origin', this.remoteGitClient.repositoryUrl);
+
         await this._setupDvcRepository();
         await this.createHkubeFile();
-        await git.add('.');
-        const response = await git.commit('initialized');
-        await git.push(['--set-upstream', 'origin', 'master']);
+        await this.gitClient.add('.');
+        const response = await this.gitClient.commit('initialized');
+        await this.gitClient.push(['--set-upstream', 'origin', 'master']);
         return {
             ...response,
             commit: response.commit.replace(/(.+) /, ''),
-            repositoryUrl,
         };
     }
 
@@ -146,19 +179,24 @@ class Repository extends RepositoryBase {
         return response;
     }
 
-    /** @param {string} [commitHash] */
-    async ensureClone(commitHash) {
+    /** @param {string=} commitHash */
+    async ensureClone(commitHash, shouldConfigDvc = true) {
         await fse.ensureDir(this.cwd);
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
         if (!hasClone) {
             await simpleGit({ baseDir: this.rootDir }).clone(
-                this.remoteGitClient.repositoryUrl
+                this.repositoryUrl
             );
         }
         // @ts-ignore
         this.gitClient = simpleGit({ baseDir: this.cwd });
         if (commitHash) await this.gitClient.checkout(commitHash);
-        await this.dvc.config(this.generateDvcConfig(this.repositoryName));
+        if (shouldConfigDvc) return this.configDvc();
+        return null;
+    }
+
+    async configDvc() {
+        return this.dvc.config(this.generateDvcConfig(this.repositoryName));
     }
 
     /**

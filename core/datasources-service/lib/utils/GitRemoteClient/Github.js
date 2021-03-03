@@ -7,6 +7,7 @@ const gitToken = require('./../../service/gitToken');
 
 /** @augments {Base<githubConfig>} */
 class Github extends Base {
+    /** @param {githubConfig} config */
     constructor(config, rawRepositoryUrl, serviceName) {
         super(config, rawRepositoryUrl, serviceName);
         this.token = config.token;

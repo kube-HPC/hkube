@@ -3,7 +3,7 @@ const { uuid } = require('@hkube/uid');
 const { Producer } = require('@hkube/producer-consumer');
 const qs = require('query-string');
 const { request } = require('./request');
-const { fileName } = require('./utils');
+const { fileName, createRepository } = require('./utils');
 
 /** @typedef {{ message: string; code: number }} ErrorResponse */
 /**
@@ -30,36 +30,54 @@ const setupUrl = ({ name, id }) => {
  * @typedef {import('@hkube/db/lib/DataSource').DataSourceWithMeta} DataSourceWithMeta
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
  */
-/** @returns {Response<DataSource>} */
-const createDataSource = ({
-    body = {},
-    withFile = true,
-    fileNames = [fileName],
-    ignoreGit = false,
-    ignoreStorage = false,
-    useGitOrganization = false,
-    useGitlab = false,
-    storageOverrides = {},
-    gitOverrides = {},
-    useInternalStorage = false,
-    useInternalGit = false,
-} = {}) => {
-    // @ts-ignore
-    const { storage, git, restUrl } = global.testParams;
-    /** @type {import('../lib/utils/types').gitConfig} */
-    const { github, gitlab } = git;
 
+/** @returns {Response<DataSource>} */
+const createDataSource = async (
+    name,
+    {
+        withFile = true,
+        fileNames = [fileName],
+        ignoreGit = false,
+        ignoreStorage = false,
+        useGitOrganization = false,
+        useGitlab = false,
+        storageOverrides = {},
+        gitOverrides = {},
+        useInternalStorage = false,
+        useInternalGit = false,
+    } = {}
+) => {
+    // @ts-ignore
+    const { storage, git, restUrl, _git } = global.testParams;
+
+    const gitKind = (() => {
+        if (useInternalGit) return 'internal';
+        if (useGitlab) return 'gitlab';
+        return 'github';
+    })();
+
+    let repositoryUrl;
+    if (!useInternalGit) {
+        repositoryUrl = await createRepository(
+            {
+                endpoint: _git[gitKind].endpoint,
+                token: git[gitKind].token,
+                kind: gitKind,
+            },
+            name
+        );
+    }
+
+    /** @type {import('../lib/utils/types').gitConfig} */
     const gitConfig = (() => {
         if (ignoreGit) return;
-        if (useGitlab) return gitlab;
-        if (useGitOrganization) return github;
-        const { organization, ...rest } = github;
-        return rest;
+        if (gitKind === 'internal') return;
+        return { ...git[gitKind], repositoryUrl };
     })();
 
     const uri = `${restUrl}/datasource`;
     const formData = {
-        ...body,
+        name,
         files: withFile
             ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`))
             : undefined,
@@ -69,7 +87,7 @@ const createDataSource = ({
                   storage: JSON.stringify(
                       useInternalStorage
                           ? { kind: 'internal' }
-                          : { ...storage, ...storageOverrides }
+                          : { kind: 'S3', ...storage, ...storageOverrides }
                   ),
               }),
         ...(ignoreGit

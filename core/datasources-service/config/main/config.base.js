@@ -83,7 +83,6 @@ config.git = {
             name: process.env.GIT_USER_NAME || 'hkube',
             password: process.env.GIT_PASSWORD || '123456',
         },
-        organization: process.env.GIT_ORGANIZATION || 'hkube-org',
         endpoint: process.env.GIT_ENDPOINT_URL || 'http://localhost:3010',
         /** @type {string} */
         token: process.env.GIT_TOKEN || null,

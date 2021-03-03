@@ -37,6 +37,22 @@ before(async function () {
     const githubTokenHash = githubToken.sha1;
     gitlabToken = getGitlabToken(config.git.gitlab);
 
+    const { git, _git } = (() => {
+        const { github, gitlab } = config.git;
+        const { endpoint: githubEndpoint, user, ...githubRest } = github;
+        const { endpoint: gitlabEndpoint, ...gitlabRest } = gitlab;
+        return {
+            _git: {
+                github: { user, endpoint: githubEndpoint },
+                gitlab: { endpoint: gitlabEndpoint },
+            },
+            git: {
+                github: { ...githubRest, token: githubTokenHash },
+                gitlab: gitlabRest,
+            },
+        };
+    })();
+
     // @ts-ignore
     global.testParams = {
         restUrl,
@@ -46,13 +62,12 @@ before(async function () {
         STORAGE_DIR,
         mountedDir: getDatasourcesInUseFolder(config),
         storage: config.s3,
-        git: {
-            ...config.git,
-            github: {
-                ...config.git.github,
-                token: githubTokenHash,
-            },
+        gitEndpoint: {
+            github: config.git.github.endpoint,
+            gitlab: config.git.gitlab.endpoint,
         },
+        _git,
+        git,
         directories: config.directories,
     };
 });
