@@ -17,7 +17,7 @@ describe('/datasource/:name POST', () => {
     });
     it('should throw missing filesAdded, filesDropped and mapping error', async () => {
         const name = uuid();
-        await createDataSource({ body: { name } });
+        await createDataSource(name);
         const { response: uploadResponse } = await updateVersion({
             dataSourceName: name,
         });
@@ -37,9 +37,7 @@ describe('/datasource/:name POST', () => {
     });
     it('should upload a new file to the dataSource and get a new version', async () => {
         const name = uuid();
-        const { body: firstVersion } = await createDataSource({
-            body: { name },
-        });
+        const { body: firstVersion } = await createDataSource(name);
         const secondFileName = 'README-2.md';
         const { response: uploadResponse } = await updateVersion({
             dataSourceName: name,
@@ -68,7 +66,7 @@ describe('/datasource/:name POST', () => {
     });
     it('should upload multiple files to the dataSource', async () => {
         const name = uuid();
-        await createDataSource({ body: { name } });
+        await createDataSource(name);
         mockDeleteClone();
         const { response: uploadResponse } = await updateVersion({
             dataSourceName: name,
@@ -116,9 +114,7 @@ describe('/datasource/:name POST', () => {
     });
     it('should move a file', async () => {
         const name = uuid();
-        const { body: dataSource } = await createDataSource({
-            body: { name },
-        });
+        const { body: dataSource } = await createDataSource(name);
         const [existingFile] = dataSource.files;
         const { response: uploadResponse } = await updateVersion({
             dataSourceName: name,
@@ -144,9 +140,7 @@ describe('/datasource/:name POST', () => {
     });
     it('delete a file', async () => {
         const name = uuid();
-        const { body: dataSource } = await createDataSource({
-            body: { name },
-        });
+        const { body: dataSource } = await createDataSource(name);
         const [existingFile] = dataSource.files;
         const { body: updatedVersion } = await updateVersion({
             dataSourceName: name,
@@ -158,9 +152,7 @@ describe('/datasource/:name POST', () => {
     });
     it('should return status 200 if nothing was updated', async () => {
         const name = uuid();
-        const { body: dataSource } = await createDataSource({
-            body: { name },
-        });
+        const { body: dataSource } = await createDataSource(name);
         const [existingFile] = dataSource.files;
         const uploadResponse = await updateVersion({
             dataSourceName: name,
@@ -175,9 +167,7 @@ describe('/datasource/:name POST', () => {
             const {
                 body: dataSource,
                 response: { statusCode },
-            } = await createDataSource({
-                body: { name },
-            });
+            } = await createDataSource(name);
             expect(statusCode).to.eq(201);
             const [existingFile] = dataSource.files;
             expect(existingFile.size).to.eq(107);
@@ -205,11 +195,11 @@ describe('/datasource/:name POST', () => {
             const {
                 body: dataSource,
                 response: { statusCode },
-            } = await createDataSource({
-                body: { name },
+            } = await createDataSource(name, {
                 useInternalGit: true,
                 useInternalStorage: true,
             });
+
             expect(statusCode).to.eq(201);
             const [existingFile] = dataSource.files;
             expect(existingFile.size).to.eq(107);
@@ -237,8 +227,7 @@ describe('/datasource/:name POST', () => {
             const {
                 body: dataSource,
                 response: { statusCode },
-            } = await createDataSource({
-                body: { name },
+            } = await createDataSource(name, {
                 useGitlab: true,
                 useInternalStorage: true,
             });
@@ -267,9 +256,7 @@ describe('/datasource/:name POST', () => {
     });
     it('should upload a file with spaces in its name', async () => {
         const name = uuid();
-        await createDataSource({
-            body: { name },
-        });
+        await createDataSource(name);
 
         const fileNames = ['algorithm spaces.json', 'algorithms.json'];
 
@@ -290,9 +277,7 @@ describe('/datasource/:name POST', () => {
     });
     it('should upload a file with meta data to a sub-dir', async () => {
         const name = uuid();
-        await createDataSource({
-            body: { name },
-        });
+        await createDataSource(name);
         const uploadResponse = await updateVersion({
             dataSourceName: name,
             files: [

@@ -49,7 +49,7 @@ const fetchGitlabRepo = async repositoryUrl => {
 
 const listDvcRepository = async name => dedicatedStorage.list({ path: name });
 
-describe('Datasource', () => {
+describe.skip('Datasource', () => {
     before(() => {
         // @ts-ignore
         restUrl = global.testParams.restUrl;

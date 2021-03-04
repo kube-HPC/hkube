@@ -20,7 +20,7 @@ const waitForStatus = async ({ jobId, taskId }, status) => {
     return state;
 };
 
-describe('JobsConsumer', () => {
+describe.skip('JobsConsumer', () => {
     before(() => {
         jobConsumer = require('../lib/service/jobs-consumer');
         // @ts-ignore

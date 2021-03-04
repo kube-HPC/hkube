@@ -12,6 +12,7 @@ const dvcConfig = require('./dvcConfig');
 // const { serviceName } = require('../../config/main/config.base');
 const dedicatedStorage = require('./../DedicatedStorage');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
+const { Github } = require('./GitRemoteClient');
 
 /**
  * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig
@@ -29,12 +30,6 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
  * @typedef {{ [path: string]: T }} ByPath
  * @template T
  */
-
-// const GitClients = {
-//     internal: Github,
-//     github: Github,
-//     gitlab: Gitlab,
-// };
 
 class Repository extends RepositoryBase {
     /**
@@ -129,7 +124,6 @@ class Repository extends RepositoryBase {
                 'the provided git repository is not empty'
             );
         }
-
         await this._setupDvcRepository();
         await this.createHkubeFile();
         await this.gitClient.add('.');
@@ -386,19 +380,42 @@ class Repository extends RepositoryBase {
      */
     async delete(allowNotFound = false) {
         let response;
-        try {
-            response = await Promise.allSettled([
+        const promises = [];
+        const { kind: storageKind } = this.storageConfig;
+        if (storageKind === 'internal') {
+            promises.push(
                 dedicatedStorage.delete({
                     path: this.repositoryName,
-                }),
-                this.remoteGitClient.deleteRepository(this.repositoryName),
-            ]);
+                })
+            );
+        }
+        if (this.gitConfig.kind === 'internal') {
+            const remoteGitClient = new Github(
+                {
+                    endpoint: this.config.git.github.endpoint,
+                    kind: 'internal',
+                    token: null,
+                },
+                this.rawRepositoryUrl,
+                this.config.serviceName
+            );
+            promises.push(
+                remoteGitClient.deleteRepository(this.repositoryName)
+            );
+        }
+        try {
+            response = await Promise.allSettled(promises);
         } catch (error) {
             if (allowNotFound) return null;
             throw error;
         }
+        if (response.length === 0) return null;
         // @ts-ignore
-        if (response[0].length === 0 && !allowNotFound) {
+        if (
+            storageKind === 'internal' &&
+            response[0].length === 0 &&
+            !allowNotFound
+        ) {
             throw new ResourceNotFoundError('datasource', this.repositoryName);
         }
         return response;

@@ -3,7 +3,7 @@ const { StatusCodes } = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const { syncDataSource, createDataSource } = require('./api');
 
-describe('sync', () => {
+describe.skip('sync', () => {
     describe('validation', () => {
         it('should fail on non existing datasource', async () => {
             const { response } = await syncDataSource({

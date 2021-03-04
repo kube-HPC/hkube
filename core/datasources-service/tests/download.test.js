@@ -12,7 +12,7 @@ const {
 
 let ZIP_DIRECTORY;
 
-describe('download', () => {
+describe.skip('download', () => {
     before(() => {
         // @ts-ignore
         ZIP_DIRECTORY = global.testParams.directories.zipFiles;

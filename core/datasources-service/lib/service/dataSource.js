@@ -294,6 +294,28 @@ class DataSource {
     }
 
     /**
+     * @type {(
+     * source: Credentials,
+     * gitConfig: GitConfig,
+     * storageConfig: StorageConfig
+     * ) => Credentials}
+     * @typedef {import('@hkube/db/lib/DataSource').Credentials} Credentials
+     */
+    setupCredentials(source, gitConfig, storageConfig) {
+        const { git, storage } = source;
+        return {
+            git:
+                gitConfig.kind === 'internal'
+                    ? this.internalGitConfig.credentials
+                    : git,
+            storage:
+                storageConfig.kind === 'internal'
+                    ? this.internalStorageConfig.credentials
+                    : storage,
+        };
+    }
+
+    /**
      * @param {{
      *     name: string;
      *     versionDescription: string;
@@ -316,12 +338,25 @@ class DataSource {
             name,
         });
 
+        // prepare config for internal storage
+        const _storageConfig =
+            createdVersion.storage.kind === 'internal'
+                ? this.internalStorageConfig.config
+                : createdVersion.storage;
+
+        const credentials = this.setupCredentials(
+            createdVersion._credentials,
+            createdVersion.git,
+            createdVersion.storage
+        );
+
         const repository = new Repository(
             name,
             this.config,
             this.config.directories.gitRepositories,
-            createdVersion.repositoryUrl,
-            createdVersion._credentials
+            createdVersion.git,
+            _storageConfig,
+            credentials
         );
 
         const { commitHash, files } = await this.commitChange({
@@ -408,17 +443,8 @@ class DataSource {
             credentials,
         });
 
-        // append the internal token
-        credentials = (() => {
-            const _credentials = { ...credentials };
-            if (git.kind === 'internal') {
-                _credentials.git = this.internalGitConfig.credentials;
-            }
-            if (storage.kind === 'internal') {
-                _credentials.storage = this.internalStorageConfig.credentials;
-            }
-            return _credentials;
-        })();
+        // @ts-ignore
+        credentials = this.setupCredentials(credentials, git, storage);
 
         // prepare config for internal storage
         const _storageConfig =
@@ -450,7 +476,6 @@ class DataSource {
                 commitHash,
             });
         } catch (error) {
-            // if internal delete repository
             await this.db.dataSources.delete({ name }, { allowNotFound: true });
             await repository.delete(true);
             throw error;

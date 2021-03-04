@@ -9,7 +9,7 @@ const { mockDeleteClone } = require('./utils');
 const DataSourceValidation = require('./../lib/validation/dataSources');
 let DATASOURCE_GIT_REPOS_DIR;
 
-describe.only('/dataSource POST', () => {
+describe('/dataSource POST', () => {
     before(() => {
         // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
@@ -237,7 +237,7 @@ describe.only('/dataSource POST', () => {
                 );
             });
 
-            it('should throw invalid token- bypass initial validation', async () => {
+            it('should throw invalid token - bypass initial validation', async () => {
                 const mock = sinon.fake.resolves('The method is mocked!');
                 sinon.replace(
                     DataSourceValidation.prototype,
