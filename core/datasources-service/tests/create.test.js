@@ -2,10 +2,11 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const { StatusCodes } = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
+const sinon = require('sinon');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { createDataSource } = require('./api');
 const { mockDeleteClone } = require('./utils');
-
+const DataSourceValidation = require('./../lib/validation/dataSources');
 let DATASOURCE_GIT_REPOS_DIR;
 
 describe.only('/dataSource POST', () => {
@@ -13,7 +14,7 @@ describe.only('/dataSource POST', () => {
         // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
     });
-    describe.only('validation', () => {
+    describe('validation', () => {
         it('should throw missing git information', async () => {
             const name = uuid();
             const response = await createDataSource(name, {
@@ -208,7 +209,7 @@ describe.only('/dataSource POST', () => {
                 );
             });
         });
-        describe.only('Git config', () => {
+        describe('Git config', () => {
             it('should throw invalid kind', async () => {
                 const name = uuid();
                 const { body } = await createDataSource(name, {
@@ -222,7 +223,7 @@ describe.only('/dataSource POST', () => {
                     /be equal to one of the allowed values/
                 );
             });
-            it.only('should throw invalid token', async () => {
+            it('should throw invalid token', async () => {
                 const name = uuid();
                 const { body } = await createDataSource(name, {
                     gitOverrides: {
@@ -231,31 +232,56 @@ describe.only('/dataSource POST', () => {
                 });
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
-                expect(body.error.message).to.match(/Invalid git token/);
+                expect(body.error.message).to.match(
+                    /invalid git token or repository url/i
+                );
             });
-            it('should throw invalid endpoint', async () => {
+
+            it('should throw invalid token- bypass initial validation', async () => {
+                const mock = sinon.fake.resolves('The method is mocked!');
+                sinon.replace(
+                    DataSourceValidation.prototype,
+                    'validateGit',
+                    mock
+                );
                 const name = uuid();
                 const { body } = await createDataSource(name, {
                     gitOverrides: {
-                        // : 'https://not-existing.com',
+                        token: 'bad-token',
+                    },
+                });
+                sinon.restore();
+                expect(body).to.have.ownProperty('error');
+                expect(body.error.code).to.eq(400);
+                expect(body.error.message).to.match(/invalid git token/i);
+            });
+
+            it('should throw invalid repositoryUrl', async () => {
+                const name = uuid();
+                const { body } = await createDataSource(name, {
+                    gitOverrides: {
+                        repositoryUrl: 'non-existing',
                     },
                 });
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
                 expect(body.error.message).to.match(
-                    /invalid git endpoint or organization name/i
+                    /invalid git repository url provided/i
                 );
             });
-            it('should throw invalid endpoint - bad format', async () => {
+            it('should throw non existing repositoryUrl', async () => {
                 const name = uuid();
                 const { body } = await createDataSource(name, {
                     gitOverrides: {
-                        endpoint: 'non-existing',
+                        repositoryUrl:
+                            'http://localhost:3010/irrelevant/non-existing.git',
                     },
                 });
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
-                expect(body.error.message).to.match(/invalid url/i);
+                expect(body.error.message).to.match(
+                    /invalid git token or repository url/i
+                );
             });
         });
     });

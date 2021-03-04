@@ -1,6 +1,7 @@
 const { S3 } = require('aws-sdk');
 const dbConnect = require('../db');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
+const { Github } = require('../utils/GitRemoteClient');
 
 /**
  * @typedef {import('express')} Express
@@ -39,20 +40,24 @@ class DataSources {
             ...props,
             files,
         });
-        await this._validateStorage(props.storage);
-        // await this._validateGit(props.git);
+        await this.validateStorage(props.storage);
+        await this.validateGit(props.git);
     }
 
     /** @param {GitProps} git */
-    // eslint-disable-next-line
-    async _validateGit(git) {
-        // if (git.kind === 'internal') return;u
-        // not implemented
-        // validate the repository exists and the token is valid
+    async validateGit(git) {
+        switch (git.kind) {
+            case 'internal':
+                return null;
+            case 'github':
+                return Github.validateRepository(git.repositoryUrl, git.token);
+            default:
+                return null;
+        }
     }
 
     /** @param {StorageProps} storage */
-    async _validateStorage(storage) {
+    async validateStorage(storage) {
         if (storage.kind === 'internal') return;
 
         const url = new URL(storage.endpoint);

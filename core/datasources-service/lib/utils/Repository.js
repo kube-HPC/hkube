@@ -174,9 +174,9 @@ class Repository extends RepositoryBase {
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
         if (!hasClone) {
             try {
-                await simpleGit({ baseDir: this.rootDir }).clone(
-                    this.repositoryUrl
-                );
+                await simpleGit({ baseDir: this.rootDir })
+                    .env('GIT_TERMINAL_PROMPT', '0')
+                    .clone(this.repositoryUrl);
             } catch (error) {
                 if (
                     error?.message.match(/could not read Password for/i) ||
