@@ -144,7 +144,7 @@ class Worker {
 
     async _scaleDown({ reason }) {
         log.warning(reason, { component });
-        const { jobId } = jobConsumer.jobData || {};
+        const { jobId } = jobConsumer.jobData;
         if (jobId) {
             await this._stopAllPipelinesAndExecutions({ jobId, reason });
         }
@@ -442,7 +442,7 @@ class Worker {
             await this._tryDeleteWorkerState();
             await this._stopAllPipelinesAndExecutions({ jobId, reason: 'parent pipeline exit' });
 
-            this._tryToSendCommand({ command: messages.outgoing.exit });
+            this._tryToSendCommand({ command: messages.outgoing.exit, data: { exitCode: 0 } });
             const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
             if (terminated) {
                 log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
@@ -534,7 +534,7 @@ class Worker {
 
     _registerToStateEvents() {
         stateManager.on(stateEvents.stateEntered, async ({ job, state, results, isTtlExpired, forceStop }) => {
-            const { jobId } = jobConsumer.jobData || {};
+            const { jobId } = jobConsumer.jobData;
             let pendingTransition = null;
             let reason = null;
             log.info(`Entering state: ${state}`, { component });

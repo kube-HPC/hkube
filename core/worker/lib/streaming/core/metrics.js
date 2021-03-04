@@ -39,6 +39,10 @@ const formatNumber = (num) => {
     return parseFloat(num.toFixed(2));
 };
 
+const relDiff = (a, b) => {
+    return Math.abs((a - b) / ((a + b) / 2));
+};
+
 /**
  * This method calculates the rates and totals by looking at
  * statistics inside the fixed window.
@@ -69,5 +73,6 @@ const calcRates = (data) => {
 module.exports = {
     calcRates,
     calcRatio,
-    formatNumber
+    formatNumber,
+    relDiff
 };

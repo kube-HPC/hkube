@@ -193,7 +193,7 @@ class AlgorithmExecution {
                 throw new Error(`execution ${execId} already running`);
             }
             const { jobData } = jobConsumer;
-            if (!jobData) {
+            if (!jobData.jobId) {
                 throw new Error('execution cannot start in this state');
             }
 
