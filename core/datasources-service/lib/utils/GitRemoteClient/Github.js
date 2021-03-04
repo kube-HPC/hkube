@@ -1,5 +1,5 @@
 const { Octokit } = require('@octokit/rest');
-const { InvalidDataError } = require('../../errors');
+const { InvalidDataError, ResourceExistsError } = require('../../errors');
 const Base = require('./Base');
 const gitToken = require('./../../service/gitToken');
 
@@ -50,6 +50,8 @@ class Github extends Base {
             }
         } catch (error) {
             switch (error.status) {
+                case 409:
+                    throw new ResourceExistsError('DataSource', name);
                 case 500:
                 case 404:
                     throw new InvalidDataError(

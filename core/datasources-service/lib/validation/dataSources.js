@@ -8,6 +8,14 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
  * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig;
  * @typedef {import('../utils/types').FileMeta} FileMeta
  * @typedef {Express.Multer.File[]} MulterFile
+ * @typedef {GitConfig & {
+ *     token: string;
+ *     tokenName?: string;
+ * }} GitProps
+ * @typedef {StorageConfig & {
+ *     accessKeyId: string;
+ *     secretAccessKey: string;
+ * }} StorageProps
  */
 
 class DataSources {
@@ -19,14 +27,8 @@ class DataSources {
      * @param {{
      *     name: string;
      *     files: Express.Multer.File[];
-     *     git: GitConfig & {
-     *         token: string;
-     *         tokenName?: string;
-     *     };
-     *     storage: StorageConfig & {
-     *         accessKeyId: string;
-     *         secretAccessKey: string;
-     *     };
+     *     git: GitProps;
+     *     storage: StorageProps;
      * }} props
      */
     async create(props) {
@@ -37,9 +39,23 @@ class DataSources {
             ...props,
             files,
         });
-        if (props.storage.kind === 'internal') return;
+        await this._validateStorage(props.storage);
+        // await this._validateGit(props.git);
+    }
 
-        const url = new URL(props.storage.endpoint);
+    /** @param {GitProps} git */
+    // eslint-disable-next-line
+    async _validateGit(git) {
+        // if (git.kind === 'internal') return;u
+        // not implemented
+        // validate the repository exists and the token is valid
+    }
+
+    /** @param {StorageProps} storage */
+    async _validateStorage(storage) {
+        if (storage.kind === 'internal') return;
+
+        const url = new URL(storage.endpoint);
         let port = parseInt(url.port, 10);
         if (Number.isNaN(port)) {
             port = url.protocol === 'https:' ? 443 : 80;
@@ -56,15 +72,15 @@ class DataSources {
             s3ForcePathStyle: true,
             s3BucketEndpoint: false,
             credentials: {
-                accessKeyId: props.storage.accessKeyId,
-                secretAccessKey: props.storage.secretAccessKey,
+                accessKeyId: storage.accessKeyId,
+                secretAccessKey: storage.secretAccessKey,
             },
         });
         try {
             // validate the bucket exists and the permissions are valid
             await s3Client
                 .headBucket({
-                    Bucket: props.storage.bucketName,
+                    Bucket: storage.bucketName,
                 })
                 .promise();
         } catch (error) {

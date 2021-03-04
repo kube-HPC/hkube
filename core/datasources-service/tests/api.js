@@ -44,6 +44,7 @@ const createDataSource = async (
         gitOverrides = {},
         useInternalStorage = false,
         useInternalGit = false,
+        skipCreateRepository = false,
     } = {}
 ) => {
     // @ts-ignore
@@ -56,7 +57,7 @@ const createDataSource = async (
     })();
 
     let repositoryUrl;
-    if (!useInternalGit) {
+    if (!useInternalGit && !skipCreateRepository && name) {
         repositoryUrl = await createRepository(
             {
                 endpoint: _git[gitKind].endpoint,
@@ -75,30 +76,35 @@ const createDataSource = async (
     })();
 
     const uri = `${restUrl}/datasource`;
-    const formData = {
-        name,
-        files: withFile
-            ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`))
-            : undefined,
-        ...(ignoreStorage
-            ? {}
-            : {
-                  storage: JSON.stringify(
-                      useInternalStorage
-                          ? { kind: 'internal' }
-                          : { kind: 'S3', ...storage, ...storageOverrides }
-                  ),
-              }),
-        ...(ignoreGit
-            ? {}
-            : {
-                  git: JSON.stringify(
-                      useInternalGit
-                          ? { kind: 'internal' }
-                          : { ...gitConfig, ...gitOverrides }
-                  ),
-              }),
-    };
+
+    const formData = (() => {
+        const form = {};
+        // check for string for empty name
+        if (typeof name === 'string' || name) {
+            form.name = name;
+        }
+        if (withFile) {
+            form.files = fileNames.map(name =>
+                fse.createReadStream(`tests/mocks/${name}`)
+            );
+        }
+        if (!ignoreStorage) {
+            form.storage = JSON.stringify(
+                useInternalStorage
+                    ? { kind: 'internal' }
+                    : { kind: 'S3', ...storage, ...storageOverrides }
+            );
+        }
+        if (!ignoreGit) {
+            form.git = JSON.stringify(
+                useInternalGit
+                    ? { kind: 'internal' }
+                    : { ...gitConfig, ...gitOverrides }
+            );
+        }
+        return form;
+    })();
+
     const options = { uri, formData };
     return request(options);
 };

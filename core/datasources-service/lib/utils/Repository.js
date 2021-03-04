@@ -173,9 +173,19 @@ class Repository extends RepositoryBase {
         await fse.ensureDir(this.cwd);
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
         if (!hasClone) {
-            await simpleGit({ baseDir: this.rootDir }).clone(
-                this.repositoryUrl
-            );
+            try {
+                await simpleGit({ baseDir: this.rootDir }).clone(
+                    this.repositoryUrl
+                );
+            } catch (error) {
+                if (
+                    error?.message.match(/could not read Password for/i) ||
+                    error.message.match(/invalid credentials/i)
+                ) {
+                    throw new InvalidDataError('Invalid git token');
+                }
+                throw error;
+            }
         }
         // @ts-ignore
         this.gitClient = simpleGit({ baseDir: this.cwd });

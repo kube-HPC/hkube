@@ -357,8 +357,14 @@ class DataSource {
      * }} query
      */
     async create({ name, git: _git, storage, files: _files }) {
-        let { repositoryUrl } = _git;
+        await validator.dataSources.create({
+            name,
+            git: _git,
+            storage,
+            files: _files,
+        });
 
+        let { repositoryUrl = null } = _git;
         // create repository when using internal git
         /** @type {Github} */
         let gitClient;
@@ -378,12 +384,6 @@ class DataSource {
 
         const { token, tokenName, ...gitConfig } = git;
         const { accessKeyId, secretAccessKey, ...storageConfig } = storage;
-        await validator.dataSources.create({
-            name,
-            git,
-            storage,
-            files: _files,
-        });
 
         let credentials = (() => {
             const _credentials = {};
@@ -450,6 +450,7 @@ class DataSource {
                 commitHash,
             });
         } catch (error) {
+            // if internal delete repository
             await this.db.dataSources.delete({ name }, { allowNotFound: true });
             await repository.delete(true);
             throw error;
