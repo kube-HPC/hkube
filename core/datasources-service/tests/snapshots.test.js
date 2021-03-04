@@ -15,14 +15,12 @@ const sortBy = require('lodash.sortby');
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
  */
-describe.skip('snapshots', () => {
+describe('snapshots', () => {
     describe('create', () => {
         /** @type {DataSource} */
         let dataSource = null;
         before(async () => {
-            const { body: _dataSource } = await createDataSource({
-                body: { name: uid() },
-            });
+            const { body: _dataSource } = await createDataSource(uid());
             dataSource = _dataSource;
         });
         it('should create snapshot for the latest version by name', async () => {
@@ -146,8 +144,7 @@ describe.skip('snapshots', () => {
         let dataSource = null;
         const query = 'exciting information';
         before(async () => {
-            const _dataSource = await createDataSource({
-                body: { name: uid() },
+            const _dataSource = await createDataSource(uid(), {
                 fileNames: ['algorithms.json', 'logo.svg', 'logo.svg.meta'],
             });
             dataSource = _dataSource.body;
