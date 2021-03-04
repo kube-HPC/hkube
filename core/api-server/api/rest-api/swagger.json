@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.0.16",
+    "version": "2.0.28",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -198,17 +198,22 @@
                           ]
                         },
                         "dataSource": {
-                          "oneOf": [
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id"
+                              ]
+                            },
                             {
                               "type": "object",
                               "properties": {
                                 "name": {
-                                  "type": "string"
-                                },
-                                "version": {
-                                  "type": "string"
-                                },
-                                "query": {
                                   "type": "string"
                                 }
                               },
@@ -223,7 +228,12 @@
                                   "type": "string"
                                 },
                                 "snapshot": {
-                                  "type": "string"
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  }
                                 }
                               },
                               "required": [
@@ -595,17 +605,22 @@
                           ]
                         },
                         "dataSource": {
-                          "oneOf": [
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id"
+                              ]
+                            },
                             {
                               "type": "object",
                               "properties": {
                                 "name": {
-                                  "type": "string"
-                                },
-                                "version": {
-                                  "type": "string"
-                                },
-                                "query": {
                                   "type": "string"
                                 }
                               },
@@ -620,7 +635,12 @@
                                   "type": "string"
                                 },
                                 "snapshot": {
-                                  "type": "string"
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  }
                                 }
                               },
                               "required": [
@@ -1566,17 +1586,22 @@
                             ]
                           },
                           "dataSource": {
-                            "oneOf": [
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id"
+                                ]
+                              },
                               {
                                 "type": "object",
                                 "properties": {
                                   "name": {
-                                    "type": "string"
-                                  },
-                                  "version": {
-                                    "type": "string"
-                                  },
-                                  "query": {
                                     "type": "string"
                                   }
                                 },
@@ -1591,7 +1616,12 @@
                                     "type": "string"
                                   },
                                   "snapshot": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    }
                                   }
                                 },
                                 "required": [
@@ -1962,17 +1992,22 @@
                             ]
                           },
                           "dataSource": {
-                            "oneOf": [
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id"
+                                ]
+                              },
                               {
                                 "type": "object",
                                 "properties": {
                                   "name": {
-                                    "type": "string"
-                                  },
-                                  "version": {
-                                    "type": "string"
-                                  },
-                                  "query": {
                                     "type": "string"
                                   }
                                 },
@@ -1987,7 +2022,12 @@
                                     "type": "string"
                                   },
                                   "snapshot": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    }
                                   }
                                 },
                                 "required": [
@@ -3769,6 +3809,10 @@
                     "entryPoint": {
                       "type": "string"
                     },
+                    "dependencyInstallCmd": {
+                      "type": "string",
+                      "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
+                    },
                     "baseImage": {
                       "type": "string",
                       "description": "Custom docker image to be used as base to the newly built algorithm image"
@@ -4366,6 +4410,10 @@
                       "entryPoint": {
                         "type": "string"
                       },
+                      "dependencyInstallCmd": {
+                        "type": "string",
+                        "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
+                      },
                       "baseImage": {
                         "type": "string",
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
@@ -4609,6 +4657,10 @@
                   },
                   "entryPoint": {
                     "type": "string"
+                  },
+                  "dependencyInstallCmd": {
+                    "type": "string",
+                    "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                   },
                   "baseImage": {
                     "type": "string",
@@ -4909,6 +4961,10 @@
                   "entryPoint": {
                     "type": "string"
                   },
+                  "dependencyInstallCmd": {
+                    "type": "string",
+                    "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
+                  },
                   "baseImage": {
                     "type": "string",
                     "description": "Custom docker image to be used as base to the newly built algorithm image"
@@ -5194,6 +5250,10 @@
                       "entryPoint": {
                         "type": "string"
                       },
+                      "dependencyInstallCmd": {
+                        "type": "string",
+                        "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
+                      },
                       "baseImage": {
                         "type": "string",
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
@@ -5246,9 +5306,14 @@
                   "options": {
                     "type": "object",
                     "properties": {
-                      "setAsCurrent": {
+                      "forceUpdate": {
                         "type": "boolean",
                         "description": "should set the newly created version as current",
+                        "default": false
+                      },
+                      "forceBuild": {
+                        "type": "boolean",
+                        "description": "should force new build",
                         "default": false
                       }
                     }
@@ -5437,6 +5502,10 @@
                         },
                         "entryPoint": {
                           "type": "string"
+                        },
+                        "dependencyInstallCmd": {
+                          "type": "string",
+                          "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                         },
                         "baseImage": {
                           "type": "string",
@@ -5682,17 +5751,22 @@
                             ]
                           },
                           "dataSource": {
-                            "oneOf": [
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id"
+                                ]
+                              },
                               {
                                 "type": "object",
                                 "properties": {
                                   "name": {
-                                    "type": "string"
-                                  },
-                                  "version": {
-                                    "type": "string"
-                                  },
-                                  "query": {
                                     "type": "string"
                                   }
                                 },
@@ -5707,7 +5781,12 @@
                                     "type": "string"
                                   },
                                   "snapshot": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    }
                                   }
                                 },
                                 "required": [
@@ -6181,17 +6260,22 @@
                               ]
                             },
                             "dataSource": {
-                              "oneOf": [
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "id"
+                                  ]
+                                },
                                 {
                                   "type": "object",
                                   "properties": {
                                     "name": {
-                                      "type": "string"
-                                    },
-                                    "version": {
-                                      "type": "string"
-                                    },
-                                    "query": {
                                       "type": "string"
                                     }
                                   },
@@ -6206,7 +6290,12 @@
                                       "type": "string"
                                     },
                                     "snapshot": {
-                                      "type": "string"
+                                      "type": "object",
+                                      "properties": {
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      }
                                     }
                                   },
                                   "required": [
@@ -6536,17 +6625,22 @@
                           ]
                         },
                         "dataSource": {
-                          "oneOf": [
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id"
+                              ]
+                            },
                             {
                               "type": "object",
                               "properties": {
                                 "name": {
-                                  "type": "string"
-                                },
-                                "version": {
-                                  "type": "string"
-                                },
-                                "query": {
                                   "type": "string"
                                 }
                               },
@@ -6561,7 +6655,12 @@
                                   "type": "string"
                                 },
                                 "snapshot": {
-                                  "type": "string"
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  }
                                 }
                               },
                               "required": [
@@ -6867,17 +6966,22 @@
                             ]
                           },
                           "dataSource": {
-                            "oneOf": [
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id"
+                                ]
+                              },
                               {
                                 "type": "object",
                                 "properties": {
                                   "name": {
-                                    "type": "string"
-                                  },
-                                  "version": {
-                                    "type": "string"
-                                  },
-                                  "query": {
                                     "type": "string"
                                   }
                                 },
@@ -6892,7 +6996,12 @@
                                     "type": "string"
                                   },
                                   "snapshot": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    }
                                   }
                                 },
                                 "required": [
@@ -7259,17 +7368,22 @@
                           ]
                         },
                         "dataSource": {
-                          "oneOf": [
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id"
+                              ]
+                            },
                             {
                               "type": "object",
                               "properties": {
                                 "name": {
-                                  "type": "string"
-                                },
-                                "version": {
-                                  "type": "string"
-                                },
-                                "query": {
                                   "type": "string"
                                 }
                               },
@@ -7284,7 +7398,12 @@
                                   "type": "string"
                                 },
                                 "snapshot": {
-                                  "type": "string"
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  }
                                 }
                               },
                               "required": [
@@ -7590,17 +7709,22 @@
                             ]
                           },
                           "dataSource": {
-                            "oneOf": [
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id"
+                                ]
+                              },
                               {
                                 "type": "object",
                                 "properties": {
                                   "name": {
-                                    "type": "string"
-                                  },
-                                  "version": {
-                                    "type": "string"
-                                  },
-                                  "query": {
                                     "type": "string"
                                   }
                                 },
@@ -7615,7 +7739,12 @@
                                     "type": "string"
                                   },
                                   "snapshot": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    }
                                   }
                                 },
                                 "required": [
@@ -10047,6 +10176,10 @@
                       "entryPoint": {
                         "type": "string"
                       },
+                      "dependencyInstallCmd": {
+                        "type": "string",
+                        "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
+                      },
                       "baseImage": {
                         "type": "string",
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
@@ -10358,6 +10491,10 @@
                       },
                       "entryPoint": {
                         "type": "string"
+                      },
+                      "dependencyInstallCmd": {
+                        "type": "string",
+                        "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                       },
                       "baseImage": {
                         "type": "string",
@@ -12604,6 +12741,10 @@
           "entryPoint": {
             "type": "string"
           },
+          "dependencyInstallCmd": {
+            "type": "string",
+            "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
+          },
           "baseImage": {
             "type": "string",
             "description": "Custom docker image to be used as base to the newly built algorithm image"
@@ -12789,9 +12930,14 @@
       "algorithmApplyOptions": {
         "type": "object",
         "properties": {
-          "setAsCurrent": {
+          "forceUpdate": {
             "type": "boolean",
             "description": "should set the newly created version as current",
+            "default": false
+          },
+          "forceBuild": {
+            "type": "boolean",
+            "description": "should force new build",
             "default": false
           }
         }
@@ -12963,6 +13109,10 @@
               },
               "entryPoint": {
                 "type": "string"
+              },
+              "dependencyInstallCmd": {
+                "type": "string",
+                "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
               },
               "baseImage": {
                 "type": "string",
@@ -13144,16 +13294,10 @@
           "name"
         ]
       },
-      "dataSource-raw": {
+      "dataSource-name": {
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
-          },
-          "version": {
-            "type": "string"
-          },
-          "query": {
             "type": "string"
           }
         },
@@ -13168,12 +13312,28 @@
             "type": "string"
           },
           "snapshot": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
           }
         },
         "required": [
           "name",
           "snapshot"
+        ]
+      },
+      "dataSource-id": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
         ]
       },
       "defaultResponse": {
@@ -13421,17 +13581,22 @@
                   ]
                 },
                 "dataSource": {
-                  "oneOf": [
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ]
+                    },
                     {
                       "type": "object",
                       "properties": {
                         "name": {
-                          "type": "string"
-                        },
-                        "version": {
-                          "type": "string"
-                        },
-                        "query": {
                           "type": "string"
                         }
                       },
@@ -13446,7 +13611,12 @@
                           "type": "string"
                         },
                         "snapshot": {
-                          "type": "string"
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -13724,17 +13894,22 @@
             ]
           },
           "dataSource": {
-            "oneOf": [
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              },
               {
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string"
-                  },
-                  "version": {
-                    "type": "string"
-                  },
-                  "query": {
                     "type": "string"
                   }
                 },
@@ -13749,7 +13924,12 @@
                     "type": "string"
                   },
                   "snapshot": {
-                    "type": "string"
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "required": [
