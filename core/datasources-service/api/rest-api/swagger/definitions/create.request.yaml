@@ -47,7 +47,7 @@ properties:
         oneOf:
             - properties:
                   repositoryUrl:
-                      description: provide an EMPTY(!) git repository
+                      description: provide a url to an empty git repository
                       $ref: '#/components/schemas/GitURL'
                   token:
                       type: string

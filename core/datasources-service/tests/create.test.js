@@ -47,7 +47,7 @@ describe('/dataSource POST', () => {
         });
         it('should throw validation error of long dataSource name', async () => {
             const response = await createDataSource(
-                `this-is-33-length-dataSource-name`,
+                'this-is-33-length-dataSource-name',
                 { useInternalGit: true }
             );
             expect(response.body).to.have.property('error');

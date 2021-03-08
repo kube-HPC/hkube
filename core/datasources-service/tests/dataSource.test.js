@@ -39,12 +39,12 @@ const fetchGithubRepo = name => {
 
 /** @returns {Promise<any>} */
 const fetchGitlabRepo = async repositoryUrl => {
-    // @ts-ignore
     const {
         git: { gitlab },
         _git: {
             gitlab: { endpoint },
         },
+        // @ts-ignore
     } = global.testParams;
     const client = new GitlabClient({
         host: endpoint,
