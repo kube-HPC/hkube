@@ -240,8 +240,11 @@ class AutoScaler {
     }
 
     _scaledQueueSize({ durationsRate, queueSize }) {
-        if (!durationsRate || !queueSize) {
+        if (!queueSize) {
             return 0;
+        }
+        if (!durationsRate) {
+            return this._config.scaleUp.replicasOnFirstScale;
         }
         const msgCleanUp = Math.ceil(durationsRate * this._config.queue.minTimeToCleanUpQueue);
         const requiredByQueueSize = Math.ceil(queueSize / msgCleanUp);
