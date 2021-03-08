@@ -169,7 +169,7 @@ describe('Streaming', () => {
             }];
             await scale(list);
             const { required } = autoScale();
-            expect(required).to.eql(1);
+            expect(required).to.gte(1);
         });
         it('should not scale if currentSize is fixed', async () => {
             const scale = async (data) => {
@@ -195,9 +195,9 @@ describe('Streaming', () => {
             await currentSize(list);
             const jobs4 = autoScale();
             const jobs5 = autoScale();
-            expect(jobs1.required).to.eql(1);
-            expect(jobs2.required).to.eql(1);
-            expect(jobs3.required).to.eql(1);
+            expect(jobs1.required).to.gte(1);
+            expect(jobs2.required).to.gte(1);
+            expect(jobs3.required).to.gte(1);
             expect(jobs4.required).to.gte(30);
             expect(jobs5.required).to.gte(30);
         });
@@ -213,7 +213,7 @@ describe('Streaming', () => {
             }];
             await scale(list);
             const { required } = autoScale();
-            expect(required).to.eql(1);
+            expect(required).to.gte(1);
         });
         it('should scale based on all params', async () => {
             const queueSize = 0;
@@ -295,7 +295,7 @@ describe('Streaming', () => {
             await scale(list);
             await scale(list);
             const { required } = autoScale();
-            expect(required).to.eql(1);
+            expect(required).to.gte(1);
         });
         it('should scale based on high durations', async () => {
             const scale = async (data) => {
@@ -333,7 +333,7 @@ describe('Streaming', () => {
             await scale(list);
             await scale(list);
             const { required } = autoScale();
-            expect(required).to.eql(1);
+            expect(required).to.gte(1);
         });
         it('should scale only up based on req/res rate', async () => {
             const scale = async (data) => {
