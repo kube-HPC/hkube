@@ -1,6 +1,10 @@
 type: object
 properties:
-  setAsCurrent:
+  forceUpdate:
     type: boolean
     description: should set the newly created version as current
+    default: false
+  forceBuild:
+    type: boolean
+    description: should force new build
     default: false

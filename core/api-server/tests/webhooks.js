@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const nock = require('nock');
+const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../lib/state/state-manager');
 const { delay, request } = require('./utils');
 let restUrl;
@@ -111,6 +112,53 @@ describe('Webhooks', () => {
                     jobId: response.body.jobId,
                     status: 'completed',
                     data: [{ res1: 400 }, { res2: 500 }]
+                }
+                await stateManager.updateJobStatus(results);
+                await stateManager.updateJobResult(results);
+            });
+        });
+        it('should succeed to send webhook result with large data', async () => {
+            return new Promise(async (resolve) => {
+                nock('http://my-webhook-server-1')
+                    .post('/webhook/result')
+                    .reply(200, async (uri, requestBody) => {
+                        expect(requestBody).to.have.property('data');
+                        expect(requestBody).to.have.property('jobId');
+                        expect(requestBody).to.have.property('status');
+                        expect(requestBody).to.have.property('timestamp');
+
+                        expect(requestBody.data).to.be.of.length(2);
+                        expect(requestBody.data[0].info.isBigData).to.be.true;
+                        expect(requestBody.data[1].info).to.not.exist;
+                        expect(requestBody.data[1].result).to.eql('some-path2');
+                        return resolve();
+                    });
+
+                const stored = {
+                    uri: `${restUrl}/exec/stored`,
+                    body: { name: 'webhookFlow1' }
+                };
+                const response = await request(stored);
+                const path1 = await storageManager.hkube.put({ jobId: response.body.jobId, taskId: 'a', data: 'some-path2' });
+                const results = {
+                    jobId: response.body.jobId,
+                    status: 'completed',
+                    data: [
+                        {
+                            info: {
+                                isBigData: true,
+                                path: 'some-path',
+                                size: 600000
+                            }
+                        },
+                        {
+                            info: {
+                                isBigData: true,
+                                path: path1.path,
+                                size: 50000
+                            }
+                        }
+                    ]
                 }
                 await stateManager.updateJobStatus(results);
                 await stateManager.updateJobResult(results);

@@ -7,6 +7,7 @@ const stateManager = require('../state/state-manager');
 const component = require('../consts/componentNames').WEBHOOK_HANDLER;
 const { States, Types } = require('./States');
 const { metricsNames } = require('../consts/metricsNames');
+const storage = require('../service/storage');
 const CompletedState = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 
 class WebhooksHandler {
@@ -66,10 +67,23 @@ class WebhooksHandler {
         });
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await stateManager.getResultFromStorage(payload);
+            await Promise.all(payloadData.data.map(p => this._fillMissing(p)));
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
             await stateManager.updateResultWebhook({ jobId, ...result });
         }
         await stateManager.releaseJobResultLock({ jobId });
+    }
+
+    async _fillMissing(element) {
+        /* eslint-disable no-param-reassign */
+        if (element?.info?.isBigData) {
+            const isTooLarge = storage.checkDataSize(element.info.size);
+            if (!isTooLarge.error) {
+                const res = await storage.getByPath({ path: element.info.path });
+                element.result = res;
+                delete element.info;
+            }
+        }
     }
 
     isCompletedState(state) {
