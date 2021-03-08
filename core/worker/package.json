@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "2.0.28",
+    "version": "2.0.29",
     "description": "worker process",
     "main": "app.js",
     "scripts": {
