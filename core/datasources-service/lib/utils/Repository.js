@@ -13,6 +13,7 @@ const dvcConfig = require('./dvcConfig');
 const dedicatedStorage = require('./../DedicatedStorage');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { Github } = require('./GitRemoteClient');
+const gitToken = require('./../service/gitToken');
 
 /**
  * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig
@@ -49,16 +50,77 @@ class Repository extends RepositoryBase {
         credentials
     ) {
         super(repositoryName, rootDir, repositoryName);
-        this.rawRepositoryUrl = gitConfig.repositoryUrl;
-        this.storageConfig = storageConfig;
         this.config = config;
+        this.rawRepositoryUrl = gitConfig.repositoryUrl;
+        this.rawStorageConfig = storageConfig;
+        this.storageConfig =
+            storageConfig.kind === 'internal'
+                ? this.internalStorage.config
+                : storageConfig;
         this.gitConfig = gitConfig;
-        this.credentials = credentials;
+        this.credentials = this.setupCredentials(
+            credentials,
+            gitConfig,
+            storageConfig
+        );
         this.generateDvcConfig = dvcConfig(
             this.storageConfig.kind,
             this.storageConfig,
             this.credentials.storage
         );
+    }
+
+    /**
+     * @type {(
+     * source: Credentials,
+     * gitConfig: GitConfig,
+     * storageConfig: StorageConfig
+     * ) => Credentials}
+     */
+    setupCredentials(source, gitConfig, storageConfig) {
+        const { git, storage } = source;
+        return {
+            git:
+                gitConfig.kind === 'internal'
+                    ? this.internalGit.credentials
+                    : git,
+            storage:
+                storageConfig.kind === 'internal'
+                    ? this.internalStorage.credentials
+                    : storage,
+        };
+    }
+
+    get internalStorage() {
+        const credentials = {
+            accessKeyId: this.config.s3.accessKeyId,
+            secretAccessKey: this.config.s3.secretAccessKey,
+        };
+        /** @type {StorageConfig} */
+        const config = {
+            kind: 'S3',
+            endpoint: this.config.s3.endpoint,
+            bucketName: this.config.s3.bucketName,
+        };
+        return {
+            credentials,
+            config,
+        };
+    }
+
+    get internalGit() {
+        const credentials = {
+            token: gitToken.hash,
+            tokenName: null,
+        };
+        const config = {
+            kind: 'internal',
+            endpoint: this.config.git.github.endpoint,
+        };
+        return {
+            credentials,
+            config,
+        };
     }
 
     get repositoryUrl() {
@@ -381,7 +443,7 @@ class Repository extends RepositoryBase {
     async delete(allowNotFound = false) {
         let response;
         const promises = [];
-        const { kind: storageKind } = this.storageConfig;
+        const { kind: storageKind } = this.rawStorageConfig;
         if (storageKind === 'internal') {
             promises.push(
                 dedicatedStorage.delete({

@@ -3,7 +3,7 @@ const {
     filePath: { getFilePath },
     createFileMeta,
 } = require('@hkube/datasource-utils');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
@@ -40,38 +40,6 @@ class DataSource {
         this.config = config;
         this.db = dbConnection.connection;
         await fse.ensureDir(this.config.directories.gitRepositories);
-    }
-
-    get internalGitConfig() {
-        const credentials = {
-            token: gitToken.hash,
-            tokenName: null,
-        };
-        const config = {
-            kind: 'internal',
-            endpoint: this.config.git.github.endpoint,
-        };
-        return {
-            credentials,
-            config,
-        };
-    }
-
-    get internalStorageConfig() {
-        const credentials = {
-            accessKeyId: this.config.s3.accessKeyId,
-            secretAccessKey: this.config.s3.secretAccessKey,
-        };
-        /** @type {StorageConfig} */
-        const config = {
-            kind: 'S3',
-            endpoint: this.config.s3.endpoint,
-            bucketName: this.config.s3.bucketName,
-        };
-        return {
-            credentials,
-            config,
-        };
     }
 
     /**
@@ -294,28 +262,6 @@ class DataSource {
     }
 
     /**
-     * @type {(
-     * source: Credentials,
-     * gitConfig: GitConfig,
-     * storageConfig: StorageConfig
-     * ) => Credentials}
-     * @typedef {import('@hkube/db/lib/DataSource').Credentials} Credentials
-     */
-    setupCredentials(source, gitConfig, storageConfig) {
-        const { git, storage } = source;
-        return {
-            git:
-                gitConfig.kind === 'internal'
-                    ? this.internalGitConfig.credentials
-                    : git,
-            storage:
-                storageConfig.kind === 'internal'
-                    ? this.internalStorageConfig.credentials
-                    : storage,
-        };
-    }
-
-    /**
      * @param {{
      *     name: string;
      *     versionDescription: string;
@@ -338,25 +284,13 @@ class DataSource {
             name,
         });
 
-        // prepare config for internal storage
-        const _storageConfig =
-            createdVersion.storage.kind === 'internal'
-                ? this.internalStorageConfig.config
-                : createdVersion.storage;
-
-        const credentials = this.setupCredentials(
-            createdVersion._credentials,
-            createdVersion.git,
-            createdVersion.storage
-        );
-
         const repository = new Repository(
             name,
             this.config,
             this.config.directories.gitRepositories,
             createdVersion.git,
-            _storageConfig,
-            credentials
+            createdVersion.storage,
+            createdVersion._credentials
         );
 
         const { commitHash, files } = await this.commitChange({
@@ -375,6 +309,21 @@ class DataSource {
             files,
             commitHash,
         });
+    }
+
+    get internalGit() {
+        const credentials = {
+            token: gitToken.hash,
+            tokenName: null,
+        };
+        const config = {
+            kind: 'internal',
+            endpoint: this.config.git.github.endpoint,
+        };
+        return {
+            credentials,
+            config,
+        };
     }
 
     /**
@@ -404,7 +353,7 @@ class DataSource {
         /** @type {Github} */
         let gitClient;
         if (_git.kind === 'internal') {
-            const { credentials, config } = this.internalGitConfig;
+            const { credentials, config } = this.internalGit;
             gitClient = new Github({
                 ...credentials,
                 ...config,
@@ -420,10 +369,9 @@ class DataSource {
         const { token, tokenName, ...gitConfig } = git;
         const { accessKeyId, secretAccessKey, ...storageConfig } = storage;
 
-        let credentials = (() => {
+        const credentials = (() => {
             const _credentials = {};
-            // if internal do not store the token to the db
-            // it will be appended later on
+            // if internal do not store tokens to the db
             if (git.kind !== 'internal') {
                 _credentials.git = { token, tokenName };
             }
@@ -443,15 +391,6 @@ class DataSource {
             credentials,
         });
 
-        // @ts-ignore
-        credentials = this.setupCredentials(credentials, git, storage);
-
-        // prepare config for internal storage
-        const _storageConfig =
-            storage.kind === 'internal'
-                ? this.internalStorageConfig.config
-                : storageConfig;
-
         let updatedDataSource;
         /** @type {Repository} */
         const repository = new Repository(
@@ -459,7 +398,7 @@ class DataSource {
             this.config,
             this.config.directories.gitRepositories,
             gitConfig,
-            _storageConfig,
+            storageConfig,
             credentials
         );
 
@@ -499,6 +438,7 @@ class DataSource {
         const dataSource = await this.db.dataSources.fetchWithCredentials({
             name,
         });
+
         const repository = new Repository(
             name,
             this.config,
@@ -512,7 +452,7 @@ class DataSource {
         } catch (error) {
             if (
                 error.isAxiosError &&
-                error.response.status === HttpStatus.NOT_FOUND
+                error.response.status === StatusCodes.NOT_FOUND
             ) {
                 throw new ResourceNotFoundError('dataSource', name, error);
             } else {

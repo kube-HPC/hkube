@@ -9,7 +9,7 @@ let dataSource;
 /** @type {import('@hkube/db/lib/Snapshots').Snapshot[]} */
 let createdSnapshots;
 
-describe.skip('validation', () => {
+describe('validation', () => {
     before(async () => {
         // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;

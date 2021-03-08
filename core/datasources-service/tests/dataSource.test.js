@@ -19,25 +19,35 @@ const {
 
 let DATASOURCE_GIT_REPOS_DIR, restUrl, restPath;
 
-const fetchGithubRepo = async name => {
-    // @ts-ignore
-    const { github } = global.testParams.git;
+const fetchGithubRepo = name => {
+    const {
+        _git: {
+            github: { endpoint },
+        },
+        git: { github },
+        // @ts-ignore
+    } = global.testParams;
     const client = new Octokit({
-        baseUrl: `${github.endpoint}/api/v1`,
+        baseUrl: `${endpoint}/api/v1`,
         auth: github.token,
     });
     return client.repos.get({
         repo: name,
-        owner: github.user.name,
+        owner: 'hkube',
     });
 };
 
 /** @returns {Promise<any>} */
 const fetchGitlabRepo = async repositoryUrl => {
     // @ts-ignore
-    const { gitlab } = global.testParams.git;
+    const {
+        git: { gitlab },
+        _git: {
+            gitlab: { endpoint },
+        },
+    } = global.testParams;
     const client = new GitlabClient({
-        host: gitlab.endpoint,
+        host: endpoint,
         token: gitlab.token,
         tokenName: gitlab.tokenName,
     });
@@ -47,9 +57,9 @@ const fetchGitlabRepo = async repositoryUrl => {
     return client.Projects.show(url);
 };
 
-const listDvcRepository = async name => dedicatedStorage.list({ path: name });
+const listDvcRepository = name => dedicatedStorage.list({ path: name });
 
-describe.skip('Datasource', () => {
+describe('Datasource', () => {
     before(() => {
         // @ts-ignore
         restUrl = global.testParams.restUrl;
@@ -57,27 +67,23 @@ describe.skip('Datasource', () => {
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
         restPath = `${restUrl}/datasource`;
     });
-    describe('datasource/id/:id GET', () => {
-        it('should fetch by id', async () => {
-            const name = uuid();
-            const { body: firstVersion } = await createDataSource({
-                body: { name },
-            });
-            const secondFileName = 'README-2.md';
-            const { response: uploadResponse } = await updateVersion({
-                dataSourceName: name,
-                fileNames: [secondFileName],
-            });
-            const { body: updatedVersion } = uploadResponse;
-            expect(firstVersion.id).not.to.eq(updatedVersion.id);
-            expect(uploadResponse.statusCode).to.eql(StatusCodes.CREATED);
-            const { body: oldVersion } = await fetchDataSource({
-                id: firstVersion.id,
-            });
-            expect(oldVersion.id).to.eq(firstVersion.id);
+    it('GET datasource/id/:id - should fetch by id', async () => {
+        const name = uuid();
+        const { body: firstVersion } = await createDataSource(name);
+        const secondFileName = 'README-2.md';
+        const { response: uploadResponse } = await updateVersion({
+            dataSourceName: name,
+            fileNames: [secondFileName],
         });
+        const { body: updatedVersion } = uploadResponse;
+        expect(firstVersion.id).not.to.eq(updatedVersion.id);
+        expect(uploadResponse.statusCode).to.eql(StatusCodes.CREATED);
+        const { body: oldVersion } = await fetchDataSource({
+            id: firstVersion.id,
+        });
+        expect(oldVersion.id).to.eq(firstVersion.id);
     });
-    describe('/datasource/:name GET', () => {
+    describe('GET /datasource/:name', () => {
         it('should throw error datasource not found', async () => {
             const options = {
                 uri: `${restPath}/${nonExistingId}`,
@@ -106,7 +112,7 @@ describe.skip('Datasource', () => {
         });
         it('should fetch a datasource', async () => {
             const name = uuid();
-            await createDataSource({ body: { name } });
+            await createDataSource(name);
             const { response: getResponse } = await fetchDataSource({
                 name,
             });
@@ -125,9 +131,7 @@ describe.skip('Datasource', () => {
         });
         it('should fetch an older version', async () => {
             const name = uuid();
-            const { body: firstVersion } = await createDataSource({
-                body: { name },
-            });
+            const { body: firstVersion } = await createDataSource(name);
             const secondFileName = 'README-2.md';
             const { response: uploadResponse } = await updateVersion({
                 dataSourceName: name,
@@ -144,9 +148,7 @@ describe.skip('Datasource', () => {
         });
         it('should fail if id does not match the name', async () => {
             const name = uuid();
-            const { body: firstVersion } = await createDataSource({
-                body: { name },
-            });
+            const { body: firstVersion } = await createDataSource(name);
             const secondFileName = 'README-2.md';
             const { response: uploadResponse } = await updateVersion({
                 dataSourceName: name,
@@ -169,9 +171,7 @@ describe.skip('Datasource', () => {
     describe('/datasource GET', () => {
         it('should succeed list all dataSources', async () => {
             const names = new Array(3).fill(0).map(() => uuid());
-            await Promise.all(
-                names.map(name => createDataSource({ body: { name } }))
-            );
+            await Promise.all(names.map(name => createDataSource(name)));
             const options = {
                 uri: restPath,
                 method: 'GET',
@@ -188,7 +188,7 @@ describe.skip('Datasource', () => {
         });
         it('should return only unique file types', async () => {
             const name = uuid();
-            await createDataSource({ body: { name } });
+            await createDataSource(name);
             const fileNames = ['README-2.md', 'algorithms.json'];
             await updateVersion({ dataSourceName: name, fileNames });
             const options = {
@@ -214,10 +214,13 @@ describe.skip('Datasource', () => {
             expect(delRes.body.error.code).to.equal(StatusCodes.NOT_FOUND);
             expect(delRes.body.error.message).to.match(/Not Found/i);
         });
-        it('should create and delete one datasource by name - github', async () => {
-            const name = uuid();
 
-            await createDataSource({ body: { name } });
+        it('should create and delete one datasource by name - internal', async () => {
+            const name = uuid();
+            await createDataSource(name, {
+                useInternalGit: true,
+                useInternalStorage: true,
+            });
             const fetchRes = await fetchDataSource({ name });
             const checkExist = await fetchGithubRepo(name);
             expect(checkExist.status).to.eq(StatusCodes.OK);
@@ -235,20 +238,40 @@ describe.skip('Datasource', () => {
             expect(fetchDel.body.error.message).to.match(/Not Found/i);
         });
 
+        it('should delete only from db on external storage and git - github', async () => {
+            const name = uuid();
+            await createDataSource(name);
+            const fetchRes = await fetchDataSource({ name });
+            const checkExist = await fetchGithubRepo(name);
+            expect(checkExist.status).to.eq(StatusCodes.OK);
+            const dvcFiles = await listDvcRepository(name);
+            expect(dvcFiles).to.have.lengthOf(1);
+            const delRes = await deleteDataSource({ name });
+            const dvcFilesAfterDelete = await listDvcRepository(name);
+            // it should not delete from external storage/git
+            expect(dvcFilesAfterDelete).to.have.lengthOf(1);
+            await fetchGithubRepo(name);
+            const fetchDel = await fetchDataSource({ name });
+            expect(fetchRes.body.name).to.eql(name);
+            expect(delRes.body).to.eql({ deleted: 1 });
+            expect(fetchDel.body).to.have.property('error');
+            expect(fetchDel.body.error.code).to.equal(StatusCodes.NOT_FOUND);
+            expect(fetchDel.body.error.message).to.match(/Not Found/i);
+        });
         it.skip('should create and delete one datasource by name - gitlab', async () => {
             const name = uuid();
-            await createDataSource({ body: { name }, useGitlab: true });
+            await createDataSource(name, { useGitlab: true });
             const fetchRes = await fetchDataSource({ name });
-            const { repositoryUrl } = fetchRes.body;
+            const { git } = fetchRes.body;
+            const { repositoryUrl } = git;
             const dvcFiles = await listDvcRepository(name);
             expect(dvcFiles).to.have.lengthOf(1);
             const checkExist = await fetchGitlabRepo(repositoryUrl);
             expect(checkExist.name).to.eq(name);
             const delRes = await deleteDataSource({ name });
             const dvcFilesAfterDelete = await listDvcRepository(name);
-            expect(dvcFilesAfterDelete).to.have.lengthOf(0);
-            await expect(fetchGitlabRepo(repositoryUrl)).to.eventually.be
-                .rejected;
+            expect(dvcFilesAfterDelete).to.have.lengthOf(1);
+            await fetchGitlabRepo(repositoryUrl);
             const fetchDel = await fetchDataSource({ name });
             expect(fetchRes.body.name).to.eql(name);
             expect(delRes.body).to.eql({ deleted: 1 });
@@ -258,7 +281,7 @@ describe.skip('Datasource', () => {
         });
         it('should create and delete multiple versions of a datasource by name', async () => {
             const name = uuid();
-            await createDataSource({ body: { name } });
+            await createDataSource(name);
             const secondFileName = 'README-2.md';
             await updateVersion({
                 dataSourceName: name,
@@ -280,9 +303,7 @@ describe.skip('Datasource', () => {
         it('should fetch the versions listing of a datasource', async () => {
             const name = uuid();
             const deleteClone = mockDeleteClone();
-            const { body: dataSource } = await createDataSource({
-                body: { name },
-            });
+            const { body: dataSource } = await createDataSource(name);
             expect(deleteClone.callCount).to.eq(1);
             const [existingFile] = dataSource.files;
             expect(
