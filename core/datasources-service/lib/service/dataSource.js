@@ -503,7 +503,8 @@ class DataSource {
             name,
             this.config,
             this.config.directories.gitRepositories,
-            dataSource.repositoryUrl,
+            dataSource.git,
+            dataSource.storage,
             dataSource._credentials
         );
         try {
@@ -540,13 +541,15 @@ class DataSource {
         validator.dataSources.sync({ name });
         const {
             _credentials,
-            repositoryUrl,
+            git,
+            storage,
         } = await this.db.dataSources.fetchWithCredentials({ name });
         const repository = new Repository(
             name,
             this.config,
             this.config.directories.gitRepositories,
-            repositoryUrl,
+            git,
+            storage,
             _credentials
         );
         try {

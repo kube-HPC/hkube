@@ -73,7 +73,8 @@ class Downloads {
                 this.config.directories.prepareForDownload,
                 downloadId
             ),
-            dataSource.repositoryUrl,
+            dataSource.git,
+            dataSource.storage,
             dataSource._credentials
         );
 
