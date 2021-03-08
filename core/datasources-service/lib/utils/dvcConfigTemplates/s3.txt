@@ -1,0 +1,8 @@
+['remote "storage"']
+    url = s3://<bucketName>/<repositoryName>
+    endpointurl = <endpoint>
+    access_key_id = <accessKeyId>
+    secret_access_key = <secretAccessKey>
+    use_ssl = <bool>
+[core]
+    remote = storage

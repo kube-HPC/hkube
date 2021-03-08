@@ -65,6 +65,11 @@ class Repository extends RepositoryBase {
     async _setupDvcRepository() {
         await this.dvc.init();
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
+
+        await fse.copyFile(
+            pathLib.resolve('lib', 'utils', 'dvcConfigTemplates', 's3.txt'),
+            pathLib.join(this.dvc.cwd, '.dvc', 'config.template')
+        );
     }
 
     /**
