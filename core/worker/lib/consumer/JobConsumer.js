@@ -343,7 +343,7 @@ class JobConsumer extends EventEmitter {
     }
 
     get jobData() {
-        return this._job && this._job.data;
+        return this._job?.data || {};
     }
 
     get jobId() {
