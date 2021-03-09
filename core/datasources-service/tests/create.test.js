@@ -2,10 +2,11 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const { StatusCodes } = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
+const sinon = require('sinon');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { createDataSource } = require('./api');
 const { mockDeleteClone } = require('./utils');
-
+const DataSourceValidation = require('./../lib/validation/dataSources');
 let DATASOURCE_GIT_REPOS_DIR;
 
 describe('/dataSource POST', () => {
@@ -16,8 +17,7 @@ describe('/dataSource POST', () => {
     describe('validation', () => {
         it('should throw missing git information', async () => {
             const name = uuid();
-            const response = await createDataSource({
-                body: { name: name },
+            const response = await createDataSource(name, {
                 ignoreGit: true,
             });
             expect(response.body).to.have.property('error');
@@ -28,8 +28,7 @@ describe('/dataSource POST', () => {
         });
         it('should throw missing storage information', async () => {
             const name = uuid();
-            const response = await createDataSource({
-                body: { name: name },
+            const response = await createDataSource(name, {
                 ignoreStorage: true,
             });
             expect(response.body).to.have.property('error');
@@ -47,11 +46,10 @@ describe('/dataSource POST', () => {
             );
         });
         it('should throw validation error of long dataSource name', async () => {
-            const response = await createDataSource({
-                body: {
-                    name: 'this-is-33-length-dataSource-name',
-                },
-            });
+            const response = await createDataSource(
+                'this-is-33-length-dataSource-name',
+                { useInternalGit: true }
+            );
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(
@@ -59,8 +57,8 @@ describe('/dataSource POST', () => {
             );
         });
         it('should throw validation error of data.name should be string', async () => {
-            const response = await createDataSource({
-                body: { name: [1, 2] },
+            const response = await createDataSource([1, 2], {
+                useInternalGit: true,
             });
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
@@ -69,7 +67,9 @@ describe('/dataSource POST', () => {
             );
         });
         it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
-            const response = await createDataSource({ body: { name: '' } });
+            const response = await createDataSource('', {
+                useInternalGit: true,
+            });
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(
@@ -79,8 +79,8 @@ describe('/dataSource POST', () => {
         const invalidChars = ['/', '*', '#', '"', '%'];
         invalidChars.forEach(v => {
             it(`should throw invalid dataSource name if include ${v}`, async () => {
-                const response = await createDataSource({
-                    body: { name: `not-valid${v}name` },
+                const response = await createDataSource(`not-valid${v}name`, {
+                    useInternalGit: true,
                 });
                 expect(response.body).to.have.property('error');
                 expect(response.response.statusCode).to.equal(
@@ -94,8 +94,8 @@ describe('/dataSource POST', () => {
         const invalidStartAndEndChars = ['/', '*', '#', '"', '%'];
         invalidStartAndEndChars.forEach(v => {
             it(`should throw invalid if dataSource name if start with ${v}`, async () => {
-                const response = await createDataSource({
-                    body: { name: `${v}notvalidname` },
+                const response = await createDataSource(`${v}notvalidname`, {
+                    useInternalGit: true,
                 });
                 expect(response.body).to.have.property('error');
                 expect(response.response.statusCode).to.equal(
@@ -106,8 +106,8 @@ describe('/dataSource POST', () => {
                 );
             });
             it(`should throw invalid if dataSource name if end with ${v}`, async () => {
-                const response = await createDataSource({
-                    body: { name: `notvalidname${v}` },
+                const response = await createDataSource(`notvalidname${v}`, {
+                    useInternalGit: true,
                 });
                 expect(response.body).to.have.property('error');
                 expect(response.response.statusCode).to.equal(
@@ -121,8 +121,7 @@ describe('/dataSource POST', () => {
         describe('S3 config', () => {
             it('should throw invalid accessKeyId', async () => {
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     storageOverrides: {
                         accessKeyId: 'invalid',
                     },
@@ -135,8 +134,7 @@ describe('/dataSource POST', () => {
             });
             it('should throw invalid host - non existing', async () => {
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     storageOverrides: {
                         endpoint: 'https://non-valid.com',
                     },
@@ -147,8 +145,7 @@ describe('/dataSource POST', () => {
             });
             it('should throw invalid host - bad url', async () => {
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     storageOverrides: {
                         endpoint: 'non-valid',
                     },
@@ -159,8 +156,7 @@ describe('/dataSource POST', () => {
             });
             it('should throw invalid bucket name', async () => {
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     storageOverrides: {
                         bucketName: 'not-exist',
                     },
@@ -173,8 +169,7 @@ describe('/dataSource POST', () => {
             });
             it('should throw invalid bucket name - without uploading files', async () => {
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     storageOverrides: {
                         bucketName: 'not-exist',
                     },
@@ -188,8 +183,7 @@ describe('/dataSource POST', () => {
             });
             it('should throw invalid token - without uploading files', async () => {
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     storageOverrides: {
                         accessKeyId: 'bad key id',
                     },
@@ -203,8 +197,7 @@ describe('/dataSource POST', () => {
             });
             it('should throw invalid secretAccessKey', async () => {
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     storageOverrides: {
                         secretAccessKey: 'invalid',
                     },
@@ -219,8 +212,7 @@ describe('/dataSource POST', () => {
         describe('Git config', () => {
             it('should throw invalid kind', async () => {
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     gitOverrides: {
                         kind: 'non-existing',
                     },
@@ -233,55 +225,63 @@ describe('/dataSource POST', () => {
             });
             it('should throw invalid token', async () => {
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     gitOverrides: {
                         token: 'bad-token',
                     },
                 });
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
-                expect(body.error.message).to.match(/Invalid git token/);
+                expect(body.error.message).to.match(
+                    /invalid git token or repository url/i
+                );
             });
-            it('should throw invalid organization', async () => {
+
+            it('should throw invalid token - bypass initial validation', async () => {
+                const mock = sinon.fake.resolves('The method is mocked!');
+                sinon.replace(
+                    DataSourceValidation.prototype,
+                    'validateGit',
+                    mock
+                );
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     gitOverrides: {
-                        organization: 'non-existing',
+                        token: 'bad-token',
+                    },
+                });
+                sinon.restore();
+                expect(body).to.have.ownProperty('error');
+                expect(body.error.code).to.eq(400);
+                expect(body.error.message).to.match(/invalid git token/i);
+            });
+
+            it('should throw invalid repositoryUrl', async () => {
+                const name = uuid();
+                const { body } = await createDataSource(name, {
+                    gitOverrides: {
+                        repositoryUrl: 'non-existing',
                     },
                 });
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
                 expect(body.error.message).to.match(
-                    /Invalid Git endpoint or organization/i
+                    /invalid git repository url provided/i
                 );
             });
-            it('should throw invalid endpoint', async () => {
+            it('should throw non existing repositoryUrl', async () => {
                 const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
+                const { body } = await createDataSource(name, {
                     gitOverrides: {
-                        endpoint: 'https://not-existing.com',
+                        repositoryUrl:
+                            'http://localhost:3010/irrelevant/non-existing.git',
                     },
                 });
                 expect(body).to.have.ownProperty('error');
                 expect(body.error.code).to.eq(400);
                 expect(body.error.message).to.match(
-                    /invalid git endpoint or organization name/i
+                    /invalid git token or repository url/i
                 );
-            });
-            it('should throw invalid endpoint - bad format', async () => {
-                const name = uuid();
-                const { body } = await createDataSource({
-                    body: { name },
-                    gitOverrides: {
-                        endpoint: 'non-existing',
-                    },
-                });
-                expect(body).to.have.ownProperty('error');
-                expect(body.error.code).to.eq(400);
-                expect(body.error.message).to.match(/invalid url/i);
             });
         });
     });
@@ -292,7 +292,7 @@ describe('/dataSource POST', () => {
             const {
                 response: { statusCode },
                 body: dataSource,
-            } = await createDataSource({ body: { name } });
+            } = await createDataSource(name);
             expect(deleteClone.getCalls()).to.have.lengthOf(1);
             expect(statusCode).to.eql(StatusCodes.CREATED);
             expect(dataSource).to.have.keys(
@@ -302,7 +302,8 @@ describe('/dataSource POST', () => {
                 'fileTypes',
                 'commitHash',
                 'avgFileSize',
-                'repositoryUrl',
+                'git',
+                'storage',
                 'versionDescription',
                 'filesCount',
                 'totalSize'
@@ -310,44 +311,24 @@ describe('/dataSource POST', () => {
             expect(dataSource.id).to.be.string;
             expect(dataSource.name).to.eq(name);
             expect(dataSource.files).to.have.lengthOf(1);
-            expect(dataSource.repositoryUrl).to.match(/\/hkube\//i);
+            expect(dataSource.git).to.have.keys(['kind', 'repositoryUrl']);
+            expect(dataSource.storage).to.have.keys([
+                'kind',
+                'endpoint',
+                'bucketName',
+            ]);
+            expect(dataSource.git.repositoryUrl).to.match(/\/hkube\//i);
             expect(
                 await fse.pathExists(
                     `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config.template`
                 )
             ).to.be.true;
         });
-        it('should create a dataSource under a git organization', async () => {
-            const name = uuid();
-            const deleteClone = mockDeleteClone();
-            const {
-                response: { statusCode },
-                body: dataSource,
-            } = await createDataSource({
-                body: { name },
-                useGitOrganization: true,
-            });
-
-            expect(deleteClone.getCalls()).to.have.lengthOf(1);
-            expect(statusCode).to.eql(StatusCodes.CREATED);
-            expect(dataSource.repositoryUrl).to.match(/\/hkube-org\//i);
-            const hkubeFile = await fse.readFile(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/hkube`,
-                'utf8'
-            );
-            expect(JSON.parse(hkubeFile)).to.eql({ repositoryName: name });
-            const config = fse.readFileSync(
-                `${DATASOURCE_GIT_REPOS_DIR}/${name}/.dvc/config.local`,
-                'utf8'
-            );
-            expect(config).to.match(new RegExp(name));
-        });
         it('should create a dataSource using internal git', async () => {
             const name = uuid();
             const {
                 response: { statusCode },
-            } = await createDataSource({
-                body: { name },
+            } = await createDataSource(name, {
                 useInternalGit: true,
             });
             expect(statusCode).to.eq(201);
@@ -356,8 +337,7 @@ describe('/dataSource POST', () => {
             const name = uuid();
             const {
                 response: { statusCode },
-            } = await createDataSource({
-                body: { name },
+            } = await createDataSource(name, {
                 useInternalStorage: true,
             });
             expect(statusCode).to.eq(201);
@@ -367,8 +347,7 @@ describe('/dataSource POST', () => {
             const deleteClone = mockDeleteClone();
             const {
                 response: { statusCode },
-            } = await createDataSource({
-                body: { name },
+            } = await createDataSource(name, {
                 useGitlab: true,
             });
             expect(deleteClone.getCalls()).to.have.lengthOf(1);
@@ -386,8 +365,7 @@ describe('/dataSource POST', () => {
         });
         it('should create an empty dataSource', async () => {
             const name = uuid();
-            const { response } = await createDataSource({
-                body: { name },
+            const { response } = await createDataSource(name, {
                 fileNames: [],
             });
             expect(response.statusCode).to.eql(StatusCodes.CREATED);
@@ -396,14 +374,34 @@ describe('/dataSource POST', () => {
         });
         it('should throw conflict error', async () => {
             const name = uuid();
-            const firstResponse = await createDataSource({
-                body: { name },
+            const firstResponse = await createDataSource(name);
+            expect(firstResponse.response.statusCode).to.eql(
+                StatusCodes.CREATED
+            );
+            const secondResponse = await createDataSource(name, {
+                skipCreateRepository: true,
+                gitOverrides: {
+                    repositoryUrl: firstResponse.body.git.repositoryUrl,
+                },
+            });
+            expect(secondResponse.response.statusCode).to.equal(
+                StatusCodes.CONFLICT
+            );
+            expect(secondResponse.body).to.have.property('error');
+            expect(secondResponse.body.error.message).to.contain(
+                'already exists'
+            );
+        });
+        it('should throw conflict error - internal', async () => {
+            const name = uuid();
+            const firstResponse = await createDataSource(name, {
+                useInternalGit: true,
             });
             expect(firstResponse.response.statusCode).to.eql(
                 StatusCodes.CREATED
             );
-            const secondResponse = await createDataSource({
-                body: { name },
+            const secondResponse = await createDataSource(name, {
+                useInternalGit: true,
             });
             expect(secondResponse.response.statusCode).to.equal(
                 StatusCodes.CONFLICT
@@ -415,8 +413,7 @@ describe('/dataSource POST', () => {
         });
         it('should upload a file with meta data', async () => {
             const name = uuid();
-            const { body: dataSource } = await createDataSource({
-                body: { name },
+            const { body: dataSource } = await createDataSource(name, {
                 fileNames: ['logo.svg', 'logo.svg.meta'],
             });
             const [createdFile] = dataSource.files;

@@ -15,7 +15,7 @@ const generateSnapshot = (name, query) => ({
  */
 const setupDataSource = async (numberOfSnapshots = 1) => {
     const name = uid();
-    const { body: dataSource } = await createDataSource({ body: { name } });
+    const { body: dataSource } = await createDataSource(name);
     const generatedSnapshots = new Array(numberOfSnapshots)
         .fill(0)
         .map((_, ii) => generateSnapshot(`snapshot-${ii}`));

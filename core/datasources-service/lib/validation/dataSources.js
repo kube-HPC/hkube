@@ -1,6 +1,7 @@
 const { S3 } = require('aws-sdk');
 const dbConnect = require('../db');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
+const { Github } = require('../utils/GitRemoteClient');
 
 /**
  * @typedef {import('express')} Express
@@ -8,6 +9,14 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
  * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig;
  * @typedef {import('../utils/types').FileMeta} FileMeta
  * @typedef {Express.Multer.File[]} MulterFile
+ * @typedef {GitConfig & {
+ *     token: string;
+ *     tokenName?: string;
+ * }} GitProps
+ * @typedef {StorageConfig & {
+ *     accessKeyId: string;
+ *     secretAccessKey: string;
+ * }} StorageProps
  */
 
 class DataSources {
@@ -19,8 +28,8 @@ class DataSources {
      * @param {{
      *     name: string;
      *     files: Express.Multer.File[];
-     *     git: GitConfig;
-     *     storage: StorageConfig;
+     *     git: GitProps;
+     *     storage: StorageProps;
      * }} props
      */
     async create(props) {
@@ -31,11 +40,32 @@ class DataSources {
             ...props,
             files,
         });
-        const url = new URL(props.storage.endpoint);
+        await this.validateStorage(props.storage);
+        await this.validateGit(props.git);
+    }
+
+    /** @param {GitProps} git */
+    async validateGit(git) {
+        switch (git.kind) {
+            case 'internal':
+                return null;
+            case 'github':
+                return Github.validateRepository(git.repositoryUrl, git.token);
+            default:
+                return null;
+        }
+    }
+
+    /** @param {StorageProps} storage */
+    async validateStorage(storage) {
+        if (storage.kind === 'internal') return;
+
+        const url = new URL(storage.endpoint);
         let port = parseInt(url.port, 10);
         if (Number.isNaN(port)) {
             port = url.protocol === 'https:' ? 443 : 80;
         }
+
         const s3Client = new S3({
             endpoint: {
                 host: url.host,
@@ -47,15 +77,15 @@ class DataSources {
             s3ForcePathStyle: true,
             s3BucketEndpoint: false,
             credentials: {
-                accessKeyId: props.storage.accessKeyId,
-                secretAccessKey: props.storage.secretAccessKey,
+                accessKeyId: storage.accessKeyId,
+                secretAccessKey: storage.secretAccessKey,
             },
         });
         try {
             // validate the bucket exists and the permissions are valid
             await s3Client
                 .headBucket({
-                    Bucket: props.storage.bucketName,
+                    Bucket: storage.bucketName,
                 })
                 .promise();
         } catch (error) {

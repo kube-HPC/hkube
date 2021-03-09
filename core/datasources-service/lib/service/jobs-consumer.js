@@ -128,7 +128,8 @@ class JobConsumer {
             dataSource.name,
             this.config,
             pathLib.join(this.rootDir, dataSource.name, dataSource.id),
-            dataSource.repositoryUrl,
+            dataSource.git,
+            dataSource.storage,
             dataSource._credentials
         );
 

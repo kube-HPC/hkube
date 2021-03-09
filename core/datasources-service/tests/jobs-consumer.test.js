@@ -41,7 +41,7 @@ describe('JobsConsumer', () => {
     });
     it('should succeed mounting the datasource - github and update job', async () => {
         const name = uuid();
-        const { body: dataSource } = await createDataSource({ body: { name } });
+        const { body: dataSource } = await createDataSource(name);
         const job = await createJob({ dataSource });
         const { jobId, taskId } = job.data;
         const state = await waitForStatus({ jobId, taskId }, 'succeed');
@@ -58,8 +58,7 @@ describe('JobsConsumer', () => {
     });
     it.skip('should succeed mounting the datasource - gitlab and update job', async () => {
         const name = uuid();
-        const { body: dataSource } = await createDataSource({
-            body: { name },
+        const { body: dataSource } = await createDataSource(name, {
             useGitlab: true,
         });
         const job = await createJob({ dataSource });
@@ -80,8 +79,7 @@ describe('JobsConsumer', () => {
         const name = uuid();
         const mockedRemove = mockRemove();
         const snapshotName = uuid();
-        const { body: dataSource } = await createDataSource({
-            body: { name },
+        const { body: dataSource } = await createDataSource(name, {
             fileNames: ['README-1.md', 'logo.svg', 'logo.svg.meta'],
         });
         await createSnapshot({
