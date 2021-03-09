@@ -3,13 +3,15 @@ const {
     filePath: { getFilePath },
     createFileMeta,
 } = require('@hkube/datasource-utils');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const { ResourceNotFoundError } = require('../errors');
+const { Github } = require('../utils/GitRemoteClient');
 const gitToken = require('./gitToken');
+
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
  * @typedef {import('./../utils/types').MulterFile} MulterFile
@@ -286,7 +288,8 @@ class DataSource {
             name,
             this.config,
             this.config.directories.gitRepositories,
-            createdVersion.repositoryUrl,
+            createdVersion.git,
+            createdVersion.storage,
             createdVersion._credentials
         );
 
@@ -308,61 +311,104 @@ class DataSource {
         });
     }
 
+    get internalGit() {
+        const credentials = {
+            token: gitToken.hash,
+            tokenName: null,
+        };
+        const config = {
+            kind: 'internal',
+            endpoint: this.config.git.github.endpoint,
+        };
+        return {
+            credentials,
+            config,
+        };
+    }
+
     /**
      * @param {{
      *     name: string;
      *     files: MulterFile[];
-     *     git: GitConfig;
-     *     storage: StorageConfig;
+     *     git: GitConfig & {
+     *         token: string;
+     *         tokenName?: string;
+     *     };
+     *     storage: StorageConfig & {
+     *         accessKeyId: string;
+     *         secretAccessKey: string;
+     *     };
      * }} query
      */
-    async create({ name, git: _git, storage: _storage, files: _files }) {
-        /** @type {GitConfig} */
-        const git =
-            _git?.kind === 'internal'
-                ? {
-                      kind: _git.kind,
-                      endpoint: this.config.git.github.endpoint,
-                      token: gitToken.hash,
-                  }
-                : _git;
-        const storage =
-            _storage?.kind === 'internal'
-                ? { kind: _storage.kind, ...this.config.s3 }
-                : _storage;
+    async create({ name, git: _git, storage, files: _files }) {
         await validator.dataSources.create({
             name,
-            git,
+            git: _git,
             storage,
             files: _files,
         });
 
+        let { repositoryUrl = null } = _git;
+        // create repository when using internal git
+        /** @type {Github} */
+        let gitClient;
+        if (_git.kind === 'internal') {
+            const { credentials, config } = this.internalGit;
+            gitClient = new Github({
+                ...credentials,
+                ...config,
+            });
+            repositoryUrl = await gitClient.createRepository(name);
+        }
+
+        const git = {
+            ..._git,
+            repositoryUrl,
+        };
+
+        const { token, tokenName, ...gitConfig } = git;
+        const { accessKeyId, secretAccessKey, ...storageConfig } = storage;
+
+        const credentials = (() => {
+            const _credentials = {};
+            // if internal do not store tokens to the db
+            if (git.kind !== 'internal') {
+                _credentials.git = { token, tokenName };
+            }
+            if (storage.kind !== 'internal') {
+                _credentials.storage = {
+                    accessKeyId,
+                    secretAccessKey,
+                };
+            }
+            return _credentials;
+        })();
+
         const createdDataSource = await this.db.dataSources.create({
             name,
-            git,
-            storage,
+            git: gitConfig,
+            storage: storageConfig,
+            credentials,
         });
+
         let updatedDataSource;
         /** @type {Repository} */
         const repository = new Repository(
             name,
             this.config,
             this.config.directories.gitRepositories,
-            null,
-            { git, storage }
+            gitConfig,
+            storageConfig,
+            credentials
         );
+
         try {
-            const { repositoryUrl } = await repository.setup();
-            await this.db.dataSources.setRepositoryUrl(
-                { name },
-                { url: repositoryUrl }
-            );
+            await repository.setup();
             const { commitHash, files } = await this.commitChange({
                 repository,
                 commitMessage: 'initial upload',
                 files: { added: _files },
             });
-
             updatedDataSource = await this.db.dataSources.updateFiles({
                 id: createdDataSource.id,
                 files,
@@ -392,11 +438,13 @@ class DataSource {
         const dataSource = await this.db.dataSources.fetchWithCredentials({
             name,
         });
+
         const repository = new Repository(
             name,
             this.config,
             this.config.directories.gitRepositories,
-            dataSource.repositoryUrl,
+            dataSource.git,
+            dataSource.storage,
             dataSource._credentials
         );
         try {
@@ -404,7 +452,7 @@ class DataSource {
         } catch (error) {
             if (
                 error.isAxiosError &&
-                error.response.status === HttpStatus.NOT_FOUND
+                error.response.status === StatusCodes.NOT_FOUND
             ) {
                 throw new ResourceNotFoundError('dataSource', name, error);
             } else {
@@ -433,13 +481,15 @@ class DataSource {
         validator.dataSources.sync({ name });
         const {
             _credentials,
-            repositoryUrl,
+            git,
+            storage,
         } = await this.db.dataSources.fetchWithCredentials({ name });
         const repository = new Repository(
             name,
             this.config,
             this.config.directories.gitRepositories,
-            repositoryUrl,
+            git,
+            storage,
             _credentials
         );
         try {

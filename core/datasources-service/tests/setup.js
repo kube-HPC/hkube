@@ -6,27 +6,16 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 
 chai.use(chaiAsPromised);
-
-const pathLib = require('path');
-const {
-    setupGithubToken,
-    removeGithubToken,
-    getGitlabToken,
-} = require('./gitToken');
+const { setupGithubToken } = require('./gitToken');
 const { STORAGE_DIR } = require('./utils');
-const { removeAllRepos } = require('./clearGitlab');
-const { Gitlab } = require('@gitbeaker/node');
 const { getDatasourcesInUseFolder } = require('./../lib/utils/pathUtils');
 let githubToken = null;
-let gitlabToken = null;
-let gitConfig = null;
 
 before(async function () {
     this.timeout(15000);
     const bootstrap = require('../bootstrap');
     /** @type {import('./../lib/utils/types').config} */
     const config = await bootstrap.init();
-    gitConfig = config.git;
     const storage = new storageManager.StorageManager();
     await storage.init({ ...config }, null, true);
     const baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
@@ -35,7 +24,22 @@ before(async function () {
 
     githubToken = await setupGithubToken(config.git.github);
     const githubTokenHash = githubToken.sha1;
-    gitlabToken = getGitlabToken(config.git.gitlab);
+
+    const { git, _git } = (() => {
+        const { github, gitlab } = config.git;
+        const { endpoint: githubEndpoint, user, ...githubRest } = github;
+        const { endpoint: gitlabEndpoint, ...gitlabRest } = gitlab;
+        return {
+            _git: {
+                github: { user, endpoint: githubEndpoint },
+                gitlab: { endpoint: gitlabEndpoint },
+            },
+            git: {
+                github: { ...githubRest, token: githubTokenHash },
+                gitlab: gitlabRest,
+            },
+        };
+    })();
 
     // @ts-ignore
     global.testParams = {
@@ -46,13 +50,12 @@ before(async function () {
         STORAGE_DIR,
         mountedDir: getDatasourcesInUseFolder(config),
         storage: config.s3,
-        git: {
-            ...config.git,
-            github: {
-                ...config.git.github,
-                token: githubTokenHash,
-            },
+        gitEndpoint: {
+            github: config.git.github.endpoint,
+            gitlab: config.git.gitlab.endpoint,
         },
+        _git,
+        git,
         directories: config.directories,
     };
 });

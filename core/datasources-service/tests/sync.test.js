@@ -15,7 +15,7 @@ describe('sync', () => {
 
     it('should create an updated version', async () => {
         const name = uuid();
-        const { body: dataSource } = await createDataSource({ body: { name } });
+        const { body: dataSource } = await createDataSource(name);
         const { body: updated, response } = await syncDataSource({
             name: dataSource.name,
         });

@@ -1,12 +1,18 @@
-/** @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig */
+/**
+ * @typedef {{ endpoint: string; bucketName: string }} StorageConfig
+ * @typedef {{ accessKeyId: string; secretAccessKey: string }} Credentials
+ */
 
-/** @param {StorageConfig} config */
-const S3Config = ({
-    endpoint,
-    accessKeyId,
-    secretAccessKey,
-    bucketName,
-}) => repositoryName => `
+/**
+ * @type {(
+ *     config: StorageConfig,
+ *     credentials: Credentials
+ * ) => (repositoryName: string) => string}
+ */
+const S3Config = (
+    { endpoint, bucketName },
+    { accessKeyId, secretAccessKey }
+) => repositoryName => `
 ['remote "storage"']
     url = s3://${bucketName}/${repositoryName}
     endpointurl = ${endpoint}
@@ -18,16 +24,17 @@ const S3Config = ({
 `;
 
 const configMap = {
-    s3: S3Config,
+    S3: S3Config,
 };
 
 /**
  * @type {(
- *     type: string,
- *     config: StorageConfig
+ *      type: string,
+ *      config: StorageConfig,
+ *      credentials: Credentials
  * ) => (repositoryName: string) => string}
  */
-module.exports = (type, config) => {
+module.exports = (type, config, credentials) => {
     const generator = configMap[type];
     if (!generator) {
         throw new Error(
@@ -36,5 +43,5 @@ module.exports = (type, config) => {
             ).join(', ')}`
         );
     }
-    return generator(config);
+    return generator(config, credentials);
 };

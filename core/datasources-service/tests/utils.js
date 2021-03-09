@@ -1,7 +1,7 @@
 const fse = require('fs-extra');
 const sinon = require('sinon');
 const Repository = require('./../lib/utils/Repository');
-
+const { Gitlab, Github } = require('../lib/utils/GitRemoteClient');
 // a valid mongo ObjectID;
 const nonExistingId = '5f953d50dd38c8291924a0a3';
 const fileName = 'README-1.md';
@@ -20,6 +20,21 @@ const mockDeleteClone = () => {
     return mock;
 };
 
+/**
+ * @param {import('../lib/utils/types').githubConfig} config
+ * @returns {Promise<string>}
+ */
+const createRepository = async (config, name) => {
+    const { kind = 'github' } = config;
+    let client;
+    if (kind === 'github') {
+        client = new Github(config, null, '');
+    } else {
+        client = new Gitlab(config, null, '');
+    }
+    return client.createRepository(name);
+};
+
 // a list of properties that should not be returned to the client
 const hiddenProperties = ['_id', '_credentials', 'isPartial'];
 
@@ -31,4 +46,5 @@ module.exports = {
     hiddenProperties,
     mockDeleteClone,
     STORAGE_DIR,
+    createRepository,
 };

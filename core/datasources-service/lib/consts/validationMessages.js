@@ -5,4 +5,5 @@ module.exports = {
     DOWNLOAD_ID_FORMAT:
         'A download id has to be a 4 characters long alphanumeric value',
     URL_FORMAT: 'invalid url provided',
+    GIT_URL_FORMAT: 'invalid git repository url provided',
 };

@@ -54,7 +54,7 @@ describe('download', () => {
     it('generate a download link and fetch it', async () => {
         sinon.restore();
         const name = uuid();
-        await createDataSource({ body: { name } });
+        await createDataSource(name);
         const { body: dataSource } = await updateVersion({
             dataSourceName: name,
             files: [
