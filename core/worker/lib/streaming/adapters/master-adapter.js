@@ -18,8 +18,9 @@ class MasterAdapter extends Adapter {
         this._options = options;
         this._slaves = Object.create(null);
         this._autoScaler = new AutoScaler(options, (d) => this._removeSlave(d));
+        this._listener = `streaming-statistics-${this.nodeName}`;
         stateAdapter.watchStreamingStats({ jobId: this.jobId, nodeName: this.nodeName });
-        stateAdapter.on(`streaming-statistics-${this.nodeName}`, (data) => {
+        stateAdapter.on(this._listener, (data) => {
             this._addSlave(data);
             this._report(data);
         });
@@ -58,6 +59,7 @@ class MasterAdapter extends Adapter {
 
     async finish() {
         this._autoScaler.finish();
+        stateAdapter.removeAllListeners(this._listener);
         await stateAdapter.unWatchStreamingStats({ jobId: this.jobId, nodeName: this.nodeName });
     }
 
