@@ -113,12 +113,6 @@ class JobConsumer {
                     ...job,
                     error: 'invalid datasource descriptor',
                 });
-                // const shouldGetLatest = !dataSourceDescriptor.version;
-                // dataSource = await this.db.dataSources.fetchWithCredentials(
-                //     shouldGetLatest
-                //         ? { name: dataSourceDescriptor.name }
-                //         : { id: dataSourceDescriptor.version }
-                // );
             }
         } catch (e) {
             return this.handleFail({ ...job, error: e.message });

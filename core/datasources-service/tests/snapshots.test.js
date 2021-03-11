@@ -174,7 +174,7 @@ describe('snapshots', () => {
         });
     });
     describe('group-meta', () => {
-        it.only('should preview a query', async () => {
+        it('should preview a query', async () => {
             const name = uid();
             const fileNames = await fse.readdir(
                 pathLib.resolve(__dirname, 'mocks', 'grouped-meta')
