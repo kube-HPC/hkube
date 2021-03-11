@@ -54,8 +54,8 @@ class AutoScaler {
         this._metrics = [];
         this._statistics = new Statistics(this._config, this._onSourceRemove);
         if (!this._isStateful) {
-            this._queueSizeTime = new TimeMarker(this._config.queue.minTimeEmptyToScaleDown);
-            this._timeForDown = new TimeMarker(this._config.scaleDown.maxTimeIdleBeforeReplicaDown);
+            this._queueSizeTime = new TimeMarker(this._config.scaleDown.minTimeQueueEmptyBeforeScaleDown);
+            this._timeForDown = new TimeMarker(this._config.scaleDown.minTimeIdleBeforeReplicaDown);
             this._scaler?.stop();
             this._scaler = new Scaler(this._config, {
                 getCurrentSize: () => {
@@ -223,7 +223,7 @@ class AutoScaler {
         // scale down based on rate
         else if (!idleScaleDown.scale && currentSize > requiredByDuration && canScaleDown) {
             const diff = relDiff(requiredByDuration, this._scaler.required);
-            if (diff > this._config.scaleDown.tolerance) {
+            if (diff > this._config.scaleDown.tolerance && requiredByDuration > 0) {
                 required = requiredByDuration;
             }
         }
@@ -246,14 +246,14 @@ class AutoScaler {
         if (!durationsRate) {
             return this._config.scaleUp.replicasOnFirstScale;
         }
-        const msgCleanUp = Math.ceil(durationsRate * this._config.queue.minTimeToCleanUpQueue);
+        const msgCleanUp = Math.ceil(durationsRate * this._config.scaleUp.minTimeToCleanUpQueue);
         const requiredByQueueSize = Math.ceil(queueSize / msgCleanUp);
         return requiredByQueueSize;
     }
 
     _markQueueSize(queueSize) {
         let canScaleDown = false;
-        if (queueSize <= this._config.queue.minQueueSizeBeforeScaleDown) {
+        if (queueSize <= this._config.scaleDown.minQueueSizeBeforeScaleDown) {
             const marker = this._queueSizeTime.mark();
             canScaleDown = marker.result;
         }

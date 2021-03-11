@@ -16,7 +16,6 @@ const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
 let log;
-const DEFAULT_STOPPING_INTERVAL = 200;
 
 class Worker {
     constructor() {
@@ -25,6 +24,7 @@ class Worker {
         this._isInit = false;
         this._isBootstrapped = false;
         this._ttlTimeoutHandle = null;
+        this._stoppingTime = null;
     }
 
     preInit() {
@@ -43,7 +43,7 @@ class Worker {
         this._registerToEtcdEvents();
         this._registerToAutoScalerChangesEvents();
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
-        this._stoppingCountMax = options.timeouts.stoppingIntervalCount || DEFAULT_STOPPING_INTERVAL;
+        this._stoppingTimeoutMs = options.timeouts.stoppingTimeoutMs;
         this._setInactiveTimeout();
         this._isInit = true;
         this._doTheBootstrap();
@@ -277,15 +277,13 @@ class Worker {
             stateManager.done(message);
         });
         algoRunnerCommunication.on(messages.incomming.stopping, () => {
-            this._stoppingCount += 1;
-            if (this._stoppingCount < this._stoppingCountMax) {
+            const timeElapsed = Date.now() - this._stoppingTime > this._stoppingTimeoutMs;
+            if (!timeElapsed) {
                 if (this._stopTimeout) {
                     clearTimeout(this._stopTimeout);
                     this._stopTimeout = null;
                 }
-                if (!this._stopTimeout) {
-                    this._stopTimeout = setTimeout(this._onStopTimeOut, this._stopTimeoutMs);
-                }
+                this._stopTimeout = setTimeout(() => this._onStopTimeOut(), this._stopTimeoutMs);
             }
         });
         algoRunnerCommunication.on(messages.incomming.progress, (message) => {
@@ -583,14 +581,9 @@ class Worker {
                     break;
                 case workerStates.stop:
                     if (!this._stopTimeout) {
-                        this._stoppingCount = 0;
+                        this._stoppingTime = Date.now();
                         this._handleTtlEnd();
-                        this._onStopTimeOut = () => {
-                            log.warning('Timeout exceeded trying to stop algorithm.', { component });
-                            stateManager.done('Timeout exceeded trying to stop algorithm');
-                            this.handleExit(0, jobId);
-                        };
-                        this._stopTimeout = setTimeout(this._onStopTimeOut, this._stopTimeoutMs);
+                        this._stopTimeout = setTimeout(() => this._onStopTimeOut(), this._stopTimeoutMs);
                         algoRunnerCommunication.send({
                             command: messages.outgoing.stop, data: { forceStop }
                         });
@@ -603,6 +596,14 @@ class Worker {
                 pendingTransition();
             }
         });
+    }
+
+    _onStopTimeOut() {
+        const { jobId } = jobConsumer.jobData;
+        const warn = 'Timeout exceeded trying to stop algorithm';
+        log.warning(warn, { component });
+        stateManager.done(warn);
+        this.handleExit(0, jobId);
     }
 }
 

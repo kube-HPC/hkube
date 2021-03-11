@@ -38,6 +38,15 @@ class MetricsCollector extends EventEmitter {
                 this._totalStats[key] = { requests: 0, responses: 0, dropped: 0 };
             }
             const data = this._totalStats[key];
+            if (data.requests > totalRequests) {
+                data.requests = 0;
+            }
+            if (data.responses > totalResponses) {
+                data.responses = 0;
+            }
+            if (data.dropped > totalDropped) {
+                data.dropped = 0;
+            }
             const requests = totalRequests - data.requests;
             const responses = totalResponses - data.responses;
             const dropped = totalDropped - data.dropped;
