@@ -79,7 +79,13 @@ class DataSource {
                         ...fileMeta,
                         name: fileName,
                     });
-                    return { ...acc, metaFilesByPath: { [_path]: file } };
+                    return {
+                        ...acc,
+                        metaFilesByPath: {
+                            ...acc.metaFilesByPath,
+                            [_path]: file,
+                        },
+                    };
                 }
                 // the file does not have an id for a name - it is unmapped
                 if (!mappingEntry) {

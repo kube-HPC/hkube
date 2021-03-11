@@ -6,10 +6,8 @@ const {
     filePath: { extractRelativePath, getFilePath },
 } = require('@hkube/datasource-utils');
 const { default: simpleGit } = require('simple-git');
-// const { Github, Gitlab } = require('./GitRemoteClient');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
-// const { serviceName } = require('../../config/main/config.base');
 const dedicatedStorage = require('./../DedicatedStorage');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { Github } = require('./GitRemoteClient');
@@ -472,9 +470,9 @@ class Repository extends RepositoryBase {
             throw error;
         }
         if (response.length === 0) return null;
-        // @ts-ignore
         if (
             storageKind === 'internal' &&
+            // @ts-ignore
             response[0].length === 0 &&
             !allowNotFound
         ) {
