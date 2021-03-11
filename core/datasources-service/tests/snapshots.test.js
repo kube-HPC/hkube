@@ -1,5 +1,7 @@
 const { expect } = require('chai');
 const { StatusCodes } = require('http-status-codes');
+const fse = require('fs-extra');
+const pathLib = require('path');
 const {
     fetchSnapshot,
     createSnapshot,
@@ -169,6 +171,37 @@ describe('snapshots', () => {
             });
             expect(files).to.have.lengthOf(1);
             expect(files[0].name).to.eq('logo.svg');
+        });
+    });
+    describe('group-meta', () => {
+        it.only('should preview a query', async () => {
+            const name = uid();
+            const fileNames = await fse.readdir(
+                pathLib.resolve(__dirname, 'mocks', 'grouped-meta')
+            );
+
+            const filePaths = fileNames.map(name =>
+                pathLib.join('grouped-meta', name)
+            );
+
+            const { body: dataSource } = await createDataSource(name, {
+                fileNames: filePaths,
+            });
+
+            expect(dataSource.files.every(file => file.meta.match(/first/i)));
+            const { body: preview } = await requestPreview({
+                dataSourceId: dataSource.id,
+                query: 'first 20',
+            });
+            expect(preview.length).to.eql(21);
+            expect(preview.every(file => !file.meta.match(/40/)));
+
+            const { body: secondPreview } = await requestPreview({
+                dataSourceId: dataSource.id,
+                query: '40',
+            });
+            expect(secondPreview.length).to.eql(20);
+            expect(secondPreview.every(file => file.meta.match(/40/)));
         });
     });
 });
