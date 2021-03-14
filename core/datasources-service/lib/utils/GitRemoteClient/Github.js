@@ -1,5 +1,5 @@
 const { Octokit } = require('@octokit/rest');
-const { default: axios } = require('axios');
+const { default: simpleGit } = require('simple-git');
 const { InvalidDataError, ResourceExistsError } = require('../../errors');
 const Base = require('./Base');
 const gitToken = require('./../../service/gitToken');
@@ -20,18 +20,12 @@ class Github extends Base {
         });
     }
 
+    /** @param {string} repositoryUrl */
     static async validateRepository(repositoryUrl, token) {
         const url = new URL(repositoryUrl);
-        const [, owner, fullRepoName] = url.pathname.split('/');
-        const repoName = fullRepoName.replace('.git', '');
-        const authorizedUrl = new URL(
-            `/api/v1/repos/${owner}/${repoName}`,
-            url.origin
-        );
-        authorizedUrl.username = token;
+        url.username = token;
         try {
-            await axios.get(authorizedUrl.toString());
-            return;
+            await simpleGit().listRemote([url.toString()]);
         } catch (error) {
             throw new InvalidDataError('invalid git token or repository url');
         }
