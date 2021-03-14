@@ -632,28 +632,35 @@ describe('Streaming', () => {
             const stats = [stat];
 
             await scale(stats);
-            const metrics1 = checkMetrics()[0];
+            const metric1 = checkMetrics()[0];
             await scale(stats);
-            const metrics2 = checkMetrics()[0];
+            const metric2 = checkMetrics()[0];
             await scale(stats);
-            const metrics3 = checkMetrics()[0];
+            const metric3 = checkMetrics()[0];
+            const metrics1 = metric1.metrics[0];
+            const metrics2 = metric2.metrics[0];
+            const metrics3 = metric3.metrics[0];
+            const metricsUid1 = metric1.uidMetrics[0];
+            const metricsUid2 = metric2.uidMetrics[0];
+            const metricsUid3 = metric3.uidMetrics[0];
+
             expect(metrics1.source).to.eql('C');
             expect(metrics1.target).to.eql('D');
-            expect(metrics1.requests).to.eql(requests);
-            expect(metrics1.responses).to.eql(responses);
-            expect(metrics1.dropped).to.eql(dropped);
+            expect(metricsUid1.totalRequests).to.eql(requests);
+            expect(metricsUid1.totalResponses).to.eql(responses);
+            expect(metricsUid1.totalDropped).to.eql(dropped);
 
             expect(metrics2.source).to.eql('C');
             expect(metrics2.target).to.eql('D');
-            expect(metrics2.requests).to.eql(requests);
-            expect(metrics2.responses).to.eql(responses);
-            expect(metrics2.dropped).to.eql(dropped);
+            expect(metricsUid2.totalRequests).to.eql(requests * 2);
+            expect(metricsUid2.totalResponses).to.eql(responses * 2);
+            expect(metricsUid2.totalDropped).to.eql(dropped * 2);
 
             expect(metrics3.source).to.eql('C');
             expect(metrics3.target).to.eql('D');
-            expect(metrics3.requests).to.eql(requests);
-            expect(metrics3.responses).to.eql(responses);
-            expect(metrics3.dropped).to.eql(dropped);
+            expect(metricsUid3.totalRequests).to.eql(requests * 3);
+            expect(metricsUid3.totalResponses).to.eql(responses * 3);
+            expect(metricsUid3.totalDropped).to.eql(dropped * 3);
         });
     });
     describe('master-slaves', () => {
@@ -724,7 +731,8 @@ describe('Streaming', () => {
             await delay(200);
 
             const scale = autoScale();
-            const metrics = checkMetrics();
+            const metric = checkMetrics();
+            const metrics = metric[0].metrics;
 
             expect(metrics.map(t => t.source).sort()).to.eql(['A', 'B', 'C']);
             expect(metrics).to.have.lengthOf(3);

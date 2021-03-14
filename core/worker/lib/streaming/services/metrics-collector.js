@@ -11,7 +11,6 @@ class MetricsCollector extends EventEmitter {
         log = Logger.GetLogFromContainer();
         this._options = options;
         this._getMetrics = getMetrics;
-        this._totalStats = Object.create(null);
         this._start();
     }
 
@@ -27,40 +26,11 @@ class MetricsCollector extends EventEmitter {
     }
 
     _checkMetrics() {
-        const currentMetrics = this._getMetrics();
-        const newMetrics = [];
-        currentMetrics.forEach(m => {
-            const { totalRequests, totalResponses, totalDropped, ...metrics } = m;
-            const { source, target } = m;
-            const key = `${source}->${target}`;
-
-            if (!this._totalStats[key]) {
-                this._totalStats[key] = { requests: 0, responses: 0, dropped: 0 };
-            }
-            const data = this._totalStats[key];
-            if (data.requests > totalRequests) {
-                data.requests = 0;
-            }
-            if (data.responses > totalResponses) {
-                data.responses = 0;
-            }
-            if (data.dropped > totalDropped) {
-                data.dropped = 0;
-            }
-            const requests = totalRequests - data.requests;
-            const responses = totalResponses - data.responses;
-            const dropped = totalDropped - data.dropped;
-
-            data.requests += requests;
-            data.responses += responses;
-            data.dropped += dropped;
-
-            newMetrics.push({ ...metrics, requests, responses, dropped });
-        });
-        if (newMetrics.length) {
-            this.emit(streamingEvents.METRICS_CHANGED, newMetrics);
+        const metrics = this._getMetrics().filter(m => m.metrics?.length);
+        if (metrics.length) {
+            this.emit(streamingEvents.METRICS_CHANGED, metrics);
         }
-        return newMetrics;
+        return metrics;
     }
 }
 

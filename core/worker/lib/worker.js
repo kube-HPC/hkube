@@ -25,6 +25,7 @@ class Worker {
         this._isBootstrapped = false;
         this._ttlTimeoutHandle = null;
         this._stoppingTime = null;
+        this._isScalingDown = false;
     }
 
     preInit() {
@@ -138,16 +139,20 @@ class Worker {
             }
         });
         stateAdapter.on(workerCommands.scaleDown, () => {
-            this._scaleDown({ status: workerCommands.scaleDown, reason: workerCommands.scaleDown });
+            this._scaleDown({ reason: workerCommands.scaleDown });
         });
     }
 
     async _scaleDown({ reason }) {
-        log.warning(reason, { component });
+        if (this._isScalingDown) {
+            return;
+        }
+        log.info('scaling down... stop algorithm and then exit', { component });
         const { jobId } = jobConsumer.jobData;
         if (jobId) {
             await this._stopAllPipelinesAndExecutions({ jobId, reason });
         }
+        this._isScalingDown = true;
         stateManager.stop({ forceStop: false });
     }
 
@@ -274,7 +279,15 @@ class Worker {
                 clearTimeout(this._stopTimeout);
                 this._stopTimeout = null;
             }
-            stateManager.done(message);
+            if (this._isScalingDown) {
+                const data = {
+                    shouldCompleteJob: true
+                };
+                stateManager.exit(data);
+            }
+            else {
+                stateManager.done(message);
+            }
         });
         algoRunnerCommunication.on(messages.incomming.stopping, () => {
             const timeElapsed = Date.now() - this._stoppingTime > this._stoppingTimeoutMs;

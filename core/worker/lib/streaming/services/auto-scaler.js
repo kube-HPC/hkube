@@ -51,8 +51,9 @@ class AutoScaler {
     }
 
     reset() {
-        this._metrics = [];
+        this._metrics = {};
         this._statistics = new Statistics(this._config, this._onSourceRemove);
+
         if (!this._isStateful) {
             this._queueSizeTime = new TimeMarker(this._config.scaleDown.minTimeQueueEmptyBeforeScaleDown);
             this._timeForDown = new TimeMarker(this._config.scaleDown.minTimeIdleBeforeReplicaDown);
@@ -98,6 +99,7 @@ class AutoScaler {
     _createScale() {
         let currentSize = 0;
         const metrics = [];
+        const uidMetrics = [];
         const target = this._nodeName;
         const stats = Object.create(null);
         const statistics = this._statistics.get();
@@ -111,6 +113,14 @@ class AutoScaler {
             if (!stats[source]) {
                 stats[source] = { windowSize: [], rates: [] };
             }
+            uidMetrics.push({
+                uid: stat.source,
+                source,
+                target,
+                totalRequests: rates.totalRequests,
+                totalResponses: rates.totalResponses,
+                totalDropped: rates.dropped,
+            });
             stats[source].windowSize.push(windowSize);
             stats[source].rates.push(rates);
         });
@@ -137,7 +147,6 @@ class AutoScaler {
             const grossDurationsRate = formatNumber(mean(rates.map(r => r.grossDurationsRate)));
             const totalRequests = sum(rates.map(r => r.totalRequests));
             const totalResponses = sum(rates.map(r => r.totalResponses));
-            const totalDropped = sum(rates.map(r => r.dropped));
             const throughput = formatNumber(mean(rates.map(r => r.throughput)));
             const queueSize = sum(rates.map(r => r.queueSize));
             const avgQueueSize = Math.round(mean(rates.map(r => r.queueSize)));
@@ -160,10 +169,7 @@ class AutoScaler {
                 roundTripTimeMs,
                 durationsRate,
                 grossDurationsRate,
-                throughput,
-                totalRequests,
-                totalResponses,
-                totalDropped,
+                throughput
             };
             metrics.push(metric);
             totals.reqRate += reqRate;
@@ -190,7 +196,7 @@ class AutoScaler {
             const durationsRate = formatNumber(mean(totals.durationsRate));
             this._getScaleDetails({ ...totals, durationsRate, currentSize });
         }
-        this._metrics = metrics;
+        this._metrics = { metrics, uidMetrics };
     }
 
     _logScaling({ action, replicas, currentSize, scaleTo }) {

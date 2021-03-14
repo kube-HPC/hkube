@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
 const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
+const { sum } = require('@hkube/stats');
 const logger = require('@hkube/logger');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
 const producer = require('../producer/jobs-producer');
@@ -35,6 +36,7 @@ class TaskRunner extends EventEmitter {
         this.pipeline = null;
         this._paused = false;
         this._isStreaming = false;
+        this._streamingMetrics = {};
         this._schedulingWarningTimeoutMs = options.unScheduledAlgorithms.warningTimeoutMs;
         this._init(options);
     }
@@ -438,6 +440,7 @@ class TaskRunner extends EventEmitter {
         await graphStore.stop();
         this._stateManager.unCheckUnScheduledAlgorithms();
         this._nodes = null;
+        this._streamingMetrics = {};
         this._job && this._job.done(error);
         this._job = null;
         this._progress = null;
@@ -633,15 +636,39 @@ class TaskRunner extends EventEmitter {
             return;
         }
         task.metrics.forEach((t) => {
-            const { source, target, requests, responses, dropped, ...metrics } = t;
-            const edge = this._nodes.getEdge(t.source, t.target);
-            let { totalRequests = 0, totalResponses = 0, totalDropped = 0 } = edge.metrics || {};
-            totalRequests += requests;
-            totalResponses += responses;
-            totalDropped += dropped;
-            this._nodes.updateEdge(source, target, { metrics: { ...metrics, totalRequests, totalResponses, totalDropped } });
+            const { metrics, uidMetrics } = t;
+            this._updateStreamMetrics(uidMetrics);
+
+            metrics.forEach((m) => {
+                const { source, target, ...metric } = m;
+                const totalRequests = this._getStreamMetric(source, target);
+                this._nodes.updateEdge(source, target, { metrics: { ...metric, ...totalRequests } });
+            });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
+    }
+
+    _getStreamMetric(source, target) {
+        let totalRequests = 0;
+        let totalResponses = 0;
+        let totalDropped = 0;
+
+        const streamingMetrics = Object.values(this._streamingMetrics);
+        const metrics = streamingMetrics.filter(u => u.source === source && u.target === target);
+
+        metrics.forEach(m => {
+            totalRequests += m.totalRequests;
+            totalResponses += m.totalResponses;
+            totalDropped += m.totalDropped;
+        });
+
+        return { totalRequests, totalResponses, totalDropped };
+    }
+
+    _updateStreamMetrics(uidMetrics) {
+        uidMetrics.forEach(metric => {
+            this._streamingMetrics[metric.uid] = metric;
+        });
     }
 
     _onStoring(task) {
