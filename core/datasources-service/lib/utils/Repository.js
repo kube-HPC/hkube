@@ -6,10 +6,8 @@ const {
     filePath: { extractRelativePath, getFilePath },
 } = require('@hkube/datasource-utils');
 const { default: simpleGit } = require('simple-git');
-// const { Github, Gitlab } = require('./GitRemoteClient');
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
-// const { serviceName } = require('../../config/main/config.base');
 const dedicatedStorage = require('./../DedicatedStorage');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { Github } = require('./GitRemoteClient');
@@ -181,7 +179,7 @@ class Repository extends RepositoryBase {
         // clone the repo, setup dvc in it
         await this.ensureClone(null, false);
         const dir = await fse.readdir(this.cwd);
-        if (dir.length !== 1 || dir[0] !== '.git') {
+        if (dir.length > 1 || (dir.length === 1 && dir[0] !== '.git')) {
             throw new InvalidDataError(
                 'the provided git repository is not empty'
             );
@@ -233,6 +231,9 @@ class Repository extends RepositoryBase {
                 await simpleGit({ baseDir: this.rootDir })
                     .env('GIT_TERMINAL_PROMPT', '0')
                     .clone(this.repositoryUrl);
+                const repositoryName = pathLib.parse(this.repositoryUrl).name;
+                const currentDir = pathLib.join(this.rootDir, repositoryName);
+                fse.rename(currentDir, this.cwd);
             } catch (error) {
                 if (
                     error?.message.match(/could not read Password for/i) ||
@@ -472,9 +473,9 @@ class Repository extends RepositoryBase {
             throw error;
         }
         if (response.length === 0) return null;
-        // @ts-ignore
         if (
             storageKind === 'internal' &&
+            // @ts-ignore
             response[0].length === 0 &&
             !allowNotFound
         ) {
