@@ -19,7 +19,7 @@ class Statistics {
 
     report(data) {
         const { source, currentSize } = data;
-        const { queueSize = 0, sent = 0, responses = 0, dropped = 0, durations = [], netDurations = [] } = data;
+        const { queueSize = 0, sent = 0, responses = 0, dropped = 0, durations = [], netDurations = [], queueDurations = [] } = data;
         const requests = queueSize + sent;
         const stats = this._data[source] || this._createStatData({ maxSize: this._maxSize });
         stats.queueSize = queueSize;
@@ -28,6 +28,7 @@ class Statistics {
         stats.responses.add(this._createItem(responses));
         stats.durations.addRange(netDurations);
         stats.grossDurations.addRange(durations);
+        stats.queueDurations.addRange(queueDurations);
 
         this._data[source] = {
             ...stats,
@@ -61,6 +62,7 @@ class Statistics {
             responses: new FixedWindow(maxSize),
             durations: new FixedWindow(maxSize),
             grossDurations: new FixedWindow(maxSize),
+            queueDurations: new FixedWindow(maxSize),
         };
     }
 }

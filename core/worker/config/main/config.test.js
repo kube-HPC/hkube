@@ -10,7 +10,7 @@ config.streaming = {
         interval: 60000,
         scaleInterval: 10,
         scaleDown: {
-            maxTimeIdleBeforeReplicaDown: 0
+            minTimeIdleBeforeReplicaDown: 0
         },
         statistics: {
             maxSizeWindow: 4,

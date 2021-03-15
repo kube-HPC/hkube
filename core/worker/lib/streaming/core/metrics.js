@@ -66,8 +66,9 @@ const calcRates = (data) => {
     const throughput = reqRate && resRate ? formatNumber((resRate / reqRate) * 100) : 0;
     const processingTime = mean(data.durations.items);
     const roundTripTime = mean(data.grossDurations.items);
+    const queueTime = mean(data.queueDurations.items);
     const { queueSize, dropped } = data;
-    return { reqRate, resRate, durationsRate, grossDurationsRate, processingTime, roundTripTime, throughput, queueSize, totalRequests, totalResponses, dropped };
+    return { reqRate, resRate, durationsRate, grossDurationsRate, processingTime, roundTripTime, queueTime, throughput, queueSize, totalRequests, totalResponses, dropped };
 };
 
 module.exports = {

@@ -58,11 +58,7 @@ class AdaptersProxy {
 
     metrics() {
         const masters = this.getMasters();
-        const result = [];
-        masters.forEach(m => {
-            const metrics = m.getMetrics();
-            result.push(...metrics);
-        });
+        const result = masters.map(m => m.getMetrics());
         return result;
     }
 
