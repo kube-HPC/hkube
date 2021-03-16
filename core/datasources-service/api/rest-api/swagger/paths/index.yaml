@@ -12,6 +12,8 @@
     $ref: ./snapshots/preview.yaml
 /datasource/{name}/snapshot:
     $ref: ./snapshots/byDataSourceName.yaml
+/datasource/{name}/credentials:
+    $ref: ./credentials.yaml
 /datasource/{name}/snapshot/{snapshotName}:
     $ref: ./snapshots/byName.yaml
 /datasource/id/{id}/download:

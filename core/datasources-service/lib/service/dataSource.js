@@ -21,6 +21,7 @@ const gitToken = require('./gitToken');
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
  * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig;
  * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig;
+ * @typedef {import('@hkube/db/lib/DataSource').Credentials} Credentials
  * @typedef {{ createdPath: string; fileName: string }} uploadFileResponse
  * @typedef {{ name?: string; id?: string }} NameOrId
  */
@@ -550,6 +551,17 @@ class DataSource {
     /** @param {string} name */
     async listVersions(name) {
         return this.db.dataSources.listVersions({ name });
+    }
+
+    /**
+     * @param {{
+     *     name: string;
+     *     credentials: Credentials;
+     * }} props
+     */
+    async updateCredentials({ name, credentials }) {
+        validator.dataSources.updateCredentials({ name, credentials });
+        return this.db.dataSources.updateCredentials({ name, credentials });
     }
 }
 
