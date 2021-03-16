@@ -29,6 +29,7 @@ const setupUrl = ({ name, id }) => {
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
  * @typedef {import('@hkube/db/lib/DataSource').DataSourceWithMeta} DataSourceWithMeta
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
+ * @typedef {import('@hkube/db/lib/DataSource').Credentials} Credentials
  */
 
 /** @returns {Response<DataSource>} */
@@ -315,6 +316,25 @@ const requestPreview = ({ dataSourceId, query }) =>
 const syncDataSource = ({ name }) =>
     request({ uri: `${setupUrl({ name })}/sync` });
 
+/**
+ * @param {{
+ *     name: string;
+ *     credentials?: Credentials;
+ *     ignoreCredentials?: boolean;
+ * }} props
+ * @returns {Response<{ updatedCount: number }>}
+ */
+const updateCredentials = async ({
+    name,
+    credentials,
+    ignoreCredentials = false,
+}) =>
+    request({
+        uri: `${setupUrl({ name })}/credentials`,
+        body: ignoreCredentials ? {} : { credentials },
+        method: 'PATCH',
+    });
+
 module.exports = {
     fetchDataSource,
     deleteDataSource,
@@ -330,4 +350,5 @@ module.exports = {
     fetchDownloadLink,
     requestValidation,
     requestPreview,
+    updateCredentials,
 };
