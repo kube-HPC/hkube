@@ -197,10 +197,9 @@ class AlgorithmExecution {
                 throw new Error('execution cannot start in this state');
             }
 
-            const storage = {};
             const { jobId, nodeName } = jobData;
             const parentAlgName = jobData.algorithmName;
-            const { algorithmName, input, includeResult } = data;
+            const { algorithmName, input, includeResult, storage = {} } = data;
             const algos = await stateAdapter.getExistingAlgorithms();
             if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
