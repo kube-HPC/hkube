@@ -149,6 +149,17 @@ const routes = () => {
             next();
         });
 
+    router.patch('/:name/credentials', async (req, res, next) => {
+        const { name } = req.params;
+        const { credentials } = req.body;
+        const updatedCount = await dataSource.updateCredentials({
+            name,
+            credentials,
+        });
+        res.json({ updatedCount });
+        return next();
+    });
+
     // ---- versions ---- //
     router.get('/:name/versions', async (req, res, next) => {
         const { name } = req.params;

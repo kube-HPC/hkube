@@ -53,6 +53,11 @@ CreateDownloadLinkRequest:
 DownloadId:
     $ref: ./DownloadId.yaml
 
+Credentials:
+    $ref: ./Credentials.yaml
+updateCredentials:
+    $ref: ./updateCredentials.yaml
+
 URL:
     $ref: ./URL.yaml
 GitURL:
