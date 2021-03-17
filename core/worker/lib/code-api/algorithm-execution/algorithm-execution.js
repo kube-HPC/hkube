@@ -183,7 +183,6 @@ class AlgorithmExecution {
         try {
             const data = (message && message.data) || {};
             execId = data.execId;
-            const { storageInput } = data;
             const valid = this._startAlgorithmSchema(data);
             if (!valid) {
                 throw new Error(validator.errorsText(this._startAlgorithmSchema.errors));
@@ -199,7 +198,7 @@ class AlgorithmExecution {
 
             const { jobId, nodeName } = jobData;
             const parentAlgName = jobData.algorithmName;
-            const { algorithmName, input, includeResult, storage = {} } = data;
+            const { algorithmName, input, includeResult, storageInput, storage = {} } = data;
             const algos = await stateAdapter.getExistingAlgorithms();
             if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
