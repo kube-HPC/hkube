@@ -16,9 +16,10 @@ class GraphStore {
         this._currentJobID = null;
     }
 
-    init(options) {
+    async init(options) {
         log = logger.GetLogFromContainer();
-        this._persistency = new Persistency({ connection: options.redis });
+        this._persistency = new Persistency();
+        return this._persistency.init({ connection: options.db });
     }
 
     async start(jobId, nodeMap) {
@@ -36,21 +37,8 @@ class GraphStore {
         this._currentJobID = null;
     }
 
-    async getGraph(options) {
-        const jsonGraph = await this._persistency.getGraph({ jobId: options.jobId });
-        const graph = this._tryParseJSON(jsonGraph);
-        return graph;
-    }
-
-    _tryParseJSON(json) {
-        let parsed;
-        try {
-            parsed = JSON.parse(json);
-        }
-        catch (e) {
-            log.warning('failed to parse json graph', { component: components.GRAPH_STORE });
-        }
-        return parsed;
+    getGraph(options) {
+        return this._persistency.getGraph({ jobId: options.jobId });
     }
 
     _storeInterval() {
@@ -83,7 +71,7 @@ class GraphStore {
         const filterGraph = this._filterData(graph);
         if (!isEqual(this._lastGraph, filterGraph)) {
             this._lastGraph = filterGraph;
-            await this._persistency.setGraph({ jobId: this._currentJobID, data: { jobId: this._currentJobID, timestamp: Date.now(), ...filterGraph } });
+            await this._persistency.setGraph({ jobId: this._currentJobID, data: { timestamp: Date.now(), ...filterGraph } });
         }
     }
 
