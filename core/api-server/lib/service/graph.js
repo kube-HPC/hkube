@@ -4,8 +4,9 @@ const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');
 
 class GraphService {
-    init(options) {
-        this._persistency = new Persistency({ connection: options.redis });
+    async init(options) {
+        this._persistency = new Persistency();
+        await this._persistency.init({ connection: options.db });
     }
 
     async setGraph({ jobId, data }) {
@@ -25,8 +26,7 @@ class GraphService {
     async getGraphParsed(options) {
         validator.graphs.validateGraphQuery(options);
         const { jobId, node, sort, order, from, to } = options;
-        const json = await this._persistency.getGraph({ jobId });
-        const graph = JSON.parse(json);
+        const graph = await this._persistency.getGraph({ jobId });
         if (!graph) {
             throw new ResourceNotFoundError('graph', jobId);
         }

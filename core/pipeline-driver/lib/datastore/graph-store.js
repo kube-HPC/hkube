@@ -71,7 +71,7 @@ class GraphStore {
         const filterGraph = this._filterData(graph);
         if (!isEqual(this._lastGraph, filterGraph)) {
             this._lastGraph = filterGraph;
-            await this._persistency.setGraph({ jobId: this._currentJobID, data: { timestamp: Date.now(), ...filterGraph } });
+            await this._persistency.setGraph({ jobId: this._currentJobID, data: { jobId: this._currentJobID, timestamp: Date.now(), ...filterGraph } });
         }
     }
 

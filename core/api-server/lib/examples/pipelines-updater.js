@@ -1,5 +1,6 @@
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
+const { Factory } = require('@hkube/redis-utils');
 const algorithms = require('./algorithms.json');
 const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
@@ -14,6 +15,7 @@ class PipelinesUpdater {
         log.info('--------starting sync process---------');
         await this._pipelineDriversTemplate(options);
         await this._transferJobsToDB();
+        await this._transferGraphsToDB(options);
         await this._transferFromStorageToDB('algorithm', defaultAlgorithms, (...args) => this._createAlgorithms(...args));
         await this._transferFromStorageToDB('pipeline', pipelines, (...args) => this._createPipelines(...args));
         await this._transferFromStorageToDB('experiment', experiments, (...args) => this._createExperiments(...args));
@@ -37,6 +39,54 @@ class PipelinesUpdater {
         }
     }
 
+    async _transferGraphsToDB(options) {
+        try {
+            const limit = 1000;
+            const fields = {
+                graph: true,
+                jobId: true
+            }
+            const jobs = await stateManager._db.jobs.search({
+                sort: { 'pipeline.startTime': 'desc' },
+                fields,
+                limit
+            });
+            const missingGraphs = jobs.filter(j => !j.graph);
+            if (missingGraphs.length===0){
+                log.info('jobs: there are no graphs to sync');
+                return;
+            }
+            const redisClient = Factory.getClient(options.redis);
+            const PREFIX_PATH = 'hkube:pipeline:graph';
+            let migrated = 0;
+            await Promise.all(missingGraphs.map(async j => {
+                const { jobId } = j;
+                try {
+                    const key = `/${PREFIX_PATH}/${jobId}`;
+                    const graphJson = await redisClient.get(key);
+                    if (!graphJson){
+                        return;
+                    }
+                    const graph = JSON.parse(graphJson);
+                    await stateManager._db.jobs.updateGraph({jobId, graph})
+                    await redisClient.del(key);
+                    migrated += 1;
+                } catch (error) {
+                    log.throttle.error(`error syncing graph ${error.message}`); 
+                }
+            }))
+            if (migrated > 0) {
+                log.info(`jobs: synced ${migrated} graphs from redis to db`);
+            }
+            else {
+                log.info('jobs: there are no graphs to sync');
+            }
+        } catch (error) {
+            log.warning(`error syncing graphs. ${error.message}`);
+        }
+
+
+    }
     async _transferJobsToDB() {
         try {
             const limit = 100;
@@ -62,7 +112,7 @@ class PipelinesUpdater {
                 await this._deleteEtcdPrefix('jobs', '/jobs');
             }
             else {
-                log.info('jobs: there are no data to sync');
+                log.info('jobs: there is no data to sync');
             }
         }
         catch (error) {
