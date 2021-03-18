@@ -16,7 +16,7 @@ const { MESSAGES } = require('../consts/builds');
 class AlgorithmStore {
     init(config) {
         this._debugUrl = config.debugUrl.path;
-        this._defaultAlgorithmReservedMemory = config.defaultAlgorithmReservedMemory;
+        this._defaultAlgorithmReservedMemoryRatio = config.defaultAlgorithmReservedMemoryRatio;
 
         stateManager.onBuildComplete(async (build) => {
             /**
@@ -182,8 +182,8 @@ class AlgorithmStore {
         }
 
         if (!newAlgorithm.reservedMemory) {
-            const mem = unitsConverter.getMemoryInMi(newAlgorithm.mem);
-            const reservedMemory = mem * this._defaultAlgorithmReservedMemory;
+            const memInMb = unitsConverter.getMemoryInMi(newAlgorithm.mem);
+            const reservedMemory = Math.ceil(memInMb * this._defaultAlgorithmReservedMemoryRatio);
             newAlgorithm.reservedMemory = `${reservedMemory}Mi`;
         }
 

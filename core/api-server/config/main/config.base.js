@@ -11,7 +11,7 @@ const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.maxStorageFetchKeys = formatter.parseInt(process.env.MAX_STORAGE_FETCH_KEYS, 100);
 config.storageResultsThreshold = process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
-config.defaultAlgorithmReservedMemory = formatter.parseInt(process.env.DEFAULT_ALGORITHM_RESERVED_MEMORY, 0.2);
+config.defaultAlgorithmReservedMemoryRatio = formatter.parseInt(process.env.DEFAULT_ALGORITHM_RESERVED_MEMORY_RATIO, 0.2);
 const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
 config.version = packageJson.version;

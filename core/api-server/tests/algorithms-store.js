@@ -1681,7 +1681,17 @@ describe('Store/Algorithms', () => {
                 const res = await request(req);
                 expect(res.body.algorithm.reservedMemory).to.eql(reservedMemory);
             });
-            it('should succeed to add reservedMemory', async () => {
+            it('should succeed to calc reservedMemory', async () => {
+                const apply = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: '1024Mi'
+                }
+                const req = { uri: applyPath, formData: { payload: JSON.stringify(apply) } };
+                const res = await request(req);
+                expect(res.body.algorithm.reservedMemory).to.eql('205Mi');
+            });
+            it('should succeed to add created and modified', async () => {
                 const apply = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
