@@ -46,13 +46,13 @@ class PipelinesUpdater {
                 graph: true,
                 jobId: true
             }
-            const jobs = await stateManager._db.jobs.search({
+            const jobs = await stateManager.searchJobs({
                 sort: { 'pipeline.startTime': 'desc' },
                 fields,
                 limit
             });
             const missingGraphs = jobs.filter(j => !j.graph);
-            if (missingGraphs.length===0){
+            if (missingGraphs.length === 0) {
                 log.info('jobs: there are no graphs to sync');
                 return;
             }
@@ -64,15 +64,15 @@ class PipelinesUpdater {
                 try {
                     const key = `/${PREFIX_PATH}/${jobId}`;
                     const graphJson = await redisClient.get(key);
-                    if (!graphJson){
+                    if (!graphJson) {
                         return;
                     }
                     const graph = JSON.parse(graphJson);
-                    await stateManager._db.jobs.updateGraph({jobId, graph})
+                    await stateManager._db.jobs.updateGraph({ jobId, graph })
                     await redisClient.del(key);
                     migrated += 1;
                 } catch (error) {
-                    log.throttle.error(`error syncing graph ${error.message}`); 
+                    log.throttle.error(`error syncing graph ${error.message}`);
                 }
             }))
             if (migrated > 0) {
@@ -112,7 +112,7 @@ class PipelinesUpdater {
                 await this._deleteEtcdPrefix('jobs', '/jobs');
             }
             else {
-                log.info('jobs: there is no data to sync');
+                log.info('jobs: there are no jobs to sync');
             }
         }
         catch (error) {

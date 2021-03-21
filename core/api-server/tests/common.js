@@ -34,19 +34,19 @@ describe('Common', () => {
         });
     })
     describe('migrate graph', () => {
-        before(()=>{
-            
+        before(() => {
+
             redisClient = Factory.getClient(redis);
         })
         it('should move graph from redis to db', async () => {
             const jobId1 = uuid();
-            const job1={
+            const job1 = {
                 jobId: jobId1,
                 graph: {
                     jobId: jobId1,
                     timestamp: Date.now
                 },
-                status:{
+                status: {
                     good: true
                 }
             }
@@ -54,7 +54,7 @@ describe('Common', () => {
             const jobId2 = uuid();
             const job2 = {
                 jobId: jobId2,
-                status:{
+                status: {
                     bad: true
                 }
             }
@@ -63,16 +63,16 @@ describe('Common', () => {
                 timestamp: Date.now()
             }
             await stateManager._db.jobs.create(job2)
-            await redisClient.set(`/hkube:pipeline:graph/${jobId2}`,JSON.stringify(graph2))
+            await redisClient.set(`/hkube:pipeline:graph/${jobId2}`, JSON.stringify(graph2))
 
             const redisGraph = await redisClient.get(`/hkube:pipeline:graph/${jobId2}`);
             expect(redisGraph).to.eql(JSON.stringify(graph2));
-            const job2Before = await stateManager._db.jobs.fetch({jobId: jobId2});
+            const job2Before = await stateManager._db.jobs.fetch({ jobId: jobId2 });
             expect(job2Before.graph).to.not.exist;
-            await updater._transferGraphsToDB({redis});
+            await updater._transferGraphsToDB({ redis });
             const redisGraph2 = await redisClient.get(`/hkube:pipeline:graph/${jobId2}`);
             expect(redisGraph2).to.not.exist;
-            const job2After = await stateManager._db.jobs.fetch({jobId: jobId2});
+            const job2After = await stateManager._db.jobs.fetch({ jobId: jobId2 });
             expect(job2After.graph).to.eql(graph2);
         });
     });
