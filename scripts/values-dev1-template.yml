@@ -1,7 +1,5 @@
 global:
-  production: true
   clusterName: dev1
-  registry: ""
   storage:
     binary: true
     fs:
@@ -33,9 +31,10 @@ etcd:
 task_executor:
   env:
     pipeline_drivers_amount: 5
+    use_resource_limits: true
 monitor_server:
   env:
-    elasticsearch_service_url: 'http://elasticsearch-ingest.logging.svc.test:9200'
+    elasticsearch_service_url: 'http://elasticsearch-ingest.logging.svc.dev1:9200'
 storage_cleaner:
   pattern: "30 7 * * *"
 etcd_cleaner:
