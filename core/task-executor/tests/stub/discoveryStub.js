@@ -53,6 +53,13 @@ const templateStoreStub = [
         name: 'algo2',
         workerImage: 'worker2:latest',
         algorithmImage: 'algo2:v1.2'
+    },
+    {
+        name: 'algo3',
+        workerImage: 'worker3:latest',
+        algorithmImage: 'algo3:v1.2',
+        mem: '256Mi',
+        reservedMemory: '20Mi'
     }
 ];
 

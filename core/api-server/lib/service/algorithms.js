@@ -2,6 +2,7 @@ const merge = require('lodash.merge');
 const isEqual = require('lodash.isequal');
 const cloneDeep = require('lodash.clonedeep');
 const format = require('string-template');
+const unitsConverter = require('@hkube/units-converter');
 const storageManager = require('@hkube/storage-manager');
 const { buildTypes } = require('@hkube/consts');
 const executionService = require('./execution');
@@ -15,6 +16,7 @@ const { MESSAGES } = require('../consts/builds');
 class AlgorithmStore {
     init(config) {
         this._debugUrl = config.debugUrl.path;
+        this._defaultAlgorithmReservedMemoryRatio = config.defaultAlgorithmReservedMemoryRatio;
 
         stateManager.onBuildComplete(async (build) => {
             /**
@@ -177,6 +179,12 @@ class AlgorithmStore {
         }
         if (newAlgorithm.options.debug) {
             newAlgorithm.data = { ...newAlgorithm.data, path: `${this._debugUrl}/${newAlgorithm.name}` };
+        }
+
+        if (!newAlgorithm.reservedMemory) {
+            const memInMb = unitsConverter.getMemoryInMi(newAlgorithm.mem);
+            const reservedMemory = Math.ceil(memInMb * this._defaultAlgorithmReservedMemoryRatio);
+            newAlgorithm.reservedMemory = `${reservedMemory}Mi`;
         }
 
         const newVersion = await this._versioning(hasDiff, newAlgorithm, buildId);
