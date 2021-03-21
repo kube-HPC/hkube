@@ -72,7 +72,7 @@ class PipelinesUpdater {
                     await redisClient.del(key);
                     migrated += 1;
                 } catch (error) {
-                    log.throttle.error(`error syncing graph ${error.message}`);
+                    log.throttle.warning(`error syncing graph ${error.message}`);
                 }
             }))
             if (migrated > 0) {
@@ -104,7 +104,7 @@ class PipelinesUpdater {
                     jobs += res.a;
                 }
                 catch (error) {
-                    log.throttle.error(`error syncing job ${error.message}`);
+                    log.throttle.warning(`error syncing job ${error.message}`);
                 }
             }));
             if (jobs.length > 0) {
