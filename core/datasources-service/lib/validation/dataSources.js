@@ -145,6 +145,13 @@ class DataSources {
         );
     }
 
+    updateCredentials(props) {
+        this._validator.validate(
+            this._validator.definitions.updateCredentials,
+            props
+        );
+    }
+
     /** @param {string[]} dataSources */
     async validateDataSourceExists(dataSources) {
         const db = dbConnect.connection;
