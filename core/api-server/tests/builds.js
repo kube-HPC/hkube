@@ -86,7 +86,7 @@ describe('Builds', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body).to.have.property('status');
             expect(response.body).to.have.property('startTime');
-            expect(response.body).to.have.property('baseImage');
+            expect(response.body).to.not.have.property('baseImage');
             expect(response.body.status).to.equal('pending');
         });
         it('should succeed to get baseImage', async () => {
