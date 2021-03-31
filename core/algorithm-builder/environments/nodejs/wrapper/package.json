@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hkube/nodejs-wrapper": "^2.0.28"
+    "@hkube/logger": "^1.0.27",
+    "@hkube/nodejs-wrapper": "^2.0.29"
   },
   "devDependencies": {}
 }
