@@ -1,6 +1,3 @@
-const Logger = require('@hkube/logger');
-const config = require('./config');
-const log = new Logger(config.serviceName, config.logger);
 const NodejsWrapper = require('@hkube/nodejs-wrapper');
 
 const init = async () => {
