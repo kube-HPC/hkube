@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "2.0.32",
+    "version": "2.0.34",
     "description": "worker process",
     "main": "app.js",
     "scripts": {
@@ -22,7 +22,7 @@
         "@hkube/config": "^2.0.11",
         "@hkube/consts": "^1.0.31",
         "@hkube/dag": "^2.1.11",
-        "@hkube/db": "^1.0.19",
+        "@hkube/db": "^1.0.28",
         "@hkube/encoding": "^1.0.21",
         "@hkube/etcd": "^5.1.2",
         "@hkube/kubernetes-client": "^1.0.33",
