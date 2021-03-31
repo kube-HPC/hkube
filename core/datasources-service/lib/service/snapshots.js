@@ -71,13 +71,8 @@ class Snapshots {
         return response;
     }
 
-    /** @param {{ id: string; filesList: FileMeta[] }} props */
-    async updateSnapshotResult({ id, filesList }) {
-        return this.db.snapshots.updateFilesList({ id, filesList });
-    }
-
     /**
-     * @param {{ files: FileMeta; query: string }}
+     * @param {{ files: FileMeta[]; query: string }} props
      * @returns {{ matching: FileMeta[]; nonMatching: FileMeta[] }}
      */
     filterFilesListByQuery({ files, query }) {

@@ -91,6 +91,10 @@ class Etcd {
                 if (a.mem) {
                     a.mem = parse.getMemoryInMi(a.mem);
                 }
+                if (a.reservedMemory) {
+                    a.mem += parse.getMemoryInMi(a.reservedMemory);
+                }
+
                 return a;
             });
         return arrayToMap(templates);

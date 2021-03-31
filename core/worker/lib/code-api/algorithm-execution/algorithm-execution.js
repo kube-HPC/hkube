@@ -183,7 +183,6 @@ class AlgorithmExecution {
         try {
             const data = (message && message.data) || {};
             execId = data.execId;
-            const { storageInput } = data;
             const valid = this._startAlgorithmSchema(data);
             if (!valid) {
                 throw new Error(validator.errorsText(this._startAlgorithmSchema.errors));
@@ -193,14 +192,13 @@ class AlgorithmExecution {
                 throw new Error(`execution ${execId} already running`);
             }
             const { jobData } = jobConsumer;
-            if (!jobData) {
+            if (!jobData.jobId) {
                 throw new Error('execution cannot start in this state');
             }
 
-            const storage = {};
             const { jobId, nodeName } = jobData;
             const parentAlgName = jobData.algorithmName;
-            const { algorithmName, input, includeResult } = data;
+            const { algorithmName, input, includeResult, storageInput, storage = {} } = data;
             const algos = await stateAdapter.getExistingAlgorithms();
             if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);

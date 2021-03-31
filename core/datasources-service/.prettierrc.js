@@ -4,12 +4,6 @@ module.exports = {
     trailingComma: 'es5',
     arrowParens: 'avoid',
     tabWidth: 4,
-    overrides: [
-        {
-            files: '*.js',
-            options: {
-                parser: 'jsdoc-parser',
-            },
-        },
-    ],
+    jsdocPrintWidth: 100,
+    jsdocUseInlineCommentForASingleTagBlock: true,
 };

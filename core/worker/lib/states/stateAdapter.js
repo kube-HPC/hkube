@@ -226,6 +226,10 @@ class StateAdapter extends EventEmitter {
         return dataSource;
     }
 
+    async getQueue(name) {
+        return this._etcd.algorithms.queue.get({ name });
+    }
+
     async unwatch(options) {
         try {
             log.debug('start unwatch', { component });
@@ -239,6 +243,12 @@ class StateAdapter extends EventEmitter {
 
     async getDiscovery(filter) {
         return this._etcd.discovery.list({ serviceName: 'worker' }, filter);
+    }
+
+    async getUnScheduledAlgorithm(algorithmName) {
+        const resources = await this._etcd.discovery.list({ serviceName: 'task-executor' });
+        const algorithm = resources?.[0]?.unScheduledAlgorithms?.[algorithmName];
+        return algorithm;
     }
 }
 

@@ -1,5 +1,6 @@
 const packageJson = require(process.cwd() + '/package.json');
 const formatter = require(process.cwd() + '/lib/utils/formatters');
+const storageManager = require('@hkube/storage-manager');
 
 const config = {};
 config.serviceName = packageJson.name;
@@ -72,25 +73,40 @@ config.s3 = {
     secretAccessKey:
         process.env.AWS_SECRET_ACCESS_KEY ||
         'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
-    useSSL: false,
+    endpoint: process.env.S3_ENDPOINT_URL || 'http://localhost:9000',
+    bucketName: `${config.clusterName}-${storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE}`,
 };
-
 
 config.git = {
-    user: {
-        name: process.env.GIT_USER_NAME || 'hkube',
-        password: process.env.GIT_PASSWORD || '123456',
+    github: {
+        user: {
+            name: process.env.GIT_USER_NAME || 'hkube',
+            password: process.env.GIT_PASSWORD || '123456',
+        },
+        endpoint: process.env.GIT_ENDPOINT_URL || 'http://localhost:3010',
+        /** @type {string} */
+        token: process.env.GIT_TOKEN || null,
+        kind: 'github',
     },
-    endpoint: process.env.GIT_ENDPOINT_URL || 'localhost:3010',
+    gitlab: {
+        tokenName: `test-token`,
+        token: 'XtU1iqa6sJb9zELYWDSy',
+        kind: 'gitlab',
+        endpoint: 'http://localhost:3080',
+    },
 };
+
 config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
-    baseDatasourcesDirectory: process.env.BASE_DATASOURCES_DIRECTORY || '/var/tmp/fs/datasources-storage'
+    baseDirectory:
+        process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+    baseDatasourcesDirectory:
+        process.env.BASE_DATASOURCES_DIRECTORY ||
+        '/var/tmp/fs/datasources-storage',
 };
 config.directories = {
     gitRepositories: 'temp/git-repositories',
-    dataSourcesInUse: process.env.DATASOURCES_IN_USE_FOLDER || 'dataSources-in-use',
+    dataSourcesInUse:
+        process.env.DATASOURCES_IN_USE_FOLDER || 'dataSources-in-use',
     prepareForDownload: 'temp/prepare-for-download',
     zipFiles: 'temp/zip-files',
 };

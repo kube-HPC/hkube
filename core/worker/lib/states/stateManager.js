@@ -166,7 +166,7 @@ class StateManager extends EventEmitter {
     /**
      * transitions to stop state.
      */
-    stop(isTtlExpired = false, forceStop = true) {
+    stop({ isTtlExpired = false, forceStop = true } = {}) {
         try {
             this._isTtlExpired = isTtlExpired;
             this._forceStop = forceStop;

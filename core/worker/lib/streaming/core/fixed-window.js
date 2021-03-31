@@ -17,8 +17,10 @@ class FixedWindow {
     }
 
     addRange(array) {
-        this._array.push(...array);
-        this._array = this._array.slice(-this._maxSize);
+        if (array.length) {
+            this._array.push(...array);
+            this._array = this._array.slice(-this._maxSize);
+        }
     }
 
     get items() {

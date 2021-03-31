@@ -25,19 +25,32 @@ config.servingReportInterval = formatters.parseInt(process.env.DISCOVERY_SERVING
 config.streaming = {
     autoScaler: {
         interval: formatters.parseInt(process.env.AUTO_SCALER_INTERVAL, 2000),
-        logStatsInterval: formatters.parseInt(process.env.AUTO_SCALER_STATS_INTERVAL, 30000),
-        maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 10),
-        minRatioToScaleUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_UP, 1.2),
-        minRatioToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_DOWN, 0.8),
-        maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 10),
-        minTimeWaitForReplicaUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_UP, 10000),
-        maxTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 10000)
+        scaleInterval: formatters.parseInt(process.env.AUTO_SCALER_SCALE_INTERVAL, 10000),
+        minTimeBetweenScales: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_BETWEEN_SCALE, 30000),
+        minTimeWaitBeforeRetryScale: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_BEFORE_RETRY, 60000),
+        statistics: {
+            maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 10),
+            minTimeNonStatsReport: formatters.parseInt(process.env.AUTO_SCALER_NON_STATS_REPORT, 10000),
+        },
+        scaleUp: {
+            replicasExtra: formatters.parseInt(process.env.AUTO_SCALER_EXTRA_REPLICAS, 0.2),
+            maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 30),
+            maxScaleUpReplicasPerScale: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS_PER_SCALE, 10),
+            replicasOnFirstScale: formatters.parseInt(process.env.AUTO_SCALER_REPLICAS_FIRST_SCALE, 2),
+            minTimeToCleanUpQueue: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_CLEAN_QUEUE, 30),
+        },
+        scaleDown: {
+            tolerance: formatters.parseInt(process.env.AUTO_SCALER_SCALE_DOWN_TOLERANCE, 0.4),
+            minTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 60000),
+            minQueueSizeBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_QUEUE_SIZE_BEFORE_SCALE_DOWN, 0),
+            minTimeQueueEmptyBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_QUEUE_EMPTY, 60000),
+        }
     },
     election: {
         interval: formatters.parseInt(process.env.ELECTION_INTERVAL, 10000),
     },
-    throughput: {
-        interval: formatters.parseInt(process.env.STREAMING_THROUGHPUT_INTERVAL, 10000),
+    metrics: {
+        interval: formatters.parseInt(process.env.STREAMING_METRICS_INTERVAL, 2000),
     },
     serviceDiscovery: {
         interval: formatters.parseInt(process.env.SERVICE_DISCOVERY_INTERVAL, 5000),

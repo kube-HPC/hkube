@@ -48,7 +48,7 @@ class JobProducer {
             log.info(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: Events.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
-            const { jobId, taskId, nodeName, batchIndex, retry } = job.options;
+            const { jobId, taskId, nodeName, retry } = job.options;
             const data = await db.getJob({ jobId });
             if (data) {
                 log.info(`job stalled with ${data.status} status`, { component: componentName.JOBS_PRODUCER });
@@ -75,7 +75,7 @@ class JobProducer {
             }
             const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${maxAttempts}`;
             log.warning(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
-            await this.etcd.jobs.tasks.set({ jobId, taskId, nodeName, batchIndex, status, error, retries: attempts });
+            await this.etcd.jobs.tasks.update({ jobId, taskId, status, error, retries: attempts });
         });
     }
 

@@ -1,27 +1,41 @@
-const storage = require('@hkube/storage-manager');
-/** @typedef {import('./types').config} Config */
+/**
+ * @typedef {{ endpoint: string; bucketName: string }} StorageConfig
+ * @typedef {{ accessKeyId: string; secretAccessKey: string }} Credentials
+ */
 
-/** @param {Config} config */
-const S3Config = ({
-    s3: { endpoint, accessKeyId, secretAccessKey, useSSL },
-}) => repositoryName => `
+/**
+ * @type {(
+ *     config: StorageConfig,
+ *     credentials: Credentials
+ * ) => (repositoryName: string) => string}
+ */
+const S3Config = (
+    { endpoint, bucketName },
+    { accessKeyId, secretAccessKey }
+) => repositoryName => `
 ['remote "storage"']
-    url = s3://${storage.hkubeDataSource.prefix}/${repositoryName}
+    url = s3://${bucketName}/${repositoryName}
     endpointurl = ${endpoint}
     access_key_id = ${accessKeyId}
     secret_access_key = ${secretAccessKey}
-    use_ssl = ${useSSL}
+    use_ssl = ${!!new URL(endpoint).protocol.match('https')}
 [core]
     remote = storage
 `;
 
 const configMap = {
-    s3: S3Config,
+    S3: S3Config,
 };
 
-/** @type {(config: Config) => (repositoryName: string) => string} */
-module.exports = config => {
-    const generator = configMap[config.dvcStorage];
+/**
+ * @type {(
+ *      type: string,
+ *      config: StorageConfig,
+ *      credentials: Credentials
+ * ) => (repositoryName: string) => string}
+ */
+module.exports = (type, config, credentials) => {
+    const generator = configMap[type];
     if (!generator) {
         throw new Error(
             `Invalid config.dvcStorage, the available options are ${Object.keys(
@@ -29,5 +43,5 @@ module.exports = config => {
             ).join(', ')}`
         );
     }
-    return generator(config);
+    return generator(config, credentials);
 };

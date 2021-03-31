@@ -1,5 +1,7 @@
 const { expect } = require('chai');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
+const fse = require('fs-extra');
+const pathLib = require('path');
 const {
     fetchSnapshot,
     createSnapshot,
@@ -17,12 +19,10 @@ const sortBy = require('lodash.sortby');
  */
 describe('snapshots', () => {
     describe('create', () => {
-        /** @type */
+        /** @type {DataSource} */
         let dataSource = null;
         before(async () => {
-            const { body: _dataSource } = await createDataSource({
-                body: { name: uid() },
-            });
+            const { body: _dataSource } = await createDataSource(uid());
             dataSource = _dataSource;
         });
         it('should create snapshot for the latest version by name', async () => {
@@ -125,7 +125,7 @@ describe('snapshots', () => {
                 snapshotName: 'non-existing-snapshot',
             });
             expect(response.body).to.haveOwnProperty('error');
-            expect(response.body.error.code).to.eql(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.eql(StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.match(/not found/i);
         });
         it('should throw an error for an already occupied snapshot name', async () => {
@@ -137,7 +137,7 @@ describe('snapshots', () => {
                     query: snapshot.query,
                 },
             });
-            expect(response.body.error.code).to.eq(HttpStatus.CONFLICT);
+            expect(response.body.error.code).to.eq(StatusCodes.CONFLICT);
             expect(response.body.error.message).to.match(/already exists/i);
         });
     });
@@ -146,8 +146,7 @@ describe('snapshots', () => {
         let dataSource = null;
         const query = 'exciting information';
         before(async () => {
-            const _dataSource = await createDataSource({
-                body: { name: uid() },
+            const _dataSource = await createDataSource(uid(), {
                 fileNames: ['algorithms.json', 'logo.svg', 'logo.svg.meta'],
             });
             dataSource = _dataSource.body;
@@ -172,6 +171,37 @@ describe('snapshots', () => {
             });
             expect(files).to.have.lengthOf(1);
             expect(files[0].name).to.eq('logo.svg');
+        });
+    });
+    describe('group-meta', () => {
+        it('should preview a query', async () => {
+            const name = uid();
+            const fileNames = await fse.readdir(
+                pathLib.resolve(__dirname, 'mocks', 'grouped-meta')
+            );
+
+            const filePaths = fileNames.map(name =>
+                pathLib.join('grouped-meta', name)
+            );
+
+            const { body: dataSource } = await createDataSource(name, {
+                fileNames: filePaths,
+            });
+
+            expect(dataSource.files.every(file => file.meta.match(/first/i)));
+            const { body: preview } = await requestPreview({
+                dataSourceId: dataSource.id,
+                query: 'first 20',
+            });
+            expect(preview.length).to.eql(21);
+            expect(preview.every(file => !file.meta.match(/40/)));
+
+            const { body: secondPreview } = await requestPreview({
+                dataSourceId: dataSource.id,
+                query: '40',
+            });
+            expect(secondPreview.length).to.eql(20);
+            expect(secondPreview.every(file => file.meta.match(/40/)));
         });
     });
 });

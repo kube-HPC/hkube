@@ -64,7 +64,7 @@ class ServiceDiscovery extends EventEmitter {
         const changeList = [];
         const list = await stateAdapter.getDiscovery(d => this._isJobDiscovery(d, jobId, taskId));
         list.forEach((d) => {
-            const { nodeName, streamingDiscovery: address, workerId } = d;
+            const { nodeName, streamingDiscovery: address, workerId, isMaster } = d;
             if (!this._discoveryMap[nodeName]) {
                 this._discoveryMap[nodeName] = { list: [] };
             }
@@ -72,7 +72,7 @@ class ServiceDiscovery extends EventEmitter {
             const item = map.list.find(l => l.address.host === address.host && l.address.port === address.port);
             if (!item) {
                 changeList.push({ nodeName, address, type: 'Add' });
-                map.list.push({ nodeName, address, workerId });
+                map.list.push({ nodeName, address, workerId, isMaster });
             }
         });
         Object.entries(this._discoveryMap).forEach(([k, v]) => {
@@ -99,7 +99,8 @@ class ServiceDiscovery extends EventEmitter {
 
     getInstances(nodeName) {
         const node = this._discoveryMap[nodeName];
-        return (node && node.list) || [];
+        const list = node?.list || [];
+        return list;
     }
 
     _isJobDiscovery(data, jobId, taskId) {

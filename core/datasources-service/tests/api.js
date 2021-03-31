@@ -3,15 +3,15 @@ const { uuid } = require('@hkube/uid');
 const { Producer } = require('@hkube/producer-consumer');
 const qs = require('query-string');
 const { request } = require('./request');
-const { fileName } = require('./utils');
+const { fileName, createRepository } = require('./utils');
 
 /** @typedef {{ message: string; code: number }} ErrorResponse */
 /**
- * @template T
  * @typedef {Promise<{
  *     body: T & { error: ErrorResponse };
  *     response: { statusCode: number; body: T & { error: ErrorResponse } };
  * }>} Response
+ * @template T
  */
 
 /** @param {{ name?: string; id?: string }} props */
@@ -29,33 +29,89 @@ const setupUrl = ({ name, id }) => {
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
  * @typedef {import('@hkube/db/lib/DataSource').DataSourceWithMeta} DataSourceWithMeta
  * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
+ * @typedef {import('@hkube/db/lib/DataSource').Credentials} Credentials
  */
-/**
- * @type {(props?: {
- *     body?: { name?: string };
- *     withFile?: boolean;
- *     fileNames?: string[];
- * }) => Response<DataSource>}
- */
-const createDataSource = ({
-    body = {},
-    withFile = true,
-    fileNames = [fileName],
-} = {}) => {
+
+/** @returns {Response<DataSource>} */
+const createDataSource = async (
+    name,
+    {
+        withFile = true,
+        fileNames = [fileName],
+        ignoreGit = false,
+        ignoreStorage = false,
+        useGitlab = false,
+        storageOverrides = {},
+        gitOverrides = {},
+        useInternalStorage = false,
+        useInternalGit = false,
+        skipCreateRepository = false,
+    } = {}
+) => {
     // @ts-ignore
-    const uri = `${global.testParams.restUrl}/datasource`;
-    const formData = {
-        ...body,
-        files: withFile
-            ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`))
-            : undefined,
-    };
+    const { storage, git, restUrl, _git } = global.testParams;
+
+    const gitKind = (() => {
+        if (useInternalGit) return 'internal';
+        if (useGitlab) return 'gitlab';
+        return 'github';
+    })();
+
+    let repositoryUrl;
+    if (!useInternalGit && !skipCreateRepository && name) {
+        repositoryUrl = await createRepository(
+            {
+                endpoint: _git[gitKind].endpoint,
+                token: git[gitKind].token,
+                kind: gitKind,
+            },
+            name
+        );
+    }
+
+    /** @type {import('../lib/utils/types').gitConfig} */
+    const gitConfig = (() => {
+        if (ignoreGit) return;
+        if (gitKind === 'internal') return;
+        return { ...git[gitKind], repositoryUrl };
+    })();
+
+    const uri = `${restUrl}/datasource`;
+
+    const formData = (() => {
+        const form = {};
+        // check for string for empty name
+        if (typeof name === 'string' || name) {
+            form.name = name;
+        }
+        if (withFile) {
+            form.files = fileNames.map(name =>
+                fse.createReadStream(`tests/mocks/${name}`)
+            );
+        }
+        if (!ignoreStorage) {
+            form.storage = JSON.stringify(
+                useInternalStorage
+                    ? { kind: 'internal' }
+                    : { kind: 'S3', ...storage, ...storageOverrides }
+            );
+        }
+        if (!ignoreGit) {
+            form.git = JSON.stringify(
+                useInternalGit
+                    ? { kind: 'internal' }
+                    : { ...gitConfig, ...gitOverrides }
+            );
+        }
+        return form;
+    })();
+
     const options = { uri, formData };
     return request(options);
 };
 
 /**
- * Provide file names to be uploaded, or a complete array of file objects
+ * Provide file names to be uploaded, or a complete array of file objects.
  *
  * @param {{
  *     dataSourceName: string;
@@ -217,7 +273,13 @@ const createDownloadLink = ({ dataSourceId, fileIds }) =>
         body: { fileIds },
     });
 
-/** @param {{ href: string } | { dataSourceId: string; downloadId: string }} props */
+/**
+ * @param {Partial<{
+ *     href: string;
+ *     dataSourceId: string;
+ *     downloadId: string;
+ * }>} props
+ */
 // @ts-ignore
 const fetchDownloadLink = ({ dataSourceId, downloadId, href }) =>
     href
@@ -254,6 +316,25 @@ const requestPreview = ({ dataSourceId, query }) =>
 const syncDataSource = ({ name }) =>
     request({ uri: `${setupUrl({ name })}/sync` });
 
+/**
+ * @param {{
+ *     name: string;
+ *     credentials?: Credentials;
+ *     ignoreCredentials?: boolean;
+ * }} props
+ * @returns {Response<{ updatedCount: number }>}
+ */
+const updateCredentials = async ({
+    name,
+    credentials,
+    ignoreCredentials = false,
+}) =>
+    request({
+        uri: `${setupUrl({ name })}/credentials`,
+        body: ignoreCredentials ? {} : { credentials },
+        method: 'PATCH',
+    });
+
 module.exports = {
     fetchDataSource,
     deleteDataSource,
@@ -269,4 +350,5 @@ module.exports = {
     fetchDownloadLink,
     requestValidation,
     requestPreview,
+    updateCredentials,
 };

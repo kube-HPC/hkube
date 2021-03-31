@@ -18,8 +18,9 @@ class ApiValidator {
             'dataSource-name',
             this._validateDataSourceName
         );
+        validatorInstance.addFormat('url', this._validateURL);
+        validatorInstance.addFormat('git-url', this._validateURL);
         validatorInstance.addFormat('download-id', this._validateDownloadId);
-
         validatorInstance.addFormat('binary', this._validateBinary);
 
         Object.entries(definitions).forEach(([k, v]) => {
@@ -37,6 +38,8 @@ class ApiValidator {
             'download-id',
             validationMessages.DOWNLOAD_ID_FORMAT
         );
+        formatMessages.set('url', validationMessages.URL_FORMAT);
+        formatMessages.set('git-url', validationMessages.GIT_URL_FORMAT);
     }
 
     _validateBinary(file) {
@@ -45,6 +48,23 @@ class ApiValidator {
 
     _validateDataSourceName(name) {
         return regex.DATASOURCE_NAME_REGEX.test(name);
+    }
+
+    _validateGitURL(url) {
+        const gitRegex = /\.git$/;
+        const parsedUrl = this._validateURL(url);
+        if (!parsedUrl) return false;
+        return gitRegex.test(parsedUrl.pathname);
+    }
+
+    _validateURL(url) {
+        let parsedUrl;
+        try {
+            parsedUrl = new URL(url);
+        } catch (e) {
+            return false;
+        }
+        return parsedUrl;
     }
 
     _validateDownloadId(downloadId) {

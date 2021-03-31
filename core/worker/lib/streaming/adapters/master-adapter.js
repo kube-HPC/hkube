@@ -17,15 +17,27 @@ class MasterAdapter extends Adapter {
         log = Logger.GetLogFromContainer();
         this._options = options;
         this._slaves = Object.create(null);
-        this._autoScaler = new AutoScaler(options);
+        this._autoScaler = new AutoScaler(options, (d) => this._removeSlave(d));
+        this._listener = `streaming-statistics-${this.nodeName}`;
         stateAdapter.watchStreamingStats({ jobId: this.jobId, nodeName: this.nodeName });
-        stateAdapter.on(`streaming-statistics-${this.nodeName}`, (data) => {
-            if (!this._slaves[data.source]) {
-                this._slaves[data.source] = data.nodeName;
-                log.info(`new slave (${data.source}) is now connected for node ${data.nodeName}`, { component });
-            }
+        stateAdapter.on(this._listener, (data) => {
+            this._addSlave(data);
             this._report(data);
         });
+    }
+
+    _addSlave(data) {
+        if (!this._slaves[data.source]) {
+            this._slaves[data.source] = data.nodeName;
+            log.info(`new slave (${data.source}) is now connected for node ${data.nodeName}`, { component });
+        }
+    }
+
+    _removeSlave(data) {
+        if (this._slaves[data.source]) {
+            delete this._slaves[data.source];
+            log.info(`slave (${data.source}) is now disconnected`, { component });
+        }
     }
 
     slaves() {
@@ -46,11 +58,13 @@ class MasterAdapter extends Adapter {
     }
 
     async finish() {
+        this._autoScaler.finish();
+        stateAdapter.removeAllListeners(this._listener);
         await stateAdapter.unWatchStreamingStats({ jobId: this.jobId, nodeName: this.nodeName });
     }
 
-    getThroughput() {
-        return this._autoScaler.getThroughput();
+    getMetrics() {
+        return this._autoScaler.getMetrics();
     }
 
     scale() {

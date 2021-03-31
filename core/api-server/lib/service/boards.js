@@ -76,8 +76,7 @@ class Boards {
 
     async getBoardInfo({ taskId, jobId, nodeName }, type) {
         const pipeline = await execution.getPipeline({ jobId });
-        const gr = await graph.getGraphRaw({ jobId });
-        const parsedGraph = JSON.parse(gr);
+        const parsedGraph = await graph.getGraphRaw({ jobId });
         if (type === 'task') {
             let foundNode = parsedGraph.nodes.find(node => taskId === node.taskId);
             if (!foundNode) {

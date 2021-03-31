@@ -3,11 +3,14 @@ const {
     filePath: { getFilePath },
     createFileMeta,
 } = require('@hkube/datasource-utils');
+const { StatusCodes } = require('http-status-codes');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
 const { ResourceNotFoundError } = require('../errors');
+const { Github } = require('../utils/GitRemoteClient');
+const gitToken = require('./gitToken');
 
 /**
  * @typedef {import('./../utils/types').FileMeta} FileMeta
@@ -16,6 +19,9 @@ const { ResourceNotFoundError } = require('../errors');
  * @typedef {import('./../utils/types').SourceTargetArray} SourceTargetArray
  * @typedef {import('./../utils/types').config} config
  * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
+ * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig;
+ * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig;
+ * @typedef {import('@hkube/db/lib/DataSource').Credentials} Credentials
  * @typedef {{ createdPath: string; fileName: string }} uploadFileResponse
  * @typedef {{ name?: string; id?: string }} NameOrId
  */
@@ -38,8 +44,8 @@ class DataSource {
     }
 
     /**
-     * Converts temporary ids given by the client to permanent ids. fills in
-     * missing details for all the files
+     * Converts temporary ids given by the client to permanent ids. fills in missing details for all
+     * the files.
      *
      * @param {NormalizedFileMeta} normalizedMapping
      * @param {MulterFile[]} files
@@ -74,7 +80,13 @@ class DataSource {
                         ...fileMeta,
                         name: fileName,
                     });
-                    return { ...acc, metaFilesByPath: { [_path]: file } };
+                    return {
+                        ...acc,
+                        metaFilesByPath: {
+                            ...acc.metaFilesByPath,
+                            [_path]: file,
+                        },
+                    };
                 }
                 // the file does not have an id for a name - it is unmapped
                 if (!mappingEntry) {
@@ -125,9 +137,8 @@ class DataSource {
     }
 
     /**
-     * Splits the inputs to groups by their respective actions. **note**: the
-     * normalizedAddedFiles collection includes all the added files including
-     * updated file
+     * Splits the inputs to groups by their respective actions. **note**: the normalizedAddedFiles
+     * collection includes all the added files including updated file.
      *
      * @param {{
      *     currentFiles?: FileMeta[];
@@ -283,7 +294,10 @@ class DataSource {
         const repository = new Repository(
             name,
             this.config,
-            this.config.directories.gitRepositories
+            this.config.directories.gitRepositories,
+            createdVersion.git,
+            createdVersion.storage,
+            createdVersion._credentials
         );
 
         const { commitHash, files } = await this.commitChange({
@@ -304,17 +318,97 @@ class DataSource {
         });
     }
 
-    /** @param {{ name: string; files: MulterFile[] }} query */
-    async create({ name, files: _files }) {
-        validator.dataSources.create({ name, files: _files });
-        const createdDataSource = await this.db.dataSources.create({ name });
+    get internalGit() {
+        const credentials = {
+            token: gitToken.hash,
+            tokenName: null,
+        };
+        const config = {
+            kind: 'internal',
+            endpoint: this.config.git.github.endpoint,
+        };
+        return {
+            credentials,
+            config,
+        };
+    }
+
+    /**
+     * @param {{
+     *     name: string;
+     *     files: MulterFile[];
+     *     git: GitConfig & {
+     *         token: string;
+     *         tokenName?: string;
+     *     };
+     *     storage: StorageConfig & {
+     *         accessKeyId: string;
+     *         secretAccessKey: string;
+     *     };
+     * }} query
+     */
+    async create({ name, git: _git, storage, files: _files }) {
+        await validator.dataSources.create({
+            name,
+            git: _git,
+            storage,
+            files: _files,
+        });
+
+        let { repositoryUrl = null } = _git;
+        // create repository when using internal git
+        /** @type {Github} */
+        let gitClient;
+        if (_git.kind === 'internal') {
+            const { credentials, config } = this.internalGit;
+            gitClient = new Github({
+                ...credentials,
+                ...config,
+            });
+            repositoryUrl = await gitClient.createRepository(name);
+        }
+
+        const git = {
+            ..._git,
+            repositoryUrl,
+        };
+
+        const { token, tokenName, ...gitConfig } = git;
+        const { accessKeyId, secretAccessKey, ...storageConfig } = storage;
+
+        const credentials = (() => {
+            const _credentials = {};
+            // if internal do not store tokens to the db
+            if (git.kind !== 'internal') {
+                _credentials.git = { token, tokenName };
+            }
+            if (storage.kind !== 'internal') {
+                _credentials.storage = {
+                    accessKeyId,
+                    secretAccessKey,
+                };
+            }
+            return _credentials;
+        })();
+
+        const createdDataSource = await this.db.dataSources.create({
+            name,
+            git: gitConfig,
+            storage: storageConfig,
+            credentials,
+        });
+
         let updatedDataSource;
         /** @type {Repository} */
         const repository = new Repository(
             name,
             this.config,
-            this.config.directories.gitRepositories
+            this.config.directories.gitRepositories,
+            gitConfig,
+            storageConfig,
+            credentials
         );
+
         try {
             await repository.setup();
             const { commitHash, files } = await this.commitChange({
@@ -322,14 +416,14 @@ class DataSource {
                 commitMessage: 'initial upload',
                 files: { added: _files },
             });
-
             updatedDataSource = await this.db.dataSources.updateFiles({
                 id: createdDataSource.id,
                 files,
                 commitHash,
             });
         } catch (error) {
-            await this.db.dataSources.delete({ name });
+            await this.db.dataSources.delete({ name }, { allowNotFound: true });
+            await repository.delete(true);
             throw error;
         } finally {
             await repository.deleteClone();
@@ -348,6 +442,30 @@ class DataSource {
 
     async delete({ name }) {
         validator.dataSources.delete({ name });
+        const dataSource = await this.db.dataSources.fetchWithCredentials({
+            name,
+        });
+
+        const repository = new Repository(
+            name,
+            this.config,
+            this.config.directories.gitRepositories,
+            dataSource.git,
+            dataSource.storage,
+            dataSource._credentials
+        );
+        try {
+            await repository.delete();
+        } catch (error) {
+            if (
+                error.isAxiosError &&
+                error.response.status === StatusCodes.NOT_FOUND
+            ) {
+                throw new ResourceNotFoundError('dataSource', name, error);
+            } else {
+                throw error;
+            }
+        }
         const response = await this.db.dataSources.delete(
             { name },
             { allowNotFound: false }
@@ -368,10 +486,18 @@ class DataSource {
     // eslint-disable-next-line
     async sync({ name }) {
         validator.dataSources.sync({ name });
+        const {
+            _credentials,
+            git,
+            storage,
+        } = await this.db.dataSources.fetchWithCredentials({ name });
         const repository = new Repository(
             name,
             this.config,
-            this.config.directories.gitRepositories
+            this.config.directories.gitRepositories,
+            git,
+            storage,
+            _credentials
         );
         try {
             await repository.ensureClone();
@@ -425,6 +551,17 @@ class DataSource {
     /** @param {string} name */
     async listVersions(name) {
         return this.db.dataSources.listVersions({ name });
+    }
+
+    /**
+     * @param {{
+     *     name: string;
+     *     credentials: Credentials;
+     * }} props
+     */
+    async updateCredentials({ name, credentials }) {
+        validator.dataSources.updateCredentials({ name, credentials });
+        return this.db.dataSources.updateCredentials({ name, credentials });
     }
 }
 

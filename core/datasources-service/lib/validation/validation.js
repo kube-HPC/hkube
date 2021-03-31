@@ -13,17 +13,15 @@ class Snapshots {
         });
         if (id && snapshot.name) {
             throw new InvalidDataError(
-                'you must provide *only* one of (id | snapshot.name)'
+                'must provide *only* one of (id | snapshot.name)'
             );
         }
         if (id && name) {
-            throw new InvalidDataError(
-                'you must not provide both "name" and "id"'
-            );
+            throw new InvalidDataError('must not provide both "name" and "id"');
         }
         if (snapshot.name && !name) {
             throw new InvalidDataError(
-                'you must provide "name" when validating by "snapshot.name"'
+                'must provide "name" when validating by "snapshot.name"'
             );
         }
     }

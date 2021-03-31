@@ -18,8 +18,8 @@ class StreamHandler extends EventEmitter {
         discovery.on(streamingEvents.DISCOVERY_PARENTS_DOWN, (changed) => {
             this.emit(streamingEvents.DISCOVERY_PARENTS_DOWN, changed);
         });
-        streamService.on(streamingEvents.THROUGHPUT_CHANGED, (changed) => {
-            this.emit(streamingEvents.THROUGHPUT_CHANGED, changed);
+        streamService.on(streamingEvents.METRICS_CHANGED, (changed) => {
+            this.emit(streamingEvents.METRICS_CHANGED, changed);
         });
     }
 
@@ -35,6 +35,10 @@ class StreamHandler extends EventEmitter {
 
     reportStats(data) {
         streamService.reportStats(data);
+    }
+
+    get isMaster() {
+        return streamService.isMaster;
     }
 }
 
