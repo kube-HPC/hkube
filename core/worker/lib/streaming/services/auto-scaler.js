@@ -128,6 +128,7 @@ class AutoScaler {
         const totals = {
             reqRate: 0,
             resRate: 0,
+            queueSize: 0,
             avgQueueSize: [],
             durationsRate: [],
             windowSize: [],
@@ -176,6 +177,7 @@ class AutoScaler {
             metrics.push(metric);
             totals.reqRate += reqRate;
             totals.resRate += resRate;
+            totals.queueSize += queueSize;
             totals.avgQueueSize.push(avgQueueSize);
             totals.totalRequests += totalRequests;
             totals.totalResponses += totalResponses;
@@ -206,12 +208,12 @@ class AutoScaler {
         log.info(`scaling ${action} ${replicas} replicas for node ${this._nodeName} from ${currentSize} to ${scaleTo} replicas`, { component });
     }
 
-    _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, avgQueueSize, currentSize }) {
+    _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, queueSize, avgQueueSize, currentSize }) {
         const result = { up: 0, down: 0 };
         const requiredByDurationRate = calcRatio(reqRate, durationsRate);
         const idleScaleDown = this._shouldIdleScaleDown({ reqRate, resRate });
         const canScaleDown = this._markQueueSize(avgQueueSize);
-        const requiredByQueueSize = this._scaledQueueSize({ durationsRate, avgQueueSize });
+        const requiredByQueueSize = this._scaledQueueSize({ durationsRate, queueSize });
         const requiredByDuration = this._addExtraReplicas(requiredByDurationRate, requiredByQueueSize);
 
         let required = null;
@@ -248,15 +250,15 @@ class AutoScaler {
         return totalRequired;
     }
 
-    _scaledQueueSize({ durationsRate, avgQueueSize }) {
-        if (!avgQueueSize) {
+    _scaledQueueSize({ durationsRate, queueSize }) {
+        if (!queueSize) {
             return 0;
         }
         if (!durationsRate) {
             return this._config.scaleUp.replicasOnFirstScale;
         }
         const msgCleanUp = Math.ceil(durationsRate * this._config.scaleUp.minTimeToCleanUpQueue);
-        const requiredByQueueSize = Math.ceil(avgQueueSize / msgCleanUp);
+        const requiredByQueueSize = Math.ceil(queueSize / msgCleanUp);
         return requiredByQueueSize;
     }
 
