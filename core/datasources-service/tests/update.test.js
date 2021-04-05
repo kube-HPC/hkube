@@ -2,10 +2,11 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const { StatusCodes } = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
-const { hiddenProperties } = require('./utils');
-const { mockDeleteClone } = require('./utils');
+const { hiddenProperties, mockDeleteClone } = require('./utils');
+const { uploadGrouped, splitArr } = require('./uploadGrouped');
 const { createDataSource, fetchDataSource, updateVersion } = require('./api');
 const sortBy = require('lodash.sortby');
+const pathLib = require('path');
 
 let DATASOURCE_GIT_REPOS_DIR;
 describe('/datasource/:name POST', () => {
@@ -137,6 +138,24 @@ describe('/datasource/:name POST', () => {
         const updatedFile = files.find(file => file.id === existingFile.id);
         expect(updatedFile).to.exist;
         expect(updatedFile.path).to.equal('/a-new-directory');
+    });
+    it.only('should move multiple files and their meta', async () => {
+        const name = uuid();
+        const { body: dataSource } = await uploadGrouped(name);
+        const [dirA, dirB] = splitArr(dataSource.files);
+        const mapping = [
+            ...dirA.map(file => ({ ...file, path: '/a' })),
+            ...dirB.map(file => ({ ...file, path: '/b' })),
+        ];
+        const { body: uploadResponse } = await updateVersion({
+            dataSourceName: name,
+            files: [],
+            mapping,
+        });
+        expect(uploadResponse.filesCount).to.eql(41);
+        const sortedMapping = sortBy(mapping, o => o.id);
+        const sortedReturnedFiles = sortBy(uploadResponse.files, o => o.id);
+        expect(sortedMapping).to.eql(sortedReturnedFiles);
     });
     it('delete a file', async () => {
         const name = uuid();

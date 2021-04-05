@@ -6,7 +6,6 @@ const { Gitlab, Github } = require('../lib/utils/GitRemoteClient');
 const nonExistingId = '5f953d50dd38c8291924a0a3';
 const fileName = 'README-1.md';
 const STORAGE_DIR = '/var/tmp/fs/storage/local-hkube-datasource';
-
 const delay = d => new Promise(r => setTimeout(r, d));
 
 const mockRemove = () => {
@@ -35,6 +34,7 @@ const createRepository = async (config, name) => {
     return client.createRepository(name);
 };
 
+
 // a list of properties that should not be returned to the client
 const hiddenProperties = ['_id', '_credentials', 'isPartial'];
 
@@ -47,4 +47,5 @@ module.exports = {
     mockDeleteClone,
     STORAGE_DIR,
     createRepository,
+
 };
