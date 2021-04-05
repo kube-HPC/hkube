@@ -3,7 +3,10 @@ const { gpuVendors } = require('../consts');
 const { settings } = require('../helpers/settings');
 
 const setWorkerImage = (template, versions, registry) => {
-    const image = template.workerImage || 'hkube/worker';
+    if (template.workerImage) {
+        return createImage(template.workerImage, null, registry);
+    }
+    const image = 'hkube/worker';
     return createImage(image, versions, registry);
 };
 

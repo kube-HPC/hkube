@@ -22,8 +22,8 @@ const SCALE_STATUS = {
 class Scaler {
     constructor(config, methods) {
         log = Logger.GetLogFromContainer();
-        this._maxScaleUpReplicas = config.scaleUp.maxScaleUpReplicas;
-        this._maxScaleUpReplicasPerScale = config.scaleUp.maxScaleUpReplicasPerScale;
+        this._maxScaleUpReplicasPerNode = config.scaleUp.maxScaleUpReplicasPerNode;
+        this._maxScaleUpReplicasPerTick = config.scaleUp.maxScaleUpReplicasPerTick;
         this._minTimeWaitBeforeRetryScale = config.minTimeWaitBeforeRetryScale;
         this._minTimeBetweenScales = config.minTimeBetweenScales;
         this._scaleInterval = config.scaleInterval;
@@ -79,7 +79,7 @@ class Scaler {
 
         if (shouldScaleUp) {
             const required = this._required - currentSize;
-            const replicas = Math.min(required, this._maxScaleUpReplicasPerScale);
+            const replicas = Math.min(required, this._maxScaleUpReplicasPerTick);
             const scaleTo = replicas + currentSize;
             this._desired = this._required;
             this._lastScaleUpTime = Date.now();
@@ -110,7 +110,7 @@ class Scaler {
 
     updateRequired(required) {
         this._scale = true;
-        this._required = Math.min(required, this._maxScaleUpReplicas);
+        this._required = Math.min(required, this._maxScaleUpReplicasPerNode);
     }
 
     _shouldScaleUp(currentSize) {

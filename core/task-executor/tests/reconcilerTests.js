@@ -354,6 +354,146 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('myregistry:5000/stam/myworker:v2');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
+        it('should work with custom worker tag', async () => {
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+                workerImage: 'hkube/worker:v3.2.1-beta1',
+                cpu: 2,
+                mem: 400
+            };
+            const versions = {
+                "systemVersion": "v2.0.74",
+                "fullSystemVersion": "v2.0.74-1612455176042",
+                "versions": [
+                    {
+                        "project": "worker",
+                        "tag": "v2.0.25",
+                        "image": "hkube/worker"
+                    }
+                ]
+            }
+            const res = await reconciler.reconcile({
+                options,
+                versions,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker:v3.2.1-beta1');
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
+        });
+
+        it('should work with custom workerImage', async () => {
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+                workerImage: 'foo/bar:v3.2.1-beta1',
+                cpu: 2,
+                mem: 400
+            };
+            const versions = {
+                "systemVersion": "v2.0.74",
+                "fullSystemVersion": "v2.0.74-1612455176042",
+                "versions": [
+                    {
+                        "project": "worker",
+                        "tag": "v2.0.25",
+                        "image": "hkube/worker"
+                    }
+                ]
+            }
+            const res = await reconciler.reconcile({
+                options,
+                versions,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('foo/bar:v3.2.1-beta1');
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
+        });
+
+        it('should work with custom workerImage and registry', async () => {
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+                workerImage: 'foo/bar:v3.2.1-beta1',
+                cpu: 2,
+                mem: 400
+            };
+            const versions = {
+                "systemVersion": "v2.0.74",
+                "fullSystemVersion": "v2.0.74-1612455176042",
+                "versions": [
+                    {
+                        "project": "worker",
+                        "tag": "v2.0.25",
+                        "image": "hkube/worker"
+                    }
+                ]
+            }
+            const registry = { registry: 'my.registry/prefix' };
+            const res = await reconciler.reconcile({
+                options,
+                versions,
+                registry,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('my.registry/prefix/foo/bar:v3.2.1-beta1');
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('my.registry/prefix/hkube/algorithm-example');
+        });
+
         it('should work with env', async () => {
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {

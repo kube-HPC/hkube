@@ -28,4 +28,11 @@ describe('bootstrap', () => {
         const alg2 = templateStoreStub.find(t => t.name === algo);
         expect(alg1).to.deep.eql(alg2);
     });
+    it('should get template store with reserved memory', async () => {
+        const algo = 'algo3';
+        await etcd._db.algorithms.createMany(templateStoreStub);
+        const templates = await etcd.getAlgorithmTemplate();
+        const alg1 = templates[algo];
+        expect(alg1.mem).to.eql(276);
+    });
 });

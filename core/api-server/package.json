@@ -1,13 +1,13 @@
 {
     "name": "api-server",
-    "version": "2.0.29",
+    "version": "2.0.33",
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
         "@hkube/config": "^2.0.11",
         "@hkube/consts": "^1.0.31",
-        "@hkube/dag": "^2.1.11",
-        "@hkube/db": "^1.0.19",
+        "@hkube/dag": "^2.1.15",
+        "@hkube/db": "^1.0.30",
         "@hkube/etcd": "^5.1.2",
         "@hkube/logger": "^1.0.27",
         "@hkube/metrics": "^1.0.42",
@@ -41,6 +41,7 @@
         "object-path": "^0.11.5",
         "query-string": "^6.13.8",
         "read-chunk": "^3.2.0",
+        "request": "^2.88.2",
         "request-promise": "^4.2.6",
         "requestretry": "^4.1.2",
         "semver": "^7.3.4",
@@ -58,7 +59,6 @@
         "mocha": "^7.1.1",
         "nock": "^13.0.5",
         "nyc": "^15.1.0",
-        "request": "^2.88.2",
         "sinon": "^9.2.3"
     },
     "scripts": {

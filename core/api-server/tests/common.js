@@ -1,11 +1,17 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
+const { uid: uuid } = require('@hkube/uid');
+const { Factory } = require('@hkube/redis-utils');
 const swagger = require('../api/rest-api/swagger.json')
 const { request } = require('./utils');
 const httpMethods = ['GET', 'POST', 'PUT', 'DELETE'];
 const stateManager = require('../lib/state/state-manager');
-let updater, restUrl;
-
+let updater, restUrl, redisClient;
+const redis = {
+    host: process.env.REDIS_SERVICE_HOST || 'localhost',
+    port: process.env.REDIS_SERVICE_PORT || 6379,
+    sentinel: false,
+};
 describe('Common', () => {
     before(() => {
         updater = require('../lib/examples/pipelines-updater');
@@ -27,6 +33,49 @@ describe('Common', () => {
             expect(template[0].cpu).to.eql(0.6)
         });
     })
+    describe('migrate graph', () => {
+        before(() => {
+
+            redisClient = Factory.getClient(redis);
+        })
+        it('should move graph from redis to db', async () => {
+            const jobId1 = uuid();
+            const job1 = {
+                jobId: jobId1,
+                graph: {
+                    jobId: jobId1,
+                    timestamp: Date.now
+                },
+                status: {
+                    good: true
+                }
+            }
+            await stateManager._db.jobs.create(job1)
+            const jobId2 = uuid();
+            const job2 = {
+                jobId: jobId2,
+                status: {
+                    bad: true
+                }
+            }
+            const graph2 = {
+                jobId: jobId2,
+                timestamp: Date.now()
+            }
+            await stateManager._db.jobs.create(job2)
+            await redisClient.set(`/hkube:pipeline:graph/${jobId2}`, JSON.stringify(graph2))
+
+            const redisGraph = await redisClient.get(`/hkube:pipeline:graph/${jobId2}`);
+            expect(redisGraph).to.eql(JSON.stringify(graph2));
+            const job2Before = await stateManager._db.jobs.fetch({ jobId: jobId2 });
+            expect(job2Before.graph).to.not.exist;
+            await updater._transferGraphsToDB({ redis });
+            const redisGraph2 = await redisClient.get(`/hkube:pipeline:graph/${jobId2}`);
+            expect(redisGraph2).to.not.exist;
+            const job2After = await stateManager._db.jobs.fetch({ jobId: jobId2 });
+            expect(job2After.graph).to.eql(graph2);
+        });
+    });
     describe('Method Not Allowed', () => {
         Object.entries(swagger.paths).forEach(([k, v]) => {
             it(`${k} - should throw Method Not Allowed`, async () => {
