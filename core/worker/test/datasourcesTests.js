@@ -5,10 +5,7 @@ const stateAdapter = require('../lib/states/stateAdapter');
 
 describe('datasources tests', () => {
     it('should fail with empty datasource', async () => {
-        const ds = {
-
-        }
-        await expect(stateAdapter.getDataSource({ datasource: ds })).to.eventually.be.rejected;
+        await expect(stateAdapter.getDataSource({ datasource: {} })).to.eventually.be.rejected;
     });
     it('should return correct paths', async () => {
         const datasource = await stateAdapter._db.dataSources.create({ name: uid(5), git: null, storage: null });
@@ -41,8 +38,8 @@ describe('datasources tests', () => {
         }
         const ret = await stateAdapter.getDataSource({ dataSource: ds });
         expect(ret.files).to.have.lengthOf(2);
-        expect(ret.files[0].path.slice(-11)).to.eql('/data/file1');
-        expect(ret.files[1].path.slice(-19)).to.eql('/data/subpath/file2');
+        expect(ret.files[0].path).to.endsWith('/data/file1');
+        expect(ret.files[1].path).to.endsWith('/data/subpath/file2');
 
     });
 });

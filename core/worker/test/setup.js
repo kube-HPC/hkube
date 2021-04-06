@@ -1,7 +1,9 @@
 const configIt = require('@hkube/config');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
+const chaiString = require('chai-string');
 chai.use(chaiAsPromised);
+chai.use(chaiString);
 const { Factory } = require('@hkube/redis-utils');
 const storageManager = require('@hkube/storage-manager');
 const bootstrap = require('../bootstrap');
