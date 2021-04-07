@@ -208,7 +208,7 @@ class StateAdapter extends EventEmitter {
                 { allowNotFound: false }
             );
             dsName = snapshot.dataSource.name;
-            subPath = snapshot.name;
+            subPath = snapshotId;
             dsFiles = snapshot.filteredFilesList;
         }
         else {

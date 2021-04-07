@@ -119,7 +119,7 @@ describe('JobsConsumer', () => {
         );
         expect(storagePayload.snapshotId).to.eq(snapshot.id);
 
-        const mountedDir = `${rootDir}/${dataSource.name}/${dataSource.id}/${dataSource.name}`;
+        const mountedDir = `${rootDir}/${dataSource.name}/${storagePayload.snapshotId}/${dataSource.name}`;
         const existingFiles = await Promise.all(
             [
                 `${mountedDir}`,
