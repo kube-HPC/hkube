@@ -40,6 +40,7 @@ class WorkerCommunication extends EventEmitter {
         log.info(`Creating communication object of type: ${options.adapterName}`, { component });
         this.adapter = new AdapterClass();
         this._printThrottleMessages = {
+            [messages.incomming.stopping]: { delay: 10000, lastPrint: null },
             [messages.incomming.streamingStatistics]: { delay: 30000, lastPrint: null }
         };
         Object.entries({ ...messages.incomming, connection: 'connection', disconnect: 'disconnect' }).forEach(([, topic]) => {
