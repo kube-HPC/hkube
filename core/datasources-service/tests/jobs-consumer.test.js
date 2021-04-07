@@ -5,9 +5,17 @@ const waitFor = require('./waitFor');
 const pathLib = require('path');
 const { getDatasourcesInUseFolder } = require('../lib/utils/pathUtils');
 const { mockRemove, nonExistingId } = require('./utils');
-const { createDataSource, createSnapshot, createJob } = require('./api');
+const { uploadGrouped, splitArr } = require('./uploadGrouped');
+const {
+    createDataSource,
+    updateVersion,
+    createSnapshot,
+    createJob,
+} = require('./api');
 /** @type {import('../lib/service/jobs-consumer')} */
 let jobConsumer;
+/** @type {import('@hkube/storage-manager')} */
+let storageManager;
 
 let rootDir = null;
 
@@ -23,6 +31,8 @@ const waitForStatus = async ({ jobId, taskId }, status) => {
 describe('JobsConsumer', () => {
     before(() => {
         jobConsumer = require('../lib/service/jobs-consumer');
+        storageManager = require('@hkube/storage-manager');
+
         // @ts-ignore
         rootDir = getDatasourcesInUseFolder(global.testParams.config);
     });
@@ -47,6 +57,10 @@ describe('JobsConsumer', () => {
         const state = await waitForStatus({ jobId, taskId }, 'succeed');
         expect(state.status).to.equal('succeed');
         expect(state).to.have.property('result');
+        const storagePayload = await storageManager.hkubeDataSource.get(
+            state.result.storageInfo
+        );
+        expect(storagePayload.dataSourceId).to.eq(dataSource.id);
         const mountedPath = pathLib.join(
             // @ts-ignore
             global.testParams.mountedDir,
@@ -75,6 +89,7 @@ describe('JobsConsumer', () => {
         );
         expect(await fse.pathExists(mountedPath)).to.be.true;
     });
+
     it('should succeed pulling a datasource by snapshot and filter the files by query', async () => {
         const name = uuid();
         const mockedRemove = mockRemove();
@@ -82,7 +97,7 @@ describe('JobsConsumer', () => {
         const { body: dataSource } = await createDataSource(name, {
             fileNames: ['README-1.md', 'logo.svg', 'logo.svg.meta'],
         });
-        await createSnapshot({
+        const { body: snapshot } = await createSnapshot({
             name: dataSource.name,
             snapshot: { name: snapshotName, query: 'about the logo' },
         });
@@ -99,6 +114,10 @@ describe('JobsConsumer', () => {
 
         expect(state.status).to.equal('succeed');
         expect(state).to.have.property('result');
+        const storagePayload = await storageManager.hkubeDataSource.get(
+            state.result.storageInfo
+        );
+        expect(storagePayload.snapshotId).to.eq(snapshot.id);
 
         const mountedDir = `${rootDir}/${dataSource.name}/${dataSource.id}/${dataSource.name}`;
         const existingFiles = await Promise.all(
