@@ -149,7 +149,7 @@ class GraphStore {
                 const storage = node.storage[key];
                 let input;
                 if (Array.isArray(storage)) {
-                    input = { type: 'array', size: storage.length };
+                    input = { type: 'array', size: storage.flatMap(a => a.tasks).length };
                 }
                 else {
                     input = storage?.storageInfo;
