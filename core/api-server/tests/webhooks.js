@@ -117,6 +117,42 @@ describe('Webhooks', () => {
                 await stateManager.updateJobResult(results);
             });
         });
+
+        it('should succeed to send webhook result on stop', async () => {
+            return new Promise(async (resolve) => {
+                nock('http://my-webhook-server-1')
+                    .post('/webhook/result')
+                    .reply(200, async (uri, requestBody) => {
+                        expect(requestBody.data).to.not.exist;
+                        expect(requestBody).to.have.property('jobId');
+                        expect(requestBody).to.have.property('status');
+                        expect(requestBody).to.have.property('timestamp');
+
+                        const status = {
+                            uri: `${restUrl}/exec/results/${requestBody.jobId}`,
+                            method: 'GET'
+                        };
+                        const response = await request(status);
+                        expect(response.body.jobId).to.eql(requestBody.jobId);
+                        expect(response.body.status).to.eql(requestBody.status);
+                        return resolve();
+                    });
+
+                const stored = {
+                    uri: `${restUrl}/exec/stored`,
+                    body: { name: 'webhookFlow1' }
+                };
+                const response = await request(stored);
+
+                const results = {
+                    jobId: response.body.jobId,
+                    status: 'stopped',
+                }
+                await stateManager.updateJobStatus(results);
+                await stateManager.updateJobResult(results);
+            });
+        });
+
         it('should succeed to send webhook result with large data', async () => {
             return new Promise(async (resolve) => {
                 nock('http://my-webhook-server-1')
