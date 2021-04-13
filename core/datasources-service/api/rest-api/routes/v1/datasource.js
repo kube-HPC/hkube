@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const multer = require('multer');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const fse = require('fs-extra');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../../../lib/consts/componentNames').MAIN;
@@ -65,7 +65,7 @@ const routes = ({ directories }) => {
                     git: gitConfig,
                     files: req.files,
                 });
-                res.status(HttpStatus.CREATED).json(response);
+                res.status(StatusCodes.CREATED).json(response);
             } finally {
                 await cleanTmpFile(files);
             }
@@ -133,9 +133,9 @@ const routes = ({ directories }) => {
                     },
                 });
                 if (createdVersion) {
-                    res.status(HttpStatus.CREATED).json(createdVersion);
+                    res.status(StatusCodes.CREATED).json(createdVersion);
                 } else {
-                    res.sendStatus(HttpStatus.OK);
+                    res.sendStatus(StatusCodes.OK);
                 }
             } finally {
                 await cleanTmpFile(req.files);
