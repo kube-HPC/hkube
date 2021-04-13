@@ -12,15 +12,15 @@ const dbErrorsMiddleware = require('./../../middlewares/dbErrors');
 const validation = require('./../../../../lib/service/validation');
 const ensureArray = require('../../../../lib/utils/ensureArray');
 
-const upload = multer({ dest: 'uploads/datasource/' });
-
 const cleanTmpFile = async (files = []) => {
     if (files.length > 0) {
         await Promise.all(files.map(file => fse.remove(file.path)));
     }
 };
 
-const routes = () => {
+/** @param {import('../../../../lib/utils/types').config} config */
+const routes = ({ directories }) => {
+    const upload = multer({ dest: directories.fileUploads });
     const router = Router();
 
     // ---- validate ---- //

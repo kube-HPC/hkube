@@ -1,6 +1,7 @@
 const packageJson = require(process.cwd() + '/package.json');
 const formatter = require(process.cwd() + '/lib/utils/formatters');
 const storageManager = require('@hkube/storage-manager');
+const pathLib = require('path');
 
 const config = {};
 config.serviceName = packageJson.name;
@@ -103,12 +104,16 @@ config.fs = {
         process.env.BASE_DATASOURCES_DIRECTORY ||
         '/var/tmp/fs/datasources-storage',
 };
+
+const tempRootDirectory = process.env.TEMP_DIRECTORY || 'temp';
 config.directories = {
-    gitRepositories: 'temp/git-repositories',
+    gitRepositories: pathLib.join(tempRootDirectory, 'git-repositories'),
     dataSourcesInUse:
-        process.env.DATASOURCES_IN_USE_FOLDER || 'dataSources-in-use',
-    prepareForDownload: 'temp/prepare-for-download',
-    zipFiles: 'temp/zip-files',
+        process.env.DATASOURCES_IN_USE_FOLDER ||
+        pathLib.join(tempRootDirectory, 'dataSources-in-use'),
+    prepareForDownload: pathLib.join(tempRootDirectory, 'prepare-for-download'),
+    zipFiles: pathLib.join(tempRootDirectory, 'zip-files'),
+    fileUploads: pathLib.join(tempRootDirectory, 'uploads'),
 };
 
 config.redis = {
