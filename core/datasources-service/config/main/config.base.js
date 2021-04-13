@@ -98,19 +98,14 @@ config.git = {
 };
 
 config.fs = {
-    baseDirectory:
-        process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
-    baseDatasourcesDirectory:
-        process.env.BASE_DATASOURCES_DIRECTORY ||
-        '/var/tmp/fs/datasources-storage',
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+    baseDatasourcesDirectory: process.env.BASE_DATASOURCES_DIRECTORY || '/var/tmp/fs/datasources-storage',
 };
 
 const tempRootDirectory = process.env.TEMP_DIRECTORY || 'temp';
 config.directories = {
     gitRepositories: pathLib.join(tempRootDirectory, 'git-repositories'),
-    dataSourcesInUse:
-        process.env.DATASOURCES_IN_USE_FOLDER ||
-        pathLib.join(tempRootDirectory, 'dataSources-in-use'),
+    dataSourcesInUse: process.env.DATASOURCES_IN_USE_FOLDER || 'dataSources-in-use',
     prepareForDownload: pathLib.join(tempRootDirectory, 'prepare-for-download'),
     zipFiles: pathLib.join(tempRootDirectory, 'zip-files'),
     fileUploads: pathLib.join(tempRootDirectory, 'uploads'),

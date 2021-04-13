@@ -14,8 +14,8 @@ RUN curl \
     -L \
     --output /etc/apt/sources.list.d/dvc.list
 
-RUN apt update && apt install -y git-all dvc && rm -rf /var/lib/apt/lists/*
-RUN git config --global user.email "hkube@hkube.io" && git config --global user.name "hkube"
+RUN apt update && apt install -y --no-install-recommends git dvc && rm -rf /var/lib/apt/lists/*
+ADD dockerfile/gitconfig /.gitconfig
 RUN mkdir -p /hkube/datasource-service
 WORKDIR /hkube/datasource-service
 COPY . /hkube/datasource-service
