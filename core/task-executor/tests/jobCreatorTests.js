@@ -128,7 +128,7 @@ describe('jobCreator', () => {
                 'group': 'my-group'
             }
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, labels });
-            expect(res).to.not.nested.include({ 'spec.template.metadata.labels.key': labels.key });
+            expect(res.spec.template.metadata.labels.group).to.not.eql(labels.group);
         });
     });
     describe('apply annotations', () => {
@@ -139,12 +139,17 @@ describe('jobCreator', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, annotations });
             expect(res).to.nested.include({ 'spec.template.metadata.annotations.key': annotations.key });
         });
-        it('should not override annotation', () => {
-            const annotations = {
+        it('should override annotation', () => {
+            const annotations1 = {
                 'group': 'my-group'
             }
-            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, annotations });
-            expect(res).to.not.nested.include({ 'spec.template.metadata.annotations.key': annotations.key });
+            const annotations2 = {
+                'group': 'new-group'
+            }
+            const res1 = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, annotations: annotations1 });
+            const res2 = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, annotations: annotations2 });
+            expect(res1.spec.template.metadata.annotations.group).to.eql(annotations1.group);
+            expect(res2.spec.template.metadata.annotations.group).to.eql(annotations2.group);
         });
     });
     describe('jobSpec', () => {
