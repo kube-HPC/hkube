@@ -115,6 +115,38 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[0].env).to.deep.include({ name: 'HOT_WORKER', value: 'true' });
         });
     });
+    describe('apply labels', () => {
+        it('should add new label', () => {
+            const labels = {
+                'key': 'my-value'
+            }
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, labels });
+            expect(res).to.nested.include({ 'spec.template.metadata.labels.key': labels.key });
+        });
+        it('should not override label', () => {
+            const labels = {
+                'group': 'my-group'
+            }
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, labels });
+            expect(res).to.not.nested.include({ 'spec.template.metadata.labels.key': labels.key });
+        });
+    });
+    describe('apply annotations', () => {
+        it('should add new annotation', () => {
+            const annotations = {
+                'key': 'my-value'
+            }
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, annotations });
+            expect(res).to.nested.include({ 'spec.template.metadata.annotations.key': annotations.key });
+        });
+        it('should not override annotation', () => {
+            const annotations = {
+                'group': 'my-group'
+            }
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, annotations });
+            expect(res).to.not.nested.include({ 'spec.template.metadata.annotations.key': annotations.key });
+        });
+    });
     describe('jobSpec', () => {
         beforeEach(() => {
             globalSettings.applyResources = false;
@@ -286,52 +318,51 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[1].resources).to.deep.include({ limits: { cpu: '500m', memory: '200M' } });
             expect(res.spec.template.spec.containers[0].resources).to.deep.include({ limits: { cpu: '200m', memory: '100Mi' } });
         });
-        describe('devMode', () => {
-            it('should apply with devMode', () => {
-                const res = createJobSpec({
-                    algorithmImage: 'myImage1',
-                    algorithmName: 'myalgo1',
-                    options,
-                    algorithmOptions: { devMode: true },
-                    clusterOptions: { devModeEnabled: true }
-                });
-                expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DEV_MODE', value: 'true' });
-                expect(res.spec.template.spec.containers[0].env).to.deep.include({ name: 'DEV_MODE', value: 'true' });
-                expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
-                    {
-                        name: 'hkube-dev-sources',
-                        mountPath: '/hkube/algorithm-runner/algorithm_unique_folder',
-                        subPath: 'algorithms/myalgo1'
-                    }
-                );
-                expect(res.spec.template.spec.volumes).to.deep.include(
-                    {
-                        name: 'hkube-dev-sources',
-                        persistentVolumeClaim: { claimName: 'hkube-dev-sources-pvc' }
-                    }
-                );
+    });
+    describe('devMode', () => {
+        it('should apply with devMode', () => {
+            const res = createJobSpec({
+                algorithmImage: 'myImage1',
+                algorithmName: 'myalgo1',
+                options,
+                algorithmOptions: { devMode: true },
+                clusterOptions: { devModeEnabled: true }
             });
-            it('should not add devMode if cluster disabled', () => {
-                const res = createJobSpec({
-                    algorithmImage: 'myImage1',
-                    algorithmName: 'myalgo1',
-                    options,
-                    algorithmOptions: { devMode: true },
-                    clusterOptions: { devModeEnabled: false }
-                });
-                expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'DEV_MODE', value: 'true' });
-            });
-            it('should not add devMode if algorithm disabled', () => {
-                const res = createJobSpec({
-                    algorithmImage: 'myImage1',
-                    algorithmName: 'myalgo1',
-                    options,
-                    algorithmOptions: { devMode: false },
-                    clusterOptions: { devModeEnabled: true }
-                });
-                expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'DEV_MODE', value: 'true' });
-            });
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DEV_MODE', value: 'true' });
+            expect(res.spec.template.spec.containers[0].env).to.deep.include({ name: 'DEV_MODE', value: 'true' });
+            expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
+                {
+                    name: 'hkube-dev-sources',
+                    mountPath: '/hkube/algorithm-runner/algorithm_unique_folder',
+                    subPath: 'algorithms/myalgo1'
+                }
+            );
+            expect(res.spec.template.spec.volumes).to.deep.include(
+                {
+                    name: 'hkube-dev-sources',
+                    persistentVolumeClaim: { claimName: 'hkube-dev-sources-pvc' }
+                }
+            );
         });
-
+        it('should not add devMode if cluster disabled', () => {
+            const res = createJobSpec({
+                algorithmImage: 'myImage1',
+                algorithmName: 'myalgo1',
+                options,
+                algorithmOptions: { devMode: true },
+                clusterOptions: { devModeEnabled: false }
+            });
+            expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'DEV_MODE', value: 'true' });
+        });
+        it('should not add devMode if algorithm disabled', () => {
+            const res = createJobSpec({
+                algorithmImage: 'myImage1',
+                algorithmName: 'myalgo1',
+                options,
+                algorithmOptions: { devMode: false },
+                clusterOptions: { devModeEnabled: true }
+            });
+            expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'DEV_MODE', value: 'true' });
+        });
     });
 });

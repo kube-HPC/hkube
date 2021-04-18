@@ -976,7 +976,7 @@ describe('Store/Algorithms', () => {
                 expect(res1.body).to.have.property('buildId');
             });
         });
-        describe.only('Code', () => {
+        describe('Code', () => {
             it('should succeed to apply algorithm with no changes', async () => {
                 const body1 = {
                     name: `my-alg-${uuid()}`,

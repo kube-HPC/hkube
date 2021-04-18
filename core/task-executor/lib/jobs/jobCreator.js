@@ -244,7 +244,35 @@ const getJavaMaxMem = (memory) => {
     const javaValue = Math.round(val * 0.8);
     return javaValue;
 };
-const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, algorithmOptions,
+
+const applyKeyVal = (inputSpec, keyVal, path) => {
+    if (!keyVal) {
+        return inputSpec;
+    }
+    const spec = clonedeep(inputSpec);
+    if (!objectPath.get(spec, path)) {
+        objectPath.set(spec, path, {});
+    }
+    const targetKeyVal = objectPath.get(spec, path);
+
+    Object.entries(keyVal).forEach(([key, value]) => {
+        const val = objectPath.get(spec, `${path}.${key}`);
+        if (val === undefined) {
+            targetKeyVal[key] = `${value}`;
+        }
+    });
+    return spec;
+};
+
+const applyLabels = (spec, keyVal) => {
+    return applyKeyVal(spec, keyVal, 'spec.template.metadata.labels');
+};
+
+const applyAnnotations = (spec, keyVal) => {
+    return applyKeyVal(spec, keyVal, 'spec.template.metadata.annotations');
+};
+
+const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
     nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
@@ -287,7 +315,8 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyDataSourcesVolumes(spec);
     spec = applyMounts(spec, mounts);
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
-
+    spec = applyLabels(spec, labels);
+    spec = applyAnnotations(spec, annotations);
     return spec;
 };
 
