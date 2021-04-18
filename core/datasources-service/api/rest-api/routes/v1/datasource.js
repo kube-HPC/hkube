@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const multer = require('multer');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const fse = require('fs-extra');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../../../lib/consts/componentNames').MAIN;
@@ -12,15 +12,15 @@ const dbErrorsMiddleware = require('./../../middlewares/dbErrors');
 const validation = require('./../../../../lib/service/validation');
 const ensureArray = require('../../../../lib/utils/ensureArray');
 
-const upload = multer({ dest: 'uploads/datasource/' });
-
 const cleanTmpFile = async (files = []) => {
     if (files.length > 0) {
         await Promise.all(files.map(file => fse.remove(file.path)));
     }
 };
 
-const routes = () => {
+/** @param {import('../../../../lib/utils/types').config} config */
+const routes = ({ directories }) => {
+    const upload = multer({ dest: directories.fileUploads });
     const router = Router();
 
     // ---- validate ---- //
@@ -65,7 +65,7 @@ const routes = () => {
                     git: gitConfig,
                     files: req.files,
                 });
-                res.status(HttpStatus.CREATED).json(response);
+                res.status(StatusCodes.CREATED).json(response);
             } finally {
                 await cleanTmpFile(files);
             }
@@ -133,9 +133,9 @@ const routes = () => {
                     },
                 });
                 if (createdVersion) {
-                    res.status(HttpStatus.CREATED).json(createdVersion);
+                    res.status(StatusCodes.CREATED).json(createdVersion);
                 } else {
-                    res.sendStatus(HttpStatus.OK);
+                    res.sendStatus(StatusCodes.OK);
                 }
             } finally {
                 await cleanTmpFile(req.files);

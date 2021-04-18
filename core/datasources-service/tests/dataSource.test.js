@@ -171,7 +171,9 @@ describe('Datasource', () => {
     describe('/datasource GET', () => {
         it('should succeed list all dataSources', async () => {
             const names = new Array(3).fill(0).map(() => uuid());
-            await Promise.all(names.map(name => createDataSource(name)));
+            for (const name of names){
+                await createDataSource(name)
+            }
             const options = {
                 uri: restPath,
                 method: 'GET',
