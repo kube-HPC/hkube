@@ -420,5 +420,17 @@ describe('/dataSource POST', () => {
             expect(createdFile).to.have.ownProperty('meta');
             expect(createdFile.meta).to.match(/information about the logo/i);
         });
+        it('should throw - upload a meta file without a data file', async () => {
+            const name = uuid();
+            const {
+                body: { error },
+            } = await createDataSource(name, {
+                fileNames: ['logo.svg.meta'],
+            });
+            expect(error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(error.message).to.match(
+                /provided meta file: .+, without a matching file: .+/i
+            );
+        });
     });
 });
