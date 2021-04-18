@@ -108,6 +108,8 @@ class ApiValidator {
     _validateAlgorithmEnvVar(algorithm) {
         this._validateEnvVar(algorithm.algorithmEnv);
         this._validateEnvVar(algorithm.workerEnv);
+        this._validateKeyValue(algorithm.labels, 'labels');
+        this._validateKeyValue(algorithm.annotations, 'annotations');
     }
 
     _validateEnvVar(env) {
@@ -123,6 +125,22 @@ class ApiValidator {
                 this._validator.validate(this._validator.definitionsInternal.kubernetesValueFrom, key);
             }
         });
+    }
+
+    _validateKeyValue(keyVal, field) {
+        if (!keyVal) {
+            return;
+        }
+        Object.entries(keyVal).forEach(([k, v]) => {
+            this._checkValidString(k, field, 'key');
+            this._checkValidString(v, field, 'value');
+        });
+    }
+
+    _checkValidString(str, field, type) {
+        if (typeof str !== 'string' || str.trim().length === 0) {
+            throw new InvalidDataError(`${field} ${type} must be a valid string`);
+        }
     }
 
     _isObject(object) {

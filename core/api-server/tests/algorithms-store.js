@@ -699,6 +699,74 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
             });
+            it('should throw validation error of invalid labels key', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        "": "value"
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('labels key must be a valid string');
+            });
+            it('should throw validation error of invalid labels key', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        "key": ""
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('labels value must be a valid string');
+            });
+            it('should throw validation error of invalid annotations key', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    annotations: {
+                        "": "value"
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('annotations key must be a valid string');
+            });
+            it('should throw validation error of invalid annotations key', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    annotations: {
+                        "key": ""
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('annotations value must be a valid string');
+            });
         });
         describe('GitHub', () => {
             it('should throw error of required property url', async () => {
@@ -908,7 +976,7 @@ describe('Store/Algorithms', () => {
                 expect(res1.body).to.have.property('buildId');
             });
         });
-        describe('Code', () => {
+        describe.only('Code', () => {
             it('should succeed to apply algorithm with no changes', async () => {
                 const body1 = {
                     name: `my-alg-${uuid()}`,
