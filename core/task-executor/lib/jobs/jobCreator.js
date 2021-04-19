@@ -245,7 +245,7 @@ const getJavaMaxMem = (memory) => {
     return javaValue;
 };
 
-const applyKeyVal = (inputSpec, keyVal, path) => {
+const applyKeyVal = (inputSpec, keyVal, type, path) => {
     if (!keyVal) {
         return inputSpec;
     }
@@ -260,16 +260,20 @@ const applyKeyVal = (inputSpec, keyVal, path) => {
         if (val === undefined) {
             targetKeyVal[key] = `${value}`;
         }
+        else {
+            // we should notify users that some labels/annotations are reserved
+            log.throttle.error(`cannot apply reserved ${type} with key ${key}`, { component });
+        }
     });
     return spec;
 };
 
-const applyLabels = (spec, keyVal) => {
-    return applyKeyVal(spec, keyVal, 'spec.template.metadata.labels');
+const applyLabels = (spec, keyVal, type) => {
+    return applyKeyVal(spec, keyVal, type, 'spec.template.metadata.labels');
 };
 
-const applyAnnotations = (spec, keyVal) => {
-    return applyKeyVal(spec, keyVal, 'spec.template.metadata.annotations');
+const applyAnnotations = (spec, keyVal, type) => {
+    return applyKeyVal(spec, keyVal, type, 'spec.template.metadata.annotations');
 };
 
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
@@ -315,8 +319,8 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyDataSourcesVolumes(spec);
     spec = applyMounts(spec, mounts);
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
-    spec = applyLabels(spec, labels);
-    spec = applyAnnotations(spec, annotations);
+    spec = applyLabels(spec, labels, 'label');
+    spec = applyAnnotations(spec, annotations, 'annotation');
     return spec;
 };
 

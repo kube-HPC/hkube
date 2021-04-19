@@ -1792,6 +1792,22 @@ describe('Store/Algorithms', () => {
                 expect(response1.body).to.not.have.property('buildId')
                 expect(response2.body).to.not.have.property('buildId');
             });
+            it('should succeed to add labels and annotations', async () => {
+                const apply = {
+                    name: `alg-${uuid()}`,
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        "my.custom.key": "my.custom.value"
+                    },
+                    annotations: {
+                        "my.custom.key": "my.custom.value"
+                    }
+                }
+                const req = { uri: applyPath, formData: { payload: JSON.stringify(apply) } };
+                const res = await request(req);
+                expect(res.body.algorithm.labels).to.eql(apply.labels);
+                expect(res.body.algorithm.annotations).to.eql(apply.annotations);
+            });
         });
         describe('Versions', () => {
             it('should create one version', async () => {
