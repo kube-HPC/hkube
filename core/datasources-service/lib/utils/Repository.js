@@ -432,6 +432,15 @@ class Repository extends RepositoryBase {
             Object.entries(metaFilesByPath).map(async ([filePath, file]) => {
                 const content = await fse.readFile(file.path);
                 const fileId = byPath[filePath];
+                if (!fileId) {
+                    const { originalname } = file;
+                    throw new InvalidDataError(
+                        `provided meta file: ${originalname}, without a matching file: ${originalname.slice(
+                            0,
+                            originalname.indexOf('.meta')
+                        )}`
+                    );
+                }
                 const meta = content.toString('utf8');
                 const fileMeta = normalizedMapping[fileId];
                 await fse.move(
