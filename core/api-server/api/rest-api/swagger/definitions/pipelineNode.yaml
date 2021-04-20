@@ -52,10 +52,22 @@ properties:
     type: string
     enum:
       - dataSource
+      - gateway
   dataSource:
     anyOf:
       - $ref: "#/components/schemas/dataSource-id"
       - $ref: "#/components/schemas/dataSource-name"
       - $ref: "#/components/schemas/dataSource-snapshot"
+  spec:
+    type: object
+    properties:
+      gatewayName:
+        type: string
+      mem:
+        type: string
+        description: Memory allocated for messages in queue
+        format: algorithm-memory
+        default: 256Mi
+        example: 512Mi
 required:
   - nodeName
