@@ -1,0 +1,67 @@
+get:
+  tags:
+    - Graph
+  summary: Query the pipeline graph
+  description: returns the graph data by jobId, node and tasks
+  parameters:
+    - name: jobId
+      in: path
+      description: Unique identifier representing jobId
+      required: true
+      schema:
+        type: string
+    - name: node
+      in: query
+      description: the node name
+      required: false
+      schema:
+        type: string
+    - name: sort
+      in: query
+      description: sort by status, error or any other property
+      required: false
+      schema:
+        type: string
+    - name: order
+      in: query
+      description: order by asc or desc
+      required: false
+      schema:
+        type: string
+    - name: from
+      in: query
+      description: the start index
+      required: false
+      schema:
+        type: integer
+    - name: to
+      in: query
+      description: the end index
+      required: false
+      schema:
+        type: integer
+  responses:
+    "200":
+      description: algorithm apply response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/graphResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: jobId Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

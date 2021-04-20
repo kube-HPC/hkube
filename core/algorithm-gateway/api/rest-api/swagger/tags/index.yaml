@@ -1,0 +1,24 @@
+- name: Execution
+  description: Execution pipelines as raw or stored
+- name: Graph
+  description: Query the pipeline graph
+- name: Builds
+  description: status, rerun and stop builds
+- name: Versions
+  description: Versioning for algorithms
+- name: Cron
+  description: Get pipelines cron result and status
+- name: Pipelines
+  description: Get pipelines status and result
+- name: Pipeline Readme
+  description: Store readme for pipelines
+- name: Algorithm Readme
+  description: Store readme for algorithms
+- name: Storage
+  description: Query the storage
+- name: StoreAlgorithms
+  description: Store new algorithms, update, get and delete
+- name: StorePipelines
+  description: Store new pipelines, update, get and delete
+- name: Webhooks
+  description: Webhooks status and result

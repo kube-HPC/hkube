@@ -1,0 +1,5 @@
+coverage
+config
+tests
+
+api/rest-api/swagger-builder.js

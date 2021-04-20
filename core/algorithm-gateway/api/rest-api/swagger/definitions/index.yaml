@@ -1,0 +1,108 @@
+algorithm:
+  $ref: ./algorithm.yaml
+algorithmDebug:
+  $ref: ./algorithmDebug.yaml
+algorithmName:
+  $ref: ./algorithmName.yaml
+algorithmImage:
+  $ref: ./algorithmImage.yaml
+algorithmMount:
+  $ref: ./algorithmMount.yaml
+algorithmEnv:
+  $ref: ./algorithmEnv.yaml
+algorithmFileExt:
+  $ref: ./algorithmFileExt.yaml
+algorithmVersionId:
+  $ref: ./algorithmVersionId.yaml
+applyAlgorithmVersion:
+  $ref: ./applyAlgorithmVersion.yaml
+algorithmVersionTag:
+  $ref: ./algorithmVersionTag.yaml
+algorithmApplyOptions:
+  $ref: ./algorithmApplyOptions.yaml
+algorithmApplyResponse:
+  $ref: ./algorithmApplyResponse.yaml
+createBoardRequest:
+  $ref: ./createBoardRequest.yaml
+createBoardResponse:
+  $ref: ./createBoardResponse.yaml
+getBoardResponse:
+  $ref: ./getBoardResponse.yaml
+listBoardResponse:
+  $ref: ./listBoardResponse.yaml
+buildId:
+  $ref: ./buildId.yaml
+caching:
+  $ref: ./caching.yaml
+cronPattern:
+  $ref: ./cronPattern.yaml
+cronRequest:
+  $ref: ./cronRequest.yaml
+dataSource-name:
+  $ref: ./dataSource-name.yaml
+dataSource-snapshot:
+  $ref: ./dataSource-snapshot.yaml
+dataSource-id:
+  $ref: ./dataSource-id.yaml
+defaultResponse:
+  $ref: ./defaultResponse.yaml
+defaultResponseWithName:
+  $ref: ./defaultResponseWithName.yaml
+error:
+  $ref: ./error.yaml
+execTreeNode:
+  $ref: ./execTreeNode.yaml
+execTreeResult:
+  $ref: ./execTreeResult.yaml
+jobId:
+  $ref: ./jobId.yaml
+jobIdObject:
+  $ref: ./jobIdObject.yaml
+options:
+  $ref: ./options.yaml
+pipeline:
+  $ref: ./pipeline.yaml
+pipelineName:
+  $ref: ./pipelineName.yaml
+pipelineKind:
+  $ref: ./pipelineKind.yaml
+pipelineNode:
+  $ref: ./pipelineNode.yaml
+metrics:
+  $ref: ./metrics.yaml
+pipelineResult:
+  $ref: ./pipelineResult.yaml
+priority:
+  $ref: ./priority.yaml
+stopRequest:
+  $ref: ./stopRequest.yaml
+pauseRequest:
+  $ref: ./pauseRequest.yaml
+resumeRequest:
+  $ref: ./resumeRequest.yaml
+triggers:
+  $ref: ./triggers.yaml
+webhookResult:
+  $ref: ./webhookResult.yaml
+webhooks:
+  $ref: ./webhooks.yaml
+githubWebhook:
+  $ref: ./githubWebhook.yaml
+experiment:
+  $ref: ./experiment.yaml
+experimentName:
+  $ref: ./experimentName.yaml
+gitlabWebhook:
+  $ref: ./gitlabWebhook.yaml
+tag:
+  $ref: ./tag.yaml
+graphResponse:
+  $ref: ./graphResponse.yaml
+algorithmBuild:
+  $ref: ./algorithmBuild.yaml
+execAlgorithmRequest:
+  $ref: ./execAlgorithmRequest.yaml
+pipelineTriggersNode:
+  $ref: ./pipelineTriggersNode.yaml
+pipelineTriggersResult:
+  $ref: ./pipelineTriggersResult.yaml

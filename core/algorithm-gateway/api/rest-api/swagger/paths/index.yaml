@@ -1,0 +1,145 @@
+# exec
+/exec/raw:
+  $ref: ./exec/raw.yaml
+/exec/stored:
+  $ref: ./exec/stored.yaml
+/exec/caching:
+  $ref: ./exec/caching.yaml
+/exec/algorithm:
+  $ref: ./exec/algorithm.yaml
+/exec/stop:
+  $ref: ./exec/stop.yaml
+/exec/pause:
+  $ref: ./exec/pause.yaml
+/exec/resume:
+  $ref: ./exec/resume.yaml
+/exec/pipelines/{jobId}:
+  $ref: ./exec/pipelines_jobId.yaml
+/exec/pipeline/list:
+  $ref: ./exec/pipelines_list.yaml
+/exec/status/{jobId}:
+  $ref: ./exec/status.yaml
+/exec/results/{jobId}:
+  $ref: ./exec/results.yaml
+/exec/tree/{jobId}:
+  $ref: ./exec/tree.yaml
+
+# pipelines
+/pipelines/results:
+  $ref: ./pipelines/results.yaml
+/pipelines/status:
+  $ref: ./pipelines/status.yaml
+/pipelines/triggers/tree:
+  $ref: ./pipelines/triggers.yaml
+
+# cron
+/cron/results:
+  $ref: ./cron/results.yaml
+/cron/status:
+  $ref: ./cron/status.yaml
+/cron/list:
+  $ref: ./cron/list.yaml
+/cron/start:
+  $ref: ./cron/start.yaml
+/cron/stop:
+  $ref: ./cron/stop.yaml
+
+# store
+/store/algorithms/{name}:
+  $ref: ./store/algorithms_name.yaml
+/store/algorithms/debug/{name}:
+  $ref: ./store/algorithms_debug_name.yaml
+/store/algorithms/debug:
+  $ref: ./store/algorithms_debug.yaml
+/store/algorithms:
+  $ref: ./store/algorithms.yaml
+/store/algorithms/apply:
+  $ref: ./store/algorithms_apply.yaml
+/store/pipelines/{name}:
+  $ref: ./store/pipelines_name.yaml
+/store/pipelines:
+  $ref: ./store/pipelines.yaml
+
+# webhooks
+/webhooks/status/{jobId}:
+  $ref: ./webhooks/status.yaml
+/webhooks/results/{jobId}:
+  $ref: ./webhooks/results.yaml
+/webhooks/list/{jobId}:
+  $ref: ./webhooks/list.yaml
+
+# boards
+/boards/tensors:
+  $ref: ./boards/tensorboard_create.yaml
+/boards/tensors/{id}:
+  $ref: ./boards/tensorboard_single.yaml
+/boards/tensors/:
+  $ref: ./boards/tensorboard_list.yaml
+
+# builds
+/builds/status/{buildId}:
+  $ref: ./builds/status.yaml
+/builds/list/{name}:
+  $ref: ./builds/list.yaml
+/builds/stop:
+  $ref: ./builds/stop.yaml
+/builds/rerun:
+  $ref: ./builds/rerun.yaml
+/builds/webhook/github:
+  $ref: ./builds/webhook-github.yaml
+/builds/webhook/gitlab:
+  $ref: ./builds/webhook-gitlab.yaml
+
+# readme
+/readme/algorithms/{name}:
+  $ref: ./readme/algorithms.yaml
+/readme/pipelines/{name}:
+  $ref: ./readme/pipelines.yaml
+
+# versions
+/versions/algorithms/{name}:
+  $ref: ./versions/version.yaml
+/versions/algorithms/{name}/{version}:
+  $ref: ./versions/version_id.yaml
+/versions/algorithms/apply:
+  $ref: ./versions/apply.yaml
+/versions/algorithms/tag:
+  $ref: ./versions/tag.yaml
+
+# experiment
+/experiment/{name}:
+  $ref: ./experiment/experiment_name.yaml
+/experiment:
+  $ref: ./experiment/experiment.yaml
+
+# graph
+/graph/raw/{jobId}:
+  $ref: ./graph/raw.yaml
+/graph/parsed/{jobId}:
+  $ref: ./graph/parsed.yaml
+
+# storage
+/storage/info:
+  $ref: ./storage/info.yaml
+/storage/prefix/types:
+  $ref: ./storage/prefix_types.yaml
+/storage/prefixes/{path}:
+  $ref: ./storage/prefixes.yaml
+/storage/keys/{path}:
+  $ref: ./storage/keys.yaml
+/storage/values/{path}:
+  $ref: ./storage/values.yaml
+/storage/stream/{path}:
+  $ref: ./storage/stream.yaml
+/storage/stream/custom/{path}:
+  $ref: ./storage/stream.yaml
+/storage/download/{path}:
+  $ref: ./storage/download.yaml
+/storage/download/custom/{path}:
+  $ref: ./storage/download.yaml
+/storage/download/pipeline/result/{jobId}:
+  $ref: ./storage/download_pipeline.yaml
+
+# status
+/status/version:
+  $ref: ./status/version.yaml

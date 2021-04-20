@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Graph
+  summary: Get graph as raw data
+  description: returns the graph data by jobId
+  parameters:
+    - name: jobId
+      in: path
+      description: Unique identifier representing jobId
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: algorithm apply response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/graphResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: build Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
