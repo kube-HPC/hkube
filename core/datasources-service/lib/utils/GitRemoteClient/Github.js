@@ -25,7 +25,9 @@ class Github extends Base {
         const url = new URL(repositoryUrl);
         url.username = token;
         try {
-            await simpleGit().listRemote([url.toString()]);
+            await simpleGit()
+                .env('GIT_TERMINAL_PROMPT', '0')
+                .listRemote([url.toString()]);
         } catch (error) {
             throw new InvalidDataError('invalid git token or repository url');
         }

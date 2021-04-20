@@ -208,7 +208,7 @@ class StateAdapter extends EventEmitter {
                 { allowNotFound: false }
             );
             dsName = snapshot.dataSource.name;
-            subPath = snapshot.name;
+            subPath = snapshotId;
             dsFiles = snapshot.filteredFilesList;
         }
         else {
@@ -217,7 +217,7 @@ class StateAdapter extends EventEmitter {
         dsFiles = dsFiles || [];
         const files = dsFiles.map(f => ({
             ...f,
-            path: path.join(this._dataSourcesVolume, dsName, subPath, dsName, 'data', f.name)
+            path: path.join(this._dataSourcesVolume, dsName, subPath, dsName, 'data', f.path, f.name)
         }));
         const dataSource = {
             name: dsName,

@@ -67,7 +67,9 @@ class WebhooksHandler {
         });
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await stateManager.getResultFromStorage(payload);
-            await Promise.all(payloadData.data.map(p => this._fillMissing(p)));
+            if (payloadData?.data) {
+                await Promise.all(payloadData.data.map(p => this._fillMissing(p)));
+            }
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
             await stateManager.updateResultWebhook({ jobId, ...result });
         }

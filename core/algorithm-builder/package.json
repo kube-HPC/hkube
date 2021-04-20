@@ -1,6 +1,6 @@
 {
   "name": "algorithm-builder",
-  "version": "2.0.49",
+  "version": "2.0.59",
   "description": "build algorithm with hkube worker connectivity",
   "author": "Hkube",
   "license": "ISC",
@@ -21,7 +21,7 @@
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "^1.0.31",
-    "@hkube/db": "^1.0.19",
+    "@hkube/db": "^1.0.30",
     "@hkube/etcd": "^5.1.2",
     "@hkube/kubernetes-client": "^1.0.33",
     "@hkube/logger": "^1.0.27",

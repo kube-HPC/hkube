@@ -118,10 +118,14 @@ class JobConsumer {
             return this.handleFail({ ...job, error: e.message });
         }
 
+        let { id: cloneId } = dataSource;
+        if (resolvedSnapshot) {
+            cloneId = resolvedSnapshot.id;
+        }
         const repository = new Repository(
             dataSource.name,
             this.config,
-            pathLib.join(this.rootDir, dataSource.name, dataSource.id),
+            pathLib.join(this.rootDir, dataSource.name, cloneId),
             dataSource.git,
             dataSource.storage,
             dataSource._credentials

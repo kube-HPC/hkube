@@ -150,10 +150,21 @@ class Repository extends RepositoryBase {
         await this.dvc.init();
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
 
-        await fse.copyFile(
-            pathLib.resolve('lib', 'utils', 'dvcConfigTemplates', 's3.txt'),
-            pathLib.join(this.dvc.cwd, '.dvc', 'config.template')
-        );
+        await Promise.all([
+            fse.copyFile(
+                pathLib.resolve('lib', 'utils', 'dvcConfigTemplates', 's3.txt'),
+                pathLib.join(this.dvc.cwd, '.dvc', 'config.template')
+            ),
+            fse.copyFile(
+                pathLib.resolve(
+                    'lib',
+                    'utils',
+                    'dvcConfigTemplates',
+                    '.dvcignore'
+                ),
+                pathLib.join(this.dvc.cwd, '.dvcignore')
+            ),
+        ]);
     }
 
     /**
@@ -318,20 +329,42 @@ class Repository extends RepositoryBase {
     /** @param {SourceTargetArray[]} sourceTargetArray */
     async moveExistingFiles(sourceTargetArray) {
         if (sourceTargetArray.length === 0) return null;
-        const filesToPull = sourceTargetArray
-            .map(([source]) => source)
-            .map(f => getFilePath(f));
-        await this.dvc.pull(filesToPull);
-        return Promise.all(
-            sourceTargetArray.map(async ([srcFile, targetFile]) => {
+        const fullPathSrcTargetArray = sourceTargetArray.map(
+            ([srcFile, targetFile]) => {
                 const srcPath = getFilePath(srcFile);
                 const targetPath = getFilePath(targetFile);
-                await fse.ensureDir(
-                    pathLib.parse(`${this.cwd}/${targetPath}`).dir
-                );
-                return this.dvc.move(srcPath, targetPath);
-            })
+                return [
+                    srcPath,
+                    targetPath,
+                    pathLib.join(this.cwd, `${srcPath}.meta`),
+                    pathLib.join(this.cwd, `${targetPath}.meta`),
+                ];
+            }
         );
+        const filesToPull = fullPathSrcTargetArray.map(([source]) => source);
+        await this.dvc.pull(filesToPull);
+
+        const dirs = fullPathSrcTargetArray.map(
+            ([, targetPath]) => pathLib.parse(`${this.cwd}/${targetPath}`).dir
+        );
+        await Promise.all([...new Set(dirs)].map(dir => fse.ensureDir(dir)));
+
+        // using a for loop to run in series
+        // dvc move must NOT run in parallel!
+        // eslint-disable-next-line no-restricted-syntax
+        for await (const arr of fullPathSrcTargetArray) {
+            const [srcPath, targetPath, srcMetaPath, targetMetaPath] = arr;
+            await this.dvc.move(srcPath, targetPath);
+            const hasMeta = await fse.pathExists(srcMetaPath);
+            if (hasMeta) {
+                try {
+                    await fse.move(srcMetaPath, targetMetaPath);
+                } catch (error) {
+                    console.error({ error });
+                }
+            }
+        }
+        return null;
     }
 
     /** @returns {Promise<FileMeta[]>} */
@@ -399,6 +432,15 @@ class Repository extends RepositoryBase {
             Object.entries(metaFilesByPath).map(async ([filePath, file]) => {
                 const content = await fse.readFile(file.path);
                 const fileId = byPath[filePath];
+                if (!fileId) {
+                    const { originalname } = file;
+                    throw new InvalidDataError(
+                        `provided meta file: ${originalname}, without a matching file: ${originalname.slice(
+                            0,
+                            originalname.indexOf('.meta')
+                        )}`
+                    );
+                }
                 const meta = content.toString('utf8');
                 const fileMeta = normalizedMapping[fileId];
                 await fse.move(
