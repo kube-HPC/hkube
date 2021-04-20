@@ -3,6 +3,12 @@ post:
     - Message
   summary: Stream message
   description: post message to the streaming gateway
+  parameters:
+    - name: flowName
+      in: query
+      description: streaming flowName
+      schema:
+        type: string
   requestBody:
     description: message body
     content:
@@ -11,6 +17,7 @@ post:
           type: object
       application/octet-stream:
         schema:
+          type: string
           format: binary
     required: true
   responses:

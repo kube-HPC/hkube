@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
+const InvalidDataError = require('../lib/validation/InvalidDataError');
 const events = new EventEmitter();
-
 let props;
 
 const start = async (options, hkubeApi) => {
@@ -22,23 +22,28 @@ const start = async (options, hkubeApi) => {
 };
 
 const stop = async () => {
+    props = null;
     events.emit('stop');
 };
 
 const streamMessage = async (message, flowName) => {
     if (!props) {
-        throw new Error('this pipeline is not active yet');
+        throw new InvalidDataError('this pipeline is not active yet');
     }
     let flow = flowName;
     if (!flow) {
         flow = props.defaultFlow;
     }
-    props.hkubeApi.sendMessage(message, flow);
-
-}
+    try {
+        props.hkubeApi.sendMessage(message, flow);
+    }
+    catch (e) {
+        throw new InvalidDataError(e.message);
+    }
+};
 
 module.exports = {
     start,
     stop,
     streamMessage
-}
+};
