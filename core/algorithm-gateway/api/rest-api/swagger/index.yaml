@@ -12,5 +12,3 @@ paths:
 components:
   schemas:
     $ref: ./swagger/definitions/index.yaml
-schemasInternal:
-  $ref: ./swagger/definitions-internal/index.yaml

@@ -1,5 +1,5 @@
-title: HKube API
-description: HKube RESTful API
+title: HKube Gateway API
+description: HKube Gateway RESTful API
 version: 1.1.30
 contact:
   email: hkube.dev@gmail.com
