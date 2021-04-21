@@ -269,6 +269,10 @@ class StateManager {
         await this._etcd.jobs.status.set({ jobId, ...status });
     }
 
+    async createGateway({ name }) {
+        await this._db.gateways.create({ name });
+    }
+
     async getStatus(status) {
         return this._db.jobs.fetchStatus(status);
     }

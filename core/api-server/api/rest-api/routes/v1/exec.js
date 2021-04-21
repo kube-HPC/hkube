@@ -10,8 +10,8 @@ const routes = (options) => {
         next();
     });
     router.all('/raw', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Execution.runRaw(req.body);
-        res.json({ jobId });
+        const { jobId, gatewayURLs } = await Execution.runRaw(req.body);
+        res.json({ jobId, gatewayURLs });
         res.jobId = jobId;
         next();
     });

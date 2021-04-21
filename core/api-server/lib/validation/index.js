@@ -10,6 +10,7 @@ const Jobs = require('./jobs');
 const Lists = require('./lists');
 const Pipelines = require('./pipelines');
 const DataSources = require('./data-sources');
+const Gateways = require('./gateways');
 
 module.exports = {
     Algorithms,
@@ -18,6 +19,7 @@ module.exports = {
     Cron,
     Executions,
     Experiments,
+    Gateways,
     Graphs,
     Internal,
     Jobs,

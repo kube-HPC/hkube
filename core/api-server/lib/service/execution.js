@@ -9,6 +9,7 @@ const storageManager = require('@hkube/storage-manager');
 const cachingService = require('./caching');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
+const gatewayService = require('./gateway');
 const validator = require('../validation/api-validator');
 const pipelineCreator = require('./pipeline-creator');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
@@ -103,9 +104,24 @@ class ExecutionService {
             const statusObject = { timestamp: Date.now(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
+            const gatewayURLs = [];
+            await Promise.all(pipeline.nodes.map(async node => {
+                if (node.kind === 'gateway') {
+                    let name = node.spec?.name;
+                    const description = node.spec?.description;
+                    if (!name) {
+                        name = `${jobId}_${node.nodeName}`;
+                    }
+                    await gatewayService.insertGateway({ name, description });
+                    const gateURL = {};
+                    gateURL[node.nodeName] = `gateway/${name}`;
+                    gatewayURLs.push(gateURL);
+                }
+            }));
+
             await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
             span.finish();
-            return jobId;
+            return { jobId, gatewayURLs };
         }
         catch (error) {
             span.finish(error);

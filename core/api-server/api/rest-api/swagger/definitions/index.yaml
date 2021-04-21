@@ -92,6 +92,10 @@ experiment:
   $ref: ./experiment.yaml
 experimentName:
   $ref: ./experimentName.yaml
+gatewayName:
+  $ref: ./gatewayName.yaml
+gateway:
+  $ref: ./gateway.yaml
 gitlabWebhook:
   $ref: ./gitlabWebhook.yaml
 tag:
