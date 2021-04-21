@@ -1,4 +1,3 @@
-require('express-async-errors');
 const fs = require('fs');
 const path = require('path');
 const RestServer = require('@hkube/rest-server');
@@ -26,7 +25,7 @@ class AppServer {
         const swagger = await swaggerUtils.loader.load({ path: path.join(__dirname, 'swagger') });
         swagger.info.version = options.version;
 
-        const { port, poweredBy } = options.rest;
+        const { port, bodySizeLimit, poweredBy } = options.rest;
         const routes = [];
         const routers = fs.readdirSync(path.join(__dirname, 'routes'));
 
@@ -42,10 +41,10 @@ class AppServer {
         await swaggerUtils.validator.validate(swagger);
         validator.init(swagger.components.schemas);
 
-        // TODO: handle bodyParser.raw
         const opt = {
             swagger,
             routes,
+            bodySizeLimit,
             poweredBy,
             port: parseInt(port, 10),
             name: options.serviceName,

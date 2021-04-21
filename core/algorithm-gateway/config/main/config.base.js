@@ -9,6 +9,7 @@ config.ingressPrefix = process.env.INGRESS_PREFIX || '';
 config.rest = {
     port: process.env.ALGORITHM_GATEWAY_REST_PORT || 3005,
     poweredBy: 'HKube Gateway Server',
+    bodySizeLimit: process.env.BODY_SIZE_LIMIT || '2000mb'
 };
 
 config.swagger = {

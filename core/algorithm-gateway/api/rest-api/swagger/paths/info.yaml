@@ -1,25 +1,8 @@
-post:
+get:
   tags:
     - Streaming
-  summary: Stream message
-  description: post message to the streaming gateway
-  parameters:
-    - name: flow
-      in: query
-      description: streaming flow name
-      schema:
-        type: string
-  requestBody:
-    description: message body
-    content:
-      application/json:
-        schema:
-          type: object
-      application/octet-stream:
-        schema:
-          type: string
-          format: binary
-    required: true
+  summary: get status
+  description: get current job data
   responses:
     "200":
       description: success response

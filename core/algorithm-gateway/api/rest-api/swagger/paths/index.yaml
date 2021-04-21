@@ -1,4 +1,6 @@
 
-/message:
+/streaming/message:
   $ref: ./message.yaml
 
+/streaming/info:
+  $ref: ./info.yaml

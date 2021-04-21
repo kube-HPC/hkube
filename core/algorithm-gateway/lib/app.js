@@ -1,7 +1,12 @@
 const NodejsWrapper = require('@hkube/nodejs-wrapper');
+let wrapper;
 
 const init = async () => {
-    NodejsWrapper.run();
+    wrapper = NodejsWrapper.run();
 };
 
-module.exports = { init };
+const getWrapper = () => {
+    return wrapper;
+};
+
+module.exports = { init, getWrapper };
