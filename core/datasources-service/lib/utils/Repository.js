@@ -433,12 +433,9 @@ class Repository extends RepositoryBase {
                 const content = await fse.readFile(file.path);
                 const fileId = byPath[filePath];
                 if (!fileId) {
-                    const { originalname } = file;
+                    const { base } = pathLib.parse(filePath);
                     throw new InvalidDataError(
-                        `provided meta file: ${originalname}, without a matching file: ${originalname.slice(
-                            0,
-                            originalname.indexOf('.meta')
-                        )}`
+                        `provided meta file: ${base}.meta, without a matching file: ${base}`
                     );
                 }
                 const meta = content.toString('utf8');
