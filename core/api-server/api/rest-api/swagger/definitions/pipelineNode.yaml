@@ -62,7 +62,7 @@ properties:
     type: object
     properties:
       gatewayName:
-        type: string
+        $ref: "#/components/schemas/gatewayName"
       mem:
         type: string
         description: Memory allocated for messages in queue

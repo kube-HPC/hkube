@@ -18,6 +18,7 @@ class ApiValidator {
         validatorInstance.addFormat('cron', this._validateCron);
         validatorInstance.addFormat('pipeline-name', this._validatePipelineName);
         validatorInstance.addFormat('experiment-name', this._validateExperimentName);
+        validatorInstance.addFormat('gateway-name', this._validateGatewayName);
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
         validatorInstance.addFormat('algorithm-image', this._validateAlgorithmImage);
         validatorInstance.addFormat('algorithm-mount-pvc', this._validateAlgorithmMountPvc);
@@ -47,6 +48,10 @@ class ApiValidator {
 
     _validateExperimentName(name) {
         return regex.EXPERIMENT_NAME_REGEX.test(name);
+    }
+
+    _validateGatewayName(name) {
+        return regex.GATEWAY_NAME.test(name);
     }
 
     _validatePath(path) {

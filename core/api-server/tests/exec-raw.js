@@ -272,6 +272,29 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('jobId');
         });
+        it('should insert gateway', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'nodeA',
+                            kind: 'gateway',
+                            spec: { name: 'gate-name' }
+                        }
+                    ],
+                    additionalProps: {
+                        bla: 60,
+                        blabla: 'info'
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('gatewayURLs');
+            expect(response.body['gatewayURLs'].length).to.eq(1);
+            expect(response.body['gatewayURLs'][0]).to.have.property('nodeA');
+        });
         it('should throw validation error of duplicate node', async () => {
             const options = {
                 uri: restPath,
