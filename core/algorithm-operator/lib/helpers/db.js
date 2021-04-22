@@ -22,7 +22,6 @@ class DB extends EventEmitter {
             this._db.algorithms.search({ sort: { modified: 'desc' }, limit: 100 }),
             this._db.algorithms.count()
         ]);
-        algorithms.push({ name: nodeKind.Debug });
         algorithms.push({ name: nodeKind.Gateway });
         return { algorithms, count };
     }

@@ -114,9 +114,8 @@ class Operator {
         });
     }
 
-    async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithmList, options, count) {
-        this._logAlgorithmCountError(algorithmList, count);
-        const algorithms = algorithmList.filter(a => a.options?.debug === false);
+    async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms, options, count) {
+        this._logAlgorithmCountError(algorithms, count);
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.ALGORITHM_QUEUE}` });
         await algorithmQueueReconciler.reconcile({
             deployments,
