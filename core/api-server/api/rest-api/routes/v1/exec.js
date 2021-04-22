@@ -10,30 +10,30 @@ const routes = (options) => {
         next();
     });
     router.all('/raw', methods(['POST']), logger(), async (req, res, next) => {
-        const { jobId, gatewayURLs } = await Execution.runRaw(req.body);
-        res.json({ jobId, gatewayURLs });
+        const { jobId, gateways } = await Execution.runRaw(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
         next();
     });
     router.all('/stored', methods(['POST']), logger(), async (req, res, next) => {
-        const { jobId, gatewayURLs } = await Execution.runStored(req.body);
-        res.json({ jobId, gatewayURLs });
+        const { jobId, gateways } = await Execution.runStored(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
-        res.gatewayURLs = gatewayURLs;
+        res.gateways = gateways;
         next();
     });
     router.all('/caching', methods(['POST']), logger(), async (req, res, next) => {
-        const { jobId, gatewayURLs } = await Execution.runCaching(req.body);
-        res.json({ jobId, gatewayURLs });
+        const { jobId, gateways } = await Execution.runCaching(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
-        res.gatewayURLs = gatewayURLs;
+        res.gateways = gateways;
         next();
     });
     router.all('/algorithm', methods(['POST']), logger(), async (req, res, next) => {
-        const { jobId, gatewayURLs } = await Execution.runAlgorithm(req.body);
-        res.json({ jobId, gatewayURLs });
+        const { jobId, gateways } = await Execution.runAlgorithm(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
-        res.gatewayURLs = gatewayURLs;
+        res.gateways = gateways;
         next();
     });
     router.all('/stop', methods(['POST']), logger(), async (req, res, next) => {

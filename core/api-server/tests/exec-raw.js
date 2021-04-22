@@ -291,9 +291,9 @@ describe('Executions', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body).to.have.property('gatewayURLs');
-            expect(response.body['gatewayURLs'].length).to.eq(1);
-            expect(response.body['gatewayURLs'][0]).to.have.property('nodeA');
+            expect(response.body).to.have.property('gateways');
+            expect(response.body['gateways'].length).to.eq(1);
+            expect(response.body['gateways'][0]).to.have.property('nodeA');
         });
         it('should throw validation error of duplicate node', async () => {
             const options = {
