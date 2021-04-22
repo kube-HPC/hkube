@@ -1,7 +1,5 @@
 const objectPath = require('object-path');
 const validator = require('../validation/api-validator');
-const executionService = require('./execution');
-const cronService = require('./cron');
 const { ResourceNotFoundError } = require('../errors');
 const stateManager = require('../state/state-manager');
 
@@ -45,22 +43,9 @@ class Gateway {
         return { message, name };
     }
 
-    async _stopAllCrons(gatewayName) {
-        const pipelines = await stateManager.searchPipelines({
-            gatewayName,
-            hasCronEnabled: true,
-        });
-        await Promise.all(pipelines.map(p => cronService.updateCronJob(p, { enabled: false })));
-    }
-
     _hasCron(pipeline, gatewayName) {
         const enabled = objectPath.get(pipeline, 'triggers.cron.enabled');
         return pipeline.gatewayName === gatewayName && enabled;
-    }
-
-    async _cleanAll(gatewayName) {
-        const pipelines = await stateManager.searchJobs({ gatewayName, fields: { jobId: true } });
-        await Promise.all(pipelines.map(p => executionService.cleanJob({ jobId: p.jobId })));
     }
 }
 

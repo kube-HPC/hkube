@@ -16,9 +16,9 @@ class InternalService {
         if (results?.data) {
             pipeline.flowInput = { parent: results.data };
         }
-        const jobId = await execution._runStored({ pipeline, rootJobId, mergeFlowInput: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
+        const { jobId, gatewayURLs } = await execution._runStored({ pipeline, rootJobId, mergeFlowInput: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
         await stateManager.updateTriggersTree({ name, rootJobName, jobId, rootJobId, parentJobId });
-        return jobId;
+        return { jobId, gatewayURLs };
     }
 
     async runStoredSubPipeline(options) {

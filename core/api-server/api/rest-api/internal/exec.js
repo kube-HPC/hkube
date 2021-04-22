@@ -12,27 +12,33 @@ const routes = () => {
         next();
     });
     router.all('/exec/stored/cron', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Cron.runStoredCron(req.body);
-        res.json({ jobId });
+        const { jobId, gatewayURLs } = await Cron.runStoredCron(req.body);
+        res.json({ jobId, gatewayURLs });
         res.jobId = jobId;
+        res.gatewayURLs = gatewayURLs;
         next();
     });
     router.all('/exec/stored/trigger', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Internal.runStoredTriggerPipeline(req.body);
-        res.json({ jobId });
+        const { jobId, gatewayURLs } = await Internal.runStoredTriggerPipeline(
+            req.body
+        );
+        res.json({ jobId, gatewayURLs });
         res.jobId = jobId;
+        res.gatewayURLs = gatewayURLs;
         next();
     });
     router.all('/exec/stored/subPipeline', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Internal.runStoredSubPipeline(req.body);
-        res.json({ jobId });
+        const { jobId, gatewayURLs } = await Internal.runStoredSubPipeline(req.body);
+        res.json({ jobId, gatewayURLs });
         res.jobId = jobId;
+        res.gatewayURLs = gatewayURLs;
         next();
     });
     router.all('/exec/raw/subPipeline', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Internal.runRawSubPipeline(req.body);
-        res.json({ jobId });
+        const { jobId, gatewayURLs } = await Internal.runRawSubPipeline(req.body);
+        res.json({ jobId, gatewayURLs });
         res.jobId = jobId;
+        res.gatewayURLs = gatewayURLs;
         next();
     });
     router.all('/exec/stop', methods(['POST']), logger(), async (req, res, next) => {

@@ -16,21 +16,24 @@ const routes = (options) => {
         next();
     });
     router.all('/stored', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Execution.runStored(req.body);
-        res.json({ jobId });
+        const { jobId, gatewayURLs } = await Execution.runStored(req.body);
+        res.json({ jobId, gatewayURLs });
         res.jobId = jobId;
+        res.gatewayURLs = gatewayURLs;
         next();
     });
     router.all('/caching', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Execution.runCaching(req.body);
-        res.json({ jobId });
+        const { jobId, gatewayURLs } = await Execution.runCaching(req.body);
+        res.json({ jobId, gatewayURLs });
         res.jobId = jobId;
+        res.gatewayURLs = gatewayURLs;
         next();
     });
     router.all('/algorithm', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Execution.runAlgorithm(req.body);
-        res.json({ jobId });
+        const { jobId, gatewayURLs } = await Execution.runAlgorithm(req.body);
+        res.json({ jobId, gatewayURLs });
         res.jobId = jobId;
+        res.gatewayURLs = gatewayURLs;
         next();
     });
     router.all('/stop', methods(['POST']), logger(), async (req, res, next) => {

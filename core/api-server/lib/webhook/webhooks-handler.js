@@ -26,6 +26,8 @@ class WebhooksHandler {
     _watch() {
         stateManager.onJobResult((response) => {
             this._requestResults(response);
+            const { jobId } = response;
+            stateManager._db.gateways.deleteByJob(jobId);
         });
         stateManager.onJobStatus((response) => {
             this._requestStatus(response);
