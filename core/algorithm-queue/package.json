@@ -1,6 +1,6 @@
 {
   "name": "algorithm-queue",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -19,7 +19,7 @@
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "^1.0.31",
-    "@hkube/db": "^1.0.30",
+    "@hkube/db": "^1.0.32",
     "@hkube/etcd": "^5.1.2",
     "@hkube/logger": "^1.0.27",
     "@hkube/metrics": "^1.0.42",
