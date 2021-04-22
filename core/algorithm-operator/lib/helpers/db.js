@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const dbConnect = require('@hkube/db');
+const { nodeKind } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../consts/componentNames').ETCD;
 const buildStatus = require('../consts/buildStatus');
@@ -21,6 +22,8 @@ class DB extends EventEmitter {
             this._db.algorithms.search({ sort: { modified: 'desc' }, limit: 100 }),
             this._db.algorithms.count()
         ]);
+        algorithms.push({ name: nodeKind.Debug });
+        algorithms.push({ name: nodeKind.Gateway });
         return { algorithms, count };
     }
 

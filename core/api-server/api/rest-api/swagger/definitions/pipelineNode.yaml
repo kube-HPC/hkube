@@ -51,8 +51,11 @@ properties:
   kind:
     type: string
     enum:
+      - algorithm
+      - debug
       - dataSource
       - gateway
+    default: algorithm
   dataSource:
     anyOf:
       - $ref: "#/components/schemas/dataSource-id"
