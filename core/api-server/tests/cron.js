@@ -80,7 +80,14 @@ describe('Cron', () => {
             };
             const data = [100, 200, 300];
             const responses = await Promise.all(data.map(d => request(optionsRun)));
-            await Promise.all(responses.map((r, i) => workerStub.done({ jobId: r.body.jobId, data: data[i] })));
+            await Promise.all(
+              responses.map((r, i) =>
+                workerStub.done({
+                  jobId: r.body.jobId,
+                  data: data[i],
+                })
+              )
+            );
 
             const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit: 3 });
             const options = {

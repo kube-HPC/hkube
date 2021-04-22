@@ -104,7 +104,7 @@ class ExecutionService {
             const statusObject = { timestamp: Date.now(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
-            const gatewayURLs = [];
+            const gateways = [];
             await Promise.all(pipeline.nodes.map(async node => {
                 if (node.kind === 'gateway') {
                     let name = node.spec?.name;
@@ -115,13 +115,13 @@ class ExecutionService {
                     await gatewayService.insertGateway({ name, description });
                     const gateURL = {};
                     gateURL[node.nodeName] = `gateway/${name}`;
-                    gatewayURLs.push(gateURL);
+                    gateways.push(gateURL);
                 }
             }));
 
             await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
             span.finish();
-            return { jobId, gatewayURLs };
+            return { jobId, gateways };
         }
         catch (error) {
             span.finish(error);

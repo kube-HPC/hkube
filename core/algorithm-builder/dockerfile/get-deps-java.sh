@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
-export javaWrapperVersion='2.0-SNAPSHOT'
+export javaWrapperVersion='2.0.00'
 mkdir -p $SCRIPTPATH/../environments/java/debs
 cd $SCRIPTPATH/../environments/java/debs
 docker run --rm --workdir /tmp/pkg -v $SCRIPTPATH/../environments/java/debs:/tmp/pkg\

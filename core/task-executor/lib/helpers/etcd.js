@@ -2,6 +2,7 @@ const EtcdClient = require('@hkube/etcd');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 const parse = require('@hkube/units-converter');
+const gatewayAlgorithm = require('../templates/gateway-algorithm');
 const { cacheResults, arrayToMap } = require('../utils/utils');
 const { components, containers } = require('../consts');
 const component = components.ETCD;
@@ -85,6 +86,7 @@ class Etcd {
             sort: { created: 'desc' },
             limit: 100,
         });
+        algorithms.push(gatewayAlgorithm);
         const templates = algorithms
             .filter(a => !a.options || a.options.debug === false)
             .map((a) => {
@@ -94,7 +96,6 @@ class Etcd {
                 if (a.reservedMemory) {
                     a.mem += parse.getMemoryInMi(a.reservedMemory);
                 }
-
                 return a;
             });
         return arrayToMap(templates);
