@@ -107,12 +107,12 @@ class ExecutionService {
             const gateways = [];
             await Promise.all(pipeline.nodes.map(async node => {
                 if (node.kind === 'gateway') {
-                    let name = node.spec?.name;
-                    const description = node.spec?.description;
+                    let name = node.spec?.gatewayName;
+                    const { description, mem } = node.spec && node.spec;
                     if (!name) {
-                        name = `${jobId}_${node.nodeName}`;
+                        name = `${jobId}-${node.nodeName}`;
                     }
-                    await gatewayService.insertGateway({ name, description });
+                    await gatewayService.insertGateway({ name, description, mem, nodeName: node.nodeName, jobId });
                     const gateURL = {};
                     gateURL[node.nodeName] = `gateway/${name}`;
                     gateways.push(gateURL);

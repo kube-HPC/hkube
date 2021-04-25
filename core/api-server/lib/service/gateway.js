@@ -15,9 +15,13 @@ class Gateway {
 
     async insertGateway(options) {
         validator.gateways.validateGatewayName(options);
+        const { name, description, mem, jobId, nodeName } = options;
         const gateway = {
-            name: options.name,
-            description: options.description,
+            name,
+            description,
+            mem,
+            jobId,
+            nodeName,
             created: Date.now(),
         };
         await stateManager.createGateway(gateway);

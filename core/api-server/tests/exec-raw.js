@@ -276,17 +276,30 @@ describe('Executions', () => {
             const options = {
                 uri: restPath,
                 body: {
+                    kind: "stream",
                     name: 'string',
                     nodes: [
                         {
                             nodeName: 'nodeA',
                             kind: 'gateway',
-                            spec: { name: 'gate-name' }
+                            spec: { name: 'gate-name' },
+                            stateType: 'stateful'
+                        },
+                        {
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: []
                         }
                     ],
                     additionalProps: {
                         bla: 60,
                         blabla: 'info'
+                    }
+                    ,
+                    streaming: {
+                        flows: {
+                            analyze: "nodeA >> B"
+                        }
                     }
                 }
             };

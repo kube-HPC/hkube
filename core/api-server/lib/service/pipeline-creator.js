@@ -133,7 +133,8 @@ class PipelineCreator {
         }
 
         pipeline.nodes.forEach(node => {
-            const type = node.stateType || stateType.Stateless;
+            let type = (node.kind === 'gateway') && stateType.Stateful;
+            type = node.stateType || stateType.Stateless;
             node.retry = StreamRetryPolicy[type]; // eslint-disable-line
         });
 
