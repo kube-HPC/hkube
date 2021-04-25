@@ -132,10 +132,9 @@ class PipelineCreator {
             [defaultFlow] = Object.keys(flows);
         }
 
-        pipeline.nodes.forEach(node => {
-            let type = (node.kind === 'gateway') && stateType.Stateful;
-            type = node.stateType || stateType.Stateless;
-            node.retry = StreamRetryPolicy[type]; // eslint-disable-line
+        pipeline.nodes.forEach((node) => {
+            const type = node.stateType || stateType.Stateless;
+          node.retry = StreamRetryPolicy[type]; // eslint-disable-line
         });
 
         const parsedFlow = {};
