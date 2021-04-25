@@ -1,8 +1,9 @@
 const mergeWith = require('lodash.mergewith');
 const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
-const { pipelineKind, retryPolicy, stateType } = require('@hkube/consts');
+const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
+const gatewayService = require('./gateway');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 const SEPARATORS = {
@@ -113,7 +114,7 @@ class PipelineCreator {
      *        }}
      *
      */
-    async buildStreamingFlow(pipeline) {
+    async buildStreamingFlow(pipeline, gateways, jobId) {
         const flows = pipeline.streaming?.flows;
         let defaultFlow = pipeline.streaming?.defaultFlow;
         if (pipeline.kind === pipelineKind.Batch) {
@@ -132,10 +133,21 @@ class PipelineCreator {
             [defaultFlow] = Object.keys(flows);
         }
 
-        pipeline.nodes.forEach((node) => {
+        await Promise.all(pipeline.nodes.map(async (node) => {
             const type = node.stateType || stateType.Stateless;
-          node.retry = StreamRetryPolicy[type]; // eslint-disable-line
-        });
+            node.retry = StreamRetryPolicy[type]; // eslint-disable-line
+            if (node.kind === nodeKind.Gateway) {
+                gateways = []; // eslint-disable-line
+                let name = node.spec?.gatewayName;
+                const { description, mem } = node.spec && {};
+                if (!name) {
+                    name = `${jobId}-${node.nodeName}`;
+                }
+                node.algorithmName = `hkube-gateway-algorithm-${name}`; // eslint-disable-line
+                await gatewayService.insertGateway({ name, description, mem, nodeName: node.nodeName, jobId });
+                gateways.push({ [node.nodeName]: `gateway/${name}` });
+            }
+        }));
 
         const parsedFlow = {};
         const edges = [];

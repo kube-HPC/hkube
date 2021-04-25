@@ -272,36 +272,31 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('jobId');
         });
-        it('should insert gateway', async () => {
+        it.only('should insert gateway', async () => {
             const options = {
-              uri: restPath,
-              body: {
-                kind: "stream",
-                name: "string",
-                nodes: [
-                  {
-                    nodeName: "nodeA",
-                    kind: "gateway",
-                    spec: { name: "gate-name" },
-                    stateType: "stateful"
-                  },
-                  {
-                    nodeName: "B",
-                    algorithmName: "green-alg",
-                    input: [],
-                    kind: "algorithm",
-                  },
-                ],
-                additionalProps: {
-                  bla: 60,
-                  blabla: "info",
+                uri: restPath,
+                body: {
+                    kind: "stream",
+                    name: "string",
+                    nodes: [
+                        {
+                            nodeName: "nodeA",
+                            kind: "gateway",
+                            spec: { name: "gate-name" },
+                        },
+                        {
+                            nodeName: "B",
+                            kind: "algorithm",
+                            algorithmName: "green-alg",
+                            input: [],
+                        },
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: "nodeA >> B",
+                        },
+                    },
                 },
-                streaming: {
-                  flows: {
-                    analyze: "nodeA >> B",
-                  },
-                },
-              },
             };
             const response = await request(options);
             expect(response.body).to.have.property('gateways');

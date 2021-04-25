@@ -9,7 +9,6 @@ const storageManager = require('@hkube/storage-manager');
 const cachingService = require('./caching');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
-const gatewayService = require('./gateway');
 const validator = require('../validation/api-validator');
 const pipelineCreator = require('./pipeline-creator');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
@@ -104,7 +103,6 @@ class ExecutionService {
             const statusObject = { timestamp: Date.now(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
-            const gateways = await this._createGateways(pipeline, jobId);
             await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
             span.finish();
             return { jobId, gateways };
@@ -113,23 +111,6 @@ class ExecutionService {
             span.finish(error);
             throw error;
         }
-    }
-
-    async _createGateways(pipeline, jobId) {
-        const gateways = [];
-        await Promise.all(pipeline.nodes.filter(node => node.kind === 'gateway').map(async node => {
-            let name = node.spec?.gatewayName;
-            const { description, mem } = node.spec && {};
-            if (!name) {
-                name = `${jobId}-${node.nodeName}`;
-            }
-            await gatewayService.insertGateway({ name, description, mem, nodeName: node.nodeName, jobId });
-            gateways.push({ [node.nodeName]: `gateway/${name}` });
-        }));
-        if (gateways.length < 1) {
-            return undefined;
-        }
-        return gateways;
     }
 
     _addTypesByAlgorithms(algorithms, types) {
