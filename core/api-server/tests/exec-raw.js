@@ -231,7 +231,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("please provide algorithmName or pipelineName");
+            expect(response.body.error.message).to.contain("please provide algorithmName");
         });
         it('should throw validation error of nodes.input should be array', async () => {
             const options = {
@@ -272,7 +272,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('jobId');
         });
-        it.only('should insert gateway', async () => {
+        it('should insert gateway with spec', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -300,8 +300,40 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('gateways');
-            expect(response.body['gateways'].length).to.eq(1);
-            expect(response.body['gateways'][0]).to.have.property('nodeA');
+            expect(response.body.gateways.length).to.eql(1);
+            expect(response.body.gateways[0].nodeName).to.eql(options.body.nodes[0].nodeName);
+            expect(response.body.gateways[0].url).to.eql(`hkube/gateway/${options.body.nodes[0].spec.name}`);
+        });
+        it('should insert gateway without spec', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    kind: "stream",
+                    name: "string",
+                    nodes: [
+                        {
+                            nodeName: "nodeA",
+                            kind: "gateway"
+                        },
+                        {
+                            nodeName: "B",
+                            kind: "algorithm",
+                            algorithmName: "green-alg",
+                            input: [],
+                        },
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: "nodeA >> B",
+                        },
+                    },
+                },
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('gateways');
+            expect(response.body.gateways.length).to.eql(1);
+            expect(response.body.gateways[0].nodeName).to.eql(options.body.nodes[0].nodeName);
+            expect(response.body.gateways[0].url).to.contains('hkube/gateway');
         });
         it('should throw validation error of duplicate node', async () => {
             const options = {

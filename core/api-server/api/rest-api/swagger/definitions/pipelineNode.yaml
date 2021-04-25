@@ -52,6 +52,7 @@ properties:
     type: string
     enum:
       - algorithm
+      - pipeline
       - debug
       - dataSource
       - gateway
@@ -64,7 +65,7 @@ properties:
   spec:
     type: object
     properties:
-      gatewayName:
+      name:
         $ref: "#/components/schemas/gatewayName"
       mem:
         type: string

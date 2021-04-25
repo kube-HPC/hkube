@@ -1,5 +1,5 @@
 const mergeWith = require('lodash.mergewith');
-const { uuid } = require('@hkube/uid');
+const { uid } = require('@hkube/uid');
 const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
 const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
@@ -145,7 +145,7 @@ class PipelineCreator {
                 let { name } = node.spec || {};
                 const { description, mem } = node.spec || {};
                 if (!name) {
-                    name = uuid();
+                    name = uid({ length: 10 });
                 }
                 const gateway = await stateManager.getGateway({ name });
                 if (gateway) {

@@ -225,7 +225,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("please provide algorithmName or pipelineName");
+            expect(response.body.error.message).to.contain("please provide algorithmName");
         });
         it('should throw validation error of nodes.input should be array', async () => {
             const options = {
@@ -412,61 +412,61 @@ describe('Store/Pipelines', () => {
         });
         it('should succeed to store flows streaming pipeline', async () => {
             const pipeline = {
-              name: "streaming-flow",
-              experimentName: "main",
-              kind: "stream",
-              nodes: [
-                {
-                  nodeName: "A",
-                  algorithmName: "green-alg",
-                  input: [],
-                  stateType: "stateful",
-                  kind: "algorithm",
+                name: "streaming-flow",
+                experimentName: "main",
+                kind: "stream",
+                nodes: [
+                    {
+                        nodeName: "A",
+                        algorithmName: "green-alg",
+                        input: [],
+                        stateType: "stateful",
+                        kind: "algorithm",
+                    },
+                    {
+                        nodeName: "B",
+                        algorithmName: "green-alg",
+                        input: [],
+                        stateType: "stateless",
+                        kind: "algorithm",
+                    },
+                    {
+                        nodeName: "C",
+                        algorithmName: "green-alg",
+                        input: [],
+                        stateType: "stateless",
+                        kind: "algorithm",
+                    },
+                    {
+                        nodeName: "D",
+                        algorithmName: "green-alg",
+                        input: [],
+                        stateType: "stateless",
+                        kind: "algorithm",
+                    },
+                    {
+                        nodeName: "E",
+                        algorithmName: "green-alg",
+                        input: [],
+                        stateType: "stateless",
+                        kind: "algorithm",
+                    },
+                ],
+                streaming: {
+                    flows: {
+                        analyze0: "A >> B >> C >> D >> B >> A",
+                        analyze1: "A >> B&C , C >> D",
+                        analyze2: "A >> B&C >> D",
+                        analyze3: "A >> B >> C >> D >> A",
+                        analyze4: "A >> B&C&D >> E",
+                    },
                 },
-                {
-                  nodeName: "B",
-                  algorithmName: "green-alg",
-                  input: [],
-                  stateType: "stateless",
-                  kind: "algorithm",
+                priority: 3,
+                options: {
+                    batchTolerance: 80,
+                    progressVerbosityLevel: "info",
+                    ttl: 3600,
                 },
-                {
-                  nodeName: "C",
-                  algorithmName: "green-alg",
-                  input: [],
-                  stateType: "stateless",
-                  kind: "algorithm",
-                },
-                {
-                  nodeName: "D",
-                  algorithmName: "green-alg",
-                  input: [],
-                  stateType: "stateless",
-                  kind: "algorithm",
-                },
-                {
-                  nodeName: "E",
-                  algorithmName: "green-alg",
-                  input: [],
-                  stateType: "stateless",
-                  kind: "algorithm",
-                },
-              ],
-              streaming: {
-                flows: {
-                  analyze0: "A >> B >> C >> D >> B >> A",
-                  analyze1: "A >> B&C , C >> D",
-                  analyze2: "A >> B&C >> D",
-                  analyze3: "A >> B >> C >> D >> A",
-                  analyze4: "A >> B&C&D >> E",
-                },
-              },
-              priority: 3,
-              options: {
-                batchTolerance: 80,
-                progressVerbosityLevel: "info",
-                ttl: 3600,
-              },
             };
             const options = {
                 uri: restPath,
@@ -482,11 +482,13 @@ describe('Store/Pipelines', () => {
                 "nodes": [
                     {
                         "nodeName": "A",
+                        "kind": "pipeline",
                         "pipelineName": "simple",
                         "input": []
                     },
                     {
                         "nodeName": "B",
+                        "kind": "pipeline",
                         "pipelineName": "simple",
                         "input": [{ "data": "@A" }]
                     }

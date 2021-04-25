@@ -1,6 +1,5 @@
 type: string
 description: gateway name
-default: main
 minLength: 1
 maxLength: 32
 format: gateway-name
