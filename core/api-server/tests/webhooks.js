@@ -200,7 +200,7 @@ describe('Webhooks', () => {
                     uri: `${restUrl}/webhooks/results/${jobId}`
                 };
                 const response2 = await request(options);
-    
+
                 expect(response2.body).to.have.property('httpResponse');
                 expect(response2.body.httpResponse).to.have.property('statusCode');
                 expect(response2.body.httpResponse).to.have.property('statusMessage');
