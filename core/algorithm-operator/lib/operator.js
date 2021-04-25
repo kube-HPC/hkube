@@ -1,4 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
+const { nodeKind } = require('@hkube/consts');
 const component = require('./consts/componentNames').OPERATOR;
 const db = require('./helpers/db');
 const kubernetes = require('./helpers/kubernetes');
@@ -6,6 +7,7 @@ const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
 const tensorboardReconciler = require('./reconcile/tensorboard');
 const workerDebugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
+const gatewaysReconciler = require('./reconcile/algorithm-gateway');
 const CONTAINERS = require('./consts/containers');
 
 class Operator {
@@ -38,12 +40,13 @@ class Operator {
         try {
             log.debug('Reconcile interval.', { component });
             const configMap = await kubernetes.getVersionsConfigMap();
-            const { algorithms, count } = await db.getAlgorithmTemplates();
+            const { algorithms, gateways, count } = await db.getAlgorithmTemplates();
             await Promise.all([
                 this._algorithmBuilds({ ...configMap }, options),
                 this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
+                this._algorithmGateways({ ...configMap, gateways })
             ]);
         }
         catch (e) {
@@ -125,6 +128,15 @@ class Operator {
             clusterOptions,
             resources,
             options
+        });
+    }
+
+    async _algorithmGateways({ clusterOptions, gateways }) {
+        const services = await kubernetes.getServices({ labelSelector: `type=${nodeKind.Gateway}` });
+        await gatewaysReconciler.reconcile({
+            services,
+            gateways,
+            clusterOptions
         });
     }
 

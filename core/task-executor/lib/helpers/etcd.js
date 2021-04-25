@@ -2,7 +2,6 @@ const EtcdClient = require('@hkube/etcd');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 const parse = require('@hkube/units-converter');
-const gatewayAlgorithm = require('../templates/gateway-algorithm');
 const { cacheResults, arrayToMap } = require('../utils/utils');
 const { components, containers } = require('../consts');
 const component = components.ETCD;
@@ -34,6 +33,7 @@ class Etcd {
             this.getDriversTemplate = cacheResults(this.getDriversTemplate.bind(this), 5000);
             this.getPipelineDrivers = cacheResults(this.getPipelineDrivers.bind(this), 1000);
             this.getWorkers = cacheResults(this.getWorkers.bind(this), 1000);
+            this.getGateways = cacheResults(this.getGateways.bind(this), 5000);
         }
     }
 
@@ -81,12 +81,16 @@ class Etcd {
     }
 
     async getAlgorithmTemplate() {
-        const algorithms = await this._db.algorithms.search({
-            hasImage: true,
-            sort: { created: 'desc' },
-            limit: 100,
-        });
-        algorithms.push(gatewayAlgorithm);
+        const [algorithms, gateways] = await Promise.all([
+            this._db.algorithms.search({ hasImage: true, sort: { created: 'desc' }, limit: 100 }),
+            this._db.gateways.search({ sort: { created: 'desc' }, limit: 100, }),
+        ]);
+        if (gateways.length) {
+            algorithms.push(...gateways.map(g => ({
+                ...g,
+                algorithmImage: 'hkube/algorithm-gateway'
+            })));
+        }
         const templates = algorithms
             .filter(a => !a.options || a.options.debug === false)
             .map((a) => {
@@ -99,6 +103,14 @@ class Etcd {
                 return a;
             });
         return arrayToMap(templates);
+    }
+
+    async getGateways() {
+        const gateways = await this._db.gateways.search({
+            sort: { created: 'desc' },
+            limit: 100,
+        });
+        return gateways;
     }
 
     async getDriversTemplate() {

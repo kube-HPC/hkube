@@ -170,6 +170,44 @@ class KubernetesApi extends EventEmitter {
             resService
         };
     }
+
+    async createServiceIngress({ ingressSpec, serviceSpec }) {
+        log.info(`creating service and ingress for ${serviceSpec.metadata.name}`, { component });
+        let resIngress = null;
+        let resService = null;
+
+        try {
+            resIngress = await this._client.ingresses.create({ spec: ingressSpec });
+            resService = await this._client.services.create({ spec: serviceSpec });
+        }
+        catch (error) {
+            log.error(`failed to create service and ingress for ${serviceSpec.metadata.name}. error: ${error.message}`, { component }, error);
+        }
+        return {
+            resIngress,
+            resService
+        };
+    }
+
+    async getServices({ labelSelector }) {
+        return this._client.services.get({ labelSelector });
+    }
+
+    async getIngresses({ labelSelector }) {
+        return this._client.ingresses.get({ labelSelector });
+    }
+
+    async deleteServiceIngress(algorithmName) {
+        log.info(`deleting creating service and ingress for ${algorithmName}`, { component });
+        const [ingress, service] = await Promise.all([
+            this._client.ingresses.delete({ ingressName: `ingress-${algorithmName}` }),
+            this._client.services.delete({ serviceName: `service-${algorithmName}` })
+        ]);
+        return {
+            ingress,
+            service
+        };
+    }
 }
 
 module.exports = new KubernetesApi();

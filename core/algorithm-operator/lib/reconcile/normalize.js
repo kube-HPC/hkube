@@ -15,6 +15,16 @@ const normalizeDeployments = (deploymentsRaw) => {
     return deployments;
 };
 
+const normalizeServices = (servicesSpec) => {
+    if (!servicesSpec?.body?.items) {
+        return [];
+    }
+    const services = servicesSpec.body.items.map(s => ({
+        algorithmName: s.metadata.labels['algorithm-name']
+    }));
+    return services;
+};
+
 const normalizeAlgorithms = (algorithmsRaw) => {
     if (algorithmsRaw == null) {
         return [];
@@ -71,6 +81,7 @@ const normalizeSecret = (secret) => {
 
 module.exports = {
     normalizeDeployments,
+    normalizeServices,
     normalizeAlgorithms,
     normalizeBuildJobs,
     normalizeBoardDeployments,

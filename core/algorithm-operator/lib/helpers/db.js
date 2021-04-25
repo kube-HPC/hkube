@@ -1,6 +1,5 @@
 const EventEmitter = require('events');
 const dbConnect = require('@hkube/db');
-const { nodeKind } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../consts/componentNames').ETCD;
 const buildStatus = require('../consts/buildStatus');
@@ -18,12 +17,13 @@ class DB extends EventEmitter {
     }
 
     async getAlgorithmTemplates() {
-        const [algorithms, count] = await Promise.all([
+        const [algorithms, gateways, count] = await Promise.all([
             this._db.algorithms.search({ sort: { modified: 'desc' }, limit: 100 }),
+            this._db.gateways.search({ sort: { created: 'desc' }, limit: 100, }),
             this._db.algorithms.count()
         ]);
-        algorithms.push({ name: nodeKind.Gateway });
-        return { algorithms, count };
+        algorithms.push(...gateways.map(g => ({ name: `hkube-gateway-algorithm-${g.name}`, ...g })));
+        return { algorithms, gateways, count };
     }
 
     async getBuilds() {

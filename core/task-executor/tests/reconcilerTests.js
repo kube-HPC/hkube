@@ -56,7 +56,7 @@ describe('reconciler', () => {
         globalSettings.applyResources = false;
     });
     describe('reconcile algorithms with gateways', () => {
-        it.only('should work with one algo', async () => {
+        it.only('should work with gateway algo', async () => {
             const algorithm = 'gateway';
             const res = await reconciler.reconcile({
                 options,
