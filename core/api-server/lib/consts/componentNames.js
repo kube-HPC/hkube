@@ -9,7 +9,8 @@ const Components = {
     JOBS_PRODUCER: 'Jobs-Producer',
     EXECUTION_SERVICE: 'Execution-Service',
     ALGORITHMS_SERVICE: 'Algorithm-Service',
-    GITHUB_WEBHOOK: 'Github-Webhook'
+    GITHUB_WEBHOOK: 'Github-Webhook',
+    STATE_MANAGER: 'State-Manager'
 };
 
 module.exports = Components;

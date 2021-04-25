@@ -12,5 +12,5 @@ const Types = {
 
 module.exports = {
     States,
-    Types
+    Types,
 };

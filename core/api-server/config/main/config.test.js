@@ -5,4 +5,9 @@ config.rest = {
     rateLimit: null
 };
 
+config.healthchecks = {
+    checkInterval: 1000,
+    minAge: 2000,
+    enabled: false
+}
 module.exports = config;

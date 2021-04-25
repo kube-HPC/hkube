@@ -1,13 +1,11 @@
 const request = require('requestretry');
 const { metrics, utils } = require('@hkube/metrics');
-const { pipelineStatuses } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const log = require('@hkube/logger').GetLogFromContainer();
 const stateManager = require('../state/state-manager');
 const component = require('../consts/componentNames').WEBHOOK_HANDLER;
 const { States, Types } = require('./States');
 const { metricsNames } = require('../consts/metricsNames');
-const CompletedState = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 
 class WebhooksHandler {
     init(options) {
@@ -23,7 +21,7 @@ class WebhooksHandler {
     }
 
     _watch() {
-        stateManager.jobs.results.on('change', (response) => {
+        stateManager.on('job-result-change', (response) => {
             this._requestResults(response);
             this._deleteRunningPipeline({ jobId: response.jobId });
         });
@@ -47,9 +45,6 @@ class WebhooksHandler {
                 await stateManager.webhooks.set({ jobId, type: Types.PROGRESS, ...result });
             }
         }
-        if (this.isCompletedState(payload.status)) {
-            await stateManager.jobs.status.releaseChangeLock({ jobId });
-        }
     }
 
     async _requestResults(payload) {
@@ -69,15 +64,10 @@ class WebhooksHandler {
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
             await stateManager.webhooks.set({ jobId, type: Types.RESULT, ...result });
         }
-        await stateManager.jobs.results.releaseChangeLock({ jobId });
     }
 
     async _deleteRunningPipeline(options) {
         await stateManager.executions.running.delete(options);
-    }
-
-    isCompletedState(state) {
-        return CompletedState.includes(state);
     }
 
     _request(url, body, type, pipelineStatus, jobId) {
