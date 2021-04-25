@@ -193,7 +193,7 @@ describe('Webhooks', () => {
                 await stateManager.jobs.results.unwatch();
                 await stateManager.jobs.results.set(results);
 
-                await delay(5000);
+                await delay(4000);
     
                 options = {
                     method: 'GET',
@@ -211,8 +211,7 @@ describe('Webhooks', () => {
             } finally {
                 await stateManager.jobs.results.watch();
             }
-            
-        }).timeout(20000);
+        });
     });
     describe('Progress', () => {
         it('should succeed to send webhook progress', async () => {

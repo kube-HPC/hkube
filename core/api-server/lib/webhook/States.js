@@ -1,4 +1,3 @@
-const { pipelineStatuses } = require('@hkube/consts');
 const States = {
     PENDING: 'pending',
     COMPLETED: 'completed',
@@ -11,13 +10,7 @@ const Types = {
     RESULT: 'result'
 };
 
-const CompletedState = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
-const isCompletedState = (state) => {
-    return CompletedState.includes(state);
-};
-
 module.exports = {
     States,
     Types,
-    isCompletedState
 };
