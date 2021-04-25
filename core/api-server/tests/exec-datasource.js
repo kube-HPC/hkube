@@ -54,7 +54,9 @@ describe('DataSources', () => {
             const response = await runRaw(pipeline);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.nodes[0].kind should be equal to one of the allowed values (dataSource,gateway)');
+            expect(response.body.error.message).to.equal(
+              "data.nodes[0].kind should be equal to one of the allowed values (algorithm,debug,dataSource,gateway)"
+            );
         });
         it('should throw no dataSource provided', async () => {
             const pipeline = {

@@ -412,57 +412,62 @@ describe('Store/Pipelines', () => {
         });
         it('should succeed to store flows streaming pipeline', async () => {
             const pipeline = {
-                name: 'streaming-flow',
-                experimentName: "main",
-                kind: "stream",
-                nodes: [
-                    {
-                        "nodeName": "A",
-                        "algorithmName": "green-alg",
-                        "input": [],
-                        "stateType": "stateful"
-                    },
-                    {
-                        "nodeName": "B",
-                        "algorithmName": "green-alg",
-                        "input": [],
-                        "stateType": "stateless"
-                    },
-                    {
-                        "nodeName": "C",
-                        "algorithmName": "green-alg",
-                        "input": [],
-                        "stateType": "stateless"
-                    },
-                    {
-                        "nodeName": "D",
-                        "algorithmName": "green-alg",
-                        "input": [],
-                        "stateType": "stateless"
-                    },
-                    {
-                        "nodeName": "E",
-                        "algorithmName": "green-alg",
-                        "input": [],
-                        "stateType": "stateless"
-                    }
-                ],
-                streaming: {
-                    flows: {
-                        "analyze0": "A >> B >> C >> D >> B >> A",
-                        "analyze1": "A >> B&C , C >> D",
-                        "analyze2": "A >> B&C >> D",
-                        "analyze3": "A >> B >> C >> D >> A",
-                        "analyze4": "A >> B&C&D >> E"
-                    }
+              name: "streaming-flow",
+              experimentName: "main",
+              kind: "stream",
+              nodes: [
+                {
+                  nodeName: "A",
+                  algorithmName: "green-alg",
+                  input: [],
+                  stateType: "stateful",
+                  kind: "algorithm",
                 },
-                priority: 3,
-                options: {
-                    batchTolerance: 80,
-                    progressVerbosityLevel: "info",
-                    ttl: 3600
-                }
-            }
+                {
+                  nodeName: "B",
+                  algorithmName: "green-alg",
+                  input: [],
+                  stateType: "stateless",
+                  kind: "algorithm",
+                },
+                {
+                  nodeName: "C",
+                  algorithmName: "green-alg",
+                  input: [],
+                  stateType: "stateless",
+                  kind: "algorithm",
+                },
+                {
+                  nodeName: "D",
+                  algorithmName: "green-alg",
+                  input: [],
+                  stateType: "stateless",
+                  kind: "algorithm",
+                },
+                {
+                  nodeName: "E",
+                  algorithmName: "green-alg",
+                  input: [],
+                  stateType: "stateless",
+                  kind: "algorithm",
+                },
+              ],
+              streaming: {
+                flows: {
+                  analyze0: "A >> B >> C >> D >> B >> A",
+                  analyze1: "A >> B&C , C >> D",
+                  analyze2: "A >> B&C >> D",
+                  analyze3: "A >> B >> C >> D >> A",
+                  analyze4: "A >> B&C&D >> E",
+                },
+              },
+              priority: 3,
+              options: {
+                batchTolerance: 80,
+                progressVerbosityLevel: "info",
+                ttl: 3600,
+              },
+            };
             const options = {
                 uri: restPath,
                 body: pipeline
