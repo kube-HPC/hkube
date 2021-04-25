@@ -190,6 +190,18 @@ class StateManager {
         return this._db.experiments.fetch({ name });
     }
 
+    async getGateway({ name }) {
+        return this._db.gateways.fetch({ name });
+    }
+
+    async getGateways({ sort, limit }) {
+        return this._db.gateways.fetchAll({
+            query: {},
+            sort: { created: sort },
+            limit
+        });
+    }
+
     async getExperiments({ sort, limit }) {
         return this._db.experiments.fetchAll({
             query: {},
@@ -269,8 +281,8 @@ class StateManager {
         await this._etcd.jobs.status.set({ jobId, ...status });
     }
 
-    async createGateway({ name }) {
-        await this._db.gateways.create({ name });
+    async createGateway({ name, description, mem, jobId, nodeName }) {
+        await this._db.gateways.create({ name, description, mem, jobId, nodeName });
     }
 
     async getStatus(status) {

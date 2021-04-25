@@ -1,0 +1,62 @@
+get:
+  tags:
+    - Gateway
+  summary: Get gateways list
+  description: Returns gateways list
+  responses:
+    "200":
+      description: list of gateways
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/gateway"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+
+post:
+  tags:
+    - Gateway
+  summary: Insert gateway
+  description: Insert new gateway to store if not exists
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/gateway"
+    description: gateway to be added to the store
+    required: true
+  responses:
+    "201":
+      description: gateway created
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponseWithName"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "409":
+      description: pipeline conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

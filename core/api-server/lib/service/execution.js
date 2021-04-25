@@ -104,21 +104,7 @@ class ExecutionService {
             const statusObject = { timestamp: Date.now(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
-            const gateways = [];
-            await Promise.all(pipeline.nodes.map(async node => {
-                if (node.kind === 'gateway') {
-                    let name = node.spec?.name;
-                    const description = node.spec?.description;
-                    if (!name) {
-                        name = `${jobId}_${node.nodeName}`;
-                    }
-                    await gatewayService.insertGateway({ name, description });
-                    const gateURL = {};
-                    gateURL[node.nodeName] = `gateway/${name}`;
-                    gateways.push(gateURL);
-                }
-            }));
-
+            const gateways = await this._createGateways(pipeline, jobId);
             await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
             span.finish();
             return { jobId, gateways };
@@ -127,6 +113,23 @@ class ExecutionService {
             span.finish(error);
             throw error;
         }
+    }
+
+    async _createGateways(pipeline, jobId) {
+        const gateways = [];
+        await Promise.all(pipeline.nodes.filter(node => node.kind === 'gateway').map(async node => {
+            let name = node.spec?.gatewayName;
+            const { description, mem } = node.spec && {};
+            if (!name) {
+                name = `${jobId}-${node.nodeName}`;
+            }
+            await gatewayService.insertGateway({ name, description, mem, nodeName: node.nodeName, jobId });
+            gateways.push({ [node.nodeName]: `gateway/${name}` });
+        }));
+        if (gateways.length < 1) {
+            return undefined;
+        }
+        return gateways;
     }
 
     _addTypesByAlgorithms(algorithms, types) {

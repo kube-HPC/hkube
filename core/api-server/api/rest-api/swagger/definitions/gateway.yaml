@@ -5,3 +5,11 @@ properties:
   description:
     type: string
     description: describe the gateway
+  nodeName:
+    type: string
+  mem:
+    type: string
+    description: Memory allocated for messages in queue
+    format: algorithm-memory
+    default: 256Mi
+    example: 512Mi
