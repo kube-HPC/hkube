@@ -22,7 +22,7 @@ class DB extends EventEmitter {
             this._db.gateways.search({ sort: { created: 'desc' }, limit: 100, }),
             this._db.algorithms.count()
         ]);
-        algorithms.push(...gateways.map(g => ({ name: `hkube-gateway-algorithm-${g.name}`, ...g })));
+        algorithms.push(...gateways.map(g => ({ name: g.algorithmName, isGateway: true, options: {} })));
         return { algorithms, gateways, count };
     }
 

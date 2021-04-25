@@ -1,4 +1,5 @@
 const mergeWith = require('lodash.mergewith');
+const { uuid } = require('@hkube/uid');
 const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
 const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
@@ -18,6 +19,10 @@ const StreamRetryPolicy = {
 };
 
 class PipelineCreator {
+    init(config) {
+        this._gatewayUrl = config.gatewayUrl.path;
+    }
+
     async buildPipelineOfPipelines(pipeline) {
         let newPipeline = pipeline;
         const duplicates = pipeline.nodes.some(p => p.algorithmName && p.pipelineName);
@@ -114,7 +119,7 @@ class PipelineCreator {
      *        }}
      *
      */
-    async buildStreamingFlow(pipeline, gateways, jobId) {
+    async buildStreamingFlow(pipeline, jobId) {
         const flows = pipeline.streaming?.flows;
         let defaultFlow = pipeline.streaming?.defaultFlow;
         if (pipeline.kind === pipelineKind.Batch) {
@@ -133,21 +138,26 @@ class PipelineCreator {
             [defaultFlow] = Object.keys(flows);
         }
 
-        await Promise.all(pipeline.nodes.map(async (node) => {
+        let gateways = await Promise.all(pipeline.nodes.map(async (node) => {
             const type = node.stateType || stateType.Stateless;
             node.retry = StreamRetryPolicy[type]; // eslint-disable-line
             if (node.kind === nodeKind.Gateway) {
-                gateways = []; // eslint-disable-line
-                let name = node.spec?.gatewayName;
-                const { description, mem } = node.spec && {};
+                let { name } = node.spec || {};
+                const { description, mem } = node.spec || {};
                 if (!name) {
-                    name = `${jobId}-${node.nodeName}`;
+                    name = uuid();
                 }
-                node.algorithmName = `hkube-gateway-algorithm-${name}`; // eslint-disable-line
-                await gatewayService.insertGateway({ name, description, mem, nodeName: node.nodeName, jobId });
-                gateways.push({ [node.nodeName]: `gateway/${name}` });
+                const gateway = await stateManager.getGateway({ name });
+                if (gateway) {
+                    throw new InvalidDataError(`gateway ${name} already exists`);
+                }
+                const algorithmName = `gateway-${name}`;
+                node.algorithmName = algorithmName; // eslint-disable-line
+                await gatewayService.insertGateway({ name, description, mem, nodeName: node.nodeName, jobId, algorithmName });
+                return { nodeName: node.nodeName, url: `${this._gatewayUrl}/${name}` };
             }
         }));
+        gateways = gateways.filter(g => g);
 
         const parsedFlow = {};
         const edges = [];
@@ -194,6 +204,7 @@ class PipelineCreator {
         });
         return {
             ...pipeline,
+            gateways,
             edges,
             streaming: {
                 ...pipeline.streaming,

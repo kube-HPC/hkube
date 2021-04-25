@@ -171,8 +171,8 @@ class KubernetesApi extends EventEmitter {
         };
     }
 
-    async createServiceIngress({ ingressSpec, serviceSpec }) {
-        log.info(`creating service and ingress for ${serviceSpec.metadata.name}`, { component });
+    async createGatewayServiceIngress({ ingressSpec, serviceSpec, algorithmName }) {
+        log.info(`creating service and ingress for ${algorithmName}`, { component });
         let resIngress = null;
         let resService = null;
 
@@ -181,7 +181,7 @@ class KubernetesApi extends EventEmitter {
             resService = await this._client.services.create({ spec: serviceSpec });
         }
         catch (error) {
-            log.error(`failed to create service and ingress for ${serviceSpec.metadata.name}. error: ${error.message}`, { component }, error);
+            log.throttle.error(`failed to create service and ingress for ${algorithmName}. error: ${error.message}`, { component }, error);
         }
         return {
             resIngress,
@@ -193,15 +193,11 @@ class KubernetesApi extends EventEmitter {
         return this._client.services.get({ labelSelector });
     }
 
-    async getIngresses({ labelSelector }) {
-        return this._client.ingresses.get({ labelSelector });
-    }
-
-    async deleteServiceIngress(algorithmName) {
-        log.info(`deleting creating service and ingress for ${algorithmName}`, { component });
+    async deleteGatewayServiceIngress({ algorithmName }) {
+        log.info(`deleting service and ingress for ${algorithmName}`, { component });
         const [ingress, service] = await Promise.all([
-            this._client.ingresses.delete({ ingressName: `ingress-${algorithmName}` }),
-            this._client.services.delete({ serviceName: `service-${algorithmName}` })
+            this._client.ingresses.delete({ ingressName: `ingress-gateway-${algorithmName}` }),
+            this._client.services.delete({ serviceName: `service-gateway-${algorithmName}` })
         ]);
         return {
             ingress,

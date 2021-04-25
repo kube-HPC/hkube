@@ -1,4 +1,3 @@
-const objectPath = require('object-path');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');
 const stateManager = require('../state/state-manager');
@@ -15,13 +14,14 @@ class Gateway {
 
     async insertGateway(options) {
         validator.gateways.validateGatewayName(options);
-        const { name, description, mem, jobId, nodeName } = options;
+        const { name, description, mem, jobId, nodeName, algorithmName } = options;
         const gateway = {
             name,
             description,
             mem,
             jobId,
             nodeName,
+            algorithmName,
             created: Date.now(),
         };
         await stateManager.createGateway(gateway);

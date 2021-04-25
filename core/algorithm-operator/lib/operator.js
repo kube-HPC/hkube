@@ -40,13 +40,13 @@ class Operator {
         try {
             log.debug('Reconcile interval.', { component });
             const configMap = await kubernetes.getVersionsConfigMap();
-            const { algorithms, gateways, count } = await db.getAlgorithmTemplates();
+            const { algorithms, count } = await db.getAlgorithmTemplates();
             await Promise.all([
                 this._algorithmBuilds({ ...configMap }, options),
                 this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
-                this._algorithmGateways({ ...configMap, gateways })
+                this._algorithmGateways({ ...configMap, algorithms })
             ]);
         }
         catch (e) {
@@ -131,8 +131,9 @@ class Operator {
         });
     }
 
-    async _algorithmGateways({ clusterOptions, gateways }) {
+    async _algorithmGateways({ clusterOptions, algorithms }) {
         const services = await kubernetes.getServices({ labelSelector: `type=${nodeKind.Gateway}` });
+        const gateways = algorithms.filter(a => a.isGateway);
         await gatewaysReconciler.reconcile({
             services,
             gateways,

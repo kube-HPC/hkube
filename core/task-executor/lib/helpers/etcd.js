@@ -33,7 +33,6 @@ class Etcd {
             this.getDriversTemplate = cacheResults(this.getDriversTemplate.bind(this), 5000);
             this.getPipelineDrivers = cacheResults(this.getPipelineDrivers.bind(this), 1000);
             this.getWorkers = cacheResults(this.getWorkers.bind(this), 1000);
-            this.getGateways = cacheResults(this.getGateways.bind(this), 5000);
         }
     }
 
@@ -88,6 +87,7 @@ class Etcd {
         if (gateways.length) {
             algorithms.push(...gateways.map(g => ({
                 ...g,
+                name: g.algorithmName,
                 algorithmImage: 'hkube/algorithm-gateway'
             })));
         }
@@ -103,14 +103,6 @@ class Etcd {
                 return a;
             });
         return arrayToMap(templates);
-    }
-
-    async getGateways() {
-        const gateways = await this._db.gateways.search({
-            sort: { created: 'desc' },
-            limit: 100,
-        });
-        return gateways;
     }
 
     async getDriversTemplate() {

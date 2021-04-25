@@ -4,7 +4,7 @@ const gatewayService = algorithmName => ({
     kind: 'Service',
     apiVersion: 'v1',
     metadata: {
-        name: `service-${algorithmName}`,
+        name: `service-gateway-${algorithmName}`,
         annotations: {
             'prometheus.io/scrape': 'true'
         },
@@ -36,7 +36,7 @@ const gatewayIngress = (algorithmName, { ingressHost, ingressPrefix = '', ingres
     apiVersion: 'extensions/v1beta1',
     kind: 'Ingress',
     metadata: {
-        name: `ingress-${algorithmName}`,
+        name: `ingress-gateway-${algorithmName}`,
         annotations: {
             'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
             'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
@@ -56,7 +56,7 @@ const gatewayIngress = (algorithmName, { ingressHost, ingressPrefix = '', ingres
                     paths: [{
                         path: ingressUseRegex ? `${ingressPrefix}/hkube/gateway/${algorithmName}(/|$)(.*)` : `${ingressPrefix}/hkube/gateway/${algorithmName}`,
                         backend: {
-                            serviceName: `service-${algorithmName}`,
+                            serviceName: `service-gateway-${algorithmName}`,
                             servicePort: 80
                         }
                     }]

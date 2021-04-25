@@ -19,6 +19,7 @@ const modules = [
     require('./lib/service/caching'),
     require('./lib/service/data-sources'),
     require('./lib/service/storage'),
+    require('./lib/service/pipeline-creator'),
 ];
 
 class Bootstrap {
