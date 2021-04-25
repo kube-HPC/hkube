@@ -156,6 +156,7 @@ class PipelineCreator {
                 await gatewayService.insertGateway({ name, description, mem, nodeName: node.nodeName, jobId, algorithmName });
                 return { nodeName: node.nodeName, url: `${this._gatewayUrl}/${name}` };
             }
+            return null;
         }));
         gateways = gateways.filter(g => g);
 
