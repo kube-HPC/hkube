@@ -1,13 +1,11 @@
 const request = require('requestretry');
 const { metrics, utils } = require('@hkube/metrics');
-const { pipelineStatuses } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const log = require('@hkube/logger').GetLogFromContainer();
 const stateManager = require('../state/state-manager');
 const component = require('../consts/componentNames').WEBHOOK_HANDLER;
 const { States, Types } = require('./States');
 const { metricsNames } = require('../consts/metricsNames');
-const CompletedState = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 
 class WebhooksHandler {
     init(options) {
@@ -70,10 +68,6 @@ class WebhooksHandler {
 
     async _deleteRunningPipeline(options) {
         await stateManager.executions.running.delete(options);
-    }
-
-    isCompletedState(state) {
-        return CompletedState.includes(state);
     }
 
     _request(url, body, type, pipelineStatus, jobId) {

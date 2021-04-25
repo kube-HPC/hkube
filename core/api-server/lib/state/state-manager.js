@@ -4,8 +4,8 @@ const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
-const log = require('@hkube/logger').GetLogFromContainer();
-const { States } = require('../webhook/States');
+const logger = require('@hkube/logger');
+let log;
 const component = require('../consts/componentNames').STATE_MANAGER;
 
 class StateManager extends EventEmitter {
@@ -15,6 +15,7 @@ class StateManager extends EventEmitter {
     }
 
     async init(options) {
+        log = logger.GetLogFromContainer();
         this._options = options;
         const etcd = new Etcd(options.etcd);
         Object.assign(this, etcd);
@@ -44,8 +45,7 @@ class StateManager extends EventEmitter {
                 const result = await this.jobs.results.get({ jobId });
                 if (result) {
                     const age = Date.now() - new Date(result.timestamp);
-                    const completed = result.status === States.COMPLETED && age > this._options.healthchecks.minAge;
-                    if (completed) {
+                    if (age > this._options.healthchecks.minAge) {
                         completedToDelete.push(result);
                     }
                 }

@@ -175,6 +175,44 @@ describe('Webhooks', () => {
             expect(response2.body).to.have.property('pipelineStatus');
             expect(response2.body).to.have.property('responseStatus');
         });
+        it('should succeed to send webhook when watch fails', async () => {
+            let options = {
+                uri: restUrl + '/exec/stored',
+                body: { name: 'webhookFlow2' }
+            };
+            const response = await request(options);
+            jobId = response.body.jobId;
+
+            const results = {
+                jobId,
+                status: 'completed',
+                level: 'info',
+                data: [{ res1: 400 }, { res2: 500 }]
+            }
+            try {
+                await stateManager.jobs.results.unwatch();
+                await stateManager.jobs.results.set(results);
+
+                await delay(5000);
+    
+                options = {
+                    method: 'GET',
+                    uri: `${restUrl}/webhooks/results/${jobId}`
+                };
+                const response2 = await request(options);
+    
+                expect(response2.body).to.have.property('httpResponse');
+                expect(response2.body.httpResponse).to.have.property('statusCode');
+                expect(response2.body.httpResponse).to.have.property('statusMessage');
+                expect(response2.body).to.have.property('jobId');
+                expect(response2.body).to.have.property('url');
+                expect(response2.body).to.have.property('pipelineStatus');
+                expect(response2.body).to.have.property('responseStatus');
+            } finally {
+                await stateManager.jobs.results.watch();
+            }
+            
+        }).timeout(20000);
     });
     describe('Progress', () => {
         it('should succeed to send webhook progress', async () => {
