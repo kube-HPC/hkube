@@ -1,19 +1,77 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
+const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
+const log = require('@hkube/logger').GetLogFromContainer();
+const { States } = require('../webhook/States');
+const component = require('../consts/componentNames').STATE_MANAGER;
 
-class StateManager {
+class StateManager extends EventEmitter {
+    constructor() {
+        super();
+        this._failedHealthcheckCount = 0;
+    }
+
     async init(options) {
+        this._options = options;
         const etcd = new Etcd(options.etcd);
         Object.assign(this, etcd);
         await this._watch();
         await this.discovery.register({ serviceName: options.serviceName, data: options });
+        this._healthcheck();
+    }
+
+    checkHealth(maxFailed) {
+        return this._failedHealthcheckCount < maxFailed;
+    }
+
+    _healthcheck() {
+        if (this._options.healthchecks.checkInterval) {
+            setTimeout(() => {
+                this._healthcheckInterval();
+            }, this._options.healthchecks.checkInterval);
+        }
+    }
+
+    async _healthcheckInterval() {
+        try {
+            const running = await this.executions.running.list({ keysOnly: true });
+            const jobIds = running.map(r => r.substring(r.lastIndexOf('/') + 1));
+            const completedToDelete = [];
+            for (const jobId of jobIds) {
+                const result = await this.jobs.results.get({ jobId });
+                if (result) {
+                    const age = Date.now() - new Date(result.timestamp);
+                    const completed = result.status === States.COMPLETED && age > this._options.healthchecks.minAge;
+                    if (completed) {
+                        completedToDelete.push(result);
+                    }
+                }
+            }
+            if (completedToDelete.length) {
+                log.info(`found ${completedToDelete.length} completed jobs`, { component });
+                this._failedHealthcheckCount += 1;
+            }
+            for (const result of completedToDelete) {
+                this.emit('job-result-change', result);
+            }
+        }
+        catch (error) {
+            log.throttle.warning(`Failed to run healthchecks: ${error.message}`, { component });
+        }
+        this._healthcheck();
     }
 
     async _watch() {
-        await this.algorithms.builds.singleWatch();
-        await this.jobs.results.singleWatch();
-        await this.jobs.status.singleWatch();
+        await this.algorithms.builds.watch();
+        await this.jobs.results.watch();
+        await this.jobs.status.watch();
+        this.jobs.results.on('change', result => {
+            this.emit('job-result-change', result);
+            this._failedHealthcheckCount = 0;
+        });
     }
 
     async getJobResult(options) {

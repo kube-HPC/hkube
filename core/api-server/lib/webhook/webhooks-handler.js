@@ -23,7 +23,7 @@ class WebhooksHandler {
     }
 
     _watch() {
-        stateManager.jobs.results.on('change', (response) => {
+        stateManager.on('job-result-change', (response) => {
             this._requestResults(response);
             this._deleteRunningPipeline({ jobId: response.jobId });
         });
@@ -47,9 +47,6 @@ class WebhooksHandler {
                 await stateManager.webhooks.set({ jobId, type: Types.PROGRESS, ...result });
             }
         }
-        if (this.isCompletedState(payload.status)) {
-            await stateManager.jobs.status.releaseChangeLock({ jobId });
-        }
     }
 
     async _requestResults(payload) {
@@ -69,7 +66,6 @@ class WebhooksHandler {
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
             await stateManager.webhooks.set({ jobId, type: Types.RESULT, ...result });
         }
-        await stateManager.jobs.results.releaseChangeLock({ jobId });
     }
 
     async _deleteRunningPipeline(options) {
