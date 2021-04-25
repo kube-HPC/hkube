@@ -194,7 +194,7 @@ describe('Webhooks', () => {
                 await stateManager.jobs.results.set(results);
 
                 await delay(4000);
-    
+
                 options = {
                     method: 'GET',
                     uri: `${restUrl}/webhooks/results/${jobId}`
