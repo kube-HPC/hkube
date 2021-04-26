@@ -2,7 +2,7 @@ const mergeWith = require('lodash.mergewith');
 const { uid } = require('@hkube/uid');
 const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
-const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
+const { pipelineKind, nodeKind, retryPolicy, stateType, buildTypes } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
@@ -162,7 +162,12 @@ class PipelineCreator {
                     isGateway: true,
                     algorithmImage: 'hkube/algorithm-gateway',
                     mem,
-                    cpu
+                    cpu,
+                    type: buildTypes.IMAGE,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
                 };
                 node.algorithmName = name;
                 validator.gateways.validateGateway(algorithm);
