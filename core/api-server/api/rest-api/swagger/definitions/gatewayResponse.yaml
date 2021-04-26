@@ -1,0 +1,23 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/gatewayName"
+  description:
+    type: string
+    description: describe the gateway
+  jobId:
+    type: string
+  algorithmName:
+    $ref: "#/components/schemas/algorithmName"
+  nodeName:
+    type: string
+  mem:
+    type: string
+    description: Memory allocated for messages in queue
+    format: algorithm-memory
+    default: 256Mi
+    example: 512Mi
+  cpu:
+    type: number
+    description: Cpu allocated for messages in queue
+    default: 0.5
