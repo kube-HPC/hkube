@@ -12,11 +12,13 @@ config.rest = {
     bodySizeLimit: process.env.BODY_SIZE_LIMIT || '2000mb'
 };
 
+const baseUrlPath = process.env.BASE_URL_PATH || '/hkube/gateway';
+
 config.swagger = {
     protocol: 'http',
     host: process.env.BASE_URL_HOST || 'localhost',
     port: process.env.BASE_URL_PORT || config.rest.port,
-    path: process.env.BASE_URL_PATH ? path.join(config.ingressPrefix, process.env.BASE_URL_PATH) : config.ingressPrefix
+    path: baseUrlPath ? path.join(config.ingressPrefix, baseUrlPath) : config.ingressPrefix
 };
 
 module.exports = config;
