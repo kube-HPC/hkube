@@ -161,6 +161,9 @@ class PipelineCreator {
                     nodeName,
                     isGateway: true,
                     algorithmImage: 'hkube/algorithm-gateway',
+                    algorithmEnv: {
+                        ALGORITHM_TYPE: name
+                    },
                     mem,
                     cpu,
                     type: buildTypes.IMAGE,

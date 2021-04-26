@@ -25,12 +25,12 @@ class AppServer {
         const swagger = await swaggerUtils.loader.load({ path: path.join(__dirname, 'swagger') });
         swagger.info.version = options.version;
 
-        const { port, bodySizeLimit, poweredBy } = options.rest;
+        const { port, prefix, bodySizeLimit, poweredBy } = options.rest;
         const routes = [];
         const routers = fs.readdirSync(path.join(__dirname, 'routes'));
 
         routers.forEach((r) => {
-            swagger.servers.push({ url: path.join('/', options.swagger.path) });
+            swagger.servers.push({ url: path.join('/', options.swagger.path, prefix) });
             const file = path.basename(r, '.js');
             routes.push({
                 route: path.join('/', file),
