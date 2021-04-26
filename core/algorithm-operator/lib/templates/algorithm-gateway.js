@@ -19,7 +19,7 @@ const gatewayService = algorithmName => ({
     spec: {
         selector: {
             'algorithm-name': algorithmName,
-            'metrics-group': nodeKind.Gateway,
+            'metrics-group': 'workers',
             group: 'hkube'
         },
         ports: [
