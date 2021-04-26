@@ -55,35 +55,6 @@ describe('reconciler', () => {
         globalSettings.useResourceLimits = false;
         globalSettings.applyResources = false;
     });
-    describe('reconcile algorithms with gateways', () => {
-        it('should work with gateway algo', async () => {
-            const algorithm = 'gateway';
-            const res = await reconciler.reconcile({
-                options,
-                normResources,
-                algorithmTemplates,
-                algorithmRequests: [
-                    {
-                        data: [{
-                            name: algorithm,
-                        }]
-                    }
-                ],
-                jobs: {
-                    body: {
-                        items: [
-
-                        ]
-                    }
-                }
-            });
-            expect(res).to.exist;
-            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
-            expect(callCount('createJob').length).to.eql(1);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-gateway');
-        });
-    });
     describe('reconcile algorithms tests', () => {
         it('should work with no params', async () => {
             const res = await reconciler.reconcile({ normResources, options });

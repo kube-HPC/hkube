@@ -6,7 +6,6 @@ chai.use(chaiAsPromised);
 const etcd = require('../lib/helpers/etcd');
 const { callCount, mock, clearCount } = (require('./mocks/kubernetes.mock')).kubernetes();
 const templateStore = require('./stub/templateStore');
-const gateways = require('./stub/gateways');
 const driversTemplateStore = require('./stub/driversTemplateStore');
 
 before(async () => {
@@ -21,7 +20,6 @@ before(async () => {
     const bootstrap = require('../bootstrap');
     await bootstrap.init();
     await etcd._etcd._client.delete('/', { isPrefix: true });
-    await etcd._db.gateways.createMany(gateways);
     await etcd._db.algorithms.createMany(templateStore);
     await etcd._db.pipelineDrivers.createMany(driversTemplateStore);
 

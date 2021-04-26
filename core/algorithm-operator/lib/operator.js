@@ -92,7 +92,6 @@ class Operator {
     async _tensorboards({ versions, registry, clusterOptions, boardTimeOut }, options) {
         const boards = await db.getTensorboards();
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
-
         await tensorboardReconciler.reconcile({
             boards,
             deployments,

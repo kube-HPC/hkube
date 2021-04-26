@@ -5,11 +5,12 @@ properties:
   description:
     type: string
     description: describe the gateway
-  nodeName:
-    type: string
   mem:
     type: string
-    description: Memory allocated for messages in queue
+    description: Memory allocated for streaming gateway
     format: algorithm-memory
-    default: 256Mi
-    example: 512Mi
+    default: 512Mi
+  cpu:
+    type: number
+    description: Cpu allocated for streaming gateway
+    default: 0.5

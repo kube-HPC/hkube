@@ -80,17 +80,11 @@ class Etcd {
     }
 
     async getAlgorithmTemplate() {
-        const [algorithms, gateways] = await Promise.all([
-            this._db.algorithms.search({ hasImage: true, sort: { created: 'desc' }, limit: 100 }),
-            this._db.gateways.search({ sort: { created: 'desc' }, limit: 100, }),
-        ]);
-        if (gateways.length) {
-            algorithms.push(...gateways.map(g => ({
-                ...g,
-                name: g.algorithmName,
-                algorithmImage: 'hkube/algorithm-gateway'
-            })));
-        }
+        const algorithms = await this._db.algorithms.search({
+            hasImage: true,
+            sort: { created: 'desc' },
+            limit: 100
+        });
         const templates = algorithms
             .filter(a => !a.options || a.options.debug === false)
             .map((a) => {

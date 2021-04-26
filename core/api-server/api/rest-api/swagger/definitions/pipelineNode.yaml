@@ -63,15 +63,7 @@ properties:
       - $ref: "#/components/schemas/dataSource-name"
       - $ref: "#/components/schemas/dataSource-snapshot"
   spec:
-    type: object
-    properties:
-      name:
-        $ref: "#/components/schemas/gatewayName"
-      mem:
-        type: string
-        description: Memory allocated for messages in queue
-        format: algorithm-memory
-        default: 256Mi
-        example: 512Mi
+    anyOf:
+      - $ref: "#/components/schemas/gateway"
 required:
   - nodeName

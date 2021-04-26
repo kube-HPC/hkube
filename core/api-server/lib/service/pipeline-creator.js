@@ -4,7 +4,7 @@ const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
 const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
-const gatewayService = require('./gateway');
+const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 const SEPARATORS = {
@@ -142,20 +142,31 @@ class PipelineCreator {
             const { nodeName, spec, kind } = node;
             const type = node.stateType || stateType.Stateless;
             node.retry = StreamRetryPolicy[type];
+
             if (kind === nodeKind.Gateway) {
                 gateways = [];
                 let { name } = spec || {};
-                const { description, mem } = spec || {};
+                const { description, mem, cpu } = spec || {};
                 if (!name) {
                     name = uid({ length: 8 });
                 }
-                const gateway = await stateManager.getGateway({ name }); // eslint-disable-line
+                const gateway = await stateManager.getAlgorithm({ name }); // eslint-disable-line
                 if (gateway) {
                     throw new InvalidDataError(`gateway ${name} already exists`);
                 }
-                const algorithmName = `gateway-${name}`;
-                node.algorithmName = algorithmName;
-                await gatewayService.insertGateway({ name, description, mem, nodeName, jobId, algorithmName }); // eslint-disable-line
+                const algorithm = {
+                    name,
+                    description,
+                    jobId,
+                    nodeName,
+                    isGateway: true,
+                    algorithmImage: 'hkube/algorithm-gateway',
+                    mem,
+                    cpu
+                };
+                node.algorithmName = name;
+                validator.gateways.validateGateway(algorithm);
+                await stateManager.updateAlgorithm(algorithm); // eslint-disable-line
                 gateways.push({ nodeName, url: `${this._gatewayUrl}/${name}` });
             }
         }

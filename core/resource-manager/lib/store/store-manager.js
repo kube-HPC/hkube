@@ -18,17 +18,12 @@ class StoreManager {
     }
 
     async getAlgorithmTemplateStore() {
-        const [algorithms, gateways] = await Promise.all([
-            this._db.algorithms.search({
-                isDebug: false,
-                isPending: false,
-                sort: { created: 'desc' },
-                limit: 100
-            }),
-            this._db.gateways.search({ sort: { created: 'desc' }, limit: 100, })
-        ]);
-        algorithms.push(...gateways.map(g => ({ name: g.algorithmName, isGateway: true, options: {} })));
-        return algorithms;
+        return this._db.algorithms.search({
+            isDebug: false,
+            isPending: false,
+            sort: { created: 'desc' },
+            limit: 100,
+        });
     }
 
     async setAlgorithmsResourceRequirements(options) {

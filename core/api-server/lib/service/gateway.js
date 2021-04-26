@@ -1,3 +1,4 @@
+const { nodeKind } = require('@hkube/consts');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');
 const stateManager = require('../state/state-manager');
@@ -38,6 +39,12 @@ class Gateway {
         const res = await stateManager.deleteGatewayByName({ name });
         const message = res.deleted === 0 ? 'deleted operation has failed' : 'deleted successfully';
         return { message, name };
+    }
+
+    async deleteGatewaysByJobId({ jobId }) {
+        const pipeline = await stateManager.getJobPipeline({ jobId });
+        const algorithms = pipeline.nodes.filter(n => n.kind === nodeKind.Gateway).map(n => n.algorithmName);
+        await Promise.all(algorithms.map(a => stateManager.deleteAlgorithm({ name: a })));
     }
 }
 

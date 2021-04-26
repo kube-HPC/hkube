@@ -17,13 +17,11 @@ class DB extends EventEmitter {
     }
 
     async getAlgorithmTemplates() {
-        const [algorithms, gateways, count] = await Promise.all([
+        const [algorithms, count] = await Promise.all([
             this._db.algorithms.search({ sort: { modified: 'desc' }, limit: 100 }),
-            this._db.gateways.search({ sort: { created: 'desc' }, limit: 100, }),
             this._db.algorithms.count()
         ]);
-        algorithms.push(...gateways.map(g => ({ name: g.algorithmName, isGateway: true, options: {} })));
-        return { algorithms, gateways, count };
+        return { algorithms, count };
     }
 
     async getBuilds() {

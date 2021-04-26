@@ -366,7 +366,7 @@ describe('Executions', () => {
             expect(response.body.gateways[0].nodeName).to.eql(options.body.nodes[0].nodeName);
             expect(response.body.gateways[0].url).to.contains('hkube/gateway');
         });
-        it('should insert gateway with full spec', async () => {
+        it.skip('should insert gateway with full spec', async () => {
             const gateway = uid();
             const options = {
                 uri: restPath,
@@ -408,7 +408,7 @@ describe('Executions', () => {
                 mem,
                 nodeName,
                 jobId: res.body.jobId,
-                algorithmName: `gateway-${name}`
+                algorithmName: name
             });
         });
         it('should throw validation error of duplicate node', async () => {
