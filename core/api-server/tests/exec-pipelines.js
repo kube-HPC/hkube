@@ -16,18 +16,18 @@ describe('Executions', () => {
         });
         it('should return a list of all running pipelines', async () => {
             const runResponse = await request({
-              uri: restUrl + "/exec/raw",
-              body: {
-                name: "exec_pipeline",
-                nodes: [
-                  {
-                    nodeName: "string",
-                    algorithmName: "green-alg",
-                    kind: "algorithm",
-                    input: [],
-                  },
-                ],
-              },
+                uri: restUrl + "/exec/raw",
+                body: {
+                    name: "exec_pipeline",
+                    nodes: [
+                        {
+                            nodeName: "string",
+                            algorithmName: "green-alg",
+                            kind: "algorithm",
+                            input: [],
+                        },
+                    ],
+                },
             });
             const { jobId } = runResponse.body;
             const response = await request({
@@ -50,18 +50,18 @@ describe('Executions', () => {
         });
         it('should throw validation error if algorithmName not exists', async () => {
             const options = {
-              uri: restUrl + "/exec/raw",
-              body: {
-                name: "exec_pipeline",
-                nodes: [
-                  {
-                    nodeName: "string",
-                    algorithmName: "dummy",
-                    kind: "algorithm",
-                    input: [],
-                  },
-                ],
-              },
+                uri: restUrl + "/exec/raw",
+                body: {
+                    name: "exec_pipeline",
+                    nodes: [
+                        {
+                            nodeName: "string",
+                            algorithmName: "dummy",
+                            kind: "algorithm",
+                            input: [],
+                        },
+                    ],
+                },
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');

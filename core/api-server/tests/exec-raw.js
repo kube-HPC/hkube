@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { pipelineTypes } = require('@hkube/consts');
+const { uid } = require('@hkube/uid');
 const nock = require('nock');
 const { request } = require('./utils');
 const validationMessages = require('../lib/consts/validationMessages.js');
@@ -272,6 +273,36 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('jobId');
         });
+        it('should throw duplicate gateway nodes', async () => {
+            const name = `gate-name-${uid()}`;
+            const options = {
+                uri: restPath,
+                body: {
+                    kind: "stream",
+                    name: "string",
+                    nodes: [
+                        {
+                            nodeName: "A",
+                            kind: "gateway",
+                            spec: { name },
+                        },
+                        {
+                            nodeName: "B",
+                            kind: "gateway",
+                            spec: { name },
+                        },
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: "A >> B",
+                        },
+                    },
+                },
+            };
+            const response = await request(options);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.contain(`gateway ${name} already exists`);
+        });
         it('should insert gateway with spec', async () => {
             const options = {
                 uri: restPath,
@@ -312,7 +343,7 @@ describe('Executions', () => {
                     name: "string",
                     nodes: [
                         {
-                            nodeName: "nodeA",
+                            nodeName: "A",
                             kind: "gateway"
                         },
                         {
@@ -324,7 +355,7 @@ describe('Executions', () => {
                     ],
                     streaming: {
                         flows: {
-                            analyze: "nodeA >> B",
+                            analyze: "A >> B",
                         },
                     },
                 },
@@ -334,6 +365,51 @@ describe('Executions', () => {
             expect(response.body.gateways.length).to.eql(1);
             expect(response.body.gateways[0].nodeName).to.eql(options.body.nodes[0].nodeName);
             expect(response.body.gateways[0].url).to.contains('hkube/gateway');
+        });
+        it('should insert gateway with full spec', async () => {
+            const gateway = uid();
+            const options = {
+                uri: restPath,
+                body: {
+                    kind: "stream",
+                    name: "string",
+                    nodes: [
+                        {
+                            nodeName: "A",
+                            kind: "gateway",
+                            spec: {
+                                name: gateway,
+                                description: "my gateway",
+                                mem: "1Gi"
+                            }
+                        },
+                        {
+                            nodeName: "B",
+                            kind: "algorithm",
+                            algorithmName: "green-alg",
+                            input: [],
+                        },
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: "A >> B",
+                        },
+                    },
+                },
+            };
+            const res = await request(options);
+            const response = await request({ uri: `${restUrl}/gateway/${gateway}`, method: 'GET' });
+            const node = options.body.nodes[0];
+            const { nodeName } = node;
+            const { name, description, mem } = node.spec;
+            expect(response.body).to.eql({
+                name,
+                description,
+                mem,
+                nodeName,
+                jobId: res.body.jobId,
+                algorithmName: `gateway-${name}`
+            });
         });
         it('should throw validation error of duplicate node', async () => {
             const options = {

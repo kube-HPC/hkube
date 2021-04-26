@@ -6,15 +6,14 @@ class ApiValidator {
         this._validator = validator;
     }
 
-    validateGatewayName(gateway) {
+    validateGateway(gateway) {
         this._validator.validate(this._validator.definitions.gateway, gateway, true);
     }
 
-    async validateGatewayExists(pipeline) {
-        const { gatewayName } = pipeline;
-        const result = await stateManager.getGateway({ name: gatewayName });
+    async validateGatewayExists({ name }) {
+        const result = await stateManager.getGateway({ name });
         if (!result) {
-            throw new ResourceNotFoundError('gateway', gatewayName);
+            throw new ResourceNotFoundError('gateway', name);
         }
     }
 }

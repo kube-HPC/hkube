@@ -13,7 +13,7 @@ class Gateway {
     }
 
     async insertGateway(options) {
-        validator.gateways.validateGatewayName(options);
+        validator.gateways.validateGateway(options);
         const { name, description, mem, jobId, nodeName, algorithmName } = options;
         const gateway = {
             name,
@@ -33,14 +33,9 @@ class Gateway {
     }
 
     async deleteGateway(options) {
-        const { name: gatewayName } = options;
-        await validator.gateways.validateGatewayExists({ gatewayName });
-        return this._deleteGateway(options);
-    }
-
-    async _deleteGateway(options) {
         const { name } = options;
-        const res = await stateManager.deleteGateway({ name });
+        await validator.gateways.validateGatewayExists({ name });
+        const res = await stateManager.deleteGatewayByName({ name });
         const message = res.deleted === 0 ? 'deleted operation has failed' : 'deleted successfully';
         return { message, name };
     }

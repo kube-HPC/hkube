@@ -105,7 +105,7 @@ class ExecutionService {
             await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
             await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
             span.finish();
-            return { jobId, gateways: pipeline.gateways };
+            return { jobId, gateways: pipeline.streaming?.gateways };
         }
         catch (error) {
             span.finish(error);

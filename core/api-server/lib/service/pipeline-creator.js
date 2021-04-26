@@ -137,28 +137,28 @@ class PipelineCreator {
             }
             [defaultFlow] = Object.keys(flows);
         }
-
-        let gateways = await Promise.all(pipeline.nodes.map(async (node) => {
+        let gateways;
+        for (const node of pipeline.nodes) { // eslint-disable-line
+            const { nodeName, spec, kind } = node;
             const type = node.stateType || stateType.Stateless;
-            node.retry = StreamRetryPolicy[type]; // eslint-disable-line
-            if (node.kind === nodeKind.Gateway) {
-                let { name } = node.spec || {};
-                const { description, mem } = node.spec || {};
+            node.retry = StreamRetryPolicy[type];
+            if (kind === nodeKind.Gateway) {
+                gateways = [];
+                let { name } = spec || {};
+                const { description, mem } = spec || {};
                 if (!name) {
-                    name = uid({ length: 10 });
+                    name = uid({ length: 8 });
                 }
-                const gateway = await stateManager.getGateway({ name });
+                const gateway = await stateManager.getGateway({ name }); // eslint-disable-line
                 if (gateway) {
                     throw new InvalidDataError(`gateway ${name} already exists`);
                 }
                 const algorithmName = `gateway-${name}`;
-                node.algorithmName = algorithmName; // eslint-disable-line
-                await gatewayService.insertGateway({ name, description, mem, nodeName: node.nodeName, jobId, algorithmName });
-                return { nodeName: node.nodeName, url: `${this._gatewayUrl}/${name}` };
+                node.algorithmName = algorithmName;
+                await gatewayService.insertGateway({ name, description, mem, nodeName, jobId, algorithmName }); // eslint-disable-line
+                gateways.push({ nodeName, url: `${this._gatewayUrl}/${name}` });
             }
-            return null;
-        }));
-        gateways = gateways.filter(g => g);
+        }
 
         const parsedFlow = {};
         const edges = [];
@@ -205,10 +205,10 @@ class PipelineCreator {
         });
         return {
             ...pipeline,
-            gateways,
             edges,
             streaming: {
                 ...pipeline.streaming,
+                gateways,
                 parsedFlow,
                 defaultFlow
             }

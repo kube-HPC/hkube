@@ -8,32 +8,28 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "@flowInput.files.link"
-                ],
-                "kind": "algorithm"
+                ]
             },
             {
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "input": [
                     "@green"
-                ],
-                "kind": "algorithm"
+                ]
             },
             {
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "input": [
                     "@yellow"
-                ],
-                "kind": "algorithm"
+                ]
             },
             {
                 "nodeName": "white",
                 "algorithmName": "black-alg",
                 "input": [
                     "test"
-                ],
-                "kind": "algorithm"
+                ]
             }
         ],
         "flowInput": {
@@ -57,16 +53,14 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ],
-                "kind": "algorithm"
+                ]
             },
             {
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "input": [
                     "@green"
-                ],
-                "kind": "algorithm"
+                ]
             },
             {
                 "nodeName": "black",
@@ -74,8 +68,7 @@
                 "input": [
                     "@green",
                     "@yellow"
-                ],
-                "kind": "algorithm"
+                ]
             }
         ],
         "flowInput": {
@@ -104,24 +97,21 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ],
-                "kind": "algorithm"
+                ]
             },
             {
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ],
-                "kind": "algorithm"
+                ]
             },
             {
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ],
-                "kind": "algorithm"
+                ]
             }
         ],
         "flowInput": {
