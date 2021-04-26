@@ -238,10 +238,13 @@ describe('jobCreator', () => {
 
         });
         it('should apply 0 mounts', () => {
+
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, mounts: [] });
             expect(res.spec.template.spec.volumes).to.have.length(4)
+
         });
         it('should apply no mounts', () => {
+
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
             expect(res.spec.template.spec.volumes).to.have.length(4)
         });
@@ -329,5 +332,6 @@ describe('jobCreator', () => {
                 expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'DEV_MODE', value: 'true' });
             });
         });
+
     });
 });

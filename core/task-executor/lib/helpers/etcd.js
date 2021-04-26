@@ -83,7 +83,7 @@ class Etcd {
         const algorithms = await this._db.algorithms.search({
             hasImage: true,
             sort: { created: 'desc' },
-            limit: 100
+            limit: 100,
         });
         const templates = algorithms
             .filter(a => !a.options || a.options.debug === false)
@@ -94,6 +94,7 @@ class Etcd {
                 if (a.reservedMemory) {
                     a.mem += parse.getMemoryInMi(a.reservedMemory);
                 }
+
                 return a;
             });
         return arrayToMap(templates);

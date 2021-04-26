@@ -399,6 +399,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker:v3.2.1-beta1');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
+
         it('should work with custom workerImage', async () => {
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
@@ -444,6 +445,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('foo/bar:v3.2.1-beta1');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
+
         it('should work with custom workerImage and registry', async () => {
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
@@ -491,6 +493,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('my.registry/prefix/foo/bar:v3.2.1-beta1');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('my.registry/prefix/hkube/algorithm-example');
         });
+
         it('should work with env', async () => {
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
