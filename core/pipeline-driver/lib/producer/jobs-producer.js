@@ -36,7 +36,6 @@ class JobProducer extends EventEmitter {
             await this._createJob(jobOptions);
         }
         else {
-            const type = options.node.algorithmName;
             let tasks = [];
             if (batch) {
                 tasks = batch.map(b => ({ taskId: b.taskId, status: b.status, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
@@ -45,7 +44,7 @@ class JobProducer extends EventEmitter {
                 tasks.push({ taskId: options.node.taskId, status: options.node.status, input: options.node.input, storage: options.storage });
             }
             const jobOptions = {
-                type,
+                type: options.node.algorithmName,
                 data: {
                     jobId,
                     tasks,
