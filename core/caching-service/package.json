@@ -8,7 +8,7 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/dag": "^2.1.17",
+    "@hkube/dag": "^2.1.16",
     "@hkube/db": "^1.0.32",
     "@hkube/logger": "^1.0.27",
     "@hkube/parsers": "^2.1.7",
