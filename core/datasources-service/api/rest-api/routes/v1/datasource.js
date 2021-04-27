@@ -234,9 +234,10 @@ const routes = ({ directories }) => {
         })
         .get(async (req, res, next) => {
             const { download_id: downloadId } = req.query;
-            res.sendFile(downloads.getZipPath(downloadId), {}, err => {
+            const zipPath = downloads.getZipPath(downloadId);
+            res.sendFile(zipPath, {}, async err => {
                 if (!err) {
-                    console.info('done, i should clear the file');
+                    await fse.remove(zipPath);
                 } else if (err.code === 'ENOENT') {
                     log.debug(`requested file ${downloadId} not existing`);
                 } else {
