@@ -234,24 +234,17 @@ const routes = ({ directories }) => {
         })
         .get(async (req, res, next) => {
             const { download_id: downloadId } = req.query;
-            res.sendFile(
-                downloads.getZipPath(downloadId),
-                { root: '.' },
-                err => {
-                    if (!err) {
-                        console.info('done, i should clear the file');
-                    } else if (err.code === 'ENOENT') {
-                        log.debug(`requested file ${downloadId} not existing`);
-                    } else {
-                        log.error(
-                            'failed fetching zip file',
-                            { component },
-                            err
-                        );
-                    }
-                    next();
+            const zipPath = downloads.getZipPath(downloadId);
+            res.sendFile(zipPath, {}, async err => {
+                if (!err) {
+                    await fse.remove(zipPath);
+                } else if (err.code === 'ENOENT') {
+                    log.debug(`requested file ${downloadId} not existing`);
+                } else {
+                    log.error('failed fetching zip file', { component }, err);
                 }
-            );
+                next();
+            });
         });
 
     router.post('/:name/sync', async (req, res, next) => {
