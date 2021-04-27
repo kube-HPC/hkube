@@ -72,6 +72,7 @@ class JobConsumer {
     _pipelineToQueueAdapter(pipeline, jobData) {
         return {
             ...jobData,
+            experimentName: pipeline.experimentName,
             pipelineName: pipeline.name,
             priority: pipeline.priority,
             entranceTime: Date.now(),
