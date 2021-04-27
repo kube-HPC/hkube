@@ -822,6 +822,34 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.contain(`gateway gateway-${name} already exists`);
         });
+        it('should insert two gateway nodes', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    kind: "stream",
+                    name: "string",
+                    nodes: [
+                        {
+                            nodeName: "A",
+                            kind: "gateway"
+                        },
+                        {
+                            nodeName: "B",
+                            kind: "gateway",
+                        },
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: "A >> B",
+                        },
+                    },
+                },
+            };
+            const response = await request(options);
+            expect(response.body.gateways).to.have.lengthOf(2);
+            expect(response.body.gateways[0].nodeName).to.eql(options.body.nodes[0].nodeName);
+            expect(response.body.gateways[1].nodeName).to.eql(options.body.nodes[1].nodeName);
+        });
         it('should insert gateway with spec', async () => {
             const options = {
                 uri: restPath,

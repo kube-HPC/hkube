@@ -138,7 +138,9 @@ class PipelineCreator {
             node.retry = StreamRetryPolicy[type];
 
             if (node.kind === nodeKind.Gateway) {
-                gateways = [];
+                if (!gateways) {
+                    gateways = [];
+                }
                 const { nodeName, spec } = node;
                 const { algorithmName, url } = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
                 node.algorithmName = algorithmName; // eslint-disable-line
