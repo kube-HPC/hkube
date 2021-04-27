@@ -52,10 +52,11 @@ class StateManager {
         return this._db.algorithms.delete({ name });
     }
 
-    async getAlgorithms({ name, names, sort, limit } = {}) {
+    async getAlgorithms({ name, names, kind, sort, limit } = {}) {
         return this._db.algorithms.search({
             name,
             names,
+            kind,
             sort: { created: sort },
             limit
         });
@@ -204,31 +205,6 @@ class StateManager {
 
     async deleteExperiment({ name }) {
         return this._db.experiments.delete({ name });
-    }
-
-    // Gateways
-    async getGateway({ name }) {
-        return this._db.gateways.fetch({ name });
-    }
-
-    async getGateways({ sort, limit }) {
-        return this._db.gateways.fetchAll({
-            query: {},
-            sort: { created: sort },
-            limit
-        });
-    }
-
-    async createGateway({ name, description, mem, jobId, nodeName, algorithmName }) {
-        await this._db.gateways.create({ name, description, mem, jobId, nodeName, algorithmName });
-    }
-
-    async deleteGatewayByName({ name }) {
-        return this._db.gateways.delete({ name });
-    }
-
-    async deleteGatewayByJobId({ jobId }) {
-        return this._db.gateways.deleteByJob({ jobId });
     }
 
     // ReadMe

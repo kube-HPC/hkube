@@ -5,19 +5,18 @@ properties:
   description:
     type: string
     description: describe the gateway
+  mem:
+    type: string
+    description: Memory allocated for streaming gateway
+    format: algorithm-memory
+    default: 512Mi
+  cpu:
+    type: number
+    description: Cpu allocated for streaming gateway
+    default: 0.5
   jobId:
+    type: string
+  nodeName:
     type: string
   algorithmName:
     $ref: "#/components/schemas/algorithmName"
-  nodeName:
-    type: string
-  mem:
-    type: string
-    description: Memory allocated for messages in queue
-    format: algorithm-memory
-    default: 256Mi
-    example: 512Mi
-  cpu:
-    type: number
-    description: Cpu allocated for messages in queue
-    default: 0.5

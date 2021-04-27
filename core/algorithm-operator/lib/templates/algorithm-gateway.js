@@ -1,6 +1,6 @@
 const { nodeKind } = require('@hkube/consts');
 
-const gatewayService = algorithmName => ({
+const gatewayService = ({ algorithmName }) => ({
     kind: 'Service',
     apiVersion: 'v1',
     metadata: {
@@ -32,7 +32,7 @@ const gatewayService = algorithmName => ({
     }
 });
 
-const gatewayIngress = (algorithmName, { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => ({
+const gatewayIngress = ({ algorithmName, gatewayName }, { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => ({
     apiVersion: 'extensions/v1beta1',
     kind: 'Ingress',
     metadata: {
@@ -54,7 +54,7 @@ const gatewayIngress = (algorithmName, { ingressHost, ingressPrefix = '', ingres
             {
                 http: {
                     paths: [{
-                        path: ingressUseRegex ? `${ingressPrefix}/hkube/gateway/${algorithmName}(/|$)(.*)` : `${ingressPrefix}/hkube/gateway/${algorithmName}`,
+                        path: ingressUseRegex ? `${ingressPrefix}/hkube/gateway/${gatewayName}(/|$)(.*)` : `${ingressPrefix}/hkube/gateway/${algorithmName}`,
                         backend: {
                             serviceName: `service-gateway-${algorithmName}`,
                             servicePort: 80

@@ -132,7 +132,7 @@ class Operator {
 
     async _algorithmGateways({ clusterOptions, algorithms }) {
         const services = await kubernetes.getServices({ labelSelector: `type=${nodeKind.Gateway}` });
-        const gateways = algorithms.filter(a => a.isGateway);
+        const gateways = algorithms.filter(a => a.kind === nodeKind.Gateway);
         await gatewaysReconciler.reconcile({
             services,
             gateways,

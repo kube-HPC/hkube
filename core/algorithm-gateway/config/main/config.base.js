@@ -8,7 +8,7 @@ config.ingressPrefix = process.env.INGRESS_PREFIX || '';
 
 config.rest = {
     port: process.env.ALGORITHM_GATEWAY_REST_PORT || 3005,
-    prefix: process.env.ALGORITHM_TYPE || '',
+    prefix: process.env.GATEWAY_NAME || '',
     poweredBy: 'HKube Gateway Server',
     bodySizeLimit: process.env.BODY_SIZE_LIMIT || '2000mb'
 };

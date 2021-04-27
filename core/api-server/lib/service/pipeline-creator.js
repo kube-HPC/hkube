@@ -1,10 +1,9 @@
 const mergeWith = require('lodash.mergewith');
-const { uid } = require('@hkube/uid');
 const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
-const { pipelineKind, nodeKind, retryPolicy, stateType, buildTypes } = require('@hkube/consts');
+const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
+const gatewayService = require('./gateway');
 const stateManager = require('../state/state-manager');
-const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 const SEPARATORS = {
@@ -19,10 +18,6 @@ const StreamRetryPolicy = {
 };
 
 class PipelineCreator {
-    init(config) {
-        this._gatewayUrl = config.gatewayUrl.path;
-    }
-
     async buildPipelineOfPipelines(pipeline) {
         let newPipeline = pipeline;
         const duplicates = pipeline.nodes.some(p => p.algorithmName && p.pipelineName);
@@ -139,43 +134,15 @@ class PipelineCreator {
         }
         let gateways;
         for (const node of pipeline.nodes) { // eslint-disable-line
-            const { nodeName, spec, kind } = node;
             const type = node.stateType || stateType.Stateless;
             node.retry = StreamRetryPolicy[type];
 
-            if (kind === nodeKind.Gateway) {
+            if (node.kind === nodeKind.Gateway) {
                 gateways = [];
-                let { name } = spec || {};
-                const { description, mem, cpu } = spec || {};
-                if (!name) {
-                    name = uid({ length: 8 });
-                }
-                const gateway = await stateManager.getAlgorithm({ name }); // eslint-disable-line
-                if (gateway) {
-                    throw new InvalidDataError(`gateway ${name} already exists`);
-                }
-                const algorithm = {
-                    name,
-                    description,
-                    jobId,
-                    nodeName,
-                    isGateway: true,
-                    algorithmImage: 'hkube/algorithm-gateway',
-                    algorithmEnv: {
-                        ALGORITHM_TYPE: name
-                    },
-                    mem,
-                    cpu,
-                    type: buildTypes.IMAGE,
-                    options: {
-                        debug: false,
-                        pending: false
-                    }
-                };
-                node.algorithmName = name;
-                validator.gateways.validateGateway(algorithm);
-                await stateManager.updateAlgorithm(algorithm); // eslint-disable-line
-                gateways.push({ nodeName, url: `${this._gatewayUrl}/${name}` });
+                const { nodeName, spec } = node;
+                const { algorithmName, url } = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
+                node.algorithmName = algorithmName; // eslint-disable-line
+                gateways.push({ nodeName, url });
             }
         }
 

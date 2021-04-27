@@ -114,9 +114,9 @@
 
 # gateway
 /gateway:
-  $ref: ./gateway/gateway.yaml
+  $ref: ./gateway/gateways.yaml
 /gateway/{name}:
-  $ref: ./gateway/gateway_name.yaml
+  $ref: ./gateway/gateway.yaml
 
 # graph
 /graph/raw/{jobId}:

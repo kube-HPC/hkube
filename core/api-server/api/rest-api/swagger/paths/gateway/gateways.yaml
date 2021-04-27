@@ -1,15 +1,8 @@
 get:
   tags:
     - Gateway
-  summary: get gateway details
-  description: get gateway details
-  parameters:
-    - name: name
-      in: path
-      description: gateway name to get from the store
-      required: true
-      schema:
-        type: string
+  summary: get gateways
+  description: get list of gateways
   responses:
     "200":
       description: action summery
