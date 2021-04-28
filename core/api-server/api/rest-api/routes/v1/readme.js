@@ -1,4 +1,4 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const multer = require('multer');
 const HttpStatus = require('http-status-codes');
 const logger = require('../../middlewares/logger');
@@ -8,7 +8,7 @@ const upload = multer({ storage, fileSize: 100000 });
 const fileMiddleware = upload.single('README.md');
 
 const routes = () => {
-    const router = express.Router();
+    const router = RestServer.router();
     // pipelines
     router.get('/pipelines/:name', logger(), async (req, res, next) => {
         const { name } = req.params;

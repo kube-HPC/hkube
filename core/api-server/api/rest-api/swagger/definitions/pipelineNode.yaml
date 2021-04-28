@@ -49,14 +49,7 @@ properties:
       - stateless
       - stateful
   kind:
-    type: string
-    enum:
-      - algorithm
-      - pipeline
-      - debug
-      - dataSource
-      - gateway
-    default: algorithm
+    $ref: "#/components/schemas/nodeKind"
   dataSource:
     anyOf:
       - $ref: "#/components/schemas/dataSource-id"

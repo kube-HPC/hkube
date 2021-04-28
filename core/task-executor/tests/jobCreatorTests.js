@@ -174,6 +174,41 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.imagePullSecrets).to.exist;
             expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({ name: 'my-secret' });
         });
+        it('should apply gateway params to env', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', kind: 'gateway', options });
+            const env = res.spec.template.spec.containers[1].env;
+            expect(env).to.deep.include({
+                name: 'NODE_ENV',
+                value: 'production'
+            });
+            expect(env).to.deep.include({
+                name: 'BASE_URL_PATH',
+                valueFrom: {
+                    configMapKeyRef: {
+                        key: 'BASE_URL_PATH',
+                        name: 'algorithm-gateway-configmap'
+                    }
+                }
+            });
+            expect(env).to.deep.include({
+                name: 'INGRESS_PREFIX',
+                valueFrom: {
+                    configMapKeyRef: {
+                        key: 'INGRESS_PREFIX',
+                        name: 'algorithm-gateway-configmap'
+                    }
+                }
+            });
+            expect(env).to.deep.include({
+                name: 'REST_PORT',
+                valueFrom: {
+                    configMapKeyRef: {
+                        key: 'REST_PORT',
+                        name: 'algorithm-gateway-configmap'
+                    }
+                }
+            });
+        });
         it('should apply cache params to env', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', reservedMemory: '256Mi', options });
             expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DISCOVERY_MAX_CACHE_SIZE', value: '256' })

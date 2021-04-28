@@ -1,4 +1,4 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const Execution = require('../../../lib/service/execution');
 const Cron = require('../../../lib/service/cron');
 const Internal = require('../../../lib/service/internal');
@@ -6,7 +6,7 @@ const methods = require('../middlewares/methods');
 const logger = require('../middlewares/logger');
 
 const routes = () => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', (req, res, next) => {
         res.json({ message: 'internal api' });
         next();

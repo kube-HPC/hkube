@@ -1,5 +1,6 @@
 const clonedeep = require('lodash.clonedeep');
 const { randomString } = require('@hkube/uid');
+const { nodeKind } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
 const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage,
@@ -9,7 +10,7 @@ const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
-const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
+const { workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
 
@@ -244,7 +245,7 @@ const getJavaMaxMem = (memory) => {
     const javaValue = Math.round(val * 0.8);
     return javaValue;
 };
-const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, algorithmOptions,
+const createJobSpec = ({ algorithmName, kind, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, algorithmOptions,
     nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
@@ -287,6 +288,10 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyDataSourcesVolumes(spec);
     spec = applyMounts(spec, mounts);
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
+
+    if (kind === nodeKind.Gateway) {
+        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, gatewayEnv);
+    }
 
     return spec;
 };

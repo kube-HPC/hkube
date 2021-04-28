@@ -49,7 +49,7 @@ class Gateway {
             kind: nodeKind.Gateway,
             algorithmImage: 'hkube/algorithm-gateway',
             algorithmEnv: {
-                GATEWAY_NAME: gatewayName
+                GATEWAY_NAME: gatewayName,
             },
             type: buildTypes.IMAGE,
             options: {

@@ -1,9 +1,9 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const Experiment = require('../../../../lib/service/experiment');
 const logger = require('../../middlewares/logger');
 
 const routes = () => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', logger(), async (req, res, next) => {
         const { sort, order, limit } = req.query;
         const response = await Experiment.experimentsList({ sort, order, limit });
@@ -29,7 +29,6 @@ const routes = () => {
         res.json(response);
         next();
     });
-
     return router;
 };
 

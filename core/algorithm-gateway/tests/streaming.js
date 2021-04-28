@@ -1,5 +1,4 @@
 const { expect } = require('chai');
-const querystring = require('querystring');
 const { StatusCodes } = require('http-status-codes');
 const { uuid } = require('@hkube/uid');
 const { request } = require('./utils');
@@ -27,7 +26,7 @@ const jobData = {
     }
 }
 
-describe('Graph', () => {
+describe('Gateway', () => {
     before(async () => {
         restUrl = global.testParams.restUrl;
     });

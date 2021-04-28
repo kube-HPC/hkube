@@ -3,8 +3,6 @@ const path = require('path');
 const RestServer = require('@hkube/rest-server');
 const { swaggerUtils } = require('@hkube/rest-server');
 const log = require('@hkube/logger').GetLogFromContainer();
-const HttpStatus = require('http-status-codes');
-const validator = require('../../lib/validation/api-validator');
 const component = require('../../lib/consts/componentNames').REST_API;
 const rest = new RestServer();
 
@@ -12,14 +10,8 @@ class AppServer {
     async init(options) {
         rest.on('error', (data) => {
             const error = data.error || data.message || {};
-            const { route, jobId, pipelineName } = (data.res && data.res._internalMetadata) || {};
             const status = data.status || data.code;
-            if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-                log.error(`Error response, status=${status}, message=${error}`, { component, route, jobId, pipelineName, httpStatus: status });
-            }
-            else {
-                log.info(`status=${status}, message=${error}`, { component, route, jobId, pipelineName, httpStatus: status });
-            }
+            log.info(`status=${status}, message=${error}`, { component });
         });
 
         const swagger = await swaggerUtils.loader.load({ path: path.join(__dirname, 'swagger') });
@@ -39,7 +31,6 @@ class AppServer {
         });
 
         await swaggerUtils.validator.validate(swagger);
-        validator.init(swagger.components.schemas);
 
         const opt = {
             swagger,

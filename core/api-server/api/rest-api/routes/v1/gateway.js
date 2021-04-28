@@ -1,9 +1,9 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const Gateway = require('../../../../lib/service/gateway');
 const logger = require('../../middlewares/logger');
 
 const routes = () => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', logger(), async (req, res) => {
         const { sort, order, limit } = req.query;
         const response = await Gateway.getGateways({ sort, order, limit });
