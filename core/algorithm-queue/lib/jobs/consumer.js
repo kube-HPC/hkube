@@ -1,7 +1,6 @@
 const EventEmitter = require('events');
 const { Consumer } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
-const Etcd = require('@hkube/etcd');
 const { pipelineStatuses } = require('@hkube/consts');
 const { tracer } = require('@hkube/metrics');
 const db = require('../persistency/db');
@@ -12,45 +11,48 @@ const component = require('../consts/component-name').JOBS_CONSUMER;
 const producerSingleton = require('./producer-singleton');
 
 class JobConsumer extends EventEmitter {
-    constructor() {
+    constructor(options, algorithmName) {
         super();
         this._consumer = null;
         this._options = null;
         this._job = null;
         this._active = false;
+        this._consumer = new Consumer({
+            setting: {
+                redis: options.redis,
+                tracer,
+                prefix: options.consumer.prefix
+            }
+        });
+        this._consumer.on('job', async (job) => {
+            await this._handleJob(job);
+        });
+        this._consumer.register({
+            job: {
+                type: algorithmName,
+                concurrency: options.consumer.concurrency
+            }
+        });
     }
 
-    async init(options) {
-        const { etcd, serviceName, algorithmType } = options;
-        this._options = options;
-        this.etcd = new Etcd({ ...etcd, serviceName });
-        await this.etcd.jobs.status.watch();
-        await this.etcd.algorithms.executions.watch();
-
-        log.info(`registering for job ${options.algorithmType}`, { component });
-
-        this._consumer = new Consumer({ setting: { redis: options.redis, tracer, prefix: options.consumer.prefix } });
-        this._consumer.on('job', (job) => {
-            this._handleJob(job);
-        });
-        this.etcd.jobs.status.on('change', async (data) => {
-            const { status, jobId } = data;
-            if (isCompletedState({ status })) {
-                this._removeInvalidJob({ jobId });
-                await this._removeWaitingJobs({ jobId, status });
-            }
-        });
-        this.etcd.algorithms.executions.on('change', (data) => {
-            if (data && data.status === pipelineStatuses.STOPPED) {
-                const { jobId, taskId } = data;
-                queueRunner.queue.removeJobs([{ jobId, taskId }]);
-            }
-        });
-        this._consumer.register({ job: { type: algorithmType, concurrency: options.consumer.concurrency } });
+    async removeInvalidJob(data) {
+        const { status, jobId } = data;
+        if (isCompletedState({ status })) {
+            this._removeInvalidJob({ jobId });
+            await this._removeWaitingJobs({ jobId, status });
+        }
+        queueRunner.queue.removeJobs([{ jobId }]);
     }
 
     _removeInvalidJob({ jobId }) {
         queueRunner.queue.removeJobs([{ jobId }]);
+    }
+
+    removeInvalidTasks(data) {
+        const { status, jobId, taskId } = data;
+        if (status === pipelineStatuses.STOPPED) {
+            queueRunner.queue.removeJobs([{ jobId, taskId }]);
+        }
     }
 
     async _removeWaitingJobs({ jobId, status }) {
@@ -133,4 +135,4 @@ class JobConsumer extends EventEmitter {
     }
 }
 
-module.exports = new JobConsumer();
+module.exports = JobConsumer;

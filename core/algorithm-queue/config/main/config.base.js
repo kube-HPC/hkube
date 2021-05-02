@@ -5,6 +5,7 @@ const heuristicsNames = require('../../lib/consts/heuristics-name');
 
 config.serviceName = packageJson.name;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
+config.queueId = process.env.QUEUE_ID;
 
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',

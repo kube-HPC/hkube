@@ -26,8 +26,8 @@
     "@hkube/producer-consumer": "^1.0.48",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/uid": "^1.0.4",
-    "aigle": "^1.14.1",
-    "lodash": "^4.17.15"
+    "lodash.orderby": "^4.6.0",
+    "lodash.remove": "^4.7.0"
   },
   "devDependencies": {
     "await-delay": "^1.0.0",

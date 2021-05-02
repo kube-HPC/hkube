@@ -1,15 +1,17 @@
 const events = require('events');
-const _ = require('lodash');
+const orderBy = require('lodash.orderby');
+const remove = require('lodash.remove');
+const { tracer } = require('@hkube/metrics');
+const { Producer } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
-const aigle = require('aigle');
 const components = require('./consts/component-name');
 const queueEvents = require('./consts/queue-events');
+const JobConsumer = require('./jobs/consumer');
 
 class Queue extends events {
-    constructor({ scoreHeuristic = { run: null }, updateInterval = 1000, persistence = null, enrichmentRunner = { run: null } } = {}) {
+    constructor({ options, algorithmName, scoreHeuristic = { run: null }, updateInterval = 1000, persistence = null, enrichmentRunner = { run: null } } = {}) {
         super();
         log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component: components.QUEUE });
-        aigle.mixin(_);
         this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
         this.enrichmentRunner = enrichmentRunner.run ? enrichmentRunner.run.bind(enrichmentRunner) : enrichmentRunner.run;
         this.updateInterval = updateInterval;
@@ -19,9 +21,18 @@ class Queue extends events {
         this.tempRemoveJobIDsQueue = [];
         this.isIntervalRunning = true;
         this.persistence = persistence;
+        this.producer = new Producer({
+            setting: {
+                redis: options.redis,
+                tracer,
+                ...options.producer
+            }
+        });
+        this.queue = this.producer._createQueue(algorithmName);
         this.persistencyLoad().then(() => {
             this._queueInterval();
         });
+        const consumer = new JobConsumer(options, algorithmName);
     }
 
     flush() {
@@ -71,7 +82,7 @@ class Queue extends events {
     async add(tasks) {
         this._removeDuplicates(tasks);
         if (this.scoreHeuristic) {
-            const calculatedTasks = await aigle.map(tasks, task => this.scoreHeuristic(task));
+            const calculatedTasks = tasks.map(task => this.scoreHeuristic(task));
             if (this.isScoreDuringUpdate) {
                 log.debug('add -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE });
                 this.tempInsertTasksQueue = this.tempInsertTasksQueue.concat(calculatedTasks);
@@ -87,7 +98,7 @@ class Queue extends events {
     _removeDuplicates(tasks) {
         if (this.queue.length > 0) {
             tasks.forEach((t) => {
-                const res = _.remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId && q.status === 'preschedule');
+                const res = remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId && q.status === 'preschedule');
                 res.forEach((r) => {
                     log.warning(`found duplicate task ${r.taskId} with status ${r.status}, new task status: ${t.status}`, { component: components.QUEUE });
                 });
@@ -121,7 +132,7 @@ class Queue extends events {
     }
 
     async updateScore() {
-        this.queue = await aigle.map(this.queue, job => this.scoreHeuristic(job));
+        this.queue = this.queue.map(job => this.scoreHeuristic(job));
         this.emit(queueEvents.UPDATE_SCORE, this.queue);
     }
 
@@ -138,13 +149,13 @@ class Queue extends events {
             log.debug('there is no new inserted jobs', { component: components.QUEUE });
             return;
         }
-        this.queue = _.orderBy([...this.queue, ...taskArr], j => j.calculated.score, 'desc');
+        this.queue = orderBy([...this.queue, ...taskArr], j => j.calculated.score, 'desc');
         this.emit(queueEvents.INSERT, taskArr);
         log.info(`${taskArr.length} new jobs inserted to queue jobs`, { component: components.QUEUE });
     }
 
     _orderQueue() {
-        this.queue = _.orderBy([...this.queue], j => j.calculated.score, 'desc');
+        this.queue = orderBy([...this.queue], j => j.calculated.score, 'desc');
     }
 
     _removeJobs(jobs) {
@@ -155,7 +166,7 @@ class Queue extends events {
         const removedTasks = [];
         jobs.forEach((j) => {
             // collect removed tasks to send in REMOVE event
-            const tasks = _.remove(this.queue, t => (t.jobId === j.jobId) && (j.taskId ? t.taskId === j.taskId : true));
+            const tasks = remove(this.queue, t => (t.jobId === j.jobId) && (j.taskId ? t.taskId === j.taskId : true));
             removedTasks.push(...tasks);
         });
         if (removedTasks.length === 0) {

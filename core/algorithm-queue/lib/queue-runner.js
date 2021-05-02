@@ -24,27 +24,28 @@ class QueueRunner {
         Object.values(heuristic).map(v => this.heuristicRunner.addHeuristicToQueue(v));
         Object.values(enrichments).map(v => this.enrichmentRunner.addEnrichments(v));
         log.debug('calling to queue', { component: componentName.QUEUE_RUNNER });
-        const persistence = await Persistence.init({ options: this.config });
-        this.queue = new Queue({
+        this._persistence = await Persistence.init({ options: this.config });
+    }
+
+    create(algorithmName) {
+        const queue = new Queue({
+            algorithmName,
             scoreHeuristic: this.heuristicRunner,
             updateInterval: this.config.queue.updateInterval,
-            persistence,
+            persistence: this._persistence,
             enrichmentRunner: this.enrichmentRunner
         });
-
-        this.queue.on(queueEvents.UPDATE_SCORE, queueScore => aggregationMetricFactory.scoreHistogram(queueScore));
-
-        this.queue.on(queueEvents.INSERT, (taskArr) => {
+        queue.on(queueEvents.UPDATE_SCORE, queueScore => aggregationMetricFactory.scoreHistogram(queueScore));
+        queue.on(queueEvents.INSERT, (taskArr) => {
             taskArr.forEach(task => this._taskAdded(task));
         });
-
-        this.queue.on(queueEvents.POP, (task) => {
+        queue.on(queueEvents.POP, (task) => {
             this._taskRemoved(task);
         });
-
-        this.queue.on(queueEvents.REMOVE, (taskArr) => {
+        queue.on(queueEvents.REMOVE, (taskArr) => {
             taskArr.forEach(task => this._taskRemoved(task));
         });
+        return queue;
     }
 
     _taskRemoved(task) {

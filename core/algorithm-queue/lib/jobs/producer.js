@@ -124,4 +124,4 @@ class JobProducer {
     }
 }
 
-module.exports = new JobProducer();
+module.exports = JobProducer;
