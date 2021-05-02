@@ -44,6 +44,7 @@ dockerBuildOpenshift() {
   export packagesRegistry=${PACKAGES_REGISTRY}
   export packagesRegistryUser=${PACKAGES_REGISTRY_USER}
   export packagesToken=${PACKAGES_TOKEN}
+  export dependency_install_cmd=${DEPENDENCY_INSTALL_CMD}
 
   echo "Building image ${image}"
   echo copy context from ${buildPath} to ${workspace}
