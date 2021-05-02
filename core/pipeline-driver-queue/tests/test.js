@@ -90,7 +90,7 @@ describe('Test', () => {
                     queue.on(queueEvents.POP, () => {
                         _semaphore.callDone();
                     });
-                    const job = queue.dequeue();
+                    const job = queue.dequeue(stubJob);
                     await _semaphore.done({ doneAmount: 1 });
                     const q = queue.getQueue();
                     expect(job.jobId).to.be.eql(stubJob.jobId);
