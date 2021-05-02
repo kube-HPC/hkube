@@ -24,13 +24,13 @@ class JobConsumer {
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
-        persistence.on(`job-${pipelineStatuses.STOPPED}`, async (job) => {
+        persistence.on(`job-${pipelineStatuses.STOPPED}`, (job) => {
             const { jobId, status } = job;
-            await this._stopJob(jobId, status);
+            this._stopJob(jobId, status);
         });
-        persistence.on(`job-${pipelineStatuses.PAUSED}`, async (job) => {
+        persistence.on(`job-${pipelineStatuses.PAUSED}`, (job) => {
             const { jobId, status } = job;
-            await this._stopJob(jobId, status);
+            this._stopJob(jobId, status);
         });
     }
 
@@ -44,10 +44,13 @@ class JobConsumer {
             const jobStatus = await persistence.getJobStatus({ jobId });
             if (jobStatus.status === pipelineStatuses.STOPPED || jobStatus.status === pipelineStatuses.PAUSED) {
                 log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
-                await this._stopJob(jobId, jobStatus.status);
+                this._stopJob(jobId, jobStatus.status);
             }
             else {
-                await this._queueJob(pipeline, job.data);
+                if (pipeline.maxExceeded) {
+                    log.warning(`job "${jobId}" arrived with maxExceeded flag`, { component });
+                }
+                this._queueJob({ jobId, pipeline });
             }
         }
         catch (error) {
@@ -59,22 +62,23 @@ class JobConsumer {
         }
     }
 
-    async _stopJob(jobId, status) {
+    _stopJob(jobId, status) {
         log.info(`job ${status} ${jobId}`, { component });
         queueRunner.queue.remove(jobId);
     }
 
-    async _queueJob(pipeline, jobData) {
-        const job = this._pipelineToQueueAdapter(pipeline, jobData);
+    _queueJob({ jobId, pipeline }) {
+        const job = this._pipelineToQueueAdapter({ jobId, pipeline });
         queueRunner.queue.enqueue(job);
     }
 
-    _pipelineToQueueAdapter(pipeline, jobData) {
+    _pipelineToQueueAdapter({ jobId, pipeline }) {
         return {
-            ...jobData,
+            jobId,
             experimentName: pipeline.experimentName,
             pipelineName: pipeline.name,
             priority: pipeline.priority,
+            maxExceeded: pipeline.maxExceeded,
             entranceTime: Date.now(),
             calculated: {
                 latestScores: {}

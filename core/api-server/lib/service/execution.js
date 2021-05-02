@@ -99,11 +99,11 @@ class ExecutionService {
                 flowInputMetadata = { metadata, storageInfo };
             }
             const lastRunResult = await this._getLastPipeline(pipeline);
-            const pipelineObject = { ...pipeline, rootJobId, flowInputMetadata, startTime: Date.now(), lastRunResult, types };
+            const pipelineObject = { ...pipeline, maxExceeded, rootJobId, flowInputMetadata, startTime: Date.now(), lastRunResult, types };
             const statusObject = { timestamp: Date.now(), pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
-            await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
+            await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return jobId;
         }
