@@ -67,7 +67,6 @@ class Queue extends Events {
         remove(this.queue, j => j.jobId === job.jobId);
         this.emit(queueEvents.POP, job);
         log.info(`job pop from queue, queue size: ${this.size}`, { component });
-        return job;
     }
 
     remove(jobId) {
