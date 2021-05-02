@@ -64,7 +64,7 @@ class Queue extends Events {
     }
 
     dequeue() {
-        const job = this.queue.shift();
+        const job = this.getQueue(q => !q.maxExceeded).shift();
         this.emit(queueEvents.POP, job);
         log.info(`job pop from queue, queue size: ${this.size}`, { component });
         return job;
