@@ -5,18 +5,14 @@ const { pipelineStatuses } = require('@hkube/consts');
 const { tracer } = require('@hkube/metrics');
 const db = require('../persistency/db');
 const { heuristicsName } = require('../consts/index');
-const queueRunner = require('../queue-runner');
 const { isCompletedState } = require('../utils/pipelineStatuses');
 const component = require('../consts/component-name').JOBS_CONSUMER;
-const producerSingleton = require('./producer-singleton');
 
 class JobConsumer extends EventEmitter {
-    constructor(options, algorithmName) {
+    constructor(options) {
         super();
-        this._consumer = null;
-        this._options = null;
-        this._job = null;
-        this._active = false;
+        this._options = options;
+        this._getWaitingCount = options.getWaitingCount;
         this._consumer = new Consumer({
             setting: {
                 redis: options.redis,
@@ -24,13 +20,16 @@ class JobConsumer extends EventEmitter {
                 prefix: options.consumer.prefix
             }
         });
+    }
+
+    init() {
         this._consumer.on('job', async (job) => {
             await this._handleJob(job);
         });
         this._consumer.register({
             job: {
-                type: algorithmName,
-                concurrency: options.consumer.concurrency
+                type: this._options.algorithmName,
+                concurrency: this._options.consumer.concurrency
             }
         });
     }
@@ -41,17 +40,17 @@ class JobConsumer extends EventEmitter {
             this._removeInvalidJob({ jobId });
             await this._removeWaitingJobs({ jobId, status });
         }
-        queueRunner.queue.removeJobs([{ jobId }]);
+        this.emit('jobs-remove', [{ jobId }]);
     }
 
     _removeInvalidJob({ jobId }) {
-        queueRunner.queue.removeJobs([{ jobId }]);
+        this.emit('jobs-remove', [{ jobId }]);
     }
 
     removeInvalidTasks(data) {
         const { status, jobId, taskId } = data;
         if (status === pipelineStatuses.STOPPED) {
-            queueRunner.queue.removeJobs([{ jobId, taskId }]);
+            this.emit('jobs-remove', [{ jobId, taskId }]);
         }
     }
 
@@ -67,7 +66,7 @@ class JobConsumer extends EventEmitter {
             }
         };
         try {
-            const waitingJobs = await producerSingleton.queue.getWaiting();
+            const waitingJobs = await this._getWaitingCount();
             const pendingJobs = waitingJobs.filter(j => j.data?.jobId === jobId);
             const removeResults = await Promise.all(pendingJobs.map(removeJob));
             const failedToRemove = removeResults.filter(r => r.error);
@@ -130,8 +129,7 @@ class JobConsumer extends EventEmitter {
     queueTasksBuilder(job) {
         const { tasks, ...jobData } = job.data;
         const taskList = tasks.map(task => this.pipelineToQueueAdapter(jobData, task, tasks.length));
-        queueRunner.queue.add(taskList);
-        job.done();
+        this.emit('jobs-add', taskList);
     }
 }
 

@@ -1,21 +1,24 @@
 const EventEmitter = require('events');
 const { Consumer } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
-const Etcd = require('@hkube/etcd');
 const { tracer } = require('@hkube/metrics');
+const etcd = require('../persistency/etcd');
 const queueRunner = require('../queue-runner');
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
 class ConsumerQueues extends EventEmitter {
     constructor() {
         super();
-        this._options = null;
         this._queues = new Map();
+        this._actions = {
+            add: (...args) => this._addAction(...args),
+            remove: (...args) => this._removeAction(...args),
+        };
     }
 
     async init(options) {
-        this._options = options;
         const { queueId } = options;
+        this._options = options;
         const consumer = new Consumer({
             setting: {
                 redis: options.redis,
@@ -32,23 +35,29 @@ class ConsumerQueues extends EventEmitter {
                 concurrency: options.consumer.concurrency
             }
         });
-        await this._watch(options);
-        await this._etcd.discovery.register({ data: { queueId } });
+        this._watch();
+        this._discoveryData = { queueId };
+        await etcd.discoveryRegister({ data: this._discoveryData });
+        await this.updateRegisteredData();
     }
 
     async _handleJob(job) {
         try {
-            const { algorithmName } = job.data;
-            log.info(`job arrived for algorithm ${algorithmName}`, { component });
-            const queue = this._queues.get(algorithmName);
-            if (!queue) {
-                const algorithmQueue = queueRunner.create(algorithmName);
-                this._queues.set(algorithmName, algorithmQueue);
-                await this.updateRegisteredData();
+            const { algorithmName, action } = job.data;
+            if (!algorithmName) {
+                log.error('job arrived without algorithm name', { component });
+                return;
             }
-            else {
-                log.warning(`algorithm queue from type ${algorithmName} already exists`, { component });
+            if (!action) {
+                log.error('job arrived without action', { component });
+                return;
             }
+            const method = this._actions[action];
+            if (!method) {
+                log.error(`invalid action ${action}`, { component });
+                return;
+            }
+            await method(algorithmName);
         }
         catch (error) {
             job.done(error);
@@ -58,21 +67,45 @@ class ConsumerQueues extends EventEmitter {
         }
     }
 
-    async updateRegisteredData() {
-        const algorithms = Array.from(this._queues.keys());
-        await this._etcd.discovery.updateRegisteredData({ algorithms });
+    async _addAction(algorithmName) {
+        const queue = this._queues.get(algorithmName);
+        if (!queue) {
+            const algorithmQueue = queueRunner.create();
+            await algorithmQueue.start({ options: this._options, algorithmName });
+            this._queues.set(algorithmName, algorithmQueue);
+            await this.updateRegisteredData();
+            log.info(`algorithm queue from type ${algorithmName} created`, { component });
+        }
+        else {
+            log.warning(`algorithm queue from type ${algorithmName} already exists`, { component });
+        }
     }
 
-    async _watch(options) {
-        this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
-        await this._etcd.jobs.status.watch();
-        await this._etcd.algorithms.executions.watch();
-        this._etcd.jobs.status.on('change', async (data) => {
+    async _removeAction(algorithmName) {
+        const queue = this._queues.get(algorithmName);
+        if (queue) {
+            await queue.stop();
+            this._queues.delete(algorithmName);
+            await this.updateRegisteredData();
+            log.info(`algorithm queue from type ${algorithmName} created`, { component });
+        }
+        else {
+            log.warning(`algorithm queue from type ${algorithmName} not exists`, { component });
+        }
+    }
+
+    async updateRegisteredData() {
+        const algorithms = Array.from(this._queues.keys());
+        await etcd.discoveryUpdate({ ...this._discoveryData, algorithms });
+    }
+
+    _watch() {
+        etcd.on('job-change', (data) => {
             this._queues.forEach(q => {
                 q.removeInvalidJob(data);
             });
         });
-        this._etcd.algorithms.executions.on('change', (data) => {
+        etcd.on('exec-change', (data) => {
             this._queues.forEach(q => {
                 q.removeInvalidTasks(data);
             });

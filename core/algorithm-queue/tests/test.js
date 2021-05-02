@@ -5,10 +5,9 @@ const delay = require('await-delay');
 const queueEvents = require('../lib/consts/queue-events');
 const { semaphore } = require('await-done');
 const bootstrap = require('../bootstrap');
-const queueRunner = require('../lib/queue-runner');
 const persistence = require('../lib/persistency/persistence');
 const heuristicList = require('../lib/heuristic/index');
-
+const consumerQueues = require('../lib/jobs/consumer-queues');
 const EnrichmentRunner = require('../lib/enrichment-runner');
 const HeuristicRunner = require('../lib/heuristic-runner')
 let Queue = null;
@@ -19,12 +18,24 @@ const heuristicBoilerPlate = (score, _heuristic) => ({
         return _heuristic(score)(job);
     }
 });
-let queue = null;
+
 const QUEUE_INTERVAL = 500;
 
 describe('Test', () => {
     before(async () => {
         await bootstrap.init();
+    });
+    describe('algorithm queue', () => {
+        it.only('should not removed from queue when there is no matched id', async () => {
+            const job = {
+                data: { algorithmName: 'green-alg', action: 'add' },
+                done: () => { }
+            }
+            await consumerQueues._handleJob(job);
+
+            expect(consumerQueues).to.have.length(1);
+            expect(q[0].jobId).to.be.eql(stubJob.jobId);
+        });
     });
     describe('algorithm queue', () => {
         describe('queue-tests', () => {
@@ -39,7 +50,7 @@ describe('Test', () => {
                     await delay(QUEUE_INTERVAL + 500);
                     const q = queue.get;
                     expect(q[0].calculated.score).to.eql(80);
-                }).timeout(5000);
+                });
                 it('should added to queue ordered', async () => {
                     queue.updateHeuristic({ run: heuristic(80) });
                     await queue.add([stubTemplate()]);
@@ -50,7 +61,7 @@ describe('Test', () => {
                     expect(queue.get[0].calculated.score).to.eql(90);
                     expect(queue.get[2].calculated.score).to.eql(60);
                     queue.intervalRunningStatus = false;
-                }).timeout(5000);
+                });
             });
             describe('remove', () => {
                 let _semaphore = null;
@@ -70,7 +81,7 @@ describe('Test', () => {
                     await _semaphore.done();
                     const q = queue.get;
                     expect(q).to.have.length(0);
-                }).timeout(50000);
+                });
                 it('should not removed from queue when there is no matched id', async () => {
                     let called = false;
                     queue.updateHeuristic({ run: heuristic(80) });
@@ -181,7 +192,7 @@ describe('Test', () => {
             await queue.persistencyLoad();
             const q = queue.get;
             expect(q.length).to.be.eql(100);
-            expect(q.map(i=>i.jobId)).to.be.eql(arr.map(i=>i.jobId));
+            expect(q.map(i => i.jobId)).to.be.eql(arr.map(i => i.jobId));
             await queue.persistenceStore();
             queue.flush();
             await queue.persistenceStore();
@@ -196,7 +207,7 @@ describe('Test', () => {
         });
     });
     afterEach(() => {
-        queue.flush();
+
     });
 });
 

@@ -1,31 +1,56 @@
-const Etcd = require('@hkube/etcd');
 const { Events } = require('@hkube/producer-consumer');
 const { taskStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { uuid: uuidv4 } = require('@hkube/uid');
-const producerSingleton = require('./producer-singleton');
+const { tracer } = require('@hkube/metrics');
+const { Producer } = require('@hkube/producer-consumer');
 const { componentName } = require('../consts/index');
 const { isCompletedState } = require('../utils/pipelineStatuses');
-const queueRunner = require('../queue-runner');
 const db = require('../persistency/db');
-
+const etcd = require('../persistency/etcd');
 const MAX_JOB_ATTEMPTS = 3;
 
 class JobProducer {
-    async init(options) {
-        const { etcd, serviceName, producerUpdateInterval } = options;
+    constructor(options) {
+        const { algorithmName, producerUpdateInterval } = options;
+        this._getQueue = options.getQueue;
+        this._addQueue = options.addQueue;
+        this._tryPop = options.tryPop;
         this._producerUpdateInterval = producerUpdateInterval;
-        this.etcd = new Etcd({ ...etcd, serviceName });
-        this._producer = producerSingleton.get;
+
+        // TODO: DISABLE enableCheckStalledJobs ON STOP
+        this._producer = new Producer({
+            setting: {
+                redis: options.redis,
+                tracer,
+                ...options.producer
+            }
+        });
+        this._producerQueue = this._producer._createQueue(algorithmName);
+    }
+
+    start() {
         this._producerEventRegistry();
         this._checkWorkingStatusInterval();
     }
 
+    stop() {
+        clearInterval(this._interval);
+        this._interval = null;
+    }
+
+    async getWaitingCount() {
+        return this._producerQueue.getWaitingCount();
+    }
+
     // should handle cases where there is currently not any active job and new job added to queue
     _checkWorkingStatusInterval() {
-        setInterval(async () => {
-            if (queueRunner.queue.get.length > 0) {
-                const waitingCount = await producerSingleton.queue.getWaitingCount();
+        if (this._interval) {
+            return;
+        }
+        this._interval = setInterval(async () => {
+            if (this._getQueue().length > 0) {
+                const waitingCount = await this.getWaitingCount();
                 if (waitingCount === 0) {
                     await this.createJob();
                 }
@@ -71,11 +96,11 @@ class JobProducer {
             else {
                 err = 'StalledState';
                 status = taskStatuses.STALLED;
-                queueRunner.queue.add([task]);
+                this._addQueue([task]);
             }
             const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${maxAttempts}`;
             log.warning(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
-            await this.etcd.jobs.tasks.update({ jobId, taskId, status, error, retries: attempts });
+            await etcd.updateTask({ jobId, taskId, status, error, retries: attempts });
         });
     }
 
@@ -113,13 +138,13 @@ class JobProducer {
     }
 
     async createJob() {
-        const task = queueRunner.queue.tryPop();
+        const task = this._tryPop();
         if (task) {
             log.info(`pop new task with taskId: ${task.taskId}, score: ${task.calculated.score}`, { component: componentName.JOBS_PRODUCER });
             const job = this._taskToProducerJob(task);
             return this._producer.createJob(job);
         }
-        log.info('queue is empty ', { component: componentName.JOBS_PRODUCER });
+        log.info('queue is empty', { component: componentName.JOBS_PRODUCER });
         return null;
     }
 }

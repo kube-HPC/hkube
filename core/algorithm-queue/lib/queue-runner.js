@@ -27,9 +27,8 @@ class QueueRunner {
         this._persistence = await Persistence.init({ options: this.config });
     }
 
-    create(algorithmName) {
+    create() {
         const queue = new Queue({
-            algorithmName,
             scoreHeuristic: this.heuristicRunner,
             updateInterval: this.config.queue.updateInterval,
             persistence: this._persistence,

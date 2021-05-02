@@ -2,7 +2,6 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const redisStorage = require('./redis-storage-adapter');
 const components = require('../consts/component-name');
-const producerSingleton = require('../jobs/producer-singleton');
 
 class Persistence {
     constructor() {
@@ -19,9 +18,8 @@ class Persistence {
         return this;
     }
 
-    async store(data) {
+    async store(data, pendingAmount) {
         log.debug('storing data to persistency storage', { component: components.ETCD_PERSISTENT });
-        const pendingAmount = await producerSingleton.queue.getWaitingCount();
         if (this._prevDataLength === 0 && data.length === 0 && this._prevPendingAmount === pendingAmount) {
             return;
         }
