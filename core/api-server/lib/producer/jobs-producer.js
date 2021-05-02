@@ -45,8 +45,7 @@ class JobProducer {
                 id: options.jobId,
                 type: this._jobType,
                 data: {
-                    jobId: options.jobId,
-                    maxExceeded: options.maxExceeded
+                    jobId: options.jobId
                 }
             }
         };
