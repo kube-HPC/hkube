@@ -1,16 +1,15 @@
 const Logger = require('@hkube/logger');
 const { taskStatuses } = require('@hkube/consts');
+const heuristics = require('./heuristic/index');
 const components = require('./consts/component-name');
 const log = Logger.GetLogFromContainer();
 
 class heuristicRunner {
-    constructor() {
+    constructor(heuristicsWeights) {
         this.config = null;
         this.heuristicMap = [];
-    }
-
-    init(heuristicsWeights) {
         this.heuristicsWeights = heuristicsWeights;
+        Object.values(heuristics).map(v => this.addHeuristicToQueue(v));
         log.info('heuristic wights was set', { component: components.HEURISTIC_RUNNER });
     }
 

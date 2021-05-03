@@ -41,9 +41,9 @@ class Operator {
             const configMap = await kubernetes.getVersionsConfigMap();
             const { algorithms, count } = await db.getAlgorithmTemplates();
             await Promise.all([
-                // this._algorithmBuilds({ ...configMap }, options),
-                // this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
-                // this._algorithmDebug(configMap, algorithms, options),
+                this._algorithmBuilds({ ...configMap }, options),
+                this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
+                this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
             ]);
         }

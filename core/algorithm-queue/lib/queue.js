@@ -91,7 +91,7 @@ class Queue extends events {
         log.debug('try to store data to  storage', { component: components.QUEUE });
         if (this.persistence) {
             const pendingAmount = await this._producer.getWaitingCount();
-            await this.persistence.store(this.queue, pendingAmount);
+            await this.persistence.store({ data: this.queue, pendingAmount });
             log.debug('store data to storage succeed', { component: components.QUEUE });
         }
         else {

@@ -72,8 +72,9 @@ class ConsumerQueues extends EventEmitter {
     async _addAction(algorithmName) {
         const queue = this._queues.get(algorithmName);
         if (!queue) {
-            const algorithmQueue = queueRunner.create();
-            await algorithmQueue.start({ options: this._options, algorithmName });
+            const props = { options: this._options, algorithmName };
+            const algorithmQueue = queueRunner.create(props);
+            await algorithmQueue.start(props);
             this._queues.set(algorithmName, algorithmQueue);
             await this.updateRegisteredData();
             log.info(`algorithm queue from type ${algorithmName} created`, { component });

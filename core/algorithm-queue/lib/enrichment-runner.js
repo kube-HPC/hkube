@@ -1,6 +1,8 @@
+const enrichments = require('./enrichments/index');
 class EnrichmentRunner {
     constructor() {
         this.enrichmentMap = [];
+        Object.values(enrichments).map(v => this.addEnrichments(v));
     }
 
     addEnrichments(enrichment) {

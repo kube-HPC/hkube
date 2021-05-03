@@ -19,6 +19,10 @@ class EtcdClient extends EventEmitter {
         await this._etcd.jobs.tasks.update({ jobId, taskId, status, error, retries });
     }
 
+    async updateQueueData({ name, data, pendingAmount, timestamp }) {
+        await this._etcd.algorithms.queue.set({ name, data, pendingAmount, timestamp });
+    }
+
     async _watch() {
         await this._etcd.jobs.status.watch();
         await this._etcd.algorithms.executions.watch();
