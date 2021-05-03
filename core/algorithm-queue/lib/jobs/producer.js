@@ -17,8 +17,6 @@ class JobProducer {
         this._addQueue = options.addQueue;
         this._tryPop = options.tryPop;
         this._producerUpdateInterval = producerUpdateInterval;
-
-        // TODO: DISABLE enableCheckStalledJobs ON STOP
         this._producer = new Producer({
             setting: {
                 redis: options.redis,
@@ -35,12 +33,17 @@ class JobProducer {
     }
 
     stop() {
+        this._producer.stopWork();
         clearInterval(this._interval);
         this._interval = null;
     }
 
     async getWaitingCount() {
         return this._producerQueue.getWaitingCount();
+    }
+
+    async getWaitingJobs() {
+        return this._producerQueue.getWaiting();
     }
 
     // should handle cases where there is currently not any active job and new job added to queue
@@ -104,6 +107,7 @@ class JobProducer {
         });
     }
 
+    // TODO: remove this calculated stuff....
     _pipelineToQueueAdapter(taskData) {
         return {
             initialBatchLength: 1,

@@ -13,6 +13,7 @@ class JobConsumer extends EventEmitter {
         super();
         this._options = options;
         this._getWaitingCount = options.getWaitingCount;
+        this._getWaitingJobs = options.getWaitingJobs;
         this._consumer = new Consumer({
             setting: {
                 redis: options.redis,
@@ -40,7 +41,6 @@ class JobConsumer extends EventEmitter {
             this._removeInvalidJob({ jobId });
             await this._removeWaitingJobs({ jobId, status });
         }
-        this.emit('jobs-remove', [{ jobId }]);
     }
 
     _removeInvalidJob({ jobId }) {
@@ -66,7 +66,7 @@ class JobConsumer extends EventEmitter {
             }
         };
         try {
-            const waitingJobs = await this._getWaitingCount();
+            const waitingJobs = await this._getWaitingJobs();
             const pendingJobs = waitingJobs.filter(j => j.data?.jobId === jobId);
             const removeResults = await Promise.all(pendingJobs.map(removeJob));
             const failedToRemove = removeResults.filter(r => r.error);
@@ -100,6 +100,7 @@ class JobConsumer extends EventEmitter {
         }
     }
 
+    // TODO: remove this calculated stuff....
     pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
         const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
             acc[cur] = 0.00001;

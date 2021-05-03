@@ -2,9 +2,9 @@ const EventEmitter = require('events');
 const { Consumer } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { tracer } = require('@hkube/metrics');
-const etcd = require('../persistency/etcd');
-const queueRunner = require('../queue-runner');
-const component = require('../consts/component-name').JOBS_CONSUMER;
+const etcd = require('./persistency/etcd');
+const queueRunner = require('./queue-runner');
+const component = require('./consts/component-name').JOBS_CONSUMER;
 
 class ConsumerQueues extends EventEmitter {
     constructor() {
@@ -18,6 +18,9 @@ class ConsumerQueues extends EventEmitter {
 
     async init(options) {
         const { queueId } = options;
+        if (!queueId) {
+            throw new Error('queueId is required');
+        }
         this._options = options;
         const consumer = new Consumer({
             setting: {
@@ -38,12 +41,11 @@ class ConsumerQueues extends EventEmitter {
         this._watch();
         this._discoveryData = { queueId };
         await etcd.discoveryRegister({ data: this._discoveryData });
-        await this.updateRegisteredData();
     }
 
     async _handleJob(job) {
         try {
-            const { algorithmName, action } = job.data;
+            const { action, algorithmName } = job.data;
             if (!algorithmName) {
                 log.error('job arrived without algorithm name', { component });
                 return;
@@ -84,7 +86,7 @@ class ConsumerQueues extends EventEmitter {
     async _removeAction(algorithmName) {
         const queue = this._queues.get(algorithmName);
         if (queue) {
-            await queue.stop();
+            queue.stop();
             this._queues.delete(algorithmName);
             await this.updateRegisteredData();
             log.info(`algorithm queue from type ${algorithmName} created`, { component });
@@ -95,8 +97,9 @@ class ConsumerQueues extends EventEmitter {
     }
 
     async updateRegisteredData() {
+        // const algorithms = ['gray-alg', 'white-alg'];
         const algorithms = Array.from(this._queues.keys());
-        await etcd.discoveryUpdate({ ...this._discoveryData, algorithms });
+        await etcd.discoveryUpdate({ ...this._discoveryData, algorithms, timestamp: Date.now() });
     }
 
     _watch() {

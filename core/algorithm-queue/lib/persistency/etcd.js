@@ -3,7 +3,8 @@ const Etcd = require('@hkube/etcd');
 
 class EtcdClient extends EventEmitter {
     async init(options) {
-        await this._watch(options);
+        this._etcd = new Etcd(options.etcd);
+        await this._watch();
     }
 
     async discoveryRegister(options) {
@@ -18,8 +19,7 @@ class EtcdClient extends EventEmitter {
         await this._etcd.jobs.tasks.update({ jobId, taskId, status, error, retries });
     }
 
-    async _watch(options) {
-        this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
+    async _watch() {
         await this._etcd.jobs.status.watch();
         await this._etcd.algorithms.executions.watch();
         this._etcd.jobs.status.on('change', async (data) => {

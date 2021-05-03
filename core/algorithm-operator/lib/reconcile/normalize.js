@@ -7,12 +7,30 @@ const normalizeDeployments = (deploymentsRaw) => {
     }
     const deployments = deploymentsRaw.body.items.map(j => ({
         name: j.metadata.name,
-        algorithmName: j.metadata.labels['algorithm-name'],
+        queueId: j.metadata.labels['queue-id'],
         image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image')),
         imageFull: objectPath.get(j, 'spec.template.spec.containers.0.image'),
         env: objectPath.get(j, 'spec.template.spec.containers.0.env', [])
     }));
     return deployments;
+};
+
+const normalizeQueuesDiscovery = (discovery) => {
+    if (!discovery) {
+        return [];
+    }
+    const algorithmsToQueue = Object.create(null);
+    const queueToAlgorithms = Object.create(null);
+    discovery.forEach((d) => {
+        if (!queueToAlgorithms[d.queueId]) {
+            queueToAlgorithms[d.queueId] = { algorithms: [], timestamp: d.timestamp };
+        }
+        d.algorithms?.forEach((a) => {
+            algorithmsToQueue[a] = d.queueId;
+            queueToAlgorithms[d.queueId].algorithms.push(a);
+        });
+    });
+    return { algorithmsToQueue, queueToAlgorithms };
 };
 
 const normalizeAlgorithms = (algorithmsRaw) => {
@@ -71,6 +89,7 @@ const normalizeSecret = (secret) => {
 
 module.exports = {
     normalizeDeployments,
+    normalizeQueuesDiscovery,
     normalizeAlgorithms,
     normalizeBuildJobs,
     normalizeBoardDeployments,

@@ -35,18 +35,19 @@ class Queue extends events {
         });
         this._producer.start();
 
-        const consumer = new JobConsumer({
+        this._consumer = new JobConsumer({
             algorithmName,
             getWaitingCount: (...args) => this._producer.getWaitingCount(...args),
+            getWaitingJobs: (...args) => this._producer.getWaitingJobs(...args),
             ...options,
         });
-        consumer.on('jobs-add', (jobs) => {
+        this._consumer.on('jobs-add', (jobs) => {
             this.add(jobs);
         });
-        consumer.on('jobs-remove', (jobs) => {
+        this._consumer.on('jobs-remove', (jobs) => {
             this.removeJobs(jobs);
         });
-        consumer.init();
+        this._consumer.init();
     }
 
     stop() {
@@ -59,6 +60,14 @@ class Queue extends events {
         this.queue = [];
         this.tempInsertTasksQueue = [];
         this.tempRemoveJobIDsQueue = [];
+    }
+
+    removeInvalidJob(data) {
+        return this._consumer.removeInvalidJob(data);
+    }
+
+    removeInvalidTasks(data) {
+        return this._consumer.removeInvalidTasks(data);
     }
 
     async persistencyLoad() {

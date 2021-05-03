@@ -1,6 +1,7 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('./consts/componentNames').OPERATOR;
 const db = require('./helpers/db');
+const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
 const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
 const tensorboardReconciler = require('./reconcile/tensorboard');
@@ -40,9 +41,9 @@ class Operator {
             const configMap = await kubernetes.getVersionsConfigMap();
             const { algorithms, count } = await db.getAlgorithmTemplates();
             await Promise.all([
-                this._algorithmBuilds({ ...configMap }, options),
-                this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
-                this._algorithmDebug(configMap, algorithms, options),
+                // this._algorithmBuilds({ ...configMap }, options),
+                // this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
+                // this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
             ]);
         }
@@ -116,10 +117,12 @@ class Operator {
 
     async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms, options, count) {
         this._logAlgorithmCountError(algorithms, count);
+        const discovery = await etcd.getAlgorithmQueues();
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.ALGORITHM_QUEUE}` });
         await algorithmQueueReconciler.reconcile({
             deployments,
             algorithms,
+            discovery,
             versions,
             registry,
             clusterOptions,

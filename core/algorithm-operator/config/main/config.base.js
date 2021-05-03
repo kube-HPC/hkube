@@ -9,6 +9,18 @@ config.boardsIntervalMs = process.env.BOARDS_INTERVAL_MS || 2000;
 config.boardTimeOut = formatter.parseInt(process.env.BOARDS_TIMEOUT, 3 * 60 * 60) * 1000;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.buildMode = process.env.BUILD_MODE || 'kaniko'
+const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
+
+config.algorithmQueueBalancer = {
+    limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_LIMIT, 5)
+}
+
+config.jobs = {
+    producer: {
+        enableCheckStalledJobs: false,
+        prefix: 'algorithm-queue',
+    },
+};
 
 config.db = {
     provider: 'mongo',
@@ -23,6 +35,19 @@ config.db = {
     }
 };
 
+config.redis = {
+    host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
+    port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
+    sentinel: useSentinel,
+};
+
+config.etcd = {
+    protocol: 'http',
+    host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
+    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
+    serviceName: config.serviceName
+};
+
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',
@@ -33,6 +58,7 @@ config.kubernetes = {
 config.jaeger = {
     host: process.env.JAEGER_AGENT_SERVICE_HOST,
 }
+
 config.resources = {
     algorithmQueue: {
         memory: parseFloat(process.env.ALGORITHM_QUEUE_MEMORY) || 256,

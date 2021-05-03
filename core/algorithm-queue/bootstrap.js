@@ -10,7 +10,7 @@ const { tracer } = require('@hkube/metrics');
 const modules = [
     require('./lib/persistency/db'),
     require('./lib/persistency/etcd'),
-    require('./lib/jobs/consumer-queues'),
+    require('./lib/queues-manager'),
     require('./lib/queue-runner'),
     require('./lib/metrics/aggregation-metrics-factory')
 ];

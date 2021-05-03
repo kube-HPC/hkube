@@ -20,7 +20,7 @@ class KubernetesApi extends EventEmitter {
     async createDeployment({ spec }) {
         log.info(`Creating deployment ${spec.metadata.name}`, { component });
         try {
-            const res = await this._client.deployments.create({ spec });
+            // const res = await this._client.deployments.create({ spec });
             return res;
         }
         catch (error) {
@@ -32,7 +32,7 @@ class KubernetesApi extends EventEmitter {
     async updateDeployment({ spec }) {
         log.info(`Updating deployment ${spec.metadata.name}`, { component });
         try {
-            const res = await this._client.deployments.update({ deploymentName: spec.metadata.name, spec });
+            // const res = await this._client.deployments.update({ deploymentName: spec.metadata.name, spec });
             return res;
         }
         catch (error) {
@@ -41,10 +41,10 @@ class KubernetesApi extends EventEmitter {
         return null;
     }
 
-    async deleteDeployment(deploymentName) {
+    async deleteDeployment({ deploymentName }) {
         log.info(`Deleting job ${deploymentName}`, { component });
         try {
-            const res = await this._client.deployments.delete({ deploymentName });
+            // const res = await this._client.deployments.delete({ deploymentName });
             return res;
         }
         catch (error) {
