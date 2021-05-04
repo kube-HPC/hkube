@@ -63,11 +63,10 @@ class Queue extends Events {
         log.info(`new job inserted to queue, queue size: ${this.size}`, { component });
     }
 
-    dequeue() {
-        const job = this.queue.shift();
+    dequeue(job) {
+        remove(this.queue, j => j.jobId === job.jobId);
         this.emit(queueEvents.POP, job);
         log.info(`job pop from queue, queue size: ${this.size}`, { component });
-        return job;
     }
 
     remove(jobId) {
