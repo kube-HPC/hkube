@@ -30,20 +30,20 @@ const _findEmptyQueues = (queueToAlgorithms, normDeployments) => {
         .filter(([k, v]) => !v.algorithms.length
             && Date.now() - v.timestamp > 10000
             && normDeployments.find(d => d.queueId === k))
-        .map(([k, v]) => k);
+        .map(([k]) => k);
     return emptyQueues;
 };
 
 const _findAvailableQueues = (queueToAlgorithms, limit) => {
     const emptyQueues = Object.entries(queueToAlgorithms)
-        .filter(([k, v]) => v.algorithms.length < limit)
+        .filter(([, v]) => v.algorithms.length < limit)
         .map(([k, v]) => ({ queueId: k, current: v.algorithms.length }));
     return emptyQueues;
 };
 
 const _findObsoleteAlgorithms = (algorithmsToQueue, normAlgorithms) => {
     const emptyQueues = Object.entries(algorithmsToQueue)
-        .filter(([k, v]) => !normAlgorithms.find(a => k === a.name))
+        .filter(([k]) => !normAlgorithms.find(a => k === a.name))
         .map(([k, v]) => ({ algorithmName: k, queueId: v }));
     return emptyQueues;
 };
