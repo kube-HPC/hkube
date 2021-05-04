@@ -6,7 +6,7 @@ const etcd = require('./persistency/etcd');
 const queueRunner = require('./queue-runner');
 const component = require('./consts/component-name').JOBS_CONSUMER;
 
-class ConsumerQueues extends EventEmitter {
+class QueuesManager extends EventEmitter {
     constructor() {
         super();
         this._queues = new Map();
@@ -39,8 +39,9 @@ class ConsumerQueues extends EventEmitter {
             }
         });
         this._watch();
-        this._discoveryData = { queueId };
-        await etcd.discoveryRegister({ data: this._discoveryData });
+        this._queueId = queueId;
+        const discovery = this.getDiscoveryData();
+        await etcd.discoveryRegister({ data: discovery });
     }
 
     async _handleJob(job) {
@@ -70,13 +71,17 @@ class ConsumerQueues extends EventEmitter {
     }
 
     async _addAction(algorithmName) {
+        if (this._queues.size === this._options.algorithmQueueBalancer.limit) {
+            log.warning(`max queues limit has been reached, total size: ${this._queues.size}`, { component });
+            return;
+        }
         const queue = this._queues.get(algorithmName);
         if (!queue) {
             const props = { options: this._options, algorithmName };
             const algorithmQueue = queueRunner.create(props);
-            await algorithmQueue.start(props);
             this._queues.set(algorithmName, algorithmQueue);
             await this.updateRegisteredData();
+            await algorithmQueue.start(props);
             log.info(`algorithm queue from type ${algorithmName} created`, { component });
         }
         else {
@@ -99,8 +104,13 @@ class ConsumerQueues extends EventEmitter {
 
     async updateRegisteredData() {
         // const algorithms = ['gray-alg', 'white-alg'];
+        const discovery = this.getDiscoveryData();
+        await etcd.discoveryUpdate(discovery);
+    }
+
+    getDiscoveryData() {
         const algorithms = Array.from(this._queues.keys());
-        await etcd.discoveryUpdate({ ...this._discoveryData, algorithms, timestamp: Date.now() });
+        return { queueId: this._queueId, algorithms, timestamp: Date.now() };
     }
 
     _watch() {
@@ -117,4 +127,4 @@ class ConsumerQueues extends EventEmitter {
     }
 }
 
-module.exports = new ConsumerQueues();
+module.exports = new QueuesManager();

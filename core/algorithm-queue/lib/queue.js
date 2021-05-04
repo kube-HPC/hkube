@@ -29,7 +29,7 @@ class Queue extends events {
         this._producer = new JobProducer({
             producerUpdateInterval: options.producerUpdateInterval,
             algorithmName,
-            getQueue: (...args) => this.get(...args),
+            getQueue: (...args) => this.getQueue(...args),
             addQueue: (...args) => this.add(...args),
             tryPop: (...args) => this.tryPop(...args),
         });
@@ -154,7 +154,11 @@ class Queue extends events {
         this.emit(queueEvents.UPDATE_SCORE, this.queue);
     }
 
-    get() {
+    get get() {
+        return this.queue;
+    }
+
+    getQueue() {
         return this.queue;
     }
 

@@ -52,8 +52,8 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     const { limit } = options.algorithmQueueBalancer;
     const version = findVersion({ versions, repositoryName: CONTAINERS.ALGORITHM_QUEUE });
     const { algorithmsToQueue, queueToAlgorithms } = normalizeQueuesDiscovery(discovery);
-    const normAlgorithms = normalizeAlgorithms(algorithms).filter(a => a.name === 'green-alg');
-    const normDeployments = normalizeDeployments(deployments).slice(0, 0);
+    const normAlgorithms = normalizeAlgorithms(algorithms);
+    const normDeployments = normalizeDeployments(deployments);
     const emptyQueues = _findEmptyQueues(queueToAlgorithms, normDeployments);
     const availableQueues = _findAvailableQueues(queueToAlgorithms, limit);
     const requiredDeployments = Math.ceil(normAlgorithms.length / limit);

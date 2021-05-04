@@ -8,29 +8,28 @@ const stubTemplate = ({
     score = Math.floor((Math.random() * 100)),
     entranceTime = Date.now()
 } = {}) => (
-        {
-            jobId: `${uuid}`,
-            taskId: `task-${uuid}`,
-            pipelineName: `${pipelineUuid}`,
-            input: 'data',
-            nodeName: `nodeName-${uuidv4()}`,
+    {
+        jobId: `${uuid}`,
+        taskId: `task-${uuid}`,
+        pipelineName: pipelineUuid,
+        input: [],
+        nodeName: `nodeName-${uuidv4()}`,
+        entranceTime,
+        attempts: 1,
+        priority: priority,
+        algorithmName: algorithmName,
+        batchIndex: batchIndex,
+        calculated: {
+            score: score,
             entranceTime,
-            attempts: 1,
-            priority: `${priority}`,
-            algorithmName: `${algorithmName}`,
-            batchIndex: `${batchIndex}`,
-            calculated: {
-                score: `${score}`,
-                entranceTime: `${entranceTime}`,
-                enrichment: {
-                    batchIndex: {}
-                },
-                latestScores: {
-
-                }
+            enrichment: {
+                batchIndex: {}
+            },
+            latestScores: {
             }
         }
-    );
+    }
+);
 
 const stubTask = (batchIndex) => ({
     taskId: `taskId-${uuidv4()}`,
