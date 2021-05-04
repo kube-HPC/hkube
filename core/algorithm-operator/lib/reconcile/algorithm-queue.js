@@ -5,6 +5,7 @@ const kubernetes = require('../helpers/kubernetes');
 const jobProducer = require('../producer/jobs-producer');
 const { findVersion } = require('../helpers/images');
 const component = require('../consts/componentNames').ALGORITHM_QUEUE_RECONCILER;
+const QueueActions = require('../consts/queue-actions');
 const { normalizeDeployments, normalizeQueuesDiscovery, normalizeAlgorithms } = require('./normalize');
 const CONTAINERS = require('../consts/containers');
 
@@ -78,7 +79,7 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
             }
             const { queueId } = availableQueue;
             const algorithmName = addAlgorithms[i].name;
-            await jobProducer.createJob({ queueId, action: 'add', algorithmName }); // eslint-disable-line
+            await jobProducer.createJob({ queueId, action: QueueActions.ADD, algorithmName }); // eslint-disable-line
             availableQueue.current += 1;
             if (availableQueue.current === limit) {
                 availableQueues.shift();
@@ -88,7 +89,7 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
 
     for (const algorithm of removeAlgorithms) {
         const { queueId, algorithmName } = algorithm;
-        await jobProducer.createJob({ queueId, action: 'remove', algorithmName }); // eslint-disable-line
+        await jobProducer.createJob({ queueId, action: QueueActions.REMOVE, algorithmName }); // eslint-disable-line
     }
 
     for (const queueId of emptyQueues) {
