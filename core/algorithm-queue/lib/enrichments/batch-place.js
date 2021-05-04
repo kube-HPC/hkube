@@ -24,9 +24,6 @@ const BatchPlace = (queue) => {
         const { currentBatchPlace, currentBatchLength, previousBatchLength } = task.calculated.enrichment.batchIndex;
 
         task.calculated.enrichment.batchIndex.currentBatchPlace = currentBatchPlace - (previousBatchLength - currentBatchLength);
-        if (isNaN(task.calculated.enrichment.batchIndex.currentBatchPlace)) {
-            return currentBatchPlace;
-        }
     });
 };
 
