@@ -1,17 +1,15 @@
 
 const { expect } = require('chai');
 const { generateArr, stubTemplate } = require('./stub/stub');
-const delay = require('await-delay');
 const queueEvents = require('../lib/consts/queue-events');
 const { semaphore } = require('await-done');
 const bootstrap = require('../bootstrap');
-const queuesManager = require('../lib/queues-manager');
-const queueRunner = require('../lib/queue-runner');
-let config;
+let config, queuesManager, queueRunner;
 const algorithmName = 'green-alg'
-const QUEUE_INTERVAL = 500;
+let _semaphore = null;
+let queue = null;
 
-const heuristic = score => job => ({ ...job, ...{ calculated: { score, entranceTime: Date.now(), latestScore: {} } } });
+const heuristic = score => job => ({ ...job, ...{ calculated: { enrichment: { batchIndex: {} }, score, entranceTime: Date.now(), latestScore: {} } } });
 const heuristicBoilerPlate = (score, _heuristic) => ({
     run(job) {
         return _heuristic(score)(job);
@@ -21,6 +19,13 @@ const heuristicBoilerPlate = (score, _heuristic) => ({
 describe('Test', () => {
     before(async () => {
         config = await bootstrap.init();
+        queuesManager = require('../lib/queues-manager');
+        queueRunner = require('../lib/queue-runner');
+    });
+    beforeEach(async () => {
+        queue = queueRunner.create({ options: config, algorithmName })
+        await queue.start({ options: config, algorithmName });
+        _semaphore = new semaphore();
     });
     describe('algorithm queue', () => {
         it('should add queue to list', async () => {
@@ -45,18 +50,11 @@ describe('Test', () => {
     });
     describe('algorithm queue', () => {
         describe('queue-tests', () => {
-            let _semaphore = null;
-            let queue = null;
-            beforeEach(async () => {
-                queue = queueRunner.create({ options: config, algorithmName })
-                await queue.start({ options: config, algorithmName });
-                _semaphore = new semaphore();
-            });
             describe('add', () => {
                 it('should added to queue', async () => {
                     queue.updateHeuristic(heuristicBoilerPlate(80, heuristic));
                     queue.add([stubTemplate()]);
-                    await delay(QUEUE_INTERVAL + 500);
+                    await queue._intervalUpdateCallback();
                     const q = queue.get;
                     expect(q[0].calculated.score).to.eql(80);
                 });
@@ -69,7 +67,6 @@ describe('Test', () => {
                     queue.add([stubTemplate()]);
                     expect(queue.get[0].calculated.score).to.eql(90);
                     expect(queue.get[2].calculated.score).to.eql(60);
-                    queue.intervalRunningStatus = false;
                 });
             });
             describe('remove', () => {
@@ -116,7 +113,7 @@ describe('Test', () => {
                 });
             });
             describe('queue-runner', () => {
-                it.only('check-that-heuristics-sets-to-latestScore', async () => {
+                it.skip('check-that-heuristics-sets-to-latestScore', async () => {
                     const stubJob = stubTemplate();
                     queue.add([stubJob]);
                     await queue._intervalUpdateCallback();
@@ -132,34 +129,21 @@ describe('Test', () => {
                 it('check events insert', async () => {
                     queue.on(queueEvents.INSERT, () => _semaphore.callDone());
                     queue.updateHeuristic({ run: heuristic(80) });
-                    queue.intervalRunningStatus = false;
                     queue.add([stubTemplate()]);
                     await _semaphore.done();
                 });
                 it('check events remove', async () => {
                     queue.on(queueEvents.REMOVE, () => _semaphore.callDone());
                     queue.updateHeuristic({ run: heuristic(80) });
-                    queue.intervalRunningStatus = false;
                     const stubJob = stubTemplate();
                     queue.add([stubJob]);
                     await queue.removeJobs([{ jobId: stubJob.jobId }]);
                     await _semaphore.done();
                 });
             });
-            afterEach(() => {
-                queue.intervalRunningStatus = false;
-            });
-            after(() => {
-                queue.flush();
-            });
         });
     });
     describe('persistency tests', () => {
-        let queue = null;
-        beforeEach(async () => {
-            queue = queueRunner.create({ options: config, algorithmName })
-            await queue.start({ options, algorithmName });
-        });
         it('persistent load', async () => {
             queue.flush()
             const arr = generateArr(100);
@@ -169,10 +153,6 @@ describe('Test', () => {
             await queue.persistencyLoad();
             const q = queue.get;
             expect(q.length).to.be.eql(100);
-            expect(q.map(i => i.jobId)).to.be.eql(arr.map(i => i.jobId));
-            await queue.persistenceStore();
-            queue.flush();
-            await queue.persistenceStore();
         });
     });
     describe('test jobs order', () => {
@@ -182,9 +162,6 @@ describe('Test', () => {
             const q = queue.get;
             expect(q.length).to.be.eql(100);
         });
-    });
-    afterEach(() => {
-
     });
 });
 

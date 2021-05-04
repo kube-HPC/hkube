@@ -2,7 +2,7 @@ const events = require('events');
 const orderBy = require('lodash.orderby');
 const remove = require('lodash.remove');
 const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('./consts/component-name');
+const component = require('./consts/component-name').QUEUE;
 const queueEvents = require('./consts/queue-events');
 const JobProducer = require('./jobs/producer');
 const JobConsumer = require('./jobs/consumer');
@@ -10,7 +10,7 @@ const JobConsumer = require('./jobs/consumer');
 class Queue extends events {
     constructor({ scoreHeuristic = { run: null }, updateInterval = 1000, persistence = null, enrichmentRunner = { run: null } } = {}) {
         super();
-        log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component: components.QUEUE });
+        log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component });
         this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
         this.enrichmentRunner = enrichmentRunner.run ? enrichmentRunner.run.bind(enrichmentRunner) : enrichmentRunner.run;
         this.updateInterval = updateInterval;
@@ -71,31 +71,31 @@ class Queue extends events {
     }
 
     async persistencyLoad() {
-        log.info('try to recover data from persistent storage', { component: components.QUEUE });
+        log.info('try to recover data from persistent storage', { component });
         if (this.persistence) {
             try {
                 const queueItems = await this.persistence.get();
                 this.add(queueItems);
-                log.info('persistent added successfully', { component: components.QUEUE });
+                log.info('persistent added successfully', { component });
             }
             catch (e) {
-                log.warning('could not add data from persistency ', { component: components.QUEUE });
+                log.warning('could not add data from persistency ', { component });
             }
         }
         else {
-            log.warning('persistency storage was not set ', { component: components.QUEUE });
+            log.warning('persistency storage was not set ', { component });
         }
     }
 
     async persistenceStore() {
-        log.debug('try to store data to  storage', { component: components.QUEUE });
+        log.debug('try to store data to  storage', { component });
         if (this.persistence) {
             const pendingAmount = await this._producer.getWaitingCount();
             await this.persistence.store({ data: this.queue, pendingAmount });
-            log.debug('store data to storage succeed', { component: components.QUEUE });
+            log.debug('store data to storage succeed', { component });
         }
         else {
-            log.warning('persistent storage not set', { component: components.QUEUE });
+            log.warning('persistent storage not set', { component });
         }
     }
 
@@ -109,14 +109,14 @@ class Queue extends events {
         if (this.scoreHeuristic) {
             const calculatedTasks = tasks.map(task => this.scoreHeuristic(task));
             if (this.isScoreDuringUpdate) {
-                log.debug('add -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE });
+                log.debug('add -  score is currently updated so the remove is added to the temp arr ', { component });
                 this.tempInsertTasksQueue = this.tempInsertTasksQueue.concat(calculatedTasks);
                 return;
             }
             this._insert(calculatedTasks);
         }
         else {
-            log.warning('score heuristic is not defined', { component: components.QUEUE });
+            log.warning('score heuristic is not defined', { component });
         }
     }
 
@@ -125,7 +125,7 @@ class Queue extends events {
             tasks.forEach((t) => {
                 const res = remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId && q.status === 'preschedule');
                 res.forEach((r) => {
-                    log.warning(`found duplicate task ${r.taskId} with status ${r.status}, new task status: ${t.status}`, { component: components.QUEUE });
+                    log.warning(`found duplicate task ${r.taskId} with status ${r.status}, new task status: ${t.status}`, { component });
                 });
             });
         }
@@ -142,7 +142,7 @@ class Queue extends events {
 
     removeJobs(jobs) {
         if (this.isScoreDuringUpdate) {
-            log.debug('remove -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE });
+            log.debug('remove -  score is currently updated so the remove is added to the temp arr ', { component });
             this.tempRemoveJobIDsQueue.push(...jobs);
             return;
         }
@@ -162,18 +162,14 @@ class Queue extends events {
         return this.queue;
     }
 
-    set intervalRunningStatus(status) {
-        this.isIntervalRunning = status;
-    }
-
     _insert(taskArr) {
         if (taskArr.length === 0) {
-            log.debug('there is no new inserted jobs', { component: components.QUEUE });
+            log.debug('there is no new inserted jobs', { component });
             return;
         }
         this.queue = orderBy([...this.queue, ...taskArr], j => j.calculated.score, 'desc');
         this.emit(queueEvents.INSERT, taskArr);
-        log.info(`${taskArr.length} new jobs inserted to queue jobs`, { component: components.QUEUE });
+        log.info(`${taskArr.length} new jobs inserted to queue jobs`, { component });
     }
 
     _orderQueue() {
@@ -182,7 +178,7 @@ class Queue extends events {
 
     _removeJobs(jobs) {
         if (jobs.length === 0) {
-            log.debug('there is no deleted jobs', { component: components.QUEUE });
+            log.debug('there is no deleted jobs', { component });
             return;
         }
         const removedTasks = [];
@@ -194,7 +190,7 @@ class Queue extends events {
         if (removedTasks.length === 0) {
             return;
         }
-        log.info(`${removedTasks.length} removed from queue`, { component: components.QUEUE });
+        log.info(`${removedTasks.length} removed from queue`, { component });
         this.emit(queueEvents.REMOVE, removedTasks);
     }
 
@@ -216,7 +212,7 @@ class Queue extends events {
                 await this._intervalUpdateCallback();
             }
             catch (error) {
-                log.throttle.error(`fail on queue interval ${error}`, { component: components.QUEUE }, error);
+                log.throttle.error(`fail on queue interval ${error}`, { component }, error);
             }
             finally {
                 if (this.isIntervalRunning) {
@@ -230,7 +226,7 @@ class Queue extends events {
         this.isScoreDuringUpdate = true;
         await this.enrichmentRunner(this.queue);
         this.updateScore();
-        log.debug('queue update score cycle starts', { component: components.QUEUE });
+        log.debug('queue update score cycle starts', { component });
         this._mergeTemp();
         this._orderQueue();
         await this.persistenceStore();

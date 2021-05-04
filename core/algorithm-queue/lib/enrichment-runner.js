@@ -9,7 +9,7 @@ class EnrichmentRunner {
         this.enrichmentMap.push(enrichment);
     }
 
-    async run(queue) {
+    run(queue) {
         this.enrichmentMap.forEach(e => e(queue));
     }
 }

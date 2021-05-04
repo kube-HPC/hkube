@@ -9,7 +9,7 @@ const { createContainerResourceByFactor } = require('../helpers/kubernetes-utils
 const CONTAINERS = require('../consts/containers');
 const { settings } = require('../helpers/settings');
 
-const applyAlgorithmName = (inputSpec, queueId, containerName) => {
+const applyQueueId = (inputSpec, queueId, containerName) => {
     const spec = clonedeep(inputSpec);
     spec.metadata.labels['queue-id'] = queueId;
     spec.spec.template.metadata.labels['queue-id'] = queueId;
@@ -47,13 +47,13 @@ const applyResources = (inputSpec, resources) => {
 
 const createDeploymentSpec = ({ queueId, versions, registry, clusterOptions, resources, options }) => {
     if (!queueId) {
-        const msg = 'Unable to create deployment spec. algorithmName is required';
+        const msg = 'Unable to create deployment spec. queueId is required';
         log.error(msg, { component });
         throw new Error(msg);
     }
     let spec = clonedeep(algorithmQueueTemplate);
     spec = applyName(spec, queueId, CONTAINERS.ALGORITHM_QUEUE);
-    spec = applyAlgorithmName(spec, queueId, CONTAINERS.ALGORITHM_QUEUE);
+    spec = applyQueueId(spec, queueId, CONTAINERS.ALGORITHM_QUEUE);
     spec = applyImage(spec, CONTAINERS.ALGORITHM_QUEUE, versions, registry);
     spec = applyJaeger(spec, CONTAINERS.ALGORITHM_QUEUE, options);
     spec = applyNodeSelector(spec, clusterOptions);
@@ -68,5 +68,5 @@ const createDeploymentSpec = ({ queueId, versions, registry, clusterOptions, res
 module.exports = {
     createDeploymentSpec,
     applyNodeSelector,
-    applyAlgorithmName
+    applyQueueId
 };
