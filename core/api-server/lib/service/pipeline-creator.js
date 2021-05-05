@@ -3,6 +3,7 @@ const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
 const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
 const gatewayService = require('./gateway');
+const debugService = require('./debug');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
@@ -92,28 +93,48 @@ class PipelineCreator {
         return newPipeline;
     }
 
+    async fillDebug(pipeline) {
+        let debugAlgo = pipeline.debugNodes;
+        if (!debugAlgo) {
+            debugAlgo = [];
+        }
+        const debugUrls = [];
+        for (const node of pipeline.nodes) { // eslint-disable-line
+            if (debugAlgo.includes(node.nodeName)) {
+                const { nodeName, algorithmName: originalAlg } = node;
+                const { algorithmName, url } = await debugService.createDebug({ originalAlg }); // eslint-disable-line
+                node.algorithmName = algorithmName; // eslint-disable-line
+                debugUrls.push({ nodeName, url });
+            }
+        }
+        return {
+            ...pipeline,
+            debugUrls
+        };
+    }
+
     /**
-     * This method accept pipeline and check if it is streaming with flows.
-     * If it has flows, it creates edges and parsed flow.
-     * @example
-     * input
-     *   streaming: {
-     *        flows: {
-     *           analyze: "A >> B&C , C >> D"
-     *        }}
-     *
-     * output
-     *   edges: [{"source":"A","target":"B"},
-     *           {"source":"A","target":"C"},
-     *           {"source":"C","target":"D"}]
-     *
-     *   streaming: {
-     *        parsedFlow: {
-     *           analyze: [{ source: "A", next: ["B", "C"]}
-     *                     { source: "C", next: ["D"]}]
-     *        }}
-     *
-     */
+         * This method accept pipeline and check if it is streaming with flows.
+         * If it has flows, it creates edges and parsed flow.
+         * @example
+         * input
+         *   streaming: {
+         *        flows: {
+         *           analyze: "A >> B&C , C >> D"
+         *        }}
+         *
+         * output
+         *   edges: [{"source":"A","target":"B"},
+         *           {"source":"A","target":"C"},
+         *           {"source":"C","target":"D"}]
+         *
+         *   streaming: {
+         *        parsedFlow: {
+         *           analyze: [{ source: "A", next: ["B", "C"]}
+         *                     { source: "C", next: ["D"]}]
+         *        }}
+         *
+         */
     async buildStreamingFlow(pipeline, jobId) {
         const flows = pipeline.streaming?.flows;
         let defaultFlow = pipeline.streaming?.defaultFlow;

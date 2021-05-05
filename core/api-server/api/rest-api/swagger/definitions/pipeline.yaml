@@ -14,6 +14,9 @@ properties:
     description: Array of nodes
     items:
       $ref: "#/components/schemas/pipelineNode"
+  debugAlgorithms:
+    items:
+      type: string
   flowInput:
     type: object
     description: input object

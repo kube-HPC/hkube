@@ -245,6 +245,11 @@ const getJavaMaxMem = (memory) => {
     const javaValue = Math.round(val * 0.8);
     return javaValue;
 };
+const removeAlgorithm = (inputSpec) => {
+    const spec = clonedeep(inputSpec);
+    spec.spec.template.spec.containers = inputSpec.spec.template.spec.containers.filter(c => c.name === CONTAINERS.ALGORITHM);
+    return spec;
+};
 const createJobSpec = ({ algorithmName, kind, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, algorithmOptions,
     nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
     if (!algorithmName) {
@@ -291,6 +296,10 @@ const createJobSpec = ({ algorithmName, kind, resourceRequests, workerImage, alg
 
     if (kind === nodeKind.Gateway) {
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, gatewayEnv);
+    }
+    if (kind === nodeKind.Debug) {
+        spec = removeAlgorithm(spec);
+        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { DEBUG_MODE: true });
     }
 
     return spec;
