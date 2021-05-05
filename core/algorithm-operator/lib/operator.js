@@ -159,7 +159,7 @@ class Operator {
             finally {
                 this._isIntervalActive = false;
             }
-        }, this._intervalMs);
+        }, this._intervalMs / 2);
     }
 
     _logAlgorithmCountError(algorithms, count) {

@@ -27,7 +27,7 @@ const _deleteDeployment = async ({ queueId }) => {
     await kubernetes.deleteDeployment({ deploymentName: `${CONTAINERS.ALGORITHM_QUEUE}-${queueId}` });
 };
 
-const _findEmptyQueues = (queueToAlgorithms, normDeployments) => {
+const _findEmptyQueues = ({ queueToAlgorithms, normDeployments }) => {
     const emptyQueues = Object.entries(queueToAlgorithms)
         .filter(([k, v]) => !v.count
             && Date.now() - v.timestamp > 30000
@@ -36,21 +36,21 @@ const _findEmptyQueues = (queueToAlgorithms, normDeployments) => {
     return emptyQueues;
 };
 
-const _findAvailableQueues = (queueToAlgorithms, limit) => {
+const _findAvailableQueues = ({ queueToAlgorithms, limit }) => {
     const queues = Object.entries(queueToAlgorithms)
         .filter(([, v]) => v.count < limit)
         .map(([k, v]) => ({ queueId: k, count: v.count }));
     return queues;
 };
 
-const _findObsoleteAlgorithms = (algorithmsToQueue, normAlgorithms) => {
+const _findObsoleteAlgorithms = ({ algorithmsToQueue, normAlgorithms }) => {
     const emptyQueues = Object.entries(algorithmsToQueue)
         .filter(([k]) => !normAlgorithms.find(a => k === a.name))
         .map(([k, v]) => ({ algorithmName: k, queueId: v }));
     return emptyQueues;
 };
 
-const _matchAlgorithmsToQueue = async (algorithms, queues, limit) => {
+const _matchAlgorithmsToQueue = async ({ algorithms, queues, limit }) => {
     if (algorithms.length && queues.length) {
         for (let i = 0; i < algorithms.length; i += 1) {
             const sortedQueues = orderBy(queues, 'count');
@@ -69,22 +69,36 @@ const _matchAlgorithmsToQueue = async (algorithms, queues, limit) => {
     }
 };
 
-const _removeAlgorithmsFromQueue = async (algorithms) => {
+const _removeAlgorithmsFromQueue = async ({ algorithms }) => {
     for (const algorithm of algorithms) {
         const { queueId, algorithmName } = algorithm;
         await jobProducer.createJob({ queueId, action: QueueActions.REMOVE, algorithmName }); // eslint-disable-line
     }
 };
 
-const _removeDuplicatesAlgorithms = async (algorithms) => {
+const _removeDuplicatesAlgorithms = async ({ algorithms }) => {
     if (algorithms.length) {
         log.warning(`found ${algorithms.length} duplicates algorithms`, { component });
-        await _removeAlgorithmsFromQueue(algorithms);
+        await _removeAlgorithmsFromQueue({ algorithms });
     }
 };
 
 const _createQueueId = () => {
     return uid({ length: 12 });
+};
+
+const _addDeployments = async ({ limit, normAlgorithms, normDeployments, versions, registry, clusterOptions, resources, options }) => {
+    if (limit > 0) {
+        const requiredDeployments = Math.ceil(normAlgorithms.length / limit);
+        const missingDeployments = requiredDeployments - normDeployments.length;
+        for (let i = 0; i < missingDeployments; i += 1) {
+            const queueId = _createQueueId();
+            await _createDeployment({ queueId, options: { versions, registry, clusterOptions, resources, options } }); // eslint-disable-line
+        }
+    }
+    else {
+        log.throttle.warning(`invalid deployments queue limit "${limit}"`, { component });
+    }
 };
 
 const reconcile = async ({ deployments, algorithms, discovery, versions, registry, clusterOptions, resources, options } = {}) => {
@@ -93,25 +107,17 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     const { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms } = normalizeQueuesDiscovery(discovery);
     const normAlgorithms = normalizeAlgorithms(algorithms);
     const normDeployments = normalizeDeployments(deployments);
-    const emptyQueues = _findEmptyQueues(queueToAlgorithms, normDeployments);
-    const availableQueues = _findAvailableQueues(queueToAlgorithms, limit);
-    const requiredDeployments = Math.ceil(normAlgorithms.length / limit);
-    const missingDeployments = requiredDeployments - normDeployments.length;
+    const emptyQueues = _findEmptyQueues({ queueToAlgorithms, normDeployments });
+    const availableQueues = _findAvailableQueues({ queueToAlgorithms, limit });
     const updated = normDeployments.filter(d => d.image.tag !== version);
     const addAlgorithms = normAlgorithms.filter(a => !algorithmsToQueue[a.name]);
-    const removeAlgorithms = _findObsoleteAlgorithms(algorithmsToQueue, normAlgorithms);
-
+    const removeAlgorithms = _findObsoleteAlgorithms({ algorithmsToQueue, normAlgorithms });
     const createPromises = [];
-    const reconcileResult = {};
 
-    for (let i = 0; i < missingDeployments; i += 1) {
-        const queueId = _createQueueId();
-        await _createDeployment({ queueId, options: { versions, registry, clusterOptions, resources, options } }); // eslint-disable-line
-    }
-
-    await _matchAlgorithmsToQueue(addAlgorithms, availableQueues, limit);
-    await _removeAlgorithmsFromQueue(removeAlgorithms);
-    await _removeDuplicatesAlgorithms(duplicateAlgorithms);
+    await _addDeployments({ limit, normAlgorithms, normDeployments, versions, registry, clusterOptions, resources, options });
+    await _matchAlgorithmsToQueue({ algorithms: addAlgorithms, queues: availableQueues, limit });
+    await _removeAlgorithmsFromQueue({ algorithms: removeAlgorithms });
+    await _removeDuplicatesAlgorithms({ algorithms: duplicateAlgorithms });
 
     for (const queueId of emptyQueues) {
         createPromises.push(_deleteDeployment({ queueId }));
@@ -122,19 +128,18 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     }
 
     await Promise.all(createPromises);
-    return reconcileResult;
 };
 
 const reconcileDevMode = async ({ algorithms, discovery, options } = {}) => {
     const { limit } = options.algorithmQueueBalancer;
     const { algorithmsToQueue, queueToAlgorithms } = normalizeQueuesDiscovery(discovery);
     const normAlgorithms = normalizeAlgorithms(algorithms);
-    const availableQueues = _findAvailableQueues(queueToAlgorithms, limit);
+    const availableQueues = _findAvailableQueues({ queueToAlgorithms, limit });
     const addAlgorithms = normAlgorithms.filter(a => !algorithmsToQueue[a.name]);
-    const removeAlgorithms = _findObsoleteAlgorithms(algorithmsToQueue, normAlgorithms);
+    const removeAlgorithms = _findObsoleteAlgorithms({ algorithmsToQueue, normAlgorithms });
 
-    await _matchAlgorithmsToQueue(addAlgorithms, availableQueues, limit);
-    await _removeAlgorithmsFromQueue(removeAlgorithms);
+    await _matchAlgorithmsToQueue({ algorithms: addAlgorithms, queues: availableQueues, limit });
+    await _removeAlgorithmsFromQueue({ algorithms: removeAlgorithms });
 };
 
 module.exports = {
