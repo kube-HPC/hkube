@@ -37,10 +37,9 @@ const _findEmptyQueues = (queueToAlgorithms, normDeployments) => {
 };
 
 const _findAvailableQueues = (queueToAlgorithms, limit) => {
-    const emptyQueues = Object.entries(queueToAlgorithms)
+    const queues = Object.entries(queueToAlgorithms)
         .filter(([, v]) => v.count < limit)
         .map(([k, v]) => ({ queueId: k, count: v.count }));
-    const queues = orderBy(emptyQueues, 'count');
     return queues;
 };
 
@@ -54,7 +53,8 @@ const _findObsoleteAlgorithms = (algorithmsToQueue, normAlgorithms) => {
 const _matchAlgorithmsToQueue = async (algorithms, queues, limit) => {
     if (algorithms.length && queues.length) {
         for (let i = 0; i < algorithms.length; i += 1) {
-            const availableQueue = queues[0];
+            const sortedQueues = orderBy(queues, 'count');
+            const availableQueue = sortedQueues[0];
             if (!availableQueue) {
                 break;
             }
@@ -63,7 +63,7 @@ const _matchAlgorithmsToQueue = async (algorithms, queues, limit) => {
             await jobProducer.createJob({ queueId, action: QueueActions.ADD, algorithmName }); // eslint-disable-line
             availableQueue.count += 1;
             if (availableQueue.count === limit) {
-                queues.shift();
+                sortedQueues.shift();
             }
         }
     }
