@@ -52,7 +52,7 @@ const _findObsoleteAlgorithms = (algorithmsToQueue, normAlgorithms) => {
 };
 
 const _matchAlgorithmsToQueue = async (algorithms, queues, limit) => {
-    if (algorithms.length && algorithms.length) {
+    if (algorithms.length && queues.length) {
         for (let i = 0; i < algorithms.length; i += 1) {
             const availableQueue = queues[0];
             if (!availableQueue) {
