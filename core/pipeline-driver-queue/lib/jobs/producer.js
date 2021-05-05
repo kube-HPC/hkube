@@ -7,7 +7,6 @@ const { componentName } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
 const persistence = require('../persistency/persistence');
 const queueRunner = require('../queue-runner');
-const JOB_ID_PREFIX_REGEX = /.+:(.+:)?/;
 
 class JobProducer {
     constructor() {
@@ -41,7 +40,7 @@ class JobProducer {
             if (queue.length > 0) {
                 const pendingAmount = await this._redisQueue.getWaitingCount();
                 if (pendingAmount === 0) {
-                    await this.createJob();
+                    await this.createJob(queue[0]);
                 }
             }
         }
@@ -76,10 +75,10 @@ class JobProducer {
             log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: Events.ACTIVE });
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.COMPLETED });
-            this._checkMaxExceeded(data.jobId);
+            this._checkMaxExceeded(data.options.data);
         }).on(Events.FAILED, (data) => {
             log.info(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: Events.FAILED });
-            this._checkMaxExceeded(data.jobId);
+            this._checkMaxExceeded(data.options.data);
         }).on(Events.STALLED, (data) => {
             log.warning(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.STALLED });
         }).on(Events.CRASHED, async (data) => {
@@ -92,15 +91,13 @@ class JobProducer {
         });
     }
 
-    _checkMaxExceeded(jobId) {
-        const prefix = jobId.match(JOB_ID_PREFIX_REGEX);
-        if (prefix) {
-            const jobIdPrefix = prefix[0];
-            const job = queueRunner.queue.getQueue(q => q.maxExceeded).find(q => q.jobId.startsWith(jobIdPrefix));
-            if (job) {
-                log.info(`found and disable job with prefix ${jobIdPrefix} that marked as maxExceeded`, { component });
-                job.maxExceeded = false;
-            }
+    _checkMaxExceeded({ experiment, pipeline }) {
+        const job = queueRunner.queue
+            .getQueue(q => q.maxExceeded)
+            .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+        if (job) {
+            log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
+            job.maxExceeded = false;
         }
     }
 
@@ -111,7 +108,8 @@ class JobProducer {
                 type: this._jobType,
                 data: {
                     jobId: pipeline.jobId,
-                    pipeline: pipeline.pipelineName
+                    pipeline: pipeline.pipelineName,
+                    experiment: pipeline.experimentName
                 }
             },
             queue: {
@@ -126,11 +124,11 @@ class JobProducer {
         };
     }
 
-    async createJob() {
-        const pipeline = queueRunner.queue.dequeue();
-        log.debug(`creating new job ${pipeline.jobId}, calculated score: ${pipeline.score}`, { component });
-        const job = this._pipelineToJob(pipeline);
-        await this._producer.createJob(job);
+    async createJob(job) {
+        queueRunner.queue.dequeue(job);
+        log.debug(`creating new job ${job.jobId}, calculated score: ${job.score}`, { component });
+        const jobData = this._pipelineToJob(job);
+        await this._producer.createJob(jobData);
     }
 }
 

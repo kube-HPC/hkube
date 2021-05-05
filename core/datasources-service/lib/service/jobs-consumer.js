@@ -139,9 +139,18 @@ class JobConsumer {
             await repository.ensureClone(dataSource.commitHash);
             await repository.pullFiles();
         } catch (e) {
+            let message = `could not clone the datasource ${dataSource.name}. ${e.message}`;
+            if (typeof e === 'string') {
+                if (e.match(/files do not exist/i)) {
+                    message = `could not clone the datasource ${dataSource.name}. 
+                        MISSING FILES: The storage is not synced with the git repository`;
+                } else {
+                    message = `could not clone the datasource ${dataSource.name}. ${e}`;
+                }
+            }
             return this.handleFail({
                 ...job,
-                error: `could not clone the datasource ${dataSource.name}. ${e.message}`,
+                error: message,
             });
         }
 

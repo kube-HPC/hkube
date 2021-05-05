@@ -16,6 +16,7 @@ RUN curl \
 
 RUN apt update && apt install -y --no-install-recommends git dvc && rm -rf /var/lib/apt/lists/*
 ADD dockerfile/gitconfig /.gitconfig
+ADD dockerfile/gitconfig /root/.gitconfig
 RUN mkdir -p /hkube/datasource-service
 WORKDIR /hkube/datasource-service
 COPY . /hkube/datasource-service
