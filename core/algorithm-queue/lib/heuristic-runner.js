@@ -6,16 +6,13 @@ const log = Logger.GetLogFromContainer();
 
 class heuristicRunner {
     constructor(heuristicsWeights) {
-        this.config = null;
         this.heuristicMap = [];
-        this.heuristicsWeights = heuristicsWeights;
-        Object.values(heuristics).map(v => this.addHeuristicToQueue(v));
-        log.info('heuristic wights was set', { component: components.HEURISTIC_RUNNER });
+        Object.values(heuristics).map(v => this.addHeuristicToQueue(heuristicsWeights, v));
     }
 
-    addHeuristicToQueue(heuristic) {
-        if (this.heuristicsWeights[heuristic.name]) {
-            this.heuristicMap.push({ name: heuristic.name, heuristic: heuristic.algorithm(this.heuristicsWeights[heuristic.name]), weight: this.heuristicsWeights[heuristic.name] });
+    addHeuristicToQueue(heuristicsWeights, heuristic) {
+        if (heuristicsWeights[heuristic.name]) {
+            this.heuristicMap.push({ name: heuristic.name, heuristic: heuristic.algorithm(heuristicsWeights[heuristic.name]), weight: heuristicsWeights[heuristic.name] });
         }
         else {
             log.info('couldnt find weight for heuristic ', { component: components.HEURISTIC_RUNNER });

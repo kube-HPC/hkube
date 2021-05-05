@@ -25,7 +25,9 @@ class Bootstrap {
             this._handleErrors();
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
             setFromConfig(main);
-            await Promise.all(modules.map(m => m.init(main)));
+            for (const m of modules) {
+                await m.init(main);  // eslint-disable-line
+            }
             await healthcheck.init({ port: main.healthchecks.port });
             healthcheck.start(main.healthchecks.path, () => operator.checkHealth(main.healthchecks.maxDiff), 'health');
         }

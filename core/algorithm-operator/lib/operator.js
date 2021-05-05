@@ -18,8 +18,14 @@ class Operator {
         this._boardsInterval = this._boardsInterval.bind(this);
         this._lastIntervalTime = null;
         this._lastIntervalBoardTime = null;
-        this._interval(options);
-        this._boardsInterval(options);
+
+        if (options.isDevMode) {
+            this._algorithmQueueDevMode({ options });
+        }
+        else {
+            this._interval(options);
+            this._boardsInterval(options);
+        }
     }
 
     checkHealth(maxDiff) {
@@ -129,6 +135,31 @@ class Operator {
             resources,
             options
         });
+    }
+
+    async _algorithmQueueDevMode({ options }) {
+        setInterval(async () => {
+            if (this._isIntervalActive) {
+                return;
+            }
+            try {
+                this._isIntervalActive = true;
+                const { algorithms } = await db.getAlgorithmTemplates();
+                const discovery = await etcd.getAlgorithmQueues();
+
+                await algorithmQueueReconciler.reconcileDevMode({
+                    algorithms,
+                    discovery,
+                    options
+                });
+            }
+            catch (e) {
+                log.throttle.error(e, { component }, e);
+            }
+            finally {
+                this._isIntervalActive = false;
+            }
+        }, this._intervalMs);
     }
 
     _logAlgorithmCountError(algorithms, count) {

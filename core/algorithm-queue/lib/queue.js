@@ -1,6 +1,7 @@
 const events = require('events');
 const orderBy = require('lodash.orderby');
 const remove = require('lodash.remove');
+const asyncQueue = require('async.queue');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('./consts/component-name').QUEUE;
 const queueEvents = require('./consts/queue-events');
@@ -8,18 +9,22 @@ const JobProducer = require('./jobs/producer');
 const JobConsumer = require('./jobs/consumer');
 
 class Queue extends events {
-    constructor({ scoreHeuristic = { run: null }, updateInterval = 1000, persistence = null, enrichmentRunner = { run: null } } = {}) {
+    constructor({ algorithmName, updateInterval, scoreHeuristic, enrichmentRunner, persistence }) {
         super();
+        this.algorithmName = algorithmName;
         log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component });
-        this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
-        this.enrichmentRunner = enrichmentRunner.run ? enrichmentRunner.run.bind(enrichmentRunner) : enrichmentRunner.run;
+        this.scoreHeuristic = scoreHeuristic;
+        this.enrichmentRunner = enrichmentRunner;
         this.updateInterval = updateInterval;
         this.queue = [];
-        this.isScoreDuringUpdate = false;
-        this.tempInsertTasksQueue = [];
-        this.tempRemoveJobIDsQueue = [];
         this.isIntervalRunning = true;
         this.persistence = persistence;
+        this._tasksQueue = asyncQueue((method, callback) => {
+            method().then(r => callback(null, r))
+                .catch(e => {
+                    callback(e);
+                });
+        }, 1);
     }
 
     async start({ options, algorithmName }) {
@@ -27,27 +32,24 @@ class Queue extends events {
         this._queueInterval();
 
         this._producer = new JobProducer({
-            producerUpdateInterval: options.producerUpdateInterval,
+            options,
             algorithmName,
             getQueue: (...args) => this.getQueue(...args),
-            addQueue: (...args) => this.add(...args),
+            addQueue: (...args) => this.addJobs(...args),
             tryPop: (...args) => this.tryPop(...args),
         });
-        this._producer.start();
-
         this._consumer = new JobConsumer({
+            options,
             algorithmName,
             getWaitingCount: (...args) => this._producer.getWaitingCount(...args),
             getWaitingJobs: (...args) => this._producer.getWaitingJobs(...args),
-            ...options,
         });
-        this._consumer.on('jobs-add', (jobs) => {
-            this.add(jobs);
+        this._consumer.on('jobs-add', async (jobs) => {
+            await this.addJobs(jobs);
         });
         this._consumer.on('jobs-remove', (jobs) => {
             this.removeJobs(jobs);
         });
-        this._consumer.init();
     }
 
     stop() {
@@ -58,8 +60,6 @@ class Queue extends events {
 
     flush() {
         this.queue = [];
-        this.tempInsertTasksQueue = [];
-        this.tempRemoveJobIDsQueue = [];
     }
 
     removeInvalidJob(data) {
@@ -75,7 +75,7 @@ class Queue extends events {
         if (this.persistence) {
             try {
                 const queueItems = await this.persistence.get();
-                this.add(queueItems);
+                await this.addJobs(queueItems);
                 log.info('persistent added successfully', { component });
             }
             catch (e) {
@@ -99,25 +99,43 @@ class Queue extends events {
         }
     }
 
-    // todo:add merge on async
-    updateHeuristic(scoreHeuristic) {
-        this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
+    async addJobs(data) {
+        this._removeDuplicates(data);
+        await this._asyncQueue(async () => this._addJobs(data));
     }
 
-    add(tasks) {
-        this._removeDuplicates(tasks);
-        if (this.scoreHeuristic) {
-            const calculatedTasks = tasks.map(task => this.scoreHeuristic(task));
-            if (this.isScoreDuringUpdate) {
-                log.debug('add -  score is currently updated so the remove is added to the temp arr ', { component });
-                this.tempInsertTasksQueue = this.tempInsertTasksQueue.concat(calculatedTasks);
-                return;
-            }
-            this._insert(calculatedTasks);
+    _addJobs(data) {
+        const tasks = data.map(task => this.scoreHeuristic(task));
+        if (tasks.length === 0) {
+            log.debug('there is no new inserted jobs', { component });
+            return;
         }
-        else {
-            log.warning('score heuristic is not defined', { component });
+        this.queue = [...this.queue, ...tasks];
+        this._orderQueue();
+        this.emit(queueEvents.INSERT, tasks);
+        log.info(`${tasks.length} new jobs inserted to queue jobs`, { component });
+    }
+
+    async removeJobs(data) {
+        await this._asyncQueue(async () => this._removeJobs(data));
+    }
+
+    _removeJobs(jobs) {
+        if (jobs.length === 0) {
+            log.debug('there is no deleted jobs', { component });
+            return;
         }
+        const removedTasks = [];
+        jobs.forEach((j) => {
+            // collect removed tasks to send in REMOVE event
+            const tasks = remove(this.queue, t => (t.jobId === j.jobId) && (j.taskId ? t.taskId === j.taskId : true));
+            removedTasks.push(...tasks);
+        });
+        if (removedTasks.length === 0) {
+            return;
+        }
+        log.info(`${removedTasks.length} removed from queue`, { component });
+        this.emit(queueEvents.REMOVE, removedTasks);
     }
 
     _removeDuplicates(tasks) {
@@ -140,15 +158,6 @@ class Queue extends events {
         return task;
     }
 
-    removeJobs(jobs) {
-        if (this.isScoreDuringUpdate) {
-            log.debug('remove -  score is currently updated so the remove is added to the temp arr ', { component });
-            this.tempRemoveJobIDsQueue.push(...jobs);
-            return;
-        }
-        this._removeJobs(jobs);
-    }
-
     updateScore() {
         this.queue = this.queue.map(job => this.scoreHeuristic(job));
         this.emit(queueEvents.UPDATE_SCORE, this.queue);
@@ -162,44 +171,8 @@ class Queue extends events {
         return this.queue;
     }
 
-    _insert(taskArr) {
-        if (taskArr.length === 0) {
-            log.debug('there is no new inserted jobs', { component });
-            return;
-        }
-        this.queue = orderBy([...this.queue, ...taskArr], j => j.calculated.score, 'desc');
-        this.emit(queueEvents.INSERT, taskArr);
-        log.info(`${taskArr.length} new jobs inserted to queue jobs`, { component });
-    }
-
     _orderQueue() {
-        this.queue = orderBy([...this.queue], j => j.calculated.score, 'desc');
-    }
-
-    _removeJobs(jobs) {
-        if (jobs.length === 0) {
-            log.debug('there is no deleted jobs', { component });
-            return;
-        }
-        const removedTasks = [];
-        jobs.forEach((j) => {
-            // collect removed tasks to send in REMOVE event
-            const tasks = remove(this.queue, t => (t.jobId === j.jobId) && (j.taskId ? t.taskId === j.taskId : true));
-            removedTasks.push(...tasks);
-        });
-        if (removedTasks.length === 0) {
-            return;
-        }
-        log.info(`${removedTasks.length} removed from queue`, { component });
-        this.emit(queueEvents.REMOVE, removedTasks);
-    }
-
-    // should be merged after each interval cycle
-    _mergeTemp() {
-        this._insert(this.tempInsertTasksQueue);
-        this._removeJobs(this.tempRemoveJobIDsQueue);
-        this.tempInsertTasksQueue = [];
-        this.tempRemoveJobIDsQueue = [];
+        this.queue = orderBy(this.queue, j => j.calculated.score, 'desc');
     }
 
     // the interval logic should be as follows :
@@ -209,7 +182,7 @@ class Queue extends events {
     _queueInterval() {
         setTimeout(async () => {
             try {
-                await this._intervalUpdateCallback();
+                await this._pushQueueInterval();
             }
             catch (error) {
                 log.throttle.error(`fail on queue interval ${error}`, { component }, error);
@@ -222,15 +195,24 @@ class Queue extends events {
         }, this.updateInterval);
     }
 
+    _pushQueueInterval() {
+        return this._asyncQueue(async () => this._intervalUpdateCallback());
+    }
+
+    _asyncQueue(method) {
+        return new Promise((resolve) => {
+            this._tasksQueue.push(method, () => {
+                return resolve();
+            });
+        });
+    }
+
     async _intervalUpdateCallback() {
-        this.isScoreDuringUpdate = true;
-        await this.enrichmentRunner(this.queue);
+        this.enrichmentRunner(this.queue);
         this.updateScore();
         log.debug('queue update score cycle starts', { component });
-        this._mergeTemp();
         this._orderQueue();
         await this.persistenceStore();
-        this.isScoreDuringUpdate = false;
     }
 }
 

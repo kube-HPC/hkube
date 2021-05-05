@@ -9,11 +9,12 @@ const { isCompletedState } = require('../utils/pipelineStatuses');
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
 class JobConsumer extends EventEmitter {
-    constructor(options) {
+    constructor(config) {
         super();
-        this._options = options;
-        this._getWaitingCount = options.getWaitingCount;
-        this._getWaitingJobs = options.getWaitingJobs;
+        const { options, algorithmName } = config;
+        this._algorithmName = algorithmName;
+        this._getWaitingCount = config.getWaitingCount;
+        this._getWaitingJobs = config.getWaitingJobs;
         this._consumer = new Consumer({
             setting: {
                 redis: options.redis,
@@ -21,16 +22,16 @@ class JobConsumer extends EventEmitter {
                 prefix: options.consumer.prefix
             }
         });
-    }
-
-    init() {
         this._consumer.on('job', async (job) => {
+            if (this._algorithmName !== 'green-alg') {
+                console.error("ooops");
+            }
             await this._handleJob(job);
         });
         this._consumer.register({
             job: {
-                type: this._options.algorithmName,
-                concurrency: this._options.consumer.concurrency
+                type: algorithmName,
+                concurrency: options.consumer.concurrency
             }
         });
     }
@@ -38,19 +39,19 @@ class JobConsumer extends EventEmitter {
     async removeInvalidJob(data) {
         const { status, jobId } = data;
         if (isCompletedState({ status })) {
-            this._removeInvalidJob({ jobId });
+            this._removeInvalidJob([{ jobId }]);
             await this._removeWaitingJobs({ jobId, status });
         }
     }
 
-    _removeInvalidJob({ jobId }) {
-        this.emit('jobs-remove', [{ jobId }]);
+    _removeInvalidJob(jobs) {
+        this.emit('jobs-remove', jobs);
     }
 
     removeInvalidTasks(data) {
         const { status, jobId, taskId } = data;
         if (status === pipelineStatuses.STOPPED) {
-            this.emit('jobs-remove', [{ jobId, taskId }]);
+            this._removeInvalidJob([{ jobId, taskId }]);
         }
     }
 
@@ -69,10 +70,12 @@ class JobConsumer extends EventEmitter {
             const waitingJobs = await this._getWaitingJobs();
             const pendingJobs = waitingJobs.filter(j => j.data?.jobId === jobId);
             const removeResults = await Promise.all(pendingJobs.map(removeJob));
-            const failedToRemove = removeResults.filter(r => r.error);
-            log.info(`job ${jobId} with state ${status}: removed ${pendingJobs.length} waiting tasks.`, { component });
-            if (failedToRemove.length) {
-                log.warning(`${failedToRemove.length} failed to remove`, { component });
+            if (removeResults.length) {
+                const failedToRemove = removeResults.filter(r => r.error);
+                log.info(`job ${jobId} with state ${status}: removed ${pendingJobs.length} waiting tasks.`, { component });
+                if (failedToRemove.length) {
+                    log.warning(`${failedToRemove.length} failed to remove`, { component });
+                }
             }
         }
         catch (error) {
@@ -86,7 +89,7 @@ class JobConsumer extends EventEmitter {
             const data = await db.getJob({ jobId });
             log.info(`job arrived with ${data.status} state and ${job.data.tasks.length} tasks`, { component });
             if (isCompletedState({ status: data.status })) {
-                this._removeInvalidJob({ jobId });
+                this._removeInvalidJob([{ jobId }]);
             }
             else {
                 this.queueTasksBuilder(job);

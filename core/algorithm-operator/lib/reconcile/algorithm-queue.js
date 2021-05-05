@@ -1,5 +1,6 @@
 const { uid } = require('@hkube/uid');
 const log = require('@hkube/logger').GetLogFromContainer();
+const orderBy = require('lodash.orderby');
 const { createDeploymentSpec } = require('../deployments/algorithm-queue');
 const kubernetes = require('../helpers/kubernetes');
 const jobProducer = require('../producer/jobs-producer');
@@ -28,8 +29,8 @@ const _deleteDeployment = async ({ queueId }) => {
 
 const _findEmptyQueues = (queueToAlgorithms, normDeployments) => {
     const emptyQueues = Object.entries(queueToAlgorithms)
-        .filter(([k, v]) => !v.algorithms.length
-            && Date.now() - v.timestamp > 10000
+        .filter(([k, v]) => !v.count
+            && Date.now() - v.timestamp > 30000
             && normDeployments.find(d => d.queueId === k))
         .map(([k]) => k);
     return emptyQueues;
@@ -37,9 +38,10 @@ const _findEmptyQueues = (queueToAlgorithms, normDeployments) => {
 
 const _findAvailableQueues = (queueToAlgorithms, limit) => {
     const emptyQueues = Object.entries(queueToAlgorithms)
-        .filter(([, v]) => v.algorithms.length < limit)
-        .map(([k, v]) => ({ queueId: k, current: v.algorithms.length }));
-    return emptyQueues;
+        .filter(([, v]) => v.count < limit)
+        .map(([k, v]) => ({ queueId: k, count: v.count }));
+    const queues = orderBy(emptyQueues, 'count');
+    return queues;
 };
 
 const _findObsoleteAlgorithms = (algorithmsToQueue, normAlgorithms) => {
@@ -49,10 +51,46 @@ const _findObsoleteAlgorithms = (algorithmsToQueue, normAlgorithms) => {
     return emptyQueues;
 };
 
+const _matchAlgorithmsToQueue = async (algorithms, queues, limit) => {
+    if (algorithms.length && algorithms.length) {
+        for (let i = 0; i < algorithms.length; i += 1) {
+            const availableQueue = queues[0];
+            if (!availableQueue) {
+                break;
+            }
+            const { queueId } = availableQueue;
+            const algorithmName = algorithms[i].name;
+            await jobProducer.createJob({ queueId, action: QueueActions.ADD, algorithmName }); // eslint-disable-line
+            availableQueue.count += 1;
+            if (availableQueue.count === limit) {
+                queues.shift();
+            }
+        }
+    }
+};
+
+const _removeAlgorithmsFromQueue = async (algorithms) => {
+    for (const algorithm of algorithms) {
+        const { queueId, algorithmName } = algorithm;
+        await jobProducer.createJob({ queueId, action: QueueActions.REMOVE, algorithmName }); // eslint-disable-line
+    }
+};
+
+const _removeDuplicatesAlgorithms = async (algorithms) => {
+    if (algorithms.length) {
+        log.warning(`found ${algorithms.length} duplicates algorithms`, { component });
+        await _removeAlgorithmsFromQueue(algorithms);
+    }
+};
+
+const _createQueueId = () => {
+    return uid({ length: 12 });
+};
+
 const reconcile = async ({ deployments, algorithms, discovery, versions, registry, clusterOptions, resources, options } = {}) => {
     const { limit } = options.algorithmQueueBalancer;
     const version = findVersion({ versions, repositoryName: CONTAINERS.ALGORITHM_QUEUE });
-    const { algorithmsToQueue, queueToAlgorithms } = normalizeQueuesDiscovery(discovery);
+    const { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms } = normalizeQueuesDiscovery(discovery);
     const normAlgorithms = normalizeAlgorithms(algorithms);
     const normDeployments = normalizeDeployments(deployments);
     const emptyQueues = _findEmptyQueues(queueToAlgorithms, normDeployments);
@@ -67,30 +105,13 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     const reconcileResult = {};
 
     for (let i = 0; i < missingDeployments; i += 1) {
-        await _createDeployment({ queueId: uid({ length: 12 }), options: { versions, registry, clusterOptions, resources, options } }); // eslint-disable-line
+        const queueId = _createQueueId();
+        await _createDeployment({ queueId, options: { versions, registry, clusterOptions, resources, options } }); // eslint-disable-line
     }
 
-    // match algorithms to available queues
-    if (availableQueues.length && addAlgorithms.length) {
-        for (let i = 0; i < addAlgorithms.length; i += 1) {
-            const availableQueue = availableQueues[0];
-            if (!availableQueue) {
-                break;
-            }
-            const { queueId } = availableQueue;
-            const algorithmName = addAlgorithms[i].name;
-            await jobProducer.createJob({ queueId, action: QueueActions.ADD, algorithmName }); // eslint-disable-line
-            availableQueue.current += 1;
-            if (availableQueue.current === limit) {
-                availableQueues.shift();
-            }
-        }
-    }
-
-    for (const algorithm of removeAlgorithms) {
-        const { queueId, algorithmName } = algorithm;
-        await jobProducer.createJob({ queueId, action: QueueActions.REMOVE, algorithmName }); // eslint-disable-line
-    }
+    await _matchAlgorithmsToQueue(addAlgorithms, availableQueues, limit);
+    await _removeAlgorithmsFromQueue(removeAlgorithms);
+    await _removeDuplicatesAlgorithms(duplicateAlgorithms);
 
     for (const queueId of emptyQueues) {
         createPromises.push(_deleteDeployment({ queueId }));
@@ -104,6 +125,19 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     return reconcileResult;
 };
 
+const reconcileDevMode = async ({ algorithms, discovery, options } = {}) => {
+    const { limit } = options.algorithmQueueBalancer;
+    const { algorithmsToQueue, queueToAlgorithms } = normalizeQueuesDiscovery(discovery);
+    const normAlgorithms = normalizeAlgorithms(algorithms);
+    const availableQueues = _findAvailableQueues(queueToAlgorithms, limit);
+    const addAlgorithms = normAlgorithms.filter(a => !algorithmsToQueue[a.name]);
+    const removeAlgorithms = _findObsoleteAlgorithms(algorithmsToQueue, normAlgorithms);
+
+    await _matchAlgorithmsToQueue(addAlgorithms, availableQueues, limit);
+    await _removeAlgorithmsFromQueue(removeAlgorithms);
+};
+
 module.exports = {
-    reconcile
+    reconcile,
+    reconcileDevMode
 };

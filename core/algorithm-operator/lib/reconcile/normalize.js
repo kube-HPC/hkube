@@ -21,16 +21,23 @@ const normalizeQueuesDiscovery = (discovery) => {
     }
     const algorithmsToQueue = Object.create(null);
     const queueToAlgorithms = Object.create(null);
+    const duplicateAlgorithms = [];
+
     discovery.forEach((d) => {
         if (!queueToAlgorithms[d.queueId]) {
-            queueToAlgorithms[d.queueId] = { algorithms: [], timestamp: d.timestamp };
+            queueToAlgorithms[d.queueId] = { count: 0, timestamp: d.timestamp };
         }
         d.algorithms?.forEach((a) => {
-            algorithmsToQueue[a] = d.queueId;
-            queueToAlgorithms[d.queueId].algorithms.push(a);
+            if (algorithmsToQueue[a]) {
+                duplicateAlgorithms.push({ queueId: d.queueId, algorithmName: a });
+            }
+            else {
+                algorithmsToQueue[a] = d.queueId;
+                queueToAlgorithms[d.queueId].count += 1;
+            }
         });
     });
-    return { algorithmsToQueue, queueToAlgorithms };
+    return { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms };
 };
 
 const normalizeAlgorithms = (algorithmsRaw) => {

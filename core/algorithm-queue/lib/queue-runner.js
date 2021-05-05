@@ -7,11 +7,14 @@ const aggregationMetricFactory = require('./metrics/aggregation-metrics-factory'
 
 class QueueRunner {
     create({ algorithmName, options }) {
+        const scoreHeuristic = new HeuristicRunner(options.heuristicsWeights);
+        const enrichmentRunner = new EnrichmentRunner();
         const queue = new Queue({
-            scoreHeuristic: new HeuristicRunner(options.heuristicsWeights),
+            algorithmName,
             updateInterval: options.queue.updateInterval,
+            scoreHeuristic: (...args) => scoreHeuristic.run(...args),
+            enrichmentRunner: (...args) => enrichmentRunner.run(...args),
             persistence: new Persistence({ algorithmName }),
-            enrichmentRunner: new EnrichmentRunner()
         });
         queue.on(queueEvents.UPDATE_SCORE, queueScore => aggregationMetricFactory.scoreHistogram(queueScore));
         queue.on(queueEvents.INSERT, (taskArr) => {

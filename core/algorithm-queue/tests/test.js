@@ -10,11 +10,7 @@ let _semaphore = null;
 let queue = null;
 
 const heuristic = score => job => ({ ...job, ...{ calculated: { enrichment: { batchIndex: {} }, score, entranceTime: Date.now(), latestScore: {} } } });
-const heuristicBoilerPlate = (score, _heuristic) => ({
-    run(job) {
-        return _heuristic(score)(job);
-    }
-});
+const heuristicBoilerPlate = (score, _heuristic) => _heuristic(score);
 
 describe('Test', () => {
     before(async () => {
@@ -52,28 +48,28 @@ describe('Test', () => {
         describe('queue-tests', () => {
             describe('add', () => {
                 it('should added to queue', async () => {
-                    queue.updateHeuristic(heuristicBoilerPlate(80, heuristic));
-                    queue.add([stubTemplate()]);
-                    await queue._intervalUpdateCallback();
+                    queue.scoreHeuristic = heuristicBoilerPlate(80, heuristic);
+                    await queue.addJobs([stubTemplate()]);
+                    await queue._pushQueueInterval();
                     const q = queue.get;
                     expect(q[0].calculated.score).to.eql(80);
                 });
                 it('should added to queue ordered', async () => {
-                    queue.updateHeuristic({ run: heuristic(80) });
-                    queue.add([stubTemplate()]);
-                    queue.updateHeuristic({ run: heuristic(60) });
-                    queue.add([stubTemplate()]);
-                    queue.updateHeuristic({ run: heuristic(90) });
-                    queue.add([stubTemplate()]);
+                    queue.scoreHeuristic = heuristic(80);
+                    await queue.addJobs([stubTemplate()]);
+                    queue.scoreHeuristic = heuristic(60);
+                    await queue.addJobs([stubTemplate()]);
+                    queue.scoreHeuristic = heuristic(90);
+                    await queue.addJobs([stubTemplate()]);
                     expect(queue.get[0].calculated.score).to.eql(90);
                     expect(queue.get[2].calculated.score).to.eql(60);
                 });
             });
             describe('remove', () => {
                 it('should removed from queue', async () => {
-                    queue.updateHeuristic({ run: heuristic(80) });
+                    queue.scoreHeuristic = heuristic(80);
                     const stubJob = stubTemplate();
-                    queue.add([stubJob]);
+                    await queue.addJobs([stubJob]);
                     queue.on(queueEvents.REMOVE, () => {
                         _semaphore.callDone();
                     });
@@ -84,9 +80,9 @@ describe('Test', () => {
                 });
                 it('should not removed from queue when there is no matched id', async () => {
                     let called = false;
-                    queue.updateHeuristic({ run: heuristic(80) });
+                    queue.scoreHeuristic = heuristic(80);
                     const stubJob = stubTemplate();
-                    queue.add([stubJob]);
+                    await queue.addJobs([stubJob]);
                     queue.on(queueEvents.REMOVE, () => {
                         called = true;
                     });
@@ -99,9 +95,9 @@ describe('Test', () => {
             });
             describe('pop', () => {
                 it('should pop from queue', async () => {
-                    queue.updateHeuristic({ run: heuristic(80) });
+                    queue.scoreHeuristic = heuristic(80);
                     const stubJob = stubTemplate();
-                    queue.add([stubJob]);
+                    await queue.addJobs([stubJob]);
                     queue.on(queueEvents.POP, () => {
                         _semaphore.callDone();
                     });
@@ -115,9 +111,9 @@ describe('Test', () => {
             describe('queue-runner', () => {
                 it.skip('check-that-heuristics-sets-to-latestScore', async () => {
                     const stubJob = stubTemplate();
-                    queue.add([stubJob]);
-                    await queue._intervalUpdateCallback();
-                    await queue._intervalUpdateCallback();
+                    await queue.addJobs([stubJob]);
+                    await queue._pushQueueInterval();
+                    await queue._pushQueueInterval();
                     const q = queue.get;
                     expect(q[0].calculated.latestScores).to.have.property('BATCH');
                     expect(q[0].calculated.latestScores).to.have.property('PRIORITY');
@@ -128,15 +124,15 @@ describe('Test', () => {
             describe('queue-events', () => {
                 it('check events insert', async () => {
                     queue.on(queueEvents.INSERT, () => _semaphore.callDone());
-                    queue.updateHeuristic({ run: heuristic(80) });
-                    queue.add([stubTemplate()]);
+                    queue.scoreHeuristic = heuristic(80);
+                    await queue.addJobs([stubTemplate()]);
                     await _semaphore.done();
                 });
                 it('check events remove', async () => {
                     queue.on(queueEvents.REMOVE, () => _semaphore.callDone());
-                    queue.updateHeuristic({ run: heuristic(80) });
+                    queue.scoreHeuristic = heuristic(80);
                     const stubJob = stubTemplate();
-                    queue.add([stubJob]);
+                    await queue.addJobs([stubJob]);
                     await queue.removeJobs([{ jobId: stubJob.jobId }]);
                     await _semaphore.done();
                 });
@@ -147,7 +143,7 @@ describe('Test', () => {
         it('persistent load', async () => {
             queue.flush()
             const arr = generateArr(100);
-            queue.add(arr);
+            await queue.addJobs(arr);
             await queue.persistenceStore();
             queue.flush();
             await queue.persistencyLoad();
@@ -158,7 +154,7 @@ describe('Test', () => {
     describe('test jobs order', () => {
         it('order 100', async () => {
             queue.flush()
-            queue.add(generateArr(100));
+            await queue.addJobs(generateArr(100));
             const q = queue.get;
             expect(q.length).to.be.eql(100);
         });
