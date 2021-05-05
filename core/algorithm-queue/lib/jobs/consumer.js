@@ -23,9 +23,6 @@ class JobConsumer extends EventEmitter {
             }
         });
         this._consumer.on('job', async (job) => {
-            if (this._algorithmName !== 'green-alg') {
-                console.error("ooops");
-            }
             await this._handleJob(job);
         });
         this._consumer.register({

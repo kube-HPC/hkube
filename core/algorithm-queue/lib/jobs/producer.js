@@ -153,9 +153,6 @@ class JobProducer {
 
     async createJob() {
         const task = this._tryPop();
-        if (this._algorithmName !== 'green-alg') {
-            console.error("ooops");
-        }
         if (task) {
             log.info(`pop new task with taskId: ${task.taskId}, score: ${task.calculated.score}`, { component });
             const job = this._taskToProducerJob(task);
