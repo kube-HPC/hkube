@@ -60,7 +60,7 @@ const _matchAlgorithmsToQueue = async ({ algorithms, queues, limit }) => {
             }
             const { queueId } = availableQueue;
             const algorithmName = algorithms[i].name;
-            await etcd.sendAction({ queueId, action: QueueActions.ADD, algorithmName }); // eslint-disable-line
+            await etcd.sendAlgorithmQueueAction({ queueId, action: QueueActions.ADD, algorithmName }); // eslint-disable-line
             availableQueue.count += 1;
             if (availableQueue.count === limit) {
                 sortedQueues.shift();
@@ -72,7 +72,7 @@ const _matchAlgorithmsToQueue = async ({ algorithms, queues, limit }) => {
 const _removeAlgorithmsFromQueue = async ({ algorithms }) => {
     for (const algorithm of algorithms) {
         const { queueId, algorithmName } = algorithm;
-        await etcd.sendAction({ queueId, action: QueueActions.REMOVE, algorithmName }); // eslint-disable-line
+        await etcd.sendAlgorithmQueueAction({ queueId, action: QueueActions.REMOVE, algorithmName }); // eslint-disable-line
     }
 };
 

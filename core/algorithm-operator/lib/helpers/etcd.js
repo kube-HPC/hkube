@@ -13,7 +13,7 @@ class EtcdClient extends EventEmitter {
         return this._etcd.discovery.list({ serviceName: 'algorithm-queue' });
     }
 
-    async sendAction({ queueId, action, algorithmName }) {
+    async sendAlgorithmQueueAction({ queueId, action, algorithmName }) {
         return this._etcd.algorithmQueues.set({ queueId, action, algorithmName });
     }
 }

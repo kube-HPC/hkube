@@ -10,7 +10,6 @@ config.boardTimeOut = formatter.parseInt(process.env.BOARDS_TIMEOUT, 3 * 60 * 60
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.buildMode = process.env.BUILD_MODE || 'kaniko';
 config.isDevMode = !!process.env.DEV_MODE;
-const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.algorithmQueueBalancer = {
     limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_LIMIT, 5)
@@ -27,12 +26,6 @@ config.db = {
         port: formatter.parseInt(process.env.MONGODB_SERVICE_PORT, 27017),
         dbName: process.env.MONGODB_DB_NAME || 'hkube',
     }
-};
-
-config.redis = {
-    host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
-    port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
-    sentinel: useSentinel,
 };
 
 config.etcd = {
