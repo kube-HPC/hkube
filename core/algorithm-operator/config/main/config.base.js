@@ -16,13 +16,6 @@ config.algorithmQueueBalancer = {
     limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_LIMIT, 5)
 };
 
-config.jobs = {
-    producer: {
-        enableCheckStalledJobs: false,
-        prefix: 'algorithm-queue',
-    },
-};
-
 config.db = {
     provider: 'mongo',
     mongo: {

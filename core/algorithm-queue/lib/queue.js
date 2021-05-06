@@ -1,7 +1,6 @@
 const events = require('events');
 const orderBy = require('lodash.orderby');
 const remove = require('lodash.remove');
-const asyncQueue = require('async.queue');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('./consts/component-name').QUEUE;
 const queueEvents = require('./consts/queue-events');
@@ -19,12 +18,6 @@ class Queue extends events {
         this.queue = [];
         this.isIntervalRunning = true;
         this.persistence = persistence;
-        this._tasksQueue = asyncQueue((method, callback) => {
-            method().then(r => callback(null, r))
-                .catch(e => {
-                    callback(e);
-                });
-        }, 1);
     }
 
     async start({ options, algorithmName }) {
@@ -44,8 +37,8 @@ class Queue extends events {
             getWaitingCount: (...args) => this._producer.getWaitingCount(...args),
             getWaitingJobs: (...args) => this._producer.getWaitingJobs(...args),
         });
-        this._consumer.on('jobs-add', async (jobs) => {
-            await this.addJobs(jobs);
+        this._consumer.on('jobs-add', (jobs) => {
+            this.addJobs(jobs);
         });
         this._consumer.on('jobs-remove', (jobs) => {
             this.removeJobs(jobs);
@@ -75,7 +68,7 @@ class Queue extends events {
         if (this.persistence) {
             try {
                 const queueItems = await this.persistence.get();
-                await this.addJobs(queueItems);
+                this.addJobs(queueItems);
                 log.info('persistent added successfully', { component });
             }
             catch (e) {
@@ -87,11 +80,10 @@ class Queue extends events {
         }
     }
 
-    async persistenceStore() {
+    async persistenceStore({ data, pendingAmount }) {
         log.debug('try to store data to  storage', { component });
         if (this.persistence) {
-            const pendingAmount = await this._producer.getWaitingCount();
-            await this.persistence.store({ data: this.queue, pendingAmount });
+            await this.persistence.store({ data, pendingAmount });
             log.debug('store data to storage succeed', { component });
         }
         else {
@@ -99,13 +91,9 @@ class Queue extends events {
         }
     }
 
-    async addJobs(data) {
-        this._removeDuplicates(data);
-        await this._asyncQueue(async () => this._addJobs(data));
-    }
-
-    _addJobs(data) {
-        const tasks = data.map(task => this.scoreHeuristic(task));
+    addJobs(jobs) {
+        this._removeDuplicates(jobs);
+        const tasks = jobs.map(task => this.scoreHeuristic(task));
         if (tasks.length === 0) {
             log.debug('there is no new inserted jobs', { component });
             return;
@@ -116,11 +104,7 @@ class Queue extends events {
         log.info(`${tasks.length} new jobs inserted to queue jobs`, { component });
     }
 
-    async removeJobs(data) {
-        await this._asyncQueue(async () => this._removeJobs(data));
-    }
-
-    _removeJobs(jobs) {
+    removeJobs(jobs) {
         if (jobs.length === 0) {
             log.debug('there is no deleted jobs', { component });
             return;
@@ -182,7 +166,7 @@ class Queue extends events {
     _queueInterval() {
         setTimeout(async () => {
             try {
-                await this._pushQueueInterval();
+                await this._intervalUpdateCallback();
             }
             catch (error) {
                 log.throttle.error(`fail on queue interval ${error}`, { component }, error);
@@ -195,24 +179,13 @@ class Queue extends events {
         }, this.updateInterval);
     }
 
-    _pushQueueInterval() {
-        return this._asyncQueue(async () => this._intervalUpdateCallback());
-    }
-
-    _asyncQueue(method) {
-        return new Promise((resolve) => {
-            this._tasksQueue.push(method, () => {
-                return resolve();
-            });
-        });
-    }
-
     async _intervalUpdateCallback() {
+        const pendingAmount = await this._producer.getWaitingCount();
         this.enrichmentRunner(this.queue);
         this.updateScore();
         log.debug('queue update score cycle starts', { component });
         this._orderQueue();
-        await this.persistenceStore();
+        await this.persistenceStore({ data: this.queue, pendingAmount });
     }
 }
 

@@ -23,6 +23,20 @@ class EtcdClient extends EventEmitter {
         await this._etcd.algorithms.queue.set({ name, data, pendingAmount, timestamp });
     }
 
+    async watchQueueActions({ queueId }) {
+        await this._etcd.algorithmQueues.watch({ queueId });
+
+        this._etcd.algorithmQueues.on('change', async (data) => {
+            this.emit('queue-action', data);
+        });
+    }
+
+    onQueueAction(func) {
+        this._etcd.algorithmQueues.on('change', (response) => {
+            func(response);
+        });
+    }
+
     async _watch() {
         await this._etcd.jobs.status.watch();
         await this._etcd.algorithms.executions.watch();

@@ -1,8 +1,6 @@
 const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
-const { Consumer } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { tracer } = require('@hkube/metrics');
 const etcd = require('./persistency/etcd');
 const queueRunner = require('./queue-runner');
 const component = require('./consts/component-name').JOBS_CONSUMER;
@@ -24,23 +22,11 @@ class QueuesManager extends EventEmitter {
         }
         this._options = options;
         this._queueId = queueId;
+        await etcd.watchQueueActions({ queueId });
+        etcd.onQueueAction((data) => {
+            this._handleAction(data);
+        });
 
-        const consumer = new Consumer({
-            setting: {
-                redis: options.redis,
-                prefix: options.consumer.prefix,
-                tracer,
-            }
-        });
-        consumer.on('job', (job) => {
-            this._handleJob(job);
-        });
-        consumer.register({
-            job: {
-                type: queueId,
-                concurrency: options.consumer.concurrency
-            }
-        });
         this._watch();
         const discovery = this.getDiscoveryData();
         await etcd.discoveryRegister({ data: discovery });
@@ -72,9 +58,9 @@ class QueuesManager extends EventEmitter {
         }, 5000);
     }
 
-    async _handleJob(job) {
+    async _handleAction(data) {
         try {
-            const { action, algorithmName } = job.data;
+            const { action, algorithmName } = data;
             if (!algorithmName) {
                 log.throttle.error('job arrived without algorithm name', { component });
                 return;
@@ -92,10 +78,6 @@ class QueuesManager extends EventEmitter {
         }
         catch (e) {
             log.throttle.error(`error on handle job ${e}`, { component });
-            job.done(e);
-        }
-        finally {
-            job.done();
         }
     }
 

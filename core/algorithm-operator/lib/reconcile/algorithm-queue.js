@@ -3,7 +3,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const orderBy = require('lodash.orderby');
 const { createDeploymentSpec } = require('../deployments/algorithm-queue');
 const kubernetes = require('../helpers/kubernetes');
-const jobProducer = require('../producer/jobs-producer');
+const etcd = require('../helpers/etcd');
 const { findVersion } = require('../helpers/images');
 const component = require('../consts/componentNames').ALGORITHM_QUEUE_RECONCILER;
 const QueueActions = require('../consts/queue-actions');
@@ -60,7 +60,7 @@ const _matchAlgorithmsToQueue = async ({ algorithms, queues, limit }) => {
             }
             const { queueId } = availableQueue;
             const algorithmName = algorithms[i].name;
-            await jobProducer.createJob({ queueId, action: QueueActions.ADD, algorithmName }); // eslint-disable-line
+            await etcd.sendAction({ queueId, action: QueueActions.ADD, algorithmName }); // eslint-disable-line
             availableQueue.count += 1;
             if (availableQueue.count === limit) {
                 sortedQueues.shift();
@@ -72,7 +72,7 @@ const _matchAlgorithmsToQueue = async ({ algorithms, queues, limit }) => {
 const _removeAlgorithmsFromQueue = async ({ algorithms }) => {
     for (const algorithm of algorithms) {
         const { queueId, algorithmName } = algorithm;
-        await jobProducer.createJob({ queueId, action: QueueActions.REMOVE, algorithmName }); // eslint-disable-line
+        await etcd.sendAction({ queueId, action: QueueActions.REMOVE, algorithmName }); // eslint-disable-line
     }
 };
 

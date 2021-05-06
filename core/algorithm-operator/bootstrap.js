@@ -8,14 +8,12 @@ const db = require('./lib/helpers/db');
 const etcd = require('./lib/helpers/etcd');
 const kubernetes = require('./lib/helpers/kubernetes');
 const operator = require('./lib/operator');
-const jobProducer = require('./lib/producer/jobs-producer');
 const { setFromConfig } = require('./lib/helpers/settings');
 
 const modules = [
     db,
     etcd,
     kubernetes,
-    jobProducer,
     operator
 ];
 
