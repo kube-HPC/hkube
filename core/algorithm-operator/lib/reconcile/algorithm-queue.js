@@ -7,7 +7,7 @@ const etcd = require('../helpers/etcd');
 const { findVersion } = require('../helpers/images');
 const component = require('../consts/componentNames').ALGORITHM_QUEUE_RECONCILER;
 const QueueActions = require('../consts/queue-actions');
-const { normalizeDeployments, normalizeQueuesDiscovery, normalizeAlgorithms } = require('./normalize');
+const { normalizeAlgorithmQueuesDeployments, normalizeQueuesDiscovery, normalizeAlgorithms } = require('./normalize');
 const CONTAINERS = require('../consts/containers');
 
 const _createDeployment = async ({ queueId, options }) => {
@@ -106,7 +106,7 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     const version = findVersion({ versions, repositoryName: CONTAINERS.ALGORITHM_QUEUE });
     const { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms } = normalizeQueuesDiscovery(discovery);
     const normAlgorithms = normalizeAlgorithms(algorithms);
-    const normDeployments = normalizeDeployments(deployments);
+    const normDeployments = normalizeAlgorithmQueuesDeployments(deployments);
     const emptyQueues = _findEmptyQueues({ queueToAlgorithms, normDeployments });
     const availableQueues = _findAvailableQueues({ queueToAlgorithms, limit });
     const updated = normDeployments.filter(d => d.image.tag !== version);

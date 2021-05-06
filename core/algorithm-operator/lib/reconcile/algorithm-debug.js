@@ -5,7 +5,7 @@ const { createKindsSpec } = require('../deployments/worker-debug');
 const kubernetes = require('../helpers/kubernetes');
 const component = require('../consts/componentNames').ALGORITHM_DEBUG_RECONCILER;
 const deploymentType = require('../consts/DeploymentTypes').WORKER;
-const { normalizeDeployments } = require('./normalize');
+const { normalizeDebugDeployments } = require('./normalize');
 
 const _createKinds = async (jobDetails) => {
     const { deploymentSpec, ingressSpec, serviceSpec } = createKindsSpec(jobDetails);
@@ -33,7 +33,7 @@ const _filterChangedDeployments = (deployment, algorithms, versions, registry, c
 };
 
 const reconcile = async ({ kubernetesKinds, algorithms, versions, registry, clusterOptions, options } = {}) => {
-    const deployments = normalizeDeployments(kubernetesKinds.resDeployment);
+    const deployments = normalizeDebugDeployments(kubernetesKinds.resDeployment);
     const added = algorithms.filter(a => !deployments.find(d => d.algorithmName === a.name));
     const removed = deployments.filter(d => !algorithms.find(a => d.algorithmName === a.name));
     const updated = deployments.filter(d => _filterChangedDeployments(d, algorithms, versions, registry, clusterOptions, options));

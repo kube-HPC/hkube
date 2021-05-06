@@ -1,13 +1,27 @@
 const objectPath = require('object-path');
 const { parseImageName } = require('@hkube/kubernetes-client').utils;
 
-const normalizeDeployments = (deploymentsRaw) => {
+const normalizeAlgorithmQueuesDeployments = (deploymentsRaw) => {
     if (deploymentsRaw == null) {
         return [];
     }
     const deployments = deploymentsRaw.body.items.map(j => ({
         name: j.metadata.name,
         queueId: j.metadata.labels['queue-id'],
+        image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image')),
+        imageFull: objectPath.get(j, 'spec.template.spec.containers.0.image'),
+        env: objectPath.get(j, 'spec.template.spec.containers.0.env', [])
+    }));
+    return deployments;
+};
+
+const normalizeDebugDeployments = (deploymentsRaw) => {
+    if (deploymentsRaw == null) {
+        return [];
+    }
+    const deployments = deploymentsRaw.body.items.map(j => ({
+        name: j.metadata.name,
+        algorithmName: j.metadata.labels['algorithm-name'],
         image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image')),
         imageFull: objectPath.get(j, 'spec.template.spec.containers.0.image'),
         env: objectPath.get(j, 'spec.template.spec.containers.0.env', [])
@@ -95,7 +109,8 @@ const normalizeSecret = (secret) => {
 };
 
 module.exports = {
-    normalizeDeployments,
+    normalizeAlgorithmQueuesDeployments,
+    normalizeDebugDeployments,
     normalizeQueuesDiscovery,
     normalizeAlgorithms,
     normalizeBuildJobs,
