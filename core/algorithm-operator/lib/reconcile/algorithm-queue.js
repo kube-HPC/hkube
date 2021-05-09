@@ -28,7 +28,7 @@ const _deleteDeployment = async ({ queueId }) => {
 
 const _deleteDeployments = async ({ queues, normDeployments }) => {
     const inActiveQueues = Object.entries(queues)
-        .filter(([, v]) => !v.active && normDeployments.find(d => d.queueId === v.queueId))
+        .filter(([k, v]) => !v.active && normDeployments.find(d => d.queueId === k))
         .map(([k]) => k);
     for (const queueId of inActiveQueues) {
         await _deleteDeployment({ queueId }); // eslint-disable-line
