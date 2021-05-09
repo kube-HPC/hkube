@@ -188,7 +188,7 @@ class ApiValidator {
     }
 
     _isEmptyString(str) {
-        return str.trim().length === 0;
+        return str.length === 0;
     }
 
     _isValidString(str) {

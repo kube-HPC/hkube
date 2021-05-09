@@ -723,7 +723,7 @@ describe('Store/Algorithms', () => {
                     name: uuid(),
                     algorithmImage: 'algorithmImage',
                     labels: {
-                        "key": " "
+                        "key": ""
                     }
                 }
                 const options = {
@@ -738,7 +738,7 @@ describe('Store/Algorithms', () => {
                     name: uuid(),
                     algorithmImage: 'algorithmImage',
                     labels: {
-                        "hkube.do-main.com/": " "
+                        "hkube.do-main.com/": "my-val"
                     }
                 }
                 const options = {
@@ -755,7 +755,7 @@ describe('Store/Algorithms', () => {
                     name: uuid(),
                     algorithmImage: 'algorithmImage',
                     labels: {
-                        "hkube.do-main.com/NOT_VALID": " "
+                        "hkube.do-main.com/NOT_VALID": "my-value"
                     }
                 }
                 const options = {
@@ -772,7 +772,7 @@ describe('Store/Algorithms', () => {
                     name: uuid(),
                     algorithmImage: 'algorithmImage',
                     labels: {
-                        "hkube.do-main.com/valid": " "
+                        "hkube.do-main.com/valid": ""
                     }
                 }
                 const options = {
@@ -781,6 +781,23 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.not.have.property('error');
+            });
+            it('should throw validation error if whitespace label value', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        "hkube.do-main.com/valid": " my val "
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.contains('labels value must beginning and ending with an alphanumeric character with dashes');
             });
             it('should throw validation error of invalid annotation key', async () => {
                 const body = {
@@ -804,7 +821,7 @@ describe('Store/Algorithms', () => {
                     name: uuid(),
                     algorithmImage: 'algorithmImage',
                     annotations: {
-                        "key": " "
+                        "key": ""
                     }
                 }
                 const options = {
@@ -853,7 +870,7 @@ describe('Store/Algorithms', () => {
                     name: uuid(),
                     algorithmImage: 'algorithmImage',
                     annotations: {
-                        "hkube.do-main.com/valid": " "
+                        "hkube.do-main.com/valid": ""
                     }
                 }
                 const options = {
