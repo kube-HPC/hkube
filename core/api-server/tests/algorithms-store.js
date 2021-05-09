@@ -699,6 +699,8 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
             });
+        });
+        describe('labels and annotations', () => {
             it('should throw validation error of invalid labels key', async () => {
                 const body = {
                     name: uuid(),
@@ -716,12 +718,27 @@ describe('Store/Algorithms', () => {
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('labels key must be a valid string');
             });
-            it('should throw validation error of invalid labels key', async () => {
+            it('should not throw validation error if empty label value', async () => {
                 const body = {
                     name: uuid(),
                     algorithmImage: 'algorithmImage',
                     labels: {
-                        "key": ""
+                        "key": " "
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.not.have.property('error');
+            });
+            it('should throw validation error of empty label name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        "hkube.do-main.com/": " "
                     }
                 }
                 const options = {
@@ -731,9 +748,41 @@ describe('Store/Algorithms', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('labels value must be a valid string');
+                expect(response.body.error.message).to.equal('labels key name must be a valid string');
             });
-            it('should throw validation error of invalid annotations key', async () => {
+            it('should throw validation error if invalid label key name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        "hkube.do-main.com/NOT_VALID": " "
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.contains('labels key name must beginning and ending with an alphanumeric character with dashes');
+            });
+            it('should not throw validation error if empty label value', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        "hkube.do-main.com/valid": " "
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.not.have.property('error');
+            });
+            it('should throw validation error of invalid annotation key', async () => {
                 const body = {
                     name: uuid(),
                     algorithmImage: 'algorithmImage',
@@ -750,12 +799,27 @@ describe('Store/Algorithms', () => {
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('annotations key must be a valid string');
             });
-            it('should throw validation error of invalid annotations key', async () => {
+            it('should not throw validation error if empty annotation value', async () => {
                 const body = {
                     name: uuid(),
                     algorithmImage: 'algorithmImage',
                     annotations: {
-                        "key": ""
+                        "key": " "
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.not.have.property('error');
+            });
+            it('should throw validation error of empty annotation name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    annotations: {
+                        "hkube.do-main.com/": " "
                     }
                 }
                 const options = {
@@ -765,7 +829,39 @@ describe('Store/Algorithms', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('annotations value must be a valid string');
+                expect(response.body.error.message).to.equal('annotations key name must be a valid string');
+            });
+            it('should throw validation error if invalid annotation key name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    annotations: {
+                        "hkube.do-main.com/NOT_VALID": " "
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.contains('annotations key name must beginning and ending with an alphanumeric character with dashes');
+            });
+            it('should not throw validation error if empty annotation value', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    annotations: {
+                        "hkube.do-main.com/valid": " "
+                    }
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.not.have.property('error');
             });
         });
         describe('GitHub', () => {

@@ -268,12 +268,14 @@ const applyKeyVal = (inputSpec, keyVal, type, path) => {
     return spec;
 };
 
-const applyLabels = (spec, keyVal, type) => {
-    return applyKeyVal(spec, keyVal, type, 'spec.template.metadata.labels');
+const applyLabels = (spec, keyVal) => {
+    spec = applyKeyVal(spec, keyVal, 'label', 'metadata.labels');
+    return applyKeyVal(spec, keyVal, 'label', 'spec.template.metadata.labels');
 };
 
-const applyAnnotations = (spec, keyVal, type) => {
-    return applyKeyVal(spec, keyVal, type, 'spec.template.metadata.annotations');
+const applyAnnotations = (spec, keyVal) => {
+    spec = applyKeyVal(spec, keyVal, 'annotation', 'metadata.annotations');
+    return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
 };
 
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
@@ -319,8 +321,8 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyDataSourcesVolumes(spec);
     spec = applyMounts(spec, mounts);
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
-    spec = applyLabels(spec, labels, 'label');
-    spec = applyAnnotations(spec, annotations, 'annotation');
+    spec = applyLabels(spec, labels);
+    spec = applyAnnotations(spec, annotations);
     return spec;
 };
 

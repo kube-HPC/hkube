@@ -21,7 +21,7 @@ module.exports = {
         "object-curly-spacing": "error",
         "no-var": "error",
         "import/newline-after-import": "off",
-        "max-len": ["error", 220],
+        "max-len": ["error", 240],
         "brace-style": ["error", "stroustrup"],
         "indent": ["warn", 4],
         "comma-dangle": "off",
