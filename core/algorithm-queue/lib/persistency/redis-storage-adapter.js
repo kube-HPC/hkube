@@ -14,7 +14,6 @@ class RedisAdapter {
             lrange: promisify(client.lrange).bind(client),
         };
         this._maxPersistencySize = options.queue.maxPersistencySize;
-        log.info('redis initiated', { component: components.REDIS_PERSISTENT });
     }
 
     async put({ data, path }) {

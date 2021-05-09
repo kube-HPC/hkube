@@ -27,6 +27,16 @@ class EtcdClient extends EventEmitter {
         await this._etcd.algorithmQueues.watch({ queueId });
     }
 
+    async unWatchQueueActions({ queueId }) {
+        try {
+            await this._etcd.algorithmQueues.unwatch({ queueId });
+        }
+        catch {
+            return null;
+        }
+        return null;
+    }
+
     onQueueAction(func) {
         this._etcd.algorithmQueues.on('change', (response) => {
             func(response);

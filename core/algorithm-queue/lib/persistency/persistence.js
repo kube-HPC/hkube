@@ -29,10 +29,7 @@ class Persistence {
 
         log.debug(`finished writing ${data.length} items to persistency`, { component: components.ETCD_PERSISTENT });
         const scoreArray = data.map(d => d.calculated.score);
-        const status = await etcd.updateQueueData({ name: this._algorithmName, data: scoreArray, pendingAmount, timestamp: Date.now() });
-        if (status) {
-            log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT });
-        }
+        await etcd.updateQueueData({ name: this._algorithmName, data: scoreArray, pendingAmount, timestamp: Date.now() });
     }
 
     async get() {

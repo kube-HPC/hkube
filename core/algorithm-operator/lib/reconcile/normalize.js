@@ -1,7 +1,7 @@
 const objectPath = require('object-path');
 const { parseImageName } = require('@hkube/kubernetes-client').utils;
 
-const normalizeAlgorithmQueuesDeployments = (deploymentsRaw) => {
+const normalizeQueuesDeployments = (deploymentsRaw) => {
     if (deploymentsRaw == null) {
         return [];
     }
@@ -39,7 +39,7 @@ const normalizeQueuesDiscovery = (discovery) => {
 
     discovery.forEach((d) => {
         if (!queueToAlgorithms[d.queueId]) {
-            queueToAlgorithms[d.queueId] = { count: 0, timestamp: d.timestamp };
+            queueToAlgorithms[d.queueId] = { count: 0, active: d.active, timestamp: d.timestamp };
         }
         d.algorithms?.forEach((a) => {
             if (algorithmsToQueue[a]) {
@@ -109,7 +109,7 @@ const normalizeSecret = (secret) => {
 };
 
 module.exports = {
-    normalizeAlgorithmQueuesDeployments,
+    normalizeQueuesDeployments,
     normalizeDebugDeployments,
     normalizeQueuesDiscovery,
     normalizeAlgorithms,

@@ -11,7 +11,6 @@ class Queue extends events {
     constructor({ algorithmName, updateInterval, scoreHeuristic, enrichmentRunner, persistence }) {
         super();
         this.algorithmName = algorithmName;
-        log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component });
         this.scoreHeuristic = scoreHeuristic;
         this.enrichmentRunner = enrichmentRunner;
         this.updateInterval = updateInterval;
@@ -64,31 +63,19 @@ class Queue extends events {
     }
 
     async persistencyLoad() {
-        log.info('try to recover data from persistent storage', { component });
-        if (this.persistence) {
-            try {
-                const queueItems = await this.persistence.get();
-                this.addJobs(queueItems);
-                log.info('persistent added successfully', { component });
-            }
-            catch (e) {
-                log.warning('could not add data from persistency ', { component });
-            }
+        try {
+            const queueItems = await this.persistence.get();
+            this.addJobs(queueItems);
+            log.info('persistent recovered successfully', { component });
         }
-        else {
-            log.warning('persistency storage was not set ', { component });
+        catch (e) {
+            log.warning('could not add data from persistency ', { component });
         }
     }
 
     async persistenceStore({ data, pendingAmount }) {
-        log.debug('try to store data to  storage', { component });
-        if (this.persistence) {
-            await this.persistence.store({ data, pendingAmount });
-            log.debug('store data to storage succeed', { component });
-        }
-        else {
-            log.warning('persistent storage not set', { component });
-        }
+        await this.persistence.store({ data, pendingAmount });
+        log.debug('store data to storage succeed', { component });
     }
 
     addJobs(jobs) {

@@ -7,19 +7,18 @@ const etcd = require('../helpers/etcd');
 const { findVersion } = require('../helpers/images');
 const component = require('../consts/componentNames').ALGORITHM_QUEUE_RECONCILER;
 const QueueActions = require('../consts/queue-actions');
-const { normalizeAlgorithmQueuesDeployments, normalizeQueuesDiscovery, normalizeAlgorithms } = require('./normalize');
+const { normalizeQueuesDeployments, normalizeQueuesDiscovery, normalizeAlgorithms } = require('./normalize');
 const CONTAINERS = require('../consts/containers');
 
 const _createDeployment = async ({ queueId, options }) => {
-    log.debug(`need to add new algorithm queue ${queueId} with details ${JSON.stringify(options, null, 2)}`, { component });
+    log.debug(`need to add new algorithm queue deployment ${queueId} with details ${JSON.stringify(options, null, 2)}`, { component });
     const spec = createDeploymentSpec({ queueId, ...options });
     await kubernetes.createDeployment({ spec });
 };
 
-const _updateDeployment = async ({ deployment, options }) => {
-    const { algorithmName } = deployment;
-    log.debug(`need to add ${algorithmName} with details ${JSON.stringify(options, null, 2)}`, { component });
-    const spec = createDeploymentSpec({ algorithmName, ...options });
+const _updateDeployment = async ({ queueId, options }) => {
+    log.debug(`need to update algorithm queue deployment  with details  ${queueId} ${JSON.stringify(options, null, 2)}`, { component });
+    const spec = createDeploymentSpec({ queueId, ...options });
     await kubernetes.updateDeployment({ spec });
 };
 
@@ -27,13 +26,19 @@ const _deleteDeployment = async ({ queueId }) => {
     await kubernetes.deleteDeployment({ deploymentName: `${CONTAINERS.ALGORITHM_QUEUE}-${queueId}` });
 };
 
-const _findEmptyQueues = ({ queueToAlgorithms, normDeployments }) => {
-    const emptyQueues = Object.entries(queueToAlgorithms)
-        .filter(([k, v]) => !v.count
-            && Date.now() - v.timestamp > 30000
-            && normDeployments.find(d => d.queueId === k))
-        .map(([k]) => k);
-    return emptyQueues;
+const _deleteDeployments = async ({ queues }) => {
+    const inActiveQueues = Object.entries(queues).filter(([, v]) => !v.active).map(([k]) => k);
+    for (const queueId of inActiveQueues) {
+        await _deleteDeployment({ queueId }); // eslint-disable-line
+    }
+};
+
+const _updateDeployments = async ({ normDeployments, options }) => {
+    const version = findVersion({ versions: options.versions, repositoryName: CONTAINERS.ALGORITHM_QUEUE });
+    const updated = normDeployments.filter(d => d.image.tag !== version);
+    for (const deployment of updated) {
+        await _updateDeployment({ queueId: deployment.queueId, options }); // eslint-disable-line
+    }
 };
 
 const _findAvailableQueues = ({ queueToAlgorithms, limit }) => {
@@ -87,13 +92,16 @@ const _createQueueId = () => {
     return uid({ length: 12 });
 };
 
-const _addDeployments = async ({ limit, normAlgorithms, normDeployments, versions, registry, clusterOptions, resources, options }) => {
+const _addDeployments = async ({ limit, algorithms, normDeployments, versions, registry, clusterOptions, resources, options }) => {
     if (limit > 0) {
-        const requiredDeployments = Math.ceil(normAlgorithms.length / limit);
+        const requiredDeployments = Math.ceil(algorithms / limit);
         const missingDeployments = requiredDeployments - normDeployments.length;
-        for (let i = 0; i < missingDeployments; i += 1) {
-            const queueId = _createQueueId();
-            await _createDeployment({ queueId, options: { versions, registry, clusterOptions, resources, options } }); // eslint-disable-line
+        if (missingDeployments > 0) {
+            log.info(`need to add ${missingDeployments} deployments`, { component });
+            for (let i = 0; i < missingDeployments; i += 1) {
+                const queueId = _createQueueId();
+                await _createDeployment({ queueId, options: { versions, registry, clusterOptions, resources, options } }); // eslint-disable-line
+            }
         }
     }
     else {
@@ -103,31 +111,19 @@ const _addDeployments = async ({ limit, normAlgorithms, normDeployments, version
 
 const reconcile = async ({ deployments, algorithms, discovery, versions, registry, clusterOptions, resources, options } = {}) => {
     const { limit } = options.algorithmQueueBalancer;
-    const version = findVersion({ versions, repositoryName: CONTAINERS.ALGORITHM_QUEUE });
     const { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms } = normalizeQueuesDiscovery(discovery);
     const normAlgorithms = normalizeAlgorithms(algorithms);
-    const normDeployments = normalizeAlgorithmQueuesDeployments(deployments);
-    const emptyQueues = _findEmptyQueues({ queueToAlgorithms, normDeployments });
+    const normDeployments = normalizeQueuesDeployments(deployments);
     const availableQueues = _findAvailableQueues({ queueToAlgorithms, limit });
-    const updated = normDeployments.filter(d => d.image.tag !== version);
     const addAlgorithms = normAlgorithms.filter(a => !algorithmsToQueue[a.name]);
     const removeAlgorithms = _findObsoleteAlgorithms({ algorithmsToQueue, normAlgorithms });
-    const createPromises = [];
 
-    await _addDeployments({ limit, normAlgorithms, normDeployments, versions, registry, clusterOptions, resources, options });
+    await _addDeployments({ limit, algorithms: normAlgorithms.length, normDeployments, versions, registry, clusterOptions, resources, options });
     await _matchAlgorithmsToQueue({ algorithms: addAlgorithms, queues: availableQueues, limit });
     await _removeAlgorithmsFromQueue({ algorithms: removeAlgorithms });
     await _removeDuplicatesAlgorithms({ algorithms: duplicateAlgorithms });
-
-    for (const queueId of emptyQueues) {
-        createPromises.push(_deleteDeployment({ queueId }));
-    }
-
-    for (const deployment of updated) {
-        createPromises.push(_updateDeployment({ deployment, options: { versions, registry, clusterOptions, resources, options } }));
-    }
-
-    await Promise.all(createPromises);
+    await _deleteDeployments({ queues: queueToAlgorithms });
+    await _updateDeployments({ normDeployments, options: { versions, registry, clusterOptions, resources, options } });
 };
 
 const reconcileDevMode = async ({ algorithms, discovery, options } = {}) => {

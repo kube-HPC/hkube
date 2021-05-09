@@ -8,6 +8,8 @@ const component = require('./consts/component-name').JOBS_CONSUMER;
 class QueuesManager extends EventEmitter {
     constructor() {
         super();
+        this._active = true;
+        this._lastActive = Date.now();
         this._queues = new Map();
         this._actions = {
             add: (...args) => this._addAction(...args),
@@ -28,38 +30,52 @@ class QueuesManager extends EventEmitter {
         });
 
         this._watch();
-        const discovery = this.getDiscoveryData();
+        const discovery = this._getDiscoveryData();
         await etcd.discoveryRegister({ data: discovery });
-        this._discoveryInterval();
+        this._livenessInterval();
+        log.info(`queue ${queueId} is up and running`, { component });
     }
 
-    _discoveryInterval() {
-        if (this._interval) {
-            return;
-        }
-        this._interval = setInterval(async () => {
-            if (this._isIntervalActive) {
+    _livenessInterval() {
+        setTimeout(async () => {
+            if (!this._active) {
                 return;
             }
             try {
-                this._isIntervalActive = true;
-                const discovery = this.getDiscoveryData();
-                if (!isEqual(discovery.algorithms, this._lastDiscoveryData)) {
-                    this._lastDiscoveryData = discovery.algorithms;
-                    await etcd.discoveryUpdate(discovery);
+                const { queueId, algorithms } = this._getDiscoveryData();
+                if (algorithms.length === 0) {
+                    const idleTime = Date.now() - this._lastActive;
+                    const isIdle = idleTime > this._options.algorithmQueueBalancer.minIdleTimeMS;
+                    if (isIdle) {
+                        log.info(`queue ${queueId} is idle for ${(idleTime / 1000).toFixed(0)} sec, preparing for shutdown`, { component });
+                        await etcd.unWatchQueueActions({ queueId });
+                        this._active = false;
+                        await this._discoveryUpdate();
+                    }
+                }
+                else {
+                    this._lastActive = Date.now();
+                    if (!isEqual(algorithms, this._lastDiscoveryData)) {
+                        this._lastDiscoveryData = algorithms;
+                        await this._discoveryUpdate();
+                    }
                 }
             }
             catch (e) {
                 log.throttle.error(`fail on discovery interval ${e}`, { component }, e);
             }
             finally {
-                this._isIntervalActive = false;
+                this._livenessInterval();
             }
-        }, 5000);
+        }, this._options.algorithmQueueBalancer.livenessInterval);
     }
 
     async _handleAction(data) {
         try {
+            if (!this._active) {
+                log.throttle.error('queue is not active', { component });
+                return;
+            }
             const { action, algorithmName } = data;
             if (!algorithmName) {
                 log.throttle.error('job arrived without algorithm name', { component });
@@ -111,9 +127,14 @@ class QueuesManager extends EventEmitter {
         }
     }
 
-    getDiscoveryData() {
+    async _discoveryUpdate() {
+        const discovery = this._getDiscoveryData();
+        await etcd.discoveryUpdate(discovery);
+    }
+
+    _getDiscoveryData() {
         const algorithms = Array.from(this._queues.keys());
-        return { queueId: this._queueId, algorithms, timestamp: Date.now() };
+        return { queueId: this._queueId, algorithms, timestamp: Date.now(), active: this._active };
     }
 
     _watch() {
