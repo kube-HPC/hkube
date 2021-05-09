@@ -38,28 +38,21 @@ class QueuesManager extends EventEmitter {
 
     _livenessInterval() {
         setTimeout(async () => {
-            if (!this._active) {
-                return;
-            }
             try {
                 const { queueId, algorithms } = this._getDiscoveryData();
                 if (algorithms.length === 0) {
                     const idleTime = Date.now() - this._lastActive;
                     const isIdle = idleTime > this._options.algorithmQueueBalancer.minIdleTimeMS;
-                    if (isIdle) {
+                    if (isIdle && this._active) {
+                        this._active = false;
                         log.info(`queue ${queueId} is idle for ${(idleTime / 1000).toFixed(0)} sec, preparing for shutdown`, { component });
                         await etcd.unWatchQueueActions({ queueId });
-                        this._active = false;
-                        await this._discoveryUpdate();
                     }
                 }
                 else {
                     this._lastActive = Date.now();
-                    if (!isEqual(algorithms, this._lastDiscoveryData)) {
-                        this._lastDiscoveryData = algorithms;
-                        await this._discoveryUpdate();
-                    }
                 }
+                await this._discoveryUpdate();
             }
             catch (e) {
                 log.throttle.error(`fail on discovery interval ${e}`, { component }, e);
@@ -129,12 +122,15 @@ class QueuesManager extends EventEmitter {
 
     async _discoveryUpdate() {
         const discovery = this._getDiscoveryData();
-        await etcd.discoveryUpdate(discovery);
+        if (!isEqual(discovery, this._lastDiscoveryData)) {
+            this._lastDiscoveryData = discovery;
+            await etcd.discoveryUpdate({ ...discovery, timestamp: Date.now() });
+        }
     }
 
     _getDiscoveryData() {
         const algorithms = Array.from(this._queues.keys());
-        return { queueId: this._queueId, algorithms, timestamp: Date.now(), active: this._active };
+        return { queueId: this._queueId, algorithms, active: this._active };
     }
 
     _watch() {

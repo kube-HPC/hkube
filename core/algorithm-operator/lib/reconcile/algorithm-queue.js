@@ -26,8 +26,10 @@ const _deleteDeployment = async ({ queueId }) => {
     await kubernetes.deleteDeployment({ deploymentName: `${CONTAINERS.ALGORITHM_QUEUE}-${queueId}` });
 };
 
-const _deleteDeployments = async ({ queues }) => {
-    const inActiveQueues = Object.entries(queues).filter(([, v]) => !v.active).map(([k]) => k);
+const _deleteDeployments = async ({ queues, normDeployments }) => {
+    const inActiveQueues = Object.entries(queues)
+        .filter(([, v]) => !v.active && normDeployments.find(d => d.queueId === v.queueId))
+        .map(([k]) => k);
     for (const queueId of inActiveQueues) {
         await _deleteDeployment({ queueId }); // eslint-disable-line
     }
@@ -65,7 +67,7 @@ const _matchAlgorithmsToQueue = async ({ algorithms, queues, limit }) => {
             }
             const { queueId } = availableQueue;
             const algorithmName = algorithms[i].name;
-            await etcd.sendAlgorithmQueueAction({ queueId, action: QueueActions.ADD, algorithmName }); // eslint-disable-line
+            await etcd.sendAlgorithmQueueAction({ queueId, action: QueueActions.ADD, algorithmName, timestamp: Date.now() }); // eslint-disable-line
             availableQueue.count += 1;
             if (availableQueue.count === limit) {
                 sortedQueues.shift();
@@ -77,7 +79,7 @@ const _matchAlgorithmsToQueue = async ({ algorithms, queues, limit }) => {
 const _removeAlgorithmsFromQueue = async ({ algorithms }) => {
     for (const algorithm of algorithms) {
         const { queueId, algorithmName } = algorithm;
-        await etcd.sendAlgorithmQueueAction({ queueId, action: QueueActions.REMOVE, algorithmName }); // eslint-disable-line
+        await etcd.sendAlgorithmQueueAction({ queueId, action: QueueActions.REMOVE, algorithmName, timestamp: Date.now() }); // eslint-disable-line
     }
 };
 
@@ -92,10 +94,10 @@ const _createQueueId = () => {
     return uid({ length: 12 });
 };
 
-const _addDeployments = async ({ limit, algorithms, normDeployments, versions, registry, clusterOptions, resources, options }) => {
+const _addDeployments = async ({ limit, algorithms, deployments, versions, registry, clusterOptions, resources, options }) => {
     if (limit > 0) {
         const requiredDeployments = Math.ceil(algorithms / limit);
-        const missingDeployments = requiredDeployments - normDeployments.length;
+        const missingDeployments = requiredDeployments - deployments;
         if (missingDeployments > 0) {
             log.info(`need to add ${missingDeployments} deployments`, { component });
             for (let i = 0; i < missingDeployments; i += 1) {
@@ -118,12 +120,12 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     const addAlgorithms = normAlgorithms.filter(a => !algorithmsToQueue[a.name]);
     const removeAlgorithms = _findObsoleteAlgorithms({ algorithmsToQueue, normAlgorithms });
 
-    await _addDeployments({ limit, algorithms: normAlgorithms.length, normDeployments, versions, registry, clusterOptions, resources, options });
+    await _addDeployments({ limit, algorithms: normAlgorithms.length, deployments: normDeployments.length, versions, registry, clusterOptions, resources, options });
+    await _updateDeployments({ normDeployments, options: { versions, registry, clusterOptions, resources, options } });
+    await _deleteDeployments({ queues: queueToAlgorithms, normDeployments });
     await _matchAlgorithmsToQueue({ algorithms: addAlgorithms, queues: availableQueues, limit });
     await _removeAlgorithmsFromQueue({ algorithms: removeAlgorithms });
     await _removeDuplicatesAlgorithms({ algorithms: duplicateAlgorithms });
-    await _deleteDeployments({ queues: queueToAlgorithms });
-    await _updateDeployments({ normDeployments, options: { versions, registry, clusterOptions, resources, options } });
 };
 
 const reconcileDevMode = async ({ algorithms, discovery, options } = {}) => {
