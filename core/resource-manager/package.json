@@ -1,6 +1,6 @@
 {
   "name": "resource-manager",
-  "version": "2.0.6",
+  "version": "2.1.1",
   "description": "resource-manager",
   "main": "app.js",
   "directories": {
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/db": "^1.0.30",
+    "@hkube/db": "^1.0.32",
     "@hkube/etcd": "^5.1.2",
     "@hkube/kubernetes-client": "^1.0.33",
     "@hkube/logger": "^1.0.27",

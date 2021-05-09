@@ -88,9 +88,9 @@ describe('download', () => {
         const { href } = body;
         const [, downloadId] = href.split('download_id=');
         expect(statusCode).to.eq(StatusCodes.CREATED);
-        expect(await fse.pathExists(`${ZIP_DIRECTORY}/${downloadId}.zip`)).to.be
-            .true;
+        expect(await fse.pathExists(`${ZIP_DIRECTORY}/${downloadId}.zip`)).to.be.true;
         const { response } = await fetchDownloadLink({ href });
+        expect(await fse.pathExists(`${ZIP_DIRECTORY}/${downloadId}.zip`)).to.be.false;
         expect(response.statusCode).to.eq(StatusCodes.OK);
     });
 
