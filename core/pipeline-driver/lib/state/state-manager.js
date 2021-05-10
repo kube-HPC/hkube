@@ -1,46 +1,73 @@
 const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const Etcd = require('@hkube/etcd');
-const logger = require('@hkube/logger');
+const log = require('@hkube/logger').GetLogFromContainer();
 const { tracer } = require('@hkube/metrics');
+const { pipelineStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
+const commands = require('../consts/commands');
 const db = require('./db');
 const DriverStates = require('./DriverStates');
 const component = require('../consts/componentNames').STATE_MANAGER;
 const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED, DriverStates.PAUSED];
-let log;
 
-class StateManager extends EventEmitter {
-    constructor(option) {
-        super();
-        const options = option || {};
-        this._options = options;
-        log = logger.GetLogFromContainer();
-        this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
+class StateManager {
+    init(options) {
+        this._emitter = new EventEmitter();
+        this._etcd = new Etcd(options.etcd);
         this._podName = options.kubernetes.podName;
         this._lastDiscovery = null;
         this._driverId = this._etcd.discovery._instanceId;
         this._etcd.discovery.register({ data: this._defaultDiscovery() });
-        this._discoveryMethod = options.discoveryMethod || function noop() { };
         this._unScheduledAlgorithmsInterval = options.unScheduledAlgorithms.interval;
         this._subscribe();
         this._watchDrivers();
+        this._checkUnScheduledAlgorithms();
     }
 
     _subscribe() {
-        this._etcd.jobs.tasks.on('change', (data) => {
-            this.emit(`task-${data.status}`, data);
-            this.emit('task-changed', data);
-        });
         this._etcd.jobs.status.on('change', (data) => {
-            this.emit(`job-${data.status}`, data);
-        });
-        this._etcd.drivers.on('change', (data) => {
-            this.emit(data.status.command, data);
+            this._emitter.emit(`job-${data.status}`, data);
         });
     }
 
-    checkUnScheduledAlgorithms() {
+    setDiscoveryCallback(discoveryMethod) {
+        this._discoveryMethod = discoveryMethod;
+    }
+
+    onStopProcessing(func) {
+        this._etcd.drivers.on('change', (data) => {
+            if (data.status.command === commands.stopProcessing) {
+                func(data);
+            }
+        });
+    }
+
+    onUnScheduledAlgorithms(func) {
+        this._emitter.on('events-warning', (data) => {
+            func(data);
+        });
+    }
+
+    onJobStop(func) {
+        this._emitter.on(`job-${pipelineStatuses.STOPPED}`, (data) => {
+            func(data);
+        });
+    }
+
+    onJobPause(func) {
+        this._emitter.on(`job-${pipelineStatuses.PAUSED}`, (data) => {
+            func(data);
+        });
+    }
+
+    onTaskStatus(func) {
+        this._etcd.jobs.tasks.on('change', (data) => {
+            func(data);
+        });
+    }
+
+    _checkUnScheduledAlgorithms() {
         if (this._interval) {
             return;
         }
@@ -54,7 +81,7 @@ class StateManager extends EventEmitter {
                 if (resources && resources[0] && resources[0].unScheduledAlgorithms) {
                     const algorithms = resources[0].unScheduledAlgorithms;
                     Object.values(algorithms).forEach((e) => {
-                        this.emit(`events-${e.type}`, e);
+                        this._emitter.emit(`events-${e.type}`, e);
                     });
                 }
             }
@@ -235,4 +262,4 @@ class StateManager extends EventEmitter {
     }
 }
 
-module.exports = StateManager;
+module.exports = new StateManager();

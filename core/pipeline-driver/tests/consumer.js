@@ -5,12 +5,12 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 const sinon = require('sinon');
-const StateManager = require('../lib/state/state-manager');
 const { delay } = require('./utils');
+let consumer, stateManager;
 
 describe('Consumer', function () {
     before(async () => {
-        stateManager = new StateManager(testParams.config);
+        stateManager = require('../lib/state/state-manager');
         consumer = require('../lib/consumer/jobs-consumer');
     });
     describe('pause', function () {

@@ -1,16 +1,12 @@
 const async = require('async');
 const { median } = require('@hkube/stats');
-const logger = require('@hkube/logger');
+const log = require('@hkube/logger').GetLogFromContainer();
 const throttle = require('lodash.throttle');
 const levels = require('@hkube/logger').Levels;
 const groupBy = require('../helpers/group-by');
-let log;
 
 class ProgressManager {
     constructor(option) {
-        if (!log) {
-            log = logger.GetLogFromContainer();
-        }
         const options = option || {};
         const type = options.type || 'batch';
         this._currentProgress = 0;

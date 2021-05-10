@@ -3,12 +3,14 @@ const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const monitor = require('@hkube/redis-utils').Monitor;
 const { tracer, metrics } = require('@hkube/metrics');
-const component = require('./lib/consts/componentNames').MAIN;
 const storageManager = require('@hkube/storage-manager');
-let log;
+const component = require('./lib/consts/componentNames').MAIN;
+const { main, logger } = configIt.load();
+const log = new Logger(main.serviceName, logger);
 
 const modules = [
     require('./lib/state/db'),
+    require('./lib/state/state-manager'),
     require('./lib/producer/jobs-producer'),
     require('./lib/consumer/jobs-consumer'),
     require('./lib/metrics/pipeline-metrics'),
@@ -18,10 +20,7 @@ const modules = [
 class Bootstrap {
     async init() {
         try {
-            const { main, logger } = configIt.load();
             this._handleErrors();
-
-            log = new Logger(main.serviceName, logger);
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
 
             monitor.on('ready', (data) => {

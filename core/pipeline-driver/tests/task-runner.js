@@ -1,4 +1,3 @@
-const { uid: uuidv4 } = require('@hkube/uid');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
@@ -7,24 +6,24 @@ const sinon = require('sinon');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const { Node } = NodeTypes;
 const pipelines = require('./mocks/pipelines');
-const StateManager = require('../lib/state/state-manager');
-const graphStore = require('../lib/datastore/graph-store');
+const GraphStore = require('../lib/datastore/graph-store');
 const WorkerStub = require('./mocks/worker')
-const { delay } = require('./utils');
-let config, taskRunner, TaskRunner, stateManager, consumer;
+const { delay, createJobId } = require('./utils');
+const graphStore = new GraphStore();
+let config, stateManager, taskRunner, TaskRunner, consumer;
 
 describe('TaskRunner', function () {
     before(async () => {
         config = testParams.config;
+        stateManager = require('../lib/state/state-manager');
         TaskRunner = require('../lib/tasks/task-runner');
-        stateManager = new StateManager(config);
         consumer = require('../lib/consumer/jobs-consumer');
     });
     beforeEach(function () {
         taskRunner = new TaskRunner(config);
     });
     it('should throw exception and stop pipeline', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
@@ -37,7 +36,7 @@ describe('TaskRunner', function () {
         expect(call.args[0].error.message).to.equal(error);
     });
     it('should start only one pipeline', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
@@ -51,7 +50,7 @@ describe('TaskRunner', function () {
         expect(res2).to.be.null;
     });
     it('should start pipeline successfully', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
@@ -67,7 +66,7 @@ describe('TaskRunner', function () {
     it('should recover pipeline successfully', async function () {
     });
     it('should throw when check batch tolerance', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
@@ -86,7 +85,7 @@ describe('TaskRunner', function () {
         expect(result.message).to.equal(`${length}/5 (80%) failed tasks, batch tolerance is 60%, error: oooohh noooo`);
     });
     it('should recover existing pipeline', async function () {
-        const jobId = `jobid-active-event-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
@@ -108,17 +107,12 @@ describe('TaskRunner', function () {
         expect(spy.calledOnce).to.equal(true);
     });
     it('should recover succeed tasks', async function () {
-        const jobId = `jobid-recovery-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
         }
-        const options = {
-            type: 'eval-alg'
-        }
-        const workerStub = new WorkerStub(options, true);
         const pipeline = pipelines.find(p => p.name === 'simple-flow');
-        let taskRunner = new TaskRunner(config);
         const nodesMap = new NodesMap(pipeline);
         const node1 = new Node(pipeline.nodes[0]);
         const node2 = new Node(pipeline.nodes[1]);
@@ -136,70 +130,72 @@ describe('TaskRunner', function () {
         const status = { status: 'active' };
         await stateManager.createJob({ jobId, pipeline, status });
         await graphStore.start(jobId, nodesMap);
-        await taskRunner.start(job);
-
-        await delay(1000);
-        expect(taskRunner._active).to.equal(true);
-        expect(taskRunner._driverStatus).to.equal('active');
-        expect(taskRunner._jobStatus).to.equal('active');
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
+        expect(driver._active).to.equal(true);
+        expect(driver._driverStatus).to.equal('active');
+        expect(driver._jobStatus).to.equal('active');
 
         // simulate restart
-        await taskRunner._onStop({})
-        expect(taskRunner._active).to.equal(false, '_onStop failed');
-        taskRunner = new TaskRunner(config)
+        await driver.onStop({});
+        expect(driver._active).to.equal(false, 'onStop failed');
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node4.taskId, status: 'succeed' });
-        await taskRunner.start(job);
-        await delay(5000);
-        expect(taskRunner._active).to.equal(false);
-        expect(taskRunner._driverStatus).to.equal('ready');
-        expect(taskRunner._jobStatus).to.equal('completed');
+        await driver.start(job);
+        await delay(2000);
+        expect(driver._active).to.equal(false);
+        expect(driver._driverStatus).to.equal('ready');
+        expect(driver._jobStatus).to.equal('completed');
     });
     it('should create job and handle success after stalled status', async function () {
-        const jobId = `jobid-stalled-event-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
         }
-        const spy = sinon.spy(taskRunner, "stop");
         const pipeline = pipelines.find(p => p.name === 'one-node');
         const status = { status: 'pending' };
         await stateManager.createJob({ jobId, pipeline, status });
-        await taskRunner.start(job);
-        const node = taskRunner._nodes.getNode('green');
+        const promise = consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
+        const spy = sinon.spy(driver, "stop");
+        await promise;
+        const node = driver._nodes.getNode('green');
         const taskId = node.taskId;
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId, error: 'taskStalled', status: 'stalled' });
         await delay(300);
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId, status: 'succeed' });
         await delay(300);
         expect(spy.calledOnce).to.equal(true);
-        expect(taskRunner._jobStatus).to.equal('completed');
+        expect(driver._jobStatus).to.equal('completed');
     });
     it('should create job and handle failed after stalled status', async function () {
-        const jobId = `jobid-stalled-event-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
         }
-        const spy = sinon.spy(taskRunner, "stop");
         const pipeline = pipelines.find(p => p.name === 'one-node');
         const status = { status: 'pending' };
         await stateManager.createJob({ jobId, pipeline, status });
-        await taskRunner.start(job);
-        const node = taskRunner._nodes.getNode('green');
+        const promise = consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
+        const spy = sinon.spy(driver, "stop");
+        await promise;
+        const node = driver._nodes.getNode('green');
         const taskId = node.taskId;
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId, error: 'taskStalled', status: 'stalled' });
         await delay(300);
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId, status: 'failed' });
         await delay(300);
         expect(spy.calledOnce).to.equal(true);
-        expect(taskRunner._jobStatus).to.equal('completed');
+        expect(driver._jobStatus).to.equal('completed');
 
     });
     it('should create job and handle board update', async function () {
-        const jobId = `jobid-board-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
@@ -208,30 +204,32 @@ describe('TaskRunner', function () {
         const pipeline = pipelines.find(p => p.name === 'one-node');
         const status = { status: 'pending' };
         await stateManager.createJob({ jobId, pipeline, status });
-        await taskRunner.start(job);
-        const { taskId } = taskRunner._nodes.getNode('green');
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
+        const { taskId } = driver._nodes.getNode('green');
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId, status: 'active', metricsPath: { tensorboard: { path: 'path' } } });
         await delay(300);
         const pipe = await stateManager.getExecution({ jobId });
         expect(pipe.types).to.eql(['tensorboard']);
     });
     it.skip('should wait any', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
         }
         const pipeline = pipelines.find(p => p.name === 'simple-wait-any');
         await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
-        await taskRunner.start(job);
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
         await delay(300);
         const options = { type: 'test-job' };
         const workerStub = new WorkerStub(options);
         const status = 'succeed';
         const result = 42;
-        const green = taskRunner._nodes.getNode('green');
-        const yellow = taskRunner._nodes.getNode('yellow');
-        const black = taskRunner._nodes.getNode('black');
+        const green = driver._nodes.getNode('green');
+        const yellow = driver._nodes.getNode('yellow');
+        const black = driver._nodes.getNode('black');
         await workerStub.done({ jobId, taskId: green.batch[0].taskId, status, result, nodeName: 'green', batchIndex: green.batch[0].batchIndex });
         await workerStub.done({ jobId, taskId: yellow.batch[0].taskId, status, result, nodeName: 'yellow', batchIndex: yellow.batch[0].batchIndex });
 
@@ -241,7 +239,7 @@ describe('TaskRunner', function () {
         expect(black.batch[0].input).to.lengthOf(2);
     });
     it('should start pipeline and update graph on failure', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
@@ -249,8 +247,9 @@ describe('TaskRunner', function () {
         const pipeline = pipelines.find(p => p.name === "simple-flow");
         const status = { status: 'pending' };
         await stateManager.createJob({ jobId, pipeline, status });
-        await taskRunner.start(job);
-        await taskRunner.stop({ error: 'error' });
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
+        await driver.stop({ error: 'error' });
         const graph = await graphStore.getGraph({ jobId });
         expect(graph.nodes[0].status).to.equal('stopped');
         expect(graph.nodes[1].status).to.equal('stopped');
@@ -258,7 +257,7 @@ describe('TaskRunner', function () {
         expect(graph.nodes[3].status).to.equal('stopped');
     });
     it('should start pipeline and handle insufficient mem warning', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
@@ -266,9 +265,10 @@ describe('TaskRunner', function () {
         const pipeline = pipelines.find(p => p.name === 'flow2');
         const status = { status: 'pending' };
         await stateManager.createJob({ jobId, pipeline, status });
-        await taskRunner.start(job);
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
         await delay(500);
-        const node = taskRunner._nodes.getNode('green');
+        const node = driver._nodes.getNode('green');
         const algorithmName = node.algorithmName;
         const discovery = {
             unScheduledAlgorithms: {
@@ -291,7 +291,7 @@ describe('TaskRunner', function () {
         expect(node.warnings[0]).to.equal(algorithm.message);
     });
     it('should start pipeline and handle maximum capacity exceeded warning', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
@@ -299,9 +299,10 @@ describe('TaskRunner', function () {
         const pipeline = pipelines.find(p => p.name === 'flow2');
         const status = { status: 'pending' };
         await stateManager.createJob({ jobId, pipeline, status });
-        await taskRunner.start(job);
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
         await delay(500);
-        const node = taskRunner._nodes.getNode('green');
+        const node = driver._nodes.getNode('green');
         const algorithmName = node.algorithmName;
         const discovery = {
             unScheduledAlgorithms: {
@@ -324,7 +325,7 @@ describe('TaskRunner', function () {
         expect(node.warnings[0]).to.equal(algorithm.message);
     });
     it('should run stateful nodes at start', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const job = {
             data: { jobId },
             done: () => { }
@@ -332,10 +333,11 @@ describe('TaskRunner', function () {
         const pipeline = pipelines.find(p => p.name === 'stateful-pipeline');
         const status = { status: 'pending' };
         await stateManager.createJob({ jobId, pipeline, status });
-        await taskRunner.start(job);
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
         await delay(2000);
         const allNodes = pipeline.nodes.map(n => n.nodeName);
-        const entryNodes = taskRunner._findEntryNodes();
+        const entryNodes = driver._findEntryNodes();
         expect(entryNodes.sort()).to.eql(allNodes.sort());
     });
 });
