@@ -1,6 +1,6 @@
 const config = {};
 config.transport = {
-    console: true,
+    console: false,
     fluentd: false,
     logstash: false,
     file: false,
