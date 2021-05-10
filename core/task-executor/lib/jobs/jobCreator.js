@@ -245,7 +245,41 @@ const getJavaMaxMem = (memory) => {
     const javaValue = Math.round(val * 0.8);
     return javaValue;
 };
-const createJobSpec = ({ algorithmName, kind, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, algorithmOptions,
+
+const applyKeyVal = (inputSpec, keyVal, type, path) => {
+    if (!keyVal) {
+        return inputSpec;
+    }
+    const spec = clonedeep(inputSpec);
+    if (!objectPath.get(spec, path)) {
+        objectPath.set(spec, path, {});
+    }
+    const targetKeyVal = objectPath.get(spec, path);
+
+    Object.entries(keyVal).forEach(([key, value]) => {
+        const val = objectPath.get(spec, `${path}.${key}`);
+        if (val === undefined) {
+            targetKeyVal[key] = `${value}`;
+        }
+        else {
+            // we should notify users that some labels/annotations are reserved
+            log.throttle.error(`cannot apply reserved ${type} with key ${key}`, { component });
+        }
+    });
+    return spec;
+};
+
+const applyLabels = (spec, keyVal) => {
+    spec = applyKeyVal(spec, keyVal, 'label', 'metadata.labels');
+    return applyKeyVal(spec, keyVal, 'label', 'spec.template.metadata.labels');
+};
+
+const applyAnnotations = (spec, keyVal) => {
+    spec = applyKeyVal(spec, keyVal, 'annotation', 'metadata.annotations');
+    return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
+};
+
+const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
     nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
@@ -293,6 +327,8 @@ const createJobSpec = ({ algorithmName, kind, resourceRequests, workerImage, alg
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, gatewayEnv);
     }
 
+    spec = applyLabels(spec, labels);
+    spec = applyAnnotations(spec, annotations);
     return spec;
 };
 

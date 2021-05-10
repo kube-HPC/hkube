@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.0.28",
+    "version": "2.0.34",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -3843,6 +3843,14 @@
                         "type": "string"
                       }
                     },
+                    "labels": {
+                      "type": "object",
+                      "description": "attach key value metadata to algorithm pod, usually for users"
+                    },
+                    "annotations": {
+                      "type": "object",
+                      "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                    },
                     "type": {
                       "type": "string",
                       "description": "type of algorithm code resource",
@@ -4444,6 +4452,14 @@
                           "type": "string"
                         }
                       },
+                      "labels": {
+                        "type": "object",
+                        "description": "attach key value metadata to algorithm pod, usually for users"
+                      },
+                      "annotations": {
+                        "type": "object",
+                        "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                      },
                       "type": {
                         "type": "string",
                         "description": "type of algorithm code resource",
@@ -4691,6 +4707,14 @@
                     "additionalProperties": {
                       "type": "string"
                     }
+                  },
+                  "labels": {
+                    "type": "object",
+                    "description": "attach key value metadata to algorithm pod, usually for users"
+                  },
+                  "annotations": {
+                    "type": "object",
+                    "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                   },
                   "type": {
                     "type": "string",
@@ -4995,6 +5019,14 @@
                       "type": "string"
                     }
                   },
+                  "labels": {
+                    "type": "object",
+                    "description": "attach key value metadata to algorithm pod, usually for users"
+                  },
+                  "annotations": {
+                    "type": "object",
+                    "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                  },
                   "type": {
                     "type": "string",
                     "description": "type of algorithm code resource",
@@ -5284,6 +5316,14 @@
                           "type": "string"
                         }
                       },
+                      "labels": {
+                        "type": "object",
+                        "description": "attach key value metadata to algorithm pod, usually for users"
+                      },
+                      "annotations": {
+                        "type": "object",
+                        "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                      },
                       "type": {
                         "type": "string",
                         "description": "type of algorithm code resource",
@@ -5536,6 +5576,14 @@
                           "additionalProperties": {
                             "type": "string"
                           }
+                        },
+                        "labels": {
+                          "type": "object",
+                          "description": "attach key value metadata to algorithm pod, usually for users"
+                        },
+                        "annotations": {
+                          "type": "object",
+                          "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
                         "type": {
                           "type": "string",
@@ -10210,6 +10258,14 @@
                           "type": "string"
                         }
                       },
+                      "labels": {
+                        "type": "object",
+                        "description": "attach key value metadata to algorithm pod, usually for users"
+                      },
+                      "annotations": {
+                        "type": "object",
+                        "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                      },
                       "type": {
                         "type": "string",
                         "description": "type of algorithm code resource",
@@ -10525,6 +10581,14 @@
                         "additionalProperties": {
                           "type": "string"
                         }
+                      },
+                      "labels": {
+                        "type": "object",
+                        "description": "attach key value metadata to algorithm pod, usually for users"
+                      },
+                      "annotations": {
+                        "type": "object",
+                        "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "type": {
                         "type": "string",
@@ -13155,6 +13219,14 @@
               "type": "string"
             }
           },
+          "labels": {
+            "type": "object",
+            "description": "attach key value metadata to algorithm pod, usually for users"
+          },
+          "annotations": {
+            "type": "object",
+            "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+          },
           "type": {
             "type": "string",
             "description": "type of algorithm code resource",
@@ -13523,6 +13595,14 @@
                 "additionalProperties": {
                   "type": "string"
                 }
+              },
+              "labels": {
+                "type": "object",
+                "description": "attach key value metadata to algorithm pod, usually for users"
+              },
+              "annotations": {
+                "type": "object",
+                "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
               },
               "type": {
                 "type": "string",
