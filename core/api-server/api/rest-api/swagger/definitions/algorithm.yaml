@@ -126,6 +126,12 @@ properties:
     description: key value labels for nodes constraint
     additionalProperties:
       type: string
+  labels:
+    type: object
+    description: attach key value metadata to algorithm pod, usually for users
+  annotations:
+    type: object
+    description: attach key value metadata to algorithm pod, usually for tools and libraries
   type:
     type: string
     description: type of algorithm code resource
