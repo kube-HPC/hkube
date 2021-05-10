@@ -44,13 +44,7 @@ class Bootstrap {
     }
 
     _onInitFailed(error) {
-        if (log) {
-            log.error(error.message, { component }, error);
-        }
-        else {
-            console.error(error.message);
-            console.error(error);
-        }
+        log.error(error.message, { component }, error);
         process.exit(1);
     }
 

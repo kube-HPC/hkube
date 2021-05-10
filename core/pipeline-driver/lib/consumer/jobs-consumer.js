@@ -78,7 +78,7 @@ class JobConsumer {
         if (!this._consumerPaused) {
             log.info('got stop command', { component });
             // TODO: RESOLVE THIS
-            await this._taskRunner.setPaused(true);
+            // await this._taskRunner.setPaused(true);
             await this._pause();
             this._handleTimeout();
         }
