@@ -186,7 +186,6 @@ class StateManager {
     }
 
     async setJobStatus(options) {
-        await this.updateDiscovery();
         return this._etcd.jobs.status.update(options, (oldItem) => {
             if (oldItem.status !== DriverStates.STOPPED && oldItem.status !== DriverStates.PAUSED) {
                 const data = { ...oldItem, ...options };
