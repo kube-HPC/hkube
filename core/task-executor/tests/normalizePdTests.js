@@ -46,74 +46,68 @@ describe('normalize pipeline driver', () => {
             const drivers = [
                 {
                     driverId: 'id1',
-                    driverStatus: 'ready',
-                    error: null
                 },
                 {
                     driverId: 'id2',
-                    driverStatus: 'not-ready',
-                    error: null
                 },
                 {
                     driverId: 'id3',
-                    driverStatus: 'notready',
-                    error: null
                 }
             ];
             const res = normalizeDrivers(drivers);
             expect(res).to.have.length(3);
             expect(res).to.deep.include({
                 id: 'id1',
-                driverStatus: 'ready',
-                paused: false,
-                podName: undefined
+                idle: undefined,
+                paused: undefined,
+                podName: undefined,
+                jobs: 0
             });
             expect(res).to.deep.include({
                 id: 'id2',
-                driverStatus: 'not-ready',
-                paused: false,
-                podName: undefined
+                idle: undefined,
+                paused: undefined,
+                podName: undefined,
+                jobs: 0
             });
             expect(res).to.deep.include({
                 id: 'id3',
-                driverStatus: 'notready',
-                paused: false,
-                podName: undefined
+                idle: undefined,
+                paused: undefined,
+                podName: undefined,
+                jobs: 0
             });
         });
     });
     describe('normalize requests', () => {
         it('should work with empty requests array', () => {
             const res = normalizeDriversRequests([]);
-            expect(res).to.be.empty;
+            expect(res).to.eql(0);
         });
         it('should work with undefined requests array', () => {
             const res = normalizeDriversRequests();
-            expect(res).to.be.empty;
+            expect(res).to.eql(0);
         });
         it('should return object with requests per algorithms', () => {
+            const name = 'pipeline-driver';
             const stub = [
                 {
                     data: [
                         {
-                            name: 'pipeline-driver',
+                            name,
                         },
                         {
-                            name: 'pipeline-driver',
+                            name,
                         },
                         {
-                            name: 'pipeline-driver',
+                            name,
                         }
 
                     ]
                 }
             ];
-            const res = normalizeDriversRequests(stub);
-            expect(res).to.have.length(1);
-            expect(res).to.deep.include({
-                name: 'pipeline-driver',
-                pods: 3
-            });
+            const res = normalizeDriversRequests(stub, name);
+            expect(res).to.eql(3);
         });
     });
     describe('normalize resources', () => {
