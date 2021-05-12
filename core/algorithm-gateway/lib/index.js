@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const { InvalidDataError } = require('../lib/errors');
+const { InvalidDataError } = require('./errors');
 const events = new EventEmitter();
 let props = {};
 

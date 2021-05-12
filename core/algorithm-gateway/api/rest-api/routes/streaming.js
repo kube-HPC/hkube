@@ -1,5 +1,5 @@
 const RestServer = require('@hkube/rest-server');
-const algorithm = require('../../../algorithm_unique_folder');
+const algorithm = require('../../../lib/index');
 
 const routes = () => {
     const router = RestServer.router();
