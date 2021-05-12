@@ -88,6 +88,9 @@ const applyPipelineDriverImage = (inputSpec, image) => {
 };
 
 const applyMounts = (inputSpec, mounts = []) => {
+    if (!mounts.length) {
+        return inputSpec;
+    }
     let spec = clonedeep(inputSpec);
     mounts.forEach((m, i) => {
         const name = `${m.pvcName}-${i}`;
@@ -126,12 +129,12 @@ const applyJaeger = (inputSpec, container, options) => {
 };
 
 const applyOpengl = (inputSpec, options, algorithmOptions = {}) => {
-    let spec = clonedeep(inputSpec);
     const { isPrivileged } = options.kubernetes;
     const { opengl } = algorithmOptions;
     if (!isPrivileged || !opengl) {
-        return spec;
+        return inputSpec;
     }
+    let spec = clonedeep(inputSpec);
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { DISPLAY: ':0' });
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { NVIDIA_DRIVER_CAPABILITIES: 'all' });
     // TODO: do we need it?  spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { NVIDIA_VISIBLE_DEVICES: 'all' });
@@ -149,14 +152,14 @@ const applyOpengl = (inputSpec, options, algorithmOptions = {}) => {
 };
 
 const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, clusterOptions = {} }) => {
-    let spec = clonedeep(inputSpec);
     const { devMode } = algorithmOptions;
     if (!devMode) {
-        return spec;
+        return inputSpec;
     }
     if (!clusterOptions.devModeEnabled) {
-        return spec;
+        return inputSpec;
     }
+    let spec = clonedeep(inputSpec);
     objectPath.set(spec, 'spec.template.spec.restartPolicy', 'OnFailure');
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { DEV_MODE: 'true' });
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { DEV_MODE: 'true' });

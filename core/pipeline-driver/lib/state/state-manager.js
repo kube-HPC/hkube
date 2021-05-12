@@ -107,6 +107,7 @@ class StateManager {
         return data;
     }
 
+    // TODO: Handle UI to support driver to many jobs
     async updateDiscovery(discovery) {
         const currentDiscovery = this._defaultDiscovery(discovery);
         if (!isEqual(this._lastDiscovery, currentDiscovery)) {
