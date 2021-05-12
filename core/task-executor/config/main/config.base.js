@@ -46,10 +46,10 @@ config.jaeger = {
 
 config.driversSetting = {
     name: 'pipeline-driver',
-    concurrency: parseInt(process.env.PIPELINE_DRIVERS_CONCURRENCY_LIMIT || 30, 10),
-    minAmount: parseInt(process.env.PIPELINE_DRIVERS_AMOUNT || 30, 10),
+    concurrency: formatter.parseInt(process.env.PIPELINE_DRIVERS_CONCURRENCY_LIMIT, 5),
+    minAmount: formatter.parseInt(process.env.PIPELINE_DRIVERS_AMOUNT, 30),
     scalePercent: parseFloat(process.env.PIPELINE_DRIVERS_SCALE_PERCENT || 0.2),
-    reconcileInterval: parseInt(process.env.PIPELINE_DRIVERS_RECONCILE_INTERVAL || 30000, 10)
+    reconcileInterval: formatter.parseInt(process.env.PIPELINE_DRIVERS_RECONCILE_INTERVAL, 30000)
 };
 
 config.metrics = {
