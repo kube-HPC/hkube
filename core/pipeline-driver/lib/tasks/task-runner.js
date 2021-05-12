@@ -25,13 +25,11 @@ class TaskRunner extends EventEmitter {
         this._job = null;
         this._jobId = null;
         this._nodes = null;
-        this._active = false;
+        this._active = true;
         this._progress = null;
-        this._driverStatus = null;
-        this._jobStatus = null;
+        this._status = null;
         this._error = null;
-        this.pipeline = null;
-        this._paused = false;
+        this._pipeline = null;
         this._isStreaming = false;
         this._streamingMetrics = {};
         this._nodeRuns = new Set();
@@ -41,16 +39,22 @@ class TaskRunner extends EventEmitter {
 
     async onStop(data) {
         log.info(`pipeline ${data.status} ${this._jobId}. ${data.reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-        this._jobStatus = data.status;
-        this._driverStatus = DriverStates.READY;
+        this._status = data.status;
         await this.stop({ shouldStop: false });
     }
 
     async onPause(data) {
         log.info(`pipeline ${data.status} ${this._jobId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-        this._jobStatus = data.status;
-        this._driverStatus = DriverStates.READY;
+        this._status = data.status;
         await this.stop({ shouldStop: false, shouldDeleteTasks: false });
+    }
+
+    getStatus() {
+        return {
+            jobId: this._jobId,
+            active: this._active,
+            status: this._status
+        };
     }
 
     handleTaskEvent(task) {
@@ -125,11 +129,8 @@ class TaskRunner extends EventEmitter {
 
     async start(job) {
         let result = null;
-        if (this._active) {
-            return result;
-        }
-        this._active = true;
         try {
+            this._active = true;
             result = await this._startPipeline(job);
         }
         catch (e) {
@@ -159,17 +160,7 @@ class TaskRunner extends EventEmitter {
             }
             await this._unWatchJob();
             await this._cleanJob(error);
-            await this._updateDiscovery();
             await this._deleteStreamingStats();
-        }
-    }
-
-    async _updateDiscovery() {
-        try {
-            await stateManager.updateDiscovery();
-        }
-        catch (e) {
-            log.error(e.message, { component, jobId: this._jobId }, e);
         }
     }
 
@@ -177,8 +168,7 @@ class TaskRunner extends EventEmitter {
         this._job = job;
         const { jobId } = job.data;
         this._jobId = jobId;
-        this._jobStatus = DriverStates.ACTIVE;
-        this._driverStatus = DriverStates.ACTIVE;
+        this._status = DriverStates.ACTIVE;
         log.info(`pipeline started ${this._jobId}`, { component, jobId });
 
         const jobStatus = await stateManager.watchJobStatus({ jobId });
@@ -254,8 +244,7 @@ class TaskRunner extends EventEmitter {
         else {
             status = DriverStates.COMPLETED;
         }
-        this._jobStatus = status;
-        this._driverStatus = DriverStates.READY;
+        this._status = status;
         this._error = error;
         await stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data: storageResults, error, status, nodeName });
         await this._progressStatus({ status, error, nodeName });
@@ -398,24 +387,6 @@ class TaskRunner extends EventEmitter {
 
     set pipeline(pipeline) {
         this._pipeline = pipeline;
-    }
-
-    async setPaused() {
-        this._paused = true;
-        this._jobStatus = DriverStates.PAUSED;
-        await this._updateDiscovery();
-    }
-
-    getDiscoveryData() {
-        const discoveryInfo = {
-            jobId: this._jobId,
-            pipelineName: this.pipeline.name,
-            driverStatus: this._driverStatus,
-            jobStatus: this._jobStatus,
-            error: this._error,
-            paused: this._paused
-        };
-        return discoveryInfo;
     }
 
     async _cleanJob(error) {
@@ -719,6 +690,7 @@ class TaskRunner extends EventEmitter {
         pipelineMetrics.setProgressMetric({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status: taskStatuses.ACTIVE });
     }
 
+    // TODO: MAKE THIS THROW
     _updateTaskState(taskId, task) {
         const { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath } = task;
         const state = { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath };

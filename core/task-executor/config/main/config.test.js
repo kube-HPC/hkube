@@ -1,7 +1,8 @@
 const config = {};
 config.driversSetting = {
     minAmount: 20,
-    scalePercent: 0.2
+    scalePercent: 0.2,
+    concurrency: 5,
 };
 config.intervalMs = process.env.INTERVAL_MS || 15000;
 

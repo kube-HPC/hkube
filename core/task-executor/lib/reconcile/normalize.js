@@ -180,9 +180,10 @@ const normalizeDrivers = (drivers) => {
     const driversArray = drivers.map((d) => {
         return {
             id: d.driverId,
-            driverStatus: d.driverStatus,
-            paused: !!d.paused,
-            podName: d.podName
+            idle: d.idle,
+            paused: d.paused,
+            podName: d.podName,
+            jobs: d.jobs?.length || 0
         };
     });
     return driversArray;
@@ -335,14 +336,11 @@ const normalizeRequests = (requests) => {
     return requests[0].data.map(r => ({ algorithmName: r.name }));
 };
 
-const normalizeDriversRequests = (requests) => {
+const normalizeDriversRequests = (requests, name) => {
     if (requests == null || requests.length === 0 || requests[0].data == null) {
-        return [];
+        return 0;
     }
-    return [{
-        name: 'pipeline-driver',
-        pods: requests[0].data.filter(r => r.name === 'pipeline-driver').length
-    }];
+    return requests[0].data.filter(r => r.name === name).length;
 };
 
 const _tryParseTime = (timeString) => {
@@ -409,16 +407,16 @@ const mergeWorkers = (workers, jobs) => {
     return { mergedWorkers, extraJobs };
 };
 
-const normalizeDriversAmount = (jobs, requests, settings) => {
-    const { minAmount, maxAmount, name } = settings;
+const normalizeDriversAmount = (drivers, requests, settings) => {
+    const { minAmount, maxAmount, concurrency } = settings;
+    const available = drivers.map(d => concurrency - d.jobs).reduce((a, b) => a + b, 0);
     let amount = minAmount;
-    const request = requests[0] || {};
 
-    if (request.pods > minAmount) {
-        amount = maxAmount;
+    if (requests > available) {
+        amount = (requests - available) / concurrency;
     }
-    const missingDrivers = amount - jobs.length;
-    return { name, pods: missingDrivers };
+    const desiredDrivers = Math.min(amount, maxAmount);
+    return desiredDrivers;
 };
 
 module.exports = {

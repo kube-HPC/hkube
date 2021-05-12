@@ -22,17 +22,12 @@ class StateManager {
         this._unScheduledAlgorithmsInterval = options.unScheduledAlgorithms.interval;
         this._subscribe();
         this._watchDrivers();
-        this._checkUnScheduledAlgorithms();
     }
 
     _subscribe() {
         this._etcd.jobs.status.on('change', (data) => {
             this._emitter.emit(`job-${data.status}`, data);
         });
-    }
-
-    setDiscoveryCallback(discoveryMethod) {
-        this._discoveryMethod = discoveryMethod;
     }
 
     onStopProcessing(func) {
@@ -67,7 +62,7 @@ class StateManager {
         });
     }
 
-    _checkUnScheduledAlgorithms() {
+    checkUnScheduledAlgorithms() {
         if (this._interval) {
             return;
         }
@@ -102,17 +97,17 @@ class StateManager {
     _defaultDiscovery(discovery) {
         const data = {
             driverId: this._driverId,
-            paused: false,
-            driverStatus: DriverStates.READY,
-            jobStatus: DriverStates.READY,
             podName: this._podName,
+            idle: true,
+            paused: false,
+            status: DriverStates.READY,
+            jobs: [],
             ...discovery
         };
         return data;
     }
 
-    async _updateDiscovery() {
-        const discovery = this._discoveryMethod();
+    async updateDiscovery(discovery) {
         const currentDiscovery = this._defaultDiscovery(discovery);
         if (!isEqual(this._lastDiscovery, currentDiscovery)) {
             this._lastDiscovery = currentDiscovery;
@@ -189,12 +184,8 @@ class StateManager {
         return error;
     }
 
-    async updateDiscovery() {
-        return this._updateDiscovery();
-    }
-
     async setJobStatus(options) {
-        await this._updateDiscovery();
+        await this.updateDiscovery();
         return this._etcd.jobs.status.update(options, (oldItem) => {
             if (oldItem.status !== DriverStates.STOPPED && oldItem.status !== DriverStates.PAUSED) {
                 const data = { ...oldItem, ...options };

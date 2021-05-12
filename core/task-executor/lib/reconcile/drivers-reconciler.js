@@ -16,7 +16,7 @@ const _createDriverJob = (jobDetails, options) => {
 };
 
 const _idleDriverFilter = (driver) => {
-    const match = driver.driverStatus === 'ready' && !driver.paused;
+    const match = driver.idle && !driver.paused;
     return match;
 };
 
@@ -25,10 +25,12 @@ const _stopDriver = (driver) => {
 };
 
 const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, options, clusterOptions } = {}) => {
+    const { name } = settings;
     const normDrivers = normalizeDrivers(drivers);
-    const normJobs = normalizeDriversJobs(jobs, j => (!j.status.succeeded && !j.status.failed));
-    const normRequests = normalizeDriversRequests(driversRequests);
-    const { name, pods } = normalizeDriversAmount(normJobs, normRequests, settings);
+    const normJobs = normalizeDriversJobs(jobs, j => (!j.status.succeeded && !j.status.failed)).length;
+    const requests = normalizeDriversRequests(driversRequests, name);
+    const desiredDrivers = normalizeDriversAmount(normDrivers, requests, settings);
+    const missingDrivers = desiredDrivers - normJobs;
     const createDetails = [];
     const stopDetails = [];
 
@@ -44,13 +46,13 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
         }
     }
 
-    if (pods > 0) {
-        log.info(`need to add ${pods} drivers`, { component });
+    if (missingDrivers > 0) {
+        log.info(`need to add ${missingDrivers} drivers`, { component });
         const driverTemplate = driverTemplates[name];
         const image = setPipelineDriverImage(driverTemplate, versions, registry);
         const resourceRequests = createContainerResource(driverTemplate);
         createDetails.push({
-            numberOfNewJobs: pods,
+            numberOfNewJobs: missingDrivers,
             jobDetails: {
                 name,
                 image,
@@ -67,7 +69,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
 
     const reconcileResult = {};
     reconcileResult[name] = {
-        required: pods,
+        required: missingDrivers,
         created: created.length,
         skipped: skipped.length,
         idle: idleDrivers.length,

@@ -1,58 +1,95 @@
+const { uid } = require('@hkube/uid');
+
 module.exports = [
     {
-        driverId: '10a94c4e-775b-4a05-b08a-207595cb50f1',
+        driverId: uid(),
         paused: false,
-        driverStatus: "ready",
-        jobStatus: "ready",
-        podName: "pipeline-driver-fdsff2-323ds7"
+        idle: true,
+        jobs: [],
+        podName: uid()
     },
     {
-        driverId: '10a94c4e-775b-4a05-b08a-207595cb50f2',
+        driverId: uid(),
         paused: false,
-        driverStatus: "ready",
-        jobStatus: "ready",
-        podName: "pipeline-driver-fdsff2-323ds2"
+        idle: true,
+        jobs: [],
+        podName: uid()
     },
     {
-        driverId: '10a94c4e-775b-4a05-b08a-207595cb50f3',
+        driverId: uid(),
         paused: false,
-        driverStatus: "ready",
-        jobStatus: "ready",
-        podName: "pipeline-driver-fdsff2-323ds4"
+        idle: true,
+        jobs: [],
+        podName: uid()
     },
     {
-        driverId: '10a94c4e-775b-4a05-b08a-207595cb50f4',
+        driverId: uid(),
         paused: false,
-        driverStatus: "ready",
-        jobStatus: "ready",
-        podName: "pipeline-driver-fdsff2-323ds3"
+        idle: true,
+        jobs: [],
+        podName: uid()
     },
     {
-        driverId: '10a94c4e-775b-4a05-b08a-207595cb50f5',
+        driverId: uid(),
         paused: false,
-        driverStatus: "ready",
-        jobStatus: "ready",
-        podName: "pipeline-driver-fdsff2-323ds8"
+        idle: true,
+        jobs: [],
+        podName: uid()
     },
     {
-        driverId: '10a94c4e-775b-4a05-b08a-207595cb50f6',
+        driverId: uid(),
         paused: false,
-        driverStatus: "ready",
-        jobStatus: "ready",
-        podName: "pipeline-driver-fdsff2-323ds1"
+        idle: true,
+        jobs: [],
+        podName: uid()
     },
     {
-        driverId: '10a94c4e-775b-4a05-b08a-207595cb50f7',
+        driverId: uid(),
         paused: false,
-        driverStatus: "ready",
-        jobStatus: "ready",
-        podName: "pipeline-driver-fdsff2-323ds6"
+        idle: false,
+        jobs: [{ jobId: 'abc', status: 'active' }],
+        podName: uid()
     },
     {
-        driverId: '10a94c4e-775b-4a05-b08a-207595cb50f8',
+        driverId: uid(),
         paused: false,
-        driverStatus: "ready",
-        jobStatus: "ready",
-        podName: "pipeline-driver-fdsff2-323ds5"
+        idle: false,
+        jobs: [{ jobId: 'abc', status: 'active' }],
+        podName: uid()
+    },
+    {
+        driverId: uid(),
+        paused: false,
+        idle: false,
+        jobs: [{ jobId: 'abc', status: 'active' }],
+        podName: uid()
+    },
+    {
+        driverId: uid(),
+        paused: true,
+        idle: true,
+        jobs: [],
+        podName: uid()
+    },
+    {
+        driverId: uid(),
+        paused: true,
+        idle: false,
+        jobs: [{ jobId: 'abc', status: 'active' }],
+        podName: uid()
+    },
+    {
+        driverId: uid(),
+        paused: false,
+        idle: false,
+        jobs: [{ jobId: 'abc', status: 'active' }],
+        podName: uid()
+    },
+    {
+        driverId: uid(),
+        paused: false,
+        idle: true,
+        jobs: [],
+        podName: uid()
     }
 ];

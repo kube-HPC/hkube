@@ -20,12 +20,12 @@ config.rest = {
     port: process.env.API_SERVER_REST_PORT || 3000,
     prefix: 'api',
     poweredBy: 'HKube Server',
-    rateLimit: {
-        route: '/api',
-        ms: process.env.API_SERVER_RATE_LIMIT_MS || 1000,
-        max: process.env.API_SERVER_RATE_LIMIT_MAX || 5,
-        delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0
-    }
+    // rateLimit: {
+    //     route: '/api',
+    //     ms: process.env.API_SERVER_RATE_LIMIT_MS || 1000,
+    //     max: process.env.API_SERVER_RATE_LIMIT_MAX || 5,
+    //     delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0
+    // }
 };
 
 config.cachingServer = {

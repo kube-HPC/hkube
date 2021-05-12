@@ -14,6 +14,8 @@ config.unScheduledAlgorithms = {
     interval: process.env.SCHEDULING_WARNING_INTERVAL || 5000,
 };
 
+config.discoveryInterval = formatter.parseInt(process.env.DISCOVERY_INTERVAL, 5000);
+
 config.jobs = {
     consumer: {
         concurrency: formatter.parseInt(process.env.CONCURRENCY_LIMIT, 5),
@@ -29,10 +31,6 @@ config.jobs = {
         prefix: 'data-sources',
         type: 'data-sources-job'
     }
-};
-
-config.timeouts = {
-    inactivePaused: process.env.INACTIVE_PAUSED_TIMEOUT_MS || (30 * 1000)
 };
 
 config.metrics = {

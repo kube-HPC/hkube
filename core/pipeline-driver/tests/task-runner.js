@@ -133,8 +133,7 @@ describe('TaskRunner', function () {
         await consumer._handleJob(job);
         const driver = consumer._drivers.get(jobId);
         expect(driver._active).to.equal(true);
-        expect(driver._driverStatus).to.equal('active');
-        expect(driver._jobStatus).to.equal('active');
+        expect(driver._status).to.equal('active');
 
         // simulate restart
         await driver.onStop({});
@@ -146,8 +145,7 @@ describe('TaskRunner', function () {
         await driver.start(job);
         await delay(2000);
         expect(driver._active).to.equal(false);
-        expect(driver._driverStatus).to.equal('ready');
-        expect(driver._jobStatus).to.equal('completed');
+        expect(driver._status).to.equal('completed');
     });
     it('should create job and handle success after stalled status', async function () {
         const jobId = createJobId();
@@ -169,7 +167,7 @@ describe('TaskRunner', function () {
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId, status: 'succeed' });
         await delay(300);
         expect(spy.calledOnce).to.equal(true);
-        expect(driver._jobStatus).to.equal('completed');
+        expect(driver._status).to.equal('completed');
     });
     it('should create job and handle failed after stalled status', async function () {
         const jobId = createJobId();
@@ -191,7 +189,7 @@ describe('TaskRunner', function () {
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId, status: 'failed' });
         await delay(300);
         expect(spy.calledOnce).to.equal(true);
-        expect(driver._jobStatus).to.equal('completed');
+        expect(driver._status).to.equal('completed');
 
     });
     it('should create job and handle board update', async function () {
