@@ -54,7 +54,7 @@ const gatewayIngress = ({ algorithmName, gatewayName }, { ingressHost, ingressPr
             {
                 http: {
                     paths: [{
-                        path: ingressUseRegex ? `${ingressPrefix}/hkube/gateway/${gatewayName}(/|$)(.*)` : `${ingressPrefix}/hkube/gateway/${algorithmName}`,
+                        path: ingressUseRegex ? `${ingressPrefix}/hkube/gateway/${gatewayName}(/|$)(.*)` : `${ingressPrefix}/hkube/gateway/${gatewayName}`,
                         backend: {
                             serviceName: `service-gateway-${algorithmName}`,
                             servicePort: 80

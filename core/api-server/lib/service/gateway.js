@@ -14,7 +14,7 @@ class Gateway {
         const algorithmName = `${nodeKind.Gateway}-${name}`;
         const gateway = await stateManager.getAlgorithm({ name: algorithmName });
         if (!gateway) {
-            throw new ResourceNotFoundError('gateway', name);
+            throw new ResourceNotFoundError(nodeKind.Gateway, name);
         }
         return gateway;
     }

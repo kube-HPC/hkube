@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const { StatusCodes } = require('http-status-codes');
 const { uuid } = require('@hkube/uid');
 const { request } = require('./utils');
-const { getWrapper } = require('../lib/app');
+const app = require('../lib/app');
 let restUrl;
 
 const jobData = {
@@ -49,7 +49,7 @@ describe('Gateway', () => {
                 uri: `${restPath}?flow=no_such`,
                 method: 'POST'
             };
-            const wrapper = getWrapper();
+            const wrapper = app.getWrapper();
             await wrapper._stop({});
             wrapper._init(jobData);
             wrapper._start({});
@@ -62,7 +62,7 @@ describe('Gateway', () => {
                 uri: restPath,
                 method: 'POST'
             };
-            const wrapper = getWrapper();
+            const wrapper = app.getWrapper();
             await wrapper._stop({});
             wrapper._init(jobData);
             wrapper._start({});
@@ -78,7 +78,7 @@ describe('Gateway', () => {
                 uri: `${restPath}?flow=second`,
                 method: 'POST'
             };
-            const wrapper = getWrapper();
+            const wrapper = app.getWrapper();
             await wrapper._stop({});
             wrapper._init(jobData);
             wrapper._start({});
@@ -104,7 +104,7 @@ describe('Gateway', () => {
                 uri: restPath,
                 method: 'GET'
             };
-            const wrapper = getWrapper();
+            const wrapper = app.getWrapper();
             await wrapper._stop({});
             const response = await request(options);
             expect(response.body.data).to.be.null;
@@ -114,7 +114,7 @@ describe('Gateway', () => {
                 uri: restPath,
                 method: 'GET'
             };
-            const wrapper = getWrapper();
+            const wrapper = app.getWrapper();
             await wrapper._stop({});
             wrapper._init(jobData);
             wrapper._start({});

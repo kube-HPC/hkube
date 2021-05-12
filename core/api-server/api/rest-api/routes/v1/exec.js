@@ -19,21 +19,18 @@ const routes = (options) => {
         const { jobId, gateways } = await Execution.runStored(req.body);
         res.json({ jobId, gateways });
         res.jobId = jobId;
-        res.gateways = gateways;
         next();
     });
     router.all('/caching', methods(['POST']), logger(), async (req, res, next) => {
         const { jobId, gateways } = await Execution.runCaching(req.body);
         res.json({ jobId, gateways });
         res.jobId = jobId;
-        res.gateways = gateways;
         next();
     });
     router.all('/algorithm', methods(['POST']), logger(), async (req, res, next) => {
         const { jobId, gateways } = await Execution.runAlgorithm(req.body);
         res.json({ jobId, gateways });
         res.jobId = jobId;
-        res.gateways = gateways;
         next();
     });
     router.all('/stop', methods(['POST']), logger(), async (req, res, next) => {

@@ -15,30 +15,24 @@ const routes = () => {
         const { jobId, gateways } = await Cron.runStoredCron(req.body);
         res.json({ jobId, gateways });
         res.jobId = jobId;
-        res.gateways = gateways;
         next();
     });
     router.all('/exec/stored/trigger', methods(['POST']), logger(), async (req, res, next) => {
-        const { jobId, gateways } = await Internal.runStoredTriggerPipeline(
-            req.body
-        );
+        const { jobId, gateways } = await Internal.runStoredTriggerPipeline(req.body);
         res.json({ jobId, gateways });
         res.jobId = jobId;
-        res.gateways = gateways;
         next();
     });
     router.all('/exec/stored/subPipeline', methods(['POST']), logger(), async (req, res, next) => {
         const { jobId, gateways } = await Internal.runStoredSubPipeline(req.body);
         res.json({ jobId, gateways });
         res.jobId = jobId;
-        res.gateways = gateways;
         next();
     });
     router.all('/exec/raw/subPipeline', methods(['POST']), logger(), async (req, res, next) => {
         const { jobId, gateways } = await Internal.runRawSubPipeline(req.body);
         res.json({ jobId, gateways });
         res.jobId = jobId;
-        res.gateways = gateways;
         next();
     });
     router.all('/exec/stop', methods(['POST']), logger(), async (req, res, next) => {

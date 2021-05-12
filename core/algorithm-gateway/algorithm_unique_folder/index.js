@@ -38,10 +38,10 @@ const jobData = () => {
 };
 
 const streamMessage = (message, flow) => {
+    if (!props.data) {
+        throw new InvalidDataError('this algorithm is not active yet');
+    }
     try {
-        if (!props.data) {
-            throw new Error('this algorithm is not active yet');
-        }
         let flowName = flow;
         if (!flowName) {
             flowName = props.data.defaultFlow;
