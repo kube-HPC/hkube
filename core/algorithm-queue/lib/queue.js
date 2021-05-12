@@ -33,7 +33,6 @@ class Queue extends events {
         this._consumer = new JobConsumer({
             options,
             algorithmName,
-            getWaitingCount: (...args) => this._producer.getWaitingCount(...args),
             getWaitingJobs: (...args) => this._producer.getWaitingJobs(...args),
         });
         this._consumer.on('jobs-add', (jobs) => {

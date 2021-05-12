@@ -111,7 +111,7 @@ const _addDeployments = async ({ limit, algorithms, deployments, versions, regis
     }
 };
 
-const reconcile = async ({ deployments, algorithms, discovery, versions, registry, clusterOptions, resources, options } = {}) => {
+const reconcile = async ({ deployments, algorithms, discovery, versions, registry, clusterOptions, resources, options, devMode } = {}) => {
     const { limit } = options.algorithmQueueBalancer;
     const { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms } = normalizeQueuesDiscovery(discovery);
     const normAlgorithms = normalizeAlgorithms(algorithms);
@@ -120,24 +120,18 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     const addAlgorithms = normAlgorithms.filter(a => !algorithmsToQueue[a.name]);
     const removeAlgorithms = _findObsoleteAlgorithms({ algorithmsToQueue, normAlgorithms });
 
-    await _addDeployments({ limit, algorithms: normAlgorithms.length, deployments: normDeployments.length, versions, registry, clusterOptions, resources, options });
-    await _updateDeployments({ normDeployments, options: { versions, registry, clusterOptions, resources, options } });
-    await _deleteDeployments({ queues: queueToAlgorithms, normDeployments });
+    if (!devMode) {
+        await _addDeployments({ limit, algorithms: normAlgorithms.length, deployments: normDeployments.length, versions, registry, clusterOptions, resources, options });
+        await _updateDeployments({ normDeployments, options: { versions, registry, clusterOptions, resources, options } });
+        await _deleteDeployments({ queues: queueToAlgorithms, normDeployments });
+    }
     await _matchAlgorithmsToQueue({ algorithms: addAlgorithms, queues: availableQueues, limit });
     await _removeAlgorithmsFromQueue({ algorithms: removeAlgorithms });
     await _removeDuplicatesAlgorithms({ algorithms: duplicateAlgorithms });
 };
 
-const reconcileDevMode = async ({ algorithms, discovery, options } = {}) => {
-    const { limit } = options.algorithmQueueBalancer;
-    const { algorithmsToQueue, queueToAlgorithms } = normalizeQueuesDiscovery(discovery);
-    const normAlgorithms = normalizeAlgorithms(algorithms);
-    const availableQueues = _findAvailableQueues({ queueToAlgorithms, limit });
-    const addAlgorithms = normAlgorithms.filter(a => !algorithmsToQueue[a.name]);
-    const removeAlgorithms = _findObsoleteAlgorithms({ algorithmsToQueue, normAlgorithms });
-
-    await _matchAlgorithmsToQueue({ algorithms: addAlgorithms, queues: availableQueues, limit });
-    await _removeAlgorithmsFromQueue({ algorithms: removeAlgorithms });
+const reconcileDevMode = ({ algorithms, discovery, options } = {}) => {
+    return reconcile({ algorithms, discovery, options, devMode: true });
 };
 
 module.exports = {

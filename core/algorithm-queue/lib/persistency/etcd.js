@@ -7,24 +7,24 @@ class EtcdClient extends EventEmitter {
         await this._watch();
     }
 
-    async discoveryRegister(options) {
-        await this._etcd.discovery.register(options);
+    discoveryRegister(options) {
+        return this._etcd.discovery.register(options);
     }
 
-    async discoveryUpdate(options) {
-        await this._etcd.discovery.updateRegisteredData(options);
+    discoveryUpdate(options) {
+        return this._etcd.discovery.updateRegisteredData(options);
     }
 
-    async updateTask({ jobId, taskId, status, error, retries }) {
-        await this._etcd.jobs.tasks.update({ jobId, taskId, status, error, retries });
+    updateTask({ jobId, taskId, status, error, retries }) {
+        return this._etcd.jobs.tasks.update({ jobId, taskId, status, error, retries });
     }
 
-    async updateQueueData({ name, data, pendingAmount, timestamp }) {
-        await this._etcd.algorithms.queue.set({ name, data, pendingAmount, timestamp });
+    updateQueueData({ name, data, pendingAmount, timestamp }) {
+        return this._etcd.algorithms.queue.set({ name, data, pendingAmount, timestamp });
     }
 
-    async watchQueueActions({ queueId }) {
-        await this._etcd.algorithmQueues.watch({ queueId });
+    watchQueueActions({ queueId }) {
+        return this._etcd.algorithmQueues.watch({ queueId });
     }
 
     async unWatchQueueActions({ queueId }) {

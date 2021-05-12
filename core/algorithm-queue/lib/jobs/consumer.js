@@ -13,7 +13,6 @@ class JobConsumer extends EventEmitter {
         super();
         const { options, algorithmName } = config;
         this._algorithmName = algorithmName;
-        this._getWaitingCount = config.getWaitingCount;
         this._getWaitingJobs = config.getWaitingJobs;
         this._consumer = new Consumer({
             setting: {
