@@ -20,7 +20,9 @@ class DataSources {
                     if (error) {
                         throw new InvalidDataError(error);
                     }
-                    if (spec?.snapshot?.name || spec.id) return node;
+                    if (spec.snapshot?.name || spec.id) {
+                        return node;
+                    }
                     return { ...node, spec: { id: response.id } };
                 }
                 return node;
