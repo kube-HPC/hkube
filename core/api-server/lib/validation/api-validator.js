@@ -6,6 +6,7 @@ const {
     Cron,
     Executions,
     Experiments,
+    Gateways,
     Graphs,
     Internal,
     Jobs,
@@ -23,6 +24,7 @@ class ApiValidator {
         this.cron = new Cron(innerValidator);
         this.executions = new Executions(innerValidator);
         this.experiments = new Experiments(innerValidator);
+        this.gateways = new Gateways(innerValidator);
         this.graphs = new Graphs(innerValidator);
         this.internal = new Internal(innerValidator);
         this.jobs = new Jobs(innerValidator);

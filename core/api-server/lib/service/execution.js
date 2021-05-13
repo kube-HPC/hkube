@@ -84,7 +84,7 @@ class ExecutionService {
         try {
             validator.pipelines.validatePipelineNodes(pipeline);
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
-            pipeline = await pipelineCreator.buildStreamingFlow(pipeline);
+            pipeline = await pipelineCreator.buildStreamingFlow(pipeline, jobId);
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
             pipeline = await validator.dataSources.validate(pipeline);
@@ -105,7 +105,7 @@ class ExecutionService {
             await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
-            return jobId;
+            return { jobId, gateways: pipeline.streaming?.gateways };
         }
         catch (error) {
             span.finish(error);

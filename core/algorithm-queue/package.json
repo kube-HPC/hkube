@@ -1,6 +1,6 @@
 {
   "name": "algorithm-queue",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -19,15 +19,16 @@
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "^1.0.31",
-    "@hkube/db": "^1.0.32",
-    "@hkube/etcd": "^5.1.2",
+    "@hkube/db": "^1.0.34",
+    "@hkube/etcd": "^5.1.6",
     "@hkube/logger": "^1.0.27",
     "@hkube/metrics": "^1.0.42",
-    "@hkube/producer-consumer": "^1.0.48",
+    "@hkube/producer-consumer": "^1.0.49",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/uid": "^1.0.4",
-    "aigle": "^1.14.1",
-    "lodash": "^4.17.15"
+    "lodash.isequal": "^4.5.0",
+    "lodash.orderby": "^4.6.0",
+    "lodash.remove": "^4.7.0"
   },
   "devDependencies": {
     "await-delay": "^1.0.0",

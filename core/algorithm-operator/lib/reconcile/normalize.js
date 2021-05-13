@@ -1,7 +1,21 @@
 const objectPath = require('object-path');
 const { parseImageName } = require('@hkube/kubernetes-client').utils;
 
-const normalizeDeployments = (deploymentsRaw) => {
+const normalizeQueuesDeployments = (deploymentsRaw) => {
+    if (deploymentsRaw == null) {
+        return [];
+    }
+    const deployments = deploymentsRaw.body.items.map(j => ({
+        name: j.metadata.name,
+        queueId: j.metadata.labels['queue-id'],
+        image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image')),
+        imageFull: objectPath.get(j, 'spec.template.spec.containers.0.image'),
+        env: objectPath.get(j, 'spec.template.spec.containers.0.env', [])
+    }));
+    return deployments;
+};
+
+const normalizeDebugDeployments = (deploymentsRaw) => {
     if (deploymentsRaw == null) {
         return [];
     }
@@ -13,6 +27,41 @@ const normalizeDeployments = (deploymentsRaw) => {
         env: objectPath.get(j, 'spec.template.spec.containers.0.env', [])
     }));
     return deployments;
+};
+
+const normalizeQueuesDiscovery = (discovery) => {
+    if (!discovery) {
+        return [];
+    }
+    const algorithmsToQueue = Object.create(null);
+    const queueToAlgorithms = Object.create(null);
+    const duplicateAlgorithms = [];
+
+    discovery.forEach((d) => {
+        if (!queueToAlgorithms[d.queueId]) {
+            queueToAlgorithms[d.queueId] = { count: 0, active: d.active, timestamp: d.timestamp };
+        }
+        d.algorithms?.forEach((a) => {
+            if (algorithmsToQueue[a]) {
+                duplicateAlgorithms.push({ queueId: d.queueId, algorithmName: a });
+            }
+            else {
+                algorithmsToQueue[a] = d.queueId;
+                queueToAlgorithms[d.queueId].count += 1;
+            }
+        });
+    });
+    return { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms };
+};
+
+const normalizeServices = (servicesSpec) => {
+    if (!servicesSpec?.body?.items) {
+        return [];
+    }
+    const services = servicesSpec.body.items.map(s => ({
+        algorithmName: s.metadata.labels['algorithm-name']
+    }));
+    return services;
 };
 
 const normalizeAlgorithms = (algorithmsRaw) => {
@@ -70,7 +119,10 @@ const normalizeSecret = (secret) => {
 };
 
 module.exports = {
-    normalizeDeployments,
+    normalizeQueuesDeployments,
+    normalizeDebugDeployments,
+    normalizeQueuesDiscovery,
+    normalizeServices,
     normalizeAlgorithms,
     normalizeBuildJobs,
     normalizeBoardDeployments,

@@ -49,13 +49,14 @@ properties:
       - stateless
       - stateful
   kind:
-    type: string
-    enum:
-      - dataSource
+    $ref: "#/components/schemas/nodeKind"
   dataSource:
     anyOf:
       - $ref: "#/components/schemas/dataSource-id"
       - $ref: "#/components/schemas/dataSource-name"
       - $ref: "#/components/schemas/dataSource-snapshot"
+  spec:
+    anyOf:
+      - $ref: "#/components/schemas/gateway"
 required:
   - nodeName

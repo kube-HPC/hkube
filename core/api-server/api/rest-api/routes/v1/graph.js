@@ -1,10 +1,10 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const graph = require('../../../../lib/service/graph');
 const methods = require('../../middlewares/methods');
 const logger = require('../../middlewares/logger');
 
 const routes = () => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.all('/raw/:jobId?', methods(['GET']), logger(), async (req, res, next) => {
         const { jobId } = req.params;
         const response = await graph.getGraphRaw({ jobId });

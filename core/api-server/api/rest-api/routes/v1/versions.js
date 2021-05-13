@@ -1,10 +1,10 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const HttpStatus = require('http-status-codes');
 const versionsService = require('../../../../lib/service/versions');
 const logger = require('../../middlewares/logger');
 
 const routes = (options) => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
@@ -36,7 +36,6 @@ const routes = (options) => {
         res.json(response);
         next();
     });
-
     return router;
 };
 

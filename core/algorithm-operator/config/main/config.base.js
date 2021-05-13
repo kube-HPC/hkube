@@ -8,7 +8,12 @@ config.intervalMs = process.env.INTERVAL_MS || 10000;
 config.boardsIntervalMs = process.env.BOARDS_INTERVAL_MS || 2000;
 config.boardTimeOut = formatter.parseInt(process.env.BOARDS_TIMEOUT, 3 * 60 * 60) * 1000;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
-config.buildMode = process.env.BUILD_MODE || 'kaniko'
+config.buildMode = process.env.BUILD_MODE || 'kaniko';
+config.isDevMode = !!process.env.DEV_MODE;
+
+config.algorithmQueueBalancer = {
+    limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_LIMIT, 5)
+};
 
 config.db = {
     provider: 'mongo',
@@ -23,6 +28,13 @@ config.db = {
     }
 };
 
+config.etcd = {
+    protocol: 'http',
+    host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
+    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
+    serviceName: config.serviceName
+};
+
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',
@@ -33,6 +45,7 @@ config.kubernetes = {
 config.jaeger = {
     host: process.env.JAEGER_AGENT_SERVICE_HOST,
 }
+
 config.resources = {
     algorithmQueue: {
         memory: parseFloat(process.env.ALGORITHM_QUEUE_MEMORY) || 256,

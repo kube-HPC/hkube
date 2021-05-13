@@ -5,6 +5,7 @@ const heuristicsNames = require('../../lib/consts/heuristics-name');
 
 config.serviceName = packageJson.name;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
+config.queueId = process.env.QUEUE_ID;
 
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
@@ -15,7 +16,8 @@ config.redis = {
 config.etcd = {
     protocol: 'http',
     host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
-    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
+    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
+    serviceName: config.serviceName
 };
 
 config.db = {
@@ -31,7 +33,11 @@ config.db = {
     }
 };
 
-config.algorithmType = process.env.ALGORITHM_TYPE;
+config.algorithmQueueBalancer = {
+    limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_LIMIT, 5),
+    minIdleTimeMS: formatter.parseInt(process.env.ALGORITHM_QUEUE_MIN_IDLE_TIME, 30000),
+    livenessInterval: formatter.parseInt(process.env.ALGORITHM_QUEUE_LIVENESS_INTERVAL, 5000),
+};
 
 config.producer = {
     checkStalledJobsInterval: process.env.STALLED_JOB_INTERVAL || 15000,

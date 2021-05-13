@@ -1,10 +1,10 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const Algorithms = require('../../../lib/service/algorithms');
 const methods = require('../middlewares/methods');
 const logger = require('../middlewares/logger');
 
 const routes = () => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', (req, res, next) => {
         res.json({ message: 'internal api' });
         next();
