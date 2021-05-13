@@ -8,6 +8,10 @@ const StoreController = require('../store/store-controller');
 const component = require('../consts/components').RUNNER;
 
 class Runner {
+    constructor() {
+        this._lastIntervalTime = null;
+    }
+
     async init(options) {
         this._adapterController = new AdapterController(options, adapterSettings);
         this._metricsController = new MetricsController(options, metricsSettings);
@@ -25,6 +29,7 @@ class Runner {
             try {
                 this._working = true;
                 await this._doWork();
+                this._lastIntervalTime = Date.now();
             }
             catch (e) {
                 this._onError(e);
@@ -35,6 +40,17 @@ class Runner {
         }, options.interval);
     }
 
+    checkHealth(maxDiff) {
+        log.debug('health-checks');
+        if (!this._lastIntervalTime) {
+            return true;
+        }
+        const diff = Date.now() - this._lastIntervalTime;
+        log.debug(`diff = ${diff}`);
+
+        return (diff < maxDiff);
+    }
+    
     _onError(error) {
         log.throttle.error(error.message, { component }, error);
     }

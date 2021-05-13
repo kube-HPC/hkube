@@ -11,6 +11,7 @@
     "@hkube/config": "^2.0.11",
     "@hkube/db": "^1.0.32",
     "@hkube/etcd": "^5.1.2",
+    "@hkube/healthchecks": "^1.0.1",
     "@hkube/kubernetes-client": "^1.0.33",
     "@hkube/logger": "^1.0.27",
     "@hkube/metrics": "^1.0.42",
