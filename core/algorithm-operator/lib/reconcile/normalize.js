@@ -52,7 +52,7 @@ const normalizeQueuesDiscovery = (discovery) => {
         });
     });
     return { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms };
-}
+};
 
 const normalizeServices = (servicesSpec) => {
     if (!servicesSpec?.body?.items) {
