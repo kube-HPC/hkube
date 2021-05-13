@@ -26,7 +26,6 @@
     "@hkube/producer-consumer": "^1.0.49",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/uid": "^1.0.4",
-    "async.queue": "^0.5.2",
     "lodash.isequal": "^4.5.0",
     "lodash.orderby": "^4.6.0",
     "lodash.remove": "^4.7.0"
