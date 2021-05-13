@@ -32,7 +32,7 @@ describe('Cron', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
+            expect(response.body.error.message).to.contain('data.order should be equal to one of the allowed values');
         });
         it('should throw validation error of sort property', async () => {
             const qs = querystring.stringify({ name: 'pipe', sort: 'bla' });
@@ -42,7 +42,7 @@ describe('Cron', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
+            expect(response.body.error.message).to.contain('data.sort should be equal to one of the allowed values');
         });
         it('should throw validation error of limit should be >= 1', async () => {
             const qs = querystring.stringify({ name: 'pipe', limit: 0 });
@@ -52,17 +52,17 @@ describe('Cron', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be >= 1");
+            expect(response.body.error.message).to.equal('data.limit should be >= 1');
         });
         it('should throw validation error of limit should be integer', async () => {
-            const qs = querystring.stringify({ name: 'pipe', limit: "y" });
+            const qs = querystring.stringify({ name: 'pipe', limit: 'y' });
             const options = {
                 uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be integer");
+            expect(response.body.error.message).to.equal('data.limit should be integer');
         });
         it('should succeed to get cron results', async () => {
             const pipeline = 'flow1';
@@ -74,13 +74,20 @@ describe('Cron', () => {
                     options: {
                         ttl: 1200,
                         batchTolerance: 90,
-                        progressVerbosityLevel: "info"
+                        progressVerbosityLevel: 'info'
                     }
                 }
             };
             const data = [100, 200, 300];
-            const responses = await Promise.all(data.map(d => request(optionsRun)));
-            await Promise.all(responses.map((r, i) => workerStub.done({ jobId: r.body.jobId, data: data[i] })));
+            const responses = await Promise.all(data.map((d) => request(optionsRun)));
+            await Promise.all(
+                responses.map((r, i) =>
+                    workerStub.done({
+                        jobId: r.body.jobId,
+                        data: data[i]
+                    })
+                )
+            );
 
             const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit: 3 });
             const options = {
@@ -88,7 +95,7 @@ describe('Cron', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            const result = response.body.map(r => r.data).sort();
+            const result = response.body.map((r) => r.data).sort();
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(result).to.deep.equal(data);
             expect(response.body[0]).to.have.property('jobId');
@@ -97,7 +104,7 @@ describe('Cron', () => {
             expect(response.body[0]).to.have.property('status');
             expect(response.body[0]).to.have.property('timeTook');
             expect(response.body[0]).to.have.property('timestamp');
-        })
+        });
     });
     describe('/cron/status', () => {
         let restPath = null;
@@ -122,7 +129,7 @@ describe('Cron', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
+            expect(response.body.error.message).to.contain('data.order should be equal to one of the allowed values');
         });
         it('should throw validation error of sort property', async () => {
             const qs = querystring.stringify({ name: 'pipe', sort: 'bla' });
@@ -132,7 +139,7 @@ describe('Cron', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
+            expect(response.body.error.message).to.contain('data.sort should be equal to one of the allowed values');
         });
         it('should throw validation error of limit should be >= 1', async () => {
             const qs = querystring.stringify({ name: 'pipe', limit: 0 });
@@ -142,17 +149,17 @@ describe('Cron', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be >= 1");
+            expect(response.body.error.message).to.equal('data.limit should be >= 1');
         });
         it('should throw validation error of limit should be integer', async () => {
-            const qs = querystring.stringify({ name: 'pipe', limit: "y" });
+            const qs = querystring.stringify({ name: 'pipe', limit: 'y' });
             const options = {
                 uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be integer");
+            expect(response.body.error.message).to.equal('data.limit should be integer');
         });
         it('should succeed to get cron status', async () => {
             const pipeline = 'flow1';
@@ -163,7 +170,7 @@ describe('Cron', () => {
                 }
             };
             const limit = 3;
-            await Promise.all(Array.from(Array(limit)).map(d => request(optionsRun)));
+            await Promise.all(Array.from(Array(limit)).map((d) => request(optionsRun)));
 
             const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit });
             const options = {
@@ -177,7 +184,7 @@ describe('Cron', () => {
             expect(response.body[0]).to.have.property('pipeline');
             expect(response.body[0]).to.have.property('status');
             expect(response.body[0]).to.have.property('timestamp');
-        })
+        });
     });
     describe('/cron/start', () => {
         let restPath = null;
@@ -216,8 +223,8 @@ describe('Cron', () => {
             expect(response.body.error.message).to.equal(`data.pattern should match format "cron"`);
         });
         it('should success to start cron', async () => {
-            const pipeline = pipelines.find(p => p.name === 'trigger-cron-disabled');
-            const pattern = "* * * * *";
+            const pipeline = pipelines.find((p) => p.name === 'trigger-cron-disabled');
+            const pattern = '* * * * *';
             const options1 = {
                 uri: restPath,
                 body: {
@@ -236,11 +243,11 @@ describe('Cron', () => {
             expect(response2.body.triggers.cron.pattern).to.equal(pattern);
         });
         it('should success to start cron with default pattern', async () => {
-            const pipeline = pipelines.find(p => p.name === 'trigger-no-cron');
+            const pipeline = pipelines.find((p) => p.name === 'trigger-no-cron');
             const options1 = {
                 uri: restPath,
                 body: {
-                    name: pipeline.name,
+                    name: pipeline.name
                 }
             };
             const options2 = {
@@ -281,7 +288,7 @@ describe('Cron', () => {
             expect(response.body.error.message).to.equal(`data should have required property 'name'`);
         });
         it('should success to stop cron', async () => {
-            const pipeline = pipelines.find(p => p.name === 'trigger-cron-enabled');
+            const pipeline = pipelines.find((p) => p.name === 'trigger-cron-enabled');
             const options1 = {
                 uri: restPath,
                 body: { name: pipeline.name }

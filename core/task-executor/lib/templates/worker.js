@@ -328,7 +328,7 @@ const workerTemplate = {
                                         key: 'CLUSTER_NAME'
                                     }
                                 }
-                            }
+                            },
                         ]
                     }
                 ],
@@ -336,6 +336,28 @@ const workerTemplate = {
             }
         },
         backoffLimit: 0
+    }
+};
+
+const gatewayEnv = {
+    NODE_ENV: 'production',
+    BASE_URL_PATH: {
+        configMapKeyRef: {
+            name: 'algorithm-gateway-configmap',
+            key: 'BASE_URL_PATH'
+        }
+    },
+    INGRESS_PREFIX: {
+        configMapKeyRef: {
+            name: 'algorithm-gateway-configmap',
+            key: 'INGRESS_PREFIX'
+        }
+    },
+    REST_PORT: {
+        configMapKeyRef: {
+            name: 'algorithm-gateway-configmap',
+            key: 'REST_PORT'
+        }
     }
 };
 
@@ -383,5 +405,6 @@ module.exports = {
     logVolumes,
     logVolumeMounts,
     sharedVolumeMounts,
-    algoMetricVolume
+    algoMetricVolume,
+    gatewayEnv
 };

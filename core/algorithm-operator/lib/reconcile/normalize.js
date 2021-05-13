@@ -52,6 +52,16 @@ const normalizeQueuesDiscovery = (discovery) => {
         });
     });
     return { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms };
+}
+
+const normalizeServices = (servicesSpec) => {
+    if (!servicesSpec?.body?.items) {
+        return [];
+    }
+    const services = servicesSpec.body.items.map(s => ({
+        algorithmName: s.metadata.labels['algorithm-name']
+    }));
+    return services;
 };
 
 const normalizeAlgorithms = (algorithmsRaw) => {
@@ -112,6 +122,7 @@ module.exports = {
     normalizeQueuesDeployments,
     normalizeDebugDeployments,
     normalizeQueuesDiscovery,
+    normalizeServices,
     normalizeAlgorithms,
     normalizeBuildJobs,
     normalizeBoardDeployments,

@@ -72,10 +72,12 @@ describe('Experiment', () => {
                 body: {
                     name: pipeline,
                     experimentName: experiment,
-                    nodes: [{
-                        nodeName: 'green-alg',
-                        algorithmName: 'green-alg',
-                    }],
+                    nodes: [
+                        {
+                            nodeName: 'green-alg',
+                            algorithmName: 'green-alg'
+                        }
+                    ],
                     triggers: {
                         cron: {
                             enabled: true

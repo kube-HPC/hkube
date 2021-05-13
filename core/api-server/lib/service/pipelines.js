@@ -25,7 +25,7 @@ class PipelineService {
         let summary = `pipeline ${name} successfully deleted from store`;
         const result = await this._stopAllRunningPipelines(options);
         if (result.length > 0) {
-            const stopped = result.filter(r => r.success);
+            const stopped = result.filter(r => r.status === 'fulfilled');
             summary += `, stopped related running pipelines ${stopped.length}/${result.length}`;
         }
         await stateManager.deletePipeline({ name });
@@ -39,14 +39,7 @@ class PipelineService {
             hasResult: false,
             fields: { jobId: true },
         });
-        const result = await Promise.all(pipelines.map(p => this._promiseWrapper(() => executionService.stopJob({ jobId: p.jobId, reason: 'pipeline has been deleted' }))));
-        return result;
-    }
-
-    _promiseWrapper(func) {
-        return new Promise((resolve) => {
-            func().then(() => resolve({ success: true })).catch(() => resolve({ success: false }));
-        });
+        return Promise.allSettled(pipelines.map(p => executionService.stopJob({ jobId: p.jobId, reason: 'pipeline has been deleted' })));
     }
 
     async getPipeline(options) {

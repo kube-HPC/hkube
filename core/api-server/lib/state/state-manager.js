@@ -52,10 +52,11 @@ class StateManager {
         return this._db.algorithms.delete({ name });
     }
 
-    async getAlgorithms({ name, names, sort, limit } = {}) {
+    async getAlgorithms({ name, names, kind, sort, limit } = {}) {
         return this._db.algorithms.search({
             name,
             names,
+            kind,
             sort: { created: sort },
             limit
         });

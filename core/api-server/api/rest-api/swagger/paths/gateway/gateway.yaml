@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Gateway
+  summary: get gateway details
+  description: get gateway details
+  parameters:
+    - name: name
+      in: path
+      description: gateway name to get from the store
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/gateway"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: pipeline Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

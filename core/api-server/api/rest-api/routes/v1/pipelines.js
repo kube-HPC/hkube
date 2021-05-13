@@ -1,11 +1,11 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const Execution = require('../../../../lib/service/execution');
 const pipelineStore = require('../../../../lib/service/pipelines');
 const methods = require('../../middlewares/methods');
 const logger = require('../../middlewares/logger');
 
 const routes = (options) => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();

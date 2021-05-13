@@ -1,0 +1,5 @@
+type: string
+description: gateway name
+minLength: 1
+maxLength: 32
+format: gateway-name

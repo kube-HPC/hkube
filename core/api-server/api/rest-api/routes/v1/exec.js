@@ -1,35 +1,35 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const Execution = require('../../../../lib/service/execution');
 const methods = require('../../middlewares/methods');
 const logger = require('../../middlewares/logger');
 
 const routes = (options) => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
     router.all('/raw', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Execution.runRaw(req.body);
-        res.json({ jobId });
+        const { jobId, gateways } = await Execution.runRaw(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
         next();
     });
     router.all('/stored', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Execution.runStored(req.body);
-        res.json({ jobId });
+        const { jobId, gateways } = await Execution.runStored(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
         next();
     });
     router.all('/caching', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Execution.runCaching(req.body);
-        res.json({ jobId });
+        const { jobId, gateways } = await Execution.runCaching(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
         next();
     });
     router.all('/algorithm', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Execution.runAlgorithm(req.body);
-        res.json({ jobId });
+        const { jobId, gateways } = await Execution.runAlgorithm(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
         next();
     });

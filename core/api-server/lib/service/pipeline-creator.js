@@ -1,7 +1,8 @@
 const mergeWith = require('lodash.mergewith');
 const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
-const { pipelineKind, retryPolicy, stateType } = require('@hkube/consts');
+const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
+const gatewayService = require('./gateway');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
@@ -113,7 +114,7 @@ class PipelineCreator {
      *        }}
      *
      */
-    async buildStreamingFlow(pipeline) {
+    async buildStreamingFlow(pipeline, jobId) {
         const flows = pipeline.streaming?.flows;
         let defaultFlow = pipeline.streaming?.defaultFlow;
         if (pipeline.kind === pipelineKind.Batch) {
@@ -131,11 +132,21 @@ class PipelineCreator {
             }
             [defaultFlow] = Object.keys(flows);
         }
-
-        pipeline.nodes.forEach(node => {
+        let gateways;
+        for (const node of pipeline.nodes) { // eslint-disable-line
             const type = node.stateType || stateType.Stateless;
-            node.retry = StreamRetryPolicy[type]; // eslint-disable-line
-        });
+            node.retry = StreamRetryPolicy[type];
+
+            if (node.kind === nodeKind.Gateway) {
+                if (!gateways) {
+                    gateways = [];
+                }
+                const { nodeName, spec } = node;
+                const { algorithmName, url } = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
+                node.algorithmName = algorithmName; // eslint-disable-line
+                gateways.push({ nodeName, url });
+            }
+        }
 
         const parsedFlow = {};
         const edges = [];
@@ -185,6 +196,7 @@ class PipelineCreator {
             edges,
             streaming: {
                 ...pipeline.streaming,
+                gateways,
                 parsedFlow,
                 defaultFlow
             }

@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const querystring = require('querystring');
 const HttpStatus = require('http-status-codes');
 const { workerStub } = require('./mocks');
-const pipelinesTriggers = require('./mocks/pipelines-triggers.json')
+const pipelinesTriggers = require('./mocks/pipelines-triggers.json');
 const { request } = require('./utils');
 let restUrl;
 
@@ -32,7 +32,7 @@ describe('Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
+            expect(response.body.error.message).to.contain('data.order should be equal to one of the allowed values');
         });
         it('should throw validation error of limit should be >= 1', async () => {
             const qs = querystring.stringify({ name: 'pipe', limit: 0 });
@@ -42,17 +42,17 @@ describe('Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be >= 1");
+            expect(response.body.error.message).to.equal('data.limit should be >= 1');
         });
         it('should throw validation error of limit should be integer', async () => {
-            const qs = querystring.stringify({ name: 'pipe', limit: "y" });
+            const qs = querystring.stringify({ name: 'pipe', limit: 'y' });
             const options = {
                 uri: restPath + `?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be integer");
+            expect(response.body.error.message).to.equal('data.limit should be integer');
         });
         it('should succeed to get pipelines results', async () => {
             const pipeline = 'flow1';
@@ -64,7 +64,7 @@ describe('Pipelines', () => {
                 }
             };
             const data = [100, 200, 300];
-            const responses = await Promise.all(data.map(d => request(optionsRun)));
+            const responses = await Promise.all(data.map((d) => request(optionsRun)));
             await Promise.all(responses.map((r, i) => workerStub.done({ jobId: r.body.jobId, data: data[i] })));
 
             const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit: 3 });
@@ -73,7 +73,7 @@ describe('Pipelines', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            const result = response.body.map(r => r.data).sort();
+            const result = response.body.map((r) => r.data).sort();
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(result).to.deep.equal(data);
             expect(response.body[0]).to.have.property('jobId');
@@ -82,7 +82,7 @@ describe('Pipelines', () => {
             expect(response.body[0]).to.have.property('status');
             expect(response.body[0]).to.have.property('timeTook');
             expect(response.body[0]).to.have.property('timestamp');
-        })
+        });
     });
     describe('/pipelines/status', () => {
         let restPath = null;
@@ -106,7 +106,7 @@ describe('Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
+            expect(response.body.error.message).to.contain('data.order should be equal to one of the allowed values');
         });
         it('should throw validation error of sort property', async () => {
             const qs = querystring.stringify({ name: 'pipe', sort: 'bla' });
@@ -116,7 +116,7 @@ describe('Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
+            expect(response.body.error.message).to.contain('data.sort should be equal to one of the allowed values');
         });
         it('should throw validation error of limit should be >= 1', async () => {
             const qs = querystring.stringify({ name: 'pipe', limit: 0 });
@@ -126,17 +126,17 @@ describe('Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be >= 1");
+            expect(response.body.error.message).to.equal('data.limit should be >= 1');
         });
         it('should throw validation error of limit should be integer', async () => {
-            const qs = querystring.stringify({ name: 'pipe', limit: "y" });
+            const qs = querystring.stringify({ name: 'pipe', limit: 'y' });
             const options = {
                 uri: restPath + `?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be integer");
+            expect(response.body.error.message).to.equal('data.limit should be integer');
         });
         it('should succeed to get pipelines status', async () => {
             const pipeline = 'flow1';
@@ -155,7 +155,7 @@ describe('Pipelines', () => {
             };
             const status = 'completed';
             const data = [status, status, status];
-            const responses = await Promise.all(data.map(d => request(optionsRun)));
+            const responses = await Promise.all(data.map((d) => request(optionsRun)));
             await Promise.all(responses.map((r, i) => workerStub.done({ jobId: r.body.jobId, data: data[i] })));
 
             const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit: 3 });
@@ -164,13 +164,13 @@ describe('Pipelines', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            const result = response.body.map(r => r.status)
+            const result = response.body.map((r) => r.status);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(result).to.deep.equal(data);
             expect(response.body[0]).to.have.property('jobId');
             expect(response.body[0]).to.have.property('status');
             expect(response.body[0]).to.have.property('timestamp');
-        })
+        });
     });
     describe('/pipelines/triggers/tree', () => {
         let restPath = null;

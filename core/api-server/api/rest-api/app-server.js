@@ -4,7 +4,6 @@ const RestServer = require('@hkube/rest-server');
 const { swaggerUtils } = require('@hkube/rest-server');
 const log = require('@hkube/logger').GetLogFromContanier();
 const { metrics } = require('@hkube/metrics');
-require('express-async-errors');
 const HttpStatus = require('http-status-codes');
 const internal = require('./internal/index');
 const validator = require('../../lib/validation/api-validator');

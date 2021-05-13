@@ -1,0 +1,41 @@
+post:
+  tags:
+    - Streaming
+  summary: Stream message
+  description: post message to the streaming gateway
+  parameters:
+    - name: flow
+      in: query
+      description: streaming flow name
+      schema:
+        type: string
+  requestBody:
+    description: message body
+    content:
+      application/json:
+        schema:
+          type: object
+      application/octet-stream:
+        schema:
+          type: string
+          format: binary
+    required: true
+  responses:
+    "200":
+      description: success response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/response"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

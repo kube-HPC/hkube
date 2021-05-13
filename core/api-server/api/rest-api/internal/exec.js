@@ -1,4 +1,4 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const Execution = require('../../../lib/service/execution');
 const Cron = require('../../../lib/service/cron');
 const Internal = require('../../../lib/service/internal');
@@ -6,32 +6,32 @@ const methods = require('../middlewares/methods');
 const logger = require('../middlewares/logger');
 
 const routes = () => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', (req, res, next) => {
         res.json({ message: 'internal api' });
         next();
     });
     router.all('/exec/stored/cron', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Cron.runStoredCron(req.body);
-        res.json({ jobId });
+        const { jobId, gateways } = await Cron.runStoredCron(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
         next();
     });
     router.all('/exec/stored/trigger', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Internal.runStoredTriggerPipeline(req.body);
-        res.json({ jobId });
+        const { jobId, gateways } = await Internal.runStoredTriggerPipeline(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
         next();
     });
     router.all('/exec/stored/subPipeline', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Internal.runStoredSubPipeline(req.body);
-        res.json({ jobId });
+        const { jobId, gateways } = await Internal.runStoredSubPipeline(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
         next();
     });
     router.all('/exec/raw/subPipeline', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Internal.runRawSubPipeline(req.body);
-        res.json({ jobId });
+        const { jobId, gateways } = await Internal.runRawSubPipeline(req.body);
+        res.json({ jobId, gateways });
         res.jobId = jobId;
         next();
     });

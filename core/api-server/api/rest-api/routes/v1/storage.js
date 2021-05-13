@@ -1,4 +1,4 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const logger = require('../../middlewares/logger');
 const storage = require('../../../../lib/service/storage');
 const {
@@ -9,7 +9,7 @@ const {
 } = require('../../../../lib/stream');
 
 const routes = (options) => {
-    const router = express.Router();
+    const router = RestServer.router();
 
     router.get('/', (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
@@ -138,7 +138,6 @@ const routes = (options) => {
             handleStreamError(e, path, res, next);
         }
     });
-
     return router;
 };
 

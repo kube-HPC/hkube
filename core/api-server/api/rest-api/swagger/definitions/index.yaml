@@ -66,6 +66,8 @@ pipelineName:
   $ref: ./pipelineName.yaml
 pipelineKind:
   $ref: ./pipelineKind.yaml
+nodeKind:
+  $ref: ./nodeKind.yaml
 pipelineNode:
   $ref: ./pipelineNode.yaml
 metrics:
@@ -92,6 +94,10 @@ experiment:
   $ref: ./experiment.yaml
 experimentName:
   $ref: ./experimentName.yaml
+gatewayName:
+  $ref: ./gatewayName.yaml
+gateway:
+  $ref: ./gateway.yaml
 gitlabWebhook:
   $ref: ./gitlabWebhook.yaml
 tag:
