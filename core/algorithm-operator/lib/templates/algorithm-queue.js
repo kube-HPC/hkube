@@ -64,6 +64,15 @@ const algorithmQueueTemplate = {
                                 }
                             },
                             {
+                                name: 'CONCURRENCY_LIMIT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'ALGORITHM_QUEUE_CONCURRENCY_LIMIT'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'PRODUCER_UPDATE_INTERVAL',
                                 valueFrom: {
                                     configMapKeyRef: {

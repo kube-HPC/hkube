@@ -12,7 +12,7 @@ config.buildMode = process.env.BUILD_MODE || 'kaniko';
 config.isDevMode = !!process.env.DEV_MODE;
 
 config.algorithmQueueBalancer = {
-    limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_LIMIT, 5)
+    limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_CONCURRENCY_LIMIT, 5)
 };
 
 config.db = {
