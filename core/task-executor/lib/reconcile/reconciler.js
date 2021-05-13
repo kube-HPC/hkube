@@ -149,11 +149,12 @@ const _processAllRequests = (
         const resourceRequests = createContainerResource(algorithmTemplate);
         const workerResourceRequests = createContainerResource(workerResources);
 
-        const { workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector, entryPoint, options: algorithmOptions, reservedMemory, mounts, env } = algorithmTemplate;
+        const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector, entryPoint, options: algorithmOptions, reservedMemory, mounts, env } = algorithmTemplate;
 
         createDetails.push({
             numberOfNewJobs: 1,
             jobDetails: {
+                kind,
                 env,
                 algorithmName,
                 algorithmImage,

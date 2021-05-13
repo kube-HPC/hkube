@@ -1,4 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
+const { nodeKind } = require('@hkube/consts');
 const component = require('./consts/componentNames').OPERATOR;
 const db = require('./helpers/db');
 const kubernetes = require('./helpers/kubernetes');
@@ -6,6 +7,7 @@ const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
 const tensorboardReconciler = require('./reconcile/tensorboard');
 const workerDebugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
+const gatewaysReconciler = require('./reconcile/algorithm-gateway');
 const CONTAINERS = require('./consts/containers');
 
 class Operator {
@@ -44,6 +46,7 @@ class Operator {
                 this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
+                this._algorithmGateways({ ...configMap, algorithms })
             ]);
         }
         catch (e) {
@@ -89,7 +92,6 @@ class Operator {
     async _tensorboards({ versions, registry, clusterOptions, boardTimeOut }, options) {
         const boards = await db.getTensorboards();
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
-
         await tensorboardReconciler.reconcile({
             boards,
             deployments,
@@ -125,6 +127,16 @@ class Operator {
             clusterOptions,
             resources,
             options
+        });
+    }
+
+    async _algorithmGateways({ clusterOptions, algorithms }) {
+        const services = await kubernetes.getServices({ labelSelector: `type=${nodeKind.Gateway}` });
+        const gateways = algorithms.filter(a => a.kind === nodeKind.Gateway);
+        await gatewaysReconciler.reconcile({
+            services,
+            gateways,
+            clusterOptions
         });
     }
 

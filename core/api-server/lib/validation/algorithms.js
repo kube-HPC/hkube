@@ -88,7 +88,7 @@ class ApiValidator {
 
     async validateAlgorithmExists(pipeline) {
         const pipelineAlgorithms = pipeline.nodes
-            .filter(n => n.algorithmName && n.kind !== nodeKind.DataSource)
+            .filter(n => n.algorithmName && n.kind === nodeKind.Algorithm)
             .map(p => p.algorithmName);
         const algorithmsMap = await stateManager.getAlgorithmsMapByNames({ names: pipelineAlgorithms });
         pipelineAlgorithms.forEach((a) => {

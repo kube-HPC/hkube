@@ -1,4 +1,4 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const builds = require('../../../../lib/service/builds');
 const methods = require('../../middlewares/methods');
 const logger = require('../../middlewares/logger');
@@ -6,7 +6,7 @@ const gitListener = require('../../../../lib/service/githooks/git-webhook-listen
 const { WEBHOOKS } = require('../../../../lib/consts/builds');
 
 const routes = (options) => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();

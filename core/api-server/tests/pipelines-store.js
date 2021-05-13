@@ -145,7 +145,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("pipeline must have at nodes property with at least one node");
+            expect(response.body.error.message).to.equal('pipeline must have at nodes property with at least one node');
         });
         it('should throw validation error of required property nodes.nodeName', async () => {
             const options = {
@@ -155,9 +155,7 @@ describe('Store/Pipelines', () => {
                     nodes: [
                         {
                             algorithmName: 'green-alg',
-                            input: [
-                                {}
-                            ]
+                            input: [{}]
                         }
                     ]
                 }
@@ -171,9 +169,9 @@ describe('Store/Pipelines', () => {
             const pipeline = clone(pipelines[0]);
             pipeline.triggers = {
                 cron: {
-                    pattern: "bla"
+                    pattern: 'bla'
                 }
-            }
+            };
             const options = {
                 uri: restPath,
                 body: pipeline
@@ -187,9 +185,8 @@ describe('Store/Pipelines', () => {
             const pipeline = clone(pipelines[0]);
             pipeline.triggers = {
                 pipelines: 1
-            }
+            };
             const options = {
-
                 uri: restPath,
                 body: pipeline
             };
@@ -201,7 +198,7 @@ describe('Store/Pipelines', () => {
         it('should throw validation error of pipelines trigger should NOT be shorter than 1 characters', async () => {
             const pipeline = clone(pipelines[0]);
             pipeline.triggers = {
-                pipelines: [""]
+                pipelines: ['']
             };
             const options = {
                 uri: restPath,
@@ -217,15 +214,17 @@ describe('Store/Pipelines', () => {
                 uri: restPath,
                 body: {
                     name: 'string',
-                    nodes: [{
-                        nodeName: 'string'
-                    }]
+                    nodes: [
+                        {
+                            nodeName: 'string'
+                        }
+                    ]
                 }
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("please provide algorithmName or pipelineName");
+            expect(response.body.error.message).to.contain('please provide algorithmName');
         });
         it('should throw validation error of nodes.input should be array', async () => {
             const options = {
@@ -323,7 +322,7 @@ describe('Store/Pipelines', () => {
             expect(response.body.error.message).to.equal('pipeline "reservedName" has invalid reserved name "flowInput"');
         });
         it('should throw validation error of node depend on not exists node', async () => {
-            const pipeline = pipelines.find(p => p.name === 'NodeNotExists');
+            const pipeline = pipelines.find((p) => p.name === 'NodeNotExists');
             const options = {
                 uri: restPath,
                 body: pipeline
@@ -334,7 +333,7 @@ describe('Store/Pipelines', () => {
             expect(response.body.error.message).to.equal('node "B" is depend on node "C" which is not exists');
         });
         it('should throw validation error of cyclic nodes', async () => {
-            const pipeline = pipelines.find(p => p.name === 'cyclicNodes');
+            const pipeline = pipelines.find((p) => p.name === 'cyclicNodes');
             const options = {
                 uri: restPath,
                 body: pipeline
@@ -366,7 +365,7 @@ describe('Store/Pipelines', () => {
         });
         it('should throw validation error if algorithmName not exists', async () => {
             const pipeline = clone(pipelines[0]);
-            pipeline.nodes[0].algorithmName = 'not.exists'
+            pipeline.nodes[0].algorithmName = 'not.exists';
             pipeline.name = uuid();
             const body = pipeline;
             const options = {
@@ -386,13 +385,11 @@ describe('Store/Pipelines', () => {
                     name,
                     nodes: [
                         {
-                            nodeName: "green",
-                            algorithmName: "green-alg",
-                            input: [
-                                "args"
-                            ]
+                            nodeName: 'green',
+                            algorithmName: 'green-alg',
+                            input: ['args']
                         }
-                    ],
+                    ]
                 }
             };
             const response = await request(options);
@@ -413,56 +410,61 @@ describe('Store/Pipelines', () => {
         it('should succeed to store flows streaming pipeline', async () => {
             const pipeline = {
                 name: 'streaming-flow',
-                experimentName: "main",
-                kind: "stream",
+                experimentName: 'main',
+                kind: 'stream',
                 nodes: [
                     {
-                        "nodeName": "A",
-                        "algorithmName": "green-alg",
-                        "input": [],
-                        "stateType": "stateful"
+                        nodeName: 'A',
+                        algorithmName: 'green-alg',
+                        input: [],
+                        stateType: 'stateful',
+                        kind: 'algorithm'
                     },
                     {
-                        "nodeName": "B",
-                        "algorithmName": "green-alg",
-                        "input": [],
-                        "stateType": "stateless"
+                        nodeName: 'B',
+                        algorithmName: 'green-alg',
+                        input: [],
+                        stateType: 'stateless',
+                        kind: 'algorithm'
                     },
                     {
-                        "nodeName": "C",
-                        "algorithmName": "green-alg",
-                        "input": [],
-                        "stateType": "stateless"
+                        nodeName: 'C',
+                        algorithmName: 'green-alg',
+                        input: [],
+                        stateType: 'stateless',
+                        kind: 'algorithm'
                     },
                     {
-                        "nodeName": "D",
-                        "algorithmName": "green-alg",
-                        "input": [],
-                        "stateType": "stateless"
+                        nodeName: 'D',
+                        algorithmName: 'green-alg',
+                        input: [],
+                        stateType: 'stateless',
+                        kind: 'algorithm'
                     },
                     {
-                        "nodeName": "E",
-                        "algorithmName": "green-alg",
-                        "input": [],
-                        "stateType": "stateless"
+                        nodeName: 'E',
+                        algorithmName: 'green-alg',
+                        input: [],
+                        stateType: 'stateless',
+                        kind: 'algorithm'
                     }
                 ],
                 streaming: {
                     flows: {
-                        "analyze0": "A >> B >> C >> D >> B >> A",
-                        "analyze1": "A >> B&C , C >> D",
-                        "analyze2": "A >> B&C >> D",
-                        "analyze3": "A >> B >> C >> D >> A",
-                        "analyze4": "A >> B&C&D >> E"
+                        analyze0: 'A >> B >> C >> D >> B >> A',
+                        analyze1: 'A >> B&C , C >> D',
+                        analyze2: 'A >> B&C >> D',
+                        analyze3: 'A >> B >> C >> D >> A',
+                        analyze4: 'A >> B&C&D >> E'
                     }
                 },
                 priority: 3,
                 options: {
                     batchTolerance: 80,
-                    progressVerbosityLevel: "info",
+                    progressVerbosityLevel: 'info',
                     ttl: 3600
                 }
-            }
+            };
             const options = {
                 uri: restPath,
                 body: pipeline
@@ -473,21 +475,22 @@ describe('Store/Pipelines', () => {
         });
         it('should succeed to store pip', async () => {
             const pipeline = {
-                "name": "pipeline_in_pipeline",
-                "nodes": [
+                name: 'pipeline_in_pipeline',
+                nodes: [
                     {
-                        "nodeName": "A",
-                        "pipelineName": "simple",
-                        "input": []
+                        nodeName: 'A',
+                        kind: 'pipeline',
+                        pipelineName: 'simple',
+                        input: []
                     },
                     {
-                        "nodeName": "B",
-                        "pipelineName": "simple",
-                        "input": [{ "data": "@A" }]
+                        nodeName: 'B',
+                        kind: 'pipeline',
+                        pipelineName: 'simple',
+                        input: [{ data: '@A' }]
                     }
                 ]
-
-            }
+            };
             const options = {
                 uri: restPath,
                 body: pipeline
@@ -501,7 +504,10 @@ describe('Store/Pipelines', () => {
             const pipeline = clone(pipelines[2]);
             pipeline.description = 'my description';
             pipeline.kind = 'stream';
-            pipeline.nodes.forEach(n => n.stateType = 'stateless');
+            pipeline.nodes.forEach((n) => {
+                n.kind = 'algorithm';
+                n.stateType = 'stateless';
+            });
             const options = {
                 uri: restPath,
                 method: 'PUT',
@@ -512,7 +518,7 @@ describe('Store/Pipelines', () => {
         });
         it('should throw validation error if algorithmName not exists', async () => {
             const pipeline = clone(pipelines[0]);
-            pipeline.nodes[0].algorithmName = 'not.exists'
+            pipeline.nodes[0].algorithmName = 'not.exists';
             const body = pipeline;
             const options = {
                 uri: restPath,

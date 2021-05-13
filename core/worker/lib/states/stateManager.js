@@ -199,8 +199,10 @@ class StateManager extends EventEmitter {
      */
     done(results) {
         try {
-            this._results = results;
-            this._stateMachine.done();
+            if (this.state !== workerStates.results) {
+                this._results = results;
+                this._stateMachine.done();
+            }
         }
         catch (error) {
             log.warning(error, { component });

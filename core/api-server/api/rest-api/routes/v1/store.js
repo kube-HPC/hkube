@@ -1,4 +1,4 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const fse = require('fs-extra');
 const multer = require('multer');
 const HttpStatus = require('http-status-codes');
@@ -8,7 +8,7 @@ const logger = require('../../middlewares/logger');
 const upload = multer({ dest: 'uploads/zipped/' });
 
 const routes = (option) => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', (req, res, next) => {
         res.json({ message: `${option.version} ${option.file} api` });
         next();

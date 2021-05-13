@@ -36,7 +36,7 @@ config.streaming = {
             replicasExtra: formatters.parseInt(process.env.AUTO_SCALER_EXTRA_REPLICAS, 0.35),
             maxScaleUpReplicasPerNode: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 1000),
             maxScaleUpReplicasPerTick: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS_PER_SCALE, 10),
-            replicasOnFirstScale: formatters.parseInt(process.env.AUTO_SCALER_REPLICAS_FIRST_SCALE, 2),
+            replicasOnFirstScale: formatters.parseInt(process.env.AUTO_SCALER_REPLICAS_FIRST_SCALE, 1),
             minTimeToCleanUpQueue: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_CLEAN_QUEUE, 30),
         },
         scaleDown: {

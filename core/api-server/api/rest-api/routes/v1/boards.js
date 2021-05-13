@@ -1,9 +1,9 @@
-const express = require('express');
+const RestServer = require('@hkube/rest-server');
 const boards = require('../../../../lib/service/boards');
 const logger = require('../../middlewares/logger');
 
 const routes = (options) => {
-    const router = express.Router();
+    const router = RestServer.router();
     router.get('/', (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
@@ -32,7 +32,6 @@ const routes = (options) => {
         res.json({ id, message });
         next();
     });
-
     return router;
 };
 

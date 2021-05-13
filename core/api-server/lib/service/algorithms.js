@@ -104,23 +104,12 @@ class AlgorithmStore {
     }
 
     async _deleteAll(array, func) {
-        const res = await Promise.all(array.map(a => this._deleteEntity(func, a)));
-        return res.filter(a => a);
+        const res = await Promise.allSettled(array.map(a => func(a)));
+        return res.filter(a => a.status === 'fulfilled');
     }
 
     _entitiesToText(entities) {
         return Object.entries(entities).filter(([, v]) => v).map(([k, v]) => `${v} ${k}`).join(', ');
-    }
-
-    async _deleteEntity(func, item) {
-        let success = true;
-        try {
-            await func(item);
-        }
-        catch (e) {
-            success = false;
-        }
-        return success;
     }
 
     async _checkAlgorithmDependencies({ name, ...entities }) {

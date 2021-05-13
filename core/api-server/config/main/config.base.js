@@ -48,6 +48,10 @@ config.debugUrl = {
     path: path.join(config.ingressPrefix, 'hkube/debug')
 };
 
+config.gatewayUrl = {
+    path: path.join(config.ingressPrefix, 'hkube/gateway')
+};
+
 config.addDefaultAlgorithms = process.env.ADD_DEFAULT_ALGORITHMS || true;
 
 config.swagger = {

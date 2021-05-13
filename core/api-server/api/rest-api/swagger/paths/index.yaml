@@ -112,6 +112,12 @@
 /experiment:
   $ref: ./experiment/experiment.yaml
 
+# gateway
+/gateway:
+  $ref: ./gateway/gateways.yaml
+/gateway/{name}:
+  $ref: ./gateway/gateway.yaml
+
 # graph
 /graph/raw/{jobId}:
   $ref: ./graph/raw.yaml
