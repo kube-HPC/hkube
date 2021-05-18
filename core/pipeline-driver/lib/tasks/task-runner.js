@@ -1,4 +1,3 @@
-const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
 const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
@@ -19,16 +18,13 @@ const { Node, Batch } = NodeTypes;
 const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
 const activeTaskStates = [taskStatuses.CREATING, taskStatuses.ACTIVE, taskStatuses.PRESCHEDULE];
 
-class TaskRunner extends EventEmitter {
+class TaskRunner {
     constructor(options) {
-        super();
         this._job = null;
         this._jobId = null;
         this._nodes = null;
         this._active = true;
         this._progress = null;
-        this._status = null;
-        this._error = null;
         this._pipeline = null;
         this._isStreaming = false;
         this._streamingMetrics = {};
@@ -39,21 +35,18 @@ class TaskRunner extends EventEmitter {
 
     async onStop(data) {
         log.info(`pipeline ${data.status} ${this._jobId}. ${data.reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-        this._status = data.status;
         await this.stop({ shouldStop: false });
     }
 
     async onPause(data) {
         log.info(`pipeline ${data.status} ${this._jobId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-        this._status = data.status;
         await this.stop({ shouldStop: false, shouldDeleteTasks: false });
     }
 
     getStatus() {
         return {
             jobId: this._jobId,
-            active: this._active,
-            status: this._status
+            active: this._active
         };
     }
 
@@ -168,7 +161,6 @@ class TaskRunner extends EventEmitter {
         this._job = job;
         const { jobId } = job.data;
         this._jobId = jobId;
-        this._status = DriverStates.ACTIVE;
         log.info(`pipeline started ${this._jobId}`, { component, jobId });
 
         const jobStatus = await stateManager.watchJobStatus({ jobId });
@@ -244,8 +236,6 @@ class TaskRunner extends EventEmitter {
         else {
             status = DriverStates.COMPLETED;
         }
-        this._status = status;
-        this._error = error;
         await stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data: storageResults, error, status, nodeName });
         await this._progressStatus({ status, error, nodeName });
 
@@ -391,11 +381,7 @@ class TaskRunner extends EventEmitter {
 
     async _cleanJob(error) {
         await this._graphStore?.stop();
-        this._nodes = null;
-        this._streamingMetrics = {};
         this._job?.done(error);
-        this._job = null;
-        this._progress = null;
     }
 
     async _runNode(nodeName, parentOutput, index) {

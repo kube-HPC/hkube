@@ -35,14 +35,12 @@ class JobConsumer {
             const driver = this._drivers.get(d.jobId);
             if (driver) {
                 await driver.onStop(d);
-                this._drivers.delete(d.jobId);
             }
         });
         stateManager.onJobPause(async (d) => {
             const driver = this._drivers.get(d.jobId);
             if (driver) {
                 await driver.onPause(d);
-                this._drivers.delete(d.jobId);
             }
         });
         stateManager.onTaskStatus((d) => {
@@ -103,6 +101,9 @@ class JobConsumer {
     _resolveStatus({ idle, paused }) {
         if (paused && idle) {
             return DriverStates.EXIT;
+        }
+        if (!paused && !idle) {
+            return DriverStates.ACTIVE;
         }
         if (paused) {
             return DriverStates.PAUSED;

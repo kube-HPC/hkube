@@ -1,4 +1,4 @@
-const async = require('async');
+const asyncQueue = require('async.queue');
 const { median } = require('@hkube/stats');
 const log = require('@hkube/logger').GetLogFromContainer();
 const throttle = require('lodash.throttle');
@@ -20,8 +20,10 @@ class ProgressManager {
         this._sendProgress = options.sendProgress;
         this._throttleProgress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
 
-        this._queue = async.queue((task, callback) => {
-            this._sendProgress(task).then(response => callback(null, response)).catch(error => callback(error));
+        this._queue = asyncQueue((task, callback) => {
+            const data = this._calcProgress();
+            this._currentProgress = data.progress;
+            this._sendProgress({ ...task, data }).then(response => callback(null, response)).catch(error => callback(error));
         }, 1);
     }
 
@@ -58,9 +60,7 @@ class ProgressManager {
     }
 
     _progress(level, options) {
-        const data = this._calcProgress();
-        this._currentProgress = data.progress;
-        return this._throttleProgress({ ...options, data, level }).catch(e => log.warning(`failed to write progress ${e.message}`));
+        return this._throttleProgress({ ...options, level }).catch(e => log.warning(`failed to write progress ${e.message}`));
     }
 
     _queueProgress(options) {
