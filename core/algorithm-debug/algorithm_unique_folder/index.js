@@ -1,11 +1,10 @@
 const { stateType } = require('@hkube/consts');
 const EventEmitter = require('events');
 const messages = require('@hkube/nodejs-wrapper/lib/consts/messages');
-const codeApi = require('@hkube/nodejs-wrapper/lib/codeApi/codeApi');
 const ws = require('../lib/algorithm-communication/ws');
 const events = new EventEmitter();
 
-const init = async (options, hkubeApi) => {
+const init = async (options) => {
     events.removeAllListeners();
     events.on('stop', () => {
         return this._resolve();
@@ -13,7 +12,7 @@ const init = async (options, hkubeApi) => {
     await ws.send({ command: messages.incoming.initialize, data: options });
 };
 
-const start = async (options, hkubeApi) => {
+const start = async (options, hkubeApi) => { // eslint-disable-line consistent-return
     events.removeAllListeners();
     events.on('stop', () => {
         return this._resolve();
