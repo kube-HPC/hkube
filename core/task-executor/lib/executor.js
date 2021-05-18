@@ -91,7 +91,7 @@ class Executor {
 
     _prepareDriversData(options) {
         const { minAmount, scalePercent, ...rest } = options.driversSetting;
-        const maxAmount = (minAmount * scalePercent) + minAmount;
+        const maxAmount = Math.ceil(minAmount * scalePercent) + minAmount;
         return {
             minAmount, maxAmount, ...rest
         };

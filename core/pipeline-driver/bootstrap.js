@@ -37,6 +37,7 @@ class Bootstrap {
                 await tracer.init(main.tracer);
             }
             await Promise.all(modules.map(m => m.init(main)));
+            log.info(`driver has started with concurrency limit of ${main.jobs.consumer.concurrency} jobs`, { component });
         }
         catch (error) {
             this._onInitFailed(error);
