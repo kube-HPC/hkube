@@ -1,4 +1,3 @@
-const path = require('path');
 const packageJson = require(process.cwd() + '/package.json');
 
 const config = {};
