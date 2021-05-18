@@ -3,6 +3,7 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 const sinon = require('sinon');
+const Etcd = require('@hkube/etcd');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const { Node } = NodeTypes;
 const pipelines = require('./mocks/pipelines');
@@ -266,18 +267,18 @@ describe('TaskRunner', function () {
         const discovery = {
             unScheduledAlgorithms: {
                 [algorithmName]: {
-                    "algorithmName": algorithmName,
-                    "type": "warning",
-                    "reason": "FailedScheduling",
-                    "hasMaxCapacity": false,
-                    "message": "insufficient mem (4)",
-                    "timestamp": 1593926212391
+                    algorithmName: algorithmName,
+                    type: "warning",
+                    reason: "FailedScheduling",
+                    hasMaxCapacity: false,
+                    message: "insufficient mem (4)",
+                    timestamp: 1593926212391
                 }
             }
         }
-        stateManager._etcd.discovery._client.leaser._lease = null;
-        await stateManager._etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
-        await delay(5000);
+        const etcd = new Etcd(config.etcd);
+        await etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
+        await delay(2000);
         const algorithm = discovery.unScheduledAlgorithms[algorithmName];
         expect(node.status).to.equal(algorithm.reason);
         expect(node.batch[0].status).to.equal(algorithm.reason);
@@ -294,24 +295,23 @@ describe('TaskRunner', function () {
         await stateManager.createJob({ jobId, pipeline, status });
         await consumer._handleJob(job);
         const driver = consumer._drivers.get(jobId);
-        await delay(500);
         const node = driver._nodes.getNode('green');
         const algorithmName = node.algorithmName;
         const discovery = {
             unScheduledAlgorithms: {
                 [algorithmName]: {
-                    "algorithmName": algorithmName,
-                    "type": "warning",
-                    "reason": "FailedScheduling",
-                    "hasMaxCapacity": true,
-                    "message": "maximum capacity exceeded (4)",
-                    "timestamp": Date.now()
+                    algorithmName: algorithmName,
+                    type: 'warning',
+                    reason: 'FailedScheduling',
+                    hasMaxCapacity: true,
+                    message: 'maximum capacity exceeded (4)',
+                    timestamp: Date.now()
                 }
             }
         }
-        stateManager._etcd.discovery._client.leaser._lease = null;
-        await stateManager._etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
-        await delay(5000);
+        const etcd = new Etcd(config.etcd);
+        await etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
+        await delay(2000);
         const algorithm = discovery.unScheduledAlgorithms[algorithmName];
         expect(node.status).to.equal(algorithm.reason);
         expect(node.batch[0].status).to.equal(algorithm.reason);

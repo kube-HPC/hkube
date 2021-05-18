@@ -14,7 +14,7 @@ config.unScheduledAlgorithms = {
     interval: process.env.SCHEDULING_WARNING_INTERVAL || 5000,
 };
 
-config.discoveryInterval = formatter.parseInt(process.env.DISCOVERY_INTERVAL, 5000);
+config.discoveryInterval = formatter.parseInt(process.env.DISCOVERY_INTERVAL, 2000);
 
 config.jobs = {
     consumer: {

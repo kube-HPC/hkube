@@ -61,39 +61,47 @@ class JobConsumer {
     }
 
     _intervalActives() {
-        setInterval(async () => {
-            const idle = this._drivers.size === 0;
-            const paused = this._consumerPaused;
-            const status = this._resolveStatus({ idle, paused });
-            const jobs = [];
+        setTimeout(async () => {
+            try {
+                const idle = this._drivers.size === 0;
+                const paused = this._consumerPaused;
+                const status = this._resolveStatus({ idle, paused });
+                const jobs = [];
 
-            if (!idle) {
-                const inActiveJobs = [];
-                this._drivers.forEach(d => {
-                    const job = d.getStatus();
-                    if (job.active) {
-                        jobs.push(job);
-                    }
-                    else {
-                        inActiveJobs.push(job.jobId);
-                    }
-                });
-                inActiveJobs.forEach(job => {
-                    this._drivers.delete(job);
-                });
+                if (!idle) {
+                    const inActiveJobs = [];
+                    this._drivers.forEach(d => {
+                        const job = d.getStatus();
+                        if (job.active) {
+                            jobs.push(job);
+                        }
+                        else {
+                            inActiveJobs.push(job.jobId);
+                        }
+                    });
+                    inActiveJobs.forEach(job => {
+                        this._drivers.delete(job);
+                    });
+                }
+
+                if (jobs.length) {
+                    stateManager.checkUnScheduledAlgorithms();
+                }
+                else {
+                    stateManager.unCheckUnScheduledAlgorithms();
+                }
+
+                await stateManager.updateDiscovery({ idle, paused, status, jobs });
+
+                if (paused && idle) {
+                    this._handleExit();
+                }
             }
-
-            if (jobs.length) {
-                stateManager.checkUnScheduledAlgorithms();
+            catch (e) {
+                log.throttle.error(e.message, { component });
             }
-            else {
-                stateManager.unCheckUnScheduledAlgorithms();
-            }
-
-            await stateManager.updateDiscovery({ idle, paused, status, jobs });
-
-            if (paused && idle) {
-                this._handleExit();
+            finally {
+                this._intervalActives();
             }
         }, this._discoveryInterval);
     }
