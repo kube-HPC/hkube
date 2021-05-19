@@ -1,4 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
+const { baseClasses: { HealthcheckImpl } } = require('@hkube/healthchecks');
 const AdapterController = require('../adapters/adapters-controller');
 const MetricsController = require('../metrics/metrics-controller');
 const adapterSettings = require('../adapters/settings');
@@ -7,7 +8,7 @@ const StoreController = require('../store/store-controller');
 // const metricsProvider = require('../monitoring/metrics-provider');
 const component = require('../consts/components').RUNNER;
 
-class Runner {
+class Runner extends HealthcheckImpl {
     async init(options) {
         this._adapterController = new AdapterController(options, adapterSettings);
         this._metricsController = new MetricsController(options, metricsSettings);
@@ -25,6 +26,7 @@ class Runner {
             try {
                 this._working = true;
                 await this._doWork();
+                this.setHealthy();
             }
             catch (e) {
                 this._onError(e);
