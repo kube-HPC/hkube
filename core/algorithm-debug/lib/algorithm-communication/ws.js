@@ -25,7 +25,7 @@ class WsWorkerCommunication extends EventEmitter {
                 if (!valid) {
                     return reject(new Error(validator.errorsText(validator.errors)));
                 }
-                const server = options.httpServer || http.createServer();
+                const server = http.createServer();
                 this._socketServer = new WebSocket.Server({ server, maxPayload: options.maxPayload });
 
                 this._socketServer.on('connection', (socket, opt) => {
@@ -41,11 +41,10 @@ class WsWorkerCommunication extends EventEmitter {
                 this._socketServer.on('listening', () => {
                     log.info('listening', { component });
                 });
-                if (!options.httpServer) {
-                    server.listen(options.port, () => {
-                        return resolve();
-                    });
-                }
+
+                server.listen(options.port, () => {
+                    return resolve();
+                });
             }
             catch (error) {
                 return reject(error);
@@ -62,7 +61,7 @@ class WsWorkerCommunication extends EventEmitter {
         socket.on('message', (data) => {
             const payload = this._encoding.decode(data);
             log.debug(`got message ${payload.command}`, { component });
-            this.emit(payload.command, payload);
+            this.emit(payload.command, payload.data);
         });
         socket.on('close', (code) => {
             const reason = code === 1006 ? 'CLOSE_ABNORMAL' : `${code}`;

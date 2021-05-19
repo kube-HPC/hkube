@@ -1,5 +1,5 @@
 const { adapters } = require('./consts');
-const { config } = require('../../config/main/config.base');
+const config = require('../../config/main/config.base');
 
 const loopbackWorkerCommunicationSchema = {
     type: 'object',

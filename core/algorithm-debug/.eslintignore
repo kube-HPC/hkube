@@ -2,4 +2,4 @@ coverage
 config
 tests
 bootstrap.js
-api/rest-api/swagger-builder.js
+
