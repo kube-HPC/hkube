@@ -38,16 +38,13 @@ describe('Debug', () => {
         })
         const wrapper = app.getWrapper();
         await wrapper._stop({});
-        let resolveStartInvoked;
-        let startInvoked = new Promise((res, rej) => {
-            resolveStartInvoked = res;
-        });
         ws.on('connection', async () => {
             await wrapper._init(jobs.jobData);
-            await wrapper._start({});
-            resolveStartInvoked();
+            wrapper._start({});
         })
-        await startInvoked;
+
+        const sleep = d => new Promise(r => setTimeout(r, d));
+        await sleep(1000);
         wrapper._streamingManager._onMessage({ flowPattern: {}, payload: 'message1', origin: 'a' });
         await promiseInit;
         await promiseStart;
