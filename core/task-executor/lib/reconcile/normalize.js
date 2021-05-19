@@ -173,22 +173,6 @@ const normalizeColdWorkers = (normWorkers, algorithmTemplates) => {
     return coldWorkers;
 };
 
-const normalizeDrivers = (drivers) => {
-    if (!drivers) {
-        return [];
-    }
-    const driversArray = drivers.map((d) => {
-        return {
-            id: d.driverId,
-            idle: d.idle,
-            paused: d.paused,
-            podName: d.podName,
-            jobs: d.jobs?.length || 0
-        };
-    });
-    return driversArray;
-};
-
 const calcRatioFree = (node) => {
     node.ratio = {
         cpu: node.requests.cpu / node.total.cpu,
@@ -332,15 +316,7 @@ const normalizeRequests = (requests) => {
     if (requests == null || requests.length === 0 || requests[0].data == null) {
         return [];
     }
-
     return requests[0].data.map(r => ({ algorithmName: r.name }));
-};
-
-const normalizeDriversRequests = (requests, name) => {
-    if (requests == null || requests.length === 0 || requests[0].data == null) {
-        return 0;
-    }
-    return requests[0].data.filter(r => r.name === name).length;
 };
 
 const _tryParseTime = (timeString) => {
@@ -378,19 +354,6 @@ const normalizeJobs = (jobsRaw, pods, predicate = () => true) => {
     return jobs;
 };
 
-const normalizeDriversJobs = (jobsRaw, predicate = () => true) => {
-    if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
-        return [];
-    }
-    const jobs = jobsRaw.body.items
-        .filter(predicate)
-        .map(j => ({
-            name: j.metadata.name,
-            active: j.status.active === 1
-        }));
-    return jobs;
-};
-
 const mergeWorkers = (workers, jobs) => {
     const foundJobs = [];
     const mergedWorkers = workers.map((w) => {
@@ -407,30 +370,14 @@ const mergeWorkers = (workers, jobs) => {
     return { mergedWorkers, extraJobs };
 };
 
-const normalizeDriversAmount = (drivers, requests, settings) => {
-    const { minAmount, maxAmount, concurrency } = settings;
-    const available = drivers.map(d => concurrency - d.jobs).reduce((a, b) => a + b, 0);
-    let amount = minAmount;
-
-    if (requests > available) {
-        amount = (requests - available) / concurrency;
-    }
-    const desiredDrivers = Math.min(amount, maxAmount);
-    return desiredDrivers;
-};
-
 module.exports = {
     normalizeWorkers,
     normalizeWorkerImages,
     normalizeHotRequests,
     normalizeHotWorkers,
     normalizeColdWorkers,
-    normalizeDrivers,
     normalizeRequests,
-    normalizeDriversRequests,
     normalizeJobs,
-    normalizeDriversJobs,
     mergeWorkers,
     normalizeResources,
-    normalizeDriversAmount
 };

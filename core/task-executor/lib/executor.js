@@ -5,7 +5,6 @@ const component = components.EXECUTOR;
 const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
 const reconciler = require('./reconcile/reconciler');
-const driversReconciler = require('./reconcile/drivers-reconciler');
 const { normalizeResources } = require('./reconcile/normalize');
 let log;
 
@@ -40,7 +39,6 @@ class Executor {
             labels: ['algorithmName']
         });
         this._interval = this._interval.bind(this);
-        this._driversSettings = this._prepareDriversData(options);
         this._lastIntervalTime = null;
         await this._interval(options);
     }
@@ -78,7 +76,6 @@ class Executor {
 
             await Promise.all([
                 this._algorithmsHandle(data),
-                this._pipelineDriversHandle(data)
             ]);
         }
         catch (e) {
@@ -87,14 +84,6 @@ class Executor {
         finally {
             setTimeout(this._interval, this._intervalMs, options);
         }
-    }
-
-    _prepareDriversData(options) {
-        const { minAmount, scalePercent, ...rest } = options.driversSetting;
-        const maxAmount = Math.ceil(minAmount * scalePercent) + minAmount;
-        return {
-            minAmount, maxAmount, ...rest
-        };
     }
 
     async _algorithmsHandle({ versions, normResources, registry, options, clusterOptions, pods, workerResources }) {
@@ -114,23 +103,6 @@ class Executor {
             this[metricsNames.TASK_EXECUTOR_JOB_RESUMED].set({ value: res.resumed || 0, labelValues: { algorithmName } });
             this[metricsNames.TASK_EXECUTOR_JOB_PAUSED].set({ value: res.paused || 0, labelValues: { algorithmName } });
             this[metricsNames.TASK_EXECUTOR_JOB_ACTIVE].set({ value: res.active || 0, labelValues: { algorithmName } });
-        });
-    }
-
-    async _pipelineDriversHandle({ versions, normResources, registry, options, clusterOptions }) {
-        if (this._lastReconcileDrivers && Date.now() - this._lastReconcileDrivers < this._driversSettings.reconcileInterval) {
-            return;
-        }
-        this._lastReconcileDrivers = Date.now();
-        const [driverTemplates, driversRequests, drivers, jobs] = await Promise.all([
-            etcd.getDriversTemplate(),
-            etcd.getPipelineDriverRequests(),
-            etcd.getPipelineDrivers(),
-            kubernetes.getPipelineDriversJobs()
-        ]);
-
-        await driversReconciler.reconcileDrivers({
-            driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings: this._driversSettings, registry, options, clusterOptions
         });
     }
 }

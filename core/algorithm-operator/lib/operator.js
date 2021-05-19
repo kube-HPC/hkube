@@ -9,6 +9,7 @@ const tensorboardReconciler = require('./reconcile/tensorboard');
 const workerDebugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const gatewaysReconciler = require('./reconcile/algorithm-gateway');
+const driversReconciler = require('./reconcile/drivers-reconciler');
 const CONTAINERS = require('./consts/containers');
 
 class Operator {
@@ -28,6 +29,7 @@ class Operator {
             this._interval(options);
             this._boardsInterval(options);
         }
+        this._driversSettings = this._prepareDriversData(options);
     }
 
     checkHealth(maxDiff) {
@@ -53,7 +55,8 @@ class Operator {
                 this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
-                this._algorithmGateways({ ...configMap, algorithms })
+                this._algorithmGateways({ ...configMap, algorithms }),
+                this._pipelineDriversHandle(configMap, options)
             ]);
         }
         catch (e) {
@@ -62,6 +65,27 @@ class Operator {
         finally {
             setTimeout(this._interval, this._intervalMs, options);
         }
+    }
+
+    _prepareDriversData(options) {
+        const { minAmount, scalePercent, ...rest } = options.driversSetting;
+        const maxAmount = Math.ceil(minAmount * scalePercent) + minAmount;
+        return {
+            minAmount, maxAmount, ...rest
+        };
+    }
+
+    async _pipelineDriversHandle({ versions, registry, clusterOptions }, options) {
+        const [driverTemplates, driversRequests, drivers, jobs] = await Promise.all([
+            db.getDriversTemplate(),
+            etcd.getPipelineDriverRequests(),
+            etcd.getPipelineDrivers(),
+            kubernetes.getPipelineDriversJobs()
+        ]);
+
+        await driversReconciler.reconcileDrivers({
+            driverTemplates, driversRequests, drivers, jobs, versions, settings: this._driversSettings, registry, options, clusterOptions
+        });
     }
 
     async _boardsInterval(options) {

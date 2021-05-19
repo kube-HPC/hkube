@@ -6,7 +6,6 @@ const etcd = require('../helpers/etcd');
 const { commands, components } = require('../consts');
 const { normalizeDrivers, normalizeDriversRequests, normalizeDriversJobs, normalizeDriversAmount } = require('./normalize');
 const { createContainerResource, setPipelineDriverImage } = require('./createOptions');
-const { matchJobsToResources, } = require('./resources');
 const component = components.DRIVERS_RECONCILER;
 
 const _createDriverJob = (jobDetails, options) => {
@@ -24,14 +23,14 @@ const _stopDriver = (driver) => {
     return etcd.sendCommandToDriver({ driverId: driver.id, command: commands.stopProcessing });
 };
 
-const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, options, clusterOptions } = {}) => {
+const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, settings, registry, options, clusterOptions } = {}) => {
     const { name } = settings;
     const normDrivers = normalizeDrivers(drivers);
     const normJobs = normalizeDriversJobs(jobs, j => (!j.status.succeeded && !j.status.failed)).length;
     const requests = normalizeDriversRequests(driversRequests, name);
     const desiredDrivers = normalizeDriversAmount(normDrivers, requests, settings);
     const missingDrivers = desiredDrivers - normJobs;
-    const createDetails = [];
+    let createDetails = [];
     const stopDetails = [];
 
     const idleDrivers = normDrivers.filter(_idleDriverFilter);
@@ -51,30 +50,21 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
         const driverTemplate = driverTemplates[name];
         const image = setPipelineDriverImage(driverTemplate, versions, registry);
         const resourceRequests = createContainerResource(driverTemplate);
-        createDetails.push({
-            numberOfNewJobs: missingDrivers,
-            jobDetails: {
-                name,
-                image,
-                resourceRequests,
-                clusterOptions
-            }
-        });
+        createDetails = Array.from(Array(missingDrivers).keys()).map(() => ({ name, image, resourceRequests, clusterOptions }));
     }
 
     const stopPromises = stopDetails.map(r => _stopDriver(r));
-    const { created, skipped } = matchJobsToResources(createDetails, normResources);
-    const createPromises = created.map(r => _createDriverJob(r, options));
+    const createPromises = createDetails.map(r => _createDriverJob(r, options));
     await Promise.all([...createPromises, ...stopPromises]);
 
     const reconcileResult = {};
     reconcileResult[name] = {
         required: missingDrivers,
-        created: created.length,
-        skipped: skipped.length,
+        created: createDetails.length,
         idle: idleDrivers.length,
         paused: stopDetails.length,
-        pending: 0
+        pending: 0,
+        skipped: 0
     };
     return reconcileResult;
 };

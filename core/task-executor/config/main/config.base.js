@@ -44,14 +44,6 @@ config.jaeger = {
     host: process.env.JAEGER_AGENT_SERVICE_HOST,
 }
 
-config.driversSetting = {
-    name: 'pipeline-driver',
-    concurrency: formatter.parseInt(process.env.PIPELINE_DRIVERS_CONCURRENCY_LIMIT, 5),
-    minAmount: formatter.parseInt(process.env.PIPELINE_DRIVERS_AMOUNT, 5),
-    scalePercent: parseFloat(process.env.PIPELINE_DRIVERS_SCALE_PERCENT || 0.5),
-    reconcileInterval: formatter.parseInt(process.env.PIPELINE_DRIVERS_RECONCILE_INTERVAL, 5000)
-};
-
 config.metrics = {
     collectDefault: true,
     server: {

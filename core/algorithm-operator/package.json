@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.3",
     "decache": "^4.5.1",
     "eslint": "^7.5.0",

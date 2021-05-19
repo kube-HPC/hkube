@@ -2,16 +2,8 @@ const { createImage } = require('@hkube/kubernetes-client').utils;
 const { gpuVendors } = require('../consts');
 const { settings } = require('../helpers/settings');
 
-const setWorkerImage = (template, versions, registry) => {
-    if (template.workerImage) {
-        return createImage(template.workerImage, null, registry);
-    }
-    const image = 'hkube/worker';
-    return createImage(image, versions, registry);
-};
-
-const setAlgorithmImage = (template, versions, registry) => {
-    const image = template.algorithmImage;
+const setPipelineDriverImage = (template, versions, registry) => {
+    const { image } = template;
     return createImage(image, versions, registry);
 };
 
@@ -30,7 +22,6 @@ const createContainerResource = (template) => {
 };
 
 module.exports = {
-    setWorkerImage,
-    setAlgorithmImage,
+    setPipelineDriverImage,
     createContainerResource
 };
