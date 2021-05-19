@@ -379,7 +379,7 @@ describe('bootstrap', () => {
                     valueFrom: {
                         configMapKeyRef: {
                             key: 'DEFAULT_STORAGE',
-                            name: 'task-executor-configmap'
+                            name: 'algorithm-operator-configmap'
                         }
                     }
                 });
@@ -388,7 +388,7 @@ describe('bootstrap', () => {
                     valueFrom: {
                         configMapKeyRef: {
                             key: 'STORAGE_ENCODING',
-                            name: 'task-executor-configmap'
+                            name: 'algorithm-operator-configmap'
                         }
                     }
                 });

@@ -42,7 +42,7 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
         spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
     }
     spec = applyJaeger(spec, CONTAINERS.PIPELINE_DRIVER, options);
-    spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'task-executor-configmap');
+    spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'algorithm-operator-configmap');
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
     return spec;
