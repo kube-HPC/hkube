@@ -12,13 +12,18 @@ class DataSources {
         const promises = nodes
             .map(async node => {
                 if (node.kind === nodeKind.DataSource) {
-                    const { dataSource } = node;
-                    const { response, error } = await dataSourceService.validate(dataSource);
+                    const { spec } = node;
+                    if (!spec) {
+                        throw new InvalidDataError('you must provide a valid data source spec');
+                    }
+                    const { response, error } = await dataSourceService.validate(spec);
                     if (error) {
                         throw new InvalidDataError(error);
                     }
-                    if (dataSource?.snapshot?.name || dataSource.id) return node;
-                    return { ...node, dataSource: { id: response.id } };
+                    if (spec.snapshot?.name || spec.id) {
+                        return node;
+                    }
+                    return { ...node, spec: { id: response.id } };
                 }
                 return node;
             });
