@@ -1,4 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
+const { baseClasses: { HealthcheckImpl } } = require('@hkube/healthchecks');
 const AdapterController = require('../adapters/adapters-controller');
 const MetricsController = require('../metrics/metrics-controller');
 const adapterSettings = require('../adapters/settings');
@@ -7,11 +8,7 @@ const StoreController = require('../store/store-controller');
 // const metricsProvider = require('../monitoring/metrics-provider');
 const component = require('../consts/components').RUNNER;
 
-class Runner {
-    constructor() {
-        this._lastIntervalTime = null;
-    }
-
+class Runner extends HealthcheckImpl {
     async init(options) {
         this._adapterController = new AdapterController(options, adapterSettings);
         this._metricsController = new MetricsController(options, metricsSettings);
@@ -29,7 +26,7 @@ class Runner {
             try {
                 this._working = true;
                 await this._doWork();
-                this._lastIntervalTime = Date.now();
+                this.setHealthy();
             }
             catch (e) {
                 this._onError(e);
@@ -40,17 +37,6 @@ class Runner {
         }, options.interval);
     }
 
-    checkHealth(maxDiff) {
-        log.debug('health-checks');
-        if (!this._lastIntervalTime) {
-            return true;
-        }
-        const diff = Date.now() - this._lastIntervalTime;
-        log.debug(`diff = ${diff}`);
-
-        return (diff < maxDiff);
-    }
-    
     _onError(error) {
         log.throttle.error(error.message, { component }, error);
     }

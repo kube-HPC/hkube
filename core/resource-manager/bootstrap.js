@@ -2,7 +2,7 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
-const { rest: healthcheck } = require('@hkube/healthchecks');
+const { rest: healthchecks } = require('@hkube/healthchecks');
 const log = new Logger(main.serviceName, logger);
 const component = require('./lib/consts/components').MAIN;
 const storeManager = require('./lib/store/store-manager');
@@ -24,10 +24,7 @@ class Bootstrap {
             for (const m of modules) {
                 await m.init(main);
             }
-            if (main.healthchecks.enabled) {
-                await healthcheck.init({ port: main.healthchecks.port });
-                healthcheck.start(main.healthchecks.path, () => runner.checkHealth(main.healthchecks.maxDiff), main.serviceName);
-            }
+            await healthchecks.initAndStart(main.healthchecks, () => runner.checkHealth(main.healthchecks.maxDiff), main.serviceName);
         }
         catch (error) {
             this._onInitFailed(error);
