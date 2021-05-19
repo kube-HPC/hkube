@@ -1,6 +1,6 @@
-const { stateType } = require('@hkube/consts');
+const { stateType, pipelineKind } = require('@hkube/consts');
 const EventEmitter = require('events');
-const messages = require('@hkube/nodejs-wrapper/lib/consts/messages');
+const messages = require('./consts/messages');
 const ws = require('./algorithm-communication/ws');
 const events = new EventEmitter();
 
@@ -21,10 +21,10 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
         return this._resolve(value);
     });
     ws.send({ command: messages.incoming.start, data: options });
-    if (options.kind === 'stream') {
+    if (options.kind === pipelineKind.Stream) {
         if (options.stateType !== stateType.Stateless) {
             hkubeApi.registerInputListener((message, origin) => {
-                ws.send({ command: 'message', data: { message, origin } });
+                ws.send({ command: messages.incoming.message, data: { message, origin } });
             });
         }
     }

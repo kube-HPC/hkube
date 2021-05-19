@@ -1,14 +1,4 @@
-const { adapters } = require('./consts');
 const config = require('../../config/main/config.base');
-
-const loopbackWorkerCommunicationSchema = {
-    type: 'object',
-    properties: {
-        prop1: {
-            type: 'string'
-        }
-    }
-};
 
 const socketWorkerCommunicationSchema = {
     type: 'object',
@@ -36,18 +26,6 @@ const socketWorkerCommunicationSchema = {
     }
 };
 
-const workerCommunicationSchema = {
-    type: 'object',
-    properties: {
-        adapterName: {
-            type: 'string',
-            default: adapters.socket
-        }
-    }
-};
-
 module.exports = {
-    socketWorkerCommunicationSchema,
-    workerCommunicationSchema,
-    loopbackWorkerCommunicationSchema
+    socketWorkerCommunicationSchema
 };

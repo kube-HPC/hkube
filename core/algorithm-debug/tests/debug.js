@@ -13,6 +13,7 @@ const jobs = require('./jobs');
 
 describe('Debug', () => {
     let combinedUrl;
+    const encoding = new Encoding({ type: 'bson' });
     before(() => {
         combinedUrl = `ws://${config.debugger.communication.host}:${config.debugger.communication.port}?encoding=bson`;
     });
@@ -28,7 +29,7 @@ describe('Debug', () => {
             resolveStart = res;
         });
         socket.on('message', (data) => {
-            const decodedData = new Encoding({ type: 'bson' }).decode(data);
+            const decodedData = encoding.decode(data);
             if (decodedData.command === 'initialize') {
                 resolveInit();
             }
@@ -72,7 +73,7 @@ describe('Debug', () => {
         });
 
         socket.on('message', (data) => {
-            const decodedData = new Encoding({ type: 'bson' }).decode(data);
+            const decodedData = encoding.decode(data);
             if (decodedData.command === 'initialize') {
                 resolveInit();
             }
@@ -80,6 +81,7 @@ describe('Debug', () => {
                 resolveStart();
             }
             if (decodedData.command === 'message') {
+                expect(decodedData.data.message.payload).to.eq('message2', 'stateful did not get the message')
                 resolveMessage();
             }
         })
@@ -98,7 +100,7 @@ describe('Debug', () => {
         await promiseStart;
         wrapper._streamingManager._onMessage({ flowPattern: {}, payload: 'message2', origin: 'a' });
         await promiseMessage;
-        socket.send(new Encoding({ type: 'bson' }).encode({ command: 'return', data: 'return value' }));
+        socket.send(encoding.encode({ command: 'return', data: 'return value' }));
         await promiseStartResult;
         wrapper._stop({ forceStop: true });
     });
@@ -117,10 +119,6 @@ describe('Debug', () => {
         const promiseStartResult = new Promise((res, rej) => {
             resolveStartResult = res;
         });
-        const promiseMessage = new Promise((res, rej) => {
-            resolveMessage = res;
-        });
-
         socket.on('message', (data) => {
             const decodedData = new Encoding({ type: 'bson' }).decode(data);
             if (decodedData.command === 'initialize') {
@@ -128,9 +126,6 @@ describe('Debug', () => {
             }
             if (decodedData.command === 'start') {
                 resolveStart();
-            }
-            if (decodedData.command === 'message') {
-                resolveMessage();
             }
         })
         const wrapper = app.getWrapper();
