@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.0.34",
+    "version": "2.1.4",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -193,12 +193,44 @@
                         },
                         "kind": {
                           "type": "string",
+                          "default": "algorithm",
                           "enum": [
-                            "dataSource"
+                            "algorithm",
+                            "pipeline",
+                            "debug",
+                            "dataSource",
+                            "gateway"
                           ]
                         },
-                        "dataSource": {
+                        "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -600,12 +632,44 @@
                         },
                         "kind": {
                           "type": "string",
+                          "default": "algorithm",
                           "enum": [
-                            "dataSource"
+                            "algorithm",
+                            "pipeline",
+                            "debug",
+                            "dataSource",
+                            "gateway"
                           ]
                         },
-                        "dataSource": {
+                        "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -1581,12 +1645,44 @@
                           },
                           "kind": {
                             "type": "string",
+                            "default": "algorithm",
                             "enum": [
-                              "dataSource"
+                              "algorithm",
+                              "pipeline",
+                              "debug",
+                              "dataSource",
+                              "gateway"
                             ]
                           },
-                          "dataSource": {
+                          "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -1987,12 +2083,44 @@
                           },
                           "kind": {
                             "type": "string",
+                            "default": "algorithm",
                             "enum": [
-                              "dataSource"
+                              "algorithm",
+                              "pipeline",
+                              "debug",
+                              "dataSource",
+                              "gateway"
                             ]
                           },
-                          "dataSource": {
+                          "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -5794,12 +5922,44 @@
                           },
                           "kind": {
                             "type": "string",
+                            "default": "algorithm",
                             "enum": [
-                              "dataSource"
+                              "algorithm",
+                              "pipeline",
+                              "debug",
+                              "dataSource",
+                              "gateway"
                             ]
                           },
-                          "dataSource": {
+                          "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -6303,12 +6463,44 @@
                             },
                             "kind": {
                               "type": "string",
+                              "default": "algorithm",
                               "enum": [
-                                "dataSource"
+                                "algorithm",
+                                "pipeline",
+                                "debug",
+                                "dataSource",
+                                "gateway"
                               ]
                             },
-                            "dataSource": {
+                            "spec": {
                               "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "gateway name",
+                                      "minLength": 1,
+                                      "maxLength": 32,
+                                      "format": "gateway-name"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the gateway"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for streaming gateway",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    },
+                                    "cpu": {
+                                      "type": "number",
+                                      "description": "Cpu allocated for streaming gateway",
+                                      "default": 0.5
+                                    }
+                                  }
+                                },
                                 {
                                   "type": "object",
                                   "properties": {
@@ -6668,12 +6860,44 @@
                         },
                         "kind": {
                           "type": "string",
+                          "default": "algorithm",
                           "enum": [
-                            "dataSource"
+                            "algorithm",
+                            "pipeline",
+                            "debug",
+                            "dataSource",
+                            "gateway"
                           ]
                         },
-                        "dataSource": {
+                        "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -7009,12 +7233,44 @@
                           },
                           "kind": {
                             "type": "string",
+                            "default": "algorithm",
                             "enum": [
-                              "dataSource"
+                              "algorithm",
+                              "pipeline",
+                              "debug",
+                              "dataSource",
+                              "gateway"
                             ]
                           },
-                          "dataSource": {
+                          "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -7411,12 +7667,44 @@
                         },
                         "kind": {
                           "type": "string",
+                          "default": "algorithm",
                           "enum": [
-                            "dataSource"
+                            "algorithm",
+                            "pipeline",
+                            "debug",
+                            "dataSource",
+                            "gateway"
                           ]
                         },
-                        "dataSource": {
+                        "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -7752,12 +8040,44 @@
                           },
                           "kind": {
                             "type": "string",
+                            "default": "algorithm",
                             "enum": [
-                              "dataSource"
+                              "algorithm",
+                              "pipeline",
+                              "debug",
+                              "dataSource",
+                              "gateway"
                             ]
                           },
-                          "dataSource": {
+                          "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -11404,24 +11724,13 @@
         }
       }
     },
-    "/gateway/{name}": {
+    "/gateway": {
       "get": {
         "tags": [
           "Gateway"
         ],
-        "summary": "get gateway details",
-        "description": "get gateway details",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "gateway name to get from the store",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "summary": "get gateways",
+        "description": "get list of gateways",
         "responses": {
           "200": {
             "description": "action summery",
@@ -11433,7 +11742,6 @@
                     "name": {
                       "type": "string",
                       "description": "gateway name",
-                      "default": "main",
                       "minLength": 1,
                       "maxLength": 32,
                       "format": "gateway-name"
@@ -11441,6 +11749,17 @@
                     "description": {
                       "type": "string",
                       "description": "describe the gateway"
+                    },
+                    "mem": {
+                      "type": "string",
+                      "description": "Memory allocated for streaming gateway",
+                      "format": "algorithm-memory",
+                      "default": "512Mi"
+                    },
+                    "cpu": {
+                      "type": "number",
+                      "description": "Cpu allocated for streaming gateway",
+                      "default": 0.5
                     }
                   }
                 }
@@ -11467,102 +11786,7 @@
             }
           },
           "404": {
-            "description": "gateway Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Gateway"
-        ],
-        "summary": "Delete gateway",
-        "description": "Delete existing gateway from store",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "gateway name to get from the store",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "action summery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "gateway Not Found",
+            "description": "pipeline Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -11602,16 +11826,27 @@
         }
       }
     },
-    "/gateway": {
+    "/gateway/{name}": {
       "get": {
         "tags": [
           "Gateway"
         ],
-        "summary": "Get gateways list",
-        "description": "Returns gateways list",
+        "summary": "get gateway details",
+        "description": "get gateway details",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "gateway name to get from the store",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "list of gateways",
+            "description": "action summery",
             "content": {
               "application/json": {
                 "schema": {
@@ -11620,7 +11855,6 @@
                     "name": {
                       "type": "string",
                       "description": "gateway name",
-                      "default": "main",
                       "minLength": 1,
                       "maxLength": 32,
                       "format": "gateway-name"
@@ -11628,6 +11862,17 @@
                     "description": {
                       "type": "string",
                       "description": "describe the gateway"
+                    },
+                    "mem": {
+                      "type": "string",
+                      "description": "Memory allocated for streaming gateway",
+                      "format": "algorithm-memory",
+                      "default": "512Mi"
+                    },
+                    "cpu": {
+                      "type": "number",
+                      "description": "Cpu allocated for streaming gateway",
+                      "default": 0.5
                     }
                   }
                 }
@@ -11653,98 +11898,8 @@
               }
             }
           },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Experiment"
-        ],
-        "summary": "Insert gateway",
-        "description": "Insert new gateway to store if not exists",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "gateway name",
-                    "default": "main",
-                    "minLength": 1,
-                    "maxLength": 32,
-                    "format": "gateway-name"
-                  },
-                  "description": {
-                    "type": "string",
-                    "description": "describe the gateway"
-                  }
-                }
-              }
-            }
-          },
-          "description": "gateway to be added to the store",
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "gateway created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "gateway conflict",
+          "404": {
+            "description": "pipeline Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -14036,12 +14191,44 @@
                 },
                 "kind": {
                   "type": "string",
+                  "default": "algorithm",
                   "enum": [
-                    "dataSource"
+                    "algorithm",
+                    "pipeline",
+                    "debug",
+                    "dataSource",
+                    "gateway"
                   ]
                 },
-                "dataSource": {
+                "spec": {
                   "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "gateway name",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "gateway-name"
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "describe the gateway"
+                        },
+                        "mem": {
+                          "type": "string",
+                          "description": "Memory allocated for streaming gateway",
+                          "format": "algorithm-memory",
+                          "default": "512Mi"
+                        },
+                        "cpu": {
+                          "type": "number",
+                          "description": "Cpu allocated for streaming gateway",
+                          "default": 0.5
+                        }
+                      }
+                    },
                     {
                       "type": "object",
                       "properties": {
@@ -14267,6 +14454,17 @@
           "stream"
         ]
       },
+      "nodeKind": {
+        "type": "string",
+        "default": "algorithm",
+        "enum": [
+          "algorithm",
+          "pipeline",
+          "debug",
+          "dataSource",
+          "gateway"
+        ]
+      },
       "pipelineNode": {
         "type": "object",
         "properties": {
@@ -14349,12 +14547,44 @@
           },
           "kind": {
             "type": "string",
+            "default": "algorithm",
             "enum": [
-              "dataSource"
+              "algorithm",
+              "pipeline",
+              "debug",
+              "dataSource",
+              "gateway"
             ]
           },
-          "dataSource": {
+          "spec": {
             "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "gateway name",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "gateway-name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "describe the gateway"
+                  },
+                  "mem": {
+                    "type": "string",
+                    "description": "Memory allocated for streaming gateway",
+                    "format": "algorithm-memory",
+                    "default": "512Mi"
+                  },
+                  "cpu": {
+                    "type": "number",
+                    "description": "Cpu allocated for streaming gateway",
+                    "default": 0.5
+                  }
+                }
+              },
               {
                 "type": "object",
                 "properties": {
@@ -14604,6 +14834,40 @@
         "minLength": 1,
         "maxLength": 32,
         "format": "experiment-name"
+      },
+      "gatewayName": {
+        "type": "string",
+        "description": "gateway name",
+        "minLength": 1,
+        "maxLength": 32,
+        "format": "gateway-name"
+      },
+      "gateway": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "gateway name",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "gateway-name"
+          },
+          "description": {
+            "type": "string",
+            "description": "describe the gateway"
+          },
+          "mem": {
+            "type": "string",
+            "description": "Memory allocated for streaming gateway",
+            "format": "algorithm-memory",
+            "default": "512Mi"
+          },
+          "cpu": {
+            "type": "number",
+            "description": "Cpu allocated for streaming gateway",
+            "default": 0.5
+          }
+        }
       },
       "gitlabWebhook": {
         "type": "object",
