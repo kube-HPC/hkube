@@ -198,7 +198,7 @@ const applyCacheParamsToContainer = (inputSpec, reservedMemory) => {
     const envOptions = {};
 
     if (reservedMemory) {
-        envOptions.DISCOVERY_MAX_CACHE_SIZE = parse.getMemoryInMi(reservedMemory);
+        envOptions.DISCOVERY_MAX_CACHE_SIZE = parseInt(parse.getMemoryInMi(reservedMemory), 10);
     }
 
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, envOptions);
