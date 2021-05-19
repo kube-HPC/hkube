@@ -25,6 +25,13 @@ config.db = {
     }
 };
 
+config.healthchecks = {
+    path: process.env.HEALTHCHECK_PATH || '/healthz',
+    port: process.env.HEALTHCHECK_PORT || '5000',
+    maxDiff: process.env.HEALTHCHECK_MAX_DIFF || '10000',
+    enabled: formatter.parseBool(process.env.HEALTHCHECKS_ENABLE, true)
+}
+
 config.prometheus = {
     endpoint: process.env.PROMETHEUS_ENDPOINT
 };
