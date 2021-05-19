@@ -674,8 +674,6 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
             });
-        });
-        describe('labels and annotations', () => {
             it('should delete nullable properties', async () => {
                 const body1 = {
                     name: uuid(),
@@ -728,21 +726,6 @@ describe('Store/Algorithms', () => {
                 expect(response.body.algorithm).to.not.have.property('annotations');
                 expect(response.body.algorithm).to.not.have.property('downloadFileExt');
                 expect(response.body.algorithm).to.not.have.property('nodeSelector');
-            });
-            it('should not throw validation error if empty label value', async () => {
-                const body = {
-                    name: uuid(),
-                    algorithmImage: 'algorithmImage',
-                    labels: {
-                        key: ''
-                    }
-                };
-                const options = {
-                    uri: applyPath,
-                    body: { payload: JSON.stringify(body) }
-                };
-                const response = await request(options);
-                expect(response.body).to.not.have.property('error');
             });
         });
         describe('labels and annotations', () => {
