@@ -17,7 +17,7 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
     events.on('stop', () => {
         return this._resolve();
     });
-    ws.on('return', (value) => {
+    ws.on(messages.outgoing.done, (value) => {
         return this._resolve(value);
     });
     ws.send({ command: messages.incoming.start, data: options });

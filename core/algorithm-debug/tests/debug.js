@@ -1,11 +1,11 @@
 const configIt = require('@hkube/config');
-const { main: config, logger } = configIt.load();
+const { main: config } = configIt.load();
 const { expect } = require('chai');
-
+const messages = require('../lib/consts/messages')
 const WebSocket = require('ws');
 const app = require('../lib/app');
-const Logger = require('@hkube/logger');
-const log = new Logger('debugTest', logger);
+// const Logger = require('@hkube/logger');
+// const log = new Logger('debugTest', logger);
 const { Encoding } = require('@hkube/encoding');
 const ws = require('../lib/algorithm-communication/ws');
 const jobs = require('./jobs');
@@ -100,7 +100,7 @@ describe('Debug', () => {
         await promiseStart;
         wrapper._streamingManager._onMessage({ flowPattern: {}, payload: 'message2', origin: 'a' });
         await promiseMessage;
-        socket.send(encoding.encode({ command: 'return', data: 'return value' }));
+        socket.send(encoding.encode({ command: messages.outgoing.done, data: 'return value' }));
         await promiseStartResult;
         wrapper._stop({ forceStop: true });
     });
@@ -141,7 +141,7 @@ describe('Debug', () => {
         await promiseInit;
         wrapper._start({});
         await promiseStart;
-        socket.send(new Encoding({ type: 'bson' }).encode({ command: 'return', data: 'return value' }));
+        socket.send(new Encoding({ type: 'bson' }).encode({ command: messages.outgoing.done, data: 'return value' }));
         await promiseStartResult;
         wrapper._stop({ forceStop: true });
     });
