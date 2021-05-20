@@ -33,10 +33,7 @@ class JobConsumer extends EventEmitter {
     }
 
     async stop() {
-        if (!this._consumer) {
-            return;
-        }
-        await this._consumer.close({ type: this._algorithmName });
+        await this._consumer?.close({ type: this._algorithmName });
         this._consumer = null;
     }
 
