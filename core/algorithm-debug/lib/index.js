@@ -9,7 +9,8 @@ const init = async (options) => {
     events.on('stop', () => {
         return this._resolve();
     });
-    ws.send({ command: messages.incoming.initialize, data: options });
+    const optionsCopy = { ...options, kind: pipelineKind.Batch };
+    ws.send({ command: messages.incoming.initialize, data: optionsCopy });
 };
 
 const start = async (options, hkubeApi) => { // eslint-disable-line consistent-return
@@ -20,7 +21,8 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
     ws.on(messages.outgoing.done, (value) => {
         return this._resolve(value);
     });
-    ws.send({ command: messages.incoming.start, data: options });
+    const optionsCopy = { ...options, kind: pipelineKind.Batch };
+    ws.send({ command: messages.incoming.start, data: optionsCopy });
     if (options.kind === pipelineKind.Stream) {
         if (options.stateType !== stateType.Stateless) {
             hkubeApi.registerInputListener(({ payload, origin }) => {
