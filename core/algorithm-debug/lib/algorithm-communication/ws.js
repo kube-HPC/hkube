@@ -9,11 +9,16 @@ const schema = require('./schema').socketWorkerCommunicationSchema;
 const component = require('./consts').Components.COMMUNICATIONS;
 const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
+let connectedPromise;
+let resolveConnected;
 class WsWorkerCommunication extends EventEmitter {
     constructor() {
         super();
         this._socketServer = null;
         this._socket = null;
+        connectedPromise = new Promise((res) => {
+            resolveConnected = res;
+        });
     }
 
     async init(option) {
@@ -58,6 +63,7 @@ class WsWorkerCommunication extends EventEmitter {
 
     _registerSocketMessages(socket) {
         this._socket = socket;
+        resolveConnected();
         socket.on('message', (data) => {
             const payload = this._encoding.decode(data);
             log.debug(`got message ${payload.command}`, { component });
@@ -66,6 +72,9 @@ class WsWorkerCommunication extends EventEmitter {
         socket.on('close', (code) => {
             const reason = code === 1006 ? 'CLOSE_ABNORMAL' : `${code}`;
             this._socket = null;
+            connectedPromise = new Promise((res) => {
+                resolveConnected = res;
+            });
             this.emit('disconnect', reason);
         });
         log.debug('finish _registerSocketMessages', { component });
@@ -78,12 +87,8 @@ class WsWorkerCommunication extends EventEmitter {
  * @param {object} message.data the data for the command
  * @memberof SocketWorkerCommunication
  */
-    send(message) {
-        if (!this._socket) {
-            const error = new Error('trying to send without a connected socket');
-            log.warning(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
-            throw error;
-        }
+    async send(message) {
+        await connectedPromise;
         this._socket.send(this._encoding.encode(message));
     }
 }
