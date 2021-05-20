@@ -43,7 +43,6 @@ describe('Debug', () => {
             await wrapper._init(jobs.jobData);
             wrapper._start({});
         })
-
         const sleep = d => new Promise(r => setTimeout(r, d));
         await sleep(1000);
         wrapper._streamingManager._onMessage({ flowPattern: {}, payload: 'message1', origin: 'a' });
@@ -81,7 +80,8 @@ describe('Debug', () => {
                 resolveStart();
             }
             if (decodedData.command === 'message') {
-                expect(decodedData.data.message.payload).to.eq('message2', 'stateful did not get the message')
+                expect(decodedData.data.payload).to.eq('message2', 'stateful did not get the message')
+                expect(decodedData.data.origin).to.eq('a', 'stateful did not get the origin')
                 resolveMessage();
             }
         })
@@ -109,7 +109,6 @@ describe('Debug', () => {
         let resolveInit;
         let resolveStart;
         let resolveStartResult;
-        let resolveMessage;
         const promiseInit = new Promise((res, rej) => {
             resolveInit = res;
         });
@@ -120,7 +119,7 @@ describe('Debug', () => {
             resolveStartResult = res;
         });
         socket.on('message', (data) => {
-            const decodedData = new Encoding({ type: 'bson' }).decode(data);
+            const decodedData = encoding.decode(data);
             if (decodedData.command === 'initialize') {
                 resolveInit();
             }
@@ -141,7 +140,7 @@ describe('Debug', () => {
         await promiseInit;
         wrapper._start({});
         await promiseStart;
-        socket.send(new Encoding({ type: 'bson' }).encode({ command: messages.outgoing.done, data: 'return value' }));
+        socket.send(encoding.encode({ command: messages.outgoing.done, data: 'return value' }));
         await promiseStartResult;
         wrapper._stop({ forceStop: true });
     });

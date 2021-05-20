@@ -23,8 +23,8 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
     ws.send({ command: messages.incoming.start, data: options });
     if (options.kind === pipelineKind.Stream) {
         if (options.stateType !== stateType.Stateless) {
-            hkubeApi.registerInputListener((message, origin) => {
-                ws.send({ command: messages.incoming.message, data: { message, origin } });
+            hkubeApi.registerInputListener(({ payload, origin }) => {
+                ws.send({ command: messages.incoming.message, data: { payload, origin } });
             });
         }
     }
