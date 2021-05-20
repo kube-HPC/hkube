@@ -1,5 +1,5 @@
 global:
-  clusterName: dev1
+  clusterName: dev1-spot
   storage:
     binary: true
     fs:
@@ -7,8 +7,8 @@ global:
          name: 'hkube-storage'
          capacity: '50Gi'
          storage_class: '-'
-         nfs_server: '172.22.0.115'
-         nfs_root: '/nfs/storageclass'
+         nfs_root: '/nfs/storageclass/dev1'
+         nfs_server: '172.20.46.223'
       dev_pvc: 
         name: hkube-dev-sources
         capacity: 10Gi
@@ -34,7 +34,7 @@ task_executor:
     use_resource_limits: true
 monitor_server:
   env:
-    elasticsearch_service_url: 'http://elasticsearch-ingest.logging.svc.dev1:9200'
+    elasticsearch_service_url: 'http://elasticsearch-ingest.logging:9200'
 storage_cleaner:
   pattern: "30 7 * * *"
 etcd_cleaner:
