@@ -2,14 +2,18 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
+const { rest: healthchecks } = require('@hkube/healthchecks');
 const log = new Logger(main.serviceName, logger);
 const component = require('./lib/consts/components').MAIN;
-
+const storeManager = require('./lib/store/store-manager');
+const metricsProvider = require('./lib/monitoring/metrics-provider');
+const prometheus = require('./lib/helpers/prometheus');
+const runner = require('./lib/runner/runner');
 const modules = [
-    require('./lib/store/store-manager'),
-    require('./lib/monitoring/metrics-provider'),
-    require('./lib/helpers/prometheus'),
-    require('./lib/runner/runner')
+    storeManager,
+    metricsProvider,
+    prometheus,
+    runner,
 ];
 
 class Bootstrap {
@@ -20,6 +24,7 @@ class Bootstrap {
             for (const m of modules) {
                 await m.init(main);
             }
+            await healthchecks.initAndStart(main.healthchecks, () => runner.checkHealth(main.healthchecks.maxDiff), main.serviceName);
         }
         catch (error) {
             this._onInitFailed(error);
