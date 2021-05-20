@@ -12,6 +12,7 @@ const routes = (options) => {
             systemVersion: options.systemVersion,
             clusterName: options.clusterName,
             storage: options.defaultStorage,
+            time: Date.now()
         };
         res.json(version);
         next();
