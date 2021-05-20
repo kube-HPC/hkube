@@ -23,7 +23,7 @@
     "@hkube/etcd": "^5.1.6",
     "@hkube/logger": "^1.0.27",
     "@hkube/metrics": "^1.0.42",
-    "@hkube/producer-consumer": "^1.0.49",
+    "@hkube/producer-consumer": "^1.0.50",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/uid": "^1.0.4",
     "lodash.isequal": "^4.5.0",

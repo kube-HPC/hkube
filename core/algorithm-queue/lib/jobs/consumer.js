@@ -32,6 +32,14 @@ class JobConsumer extends EventEmitter {
         });
     }
 
+    async stop() {
+        if (!this._consumer) {
+            return;
+        }
+        await this._consumer.close({ type: this._algorithmName });
+        this._consumer = null;
+    }
+
     async removeInvalidJob(data) {
         const { status, jobId } = data;
         if (isCompletedState({ status })) {

@@ -20,9 +20,6 @@ class Queue extends events {
     }
 
     async start({ options, algorithmName }) {
-        await this.persistencyLoad();
-        this._queueInterval();
-
         this._producer = new JobProducer({
             options,
             algorithmName,
@@ -41,10 +38,15 @@ class Queue extends events {
         this._consumer.on('jobs-remove', (jobs) => {
             this.removeJobs(jobs);
         });
+        await this.persistencyLoad();
+        this._queueInterval();
     }
 
-    stop() {
-        this._producer.stop();
+    async stop() {
+        await this._producer.stop();
+        await this._consumer.stop();
+        this._producer = null;
+        this._consumer = null;
         this.isIntervalRunning = false;
         this.flush();
     }
@@ -54,11 +56,11 @@ class Queue extends events {
     }
 
     removeInvalidJob(data) {
-        return this._consumer.removeInvalidJob(data);
+        return this._consumer?.removeInvalidJob(data);
     }
 
     removeInvalidTasks(data) {
-        return this._consumer.removeInvalidTasks(data);
+        return this._consumer?.removeInvalidTasks(data);
     }
 
     async persistencyLoad() {
@@ -87,7 +89,7 @@ class Queue extends events {
         this.queue = [...this.queue, ...tasks];
         this._orderQueue();
         this.emit(queueEvents.INSERT, tasks);
-        log.info(`${tasks.length} new jobs inserted to queue jobs`, { component });
+        log.info(`${tasks.length} new jobs inserted, queue size: ${this.queue.length}`, { component });
     }
 
     removeJobs(jobs) {
@@ -96,11 +98,13 @@ class Queue extends events {
             return;
         }
         const removedTasks = [];
-        jobs.forEach((j) => {
-            // collect removed tasks to send in REMOVE event
-            const tasks = remove(this.queue, t => (t.jobId === j.jobId) && (j.taskId ? t.taskId === j.taskId : true));
-            removedTasks.push(...tasks);
-        });
+        if (this.queue.length) {
+            jobs.forEach((j) => {
+                // collect removed tasks to send in REMOVE event
+                const tasks = remove(this.queue, t => (t.jobId === j.jobId) && (j.taskId ? t.taskId === j.taskId : true));
+                removedTasks.push(...tasks);
+            });
+        }
         if (removedTasks.length === 0) {
             return;
         }
@@ -166,6 +170,9 @@ class Queue extends events {
     }
 
     async _intervalUpdateCallback() {
+        if (!this._producer) {
+            return;
+        }
         const pendingAmount = await this._producer.getWaitingCount();
         this.enrichmentRunner(this.queue);
         this.updateScore();
