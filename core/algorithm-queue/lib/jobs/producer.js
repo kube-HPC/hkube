@@ -31,7 +31,9 @@ class JobProducer {
     }
 
     async stop() {
-        await this._producer?.stopWork({ type: this._algorithmName });
+        if (this._producer) {
+            await this._producer.stopWork({ type: this._algorithmName });
+        }
         clearInterval(this._interval);
         this._interval = null;
         this._producer = null;
