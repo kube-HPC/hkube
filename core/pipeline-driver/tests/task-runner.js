@@ -107,8 +107,8 @@ describe('TaskRunner', function () {
         await taskRunner.start(job)
         expect(spy.calledOnce).to.equal(true);
     });
-    it('should recover succeed tasks', async function () {
-        const jobId = createJobId();
+    it.skip('should recover succeed tasks', async function () {
+        const jobId = `jobid-recovery-${uuidv4()}`;
         const job = {
             data: { jobId },
             done: () => { }

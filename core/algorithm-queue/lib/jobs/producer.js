@@ -30,10 +30,11 @@ class JobProducer {
         this._checkWorkingStatusInterval();
     }
 
-    stop() {
-        this._producer.stopWork();
+    async stop() {
+        await this._producer?.close({ type: this._algorithmName });
         clearInterval(this._interval);
         this._interval = null;
+        this._producer = null;
     }
 
     async getWaitingCount() {
@@ -152,13 +153,15 @@ class JobProducer {
     }
 
     async createJob() {
+        if (!this._producer) {
+            return null;
+        }
         const task = this._tryPop();
         if (task) {
             log.info(`pop new task with taskId: ${task.taskId}, score: ${task.calculated.score}`, { component });
             const job = this._taskToProducerJob(task);
             return this._producer.createJob(job);
         }
-        log.info('queue is empty', { component });
         return null;
     }
 }

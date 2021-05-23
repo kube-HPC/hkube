@@ -111,7 +111,7 @@ class QueuesManager extends EventEmitter {
     async _removeAction(algorithmName) {
         const queue = this._queues.get(algorithmName);
         if (queue) {
-            queue.stop();
+            await queue.stop();
             this._queues.delete(algorithmName);
             log.info(`algorithm queue from type ${algorithmName} deleted`, { component });
         }
@@ -136,12 +136,12 @@ class QueuesManager extends EventEmitter {
     _watch() {
         etcd.on('job-change', (data) => {
             this._queues.forEach(q => {
-                q._consumer?.removeInvalidJob(data);
+                q.removeInvalidJob(data);
             });
         });
         etcd.on('exec-change', (data) => {
             this._queues.forEach(q => {
-                q._consumer?.removeInvalidTasks(data);
+                q.removeInvalidTasks(data);
             });
         });
     }

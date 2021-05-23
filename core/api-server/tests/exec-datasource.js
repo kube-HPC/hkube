@@ -79,7 +79,7 @@ describe('DataSources', () => {
             const response = await runRaw(pipeline);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(`you must provide a valid dataSource`);
+            expect(response.body.error.message).to.equal(`you must provide a valid data source spec`);
         });
         it('should throw dataSource Not Found', async () => {
             const pipeline = {
@@ -87,7 +87,7 @@ describe('DataSources', () => {
                     {
                         nodeName: 'A',
                         kind: 'dataSource',
-                        dataSource: {
+                        spec: {
                             name: 'non-exist'
                         }
                     }
@@ -104,7 +104,7 @@ describe('DataSources', () => {
                     {
                         nodeName: 'A',
                         kind: 'dataSource',
-                        dataSource: {
+                        spec: {
                             name: 'exist',
                             snapshot: {
                                 name: 'non-exist'
@@ -124,7 +124,7 @@ describe('DataSources', () => {
                     {
                         nodeName: 'A',
                         kind: 'dataSource',
-                        dataSource: {
+                        spec: {
                             id: 'non-exist'
                         }
                     }
@@ -141,7 +141,7 @@ describe('DataSources', () => {
                     {
                         nodeName: 'A',
                         kind: 'dataSource',
-                        dataSource: {
+                        spec: {
                             id: 'exist'
                         }
                     }
@@ -156,7 +156,7 @@ describe('DataSources', () => {
                     {
                         nodeName: 'A',
                         kind: 'dataSource',
-                        dataSource: {
+                        spec: {
                             name: 'exist'
                         }
                     }
@@ -165,24 +165,23 @@ describe('DataSources', () => {
             const response = await runRaw(pipeline);
             expect(response.body).to.have.property('jobId');
         });
-        it('should update pipeline.dataSource descriptor to id when running by name only', async () => {
+        it('should update pipeline.spec descriptor to id when running by name only', async () => {
             const pipeline = {
                 nodes: [
                     {
                         nodeName: 'A',
                         kind: 'dataSource',
-                        // this dataSource should be replaced to an id
-                        dataSource: { name: 'exist' }
+                        spec: { name: 'exist' }
                     },
                     {
                         nodeName: 'B',
                         kind: 'dataSource',
-                        dataSource: { id: 'exist' }
+                        spec: { id: 'exist' }
                     },
                     {
                         nodeName: 'C',
                         kind: 'dataSource',
-                        dataSource: {
+                        spec: {
                             name: 'exist',
                             snapshot: {
                                 name: 'exist'
@@ -195,9 +194,9 @@ describe('DataSources', () => {
             expect(response.body).to.have.property('jobId');
             const job = await getJob(response.body.jobId);
             const [byName, ...rest] = job.body.nodes;
-            expect(byName.dataSource).to.not.haveOwnProperty('name');
-            expect(byName.dataSource).to.haveOwnProperty('id');
-            expect(byName.dataSource.id).to.eql('123');
+            expect(byName.spec).to.not.haveOwnProperty('name');
+            expect(byName.spec).to.haveOwnProperty('id');
+            expect(byName.spec.id).to.eql('123');
             expect(rest).to.eql(pipeline.nodes.slice(1).map((node) => ({ ...node, input: [] })));
         });
         it('should success to exec pipeline with data-source snapshotName', async () => {
@@ -206,7 +205,7 @@ describe('DataSources', () => {
                     {
                         nodeName: 'A',
                         kind: 'dataSource',
-                        dataSource: {
+                        spec: {
                             name: 'exist',
                             snapshot: {
                                 name: 'exist'
