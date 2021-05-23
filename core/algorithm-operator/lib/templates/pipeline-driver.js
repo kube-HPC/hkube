@@ -57,7 +57,7 @@ const template = {
                                 name: 'CONCURRENCY_LIMIT',
                                 valueFrom: {
                                     configMapKeyRef: {
-                                        name: 'task-executor-configmap',
+                                        name: 'algorithm-operator-configmap',
                                         key: 'PIPELINE_DRIVERS_CONCURRENCY_LIMIT'
                                     }
                                 }
