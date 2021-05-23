@@ -41,7 +41,7 @@ class StateManager {
             algorithm.created = Date.now();
         }
         algorithm.modified = Date.now();
-        return this._db.algorithms.update(algorithm);
+        return this._db.algorithms.replace(algorithm);
     }
 
     async getAlgorithm(payload) {

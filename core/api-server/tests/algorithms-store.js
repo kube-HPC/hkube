@@ -674,9 +674,10 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
             });
-            it('should delete nullable properties', async () => {
+            it.only('should delete nullable properties', async () => {
+                const algorithmName = uuid();
                 const body1 = {
-                    name: uuid(),
+                    name: algorithmName,
                     algorithmImage: 'algorithmImage',
                     baseImage: 'hkube/image',
                     algorithmEnv: {
@@ -697,12 +698,8 @@ describe('Store/Algorithms', () => {
                         'hkube.io/key': 'selector'
                     }
                 };
-                const options1 = {
-                    uri: applyPath,
-                    body: { payload: JSON.stringify(body1) }
-                };
                 const body2 = {
-                    ...body1,
+                    name: algorithmName,
                     baseImage: null,
                     algorithmEnv: null,
                     workerEnv: null,
@@ -712,20 +709,40 @@ describe('Store/Algorithms', () => {
                     downloadFileExt: null,
                     nodeSelector: null
                 };
+                const options1 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body1) }
+                };
                 const options2 = {
                     uri: applyPath,
-                    body: { payload: JSON.stringify(body2) }
+                    body: {
+                        payload: JSON.stringify(body2),
+                        options: JSON.stringify({ forceUpdate: false }),
+                    }
                 };
                 await request(options1);
-                const response = await request(options2);
-                expect(response.body.algorithm).to.not.have.property('baseImage');
-                expect(response.body.algorithm).to.not.have.property('algorithmEnv');
-                expect(response.body.algorithm).to.not.have.property('workerEnv');
-                expect(response.body.algorithm).to.not.have.property('quotaGuarantee');
-                expect(response.body.algorithm).to.not.have.property('labels');
-                expect(response.body.algorithm).to.not.have.property('annotations');
-                expect(response.body.algorithm).to.not.have.property('downloadFileExt');
-                expect(response.body.algorithm).to.not.have.property('nodeSelector');
+                const res = await request(options2);
+
+                const version = res.body.algorithm.version;
+                const versionReq = {
+                    uri: `${restUrl}/versions/algorithms/apply`,
+                    body: { version, name: algorithmName, force: true }
+                };
+                await request(versionReq);
+
+                const getOptions = {
+                    uri: `${restPath}/${algorithmName}`,
+                    method: 'GET'
+                };
+                const response = await request(getOptions);
+                expect(response.body).to.not.have.property('baseImage');
+                expect(response.body).to.not.have.property('algorithmEnv');
+                expect(response.body).to.not.have.property('workerEnv');
+                expect(response.body).to.not.have.property('quotaGuarantee');
+                expect(response.body).to.not.have.property('labels');
+                expect(response.body).to.not.have.property('annotations');
+                expect(response.body).to.not.have.property('downloadFileExt');
+                expect(response.body).to.not.have.property('nodeSelector');
             });
         });
         describe('labels and annotations', () => {
