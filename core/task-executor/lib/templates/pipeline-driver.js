@@ -54,6 +54,15 @@ const template = {
                                 }
                             },
                             {
+                                name: 'CONCURRENCY_LIMIT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'PIPELINE_DRIVERS_CONCURRENCY_LIMIT'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'DEFAULT_STORAGE',
                                 valueFrom: {
                                     configMapKeyRef: {
