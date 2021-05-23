@@ -674,7 +674,7 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
             });
-            it.only('should delete nullable properties', async () => {
+            it('should delete nullable properties', async () => {
                 const algorithmName = uuid();
                 const body1 = {
                     name: algorithmName,
