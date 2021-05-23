@@ -255,18 +255,6 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
         });
-        it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: ''
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
-        });
         it('should throw conflict error', async () => {
             const options = {
                 uri: restPath,
@@ -481,7 +469,7 @@ describe('Store/Algorithms', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal("data should have required property 'name'");
+                expect(response.body.error.message).to.equal('algorithm should have required property "name"');
             });
             it('should throw validation error of data.name should be string', async () => {
                 const payload = JSON.stringify({ name: {} });
@@ -526,17 +514,6 @@ describe('Store/Algorithms', () => {
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('memory unit must be one of Ki,M,Mi,Gi,m,K,G,T,Ti,P,Pi,E,Ei');
-            });
-            it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
-                const payload = JSON.stringify({ name: '' });
-                const options = {
-                    uri: applyPath,
-                    formData: { payload }
-                };
-                const response = await request(options);
-                expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
             });
             it('should throw validation invalid env', async () => {
                 const body = {
@@ -696,6 +673,59 @@ describe('Store/Algorithms', () => {
                 const res = await request(options);
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
+            });
+            it('should delete nullable properties', async () => {
+                const body1 = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    baseImage: 'hkube/image',
+                    algorithmEnv: {
+                        MY_ENV: 'value'
+                    },
+                    workerEnv: {
+                        MY_ENV: 'value'
+                    },
+                    quotaGuarantee: 5,
+                    labels: {
+                        'hkube.io/key': 'label'
+                    },
+                    downloadFileExt: 'jpg',
+                    annotations: {
+                        'hkube.io/key': 'annotation'
+                    },
+                    nodeSelector: {
+                        'hkube.io/key': 'selector'
+                    }
+                };
+                const options1 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body1) }
+                };
+                const body2 = {
+                    ...body1,
+                    baseImage: null,
+                    algorithmEnv: null,
+                    workerEnv: null,
+                    quotaGuarantee: null,
+                    labels: null,
+                    annotations: null,
+                    downloadFileExt: null,
+                    nodeSelector: null
+                };
+                const options2 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body2) }
+                };
+                await request(options1);
+                const response = await request(options2);
+                expect(response.body.algorithm).to.not.have.property('baseImage');
+                expect(response.body.algorithm).to.not.have.property('algorithmEnv');
+                expect(response.body.algorithm).to.not.have.property('workerEnv');
+                expect(response.body.algorithm).to.not.have.property('quotaGuarantee');
+                expect(response.body.algorithm).to.not.have.property('labels');
+                expect(response.body.algorithm).to.not.have.property('annotations');
+                expect(response.body.algorithm).to.not.have.property('downloadFileExt');
+                expect(response.body.algorithm).to.not.have.property('nodeSelector');
             });
         });
         describe('labels and annotations', () => {

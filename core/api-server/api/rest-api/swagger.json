@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.4",
+    "version": "2.1.5",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -3819,6 +3819,7 @@
                     },
                     "reservedMemory": {
                       "type": "string",
+                      "nullable": true,
                       "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                       "format": "memory",
                       "example": "512Mi"
@@ -3854,6 +3855,7 @@
                     },
                     "mounts": {
                       "type": "array",
+                      "nullable": true,
                       "description": "a list of volumes to mount into the algorithm",
                       "items": {
                         "type": "object",
@@ -3881,6 +3883,7 @@
                     },
                     "gitRepository": {
                       "type": "object",
+                      "nullable": true,
                       "properties": {
                         "url": {
                           "type": "string",
@@ -3935,14 +3938,17 @@
                       ]
                     },
                     "entryPoint": {
-                      "type": "string"
+                      "type": "string",
+                      "nullable": true
                     },
                     "dependencyInstallCmd": {
                       "type": "string",
+                      "nullable": true,
                       "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                     },
                     "baseImage": {
                       "type": "string",
+                      "nullable": true,
                       "description": "Custom docker image to be used as base to the newly built algorithm image"
                     },
                     "minHotWorkers": {
@@ -3953,19 +3959,23 @@
                     },
                     "quotaGuarantee": {
                       "type": "integer",
+                      "nullable": true,
                       "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                       "minimum": 0
                     },
                     "algorithmEnv": {
                       "type": "object",
+                      "nullable": true,
                       "description": "key value environment variables for algorithm"
                     },
                     "workerEnv": {
                       "type": "object",
+                      "nullable": true,
                       "description": "key value environment variables for worker"
                     },
                     "nodeSelector": {
                       "type": "object",
+                      "nullable": true,
                       "description": "key value labels for nodes constraint",
                       "additionalProperties": {
                         "type": "string"
@@ -3973,10 +3983,12 @@
                     },
                     "labels": {
                       "type": "object",
+                      "nullable": true,
                       "description": "attach key value metadata to algorithm pod, usually for users"
                     },
                     "annotations": {
                       "type": "object",
+                      "nullable": true,
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "type": {
@@ -3991,6 +4003,7 @@
                     },
                     "downloadFileExt": {
                       "type": "string",
+                      "nullable": true,
                       "description": "the extension name that will be attached to a file when downloading algorithm result"
                     }
                   },
@@ -4428,6 +4441,7 @@
                       },
                       "reservedMemory": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                         "format": "memory",
                         "example": "512Mi"
@@ -4463,6 +4477,7 @@
                       },
                       "mounts": {
                         "type": "array",
+                        "nullable": true,
                         "description": "a list of volumes to mount into the algorithm",
                         "items": {
                           "type": "object",
@@ -4490,6 +4505,7 @@
                       },
                       "gitRepository": {
                         "type": "object",
+                        "nullable": true,
                         "properties": {
                           "url": {
                             "type": "string",
@@ -4544,14 +4560,17 @@
                         ]
                       },
                       "entryPoint": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                       },
                       "dependencyInstallCmd": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                       },
                       "baseImage": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "minHotWorkers": {
@@ -4562,19 +4581,23 @@
                       },
                       "quotaGuarantee": {
                         "type": "integer",
+                        "nullable": true,
                         "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                         "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for algorithm"
                       },
                       "workerEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for worker"
                       },
                       "nodeSelector": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value labels for nodes constraint",
                         "additionalProperties": {
                           "type": "string"
@@ -4582,10 +4605,12 @@
                       },
                       "labels": {
                         "type": "object",
+                        "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for users"
                       },
                       "annotations": {
                         "type": "object",
+                        "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "type": {
@@ -4600,6 +4625,7 @@
                       },
                       "downloadFileExt": {
                         "type": "string",
+                        "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
@@ -4684,6 +4710,7 @@
                   },
                   "reservedMemory": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                     "format": "memory",
                     "example": "512Mi"
@@ -4719,6 +4746,7 @@
                   },
                   "mounts": {
                     "type": "array",
+                    "nullable": true,
                     "description": "a list of volumes to mount into the algorithm",
                     "items": {
                       "type": "object",
@@ -4746,6 +4774,7 @@
                   },
                   "gitRepository": {
                     "type": "object",
+                    "nullable": true,
                     "properties": {
                       "url": {
                         "type": "string",
@@ -4800,14 +4829,17 @@
                     ]
                   },
                   "entryPoint": {
-                    "type": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "dependencyInstallCmd": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                   },
                   "baseImage": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Custom docker image to be used as base to the newly built algorithm image"
                   },
                   "minHotWorkers": {
@@ -4818,19 +4850,23 @@
                   },
                   "quotaGuarantee": {
                     "type": "integer",
+                    "nullable": true,
                     "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                     "minimum": 0
                   },
                   "algorithmEnv": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value environment variables for algorithm"
                   },
                   "workerEnv": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value environment variables for worker"
                   },
                   "nodeSelector": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value labels for nodes constraint",
                     "additionalProperties": {
                       "type": "string"
@@ -4838,10 +4874,12 @@
                   },
                   "labels": {
                     "type": "object",
+                    "nullable": true,
                     "description": "attach key value metadata to algorithm pod, usually for users"
                   },
                   "annotations": {
                     "type": "object",
+                    "nullable": true,
                     "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                   },
                   "type": {
@@ -4856,6 +4894,7 @@
                   },
                   "downloadFileExt": {
                     "type": "string",
+                    "nullable": true,
                     "description": "the extension name that will be attached to a file when downloading algorithm result"
                   }
                 },
@@ -4995,6 +5034,7 @@
                   },
                   "reservedMemory": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                     "format": "memory",
                     "example": "512Mi"
@@ -5030,6 +5070,7 @@
                   },
                   "mounts": {
                     "type": "array",
+                    "nullable": true,
                     "description": "a list of volumes to mount into the algorithm",
                     "items": {
                       "type": "object",
@@ -5057,6 +5098,7 @@
                   },
                   "gitRepository": {
                     "type": "object",
+                    "nullable": true,
                     "properties": {
                       "url": {
                         "type": "string",
@@ -5111,14 +5153,17 @@
                     ]
                   },
                   "entryPoint": {
-                    "type": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "dependencyInstallCmd": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                   },
                   "baseImage": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Custom docker image to be used as base to the newly built algorithm image"
                   },
                   "minHotWorkers": {
@@ -5129,19 +5174,23 @@
                   },
                   "quotaGuarantee": {
                     "type": "integer",
+                    "nullable": true,
                     "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                     "minimum": 0
                   },
                   "algorithmEnv": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value environment variables for algorithm"
                   },
                   "workerEnv": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value environment variables for worker"
                   },
                   "nodeSelector": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value labels for nodes constraint",
                     "additionalProperties": {
                       "type": "string"
@@ -5149,10 +5198,12 @@
                   },
                   "labels": {
                     "type": "object",
+                    "nullable": true,
                     "description": "attach key value metadata to algorithm pod, usually for users"
                   },
                   "annotations": {
                     "type": "object",
+                    "nullable": true,
                     "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                   },
                   "type": {
@@ -5167,6 +5218,7 @@
                   },
                   "downloadFileExt": {
                     "type": "string",
+                    "nullable": true,
                     "description": "the extension name that will be attached to a file when downloading algorithm result"
                   }
                 },
@@ -5292,6 +5344,7 @@
                       },
                       "reservedMemory": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                         "format": "memory",
                         "example": "512Mi"
@@ -5327,6 +5380,7 @@
                       },
                       "mounts": {
                         "type": "array",
+                        "nullable": true,
                         "description": "a list of volumes to mount into the algorithm",
                         "items": {
                           "type": "object",
@@ -5354,6 +5408,7 @@
                       },
                       "gitRepository": {
                         "type": "object",
+                        "nullable": true,
                         "properties": {
                           "url": {
                             "type": "string",
@@ -5408,14 +5463,17 @@
                         ]
                       },
                       "entryPoint": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                       },
                       "dependencyInstallCmd": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                       },
                       "baseImage": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "minHotWorkers": {
@@ -5426,19 +5484,23 @@
                       },
                       "quotaGuarantee": {
                         "type": "integer",
+                        "nullable": true,
                         "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                         "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for algorithm"
                       },
                       "workerEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for worker"
                       },
                       "nodeSelector": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value labels for nodes constraint",
                         "additionalProperties": {
                           "type": "string"
@@ -5446,10 +5508,12 @@
                       },
                       "labels": {
                         "type": "object",
+                        "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for users"
                       },
                       "annotations": {
                         "type": "object",
+                        "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "type": {
@@ -5464,6 +5528,7 @@
                       },
                       "downloadFileExt": {
                         "type": "string",
+                        "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
@@ -5553,6 +5618,7 @@
                         },
                         "reservedMemory": {
                           "type": "string",
+                          "nullable": true,
                           "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                           "format": "memory",
                           "example": "512Mi"
@@ -5588,6 +5654,7 @@
                         },
                         "mounts": {
                           "type": "array",
+                          "nullable": true,
                           "description": "a list of volumes to mount into the algorithm",
                           "items": {
                             "type": "object",
@@ -5615,6 +5682,7 @@
                         },
                         "gitRepository": {
                           "type": "object",
+                          "nullable": true,
                           "properties": {
                             "url": {
                               "type": "string",
@@ -5669,14 +5737,17 @@
                           ]
                         },
                         "entryPoint": {
-                          "type": "string"
+                          "type": "string",
+                          "nullable": true
                         },
                         "dependencyInstallCmd": {
                           "type": "string",
+                          "nullable": true,
                           "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                         },
                         "baseImage": {
                           "type": "string",
+                          "nullable": true,
                           "description": "Custom docker image to be used as base to the newly built algorithm image"
                         },
                         "minHotWorkers": {
@@ -5687,19 +5758,23 @@
                         },
                         "quotaGuarantee": {
                           "type": "integer",
+                          "nullable": true,
                           "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                           "minimum": 0
                         },
                         "algorithmEnv": {
                           "type": "object",
+                          "nullable": true,
                           "description": "key value environment variables for algorithm"
                         },
                         "workerEnv": {
                           "type": "object",
+                          "nullable": true,
                           "description": "key value environment variables for worker"
                         },
                         "nodeSelector": {
                           "type": "object",
+                          "nullable": true,
                           "description": "key value labels for nodes constraint",
                           "additionalProperties": {
                             "type": "string"
@@ -5707,10 +5782,12 @@
                         },
                         "labels": {
                           "type": "object",
+                          "nullable": true,
                           "description": "attach key value metadata to algorithm pod, usually for users"
                         },
                         "annotations": {
                           "type": "object",
+                          "nullable": true,
                           "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
                         "type": {
@@ -5725,6 +5802,7 @@
                         },
                         "downloadFileExt": {
                           "type": "string",
+                          "nullable": true,
                           "description": "the extension name that will be attached to a file when downloading algorithm result"
                         }
                       },
@@ -10426,6 +10504,7 @@
                       },
                       "reservedMemory": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                         "format": "memory",
                         "example": "512Mi"
@@ -10461,6 +10540,7 @@
                       },
                       "mounts": {
                         "type": "array",
+                        "nullable": true,
                         "description": "a list of volumes to mount into the algorithm",
                         "items": {
                           "type": "object",
@@ -10488,6 +10568,7 @@
                       },
                       "gitRepository": {
                         "type": "object",
+                        "nullable": true,
                         "properties": {
                           "url": {
                             "type": "string",
@@ -10542,14 +10623,17 @@
                         ]
                       },
                       "entryPoint": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                       },
                       "dependencyInstallCmd": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                       },
                       "baseImage": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "minHotWorkers": {
@@ -10560,19 +10644,23 @@
                       },
                       "quotaGuarantee": {
                         "type": "integer",
+                        "nullable": true,
                         "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                         "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for algorithm"
                       },
                       "workerEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for worker"
                       },
                       "nodeSelector": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value labels for nodes constraint",
                         "additionalProperties": {
                           "type": "string"
@@ -10580,10 +10668,12 @@
                       },
                       "labels": {
                         "type": "object",
+                        "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for users"
                       },
                       "annotations": {
                         "type": "object",
+                        "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "type": {
@@ -10598,6 +10688,7 @@
                       },
                       "downloadFileExt": {
                         "type": "string",
+                        "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
@@ -10750,6 +10841,7 @@
                       },
                       "reservedMemory": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                         "format": "memory",
                         "example": "512Mi"
@@ -10785,6 +10877,7 @@
                       },
                       "mounts": {
                         "type": "array",
+                        "nullable": true,
                         "description": "a list of volumes to mount into the algorithm",
                         "items": {
                           "type": "object",
@@ -10812,6 +10905,7 @@
                       },
                       "gitRepository": {
                         "type": "object",
+                        "nullable": true,
                         "properties": {
                           "url": {
                             "type": "string",
@@ -10866,14 +10960,17 @@
                         ]
                       },
                       "entryPoint": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                       },
                       "dependencyInstallCmd": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                       },
                       "baseImage": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "minHotWorkers": {
@@ -10884,19 +10981,23 @@
                       },
                       "quotaGuarantee": {
                         "type": "integer",
+                        "nullable": true,
                         "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                         "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for algorithm"
                       },
                       "workerEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for worker"
                       },
                       "nodeSelector": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value labels for nodes constraint",
                         "additionalProperties": {
                           "type": "string"
@@ -10904,10 +11005,12 @@
                       },
                       "labels": {
                         "type": "object",
+                        "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for users"
                       },
                       "annotations": {
                         "type": "object",
+                        "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "type": {
@@ -10922,6 +11025,7 @@
                       },
                       "downloadFileExt": {
                         "type": "string",
+                        "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
@@ -13222,6 +13326,7 @@
           },
           "reservedMemory": {
             "type": "string",
+            "nullable": true,
             "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
             "format": "memory",
             "example": "512Mi"
@@ -13257,6 +13362,7 @@
           },
           "mounts": {
             "type": "array",
+            "nullable": true,
             "description": "a list of volumes to mount into the algorithm",
             "items": {
               "type": "object",
@@ -13284,6 +13390,7 @@
           },
           "gitRepository": {
             "type": "object",
+            "nullable": true,
             "properties": {
               "url": {
                 "type": "string",
@@ -13338,14 +13445,17 @@
             ]
           },
           "entryPoint": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "dependencyInstallCmd": {
             "type": "string",
+            "nullable": true,
             "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
           },
           "baseImage": {
             "type": "string",
+            "nullable": true,
             "description": "Custom docker image to be used as base to the newly built algorithm image"
           },
           "minHotWorkers": {
@@ -13356,19 +13466,23 @@
           },
           "quotaGuarantee": {
             "type": "integer",
+            "nullable": true,
             "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
             "minimum": 0
           },
           "algorithmEnv": {
             "type": "object",
+            "nullable": true,
             "description": "key value environment variables for algorithm"
           },
           "workerEnv": {
             "type": "object",
+            "nullable": true,
             "description": "key value environment variables for worker"
           },
           "nodeSelector": {
             "type": "object",
+            "nullable": true,
             "description": "key value labels for nodes constraint",
             "additionalProperties": {
               "type": "string"
@@ -13376,10 +13490,12 @@
           },
           "labels": {
             "type": "object",
+            "nullable": true,
             "description": "attach key value metadata to algorithm pod, usually for users"
           },
           "annotations": {
             "type": "object",
+            "nullable": true,
             "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
           },
           "type": {
@@ -13394,6 +13510,7 @@
           },
           "downloadFileExt": {
             "type": "string",
+            "nullable": true,
             "description": "the extension name that will be attached to a file when downloading algorithm result"
           }
         },
@@ -13599,6 +13716,7 @@
               },
               "reservedMemory": {
                 "type": "string",
+                "nullable": true,
                 "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                 "format": "memory",
                 "example": "512Mi"
@@ -13634,6 +13752,7 @@
               },
               "mounts": {
                 "type": "array",
+                "nullable": true,
                 "description": "a list of volumes to mount into the algorithm",
                 "items": {
                   "type": "object",
@@ -13661,6 +13780,7 @@
               },
               "gitRepository": {
                 "type": "object",
+                "nullable": true,
                 "properties": {
                   "url": {
                     "type": "string",
@@ -13715,14 +13835,17 @@
                 ]
               },
               "entryPoint": {
-                "type": "string"
+                "type": "string",
+                "nullable": true
               },
               "dependencyInstallCmd": {
                 "type": "string",
+                "nullable": true,
                 "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
               },
               "baseImage": {
                 "type": "string",
+                "nullable": true,
                 "description": "Custom docker image to be used as base to the newly built algorithm image"
               },
               "minHotWorkers": {
@@ -13733,19 +13856,23 @@
               },
               "quotaGuarantee": {
                 "type": "integer",
+                "nullable": true,
                 "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                 "minimum": 0
               },
               "algorithmEnv": {
                 "type": "object",
+                "nullable": true,
                 "description": "key value environment variables for algorithm"
               },
               "workerEnv": {
                 "type": "object",
+                "nullable": true,
                 "description": "key value environment variables for worker"
               },
               "nodeSelector": {
                 "type": "object",
+                "nullable": true,
                 "description": "key value labels for nodes constraint",
                 "additionalProperties": {
                   "type": "string"
@@ -13753,10 +13880,12 @@
               },
               "labels": {
                 "type": "object",
+                "nullable": true,
                 "description": "attach key value metadata to algorithm pod, usually for users"
               },
               "annotations": {
                 "type": "object",
+                "nullable": true,
                 "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
               },
               "type": {
@@ -13771,6 +13900,7 @@
               },
               "downloadFileExt": {
                 "type": "string",
+                "nullable": true,
                 "description": "the extension name that will be attached to a file when downloading algorithm result"
               }
             },
