@@ -1,8 +1,10 @@
 const { stateType, pipelineKind } = require('@hkube/consts');
 const EventEmitter = require('events');
+const { uuid } = require('@hkube/uid');
 const messages = require('./consts/messages');
 const ws = require('./algorithm-communication/ws');
 const events = new EventEmitter();
+const sendMessageDelegates = {};
 
 const init = async (options) => {
     events.removeAllListeners();
@@ -18,15 +20,29 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
     events.on('stop', () => {
         return this._resolve();
     });
-    ws.on(messages.outgoing.done, (value) => {
+    ws.on(messages.outgoing.done, (value, sendMessageId) => {
+        if (sendMessageId) {
+            delete sendMessageDelegates[sendMessageId];
+        }
         return this._resolve(value);
+    });
+    ws.on(messages.outgoing.sendMessage, ({ payload: { message, flowName, sendMessageId } }) => {
+        const sendMessage = sendMessageDelegates[sendMessageId];
+        if (flowName) {
+            hkubeApi.sendMessage(message, flowName);
+        }
+        else {
+            sendMessage(message);
+        }
     });
     const optionsCopy = { ...options, kind: pipelineKind.Batch };
     ws.send({ command: messages.incoming.start, data: optionsCopy });
     if (options.kind === pipelineKind.Stream) {
         if (options.stateType !== stateType.Stateless) {
-            hkubeApi.registerInputListener(({ payload, origin }) => {
-                ws.send({ command: messages.incoming.message, data: { payload, origin } });
+            hkubeApi.registerInputListener(({ payload, origin, sendMessage }) => {
+                const sendMessageId = uuid();
+                sendMessageDelegates[sendMessageId] = sendMessage;
+                ws.send({ command: messages.incoming.message, data: { payload, origin, sendMessageId } });
             });
         }
     }

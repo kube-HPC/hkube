@@ -57,6 +57,7 @@ describe('Debug', () => {
         let resolveStart;
         let resolveStartResult;
         let resolveMessage;
+        let resolveMessageForwarded;
         const promiseInit = new Promise((res, rej) => {
             resolveInit = res;
 
@@ -70,7 +71,10 @@ describe('Debug', () => {
         const promiseMessage = new Promise((res, rej) => {
             resolveMessage = res;
         });
-
+        const promiseMessageForwarded = new Promise((res, rej) => {
+            resolveMessageForwarded = res;
+        });
+        let sendMessageId;
         socket.on('message', (data) => {
             const decodedData = encoding.decode(data);
             if (decodedData.command === 'initialize') {
@@ -82,6 +86,7 @@ describe('Debug', () => {
             if (decodedData.command === 'message') {
                 expect(decodedData.data.payload).to.eq('message2', 'stateful did not get the message')
                 expect(decodedData.data.origin).to.eq('a', 'stateful did not get the origin')
+                sendMessageId = decodedData.data.sendMessageId;
                 resolveMessage();
             }
         })
@@ -98,8 +103,28 @@ describe('Debug', () => {
         await promiseInit;
         wrapper._start({});
         await promiseStart;
-        wrapper._streamingManager._onMessage({ flowPattern: {}, payload: 'message2', origin: 'a' });
+
+
+        const originalSendMessage = wrapper._streamingManager.sendMessage;
+        wrapper._streamingManager.sendMessage = ({ message, flowPattern }) => {
+            expect(flowPattern[0].source).to.eq('nodeName1');
+            wrapper._streamingManager.sendMessage = originalSendMessage;
+            wrapper._streamingManager.sendMessage(message, flowPattern);
+            resolveMessageForwarded();
+        }
+
+
+        wrapper._streamingManager._onMessage({
+            flowPattern: [{
+                source: 'nodeName1',
+                next: ['nextNode2']
+            }], payload: 'message2', origin: 'a'
+        });
         await promiseMessage;
+
+        socket.send(encoding.encode({ command: messages.outgoing.sendMessage, data: { payload: { message: 'myMessage', sendMessageId } } }))
+
+        await promiseMessageForwarded;
         socket.send(encoding.encode({ command: messages.outgoing.done, data: 'return value' }));
         await promiseStartResult;
         wrapper._stop({ forceStop: true });
