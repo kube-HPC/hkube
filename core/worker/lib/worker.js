@@ -14,6 +14,7 @@ const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
+const { CONTAINER_STATUS } = kubernetes;
 const DEFAULT_STOP_TIMEOUT = 5000;
 let log;
 
@@ -21,11 +22,13 @@ class Worker {
     constructor() {
         this._stopTimeout = null;
         this._isConnected = false;
-        this._isInit = false;
         this._isBootstrapped = false;
         this._ttlTimeoutHandle = null;
         this._stoppingTime = null;
         this._isScalingDown = false;
+        this._inTerminationMode = false;
+        this._shouldCheckAlgorithmStatus = true;
+        this._checkAlgorithmStatus = this._checkAlgorithmStatus.bind(this);
     }
 
     preInit() {
@@ -34,19 +37,18 @@ class Worker {
     }
 
     async init(options) {
-        this._inTerminationMode = false;
         this._options = options;
+        this._podName = options.kubernetes.pod_name;
         this._debugMode = options.debugMode;
         this._devMode = options.devMode;
         this._servingReportInterval = options.servingReportInterval;
+        this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
+        this._stoppingTimeoutMs = options.timeouts.stoppingTimeoutMs;
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
         this._registerToEtcdEvents();
         this._registerToAutoScalerChangesEvents();
-        this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
-        this._stoppingTimeoutMs = options.timeouts.stoppingTimeoutMs;
         this._setInactiveTimeout();
-        this._isInit = true;
         this._doTheBootstrap();
     }
 
@@ -191,16 +193,13 @@ class Worker {
     _doTheBootstrap() {
         if (!this._isConnected) {
             log.info('not connected yet', { component });
-            return;
-        }
-        if (!this._isInit) {
-            log.info('not init yet', { component });
+            this._checkAlgorithmStatus();
             return;
         }
         if (this._isBootstrapped) {
-            log.info('already bootstrapped', { component });
             return;
         }
+        log.info('algorithm connected', { component });
         this._isBootstrapped = true;
         this._initAlgorithmSettings();
         log.info('starting bootstrap state', { component });
@@ -208,9 +207,50 @@ class Worker {
         log.info('finished bootstrap state', { component });
     }
 
+    async _checkAlgorithmStatus() {
+        if (!this._podName) {
+            return;
+        }
+        try {
+            log.info('trying to check algorithm container status', { component });
+            const containerStatus = await kubernetes.getPodContainerStatus(this._podName, ALGORITHM_CONTAINER) || {};
+            const { status, reason, message } = containerStatus;
+            if (status === CONTAINER_STATUS.RUNNING) {
+                log.info(`algorithm container status is ${status}`, { component });
+                this._shouldCheckAlgorithmStatus = false;
+            }
+            else if (reason) {
+                const containerMessage = kubernetes.formatContainerMessage(reason);
+                if (containerMessage.isImagePullErr) {
+                    const options = {
+                        error: {
+                            message: `${message}. ${containerMessage.message}`,
+                            isImagePullErr: containerMessage.isImagePullErr
+                        }
+                    };
+                    log.error(options.error.message, { component });
+                    await this._endJob(options);
+                    this._shouldCheckAlgorithmStatus = false;
+                }
+            }
+            else {
+                log.error(`algorithm container status is ${status}, reason: ${reason}`, { component });
+            }
+        }
+        catch (e) {
+            log.throttle.error(e.message, { component });
+        }
+        finally {
+            if (this._shouldCheckAlgorithmStatus) {
+                setTimeout(this._checkAlgorithmStatus, this._options.checkAlgorithmStatusInterval);
+            }
+        }
+    }
+
     _registerToConnectionEvents() {
         algoRunnerCommunication.on('connection', (options) => {
             this._isConnected = true;
+            jobConsumer.isConnected = true;
             if (stateManager.state === workerStates.exit) {
                 return;
             }
@@ -218,12 +258,13 @@ class Worker {
             this._doTheBootstrap();
         });
         algoRunnerCommunication.on('disconnect', async (reason) => {
+            this._isConnected = false;
+            jobConsumer.isConnected = false;
             if (stateManager.state === workerStates.exit) {
                 return;
             }
             await this._algorithmDisconnect(reason);
         });
-
         stateManager.on('disconnect', async (reason) => {
             this._isConnected = false;
             this._isBootstrapped = false;
@@ -240,7 +281,7 @@ class Worker {
             return;
         }
         const type = jobConsumer.getAlgorithmType();
-        const containerStatus = await kubernetes.waitForExitState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
+        const containerStatus = await kubernetes.waitForExitState(this._podName, ALGORITHM_CONTAINER);
         const container = containerStatus || {};
         const containerReason = container.reason;
         const workerState = stateManager.state;
@@ -353,7 +394,7 @@ class Worker {
                     await this._startRetry(options);
                     return;
                 }
-                this._endJob(options);
+                await this._endJob(options);
                 break;
             case retryPolicy.Always:
                 await this._startRetry(options);
@@ -400,11 +441,6 @@ class Worker {
         ]);
     }
 
-    /**
-     * Ensure worker is in 'working' state
-     * @param {string} operation operation for which this validation is requested
-     * @returns true if in 'working' state, else false
-     */
     _validateWorkingState(operation) {
         if (stateManager.state === workerStates.working) {
             return true;
@@ -413,12 +449,6 @@ class Worker {
         return false;
     }
 
-    /**
-     * Start new algorithm span
-     * @param message startSpan message
-     * @param message.data.name span name
-     * @param message.data.tags tags object to be added to span (optional)
-     */
     _startAlgorithmSpan(message) {
         if (!this._validateWorkingState('startSpan for algorithm')) {
             return;
@@ -428,12 +458,6 @@ class Worker {
         tracing.startAlgorithmSpan({ data, jobId, taskId });
     }
 
-    /**
-     * Finish algorithm span
-     * @param message finishSpan message
-     * @param message.data.error error message (optional)
-     * @param message.data.tags tags object to be added to span (optional)
-     */
     _finishAlgorithmSpan(message) {
         if (!this._validateWorkingState('finishSpan for algorithm')) {
             return;
@@ -452,14 +476,16 @@ class Worker {
             log.info(`starting termination mode. Exiting with code ${code}`, { component });
             await this._tryDeleteWorkerState();
             await this._stopAllPipelinesAndExecutions({ jobId, reason: 'parent pipeline exit' });
-
-            this._tryToSendCommand({ command: messages.outgoing.exit, data: { exitCode: 0 } });
-            const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
+            let terminated = false;
+            if (this._isConnected) {
+                this._tryToSendCommand({ command: messages.outgoing.exit, data: { exitCode: 0 } });
+                terminated = await kubernetes.waitForTerminatedState(this._podName, ALGORITHM_CONTAINER);
+            }
             if (terminated) {
                 log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
             }
             else { // if not terminated, kill job
-                const jobName = await kubernetes.getJobForPod(this._options.kubernetes.pod_name);
+                const jobName = await kubernetes.getJobForPod(this._podName);
                 if (jobName) {
                     await kubernetes.deleteJob(jobName);
                     log.info(`deleted job ${jobName}`, { component });
@@ -487,11 +513,10 @@ class Worker {
 
     _tryToSendCommand(message) {
         try {
-            return algoRunnerCommunication.send(message);
+            algoRunnerCommunication.send(message);
         }
         catch (err) {
             log.warning(`Failed to send command ${message.command}`, { component });
-            return err;
         }
     }
 
