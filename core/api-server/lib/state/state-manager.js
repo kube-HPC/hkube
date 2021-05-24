@@ -16,7 +16,7 @@ class StateManager {
 
         const { provider, ...config } = options.db;
         this._db = dbConnect(config, provider);
-        await this._db.init();
+        await this._db.init({ createIndices: true });
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
 
@@ -41,7 +41,7 @@ class StateManager {
             algorithm.created = Date.now();
         }
         algorithm.modified = Date.now();
-        return this._db.algorithms.update(algorithm);
+        return this._db.algorithms.replace(algorithm);
     }
 
     async getAlgorithm(payload) {

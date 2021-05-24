@@ -1,8 +1,11 @@
+const logger = require('@hkube/logger');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const { metricsNames } = require('../consts/metricsNames');
-
+const component = require('../consts/componentNames').METRICS;
+let log;
 class PipelineMetrics {
     init() {
+        log = logger.GetLogFromContainer();
         metrics.addTimeMeasure({
             name: metricsNames.pipelines_net,
             description: 'pipelines runtime histogram',
@@ -41,20 +44,25 @@ class PipelineMetrics {
         if (!jobId || !pipeline) {
             return;
         }
-        metrics.get(metricsNames.pipelines_net).end({
-            id: jobId,
-            labelValues: {
-                pipeline_name: pipeline,
-                status
+        try {
+            metrics.get(metricsNames.pipelines_net).end({
+                id: jobId,
+                labelValues: {
+                    pipeline_name: pipeline,
+                    status
+                }
+            });
+
+            this.setProgressMetric(options);
+
+            const topSpan = tracer.topSpan(jobId);
+            if (topSpan) {
+                topSpan.addTag({ status });
+                topSpan.finish();
             }
-        });
-
-        this.setProgressMetric(options);
-
-        const topSpan = tracer.topSpan(jobId);
-        if (topSpan) {
-            topSpan.addTag({ status });
-            topSpan.finish();
+        }
+        catch (e) {
+            log.error(e.message, { component });
         }
     }
 
