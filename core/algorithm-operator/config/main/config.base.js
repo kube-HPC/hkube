@@ -67,7 +67,8 @@ config.resources = {
         memory: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_MEMORY) || 256,
         cpu: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_CPU) || 1
     },
-    enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false)
+    enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false),
+    useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false),
 };
 
 config.healthchecks = {
