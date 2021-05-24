@@ -23,6 +23,7 @@ properties:
     example: 512Mi
   reservedMemory:
     type: string
+    nullable: true
     description: Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory
     format: memory
     example: 512Mi
@@ -50,6 +51,7 @@ properties:
     readOnly: true
   mounts:
     type: array
+    nullable: true
     description: a list of volumes to mount into the algorithm
     items:
       $ref: "#/components/schemas/algorithmMount"
@@ -57,6 +59,7 @@ properties:
     example: []
   gitRepository:
     type: object
+    nullable: true
     properties:
       url:
         type: string
@@ -97,14 +100,17 @@ properties:
       - url
   entryPoint:
     type: string
+    nullable: true
   dependencyInstallCmd:
     type: string
+    nullable: true
     description: |
       Command to run to install algorithm dependencies. CWD is the algorithm root folder
       Defaults to language specific defaults.
       e.g. For python: pip install -r requirements.txt
   baseImage:
     type: string
+    nullable: true
     description: Custom docker image to be used as base to the newly built algorithm image
   minHotWorkers:
     type: integer
@@ -113,24 +119,30 @@ properties:
     default: 0
   quotaGuarantee:
     type: integer
+    nullable: true
     description: The amount of algorithms required to be scheduled first in a case of cluster pressure
     minimum: 0
   algorithmEnv:
     type: object
+    nullable: true
     description: key value environment variables for algorithm
   workerEnv:
     type: object
+    nullable: true
     description: key value environment variables for worker
   nodeSelector:
     type: object
+    nullable: true
     description: key value labels for nodes constraint
     additionalProperties:
       type: string
   labels:
     type: object
+    nullable: true
     description: attach key value metadata to algorithm pod, usually for users
   annotations:
     type: object
+    nullable: true
     description: attach key value metadata to algorithm pod, usually for tools and libraries
   type:
     type: string
@@ -142,6 +154,7 @@ properties:
     default: Image
   downloadFileExt:
     type: string
+    nullable: true
     description: the extension name that will be attached to a file when downloading algorithm result
 required:
   - name
