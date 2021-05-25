@@ -6,7 +6,7 @@ const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
 const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
 const tensorboardReconciler = require('./reconcile/tensorboard');
-const workerDebugReconciler = require('./reconcile/algorithm-debug');
+const debugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const gatewaysReconciler = require('./reconcile/algorithm-gateway');
 const CONTAINERS = require('./consts/containers');
@@ -110,16 +110,13 @@ class Operator {
         });
     }
 
-    async _algorithmDebug({ versions, registry, clusterOptions }, algorithms, options) {
-        const kubernetesKinds = await kubernetes.getAlgorithmForDebug({ labelSelector: `type=${CONTAINERS.ALGORITHM_DEBUG}` });
-        const debugAlgorithms = algorithms.filter(a => a.options?.debug === true);
-        await workerDebugReconciler.reconcile({
-            kubernetesKinds,
-            algorithms: debugAlgorithms,
-            versions,
-            registry,
-            clusterOptions,
-            options
+    async _algorithmDebug({ clusterOptions }, algorithms) {
+        const services = await kubernetes.getServices({ labelSelector: `type=${nodeKind.Debug}` });
+        const debugAlgorithms = algorithms.filter(a => a.kind === nodeKind.Debug);
+        await debugReconciler.reconcile({
+            services,
+            debugAlgorithms,
+            clusterOptions
         });
     }
 

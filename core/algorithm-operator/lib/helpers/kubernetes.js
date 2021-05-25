@@ -159,19 +159,25 @@ class KubernetesApi extends EventEmitter {
         };
     }
 
-    async getAlgorithmForDebug({ labelSelector }) {
-        const resDeployment = await this._client.deployments.get({ labelSelector });
-        const resIngress = await this._client.ingresses.get({ labelSelector });
-        const resService = await this._client.services.get({ labelSelector });
+    async createGatewayServiceIngress({ ingressSpec, serviceSpec, algorithmName }) {
+        log.info(`creating service and ingress for ${algorithmName}`, { component });
+        let resIngress = null;
+        let resService = null;
 
+        try {
+            resIngress = await this._client.ingresses.create({ spec: ingressSpec });
+            resService = await this._client.services.create({ spec: serviceSpec });
+        }
+        catch (error) {
+            log.throttle.error(`failed to create service and ingress for ${algorithmName}. error: ${error.message}`, { component }, error);
+        }
         return {
-            resDeployment,
             resIngress,
             resService
         };
     }
 
-    async createGatewayServiceIngress({ ingressSpec, serviceSpec, algorithmName }) {
+    async createDebugServiceIngress({ ingressSpec, serviceSpec, algorithmName }) {
         log.info(`creating service and ingress for ${algorithmName}`, { component });
         let resIngress = null;
         let resService = null;
@@ -198,6 +204,18 @@ class KubernetesApi extends EventEmitter {
         const [ingress, service] = await Promise.all([
             this._client.ingresses.delete({ ingressName: `ingress-gateway-${algorithmName}` }),
             this._client.services.delete({ serviceName: `service-gateway-${algorithmName}` })
+        ]);
+        return {
+            ingress,
+            service
+        };
+    }
+
+    async deleteDebugServiceIngress({ algorithmName }) {
+        log.info(`deleting service and ingress for ${algorithmName}`, { component });
+        const [ingress, service] = await Promise.all([
+            this._client.ingresses.delete({ ingressName: `ingress-debug-${algorithmName}` }),
+            this._client.services.delete({ serviceName: `service-debug-${algorithmName}` })
         ]);
         return {
             ingress,
