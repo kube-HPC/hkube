@@ -86,6 +86,11 @@ const routes = (options) => {
         res.jobId = jobId;
         next();
     });
+    router.all('/search', methods(['POST']), logger(), async (req, res, next) => {
+        const response = await Execution.search(req.body);
+        res.json(response);
+        next();
+    });
     return router;
 };
 

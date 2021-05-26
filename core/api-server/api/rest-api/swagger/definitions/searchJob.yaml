@@ -1,0 +1,48 @@
+type: object
+properties:
+  query:
+    type: object
+    properties:
+      experimentName:
+        type: string
+      pipelineName:
+        type: string
+      pipelineType:
+        type: string
+      algorithmName:
+        type: string
+      pipelineStatus:
+        type: string
+      datesRange:
+        type: object
+        properties:
+          from:
+            type: string
+            example: '2021-03-11T14:30:00'
+          to:
+            type: string
+            example: '2021-03-11T14:30:00'
+  cursor:
+    type: string
+  pageNum:
+    type: integer
+  sort:
+    type: object
+  limit:
+    type: integer
+  fields:
+    type: object
+  exists:
+    type: object
+
+example:
+  query:
+    datesRange:
+      from: '2021-05-26T15:00:00'
+      to: '2021-05-26T16:00:00'
+  pageNum: 1
+  limit: 2
+  fields:
+    jobId: true
+
+

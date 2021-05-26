@@ -113,6 +113,10 @@ class ExecutionService {
         }
     }
 
+    async search(options) {
+        return stateManager.searchJobsAPI(options);
+    }
+
     _addTypesByAlgorithms(algorithms, types) {
         const newTypes = new Set();
         algorithms.forEach((v) => {
