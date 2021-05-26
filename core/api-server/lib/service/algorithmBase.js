@@ -30,11 +30,12 @@ class AlgorithmBase {
             // eslint-disable-next-line no-param-reassign
             pipeline = await stateManager.getJobPipeline({ jobId });
         }
-
-        const algorithms = pipeline.nodes
-            .filter(n => n.kind === this._kind)
-            .map(n => n.algorithmName);
-        await Promise.all(algorithms.map(a => stateManager.deleteAlgorithm({ name: a, kind: this._kind })));
+        if (pipeline.nodes) {
+            const algorithms = pipeline.nodes
+                .filter(n => n.kind === this._kind)
+                .map(n => n.algorithmName);
+            await Promise.all(algorithms.map(a => stateManager.deleteAlgorithm({ name: a, kind: this._kind })));
+        }
     }
 }
 
