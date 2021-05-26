@@ -5,7 +5,7 @@ config.debugger = {}
 config.debugger.communication = {
     host: 'localhost',
     protocol: 'ws',
-    port: '3100'
+    port: '3005'
 };
 
 module.exports = config;
