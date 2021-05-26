@@ -811,7 +811,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain(`gateway gateway-${name} already exists`);
+            expect(response.body.error.message).to.contain(`gateway ${name}-gateway already exists`);
         });
         it('should insert two gateway nodes', async () => {
             const options = {

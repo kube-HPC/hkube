@@ -24,7 +24,7 @@ class Gateway extends AlgorithmBase {
         if (!gatewayName) {
             gatewayName = uid({ length: 8 });
         }
-        const algorithmName = `${nodeKind.Gateway}-${gatewayName}`;
+        const algorithmName = `${gatewayName}-${nodeKind.Gateway}`;
         const gateway = await stateManager.getAlgorithm({ name: algorithmName });
         if (gateway) {
             throw new InvalidDataError(`gateway ${algorithmName} already exists`);

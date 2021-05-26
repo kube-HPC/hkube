@@ -32,9 +32,11 @@ class AlgorithmBase {
         }
         if (pipeline.nodes) {
             const algorithms = pipeline.nodes
-                .filter(n => n.kind === this._kind)
+                .filter(n => n.kind === this._kind && n.algorithmName)
                 .map(n => n.algorithmName);
-            await Promise.all(algorithms.map(a => stateManager.deleteAlgorithm({ name: a, kind: this._kind })));
+            if (algorithms.length) {
+                await Promise.all(algorithms.map(a => stateManager.deleteAlgorithm({ name: a, kind: this._kind })));
+            }
         }
     }
 }
