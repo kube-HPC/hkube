@@ -8,15 +8,15 @@ post:
       application/json:
         schema:
           $ref: "#/components/schemas/searchJob"
-    description: an object representing all information needed for pipeline execution
+    description: jobs search specification
     required: true
   responses:
     "200":
-      description: pipeline execution data
+      description: search job response
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/jobIdObject"
+            $ref: "#/components/schemas/searchJobResponse"
     "400":
       description: bad request
       content:
