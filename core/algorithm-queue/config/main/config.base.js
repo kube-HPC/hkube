@@ -34,7 +34,7 @@ config.db = {
 };
 
 config.algorithmQueueBalancer = {
-    limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_LIMIT, 5),
+    limit: formatter.parseInt(process.env.CONCURRENCY_LIMIT, 5),
     minIdleTimeMS: formatter.parseInt(process.env.ALGORITHM_QUEUE_MIN_IDLE_TIME, 30000),
     livenessInterval: formatter.parseInt(process.env.ALGORITHM_QUEUE_LIVENESS_INTERVAL, 5000),
 };

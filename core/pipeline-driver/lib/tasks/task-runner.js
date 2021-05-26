@@ -251,15 +251,15 @@ class TaskRunner extends EventEmitter {
         let data;
         if (err) {
             error = err.message;
-            const nodes = this._nodes._getNodesAsFlat();
-            nodes.forEach((n) => {
+            const nodes = this._nodes?._getNodesAsFlat();
+            nodes?.forEach((n) => {
                 if (activeTaskStates.includes(n.status)) {
                     n.status = pipelineStatuses.STOPPED;
                 }
             });
         }
         else {
-            data = this._nodes.pipelineResults();
+            data = this._nodes?.pipelineResults();
         }
 
         const { storageError, storageResults } = await this._stateManager.setJobResultsToStorage({ jobId: this._jobId, data });
