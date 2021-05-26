@@ -2,8 +2,8 @@ const { createIngressServiceSpec } = require('../deployments/algorithm-debug');
 const kubernetes = require('../helpers/kubernetes');
 const { normalizeServices } = require('./normalize');
 
-const _createIngressService = async ({ algorithmName, debugName, clusterOptions }) => {
-    const { ingressSpec, serviceSpec } = createIngressServiceSpec({ algorithmName, debugName, clusterOptions });
+const _createIngressService = async ({ algorithmName, clusterOptions }) => {
+    const { ingressSpec, serviceSpec } = createIngressServiceSpec({ algorithmName, clusterOptions });
     await kubernetes.createDebugServiceIngress({ ingressSpec, serviceSpec, algorithmName });
 };
 
@@ -14,7 +14,7 @@ const reconcile = async ({ services, debugAlgorithms, clusterOptions } = {}) => 
     const reconcileResult = {};
 
     for (let debug of added) { // eslint-disable-line
-        await _createIngressService({ algorithmName: debug.algorithmName, debugName: debug.debugName, clusterOptions }); // eslint-disable-line
+        await _createIngressService({ algorithmName: debug.name, clusterOptions }); // eslint-disable-line
     }
     for (let debug of removed) { // eslint-disable-line
         await kubernetes.deleteDebugServiceIngress({ algorithmName: debug.algorithmName }); // eslint-disable-line

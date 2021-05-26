@@ -4,7 +4,7 @@ const debugService = ({ algorithmName }) => ({
     kind: 'Service',
     apiVersion: 'v1',
     metadata: {
-        name: `service-debug-${algorithmName}`,
+        name: `service-${algorithmName}`,
         annotations: {
             'prometheus.io/scrape': 'true'
         },
@@ -18,7 +18,7 @@ const debugService = ({ algorithmName }) => ({
     },
     spec: {
         selector: {
-            'algorithm-name': algorithmName,
+            'algorithm-name': `${algorithmName}`,
             'metrics-group': 'workers',
             group: 'hkube'
         },
@@ -36,7 +36,7 @@ const debugIngress = ({ algorithmName }, { ingressHost, ingressPrefix = '', ingr
     apiVersion: 'extensions/v1beta1',
     kind: 'Ingress',
     metadata: {
-        name: `ingress-debug-${algorithmName}`,
+        name: `ingress-${algorithmName}`,
         annotations: {
             'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
             'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
@@ -56,7 +56,7 @@ const debugIngress = ({ algorithmName }, { ingressHost, ingressPrefix = '', ingr
                     paths: [{
                         path: ingressUseRegex ? `${ingressPrefix}/hkube/debug/${algorithmName}(/|$)(.*)` : `${ingressPrefix}/hkube/debug/${algorithmName}`,
                         backend: {
-                            serviceName: `service-debug-${algorithmName}`,
+                            serviceName: `service-${algorithmName}`,
                             servicePort: 80
                         }
                     }]

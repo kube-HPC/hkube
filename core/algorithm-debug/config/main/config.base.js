@@ -5,5 +5,5 @@ config.serviceName = packageJson.name;
 config.version = packageJson.version;
 module.exports = config;
 config.communication = {
-    port: process.env.WORKER_CLIENT_SOCKET_PORT || 3100
+    port: process.env.WORKER_CLIENT_SOCKET_PORT || 3005
 };

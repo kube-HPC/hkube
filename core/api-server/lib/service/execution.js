@@ -11,6 +11,8 @@ const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const pipelineCreator = require('./pipeline-creator');
+const gatewayService = require('./gateway');
+const debugService = require('./debug');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 const ActiveStates = [pipelineStatuses.PENDING, pipelineStatuses.CREATING, pipelineStatuses.ACTIVE, pipelineStatuses.RESUMED, pipelineStatuses.PAUSED];
 const PausedState = [pipelineStatuses.PAUSED];
@@ -84,6 +86,7 @@ class ExecutionService {
         try {
             validator.pipelines.validatePipelineNodes(pipeline);
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
+            pipeline = await pipelineCreator.updateDebug(pipeline);
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline, jobId);
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
@@ -108,6 +111,8 @@ class ExecutionService {
             return { jobId, gateways: pipeline.streaming?.gateways };
         }
         catch (error) {
+            gatewayService.deleteGateways({ pipeline });
+            debugService.deleteDebug({ pipeline });
             span.finish(error);
             throw error;
         }

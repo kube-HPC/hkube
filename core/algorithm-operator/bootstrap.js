@@ -26,8 +26,8 @@ class Bootstrap {
             for (const m of modules) {
                 await m.init(main);  // eslint-disable-line
             }
-            await healthcheck.init({ port: main.healthchecks.port });
-            healthcheck.start(main.healthchecks.path, () => operator.checkHealth(main.healthchecks.maxDiff), 'health');
+            // await healthcheck.init({ port: main.healthchecks.port });
+            // healthcheck.start(main.healthchecks.path, () => operator.checkHealth(main.healthchecks.maxDiff), 'health');
         }
         catch (error) {
             this._onInitFailed(error);

@@ -933,7 +933,7 @@ describe('Executions', () => {
             const res = await request(options);
             const res1 = await request({ uri: `${restUrl}/gateway/${gatewayName}`, method: 'GET' });
             expect(res1.body.gatewayName).to.eql(gatewayName);
-            await gatewayService.deleteGatewaysByJobId({ jobId: res.body.jobId });
+            await gatewayService.deleteGateways({ jobId: res.body.jobId });
             const res2 = await request({ uri: `${restUrl}/gateway/${gatewayName}`, method: 'GET' });
             expect(res2.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(res2.body.error.message).to.contain(`gateway ${gatewayName} Not Found`);
