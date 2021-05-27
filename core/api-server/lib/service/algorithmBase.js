@@ -6,10 +6,6 @@ class AlgorithmBase {
         this._kind = kind;
     }
 
-    init(config) {
-        this._gatewayUrl = config.gatewayUrl.path;
-    }
-
     async get(options) {
         const { name } = options;
         const algorithmName = `${name}-${this._kind}`;

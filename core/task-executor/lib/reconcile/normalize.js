@@ -71,10 +71,6 @@ const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, regist
         if (!algorithm) {
             return;
         }
-        if (algorithm.options && algorithm.options.debug) {
-            return;
-        }
-
         const workerImage = setWorkerImage({ workerImage: algorithm.workerImage }, versions, registry);
 
         let message;
