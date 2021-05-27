@@ -82,7 +82,7 @@ class StateManager extends EventEmitter {
                     }
                 });
             }
-            else if (this._job && this._job.data && state.to === workerStates.ready) {
+            else if (this._job && this._job.data && state.from !== workerStates.bootstrap && state.to === workerStates.ready) {
                 this.emit('finish');
             }
             if (state.to === workerStates.bootstrap) {
