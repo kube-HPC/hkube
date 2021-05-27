@@ -3,6 +3,7 @@ const dbConnect = require('@hkube/db');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../consts/componentNames').ETCD;
 const buildStatus = require('../consts/buildStatus');
+const { arrayToMap } = require('./utils');
 
 class DB extends EventEmitter {
     async init(options) {
@@ -22,6 +23,11 @@ class DB extends EventEmitter {
             this._db.algorithms.count()
         ]);
         return { algorithms, count };
+    }
+
+    async getDriversTemplate() {
+        const templates = await this._db.pipelineDrivers.fetchAll();
+        return arrayToMap(templates);
     }
 
     async getBuilds() {

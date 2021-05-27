@@ -6,5 +6,6 @@ module.exports = {
     RESUMED: 'resumed',
     FAILED: 'failed',
     COMPLETED: 'completed',
-    STOPPED: 'stopped'
+    STOPPED: 'stopped',
+    EXIT: 'exit',
 };

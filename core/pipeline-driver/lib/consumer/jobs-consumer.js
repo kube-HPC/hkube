@@ -1,98 +1,151 @@
-const logger = require('@hkube/logger');
+const log = require('@hkube/logger').GetLogFromContainer();
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const commands = require('../consts/commands');
+const stateManager = require('../state/state-manager');
 const TaskRunner = require('../tasks/task-runner');
+const DriverStates = require('../state/DriverStates');
 const component = require('../consts/componentNames').JOBS_CONSUMER;
-let log;
 
 class JobConsumer {
     constructor() {
-        this._inactiveTimer = null;
+        this._consumerPaused = false;
+        this._drivers = new Map();
     }
 
-    /**
-     * Init the consumer and register for jobs
-     * @param {*} options
-     */
-    init(opt) {
-        log = logger.GetLogFromContainer();
-        const option = opt || {};
-        const { maxStalledCount, type, prefix } = option.jobs.consumer;
-        const options = {
-            job: { type },
+    init(options) {
+        const { maxStalledCount, concurrency, type, prefix } = options.jobs.consumer;
+        const jobOptions = {
+            job: { type, concurrency },
             setting: {
-                redis: option.redis,
+                redis: options.redis,
                 settings: { maxStalledCount },
                 tracer,
                 prefix
             }
         };
         this._options = options;
-        this._consumerPaused = false;
-        this._inactiveTimeoutMs = parseInt(option.timeouts.inactivePaused, 10);
-        this._consumer = new Consumer(options);
-        this._consumer.register(options);
-        this._consumer.on('job', (job) => {
-            this._taskRunner.start(job);
+        this._jobType = jobOptions.job.type;
+        this._discoveryInterval = options.discoveryInterval;
+        this._consumer = new Consumer(jobOptions);
+        this._consumer.register(jobOptions);
+        this._consumer.on('job', async (job) => {
+            await this._handleJob(job);
         });
-        this._handleTaskRunner(option);
+        stateManager.onJobStop(async (d) => {
+            const driver = this._drivers.get(d.jobId);
+            if (driver) {
+                await driver.onStop(d);
+            }
+        });
+        stateManager.onJobPause(async (d) => {
+            const driver = this._drivers.get(d.jobId);
+            if (driver) {
+                await driver.onPause(d);
+            }
+        });
+        stateManager.onTaskStatus((d) => {
+            const driver = this._drivers.get(d.jobId);
+            if (driver) {
+                driver.handleTaskEvent(d);
+            }
+        });
+        stateManager.onStopProcessing(async (data) => {
+            await this._stopProcessing(data);
+        });
+        stateManager.onUnScheduledAlgorithms((e) => {
+            this._drivers.forEach(d => {
+                d.onUnScheduledAlgorithms(e);
+            });
+        });
+        this._intervalActives();
     }
 
-    _handleTaskRunner(option) {
-        this._taskRunner = new TaskRunner(option);
-        this._taskRunner.on(commands.stopProcessing, () => {
-            this._stopProcessing();
-        });
+    _intervalActives() {
+        setTimeout(async () => {
+            try {
+                const idle = this._drivers.size === 0;
+                const paused = this._consumerPaused;
+                const status = this._resolveStatus({ idle, paused });
+                const jobs = [];
+
+                if (!idle) {
+                    const inActiveJobs = [];
+                    this._drivers.forEach(d => {
+                        const job = d.getStatus();
+                        if (job.active) {
+                            jobs.push(job);
+                        }
+                        else {
+                            inActiveJobs.push(job.jobId);
+                        }
+                    });
+                    inActiveJobs.forEach(job => {
+                        this._drivers.delete(job);
+                    });
+                }
+
+                if (jobs.length) {
+                    stateManager.checkUnScheduledAlgorithms();
+                }
+                else {
+                    stateManager.unCheckUnScheduledAlgorithms();
+                }
+
+                await stateManager.updateDiscovery({ idle, paused, status, jobs });
+
+                if (paused && idle) {
+                    this._handleExit();
+                }
+            }
+            catch (e) {
+                log.throttle.error(e.message, { component });
+            }
+            finally {
+                this._intervalActives();
+            }
+        }, this._discoveryInterval);
+    }
+
+    _resolveStatus({ idle, paused }) {
+        if (paused && idle) {
+            return DriverStates.EXIT;
+        }
+        if (!paused && !idle) {
+            return DriverStates.ACTIVE;
+        }
+        if (paused) {
+            return DriverStates.PAUSED;
+        }
+        return DriverStates.READY;
+    }
+
+    async _handleJob(job) {
+        const taskRunner = new TaskRunner(this._options);
+        this._drivers.set(job.data.jobId, taskRunner);
+        await taskRunner.start(job);
     }
 
     async _stopProcessing() {
         if (!this._consumerPaused) {
             log.info('got stop command', { component });
-            await this._taskRunner.setPaused(true);
             await this._pause();
-            this._handleTimeout();
         }
     }
 
-    _handleTimeout() {
-        if (this._inactiveTimer) {
-            clearTimeout(this._inactiveTimer);
-            this._inactiveTimer = null;
-        }
-
-        log.info(`starting inactive timeout for driver ${this._formatSec()}`, { component });
-        this._inactiveTimer = setTimeout(() => {
-            log.info(`driver is inactive for more than ${this._formatSec()}`, { component });
-            process.exit(0);
-        }, this._inactiveTimeoutMs);
-    }
-
-    _formatSec() {
-        return `${this._inactiveTimeoutMs / 1000} seconds`;
+    _handleExit() {
+        log.info('driver is paused and idle, starting exit process', { component });
+        process.exit(0);
     }
 
     async _pause() {
         try {
+            await this._consumer.pause({ type: this._jobType });
             this._consumerPaused = true;
-            await this._consumer.pause({ type: this._options.job.type });
             log.info('Job consumer paused', { component });
         }
         catch (err) {
             this._consumerPaused = false;
             log.error(`Failed to pause consumer. Error:${err.message}`, { component });
-        }
-    }
-
-    async _resume() {
-        try {
-            this._consumerPaused = false;
-            await this._consumer.resume({ type: this._options.job.type });
-            log.info('Job consumer resumed', { component });
-        }
-        catch (err) {
-            this._consumerPaused = true;
-            log.error(`Failed to resume consumer. Error:${err.message}`, { component });
         }
     }
 }

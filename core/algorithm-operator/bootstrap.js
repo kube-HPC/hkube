@@ -32,6 +32,7 @@ class Bootstrap {
         catch (error) {
             this._onInitFailed(error);
         }
+        return main;
     }
 
     _onInitFailed(error) {

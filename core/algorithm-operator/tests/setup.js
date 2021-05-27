@@ -3,9 +3,8 @@ const mockery = require('mockery');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
-const etcd = require('../lib/helpers/etcd');
 const { callCount, mock, clearCount } = (require('./mocks/kubernetes.mock')).kubernetes();
-const templateStore = require('./stub/templateStore');
+const driversTemplateStore = require('./stub/driversTemplateStore');
 
 before(async () => {
     mockery.enable({
@@ -17,12 +16,16 @@ before(async () => {
     mockery.registerMock('../helpers/kubernetes', mock);
     mockery.registerMock('./lib/helpers/kubernetes', mock);
     const bootstrap = require('../bootstrap');
-    await bootstrap.init();
+    const etcd = require('../lib/helpers/etcd');
+    const db = require('../lib/helpers/db');
+    const config = await bootstrap.init();
     await etcd._etcd._client.delete('/', { isPrefix: true });
-
-    await etcd._db.algorithms.createMany(templateStore);
+    await db._db.db.dropDatabase();
+    await db._db.init();
+    await db._db.pipelineDrivers.createMany(driversTemplateStore);
 
     global.testParams = {
+        config,
         callCount,
         clearCount
     }

@@ -1,11 +1,9 @@
 const dbConnect = require('@hkube/db');
-const logger = require('@hkube/logger');
+const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../consts/componentNames').STATE_MANAGER;
-let log;
 
 class DB {
     async init(options) {
-        log = logger.GetLogFromContainer();
         const { provider, ...config } = options.db;
         this._db = dbConnect(config, provider);
         await this._db.init();
