@@ -1,14 +1,13 @@
-const configIt = require('@hkube/config');
-const Logger = require('@hkube/logger');
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
-
 const { expect } = require('chai');
-const { createBuildJobSpec, applyName } = require('../lib/jobs/algorithm-builds');
 const { jobTemplate } = require('../lib/templates/algorithm-builder');
 const { settings } = require('../lib/helpers/settings');
+let config, createBuildJobSpec, applyName;
 
 describe('jobCreator', () => {
+    before(() => {
+        config = global.testParams.config;
+        ({ createBuildJobSpec, applyName } = require('../lib/jobs/algorithm-builds'));
+    });
     beforeEach(() => {
         settings.applyResourceLimits = false;
     });
@@ -29,7 +28,7 @@ describe('jobCreator', () => {
                 data: {
 
                 }
-            }, options: main
+            }, options: config
         });
         expect(res).to.nested.include({ 'metadata.name': 'build-' + buildId });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/algorithm-builder:v1.2' });
@@ -48,10 +47,10 @@ describe('jobCreator', () => {
         }
         const buildId = 'my-alg-12345'
         const options = {
-            ...main,
+            ...config,
             buildMode: 'kaniko'
         }
-        
+
         const res = createBuildJobSpec({
             buildId, versions: {
                 versions: [
@@ -92,10 +91,10 @@ describe('jobCreator', () => {
         }
         const buildId = 'my-alg-12345'
         const options = {
-            ...main,
+            ...config,
             buildMode: 'openshift'
         }
-        
+
         const res = createBuildJobSpec({
             buildId, versions: {
                 versions: [
@@ -127,7 +126,7 @@ describe('jobCreator', () => {
     it('should add kaniko if needed without resources', () => {
         const buildId = 'my-alg-12345'
         const options = {
-            ...main,
+            ...config,
             buildMode: 'kaniko'
         }
         const resourcesMain = {
@@ -171,7 +170,7 @@ describe('jobCreator', () => {
     it('should add kaniko if needed with registry', () => {
         const buildId = 'my-alg-12345'
         const options = {
-            ...main,
+            ...config,
             buildMode: 'kaniko'
         }
         const res = createBuildJobSpec({
@@ -205,7 +204,7 @@ describe('jobCreator', () => {
     it('should not add kaniko if not needed', () => {
         const buildId = 'my-alg-12345'
         const options = {
-            ...main,
+            ...config,
             buildMode: 'docker'
         }
         const res = createBuildJobSpec({
@@ -224,7 +223,7 @@ describe('jobCreator', () => {
     it('should add imagePullSecret', () => {
         const buildId = 'my-alg-12345'
         const options = {
-            ...main,
+            ...config,
             buildMode: 'docker'
         }
         const res = createBuildJobSpec({
@@ -237,9 +236,9 @@ describe('jobCreator', () => {
                 }
             },
             options,
-            clusterOptions: {imagePullSecretName: 'my-secret'}
+            clusterOptions: { imagePullSecretName: 'my-secret' }
         });
         expect(res.spec.template.spec.imagePullSecrets).to.exist;
-        expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({name: 'my-secret'});
+        expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({ name: 'my-secret' });
     });
 });

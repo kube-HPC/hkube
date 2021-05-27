@@ -57,7 +57,7 @@ const template = {
                                 name: 'CONCURRENCY_LIMIT',
                                 valueFrom: {
                                     configMapKeyRef: {
-                                        name: 'task-executor-configmap',
+                                        name: 'algorithm-operator-configmap',
                                         key: 'PIPELINE_DRIVERS_CONCURRENCY_LIMIT'
                                     }
                                 }
@@ -66,7 +66,7 @@ const template = {
                                 name: 'DEFAULT_STORAGE',
                                 valueFrom: {
                                     configMapKeyRef: {
-                                        name: 'task-executor-configmap',
+                                        name: 'algorithm-operator-configmap',
                                         key: 'DEFAULT_STORAGE'
                                     }
                                 }
@@ -75,7 +75,7 @@ const template = {
                                 name: 'STORAGE_ENCODING',
                                 valueFrom: {
                                     configMapKeyRef: {
-                                        name: 'task-executor-configmap',
+                                        name: 'algorithm-operator-configmap',
                                         key: 'STORAGE_ENCODING'
                                     }
                                 }
@@ -93,7 +93,7 @@ const template = {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {
-                                        name: 'task-executor-configmap',
+                                        name: 'algorithm-operator-configmap',
                                         key: 'CLUSTER_NAME'
                                     }
                                 }
