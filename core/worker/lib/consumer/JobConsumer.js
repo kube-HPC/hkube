@@ -10,7 +10,6 @@ const metricsHelper = require('../metrics/metrics');
 const stateAdapter = require('../states/stateAdapter');
 const streamHandler = require('../streaming/services/stream-handler');
 const { Components, logMessages, jobStatus } = require('../consts');
-const JobProvider = require('./job-provider');
 const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
@@ -45,44 +44,31 @@ class JobConsumer extends EventEmitter {
         this._options = options;
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
-
-        if (this._consumer) {
-            this._consumer.removeAllListeners();
-            this._consumer = null;
-            this._job = null;
-        }
         this._hotWorker = this._options.hotWorker;
         this._consumer = new Consumer(this._options.jobConsumer);
-        this._jobProvider = new JobProvider(options);
-        this._jobProvider.init(this._consumer);
         this._consumer.register(this._options.jobConsumer);
-        log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
+        log.info(`registering for job ${this._options.jobConsumer.job.type}`, { component });
 
-        this._jobProvider.on('job', async (job) => {
+        this._consumer.on('job', async (job) => {
             if (job.data.status === taskStatuses.PRESCHEDULE) {
                 log.info(`job ${job.data.jobId} is in ${job.data.status} mode, calling done...`);
                 job.done();
                 return;
             }
+            this._setJob(job);
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
             const watchState = await stateAdapter.watch({ jobId: job.data.jobId });
-            if (watchState && this._isCompletedState({ status: watchState.status })) {
+            if (this._isCompletedState({ status: watchState?.status })) {
                 await this._stopJob(job, watchState.status);
                 return;
             }
 
             metricsHelper.initMetrics(job);
-            const { error } = await storage.start(job.data);
-            if (error) {
-                stateManager.done({ error });
-                return;
-            }
-            this._setJob(job);
 
             if (this._execId) {
                 log.info('starting as algorithm code api', { component });
                 const watchExecutionState = await stateAdapter.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
-                if (watchExecutionState && this._isCompletedState({ status: watchExecutionState.status })) {
+                if (this._isCompletedState({ status: watchExecutionState?.status })) {
                     await this.finishJob();
                     return;
                 }
@@ -94,16 +80,24 @@ class JobConsumer extends EventEmitter {
             });
 
             stateManager.setJob(job);
-            stateManager.prepare();
-        });
-
-        this._jobProvider.on('job-queue', async (job) => {
-            this._setJob(job);
+            this._handleJob(job);
         });
 
         stateManager.on('finish', () => {
             this.finishBullJob();
         });
+    }
+
+    async _handleJob(job) {
+        if (this._isConnected) {
+            const { error } = await storage.start(job.data);
+            if (error) {
+                stateManager.done({ error });
+            }
+            else {
+                stateManager.prepare();
+            }
+        }
     }
 
     _isCompletedState({ status }) {
@@ -360,6 +354,13 @@ class JobConsumer extends EventEmitter {
 
     getAlgorithmType() {
         return this._options.jobConsumer.job.type;
+    }
+
+    set isConnected(isConnected) {
+        this._isConnected = isConnected;
+        if (this._job) {
+            this._handleJob(this._job);
+        }
     }
 }
 
