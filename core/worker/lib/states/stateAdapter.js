@@ -117,7 +117,7 @@ class StateAdapter extends EventEmitter {
             await this._etcd.algorithms.executions.unwatch(options);
         }
         catch (error) {
-            log.warning(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
+            log.debug(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
         }
     }
 
