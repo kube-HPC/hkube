@@ -31,12 +31,9 @@ class Worker {
         this._checkAlgorithmStatus = this._checkAlgorithmStatus.bind(this);
     }
 
-    preInit() {
+    preInit(options) {
         log = Logger.GetLogFromContainer();
         this._registerToConnectionEvents();
-    }
-
-    async init(options) {
         this._options = options;
         this._podName = options.kubernetes.pod_name;
         this._debugMode = options.debugMode;
@@ -44,6 +41,9 @@ class Worker {
         this._servingReportInterval = options.servingReportInterval;
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
         this._stoppingTimeoutMs = options.timeouts.stoppingTimeoutMs;
+    }
+
+    async init() {
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
         this._registerToEtcdEvents();
@@ -202,10 +202,10 @@ class Worker {
         log.info('algorithm connected', { component });
         this._isBootstrapped = true;
         this._initAlgorithmSettings();
-        log.info('starting bootstrap state', { component });
+        log.debug('starting bootstrap state', { component });
         stateManager.bootstrap();
         jobConsumer.isConnected = true;
-        log.info('finished bootstrap state', { component });
+        log.debug('finished bootstrap state', { component });
     }
 
     async _checkAlgorithmStatus() {
