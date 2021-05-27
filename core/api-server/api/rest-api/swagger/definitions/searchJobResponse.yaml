@@ -1,9 +1,0 @@
-type: object
-properties:
-  hits:
-    type: array
-    items: {}
-  cursor:
-    type: string
-  timeTook:
-    type: string

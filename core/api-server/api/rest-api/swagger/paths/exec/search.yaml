@@ -7,16 +7,16 @@ post:
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/searchJob"
+          $ref: "#/components/schemas/searchJobs"
     description: jobs search specification
     required: true
   responses:
     "200":
-      description: search job response
+      description: search jobs response
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/searchJobResponse"
+            $ref: "#/components/schemas/searchJobsResponse"
     "400":
       description: bad request
       content:

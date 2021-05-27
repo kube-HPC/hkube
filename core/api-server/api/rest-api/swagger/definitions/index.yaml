@@ -112,7 +112,7 @@ pipelineTriggersNode:
   $ref: ./pipelineTriggersNode.yaml
 pipelineTriggersResult:
   $ref: ./pipelineTriggersResult.yaml
-searchJob:
-  $ref: ./searchJob.yaml
-searchJobResponse:
-  $ref: ./searchJobResponse.yaml
+searchJobs:
+  $ref: ./searchJobs.yaml
+searchJobsResponse:
+  $ref: ./searchJobsResponse.yaml

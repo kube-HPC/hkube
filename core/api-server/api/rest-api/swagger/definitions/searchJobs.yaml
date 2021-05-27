@@ -24,16 +24,21 @@ properties:
             example: '2021-03-11T14:30:00'
   cursor:
     type: string
+    description: get the next results starting from this cursor
   pageNum:
     type: integer
+    description: get the next results starting from this page number
   sort:
     type: object
   limit:
     type: integer
+    description: limit the result size
   fields:
     type: object
+    description: select which fields to return
   exists:
     type: object
+    description: only return records that has fields
 
 example:
   query:
