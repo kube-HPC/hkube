@@ -31,7 +31,6 @@ class WsWorkerCommunication extends EventEmitter {
 
                 this._socketServer.on('connection', (socket, opt) => {
                     const data = url.parse(opt.url, true).query;
-                    log.info('Connected!!!', { component });
                     this._registerSocketMessages(socket);
                     this.emit('connection', data);
                 });

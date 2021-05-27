@@ -328,19 +328,16 @@ class SubPipelineHandler {
      * @param reason
      */
     async stopAllSubPipelines({ reason }) {
-        if (this._stoppingSubpipelines) {
-            return;
-        }
-        if (this._jobId2InternalIdMap.size === 0) {
-            log.info('no registered subPipelines to stop', { component });
+        if (this._stoppingSubpipelines || this._jobId2InternalIdMap.size === 0) {
             return;
         }
         this._stoppingSubpipelines = true;
         try {
+            log.info('starting to stop sub-pipelines', { component });
             await Promise.all([...this._jobId2InternalIdMap].map(s => this._closeSubpipeline(s, reason)));
         }
         catch (error) {
-            log.warning(`failed to stop subPipeline: ${error}`, { component });
+            log.warning(`failed to stop sub-pipelines: ${error}`, { component });
         }
 
         // clean subPipelines IDs
