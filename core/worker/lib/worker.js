@@ -204,6 +204,7 @@ class Worker {
         this._initAlgorithmSettings();
         log.info('starting bootstrap state', { component });
         stateManager.bootstrap();
+        jobConsumer.isConnected = true;
         log.info('finished bootstrap state', { component });
     }
 
@@ -225,7 +226,7 @@ class Worker {
                     const options = {
                         error: {
                             message: `${message}. ${containerMessage.message}`,
-                            isImagePullErr: containerMessage.isImagePullErr
+                            isImagePullErr: true
                         }
                     };
                     log.error(options.error.message, { component });
@@ -234,7 +235,7 @@ class Worker {
                 }
             }
             else {
-                log.error(`algorithm container status is ${status}, reason: ${reason}`, { component });
+                log.error(`algorithm container status is ${status}`, { component });
             }
         }
         catch (e) {
@@ -250,7 +251,6 @@ class Worker {
     _registerToConnectionEvents() {
         algoRunnerCommunication.on('connection', (options) => {
             this._isConnected = true;
-            jobConsumer.isConnected = true;
             if (stateManager.state === workerStates.exit) {
                 return;
             }
@@ -404,7 +404,7 @@ class Worker {
                     await this._startRetry(options);
                     return;
                 }
-                await this._endJob(options);
+                await this._endJob(options, { retry: !isAlgorithmError });
                 break;
             default:
                 log.warning(`unknown retry policy ${retry.policy}`, { component });
@@ -413,7 +413,7 @@ class Worker {
         }
     }
 
-    async _endJob(options) {
+    async _endJob(options, { retry = true } = {}) {
         const { jobId } = jobConsumer.jobData;
         const reason = `parent algorithm failed: ${options.error.message}`;
         await this._stopAllPipelinesAndExecutions({ jobId, reason });
@@ -422,7 +422,12 @@ class Worker {
             ...options,
             shouldCompleteJob: true
         };
-        stateManager.exit(data);
+        if (retry) {
+            stateManager.exit(data);
+        }
+        else {
+            stateManager.done(data);
+        }
     }
 
     async _startRetry(options) {
