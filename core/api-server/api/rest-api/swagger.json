@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.5",
+    "version": "2.1.8",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -1468,6 +1468,173 @@
           },
           "404": {
             "description": "jobId Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exec/search": {
+      "post": {
+        "tags": [
+          "Execution"
+        ],
+        "summary": "Search jobs",
+        "description": "Search jobs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "experimentName": {
+                        "type": "string"
+                      },
+                      "pipelineName": {
+                        "type": "string"
+                      },
+                      "pipelineType": {
+                        "type": "string"
+                      },
+                      "algorithmName": {
+                        "type": "string"
+                      },
+                      "pipelineStatus": {
+                        "type": "string"
+                      },
+                      "datesRange": {
+                        "type": "object",
+                        "properties": {
+                          "from": {
+                            "type": "string",
+                            "example": "2021-03-11T14:30:00"
+                          },
+                          "to": {
+                            "type": "string",
+                            "example": "2021-03-11T14:30:00"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "description": "get the next results starting from this cursor"
+                  },
+                  "pageNum": {
+                    "type": "integer",
+                    "description": "get the next results starting from this page number"
+                  },
+                  "sort": {
+                    "type": "string",
+                    "enum": [
+                      "asc",
+                      "desc"
+                    ],
+                    "default": "desc"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "description": "limit the result size"
+                  },
+                  "fields": {
+                    "type": "object",
+                    "description": "select which fields to return"
+                  },
+                  "exists": {
+                    "type": "object",
+                    "description": "only return records that has fields"
+                  }
+                },
+                "example": {
+                  "query": {
+                    "datesRange": {
+                      "from": "2021-05-22T15:00:00",
+                      "to": "2021-06-22T16:00:00"
+                    },
+                    "experimentName": "main",
+                    "pipelineName": "simple",
+                    "pipelineType": "stored",
+                    "algorithmName": "green-alg",
+                    "pipelineStatus": "completed"
+                  },
+                  "sort": "desc",
+                  "pageNum": 1,
+                  "limit": 2,
+                  "fields": {
+                    "jobId": true
+                  }
+                }
+              }
+            }
+          },
+          "description": "jobs search specification",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "search jobs response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hits": {
+                      "type": "array",
+                      "description": "the actual result records",
+                      "items": {}
+                    },
+                    "cursor": {
+                      "type": "string",
+                      "description": "this cursor to the next query can be used for pagination"
+                    },
+                    "timeTook": {
+                      "type": "string",
+                      "description": "the query completion time took in milliseconds"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
             "content": {
               "application/json": {
                 "schema": {
@@ -15105,6 +15272,109 @@
               "type": "array",
               "items": {}
             }
+          }
+        }
+      },
+      "searchJobs": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "object",
+            "properties": {
+              "experimentName": {
+                "type": "string"
+              },
+              "pipelineName": {
+                "type": "string"
+              },
+              "pipelineType": {
+                "type": "string"
+              },
+              "algorithmName": {
+                "type": "string"
+              },
+              "pipelineStatus": {
+                "type": "string"
+              },
+              "datesRange": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "example": "2021-03-11T14:30:00"
+                  },
+                  "to": {
+                    "type": "string",
+                    "example": "2021-03-11T14:30:00"
+                  }
+                }
+              }
+            }
+          },
+          "cursor": {
+            "type": "string",
+            "description": "get the next results starting from this cursor"
+          },
+          "pageNum": {
+            "type": "integer",
+            "description": "get the next results starting from this page number"
+          },
+          "sort": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "limit the result size"
+          },
+          "fields": {
+            "type": "object",
+            "description": "select which fields to return"
+          },
+          "exists": {
+            "type": "object",
+            "description": "only return records that has fields"
+          }
+        },
+        "example": {
+          "query": {
+            "datesRange": {
+              "from": "2021-05-22T15:00:00",
+              "to": "2021-06-22T16:00:00"
+            },
+            "experimentName": "main",
+            "pipelineName": "simple",
+            "pipelineType": "stored",
+            "algorithmName": "green-alg",
+            "pipelineStatus": "completed"
+          },
+          "sort": "desc",
+          "pageNum": 1,
+          "limit": 2,
+          "fields": {
+            "jobId": true
+          }
+        }
+      },
+      "searchJobsResponse": {
+        "type": "object",
+        "properties": {
+          "hits": {
+            "type": "array",
+            "description": "the actual result records",
+            "items": {}
+          },
+          "cursor": {
+            "type": "string",
+            "description": "this cursor to the next query can be used for pagination"
+          },
+          "timeTook": {
+            "type": "string",
+            "description": "the query completion time took in milliseconds"
           }
         }
       }

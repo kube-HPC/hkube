@@ -29,7 +29,11 @@ properties:
     type: integer
     description: get the next results starting from this page number
   sort:
-    type: object
+    type: string
+    enum:
+    - asc
+    - desc
+    default: desc
   limit:
     type: integer
     description: limit the result size
@@ -49,7 +53,8 @@ example:
     pipelineName: simple
     pipelineType: stored
     algorithmName: green-alg
-    pipelineStatus: completed 
+    pipelineStatus: completed
+  sort: desc
   pageNum: 1
   limit: 2
   fields:
