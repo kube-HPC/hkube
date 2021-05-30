@@ -1,5 +1,6 @@
 const settingsFactory = () => (
     {
+        useResourceLimits: false,
         applyResourceLimits: false,
         resourcesMain: {
             memory: 256,
@@ -18,6 +19,7 @@ const setFromConfig = (config) => {
     if (!config) {
         return;
     }
+    settings.useResourceLimits = config.resources.useResourceLimits;
     settings.applyResourceLimits = config.resources.enable;
     settings.resourcesMain = config.resources.algorithmBuilderMain;
     settings.resourcesBuilder = config.resources.algorithmBuilderBuilder;

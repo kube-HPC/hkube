@@ -2,20 +2,19 @@ const { uid: uuidv4 } = require('@hkube/uid');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const storageManager = require('@hkube/storage-manager');
-const { pipelineStatuses } = require('@hkube/consts');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 const pipelines = require('./mocks/pipelines');
 const DriverStates = require('../lib/state/DriverStates');
-const StateManager = require('../lib/state/state-manager');
+const { createJobId } = require('./utils');
 let stateManager;
 
 describe('StateManager', function () {
     before(async () => {
-        stateManager = new StateManager(testParams.config);
+        stateManager = require('../lib/state/state-manager');
     });
     it('setJobResults', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const taskId = `taskId-${uuidv4()}`;
         const data = [{ koko: [1, 2, 3] }];
         const results = {
@@ -32,7 +31,7 @@ describe('StateManager', function () {
         expect(data).to.deep.equal(res[0].result);
     });
     it('setJobResults with null', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const taskId = `taskId-${uuidv4()}`;
         const data = [{ koko: [null, 2, 3] }];
         const results = {
@@ -49,7 +48,7 @@ describe('StateManager', function () {
         expect(data).to.deep.equal(res[0].result);
     });
     it('setJobResults with error', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const taskId = `taskId-${uuidv4()}`;
         const data = [
             {
@@ -80,14 +79,14 @@ describe('StateManager', function () {
         expect(data).to.deep.equal(res[0].result);
     });
     it('setJobStatus', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const data = { status: 'completed' };
         await stateManager._etcd.jobs.status.set({ jobId, data });
         const response = await stateManager._etcd.jobs.status.get({ jobId });
         expect(response.data).to.deep.equal(data);
     });
     it('getExecution', async function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const pipeline = pipelines.find(p => p.name === 'simple-wait-any');
         const options = { jobId, pipeline, status: { status: 'completed' } };
         await stateManager.createJob(options);
@@ -96,12 +95,14 @@ describe('StateManager', function () {
     });
     it('unWatchTasks', function () {
         return new Promise(async (resolve, reject) => {
-            const jobId = `jobid-${uuidv4()}`;
+            const jobId = createJobId();
             const taskId = `taskId-${uuidv4()}`;
             const data = { error: 'some different error', status: 'failed' }
             await stateManager.watchTasks({ jobId });
-            stateManager.on('task-failed', (response) => {
-                throw new Error('failed');
+            stateManager.onTaskStatus((data) => {
+                if (data.jobId === jobId) {
+                    throw new Error('failed');
+                }
             });
             await stateManager.unWatchTasks({ jobId });
             await stateManager._etcd.jobs.tasks.set({ jobId, taskId, error: data.error, status: data.status });
@@ -112,10 +113,10 @@ describe('StateManager', function () {
     });
     it('watchJobStatus', function () {
         return new Promise(async (resolve, reject) => {
-            const jobId = `jobid-${uuidv4()}`;
+            const jobId = createJobId();
             const status = DriverStates.STOPPED;
             await stateManager.watchJobStatus({ jobId });
-            stateManager.on(`job-${pipelineStatuses.STOPPED}`, (response) => {
+            stateManager.onJobStop((response) => {
                 if (response.jobId === jobId) {
                     expect(response.jobId).to.equal(jobId);
                     expect(response.status).to.equal(status);
@@ -127,9 +128,9 @@ describe('StateManager', function () {
     });
     it('unWatchJobState', function () {
         return new Promise(async (resolve, reject) => {
-            const jobId = `jobid-${uuidv4()}`;
+            const jobId = createJobId();
             await stateManager.watchJobStatus({ jobId });
-            stateManager.on(`job-${pipelineStatuses.STOPPED}`, (response) => {
+            stateManager.onJobStop(() => {
                 throw new Error('failed');
             });
             await stateManager.unWatchJobStatus({ jobId });

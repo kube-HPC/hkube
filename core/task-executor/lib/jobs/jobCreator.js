@@ -10,7 +10,7 @@ const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
-const { workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
+const { workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
 
@@ -37,10 +37,6 @@ const applyAlgorithmResourceRequests = (inputSpec, resourceRequests, node) => {
 
 const applyWorkerResourceRequests = (inputSpec, workerResourceRequests) => {
     return applyResourceRequests(inputSpec, workerResourceRequests, CONTAINERS.WORKER);
-};
-
-const applyPipelineDriverResourceRequests = (inputSpec, resourceRequests) => {
-    return applyResourceRequests(inputSpec, resourceRequests, CONTAINERS.PIPELINE_DRIVER);
 };
 
 const applyEnvToContainerFromSecretOrConfigMap = (inputSpec, containerName, inputEnv) => {
@@ -84,11 +80,10 @@ const applyWorkerImage = (inputSpec, image) => {
     return applyImage(inputSpec, image, CONTAINERS.WORKER);
 };
 
-const applyPipelineDriverImage = (inputSpec, image) => {
-    return applyImage(inputSpec, image, CONTAINERS.PIPELINE_DRIVER);
-};
-
 const applyMounts = (inputSpec, mounts = []) => {
+    if (!mounts.length) {
+        return inputSpec;
+    }
     let spec = clonedeep(inputSpec);
     mounts.forEach((m, i) => {
         const name = `${m.pvcName}-${i}`;
@@ -127,12 +122,12 @@ const applyJaeger = (inputSpec, container, options) => {
 };
 
 const applyOpengl = (inputSpec, options, algorithmOptions = {}) => {
-    let spec = clonedeep(inputSpec);
     const { isPrivileged } = options.kubernetes;
     const { opengl } = algorithmOptions;
     if (!isPrivileged || !opengl) {
-        return spec;
+        return inputSpec;
     }
+    let spec = clonedeep(inputSpec);
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { DISPLAY: ':0' });
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { NVIDIA_DRIVER_CAPABILITIES: 'all' });
     // TODO: do we need it?  spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { NVIDIA_VISIBLE_DEVICES: 'all' });
@@ -150,14 +145,14 @@ const applyOpengl = (inputSpec, options, algorithmOptions = {}) => {
 };
 
 const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, clusterOptions = {} }) => {
-    let spec = clonedeep(inputSpec);
     const { devMode } = algorithmOptions;
     if (!devMode) {
-        return spec;
+        return inputSpec;
     }
     if (!clusterOptions.devModeEnabled) {
-        return spec;
+        return inputSpec;
     }
+    let spec = clonedeep(inputSpec);
     objectPath.set(spec, 'spec.template.spec.restartPolicy', 'OnFailure');
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { DEV_MODE: 'true' });
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { DEV_MODE: 'true' });
@@ -332,33 +327,11 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     return spec;
 };
 
-const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions, options }) => {
-    if (!image) {
-        const msg = 'Unable to create job spec. image is required';
-        log.error(msg, { component });
-        throw new Error(msg);
-    }
-    let spec = clonedeep(pipelineDriverTemplate);
-    spec = applyName(spec, CONTAINERS.PIPELINE_DRIVER);
-    spec = applyPipelineDriverImage(spec, image);
-    spec = applyEnvToContainer(spec, CONTAINERS.PIPELINE_DRIVER, inputEnv);
-    if (settings.applyResources) {
-        spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
-    }
-    spec = applyJaeger(spec, CONTAINERS.PIPELINE_DRIVER, options);
-    spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'task-executor-configmap');
-    spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
-
-    return spec;
-};
-
 module.exports = {
     applyImage,
     createJobSpec,
-    createDriverJobSpec,
     applyAlgorithmImage,
     applyWorkerImage,
-    applyPipelineDriverImage,
     applyAlgorithmName,
     applyAlgorithmResourceRequests,
     applyWorkerResourceRequests,

@@ -1,7 +1,8 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../consts/componentNames').ETCD;
+const { containers, components } = require('../consts');
+const component = components.ETCD;
 
 class EtcdClient extends EventEmitter {
     async init(options) {
@@ -15,6 +16,24 @@ class EtcdClient extends EventEmitter {
 
     async sendAlgorithmQueueAction({ queueId, action, algorithmName, timestamp }) {
         return this._etcd.algorithmQueues.set({ queueId, action, algorithmName, timestamp });
+    }
+
+    sendCommandToDriver({ driverId, command }) {
+        log.info(`driver command: ${command}`, { component, command, driverId });
+        return this._etcd.drivers.set({ driverId, status: { command }, timestamp: Date.now() });
+    }
+
+    async getPipelineDrivers() {
+        const serviceName = containers.PIPELINE_DRIVER;
+        const drivers = await this._etcd.discovery.list({ serviceName });
+        return drivers;
+    }
+
+    async getPipelineDriverRequests() {
+        const options = {
+            name: 'data'
+        };
+        return this._etcd.pipelineDrivers.requirements.list(options);
     }
 }
 

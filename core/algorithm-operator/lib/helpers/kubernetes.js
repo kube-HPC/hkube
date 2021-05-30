@@ -1,7 +1,8 @@
 const EventEmitter = require('events');
 const log = require('@hkube/logger').GetLogFromContainer();
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
-const component = require('../consts/componentNames').K8S;
+const { containers, components } = require('../consts');
+const component = components.K8S;
 
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
@@ -169,6 +170,11 @@ class KubernetesApi extends EventEmitter {
             resIngress,
             resService
         };
+    }
+
+    async getPipelineDriversJobs() {
+        const jobsRaw = await this._client.jobs.get({ labelSelector: `type=${containers.PIPELINE_DRIVER},group=hkube` });
+        return jobsRaw;
     }
 
     async createGatewayServiceIngress({ ingressSpec, serviceSpec, algorithmName }) {
