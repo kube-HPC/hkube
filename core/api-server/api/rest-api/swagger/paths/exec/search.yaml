@@ -1,0 +1,113 @@
+post:
+  tags:
+    - Execution
+  summary: Search jobs
+  description: Search jobs
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/searchJobs"
+    description: jobs search specification
+    required: true
+  responses:
+    "200":
+      description: search jobs response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/searchJobsResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+get:
+  tags:
+    - Execution
+  summary: Search jobs
+  description: Search jobs
+  parameters:
+    - name: experimentName
+      in: query
+      schema:
+        type: string
+    - name: pipelineName
+      in: query
+      schema:
+        type: string
+    - name: pipelineType
+      in: query
+      schema:
+        type: string
+    - name: algorithmName
+      in: query
+      schema:
+        type: string
+    - name: pipelineStatus
+      in: query
+      schema:
+        type: string
+    - name: from
+      in: query
+      example: '2021-05-22T15:00:00'
+      schema:
+        type: string
+    - name: to
+      example: '2021-06-22T16:00:00'
+      in: query
+      schema:
+        type: string
+    - name: cursor
+      in: query
+      schema:
+        type: string
+    - name: page
+      in: query
+      schema:
+        type: string
+    - name: sort
+      in: query
+      example: asc,desc
+      schema:
+        type: string
+    - name: limit
+      in: query
+      schema:
+        type: string
+    - name: fields
+      in: query
+      example: "result:false, pipeline:false"
+      schema:
+        type: string
+    - name: exists
+      in: query
+      example: "result:true, pipeline:false"
+      schema:
+        type: string
+  responses:
+    "200":
+      description: search jobs response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/searchJobsResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
