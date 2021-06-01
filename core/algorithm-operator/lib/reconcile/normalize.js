@@ -161,6 +161,7 @@ const normalizeDriversAmount = (drivers, requests, settings) => {
 
     if (requests > available) {
         amount = (requests - available) / concurrency;
+        amount = Math.ceil(amount);
     }
     const desiredDrivers = Math.min(amount, maxAmount);
     return desiredDrivers;
