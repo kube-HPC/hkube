@@ -29,3 +29,80 @@ post:
         application/json:
           schema:
             $ref: "#/components/schemas/error"
+get:
+  tags:
+    - Execution
+  summary: Search jobs
+  description: Search jobs
+  parameters:
+    - name: experiment
+      in: query
+      schema:
+        type: string
+    - name: pipeline
+      in: query
+      schema:
+        type: string
+    - name: type
+      in: query
+      schema:
+        type: string
+    - name: algorithm
+      in: query
+      schema:
+        type: string
+    - name: status
+      in: query
+      schema:
+        type: string
+    - name: from
+      in: query
+      schema:
+        type: string
+    - name: to
+      in: query
+      schema:
+        type: string
+    - name: cursor
+      in: query
+      schema:
+        type: string
+    - name: page
+      in: query
+      schema:
+        type: string
+    - name: sort
+      in: query
+      schema:
+        type: string
+    - name: limit
+      in: query
+      schema:
+        type: string
+    - name: fields
+      in: query
+      schema:
+        type: string
+    - name: exists
+      in: query
+      schema:
+        type: string
+  responses:
+    "200":
+      description: search jobs response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/searchJobsResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

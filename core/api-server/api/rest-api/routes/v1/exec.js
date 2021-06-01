@@ -2,6 +2,15 @@ const RestServer = require('@hkube/rest-server');
 const Execution = require('../../../../lib/service/execution');
 const methods = require('../../middlewares/methods');
 const logger = require('../../middlewares/logger');
+const formatter = require('../../../../lib/utils/formatters');
+
+const createQueryObjectFromString = (str) => {
+    return str?.replace(/\s/g, '').split(',').reduce((acc, cur) => {
+        const [k, v] = cur.split(':');
+        acc[k] = formatter.parseBool(v);
+        return acc;
+    }, {});
+};
 
 const routes = (options) => {
     const router = RestServer.router();
@@ -86,7 +95,29 @@ const routes = (options) => {
         res.jobId = jobId;
         next();
     });
-    router.all('/search', methods(['POST']), logger(), async (req, res, next) => {
+    router.get('/search', logger(), async (req, res, next) => {
+        const { experiment, pipeline, type, algorithm, status, from, to, cursor, page, sort, limit, fields, exists } = req.query;
+        const search = {
+            query: {
+                experimentName: experiment,
+                pipelineName: pipeline,
+                pipelineType: type,
+                algorithmName: algorithm,
+                pipelineStatus: status,
+                datesRange: { from, to }
+            },
+            cursor,
+            sort,
+            pageNum: formatter.parseInt(page, null),
+            limit: formatter.parseInt(limit, null),
+            fields: createQueryObjectFromString(fields),
+            exists: createQueryObjectFromString(exists)
+        };
+        const response = await Execution.search(search);
+        res.json(response);
+        next();
+    });
+    router.post('/search', logger(), async (req, res, next) => {
         const response = await Execution.search(req.body);
         res.json(response);
         next();
