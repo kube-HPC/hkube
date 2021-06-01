@@ -15,11 +15,6 @@ const setAlgorithmImage = (template, versions, registry) => {
     return createImage(image, versions, registry);
 };
 
-const setPipelineDriverImage = (template, versions, registry) => {
-    const { image } = template;
-    return createImage(image, versions, registry);
-};
-
 const _createContainerResourceByFactor = ({ cpu, mem, gpu } = {}, factor = 1) => {
     const cpuFactored = (cpu || 0.1) * factor;
     const memory = `${(mem || 4) * factor}Mi`;
@@ -37,6 +32,5 @@ const createContainerResource = (template) => {
 module.exports = {
     setWorkerImage,
     setAlgorithmImage,
-    setPipelineDriverImage,
     createContainerResource
 };

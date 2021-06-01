@@ -77,7 +77,7 @@ describe('Internal', () => {
             };
             const response = await request(options2);
             expect(response.body.jobId).to.not.include(pipelineName);
-        })
+        });
         it('should run cron pipelines without experiment', async () => {
             const pipeline = clone(pipelines[0]);
             const options = {
@@ -88,7 +88,7 @@ describe('Internal', () => {
             };
             const response = await request(options);
             expect(response.body.jobId).to.not.include(pipeline.name);
-        })
+        });
         it('should run triggered cron pipelines and get the results', async () => {
             const requests = 5;
             const limit = 3;
@@ -100,16 +100,14 @@ describe('Internal', () => {
                     name: pipeline,
                     nodes: [
                         {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "@flowInput"
-                            ]
+                            nodeName: 'green',
+                            algorithmName: 'green-alg',
+                            input: ['@flowInput']
                         }
                     ],
                     flowInput: {
-                        "files": {
-                            "link": "links-1"
+                        files: {
+                            link: 'links-1'
                         }
                     }
                 }
@@ -180,7 +178,7 @@ describe('Internal', () => {
             expect(res3.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER]);
         });
         it('should run stored trigger pipeline and merge parent flowInput', async () => {
-            const flow2 = pipelines.find(p => p.name === 'flow2')
+            const flow2 = pipelines.find((p) => p.name === 'flow2');
             const options1 = {
                 uri: `${restUrl}/exec/stored`,
                 body: {
@@ -191,7 +189,7 @@ describe('Internal', () => {
             const jobId = res1.body.jobId;
             const data = { prop: 42 };
             await workerStub.done({ jobId, data });
-            await delay(500)
+            await delay(500);
             const options2 = {
                 uri: `${internalUrl}/exec/stored/trigger`,
                 body: {
@@ -230,9 +228,9 @@ describe('Internal', () => {
                 promises.push(request(options));
             }
             const response = await Promise.all(promises);
-            const jobs = response.map(r => r.body.jobId);
+            const jobs = response.map((r) => r.body.jobId);
             expect(jobs).to.have.lengthOf(requests);
-            expect(jobs.every(j => typeof j === 'string')).to.equal(true);
+            expect(jobs.every((j) => typeof j === 'string')).to.equal(true);
         });
         it('should run triggered pipelines and the executions tree', async function () {
             const requests = 5;
@@ -245,24 +243,20 @@ describe('Internal', () => {
                     name: `${pipeline}-${i}`,
                     nodes: [
                         {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "@flowInput"
-                            ]
+                            nodeName: 'green',
+                            algorithmName: 'green-alg',
+                            input: ['@flowInput']
                         }
                     ],
                     flowInput: {
                         files: {
-                            link: "links-1"
+                            link: 'links-1'
                         }
                     },
                     triggers: {
-                        pipelines: [
-                            `${pipeline}-${(i + 1)}`
-                        ]
+                        pipelines: [`${pipeline}-${i + 1}`]
                     }
-                }
+                };
                 const options = {
                     uri: restUrl + '/store/pipelines',
                     body
@@ -280,12 +274,12 @@ describe('Internal', () => {
 
             const response = await request(options);
             const firstJobId = response.body.jobId;
-            let jobId = response.body.jobId
+            let jobId = response.body.jobId;
             results.push(jobId);
 
             // run the rest of the triggered pipelines
             for (let i = 1; i < requests; i++) {
-                const name = `${pipeline}-${(i + 1)}`;
+                const name = `${pipeline}-${i + 1}`;
                 const options = {
                     uri: `${internalUrl}/exec/stored/trigger`,
                     body: {
@@ -294,7 +288,7 @@ describe('Internal', () => {
                     }
                 };
                 const res = await request(options);
-                jobId = res.body.jobId
+                jobId = res.body.jobId;
                 results.push(jobId);
             }
 
@@ -376,11 +370,9 @@ describe('Internal', () => {
                     name: pipeline.name,
                     nodes: [
                         {
-                            nodeName: "green",
-                            algorithmName: "green-alg",
-                            input: [
-                                "data"
-                            ]
+                            nodeName: 'green',
+                            algorithmName: 'green-alg',
+                            input: ['data']
                         }
                     ],
                     jobId: `jobId-${uuid()}`,
@@ -398,11 +390,9 @@ describe('Internal', () => {
                     name: pipeline.name,
                     nodes: [
                         {
-                            nodeName: "green",
-                            algorithmName: "green-alg",
-                            input: [
-                                "data"
-                            ]
+                            nodeName: 'green',
+                            algorithmName: 'green-alg',
+                            input: ['data']
                         }
                     ],
                     jobId: `jobId-${uuid()}`,

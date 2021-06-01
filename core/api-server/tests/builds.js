@@ -6,8 +6,8 @@ const HttpStatus = require('http-status-codes');
 const querystring = require('querystring');
 const builds = require('../lib/service/builds');
 const { request } = require('./utils');
-const githubSample = require('./mocks/github-sample.json')
-const gitlabSample = require('./mocks/gitlab-sample')
+const githubSample = require('./mocks/github-sample.json');
+const gitlabSample = require('./mocks/gitlab-sample');
 const commit = require('./mocks/github-commit.json');
 let restUrl;
 
@@ -25,7 +25,7 @@ describe('Builds', () => {
             restPath = `${restUrl}/builds/webhook/gitlab`;
         });
         it.skip('should run simple gitlab push webhook', async () => {
-            console.log(`restPath=${restPath}`)
+            console.log(`restPath=${restPath}`);
             const options = {
                 uri: restPath,
                 body: gitlabSample,
@@ -33,9 +33,9 @@ describe('Builds', () => {
             };
             const res = await request(options);
             const body = res.body[0];
-            console.log(res)
+            console.log(res);
             expect(body).to.have.property('buildId');
-        })
+        });
     });
     describe('status', () => {
         let restPath = null;
@@ -63,11 +63,11 @@ describe('Builds', () => {
         it('should succeed to get build status', async () => {
             const payload = {
                 name: `my-alg-${uuid()}`,
-                mem: "50Mi",
+                mem: '50Mi',
                 cpu: 1,
                 version: '1.9.0',
                 env: 'nodejs'
-            }
+            };
             const formData = {
                 payload: JSON.stringify(payload),
                 file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -92,12 +92,12 @@ describe('Builds', () => {
         it('should succeed to get baseImage', async () => {
             const payload = {
                 name: `my-alg-${uuid()}`,
-                mem: "50Mi",
+                mem: '50Mi',
                 cpu: 1,
                 version: '1.9.0',
                 env: 'nodejs',
                 baseImage: 'userOwnBaseImage'
-            }
+            };
             const formData = {
                 payload: JSON.stringify(payload),
                 file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -119,13 +119,13 @@ describe('Builds', () => {
         it('should succeed to get dependencyInstallCmd', async () => {
             const payload = {
                 name: `my-alg-${uuid()}`,
-                mem: "50Mi",
+                mem: '50Mi',
                 cpu: 1,
                 version: '1.9.0',
                 env: 'nodejs',
                 baseImage: 'userOwnBaseImage',
                 dependencyInstallCmd: 'install.sh'
-            }
+            };
             const formData = {
                 payload: JSON.stringify(payload),
                 file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -147,11 +147,11 @@ describe('Builds', () => {
         it('should work without dependencyInstallCmd', async () => {
             const payload = {
                 name: `my-alg-${uuid()}`,
-                mem: "50Mi",
+                mem: '50Mi',
                 cpu: 1,
                 version: '1.9.0',
-                env: 'nodejs',
-            }
+                env: 'nodejs'
+            };
             const formData = {
                 payload: JSON.stringify(payload),
                 file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -198,11 +198,11 @@ describe('Builds', () => {
         it('should succeed to stop build', async () => {
             const payload = {
                 name: `my-alg-${uuid()}`,
-                mem: "50Mi",
+                mem: '50Mi',
                 cpu: 1,
                 version: '1.9.0',
                 env: 'nodejs'
-            }
+            };
             const formData = {
                 payload: JSON.stringify(payload),
                 file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -220,7 +220,7 @@ describe('Builds', () => {
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body.message).to.equal('OK');
-        })
+        });
     });
     describe('rerun', () => {
         let restPath = null;
@@ -249,11 +249,11 @@ describe('Builds', () => {
         it('should succeed to rerun build', async () => {
             const payload = {
                 name: `my-alg-${uuid()}`,
-                mem: "50Mi",
+                mem: '50Mi',
                 cpu: 1,
                 version: '1.9.0',
                 env: 'nodejs'
-            }
+            };
             const formData = {
                 payload: JSON.stringify(payload),
                 file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -271,7 +271,7 @@ describe('Builds', () => {
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('unable to rerun build because its in pending status');
-        })
+        });
     });
     describe('list', () => {
         let restPath = null;
@@ -286,7 +286,7 @@ describe('Builds', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
+            expect(response.body.error.message).to.contain('data.order should be equal to one of the allowed values');
         });
         it('should throw validation error of sort property', async () => {
             const qs = querystring.stringify({ sort: 'bla' });
@@ -296,7 +296,7 @@ describe('Builds', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
+            expect(response.body.error.message).to.contain('data.sort should be equal to one of the allowed values');
         });
         it('should throw validation error of limit should be >= 1', async () => {
             const qs = querystring.stringify({ limit: 0 });
@@ -306,22 +306,22 @@ describe('Builds', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be >= 1");
+            expect(response.body.error.message).to.equal('data.limit should be >= 1');
         });
         it('should throw validation error of limit should be integer', async () => {
-            const qs = querystring.stringify({ limit: "y" });
+            const qs = querystring.stringify({ limit: 'y' });
             const options = {
                 uri: restPath + `/pipe?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be integer");
+            expect(response.body.error.message).to.equal('data.limit should be integer');
         });
         it('should succeed to get build list', async () => {
             const body = {
                 name: `my-alg-${uuid()}`,
-                mem: "50Mi",
+                mem: '50Mi',
                 cpu: 1,
                 version: '1.9.0',
                 env: 'nodejs'
@@ -346,7 +346,7 @@ describe('Builds', () => {
             };
 
             await request(options1);
-            await request(options2)
+            await request(options2);
 
             const limit = 2;
             const qs = querystring.stringify({ sort: 'desc', limit });
@@ -365,7 +365,7 @@ describe('Builds', () => {
             expect(response.body[1]).to.have.property('status');
             expect(response.body[1]).to.have.property('startTime');
             expect(response.body[1].status).to.equal('pending');
-        })
+        });
     });
     describe('fileInfo', () => {
         it('should success to extract fileInfo', async () => {
@@ -392,6 +392,6 @@ describe('Builds', () => {
             const res = await request(options);
             const body = res.body[0];
             expect(body).to.have.property('buildId');
-        })
+        });
     });
 });

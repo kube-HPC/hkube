@@ -8,7 +8,20 @@ config.intervalMs = process.env.INTERVAL_MS || 10000;
 config.boardsIntervalMs = process.env.BOARDS_INTERVAL_MS || 2000;
 config.boardTimeOut = formatter.parseInt(process.env.BOARDS_TIMEOUT, 3 * 60 * 60) * 1000;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
-config.buildMode = process.env.BUILD_MODE || 'kaniko'
+config.buildMode = process.env.BUILD_MODE || 'kaniko';
+config.isDevMode = !!process.env.DEV_MODE;
+
+config.algorithmQueueBalancer = {
+    limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_CONCURRENCY_LIMIT, 5)
+};
+
+config.driversSetting = {
+    name: 'pipeline-driver',
+    concurrency: formatter.parseInt(process.env.PIPELINE_DRIVERS_CONCURRENCY_LIMIT, 5),
+    minAmount: formatter.parseInt(process.env.PIPELINE_DRIVERS_AMOUNT, 5),
+    scalePercent: parseFloat(process.env.PIPELINE_DRIVERS_SCALE_PERCENT || 0.5),
+    reconcileInterval: formatter.parseInt(process.env.PIPELINE_DRIVERS_RECONCILE_INTERVAL, 5000)
+};
 
 config.db = {
     provider: 'mongo',
@@ -23,6 +36,13 @@ config.db = {
     }
 };
 
+config.etcd = {
+    protocol: 'http',
+    host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
+    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
+    serviceName: config.serviceName
+};
+
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',
@@ -33,6 +53,7 @@ config.kubernetes = {
 config.jaeger = {
     host: process.env.JAEGER_AGENT_SERVICE_HOST,
 }
+
 config.resources = {
     algorithmQueue: {
         memory: parseFloat(process.env.ALGORITHM_QUEUE_MEMORY) || 256,
@@ -46,7 +67,8 @@ config.resources = {
         memory: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_MEMORY) || 256,
         cpu: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_CPU) || 1
     },
-    enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false)
+    enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false),
+    useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false),
 };
 
 config.healthchecks = {

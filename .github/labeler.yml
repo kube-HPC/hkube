@@ -20,3 +20,5 @@
   - core/worker/**/*
 "HKube: Datasources":
   - core/datasources-service/**/*
+"HKube: Resource Manager":
+  - core/resource-manager/**/*

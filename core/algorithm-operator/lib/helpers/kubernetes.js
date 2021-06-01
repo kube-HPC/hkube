@@ -1,7 +1,8 @@
 const EventEmitter = require('events');
 const log = require('@hkube/logger').GetLogFromContainer();
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
-const component = require('../consts/componentNames').K8S;
+const { containers, components } = require('../consts');
+const component = components.K8S;
 
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
@@ -30,25 +31,25 @@ class KubernetesApi extends EventEmitter {
     }
 
     async updateDeployment({ spec }) {
-        log.info(`Updating deployment ${spec.metadata.name}`, { component });
+        log.throttle.info(`Updating deployment ${spec.metadata.name}`, { component });
         try {
             const res = await this._client.deployments.update({ deploymentName: spec.metadata.name, spec });
             return res;
         }
         catch (error) {
-            log.error(`unable to update deployment ${spec.metadata.name}. error: ${error.message}`, { component }, error);
+            log.throttle.error(`unable to update deployment ${spec.metadata.name}. error: ${error.message}`, { component }, error);
         }
         return null;
     }
 
-    async deleteDeployment(deploymentName) {
-        log.info(`Deleting job ${deploymentName}`, { component });
+    async deleteDeployment({ deploymentName }) {
+        log.throttle.info(`Deleting deployment ${deploymentName}`, { component });
         try {
             const res = await this._client.deployments.delete({ deploymentName });
             return res;
         }
         catch (error) {
-            log.error(`unable to delete deployment ${deploymentName}. error: ${error.message}`, { component }, error);
+            log.throttle.error(`unable to delete deployment ${deploymentName}. error: ${error.message}`, { component }, error);
         }
         return null;
     }
@@ -169,6 +170,11 @@ class KubernetesApi extends EventEmitter {
             resIngress,
             resService
         };
+    }
+
+    async getPipelineDriversJobs() {
+        const jobsRaw = await this._client.jobs.get({ labelSelector: `type=${containers.PIPELINE_DRIVER},group=hkube` });
+        return jobsRaw;
     }
 
     async createGatewayServiceIngress({ ingressSpec, serviceSpec, algorithmName }) {

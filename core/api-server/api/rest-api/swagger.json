@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.0.28",
+    "version": "2.1.8",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -193,12 +193,44 @@
                         },
                         "kind": {
                           "type": "string",
+                          "default": "algorithm",
                           "enum": [
-                            "dataSource"
+                            "algorithm",
+                            "pipeline",
+                            "debug",
+                            "dataSource",
+                            "gateway"
                           ]
                         },
-                        "dataSource": {
+                        "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -600,12 +632,44 @@
                         },
                         "kind": {
                           "type": "string",
+                          "default": "algorithm",
                           "enum": [
-                            "dataSource"
+                            "algorithm",
+                            "pipeline",
+                            "debug",
+                            "dataSource",
+                            "gateway"
                           ]
                         },
-                        "dataSource": {
+                        "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -1443,6 +1507,343 @@
         }
       }
     },
+    "/exec/search": {
+      "post": {
+        "tags": [
+          "Execution"
+        ],
+        "summary": "Search jobs",
+        "description": "Search jobs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "experimentName": {
+                        "type": "string"
+                      },
+                      "pipelineName": {
+                        "type": "string"
+                      },
+                      "pipelineType": {
+                        "type": "string"
+                      },
+                      "algorithmName": {
+                        "type": "string"
+                      },
+                      "pipelineStatus": {
+                        "type": "string"
+                      },
+                      "datesRange": {
+                        "type": "object",
+                        "properties": {
+                          "from": {
+                            "type": "string",
+                            "example": "2021-03-11T14:30:00"
+                          },
+                          "to": {
+                            "type": "string",
+                            "example": "2021-03-11T14:30:00"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "description": "get the next results starting from this cursor"
+                  },
+                  "pageNum": {
+                    "type": "integer",
+                    "description": "get the next results starting from this page number"
+                  },
+                  "sort": {
+                    "type": "string",
+                    "enum": [
+                      "asc",
+                      "desc"
+                    ],
+                    "default": "desc"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "description": "limit the result size"
+                  },
+                  "fields": {
+                    "type": "object",
+                    "description": "select which fields to return"
+                  },
+                  "exists": {
+                    "type": "object",
+                    "description": "only return records that has fields"
+                  }
+                },
+                "example": {
+                  "query": {
+                    "datesRange": {
+                      "from": "2021-05-22T15:00:00",
+                      "to": "2021-06-22T16:00:00"
+                    },
+                    "experimentName": "main",
+                    "pipelineName": "simple",
+                    "pipelineType": "stored",
+                    "algorithmName": "green-alg",
+                    "pipelineStatus": "completed"
+                  },
+                  "sort": "desc",
+                  "pageNum": 1,
+                  "limit": 2,
+                  "fields": {
+                    "jobId": true
+                  }
+                }
+              }
+            }
+          },
+          "description": "jobs search specification",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "search jobs response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hits": {
+                      "type": "array",
+                      "description": "the actual result records",
+                      "items": {}
+                    },
+                    "cursor": {
+                      "type": "string",
+                      "description": "this cursor to the next query can be used for pagination"
+                    },
+                    "timeTook": {
+                      "type": "string",
+                      "description": "the query completion time took in milliseconds"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Execution"
+        ],
+        "summary": "Search jobs",
+        "description": "Search jobs",
+        "parameters": [
+          {
+            "name": "experimentName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pipelineName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pipelineType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "algorithmName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pipelineStatus",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "example": "2021-05-22T15:00:00",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "example": "2021-06-22T16:00:00",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "example": "asc,desc",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "example": "result:false, pipeline:false",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exists",
+            "in": "query",
+            "example": "result:true, pipeline:false",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "search jobs response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hits": {
+                      "type": "array",
+                      "description": "the actual result records",
+                      "items": {}
+                    },
+                    "cursor": {
+                      "type": "string",
+                      "description": "this cursor to the next query can be used for pagination"
+                    },
+                    "timeTook": {
+                      "type": "string",
+                      "description": "the query completion time took in milliseconds"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/exec/pipelines/{jobId}": {
       "get": {
         "tags": [
@@ -1581,12 +1982,44 @@
                           },
                           "kind": {
                             "type": "string",
+                            "default": "algorithm",
                             "enum": [
-                              "dataSource"
+                              "algorithm",
+                              "pipeline",
+                              "debug",
+                              "dataSource",
+                              "gateway"
                             ]
                           },
-                          "dataSource": {
+                          "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -1987,12 +2420,44 @@
                           },
                           "kind": {
                             "type": "string",
+                            "default": "algorithm",
                             "enum": [
-                              "dataSource"
+                              "algorithm",
+                              "pipeline",
+                              "debug",
+                              "dataSource",
+                              "gateway"
                             ]
                           },
-                          "dataSource": {
+                          "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -3691,6 +4156,7 @@
                     },
                     "reservedMemory": {
                       "type": "string",
+                      "nullable": true,
                       "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                       "format": "memory",
                       "example": "512Mi"
@@ -3726,6 +4192,7 @@
                     },
                     "mounts": {
                       "type": "array",
+                      "nullable": true,
                       "description": "a list of volumes to mount into the algorithm",
                       "items": {
                         "type": "object",
@@ -3753,6 +4220,7 @@
                     },
                     "gitRepository": {
                       "type": "object",
+                      "nullable": true,
                       "properties": {
                         "url": {
                           "type": "string",
@@ -3807,14 +4275,17 @@
                       ]
                     },
                     "entryPoint": {
-                      "type": "string"
+                      "type": "string",
+                      "nullable": true
                     },
                     "dependencyInstallCmd": {
                       "type": "string",
+                      "nullable": true,
                       "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                     },
                     "baseImage": {
                       "type": "string",
+                      "nullable": true,
                       "description": "Custom docker image to be used as base to the newly built algorithm image"
                     },
                     "minHotWorkers": {
@@ -3825,23 +4296,37 @@
                     },
                     "quotaGuarantee": {
                       "type": "integer",
+                      "nullable": true,
                       "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                       "minimum": 0
                     },
                     "algorithmEnv": {
                       "type": "object",
+                      "nullable": true,
                       "description": "key value environment variables for algorithm"
                     },
                     "workerEnv": {
                       "type": "object",
+                      "nullable": true,
                       "description": "key value environment variables for worker"
                     },
                     "nodeSelector": {
                       "type": "object",
+                      "nullable": true,
                       "description": "key value labels for nodes constraint",
                       "additionalProperties": {
                         "type": "string"
                       }
+                    },
+                    "labels": {
+                      "type": "object",
+                      "nullable": true,
+                      "description": "attach key value metadata to algorithm pod, usually for users"
+                    },
+                    "annotations": {
+                      "type": "object",
+                      "nullable": true,
+                      "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "type": {
                       "type": "string",
@@ -3855,6 +4340,7 @@
                     },
                     "downloadFileExt": {
                       "type": "string",
+                      "nullable": true,
                       "description": "the extension name that will be attached to a file when downloading algorithm result"
                     }
                   },
@@ -4292,6 +4778,7 @@
                       },
                       "reservedMemory": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                         "format": "memory",
                         "example": "512Mi"
@@ -4327,6 +4814,7 @@
                       },
                       "mounts": {
                         "type": "array",
+                        "nullable": true,
                         "description": "a list of volumes to mount into the algorithm",
                         "items": {
                           "type": "object",
@@ -4354,6 +4842,7 @@
                       },
                       "gitRepository": {
                         "type": "object",
+                        "nullable": true,
                         "properties": {
                           "url": {
                             "type": "string",
@@ -4408,14 +4897,17 @@
                         ]
                       },
                       "entryPoint": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                       },
                       "dependencyInstallCmd": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                       },
                       "baseImage": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "minHotWorkers": {
@@ -4426,23 +4918,37 @@
                       },
                       "quotaGuarantee": {
                         "type": "integer",
+                        "nullable": true,
                         "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                         "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for algorithm"
                       },
                       "workerEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for worker"
                       },
                       "nodeSelector": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value labels for nodes constraint",
                         "additionalProperties": {
                           "type": "string"
                         }
+                      },
+                      "labels": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "attach key value metadata to algorithm pod, usually for users"
+                      },
+                      "annotations": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "type": {
                         "type": "string",
@@ -4456,6 +4962,7 @@
                       },
                       "downloadFileExt": {
                         "type": "string",
+                        "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
@@ -4540,6 +5047,7 @@
                   },
                   "reservedMemory": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                     "format": "memory",
                     "example": "512Mi"
@@ -4575,6 +5083,7 @@
                   },
                   "mounts": {
                     "type": "array",
+                    "nullable": true,
                     "description": "a list of volumes to mount into the algorithm",
                     "items": {
                       "type": "object",
@@ -4602,6 +5111,7 @@
                   },
                   "gitRepository": {
                     "type": "object",
+                    "nullable": true,
                     "properties": {
                       "url": {
                         "type": "string",
@@ -4656,14 +5166,17 @@
                     ]
                   },
                   "entryPoint": {
-                    "type": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "dependencyInstallCmd": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                   },
                   "baseImage": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Custom docker image to be used as base to the newly built algorithm image"
                   },
                   "minHotWorkers": {
@@ -4674,23 +5187,37 @@
                   },
                   "quotaGuarantee": {
                     "type": "integer",
+                    "nullable": true,
                     "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                     "minimum": 0
                   },
                   "algorithmEnv": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value environment variables for algorithm"
                   },
                   "workerEnv": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value environment variables for worker"
                   },
                   "nodeSelector": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value labels for nodes constraint",
                     "additionalProperties": {
                       "type": "string"
                     }
+                  },
+                  "labels": {
+                    "type": "object",
+                    "nullable": true,
+                    "description": "attach key value metadata to algorithm pod, usually for users"
+                  },
+                  "annotations": {
+                    "type": "object",
+                    "nullable": true,
+                    "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                   },
                   "type": {
                     "type": "string",
@@ -4704,6 +5231,7 @@
                   },
                   "downloadFileExt": {
                     "type": "string",
+                    "nullable": true,
                     "description": "the extension name that will be attached to a file when downloading algorithm result"
                   }
                 },
@@ -4843,6 +5371,7 @@
                   },
                   "reservedMemory": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                     "format": "memory",
                     "example": "512Mi"
@@ -4878,6 +5407,7 @@
                   },
                   "mounts": {
                     "type": "array",
+                    "nullable": true,
                     "description": "a list of volumes to mount into the algorithm",
                     "items": {
                       "type": "object",
@@ -4905,6 +5435,7 @@
                   },
                   "gitRepository": {
                     "type": "object",
+                    "nullable": true,
                     "properties": {
                       "url": {
                         "type": "string",
@@ -4959,14 +5490,17 @@
                     ]
                   },
                   "entryPoint": {
-                    "type": "string"
+                    "type": "string",
+                    "nullable": true
                   },
                   "dependencyInstallCmd": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                   },
                   "baseImage": {
                     "type": "string",
+                    "nullable": true,
                     "description": "Custom docker image to be used as base to the newly built algorithm image"
                   },
                   "minHotWorkers": {
@@ -4977,23 +5511,37 @@
                   },
                   "quotaGuarantee": {
                     "type": "integer",
+                    "nullable": true,
                     "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                     "minimum": 0
                   },
                   "algorithmEnv": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value environment variables for algorithm"
                   },
                   "workerEnv": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value environment variables for worker"
                   },
                   "nodeSelector": {
                     "type": "object",
+                    "nullable": true,
                     "description": "key value labels for nodes constraint",
                     "additionalProperties": {
                       "type": "string"
                     }
+                  },
+                  "labels": {
+                    "type": "object",
+                    "nullable": true,
+                    "description": "attach key value metadata to algorithm pod, usually for users"
+                  },
+                  "annotations": {
+                    "type": "object",
+                    "nullable": true,
+                    "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                   },
                   "type": {
                     "type": "string",
@@ -5007,6 +5555,7 @@
                   },
                   "downloadFileExt": {
                     "type": "string",
+                    "nullable": true,
                     "description": "the extension name that will be attached to a file when downloading algorithm result"
                   }
                 },
@@ -5132,6 +5681,7 @@
                       },
                       "reservedMemory": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                         "format": "memory",
                         "example": "512Mi"
@@ -5167,6 +5717,7 @@
                       },
                       "mounts": {
                         "type": "array",
+                        "nullable": true,
                         "description": "a list of volumes to mount into the algorithm",
                         "items": {
                           "type": "object",
@@ -5194,6 +5745,7 @@
                       },
                       "gitRepository": {
                         "type": "object",
+                        "nullable": true,
                         "properties": {
                           "url": {
                             "type": "string",
@@ -5248,14 +5800,17 @@
                         ]
                       },
                       "entryPoint": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                       },
                       "dependencyInstallCmd": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                       },
                       "baseImage": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "minHotWorkers": {
@@ -5266,23 +5821,37 @@
                       },
                       "quotaGuarantee": {
                         "type": "integer",
+                        "nullable": true,
                         "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                         "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for algorithm"
                       },
                       "workerEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for worker"
                       },
                       "nodeSelector": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value labels for nodes constraint",
                         "additionalProperties": {
                           "type": "string"
                         }
+                      },
+                      "labels": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "attach key value metadata to algorithm pod, usually for users"
+                      },
+                      "annotations": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "type": {
                         "type": "string",
@@ -5296,6 +5865,7 @@
                       },
                       "downloadFileExt": {
                         "type": "string",
+                        "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
@@ -5385,6 +5955,7 @@
                         },
                         "reservedMemory": {
                           "type": "string",
+                          "nullable": true,
                           "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                           "format": "memory",
                           "example": "512Mi"
@@ -5420,6 +5991,7 @@
                         },
                         "mounts": {
                           "type": "array",
+                          "nullable": true,
                           "description": "a list of volumes to mount into the algorithm",
                           "items": {
                             "type": "object",
@@ -5447,6 +6019,7 @@
                         },
                         "gitRepository": {
                           "type": "object",
+                          "nullable": true,
                           "properties": {
                             "url": {
                               "type": "string",
@@ -5501,14 +6074,17 @@
                           ]
                         },
                         "entryPoint": {
-                          "type": "string"
+                          "type": "string",
+                          "nullable": true
                         },
                         "dependencyInstallCmd": {
                           "type": "string",
+                          "nullable": true,
                           "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                         },
                         "baseImage": {
                           "type": "string",
+                          "nullable": true,
                           "description": "Custom docker image to be used as base to the newly built algorithm image"
                         },
                         "minHotWorkers": {
@@ -5519,23 +6095,37 @@
                         },
                         "quotaGuarantee": {
                           "type": "integer",
+                          "nullable": true,
                           "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                           "minimum": 0
                         },
                         "algorithmEnv": {
                           "type": "object",
+                          "nullable": true,
                           "description": "key value environment variables for algorithm"
                         },
                         "workerEnv": {
                           "type": "object",
+                          "nullable": true,
                           "description": "key value environment variables for worker"
                         },
                         "nodeSelector": {
                           "type": "object",
+                          "nullable": true,
                           "description": "key value labels for nodes constraint",
                           "additionalProperties": {
                             "type": "string"
                           }
+                        },
+                        "labels": {
+                          "type": "object",
+                          "nullable": true,
+                          "description": "attach key value metadata to algorithm pod, usually for users"
+                        },
+                        "annotations": {
+                          "type": "object",
+                          "nullable": true,
+                          "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
                         "type": {
                           "type": "string",
@@ -5549,6 +6139,7 @@
                         },
                         "downloadFileExt": {
                           "type": "string",
+                          "nullable": true,
                           "description": "the extension name that will be attached to a file when downloading algorithm result"
                         }
                       },
@@ -5746,12 +6337,44 @@
                           },
                           "kind": {
                             "type": "string",
+                            "default": "algorithm",
                             "enum": [
-                              "dataSource"
+                              "algorithm",
+                              "pipeline",
+                              "debug",
+                              "dataSource",
+                              "gateway"
                             ]
                           },
-                          "dataSource": {
+                          "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -6255,12 +6878,44 @@
                             },
                             "kind": {
                               "type": "string",
+                              "default": "algorithm",
                               "enum": [
-                                "dataSource"
+                                "algorithm",
+                                "pipeline",
+                                "debug",
+                                "dataSource",
+                                "gateway"
                               ]
                             },
-                            "dataSource": {
+                            "spec": {
                               "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "gateway name",
+                                      "minLength": 1,
+                                      "maxLength": 32,
+                                      "format": "gateway-name"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the gateway"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for streaming gateway",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    },
+                                    "cpu": {
+                                      "type": "number",
+                                      "description": "Cpu allocated for streaming gateway",
+                                      "default": 0.5
+                                    }
+                                  }
+                                },
                                 {
                                   "type": "object",
                                   "properties": {
@@ -6620,12 +7275,44 @@
                         },
                         "kind": {
                           "type": "string",
+                          "default": "algorithm",
                           "enum": [
-                            "dataSource"
+                            "algorithm",
+                            "pipeline",
+                            "debug",
+                            "dataSource",
+                            "gateway"
                           ]
                         },
-                        "dataSource": {
+                        "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -6961,12 +7648,44 @@
                           },
                           "kind": {
                             "type": "string",
+                            "default": "algorithm",
                             "enum": [
-                              "dataSource"
+                              "algorithm",
+                              "pipeline",
+                              "debug",
+                              "dataSource",
+                              "gateway"
                             ]
                           },
-                          "dataSource": {
+                          "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -7363,12 +8082,44 @@
                         },
                         "kind": {
                           "type": "string",
+                          "default": "algorithm",
                           "enum": [
-                            "dataSource"
+                            "algorithm",
+                            "pipeline",
+                            "debug",
+                            "dataSource",
+                            "gateway"
                           ]
                         },
-                        "dataSource": {
+                        "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -7704,12 +8455,44 @@
                           },
                           "kind": {
                             "type": "string",
+                            "default": "algorithm",
                             "enum": [
-                              "dataSource"
+                              "algorithm",
+                              "pipeline",
+                              "debug",
+                              "dataSource",
+                              "gateway"
                             ]
                           },
-                          "dataSource": {
+                          "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -10058,6 +10841,7 @@
                       },
                       "reservedMemory": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                         "format": "memory",
                         "example": "512Mi"
@@ -10093,6 +10877,7 @@
                       },
                       "mounts": {
                         "type": "array",
+                        "nullable": true,
                         "description": "a list of volumes to mount into the algorithm",
                         "items": {
                           "type": "object",
@@ -10120,6 +10905,7 @@
                       },
                       "gitRepository": {
                         "type": "object",
+                        "nullable": true,
                         "properties": {
                           "url": {
                             "type": "string",
@@ -10174,14 +10960,17 @@
                         ]
                       },
                       "entryPoint": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                       },
                       "dependencyInstallCmd": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                       },
                       "baseImage": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "minHotWorkers": {
@@ -10192,23 +10981,37 @@
                       },
                       "quotaGuarantee": {
                         "type": "integer",
+                        "nullable": true,
                         "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                         "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for algorithm"
                       },
                       "workerEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for worker"
                       },
                       "nodeSelector": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value labels for nodes constraint",
                         "additionalProperties": {
                           "type": "string"
                         }
+                      },
+                      "labels": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "attach key value metadata to algorithm pod, usually for users"
+                      },
+                      "annotations": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "type": {
                         "type": "string",
@@ -10222,6 +11025,7 @@
                       },
                       "downloadFileExt": {
                         "type": "string",
+                        "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
@@ -10374,6 +11178,7 @@
                       },
                       "reservedMemory": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                         "format": "memory",
                         "example": "512Mi"
@@ -10409,6 +11214,7 @@
                       },
                       "mounts": {
                         "type": "array",
+                        "nullable": true,
                         "description": "a list of volumes to mount into the algorithm",
                         "items": {
                           "type": "object",
@@ -10436,6 +11242,7 @@
                       },
                       "gitRepository": {
                         "type": "object",
+                        "nullable": true,
                         "properties": {
                           "url": {
                             "type": "string",
@@ -10490,14 +11297,17 @@
                         ]
                       },
                       "entryPoint": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                       },
                       "dependencyInstallCmd": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
                       },
                       "baseImage": {
                         "type": "string",
+                        "nullable": true,
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "minHotWorkers": {
@@ -10508,23 +11318,37 @@
                       },
                       "quotaGuarantee": {
                         "type": "integer",
+                        "nullable": true,
                         "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                         "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for algorithm"
                       },
                       "workerEnv": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value environment variables for worker"
                       },
                       "nodeSelector": {
                         "type": "object",
+                        "nullable": true,
                         "description": "key value labels for nodes constraint",
                         "additionalProperties": {
                           "type": "string"
                         }
+                      },
+                      "labels": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "attach key value metadata to algorithm pod, usually for users"
+                      },
+                      "annotations": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "type": {
                         "type": "string",
@@ -10538,6 +11362,7 @@
                       },
                       "downloadFileExt": {
                         "type": "string",
+                        "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
@@ -11301,6 +12126,221 @@
           },
           "409": {
             "description": "pipeline conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gateway": {
+      "get": {
+        "tags": [
+          "Gateway"
+        ],
+        "summary": "get gateways",
+        "description": "get list of gateways",
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "gateway name",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "gateway-name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "describe the gateway"
+                    },
+                    "mem": {
+                      "type": "string",
+                      "description": "Memory allocated for streaming gateway",
+                      "format": "algorithm-memory",
+                      "default": "512Mi"
+                    },
+                    "cpu": {
+                      "type": "number",
+                      "description": "Cpu allocated for streaming gateway",
+                      "default": 0.5
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gateway/{name}": {
+      "get": {
+        "tags": [
+          "Gateway"
+        ],
+        "summary": "get gateway details",
+        "description": "get gateway details",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "gateway name to get from the store",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "gateway name",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "gateway-name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "describe the gateway"
+                    },
+                    "mem": {
+                      "type": "string",
+                      "description": "Memory allocated for streaming gateway",
+                      "format": "algorithm-memory",
+                      "default": "512Mi"
+                    },
+                    "cpu": {
+                      "type": "number",
+                      "description": "Cpu allocated for streaming gateway",
+                      "default": 0.5
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -13003,6 +14043,7 @@
           },
           "reservedMemory": {
             "type": "string",
+            "nullable": true,
             "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
             "format": "memory",
             "example": "512Mi"
@@ -13038,6 +14079,7 @@
           },
           "mounts": {
             "type": "array",
+            "nullable": true,
             "description": "a list of volumes to mount into the algorithm",
             "items": {
               "type": "object",
@@ -13065,6 +14107,7 @@
           },
           "gitRepository": {
             "type": "object",
+            "nullable": true,
             "properties": {
               "url": {
                 "type": "string",
@@ -13119,14 +14162,17 @@
             ]
           },
           "entryPoint": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "dependencyInstallCmd": {
             "type": "string",
+            "nullable": true,
             "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
           },
           "baseImage": {
             "type": "string",
+            "nullable": true,
             "description": "Custom docker image to be used as base to the newly built algorithm image"
           },
           "minHotWorkers": {
@@ -13137,23 +14183,37 @@
           },
           "quotaGuarantee": {
             "type": "integer",
+            "nullable": true,
             "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
             "minimum": 0
           },
           "algorithmEnv": {
             "type": "object",
+            "nullable": true,
             "description": "key value environment variables for algorithm"
           },
           "workerEnv": {
             "type": "object",
+            "nullable": true,
             "description": "key value environment variables for worker"
           },
           "nodeSelector": {
             "type": "object",
+            "nullable": true,
             "description": "key value labels for nodes constraint",
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "labels": {
+            "type": "object",
+            "nullable": true,
+            "description": "attach key value metadata to algorithm pod, usually for users"
+          },
+          "annotations": {
+            "type": "object",
+            "nullable": true,
+            "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
           },
           "type": {
             "type": "string",
@@ -13167,6 +14227,7 @@
           },
           "downloadFileExt": {
             "type": "string",
+            "nullable": true,
             "description": "the extension name that will be attached to a file when downloading algorithm result"
           }
         },
@@ -13372,6 +14433,7 @@
               },
               "reservedMemory": {
                 "type": "string",
+                "nullable": true,
                 "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
                 "format": "memory",
                 "example": "512Mi"
@@ -13407,6 +14469,7 @@
               },
               "mounts": {
                 "type": "array",
+                "nullable": true,
                 "description": "a list of volumes to mount into the algorithm",
                 "items": {
                   "type": "object",
@@ -13434,6 +14497,7 @@
               },
               "gitRepository": {
                 "type": "object",
+                "nullable": true,
                 "properties": {
                   "url": {
                     "type": "string",
@@ -13488,14 +14552,17 @@
                 ]
               },
               "entryPoint": {
-                "type": "string"
+                "type": "string",
+                "nullable": true
               },
               "dependencyInstallCmd": {
                 "type": "string",
+                "nullable": true,
                 "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
               },
               "baseImage": {
                 "type": "string",
+                "nullable": true,
                 "description": "Custom docker image to be used as base to the newly built algorithm image"
               },
               "minHotWorkers": {
@@ -13506,23 +14573,37 @@
               },
               "quotaGuarantee": {
                 "type": "integer",
+                "nullable": true,
                 "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
                 "minimum": 0
               },
               "algorithmEnv": {
                 "type": "object",
+                "nullable": true,
                 "description": "key value environment variables for algorithm"
               },
               "workerEnv": {
                 "type": "object",
+                "nullable": true,
                 "description": "key value environment variables for worker"
               },
               "nodeSelector": {
                 "type": "object",
+                "nullable": true,
                 "description": "key value labels for nodes constraint",
                 "additionalProperties": {
                   "type": "string"
                 }
+              },
+              "labels": {
+                "type": "object",
+                "nullable": true,
+                "description": "attach key value metadata to algorithm pod, usually for users"
+              },
+              "annotations": {
+                "type": "object",
+                "nullable": true,
+                "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
               },
               "type": {
                 "type": "string",
@@ -13536,6 +14617,7 @@
               },
               "downloadFileExt": {
                 "type": "string",
+                "nullable": true,
                 "description": "the extension name that will be attached to a file when downloading algorithm result"
               }
             },
@@ -13956,12 +15038,44 @@
                 },
                 "kind": {
                   "type": "string",
+                  "default": "algorithm",
                   "enum": [
-                    "dataSource"
+                    "algorithm",
+                    "pipeline",
+                    "debug",
+                    "dataSource",
+                    "gateway"
                   ]
                 },
-                "dataSource": {
+                "spec": {
                   "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "gateway name",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "gateway-name"
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "describe the gateway"
+                        },
+                        "mem": {
+                          "type": "string",
+                          "description": "Memory allocated for streaming gateway",
+                          "format": "algorithm-memory",
+                          "default": "512Mi"
+                        },
+                        "cpu": {
+                          "type": "number",
+                          "description": "Cpu allocated for streaming gateway",
+                          "default": 0.5
+                        }
+                      }
+                    },
                     {
                       "type": "object",
                       "properties": {
@@ -14187,6 +15301,17 @@
           "stream"
         ]
       },
+      "nodeKind": {
+        "type": "string",
+        "default": "algorithm",
+        "enum": [
+          "algorithm",
+          "pipeline",
+          "debug",
+          "dataSource",
+          "gateway"
+        ]
+      },
       "pipelineNode": {
         "type": "object",
         "properties": {
@@ -14269,12 +15394,44 @@
           },
           "kind": {
             "type": "string",
+            "default": "algorithm",
             "enum": [
-              "dataSource"
+              "algorithm",
+              "pipeline",
+              "debug",
+              "dataSource",
+              "gateway"
             ]
           },
-          "dataSource": {
+          "spec": {
             "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "gateway name",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "gateway-name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "describe the gateway"
+                  },
+                  "mem": {
+                    "type": "string",
+                    "description": "Memory allocated for streaming gateway",
+                    "format": "algorithm-memory",
+                    "default": "512Mi"
+                  },
+                  "cpu": {
+                    "type": "number",
+                    "description": "Cpu allocated for streaming gateway",
+                    "default": 0.5
+                  }
+                }
+              },
               {
                 "type": "object",
                 "properties": {
@@ -14525,6 +15682,40 @@
         "maxLength": 32,
         "format": "experiment-name"
       },
+      "gatewayName": {
+        "type": "string",
+        "description": "gateway name",
+        "minLength": 1,
+        "maxLength": 32,
+        "format": "gateway-name"
+      },
+      "gateway": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "gateway name",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "gateway-name"
+          },
+          "description": {
+            "type": "string",
+            "description": "describe the gateway"
+          },
+          "mem": {
+            "type": "string",
+            "description": "Memory allocated for streaming gateway",
+            "format": "algorithm-memory",
+            "default": "512Mi"
+          },
+          "cpu": {
+            "type": "number",
+            "description": "Cpu allocated for streaming gateway",
+            "default": 0.5
+          }
+        }
+      },
       "gitlabWebhook": {
         "type": "object",
         "properties": {
@@ -14631,6 +15822,109 @@
               "type": "array",
               "items": {}
             }
+          }
+        }
+      },
+      "searchJobs": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "object",
+            "properties": {
+              "experimentName": {
+                "type": "string"
+              },
+              "pipelineName": {
+                "type": "string"
+              },
+              "pipelineType": {
+                "type": "string"
+              },
+              "algorithmName": {
+                "type": "string"
+              },
+              "pipelineStatus": {
+                "type": "string"
+              },
+              "datesRange": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "example": "2021-03-11T14:30:00"
+                  },
+                  "to": {
+                    "type": "string",
+                    "example": "2021-03-11T14:30:00"
+                  }
+                }
+              }
+            }
+          },
+          "cursor": {
+            "type": "string",
+            "description": "get the next results starting from this cursor"
+          },
+          "pageNum": {
+            "type": "integer",
+            "description": "get the next results starting from this page number"
+          },
+          "sort": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "limit the result size"
+          },
+          "fields": {
+            "type": "object",
+            "description": "select which fields to return"
+          },
+          "exists": {
+            "type": "object",
+            "description": "only return records that has fields"
+          }
+        },
+        "example": {
+          "query": {
+            "datesRange": {
+              "from": "2021-05-22T15:00:00",
+              "to": "2021-06-22T16:00:00"
+            },
+            "experimentName": "main",
+            "pipelineName": "simple",
+            "pipelineType": "stored",
+            "algorithmName": "green-alg",
+            "pipelineStatus": "completed"
+          },
+          "sort": "desc",
+          "pageNum": 1,
+          "limit": 2,
+          "fields": {
+            "jobId": true
+          }
+        }
+      },
+      "searchJobsResponse": {
+        "type": "object",
+        "properties": {
+          "hits": {
+            "type": "array",
+            "description": "the actual result records",
+            "items": {}
+          },
+          "cursor": {
+            "type": "string",
+            "description": "this cursor to the next query can be used for pagination"
+          },
+          "timeTook": {
+            "type": "string",
+            "description": "the query completion time took in milliseconds"
           }
         }
       }

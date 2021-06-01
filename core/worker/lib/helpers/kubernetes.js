@@ -23,6 +23,10 @@ const CONTAINER_MESSAGE_FORMATS = {
     }
 };
 
+const CONTAINER_STATUS = {
+    RUNNING: 'running'
+};
+
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
         log = Logger.GetLogFromContainer();
@@ -99,7 +103,7 @@ class KubernetesApi extends EventEmitter {
             this.waitForContainerStatus({
                 podName,
                 containerName,
-                predicate: containerStatus => containerStatus && containerStatus.status !== 'running',
+                predicate: containerStatus => containerStatus && containerStatus.status !== CONTAINER_STATUS.RUNNING,
                 onStatus: (containerStatus) => {
                     log.throttle.debug(`waiting for container: ${containerName}, status: ${JSON.stringify(containerStatus)}`, { component });
                 },
@@ -155,4 +159,5 @@ class KubernetesApi extends EventEmitter {
 }
 
 module.exports = new KubernetesApi();
+module.exports.CONTAINER_STATUS = CONTAINER_STATUS;
 module.exports.CONTAINER_MESSAGE_FORMATS = CONTAINER_MESSAGE_FORMATS;

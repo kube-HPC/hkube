@@ -148,9 +148,13 @@ class AlgorithmStore {
         const { version, created, modified, ...payload } = data.payload;
         const file = { path: data.file?.path, name: data.file?.originalname };
 
-        validator.algorithms.validateApplyAlgorithm(payload);
+        if (!payload.name) {
+            throw new InvalidDataError('algorithm should have required property "name"');
+        }
+
         const oldAlgorithm = await stateManager.getAlgorithm(payload);
         const newAlgorithm = this._mergeAlgorithm(oldAlgorithm, payload);
+        validator.algorithms.validateApplyAlgorithm(payload);
 
         if (!payload.type) {
             newAlgorithm.type = this._resolveType(newAlgorithm, file.path);
@@ -223,7 +227,13 @@ class AlgorithmStore {
 
     _mergeAlgorithm(oldAlgorithm, payload) {
         const old = cloneDeep(oldAlgorithm);
-        return { ...old, ...payload };
+        const newAlgorithm = { ...old, ...payload };
+        Object.entries(newAlgorithm).forEach(([k, v]) => {
+            if (v === null) {
+                delete newAlgorithm[k];
+            }
+        });
+        return newAlgorithm;
     }
 
     async _versioning(hasDiff, algorithm, buildId) {

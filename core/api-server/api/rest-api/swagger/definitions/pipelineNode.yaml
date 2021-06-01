@@ -50,8 +50,9 @@ properties:
       - stateful
   kind:
     $ref: "#/components/schemas/nodeKind"
-  dataSource:
+  spec:
     anyOf:
+      - $ref: "#/components/schemas/gateway"
       - $ref: "#/components/schemas/dataSource-id"
       - $ref: "#/components/schemas/dataSource-name"
       - $ref: "#/components/schemas/dataSource-snapshot"

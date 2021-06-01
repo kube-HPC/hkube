@@ -1,12 +1,12 @@
-const configIt = require('@hkube/config');
-const Logger = require('@hkube/logger');
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
-const options = main;
+
 const { expect } = require('chai');
-const { createKindsSpec } = require('../lib/deployments/worker-debug.js');
+let options;
 
 describe('jobCreator', () => {
+    before(() => {
+        options = global.testParams.config;
+        ({ createKindsSpec } = require('../lib/deployments/worker-debug.js'));
+    });
     describe('createKindsSpec', () => {
         it('should throw if no algorithm name', () => {
             expect(() => createKindsSpec({ algorithmName: '', options })).to.throw('Unable to create deployment spec. algorithmName is required');

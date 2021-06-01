@@ -76,16 +76,12 @@ describe('consumer tests', () => {
         await storageManager.delete({
             path: 'local-hkube-algo-metrics'
         });
-        // stateManager.reset();
-        // await delay(500);
-        // stateManager.bootstrap();
-        // await delay(500);
     });
     it('if job already stopped return and finish job', async () => {
         const config = getConfig();
         await stateAdapter._etcd.jobs.status.set({ jobId: config.jobId, status: pipelineStatuses.STOPPED });
         spy = sinon.spy(consumer, '_stopJob');
-        consumer._jobProvider.emit('job', {
+        consumer._consumer.emit('job', {
             data: {
                 jobId: config.jobId,
                 taskId: config.taskId,
@@ -102,7 +98,7 @@ describe('consumer tests', () => {
         await fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
         await fse.mkdirp(`${configuration.algoMetricsDir}/ss`);
         await fse.writeFile(`${configuration.algoMetricsDir}/ss/c.txt`, 'c text');
-        consumer._jobProvider.emit('job-queue', {
+        consumer._consumer.emit('job', {
             data: {
                 jobId: config.jobId,
                 taskId: config.taskId,
@@ -125,7 +121,7 @@ describe('consumer tests', () => {
         const config = getConfig();
         fse.writeFile(`${configuration.algoMetricsDir}/a.txt`, 'a text');
         fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
-        consumer._jobProvider.emit('job-queue', {
+        consumer._consumer.emit('job', {
             data: {
                 jobId: config.jobId,
                 taskId: config.taskId,
@@ -146,7 +142,7 @@ describe('consumer tests', () => {
     });
     it('Check when there are no metric files to upload', async () => {
         const config = getConfig();
-        consumer._jobProvider.emit('job-queue', {
+        consumer._consumer.emit('job', {
             data: {
                 jobId: config.jobId,
                 taskId: config.taskId,
@@ -168,7 +164,7 @@ describe('consumer tests', () => {
         const config = getConfig();
         storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } }).then(async (link) => {
             spy = sinon.spy(consumer, 'finishJob');
-            consumer._jobProvider.emit('job', {
+            consumer._consumer.emit('job', {
                 data: {
                     jobId: config.jobId,
                     taskId: config.taskId,
@@ -189,7 +185,7 @@ describe('consumer tests', () => {
     xit('received array with null from algorithm', async () => {
         const config = getConfig();
         spy = sinon.spy(consumer, 'finishJob');
-        consumer._jobProvider.emit('job', {
+        consumer._consumer.emit('job', {
             data: {
                 jobId: config.jobId,
                 taskId: config.taskId,
@@ -206,7 +202,7 @@ describe('consumer tests', () => {
     xit('received empty array from algorithm', async () => {
         const config = getConfig();
         spy = sinon.spy(consumer, 'finishJob');
-        consumer._jobProvider.emit('job', {
+        consumer._consumer.emit('job', {
             data: {
                 jobId: config.jobId,
                 taskId: config.taskId,
@@ -223,7 +219,7 @@ describe('consumer tests', () => {
     xit('finish job if failed to store data', async () => {
         const config = getConfig();
         spy = sinon.spy(consumer, 'finishJob');
-        consumer._jobProvider.emit('job', {
+        consumer._consumer.emit('job', {
             data: {
                 jobId: config.jobId,
                 taskId: config.taskId,

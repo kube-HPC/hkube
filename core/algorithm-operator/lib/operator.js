@@ -2,12 +2,14 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { nodeKind } = require('@hkube/consts');
 const component = require('./consts/componentNames').OPERATOR;
 const db = require('./helpers/db');
+const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
 const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
 const tensorboardReconciler = require('./reconcile/tensorboard');
 const workerDebugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const gatewaysReconciler = require('./reconcile/algorithm-gateway');
+const driversReconciler = require('./reconcile/drivers-reconciler');
 const CONTAINERS = require('./consts/containers');
 
 class Operator {
@@ -19,8 +21,15 @@ class Operator {
         this._boardsInterval = this._boardsInterval.bind(this);
         this._lastIntervalTime = null;
         this._lastIntervalBoardTime = null;
-        this._interval(options);
-        this._boardsInterval(options);
+
+        if (options.isDevMode) {
+            this._algorithmQueueDevMode({ options });
+        }
+        else {
+            this._interval(options);
+            this._boardsInterval(options);
+        }
+        this._driversSettings = this._prepareDriversData(options);
     }
 
     checkHealth(maxDiff) {
@@ -46,7 +55,8 @@ class Operator {
                 this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
-                this._algorithmGateways({ ...configMap, algorithms })
+                this._algorithmGateways({ ...configMap, algorithms }),
+                this._pipelineDriversHandle(configMap, options)
             ]);
         }
         catch (e) {
@@ -55,6 +65,27 @@ class Operator {
         finally {
             setTimeout(this._interval, this._intervalMs, options);
         }
+    }
+
+    _prepareDriversData(options) {
+        const { minAmount, scalePercent, ...rest } = options.driversSetting;
+        const maxAmount = Math.ceil(minAmount * scalePercent) + minAmount;
+        return {
+            minAmount, maxAmount, ...rest
+        };
+    }
+
+    async _pipelineDriversHandle({ versions, registry, clusterOptions }, options) {
+        const [driverTemplates, driversRequests, drivers, jobs] = await Promise.all([
+            db.getDriversTemplate(),
+            etcd.getPipelineDriverRequests(),
+            etcd.getPipelineDrivers(),
+            kubernetes.getPipelineDriversJobs()
+        ]);
+
+        await driversReconciler.reconcileDrivers({
+            driverTemplates, driversRequests, drivers, jobs, versions, settings: this._driversSettings, registry, options, clusterOptions
+        });
     }
 
     async _boardsInterval(options) {
@@ -118,16 +149,43 @@ class Operator {
 
     async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms, options, count) {
         this._logAlgorithmCountError(algorithms, count);
+        const discovery = await etcd.getAlgorithmQueues();
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.ALGORITHM_QUEUE}` });
         await algorithmQueueReconciler.reconcile({
             deployments,
             algorithms,
+            discovery,
             versions,
             registry,
             clusterOptions,
             resources,
             options
         });
+    }
+
+    async _algorithmQueueDevMode({ options }) {
+        setInterval(async () => {
+            if (this._isIntervalActive) {
+                return;
+            }
+            try {
+                this._isIntervalActive = true;
+                const { algorithms } = await db.getAlgorithmTemplates();
+                const discovery = await etcd.getAlgorithmQueues();
+
+                await algorithmQueueReconciler.reconcileDevMode({
+                    algorithms,
+                    discovery,
+                    options
+                });
+            }
+            catch (e) {
+                log.throttle.error(e, { component }, e);
+            }
+            finally {
+                this._isIntervalActive = false;
+            }
+        }, this._intervalMs / 2);
     }
 
     async _algorithmGateways({ clusterOptions, algorithms }) {

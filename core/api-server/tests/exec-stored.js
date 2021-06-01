@@ -135,7 +135,7 @@ describe('Executions', () => {
             expect(res2.body.types).to.eql([pipelineTypes.STORED, pipelineTypes.DEBUG, pipelineTypes.DEV_MODE]);
         });
         it('should succeed to execute and merge options', async () => {
-            const pipeline = pipelines.find(p => p.name === 'options');
+            const pipeline = pipelines.find((p) => p.name === 'options');
             const options = {
                 uri: restPath,
                 body: {
@@ -162,10 +162,7 @@ describe('Executions', () => {
                 body: {
                     name: 'override-flowInput',
                     flowInput: {
-                        inp: [
-                            [],
-                            []
-                        ]
+                        inp: [[], []]
                     }
                 }
             };

@@ -1,7 +1,10 @@
 const converter = require('@hkube/units-converter');
 const { nodeKind } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
+const regex = require('../consts/regex');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
+const LabelValueMaxLength = 63;
+const DNS1123SubdomainMaxLength = 253;
 
 class ApiValidator {
     constructor(validator) {
@@ -108,6 +111,8 @@ class ApiValidator {
     _validateAlgorithmEnvVar(algorithm) {
         this._validateEnvVar(algorithm.algorithmEnv);
         this._validateEnvVar(algorithm.workerEnv);
+        this._validateKeyValue(algorithm.labels, 'labels');
+        this._validateKeyValue(algorithm.annotations, 'annotations');
     }
 
     _validateEnvVar(env) {
@@ -123,6 +128,71 @@ class ApiValidator {
                 this._validator.validate(this._validator.definitionsInternal.kubernetesValueFrom, key);
             }
         });
+    }
+
+    _validateKeyValue(keyVal, field) {
+        if (!keyVal) {
+            return;
+        }
+        Object.entries(keyVal).forEach(([k, v]) => {
+            this._validateKeySpec(k, field);
+            this._validateValueSpec(v, field);
+        });
+    }
+
+    _validateValueSpec(value, field) {
+        const type = 'value';
+        if (!this._isString(value)) {
+            throw new InvalidDataError(`${field} ${type} must be a valid string`);
+        }
+        if (this._isEmptyString(value)) {
+            return;
+        }
+        if (value.length > LabelValueMaxLength) {
+            throw new InvalidDataError(`${field} ${type} must be ${LabelValueMaxLength} characters or less`);
+        }
+        if (!regex.LABEL_KEY_VALUE_REGEX.test(value)) {
+            throw new InvalidDataError(`${field} ${type} must beginning and ending with an alphanumeric character with dashes (-), underscores (_), dots (.), and alphanumerics betweens`);
+        }
+    }
+
+    _validateKeySpec(value, field) {
+        const type = 'key';
+        if (!this._isValidString(value)) {
+            throw new InvalidDataError(`${field} ${type} must be a valid string`);
+        }
+        let key = value;
+        const [prefix, name] = value.split('/');
+        if (value.includes('/')) {
+            key = name;
+            if (prefix > DNS1123SubdomainMaxLength) {
+                throw new InvalidDataError(`${field} ${type} prefix be ${DNS1123SubdomainMaxLength} characters or less`);
+            }
+            if (!regex.RFC_DNS_1123.test(prefix)) {
+                throw new InvalidDataError(`${field} ${type} prefix must be a lowercase RFC 1123 subdomain and must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character`);
+            }
+        }
+        if (!this._isValidString(key)) {
+            throw new InvalidDataError(`${field} ${type} name must be a valid string`);
+        }
+        if (key.length > LabelValueMaxLength) {
+            throw new InvalidDataError(`${field} ${type} name must be ${LabelValueMaxLength} characters or less`);
+        }
+        if (!regex.LABEL_KEY_VALUE_REGEX.test(key)) {
+            throw new InvalidDataError(`${field} ${type} name must beginning and ending with an alphanumeric character with dashes (-), underscores (_), dots (.), and alphanumerics betweens`);
+        }
+    }
+
+    _isString(str) {
+        return typeof str === 'string';
+    }
+
+    _isEmptyString(str) {
+        return str.length === 0;
+    }
+
+    _isValidString(str) {
+        return this._isString(str) && !this._isEmptyString(str);
     }
 
     _isObject(object) {

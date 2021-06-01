@@ -43,8 +43,8 @@ const algorithmQueueTemplate = {
                         ],
                         env: [
                             {
-                                name: 'ALGORITHM_TYPE',
-                                value: 'algorithm-name'
+                                name: 'QUEUE_ID',
+                                value: 'queue-id'
                             },
                             {
                                 name: 'NODE_ENV',
@@ -60,6 +60,15 @@ const algorithmQueueTemplate = {
                                     configMapKeyRef: {
                                         name: 'algorithm-operator-configmap',
                                         key: 'ALGORITHM_QUEUE_INTERVAL'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'CONCURRENCY_LIMIT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'ALGORITHM_QUEUE_CONCURRENCY_LIMIT'
                                     }
                                 }
                             },

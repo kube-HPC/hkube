@@ -2,28 +2,26 @@ const clone = require('clone');
 const isEqual = require('lodash.isequal');
 const objectPath = require('object-path');
 const flatten = require('flat');
-const logger = require('@hkube/logger');
+const log = require('@hkube/logger').GetLogFromContainer();
 const { Persistency } = require('@hkube/dag');
 const { taskStatuses } = require('@hkube/consts');
 const components = require('../consts/componentNames');
 const INTERVAL = 4000;
-let log;
+const persistency = new Persistency();
 
 class GraphStore {
     constructor() {
         this._interval = null;
         this._nodesMap = null;
-        this._currentJobID = null;
+        this._jobId = null;
     }
 
-    async init(options) {
-        log = logger.GetLogFromContainer();
-        this._persistency = new Persistency();
-        return this._persistency.init({ connection: options.db });
+    static async init(options) {
+        return persistency.init({ connection: options.db });
     }
 
     async start(jobId, nodeMap) {
-        this._currentJobID = jobId;
+        this._jobId = jobId;
         this._nodesMap = nodeMap;
         await this._store();
         this._storeInterval();
@@ -34,11 +32,11 @@ class GraphStore {
         clearInterval(this._interval);
         this._interval = null;
         this._nodesMap = null;
-        this._currentJobID = null;
+        this._jobId = null;
     }
 
     getGraph(options) {
-        return this._persistency.getGraph({ jobId: options.jobId });
+        return persistency.getGraph({ jobId: options.jobId });
     }
 
     _storeInterval() {
@@ -71,7 +69,7 @@ class GraphStore {
         const filterGraph = this._filterData(graph);
         if (!isEqual(this._lastGraph, filterGraph)) {
             this._lastGraph = filterGraph;
-            await this._persistency.setGraph({ jobId: this._currentJobID, data: { jobId: this._currentJobID, timestamp: Date.now(), ...filterGraph } });
+            await persistency.setGraph({ jobId: this._jobId, data: { jobId: this._jobId, timestamp: Date.now(), ...filterGraph } });
         }
     }
 
@@ -186,4 +184,4 @@ class GraphStore {
     }
 }
 
-module.exports = new GraphStore();
+module.exports = GraphStore;

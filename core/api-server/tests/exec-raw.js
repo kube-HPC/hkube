@@ -13,14 +13,13 @@ let restUrl, jobId, config;
 const flowInputMetadata = {
     metadata: {
         'flowInput.files.link': {
-            "type": "string"
+            type: 'string'
         },
-        'storageInfo': {
-            "path": "local-hkube/main:3b"
-
+        storageInfo: {
+            path: 'local-hkube/main:3b'
         }
     }
-}
+};
 
 describe('Executions', () => {
     before(() => {
@@ -32,7 +31,7 @@ describe('Executions', () => {
         before(async () => {
             restPath = `${restUrl}/exec/caching`;
             const runRawPath = `${restUrl}/exec/raw`;
-            const pipeline = pipelines.find((pl) => pl.name === 'flow1')
+            const pipeline = pipelines.find((pl) => pl.name === 'flow1');
             const options = {
                 uri: runRawPath,
                 body: pipeline
@@ -42,10 +41,12 @@ describe('Executions', () => {
             const { protocol, host, port, prefix } = config.cachingServer;
             const cachingServiceURI = `${protocol}://${host}:${port}`;
             let pathToJob = `/${prefix}?jobId=${jobId}&nodeName=black-alg`;
-            nock(cachingServiceURI).persist().get(pathToJob).reply(200, { ...pipeline, jobId, rootJobId: jobId, flowInputMetadata });
+            nock(cachingServiceURI)
+                .persist()
+                .get(pathToJob)
+                .reply(200, { ...pipeline, jobId, rootJobId: jobId, flowInputMetadata });
             pathToJob = `/${prefix}?jobId=stam-job&nodeName=stam-alg`;
             nock(cachingServiceURI).persist().get(pathToJob).reply(400, cachingError);
-
         });
         it('should succeed run caching', async () => {
             const options = {
@@ -96,7 +97,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("part of the data is missing or incorrect error:cant find successors for stam-alg");
+            expect(response.body.error.message).to.equal('part of the data is missing or incorrect error:cant find successors for stam-alg');
         });
         it('should succeed to execute with right types', async () => {
             const options = {
@@ -198,7 +199,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("pipeline must have at nodes property with at least one node");
+            expect(response.body.error.message).to.equal('pipeline must have at nodes property with at least one node');
         });
         it('should throw validation error of required property nodes.nodeName', async () => {
             const options = {
@@ -208,9 +209,7 @@ describe('Executions', () => {
                     nodes: [
                         {
                             algorithmName: 'green-alg',
-                            input: [
-                                {}
-                            ]
+                            input: [{}]
                         }
                     ]
                 }
@@ -225,15 +224,17 @@ describe('Executions', () => {
                 uri: restPath,
                 body: {
                     name: 'string',
-                    nodes: [{
-                        nodeName: 'string'
-                    }]
+                    nodes: [
+                        {
+                            nodeName: 'string'
+                        }
+                    ]
                 }
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("please provide algorithmName");
+            expect(response.body.error.message).to.contain('please provide algorithmName');
         });
         it('should throw validation error of nodes.input should be array', async () => {
             const options = {
@@ -366,21 +367,16 @@ describe('Executions', () => {
                     name: 'no-image-pipe',
                     nodes: [
                         {
-                            "nodeName": "green",
-                            "algorithmName": "eval-alg",
-                            "input": [
-                                "data"
-                            ]
+                            nodeName: 'green',
+                            algorithmName: 'eval-alg',
+                            input: ['data']
                         },
                         {
-                            "nodeName": "yellow",
-                            "algorithmName": "no-image-alg",
-                            "input": [
-                                "@green"
-                            ]
+                            nodeName: 'yellow',
+                            algorithmName: 'no-image-alg',
+                            input: ['@green']
                         }
                     ]
-
                 }
             };
             const response = await request(options);
@@ -395,21 +391,16 @@ describe('Executions', () => {
                     name: 'no-image-pipe',
                     nodes: [
                         {
-                            "nodeName": "green",
-                            "algorithmName": "eval-alg",
-                            "input": [
-                                "data"
-                            ]
+                            nodeName: 'green',
+                            algorithmName: 'eval-alg',
+                            input: ['data']
                         },
                         {
-                            "nodeName": "yellow",
-                            "algorithmName": "no-image-alg-debug",
-                            "input": [
-                                "@green"
-                            ]
+                            nodeName: 'yellow',
+                            algorithmName: 'no-image-alg-debug',
+                            input: ['@green']
                         }
                     ]
-
                 }
             };
             const response = await request(options);
@@ -425,8 +416,8 @@ describe('Executions', () => {
                             nodeName: 'string',
                             algorithmName: 'green-alg',
                             input: [],
-                            "metrics": {
-                                "tensorboard": true
+                            metrics: {
+                                tensorboard: true
                             }
                         }
                     ]
@@ -444,7 +435,7 @@ describe('Executions', () => {
                         {
                             nodeName: 'string',
                             algorithmName: 'green-alg',
-                            input: ["@flowInput.inputs"]
+                            input: ['@flowInput.inputs']
                         }
                     ],
                     flowInput: {
@@ -488,149 +479,149 @@ describe('Executions', () => {
                 uri: restPath,
                 body: {
                     name: 'streaming-flow',
-                    kind: "stream",
+                    kind: 'stream',
                     nodes: [
                         {
-                            "nodeName": "A",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateful"
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful'
                         },
                         {
-                            "nodeName": "B",
-                            "algorithmName": "green-alg",
-                            "input": []
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: []
                         }
                     ],
                     streaming: {
                         flows: {
-                            "analyze": "A >> Z"
+                            analyze: 'A >> Z'
                         }
                     }
                 }
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("invalid node Z in stream flow analyze");
+            expect(res.body.error.message).to.equal('invalid node Z in stream flow analyze');
         });
         it('should throw invalid stream flow', async () => {
             const options = {
                 uri: restPath,
                 body: {
                     name: 'streaming-flow',
-                    kind: "stream",
+                    kind: 'stream',
                     nodes: [
                         {
-                            "nodeName": "A",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateful"
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful'
                         },
                         {
-                            "nodeName": "B",
-                            "algorithmName": "green-alg",
-                            "input": []
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: []
                         }
                     ],
                     streaming: {
                         flows: {
-                            "analyze": null
+                            analyze: null
                         }
                     }
                 }
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("invalid stream flow analyze");
+            expect(res.body.error.message).to.equal('invalid stream flow analyze');
         });
         it('should throw not valid flow', async () => {
             const options = {
                 uri: restPath,
                 body: {
                     name: 'streaming-flow',
-                    kind: "stream",
+                    kind: 'stream',
                     nodes: [
                         {
-                            "nodeName": "A",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateful"
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful'
                         },
                         {
-                            "nodeName": "B",
-                            "algorithmName": "green-alg",
-                            "input": []
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: []
                         }
                     ],
                     streaming: {
                         flows: {
-                            "analyze": "A"
+                            analyze: 'A'
                         }
                     }
                 }
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("stream flow analyze should have valid flow, example: A >> B");
+            expect(res.body.error.message).to.equal('stream flow analyze should have valid flow, example: A >> B');
         });
         it('should throw not valid flow format', async () => {
             const options = {
                 uri: restPath,
                 body: {
                     name: 'streaming-flow',
-                    kind: "stream",
+                    kind: 'stream',
                     nodes: [
                         {
-                            "nodeName": "A",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateful"
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful'
                         },
                         {
-                            "nodeName": "B",
-                            "algorithmName": "green-alg",
-                            "input": []
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: []
                         }
                     ],
                     streaming: {
                         flows: {
-                            "analyze": "A --> B"
+                            analyze: 'A --> B'
                         }
                     }
                 }
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("stream flow analyze should have valid flow, example: A >> B");
+            expect(res.body.error.message).to.equal('stream flow analyze should have valid flow, example: A >> B');
         });
         it('should throw stream flow only allowed in stream pipeline', async () => {
             const options = {
                 uri: restPath,
                 body: {
                     name: 'streaming-flow',
-                    kind: "batch",
+                    kind: 'batch',
                     nodes: [
                         {
-                            "nodeName": "A",
-                            "algorithmName": "green-alg",
-                            "input": []
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: []
                         },
                         {
-                            "nodeName": "B",
-                            "algorithmName": "green-alg",
-                            "input": []
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: []
                         }
                     ],
                     streaming: {
                         flows: {
-                            "analyze": "A --> B"
+                            analyze: 'A --> B'
                         }
                     }
                 }
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("streaming flow is only allowed in stream pipeline");
+            expect(res.body.error.message).to.equal('streaming flow is only allowed in stream pipeline');
         });
         it('should succeed to execute with customStream edge type', async () => {
             const options = {
@@ -643,27 +634,27 @@ describe('Executions', () => {
                             nodeName: 'A',
                             algorithmName: 'green-alg',
                             input: [],
-                            stateType: 'stateful',
+                            stateType: 'stateful'
                         },
                         {
                             nodeName: 'B',
                             algorithmName: 'green-alg',
                             input: [],
-                            stateType: 'stateless',
+                            stateType: 'stateless'
                         },
                         {
                             nodeName: 'C',
                             algorithmName: 'green-alg',
                             input: [],
-                            stateType: 'stateless',
-                        },
+                            stateType: 'stateless'
+                        }
                     ],
                     streaming: {
                         flows: {
-                            analyze: 'A >> B >> C',
-                        },
-                    },
-                },
+                            analyze: 'A >> B >> C'
+                        }
+                    }
+                }
             };
             const re = await request(options);
             const optionsGET = { uri: `${restUrl}/exec/pipelines/${re.body.jobId}`, method: 'GET' };
@@ -680,101 +671,101 @@ describe('Executions', () => {
                 uri: restPath,
                 body: {
                     name: 'streaming-flow',
-                    kind: "stream",
+                    kind: 'stream',
                     nodes: [
                         {
-                            "nodeName": "A",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateful"
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful'
                         },
                         {
-                            "nodeName": "B",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateless"
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless'
                         },
                         {
-                            "nodeName": "C",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateless"
+                            nodeName: 'C',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless'
                         },
                         {
-                            "nodeName": "D",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateless"
+                            nodeName: 'D',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless'
                         },
                         {
-                            "nodeName": "E",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateless"
+                            nodeName: 'E',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless'
                         }
                     ],
                     streaming: {
                         flows: {
-                            "analyze0": "A >> B >> C >> D >> B >> A",
-                            "analyze1": "A >> B&C , C >> D",
-                            "analyze2": "A >> B&C >> D",
-                            "analyze3": "A >> B >> C >> D >> A",
-                            "analyze4": "A >> B&C&D >> E"
+                            analyze0: 'A >> B >> C >> D >> B >> A',
+                            analyze1: 'A >> B&C , C >> D',
+                            analyze2: 'A >> B&C >> D',
+                            analyze3: 'A >> B >> C >> D >> A',
+                            analyze4: 'A >> B&C&D >> E'
                         }
                     }
                 }
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("please specify a default stream flow");
+            expect(res.body.error.message).to.equal('please specify a default stream flow');
         });
         it('should succeed to execute with stream flow', async () => {
             const options = {
                 uri: restPath,
                 body: {
                     name: 'streaming-flow',
-                    kind: "stream",
+                    kind: 'stream',
                     nodes: [
                         {
-                            "nodeName": "A",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateful"
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful'
                         },
                         {
-                            "nodeName": "B",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateless"
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless'
                         },
                         {
-                            "nodeName": "C",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateless"
+                            nodeName: 'C',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless'
                         },
                         {
-                            "nodeName": "D",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateless"
+                            nodeName: 'D',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless'
                         },
                         {
-                            "nodeName": "E",
-                            "algorithmName": "green-alg",
-                            "input": [],
-                            "stateType": "stateless"
+                            nodeName: 'E',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateless'
                         }
                     ],
                     streaming: {
                         flows: {
-                            "analyze0": "A >> B >> C >> D >> B >> A",
-                            "analyze1": "A >> B&C , C >> D",
-                            "analyze2": "A >> B&C >> D",
-                            "analyze3": "A >> B >> C >> D >> A",
-                            "analyze4": "A >> B&C&D >> E"
+                            analyze0: 'A >> B >> C >> D >> B >> A',
+                            analyze1: 'A >> B&C , C >> D',
+                            analyze2: 'A >> B&C >> D',
+                            analyze3: 'A >> B >> C >> D >> A',
+                            analyze4: 'A >> B&C&D >> E'
                         },
-                        defaultFlow: "analyze3"
+                        defaultFlow: 'analyze3'
                     }
                 }
             };
@@ -797,26 +788,26 @@ describe('Executions', () => {
             const options = {
                 uri: restPath,
                 body: {
-                    kind: "stream",
-                    name: "string",
+                    kind: 'stream',
+                    name: 'string',
                     nodes: [
                         {
-                            nodeName: "A",
-                            kind: "gateway",
-                            spec: { name },
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            spec: { name }
                         },
                         {
-                            nodeName: "B",
-                            kind: "gateway",
-                            spec: { name },
-                        },
+                            nodeName: 'B',
+                            kind: 'gateway',
+                            spec: { name }
+                        }
                     ],
                     streaming: {
                         flows: {
-                            analyze: "A >> B",
-                        },
-                    },
-                },
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
@@ -826,24 +817,24 @@ describe('Executions', () => {
             const options = {
                 uri: restPath,
                 body: {
-                    kind: "stream",
-                    name: "string",
+                    kind: 'stream',
+                    name: 'string',
                     nodes: [
                         {
-                            nodeName: "A",
-                            kind: "gateway"
+                            nodeName: 'A',
+                            kind: 'gateway'
                         },
                         {
-                            nodeName: "B",
-                            kind: "gateway",
-                        },
+                            nodeName: 'B',
+                            kind: 'gateway'
+                        }
                     ],
                     streaming: {
                         flows: {
-                            analyze: "A >> B",
-                        },
-                    },
-                },
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
             };
             const response = await request(options);
             expect(response.body.gateways).to.have.lengthOf(2);
@@ -854,27 +845,27 @@ describe('Executions', () => {
             const options = {
                 uri: restPath,
                 body: {
-                    kind: "stream",
-                    name: "string",
+                    kind: 'stream',
+                    name: 'string',
                     nodes: [
                         {
-                            nodeName: "nodeA",
-                            kind: "gateway",
-                            spec: { name: "gate-name" },
+                            nodeName: 'nodeA',
+                            kind: 'gateway',
+                            spec: { name: 'gate-name' }
                         },
                         {
-                            nodeName: "B",
-                            kind: "algorithm",
-                            algorithmName: "green-alg",
-                            input: [],
-                        },
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
                     ],
                     streaming: {
                         flows: {
-                            analyze: "nodeA >> B",
-                        },
-                    },
-                },
+                            analyze: 'nodeA >> B'
+                        }
+                    }
+                }
             };
             const response = await request(options);
             expect(response.body).to.have.property('gateways');
@@ -886,26 +877,26 @@ describe('Executions', () => {
             const options = {
                 uri: restPath,
                 body: {
-                    kind: "stream",
-                    name: "string",
+                    kind: 'stream',
+                    name: 'string',
                     nodes: [
                         {
-                            nodeName: "A",
-                            kind: "gateway"
+                            nodeName: 'A',
+                            kind: 'gateway'
                         },
                         {
-                            nodeName: "B",
-                            kind: "algorithm",
-                            algorithmName: "green-alg",
-                            input: [],
-                        },
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
                     ],
                     streaming: {
                         flows: {
-                            analyze: "A >> B",
-                        },
-                    },
-                },
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
             };
             const response = await request(options);
             expect(response.body).to.have.property('gateways');
@@ -918,26 +909,26 @@ describe('Executions', () => {
             const options = {
                 uri: restPath,
                 body: {
-                    kind: "stream",
-                    name: "string",
+                    kind: 'stream',
+                    name: 'string',
                     nodes: [
                         {
-                            nodeName: "A",
-                            kind: "gateway",
-                            spec: { name: gatewayName },
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            spec: { name: gatewayName }
                         },
                         {
-                            nodeName: "B",
-                            kind: "algorithm",
-                            algorithmName: "green-alg",
-                        },
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg'
+                        }
                     ],
                     streaming: {
                         flows: {
-                            analyze: "A >> B",
-                        },
-                    },
-                },
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
             };
             const res = await request(options);
             const res1 = await request({ uri: `${restUrl}/gateway/${gatewayName}`, method: 'GET' });
@@ -952,31 +943,31 @@ describe('Executions', () => {
             const options = {
                 uri: restPath,
                 body: {
-                    kind: "stream",
-                    name: "string",
+                    kind: 'stream',
+                    name: 'string',
                     nodes: [
                         {
-                            nodeName: "A",
-                            kind: "gateway",
+                            nodeName: 'A',
+                            kind: 'gateway',
                             spec: {
                                 name: gateway,
-                                description: "my gateway",
-                                mem: "1Gi"
+                                description: 'my gateway',
+                                mem: '1Gi'
                             }
                         },
                         {
-                            nodeName: "B",
-                            kind: "algorithm",
-                            algorithmName: "green-alg",
-                            input: [],
-                        },
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
                     ],
                     streaming: {
                         flows: {
-                            analyze: "A >> B",
-                        },
-                    },
-                },
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
             };
             const res = await request(options);
             const response = await request({ uri: `${restUrl}/gateway/${gateway}`, method: 'GET' });
@@ -988,33 +979,33 @@ describe('Executions', () => {
             const options = {
                 uri: restPath,
                 body: {
-                    kind: "stream",
-                    name: "string",
+                    kind: 'stream',
+                    name: 'string',
                     nodes: [
                         {
-                            nodeName: "A",
-                            kind: "gateway",
+                            nodeName: 'A',
+                            kind: 'gateway',
                             spec: {
                                 name: gatewayName,
-                                mem: "1Gi"
+                                mem: '1Gi'
                             }
                         },
                         {
-                            nodeName: "B",
-                            kind: "algorithm",
-                            algorithmName: "green-alg",
-                        },
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg'
+                        }
                     ],
                     streaming: {
                         flows: {
-                            analyze: "A >> B",
-                        },
-                    },
-                },
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
             };
             await request(options);
             const response = await request({ uri: `${restUrl}/gateway`, method: 'GET' });
-            const gateway = response.body.find(g => g.gatewayName === gatewayName)
+            const gateway = response.body.find((g) => g.gatewayName === gatewayName);
             expect(response.body.length).to.gte(1);
             expect(gateway).to.exist;
         });

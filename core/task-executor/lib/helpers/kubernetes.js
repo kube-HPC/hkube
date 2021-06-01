@@ -19,7 +19,6 @@ class KubernetesApi {
             this.getVersionsConfigMap = cacheResults(this.getVersionsConfigMap.bind(this), 5000);
             this.getResourcesPerNode = cacheResults(this.getResourcesPerNode.bind(this), 1000);
             this.getWorkerJobs = cacheResults(this.getWorkerJobs.bind(this), 1000);
-            this.getPipelineDriversJobs = cacheResults(this.getPipelineDriversJobs.bind(this), 1000);
         }
     }
 
@@ -37,11 +36,6 @@ class KubernetesApi {
 
     async getWorkerJobs() {
         const jobsRaw = await this._client.jobs.get({ labelSelector: `type=${CONTAINERS.WORKER},group=hkube` });
-        return jobsRaw;
-    }
-
-    async getPipelineDriversJobs() {
-        const jobsRaw = await this._client.jobs.get({ labelSelector: `type=${CONTAINERS.PIPELINE_DRIVER},group=hkube` });
         return jobsRaw;
     }
 

@@ -1,12 +1,18 @@
 const NodejsWrapper = require('@hkube/nodejs-wrapper');
-let wrapper;
+const algorithm = require('./index');
 
-const init = async () => {
-    wrapper = NodejsWrapper.run();
-};
+class Wrapper {
+    constructor() {
+        this._wrapper = null;
+    }
 
-const getWrapper = () => {
-    return wrapper;
-};
+    async init() {
+        this._wrapper = NodejsWrapper.run(algorithm);
+    }
 
-module.exports = { init, getWrapper };
+    getWrapper() {
+        return this._wrapper;
+    }
+}
+
+module.exports = new Wrapper();

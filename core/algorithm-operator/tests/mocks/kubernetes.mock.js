@@ -1,13 +1,3 @@
-// module.exports = {
-//     kubernetes: {
-//         init: async () => { },
-//         createJob: async () => {},
-//         getWorkerJobs: async () => {},
-//         getVersionsConfigMap: async () => {},
-//     }
-// };
-
-
 module.exports = {
     kubernetes: () => {
         let callCount = {};
@@ -24,6 +14,7 @@ module.exports = {
                     registerCount('createJob', theArgs)
                 },
                 getWorkerJobs: async () => { },
+                getPipelineDriversJobs: async () => { },
                 getVersionsConfigMap: async () => { },
                 deleteJob: async (...theArgs) => {
                     registerCount('deleteJob', theArgs)

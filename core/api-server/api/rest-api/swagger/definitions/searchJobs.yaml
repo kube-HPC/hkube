@@ -1,0 +1,63 @@
+type: object
+properties:
+  query:
+    type: object
+    properties:
+      experimentName:
+        type: string
+      pipelineName:
+        type: string
+      pipelineType:
+        type: string
+      algorithmName:
+        type: string
+      pipelineStatus:
+        type: string
+      datesRange:
+        type: object
+        properties:
+          from:
+            type: string
+            example: '2021-03-11T14:30:00'
+          to:
+            type: string
+            example: '2021-03-11T14:30:00'
+  cursor:
+    type: string
+    description: get the next results starting from this cursor
+  pageNum:
+    type: integer
+    description: get the next results starting from this page number
+  sort:
+    type: string
+    enum:
+    - asc
+    - desc
+    default: desc
+  limit:
+    type: integer
+    description: limit the result size
+  fields:
+    type: object
+    description: select which fields to return
+  exists:
+    type: object
+    description: only return records that has fields
+
+example:
+  query:
+    datesRange:
+      from: '2021-05-22T15:00:00'
+      to: '2021-06-22T16:00:00'
+    experimentName: main
+    pipelineName: simple
+    pipelineType: stored
+    algorithmName: green-alg
+    pipelineStatus: completed
+  sort: desc
+  pageNum: 1
+  limit: 2
+  fields:
+    jobId: true
+
+

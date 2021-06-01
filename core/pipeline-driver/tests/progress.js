@@ -1,10 +1,10 @@
-const { uid: uuidv4 } = require('@hkube/uid');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 const sinon = require('sinon');
 const Progress = require('../lib/progress/nodes-progress');
+const { delay, createJobId } = require('./utils');
 let progress;
 
 describe('Progress', function () {
@@ -17,7 +17,7 @@ describe('Progress', function () {
         });
     })
     it('should call progress with level silly', function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const data = { status: 'active' };
         const spy = sinon.spy(progress, "_progress");
         progress.silly({ jobId, status: 'active' })
@@ -28,7 +28,7 @@ describe('Progress', function () {
         expect(call.args[1].status).to.equal(data.status);
     });
     it('should call progress with level debug', function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const data = { status: 'active' };
         const spy = sinon.spy(progress, "_progress");
         progress.debug({ jobId, status: 'active' })
@@ -39,7 +39,7 @@ describe('Progress', function () {
         expect(call.args[1].status).to.equal(data.status);
     });
     it('should call progress with level info', function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const data = { status: 'active' };
         const spy = sinon.spy(progress, "_progress");
         progress.info({ jobId, status: 'active' })
@@ -50,7 +50,7 @@ describe('Progress', function () {
         expect(call.args[1].status).to.equal(data.status);
     });
     it('should call progress with level warning', function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const data = { status: 'active' };
         const spy = sinon.spy(progress, "_progress");
         progress.warning({ jobId, status: 'active' })
@@ -61,7 +61,7 @@ describe('Progress', function () {
         expect(call.args[1].status).to.equal(data.status);
     });
     it('should call progress with level error', function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const data = { status: 'active' };
         const spy = sinon.spy(progress, "_progress");
         progress.error({ jobId, status: 'active' })
@@ -72,7 +72,7 @@ describe('Progress', function () {
         expect(call.args[1].status).to.equal(data.status);
     });
     it('should call progress with level critical', function () {
-        const jobId = `jobid-${uuidv4()}`;
+        const jobId = createJobId();
         const data = { status: 'active' };
         const spy = sinon.spy(progress, "_progress");
         progress.critical({ jobId, status: data.status })

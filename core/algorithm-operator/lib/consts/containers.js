@@ -4,5 +4,6 @@ module.exports = {
     OC_BUILDER: 'oc-builder',
     ALGORITHM_DEBUG: 'worker-debug',
     ALGORITHM_QUEUE: 'algorithm-queue',
-    TENSORBOARD: 'tensorboard'
+    TENSORBOARD: 'tensorboard',
+    PIPELINE_DRIVER: 'pipeline-driver',
 };

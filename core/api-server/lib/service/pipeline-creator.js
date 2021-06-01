@@ -114,27 +114,27 @@ class PipelineCreator {
     }
 
     /**
-         * This method accept pipeline and check if it is streaming with flows.
-         * If it has flows, it creates edges and parsed flow.
-         * @example
-         * input
-         *   streaming: {
-         *        flows: {
-         *           analyze: "A >> B&C , C >> D"
-         *        }}
-         *
-         * output
-         *   edges: [{"source":"A","target":"B"},
-         *           {"source":"A","target":"C"},
-         *           {"source":"C","target":"D"}]
-         *
-         *   streaming: {
-         *        parsedFlow: {
-         *           analyze: [{ source: "A", next: ["B", "C"]}
-         *                     { source: "C", next: ["D"]}]
-         *        }}
-         *
-         */
+     * This method accept pipeline and check if it is streaming with flows.
+     * If it has flows, it creates edges and parsed flow.
+     * @example
+     * input
+     *   streaming: {
+     *        flows: {
+     *           analyze: "A >> B&C , C >> D"
+     *        }}
+     *
+     * output
+     *   edges: [{"source":"A","target":"B"},
+     *           {"source":"A","target":"C"},
+     *           {"source":"C","target":"D"}]
+     *
+     *   streaming: {
+     *        parsedFlow: {
+     *           analyze: [{ source: "A", next: ["B", "C"]}
+     *                     { source: "C", next: ["D"]}]
+     *        }}
+     *
+     */
     async buildStreamingFlow(pipeline, jobId) {
         const flows = pipeline.streaming?.flows;
         let defaultFlow = pipeline.streaming?.defaultFlow;

@@ -87,14 +87,8 @@ describe('Test', () => {
                     queue.updateHeuristic({ run: heuristic(80) });
                     const stubJob = stubTemplate();
                     queue.enqueue(stubJob);
-                    queue.on(queueEvents.POP, () => {
-                        _semaphore.callDone();
-                    });
-                    const job = queue.dequeue();
-                    await _semaphore.done({ doneAmount: 1 });
-                    const q = queue.getQueue();
-                    expect(job.jobId).to.be.eql(stubJob.jobId);
-                    expect(q).to.have.length(0);
+                    queue.dequeue(stubJob);
+                    expect(queue.size).to.eql(0);
                 });
             });
             describe('queue-events', () => {

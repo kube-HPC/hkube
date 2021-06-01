@@ -1,6 +1,6 @@
 const { parser } = require('@hkube/parsers');
-const graphStore = require('../datastore/graph-store');
-
+const GraphStore = require('../datastore/graph-store');
+const graphStore = new GraphStore();
 class Cache {
     async _checkCachePipeline(nodes) {
         const node = nodes.find(n => n.cacheJobId);

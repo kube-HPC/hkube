@@ -1,25 +1,10 @@
 const { expect } = require('chai');
-const mockery = require('mockery');
-const db = require('../lib/helpers/db');
-const decache = require('decache');
 const { templateStoreStub } = require('./stub/discoveryStub');
-const { mock } = (require('./mocks/kubernetes.mock')).kubernetes()
+let db;
 
 describe('bootstrap', () => {
-    before(async () => {
-        mockery.enable({
-            warnOnReplace: false,
-            warnOnUnregistered: false,
-        });
-        mockery.registerMock('./lib/helpers/kubernetes', mock);
-        const bootstrap = require('../bootstrap');
-        await bootstrap.init();
-        await db._db.db.dropDatabase();
-        await db._db.init();
-    });
-    after(() => {
-        mockery.disable();
-        decache('../bootstrap');
+    before(() => {
+        db = require('../lib/helpers/db');
     });
     it('should get template store', async () => {
         await Promise.all(templateStoreStub.map(a => db._db.algorithms.update(a)));

@@ -15,7 +15,7 @@ describe('Versions/Algorithms', () => {
             const algorithmImage = 'test-algorithmImage';
             const applyReq = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify({ name, algorithmImage }) } };
             const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
-            await request(applyReq)
+            await request(applyReq);
             const res = await request(versionReq);
             expect(res.body).to.have.lengthOf(1);
         });
@@ -39,7 +39,7 @@ describe('Versions/Algorithms', () => {
             await request(applyReq1);
             await request(applyReq2);
             const res = await request(versionReq);
-            const semver = res.body.map(v => v.semver);
+            const semver = res.body.map((v) => v.semver);
             expect(res.body).to.have.lengthOf(2);
             expect(semver).to.eql(['1.0.1', '1.0.0']);
         });
@@ -93,8 +93,7 @@ describe('Versions/Algorithms', () => {
     });
     describe('apply', () => {
         it('should throw validation error of required property name', async () => {
-            const body = {
-            };
+            const body = {};
             const req = { uri: `${restPath}/apply`, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
@@ -127,7 +126,7 @@ describe('Versions/Algorithms', () => {
                 version: {}
             };
             const req = { uri: `${restPath}/apply`, body };
-            const res = await request(req)
+            const res = await request(req);
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal('data.version should be string');
@@ -138,7 +137,7 @@ describe('Versions/Algorithms', () => {
                 version: 'no-such'
             };
             const req = { uri: `${restPath}/apply`, body };
-            const res = await request(req)
+            const res = await request(req);
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(res.body.error.message).to.equal(`algorithm ${body.name} Not Found`);
@@ -226,19 +225,16 @@ describe('Versions/Algorithms', () => {
             expect(res3.body.algorithm).to.have.property('version');
 
             expect(res4.body).to.have.lengthOf(3);
-            expect(res5.body.algorithmImage).to.eql(algorithmImage3)
-
-
+            expect(res5.body.algorithmImage).to.eql(algorithmImage3);
         });
     });
     describe('tag', () => {
         let uri;
         before(() => {
-            uri = `${restPath}/tag`
-        })
+            uri = `${restPath}/tag`;
+        });
         it('should throw validation error of required property name', async () => {
-            const body = {
-            };
+            const body = {};
             const req = { uri, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
@@ -271,7 +267,7 @@ describe('Versions/Algorithms', () => {
                 version: {}
             };
             const req = { uri, body };
-            const res = await request(req)
+            const res = await request(req);
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal('data.version should be string');
@@ -282,7 +278,7 @@ describe('Versions/Algorithms', () => {
                 version: 'no-such'
             };
             const req = { uri, body };
-            const res = await request(req)
+            const res = await request(req);
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(res.body.error.message).to.equal(`algorithm ${body.name} Not Found`);
@@ -291,7 +287,7 @@ describe('Versions/Algorithms', () => {
             const name = `my-alg-${uuid()}`;
             const algorithmImage = 'test-algorithmImage-1';
             await request({ uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify({ name, algorithmImage }) } });
-            const res = await request({ uri, body: { version: 'no-such', name } })
+            const res = await request({ uri, body: { version: 'no-such', name } });
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(res.body.error.message).to.equal(`version no-such Not Found`);
@@ -301,8 +297,8 @@ describe('Versions/Algorithms', () => {
             const algorithmImage = 'test-algorithmImage-1';
             const applyPayload = {
                 name,
-                algorithmImage,
-            }
+                algorithmImage
+            };
             const applyReq = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload) } };
             const res1 = await request(applyReq);
             const version = res1.body.algorithm.version;
@@ -317,8 +313,8 @@ describe('Versions/Algorithms', () => {
             const algorithmImage = 'test-algorithmImage-1';
             const applyPayload = {
                 name,
-                algorithmImage,
-            }
+                algorithmImage
+            };
             const applyReq = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload) } };
             const res1 = await request(applyReq);
             const version = res1.body.algorithm.version;

@@ -128,18 +128,14 @@ class AlgorithmExecution {
 
     async stopAllExecutions({ jobId }) {
         let response = null;
-        if (this._stopping) {
+        if (this._stopping || !jobId) {
             return response;
         }
         try {
             this._stopping = true;
-            if (!jobId) {
-                throw new Error('jobId was not supplied');
-            }
             await this._unWatchTasks({ jobId });
 
             if (this._executions.size === 0) {
-                log.info('no registered executions to stop', { component });
                 return response;
             }
             log.info(`stopping ${this._executions.size} executions`, { component });

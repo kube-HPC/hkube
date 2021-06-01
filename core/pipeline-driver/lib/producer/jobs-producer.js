@@ -30,7 +30,7 @@ class JobProducer extends EventEmitter {
                     jobId,
                     taskId: options.node.taskId,
                     nodeName: options.node.nodeName,
-                    dataSource: options.node.dataSource
+                    dataSource: options.node.spec
                 }
             };
             await this._createJob(jobOptions);

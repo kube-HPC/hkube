@@ -28,7 +28,9 @@ class Storage {
     }
 
     async finish(options) {
-        return this._finish(options);
+        if (this._finish) {
+            await this._finish(options);
+        }
     }
 
     setStorageType(type) {
@@ -62,7 +64,9 @@ class Storage {
         let error;
         let status = jobStatus.SUCCEED;
         try {
-            await this._setStorage(options);
+            if (this._setStorage) {
+                await this._setStorage(options);
+            }
         }
         catch (err) {
             log.error(`failed to store data ${err}`, { component }, err);

@@ -1,0 +1,12 @@
+type: object
+properties:
+  hits:
+    type: array
+    description: the actual result records
+    items: {}
+  cursor:
+    type: string
+    description: this cursor to the next query can be used for pagination
+  timeTook:
+    type: string
+    description: the query completion time took in milliseconds

@@ -2,6 +2,7 @@ const { metrics } = require('@hkube/metrics');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, metricsName, metricsTypes, heuristicsName } = require('../consts/index');
 
+// TODO: remove this class entirely
 class AggregationMetricsFactory {
     constructor() {
         this.timeInQueue = null;

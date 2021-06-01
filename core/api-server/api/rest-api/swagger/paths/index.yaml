@@ -13,6 +13,8 @@
   $ref: ./exec/pause.yaml
 /exec/resume:
   $ref: ./exec/resume.yaml
+/exec/search:
+  $ref: ./exec/search.yaml
 /exec/pipelines/{jobId}:
   $ref: ./exec/pipelines_jobId.yaml
 /exec/pipeline/list:

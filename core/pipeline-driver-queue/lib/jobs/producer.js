@@ -40,7 +40,7 @@ class JobProducer {
             if (queue.length > 0) {
                 const pendingAmount = await this._redisQueue.getWaitingCount();
                 if (pendingAmount === 0) {
-                    await this.createJob();
+                    await this.createJob(queue[0]);
                 }
             }
         }
@@ -124,11 +124,11 @@ class JobProducer {
         };
     }
 
-    async createJob() {
-        const pipeline = queueRunner.queue.dequeue();
-        log.debug(`creating new job ${pipeline.jobId}, calculated score: ${pipeline.score}`, { component });
-        const job = this._pipelineToJob(pipeline);
-        await this._producer.createJob(job);
+    async createJob(job) {
+        queueRunner.queue.dequeue(job);
+        log.debug(`creating new job ${job.jobId}, calculated score: ${job.score}`, { component });
+        const jobData = this._pipelineToJob(job);
+        await this._producer.createJob(jobData);
     }
 }
 

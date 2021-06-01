@@ -14,8 +14,11 @@ config.unScheduledAlgorithms = {
     interval: process.env.SCHEDULING_WARNING_INTERVAL || 5000,
 };
 
+config.discoveryInterval = formatter.parseInt(process.env.DISCOVERY_INTERVAL, 2000);
+
 config.jobs = {
     consumer: {
+        concurrency: formatter.parseInt(process.env.CONCURRENCY_LIMIT, 5),
         maxStalledCount: 3,
         type: 'pipeline-job',
         prefix: 'pipeline-driver'
@@ -28,10 +31,6 @@ config.jobs = {
         prefix: 'data-sources',
         type: 'data-sources-job'
     }
-};
-
-config.timeouts = {
-    inactivePaused: process.env.INACTIVE_PAUSED_TIMEOUT_MS || (30 * 1000)
 };
 
 config.metrics = {
@@ -67,7 +66,8 @@ config.redis = {
 config.etcd = {
     protocol: 'http',
     host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
-    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
+    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
+    serviceName: config.serviceName
 };
 
 config.db = {

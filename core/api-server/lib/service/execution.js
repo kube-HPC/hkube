@@ -85,7 +85,6 @@ class ExecutionService {
             validator.pipelines.validatePipelineNodes(pipeline);
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline, jobId);
-            pipeline = await pipelineCreator.fillDebug(pipeline);
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
             pipeline = await validator.dataSources.validate(pipeline);
@@ -112,6 +111,10 @@ class ExecutionService {
             span.finish(error);
             throw error;
         }
+    }
+
+    async search(options) {
+        return stateManager.searchJobsAPI(options);
     }
 
     _addTypesByAlgorithms(algorithms, types) {

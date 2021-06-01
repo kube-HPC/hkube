@@ -1,6 +1,5 @@
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
-const decamelize = require('decamelize');
 const { applyEnvToContainer, applyResourceRequests, applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const { applyImage, applyJaeger } = require('../helpers/kubernetes-utils');
 const component = require('../consts/componentNames').K8S;
@@ -10,12 +9,12 @@ const { createContainerResourceByFactor } = require('../helpers/kubernetes-utils
 const CONTAINERS = require('../consts/containers');
 const { settings } = require('../helpers/settings');
 
-const applyAlgorithmName = (inputSpec, algorithmName, containerName) => {
+const applyQueueId = (inputSpec, queueId, containerName) => {
     const spec = clonedeep(inputSpec);
-    spec.metadata.labels['algorithm-name'] = algorithmName;
-    spec.spec.template.metadata.labels['algorithm-name'] = algorithmName;
-    spec.spec.selector.matchLabels['algorithm-name'] = algorithmName;
-    return applyEnvToContainer(spec, containerName, { ALGORITHM_TYPE: algorithmName });
+    spec.metadata.labels['queue-id'] = queueId;
+    spec.spec.template.metadata.labels['queue-id'] = queueId;
+    spec.spec.selector.matchLabels['queue-id'] = queueId;
+    return applyEnvToContainer(spec, containerName, { QUEUE_ID: queueId });
 };
 
 const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
@@ -26,15 +25,14 @@ const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     return spec;
 };
 
-const applyName = (inputSpec, algorithmName, containerName) => {
+const applyName = (inputSpec, queueId, containerName) => {
     const spec = clonedeep(inputSpec);
-    const validName = decamelize(algorithmName, '-');
-    if (!isValidDeploymentName(validName)) {
-        const msg = `Unable to create deployment spec. ${validName} is not a valid deployment name.`;
+    if (!isValidDeploymentName(queueId)) {
+        const msg = `Unable to create deployment spec. ${queueId} is not a valid deployment name.`;
         log.error(msg, { component });
         throw new Error(msg);
     }
-    const name = `${containerName}-${validName}`;
+    const name = `${containerName}-${queueId}`;
     spec.metadata.name = name;
     return spec;
 };
@@ -47,15 +45,15 @@ const applyResources = (inputSpec, resources) => {
     return spec;
 };
 
-const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOptions, resources, options }) => {
-    if (!algorithmName) {
-        const msg = 'Unable to create deployment spec. algorithmName is required';
+const createDeploymentSpec = ({ queueId, versions, registry, clusterOptions, resources, options }) => {
+    if (!queueId) {
+        const msg = 'Unable to create deployment spec. queueId is required';
         log.error(msg, { component });
         throw new Error(msg);
     }
     let spec = clonedeep(algorithmQueueTemplate);
-    spec = applyName(spec, algorithmName, CONTAINERS.ALGORITHM_QUEUE);
-    spec = applyAlgorithmName(spec, algorithmName, CONTAINERS.ALGORITHM_QUEUE);
+    spec = applyName(spec, queueId, CONTAINERS.ALGORITHM_QUEUE);
+    spec = applyQueueId(spec, queueId, CONTAINERS.ALGORITHM_QUEUE);
     spec = applyImage(spec, CONTAINERS.ALGORITHM_QUEUE, versions, registry);
     spec = applyJaeger(spec, CONTAINERS.ALGORITHM_QUEUE, options);
     spec = applyNodeSelector(spec, clusterOptions);
@@ -70,5 +68,5 @@ const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOption
 module.exports = {
     createDeploymentSpec,
     applyNodeSelector,
-    applyAlgorithmName
+    applyQueueId
 };

@@ -40,7 +40,7 @@ describe('ReadMe', () => {
 
             const options2 = {
                 uri,
-                method: 'GET',
+                method: 'GET'
             };
             const response2 = await request(options2);
             expect(response2.body).to.have.property('name');
@@ -112,7 +112,6 @@ describe('ReadMe', () => {
             expect(response3.body).to.have.property('error');
             expect(response3.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response3.body.error.message).to.equal(`readme ${pipelines[0].name} Not Found`);
-
         });
     });
     describe('/algorithms', () => {
@@ -146,7 +145,7 @@ describe('ReadMe', () => {
 
             const options2 = {
                 uri,
-                method: 'GET',
+                method: 'GET'
             };
             const response2 = await request(options2);
             expect(response2.body).to.have.property('name');

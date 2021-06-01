@@ -14,7 +14,7 @@ const { algorithms } = require('./mocks');
 const nodes = require('./mocks/nodes.json');
 const { request, delay, defaultProps } = require('./utils');
 const commit = require('./mocks/github-commit.json');
-let restUrl, restPath, applyPath;
+let restUrl, restPath, applyPath, debugRestUrl, versionsPath;
 
 const baseApi = 'https://api.github.com';
 const gitRepo = 'https://github.com/kube-HPC/hkube';
@@ -36,7 +36,7 @@ describe('Store/Algorithms', () => {
     describe('/store/algorithms:name GET', () => {
         it('should throw error algorithm not found', async () => {
             const options = {
-                uri: restPath + '/not_exists',
+                uri: `${restPath}/not_exists`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -46,10 +46,10 @@ describe('Store/Algorithms', () => {
         });
         it('should return specific algorithm', async () => {
             const body = {
-                name: "test-alg",
-                algorithmImage: "hkube/algorithm-example",
+                name: 'test-alg',
+                algorithmImage: 'hkube/algorithm-example',
                 cpu: 1,
-                mem: "5000Ki"
+                mem: '5000Ki'
             };
             await request({ uri: restPath, body });
             const response = await request({ uri: `${restPath}/test-alg`, method: 'GET' });
@@ -75,7 +75,7 @@ describe('Store/Algorithms', () => {
                 uri: restPath,
                 body: {
                     name: algorithmName,
-                    algorithmImage: "image"
+                    algorithmImage: 'image'
                 }
             };
             const store = {
@@ -88,7 +88,6 @@ describe('Store/Algorithms', () => {
                             algorithmName,
                             input: []
                         }
-
                     ]
                 }
             };
@@ -132,7 +131,6 @@ describe('Store/Algorithms', () => {
                             algorithmName,
                             input: []
                         }
-
                     ]
                 }
             };
@@ -161,7 +159,7 @@ describe('Store/Algorithms', () => {
                 uri: restPath,
                 body: {
                     name: algorithmName,
-                    algorithmImage: "image"
+                    algorithmImage: 'image'
                 }
             };
             const resAlg = await request(algorithm);
@@ -227,7 +225,7 @@ describe('Store/Algorithms', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.name should NOT be longer than 32 characters");
+            expect(response.body.error.message).to.equal('data.name should NOT be longer than 32 characters');
         });
         it('should throw validation error of data.name should be string', async () => {
             const options = {
@@ -244,10 +242,10 @@ describe('Store/Algorithms', () => {
         it('should throw validation error of memory min 4 Mi', async () => {
             const body = {
                 name: uuid(),
-                algorithmImage: "image",
-                mem: "3900Ki",
+                algorithmImage: 'image',
+                mem: '3900Ki',
                 cpu: 1
-            }
+            };
             const options = {
                 uri: restPath,
                 body
@@ -257,24 +255,12 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
         });
-        it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: ''
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
-        });
         it('should throw conflict error', async () => {
             const options = {
                 uri: restPath,
                 body: {
-                    name: "conflict",
-                    algorithmImage: "image"
+                    name: 'conflict',
+                    algorithmImage: 'image'
                 }
             };
             await request(options);
@@ -290,7 +276,7 @@ describe('Store/Algorithms', () => {
                     uri: restPath,
                     body: {
                         name: `notvalid${v}name`,
-                        algorithmImage: "image"
+                        algorithmImage: 'image'
                     }
                 };
                 const response = await request(options);
@@ -306,7 +292,7 @@ describe('Store/Algorithms', () => {
                     uri: restPath,
                     body: {
                         name: `${v}notvalidname`,
-                        algorithmImage: "image"
+                        algorithmImage: 'image'
                     }
                 };
                 const response = await request(options);
@@ -319,7 +305,7 @@ describe('Store/Algorithms', () => {
                     uri: restPath,
                     body: {
                         name: `notvalidname${v}`,
-                        algorithmImage: "image"
+                        algorithmImage: 'image'
                     }
                 };
                 const response = await request(options);
@@ -339,7 +325,7 @@ describe('Store/Algorithms', () => {
         it('should failed to store algorithm with no image', async () => {
             const body = {
                 name: uuid()
-            }
+            };
             const options = { uri: restPath, body };
             const response = await request(options);
             expect(response.body).to.have.property('error');
@@ -349,8 +335,8 @@ describe('Store/Algorithms', () => {
         it('should failed to store algorithm with end whitespace image name', async () => {
             const body = {
                 name: uuid(),
-                algorithmImage: 'image ',
-            }
+                algorithmImage: 'image '
+            };
             const options = { uri: restPath, body };
             const response = await request(options);
             expect(response.body).to.have.property('error');
@@ -360,8 +346,8 @@ describe('Store/Algorithms', () => {
         it('should failed to store algorithm with start whitespace image name', async () => {
             const body = {
                 name: uuid(),
-                algorithmImage: ' image',
-            }
+                algorithmImage: ' image'
+            };
             const options = { uri: restPath, body };
             const response = await request(options);
             expect(response.body).to.have.property('error');
@@ -371,8 +357,8 @@ describe('Store/Algorithms', () => {
         it('should failed to store algorithm with middle whitespace image name', async () => {
             const body = {
                 name: uuid(),
-                algorithmImage: 'image name',
-            }
+                algorithmImage: 'image name'
+            };
             const options = { uri: restPath, body };
             const response = await request(options);
             expect(response.body).to.have.property('error');
@@ -384,7 +370,7 @@ describe('Store/Algorithms', () => {
                 uri: restPath,
                 body: {
                     name: `this-is-32-length-algorithm-${uuid()}`,
-                    algorithmImage: 'image-name',
+                    algorithmImage: 'image-name'
                 }
             };
             const response = await request(options);
@@ -395,10 +381,10 @@ describe('Store/Algorithms', () => {
         it('should succeed to store algorithm name (www.example.com)', async () => {
             const body = {
                 name: '2-www.exam-ple.com' + uuid(),
-                algorithmImage: "image",
-                mem: "50Mi",
+                algorithmImage: 'image',
+                mem: '50Mi',
                 cpu: 1
-            }
+            };
             const options = {
                 uri: restPath,
                 body
@@ -412,14 +398,14 @@ describe('Store/Algorithms', () => {
             const limit = 3;
             const total = 5;
             const keys = Array.from(Array(total).keys());
-            const algorithms = keys.map(k => ({
+            const algorithms = keys.map((k) => ({
                 ...defaultProps,
                 name: `stress-${k}-${uuid()}`,
-                algorithmImage: "image",
-                mem: "50Mi",
+                algorithmImage: 'image',
+                mem: '50Mi',
                 cpu: k
             }));
-            const result = await Promise.all(algorithms.map(a => request({ uri: restPath, body: a })));
+            const result = await Promise.all(algorithms.map((a) => request({ uri: restPath, body: a })));
             result.forEach((r, i) => {
                 const { version, created, modified, reservedMemory, ...algorithm } = r.body;
                 expect(algorithm).to.eql(algorithms[i]);
@@ -434,11 +420,11 @@ describe('Store/Algorithms', () => {
         it('should succeed to store algorithm', async () => {
             const body = {
                 name: uuid(),
-                algorithmImage: "image",
-                mem: "50Mi",
+                algorithmImage: 'image',
+                mem: '50Mi',
                 cpu: 1,
-                type: "Image"
-            }
+                type: 'Image'
+            };
             const options = {
                 uri: restPath,
                 body
@@ -451,14 +437,14 @@ describe('Store/Algorithms', () => {
         it('should succeed to store algorithm with devMode', async () => {
             const body = {
                 name: uuid(),
-                algorithmImage: "image",
-                mem: "50Mi",
+                algorithmImage: 'image',
+                mem: '50Mi',
                 cpu: 1,
-                type: "Image",
+                type: 'Image',
                 options: {
                     devMode: true
                 }
-            }
+            };
             const options = {
                 uri: restPath,
                 body
@@ -483,7 +469,7 @@ describe('Store/Algorithms', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal("data should have required property 'name'");
+                expect(response.body.error.message).to.equal('algorithm should have required property "name"');
             });
             it('should throw validation error of data.name should be string', async () => {
                 const payload = JSON.stringify({ name: {} });
@@ -499,10 +485,10 @@ describe('Store/Algorithms', () => {
             it('should throw validation error of memory min 4 Mi', async () => {
                 const body = {
                     name: uuid(),
-                    algorithmImage: "image",
-                    mem: "3900Ki",
+                    algorithmImage: 'image',
+                    mem: '3900Ki',
                     cpu: 1
-                }
+                };
                 const payload = JSON.stringify(body);
                 const options = {
                     uri: applyPath,
@@ -516,9 +502,9 @@ describe('Store/Algorithms', () => {
             it('should throw validation error of invalid reservedMemory', async () => {
                 const body = {
                     name: uuid(),
-                    algorithmImage: "image",
+                    algorithmImage: 'image',
                     reservedMemory: 300
-                }
+                };
                 const payload = JSON.stringify(body);
                 const options = {
                     uri: applyPath,
@@ -529,25 +515,14 @@ describe('Store/Algorithms', () => {
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('memory unit must be one of Ki,M,Mi,Gi,m,K,G,T,Ti,P,Pi,E,Ei');
             });
-            it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
-                const payload = JSON.stringify({ name: '' });
-                const options = {
-                    uri: applyPath,
-                    formData: { payload }
-                };
-                const response = await request(options);
-                expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
-            });
             it('should throw validation invalid env', async () => {
                 const body = {
                     name: uuid(),
-                    algorithmImage: "image",
-                    mem: "3900Ki",
+                    algorithmImage: 'image',
+                    mem: '3900Ki',
                     cpu: 1,
-                    env: "no_such"
-                }
+                    env: 'no_such'
+                };
                 const payload = JSON.stringify(body);
                 const options = {
                     uri: applyPath,
@@ -561,9 +536,9 @@ describe('Store/Algorithms', () => {
             it('should throw validation invalid fileExt', async () => {
                 const payload = {
                     name: `my-alg-${uuid()}`,
-                    mem: "50Mi",
+                    mem: '50Mi',
                     cpu: 1
-                }
+                };
                 const formData = {
                     payload: JSON.stringify(payload),
                     file: fse.createReadStream('tests/mocks/algorithm.tar')
@@ -582,7 +557,7 @@ describe('Store/Algorithms', () => {
             it('should throw error of missing image and file', async () => {
                 const body = {
                     name: `my-alg-${uuid()}`,
-                    mem: "50Mi",
+                    mem: '50Mi',
                     cpu: 1
                 };
                 const formData = {
@@ -593,7 +568,7 @@ describe('Store/Algorithms', () => {
                     formData
                 };
 
-                const response = await request(options)
+                const response = await request(options);
                 expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal(MESSAGES.APPLY_ERROR);
             });
@@ -601,13 +576,13 @@ describe('Store/Algorithms', () => {
                 const apply = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    type: "Git",
-                    mem: "50Mi",
+                    type: 'Git',
+                    mem: '50Mi',
                     cpu: 1
-                }
+                };
                 const uri = applyPath;
                 const req = { uri, formData: { payload: JSON.stringify(apply) } };
-                const res = await request(req)
+                const res = await request(req);
                 expect(res.response.statusCode).to.equal(HttpStatus.OK);
                 expect(res.body).to.not.have.property('buildId');
             });
@@ -615,13 +590,13 @@ describe('Store/Algorithms', () => {
                 const apply = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    type: "Code",
-                    mem: "50Mi",
+                    type: 'Code',
+                    mem: '50Mi',
                     cpu: 1
-                }
+                };
                 const uri = applyPath;
                 const req = { uri, formData: { payload: JSON.stringify(apply) } };
-                const res = await request(req)
+                const res = await request(req);
                 expect(res.response.statusCode).to.equal(HttpStatus.OK);
                 expect(res.body).to.not.have.property('buildId');
             });
@@ -630,15 +605,15 @@ describe('Store/Algorithms', () => {
                 const body1 = {
                     name: uuid(),
                     gitRepository: {
-                        url,
+                        url
                     },
                     env: 'nodejs',
                     type: 'Git'
-                }
+                };
                 const body2 = {
                     ...body1,
                     type: 'Code'
-                }
+                };
                 const options1 = {
                     uri: applyPath,
                     body: { payload: JSON.stringify(body1) }
@@ -658,9 +633,9 @@ describe('Store/Algorithms', () => {
                 const body = {
                     name: uuid(),
                     cpu: 20,
-                    mem: "2Gi",
+                    mem: '2Gi',
                     gpu: 0
-                }
+                };
                 const options = {
                     uri: applyPath,
                     body: { payload: JSON.stringify(body) }
@@ -673,9 +648,9 @@ describe('Store/Algorithms', () => {
                 const body = {
                     name: uuid(),
                     cpu: 1,
-                    mem: "80Gi",
+                    mem: '80Gi',
                     gpu: 0
-                }
+                };
                 const options = {
                     uri: applyPath,
                     body: { payload: JSON.stringify(body) }
@@ -688,9 +663,9 @@ describe('Store/Algorithms', () => {
                 const body = {
                     name: uuid(),
                     cpu: 50,
-                    mem: "80Gi",
+                    mem: '80Gi',
                     gpu: 15
-                }
+                };
                 const options = {
                     uri: applyPath,
                     body: { payload: JSON.stringify(body) }
@@ -699,16 +674,266 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
             });
+            it('should delete nullable properties', async () => {
+                const algorithmName = uuid();
+                const body1 = {
+                    name: algorithmName,
+                    algorithmImage: 'algorithmImage',
+                    baseImage: 'hkube/image',
+                    algorithmEnv: {
+                        MY_ENV: 'value'
+                    },
+                    workerEnv: {
+                        MY_ENV: 'value'
+                    },
+                    quotaGuarantee: 5,
+                    labels: {
+                        'hkube.io/key': 'label'
+                    },
+                    downloadFileExt: 'jpg',
+                    annotations: {
+                        'hkube.io/key': 'annotation'
+                    },
+                    nodeSelector: {
+                        'hkube.io/key': 'selector'
+                    }
+                };
+                const body2 = {
+                    name: algorithmName,
+                    baseImage: null,
+                    algorithmEnv: null,
+                    workerEnv: null,
+                    quotaGuarantee: null,
+                    labels: null,
+                    annotations: null,
+                    downloadFileExt: null,
+                    nodeSelector: null
+                };
+                const options1 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body1) }
+                };
+                const options2 = {
+                    uri: applyPath,
+                    body: {
+                        payload: JSON.stringify(body2),
+                        options: JSON.stringify({ forceUpdate: false }),
+                    }
+                };
+                await request(options1);
+                const res = await request(options2);
+
+                const version = res.body.algorithm.version;
+                const versionReq = {
+                    uri: `${restUrl}/versions/algorithms/apply`,
+                    body: { version, name: algorithmName, force: true }
+                };
+                await request(versionReq);
+
+                const getOptions = {
+                    uri: `${restPath}/${algorithmName}`,
+                    method: 'GET'
+                };
+                const response = await request(getOptions);
+                expect(response.body).to.not.have.property('baseImage');
+                expect(response.body).to.not.have.property('algorithmEnv');
+                expect(response.body).to.not.have.property('workerEnv');
+                expect(response.body).to.not.have.property('quotaGuarantee');
+                expect(response.body).to.not.have.property('labels');
+                expect(response.body).to.not.have.property('annotations');
+                expect(response.body).to.not.have.property('downloadFileExt');
+                expect(response.body).to.not.have.property('nodeSelector');
+            });
+        });
+        describe('labels and annotations', () => {
+            it('should throw validation error of invalid labels key', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        '': 'value'
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('labels key must be a valid string');
+            });
+            it('should not throw validation error if empty label value', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        key: ''
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.not.have.property('error');
+            });
+            it('should throw validation error of empty label name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        'hkube.do-main.com/': 'my-val'
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('labels key name must be a valid string');
+            });
+            it('should throw validation error if invalid label key name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        'hkube.do-main.com/NOT_VALID': 'my-value'
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.contains('labels key name must beginning and ending with an alphanumeric character with dashes');
+            });
+            it('should not throw validation error if empty label value', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        'hkube.do-main.com/valid': ''
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.not.have.property('error');
+            });
+            it('should throw validation error if whitespace label value', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        'hkube.do-main.com/valid': ' my val '
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.contains('labels value must beginning and ending with an alphanumeric character with dashes');
+            });
+            it('should throw validation error of invalid annotation key', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    annotations: {
+                        '': 'value'
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('annotations key must be a valid string');
+            });
+            it('should not throw validation error if empty annotation value', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    annotations: {
+                        key: ''
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.not.have.property('error');
+            });
+            it('should throw validation error of empty annotation name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    annotations: {
+                        'hkube.do-main.com/': ' '
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('annotations key name must be a valid string');
+            });
+            it('should throw validation error if invalid annotation key name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    annotations: {
+                        'hkube.do-main.com/NOT_VALID': ' '
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.contains('annotations key name must beginning and ending with an alphanumeric character with dashes');
+            });
+            it('should not throw validation error if empty annotation value', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'algorithmImage',
+                    annotations: {
+                        'hkube.do-main.com/valid': ''
+                    }
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.not.have.property('error');
+            });
         });
         describe('GitHub', () => {
             it('should throw error of required property url', async () => {
                 const name = uuid();
                 const body = {
                     name,
-                    gitRepository: {
-                    },
-                    type: "Git"
-                }
+                    gitRepository: {},
+                    type: 'Git'
+                };
                 const payload = JSON.stringify(body);
                 const options = {
                     uri: applyPath,
@@ -725,8 +950,8 @@ describe('Store/Algorithms', () => {
                     gitRepository: {
                         url: ''
                     },
-                    type: "Git"
-                }
+                    type: 'Git'
+                };
                 const payload = JSON.stringify(body);
                 const options = {
                     uri: applyPath,
@@ -743,8 +968,8 @@ describe('Store/Algorithms', () => {
                     gitRepository: {
                         url: 'http://no_such_url'
                     },
-                    type: "Git"
-                }
+                    type: 'Git'
+                };
                 const payload = JSON.stringify(body);
                 const options = {
                     uri: applyPath,
@@ -760,10 +985,10 @@ describe('Store/Algorithms', () => {
                     name,
                     gitRepository: {
                         url: 'http://no_such_url',
-                        branchName: "no_such"
+                        branchName: 'no_such'
                     },
-                    type: "Git"
-                }
+                    type: 'Git'
+                };
                 const payload = JSON.stringify(body);
                 const options = {
                     uri: applyPath,
@@ -779,10 +1004,10 @@ describe('Store/Algorithms', () => {
                 const body = {
                     name,
                     gitRepository: {
-                        url,
+                        url
                     },
-                    type: "Git"
-                }
+                    type: 'Git'
+                };
                 const payload = JSON.stringify(body);
                 const options = {
                     uri: applyPath,
@@ -800,15 +1025,15 @@ describe('Store/Algorithms', () => {
                     gitRepository: {
                         url,
                         token: '1111',
-                        gitKind: "github",
+                        gitKind: 'github',
                         commit: {
                             id: uuid()
                         }
                     },
                     env: 'nodejs',
                     baseImage: 'my-new-base/image',
-                    type: "Git"
-                }
+                    type: 'Git'
+                };
                 const options1 = {
                     uri: applyPath,
                     body: { payload: JSON.stringify(algorithm) }
@@ -828,13 +1053,13 @@ describe('Store/Algorithms', () => {
                 const name = uuid();
                 const body = {
                     name,
-                    mem: "6000Mi",
+                    mem: '6000Mi',
                     cpu: 1,
                     gitRepository: {
                         url: gitRepo
                     },
-                    env: "nodejs"
-                }
+                    env: 'nodejs'
+                };
                 const payload = JSON.stringify(body);
                 const options = {
                     uri: applyPath,
@@ -849,8 +1074,8 @@ describe('Store/Algorithms', () => {
                     gitRepository: {
                         url: gitRepo
                     },
-                    env: "nodejs"
-                }
+                    env: 'nodejs'
+                };
                 const options = {
                     uri: applyPath,
                     body: { payload: JSON.stringify(body) }
@@ -869,11 +1094,11 @@ describe('Store/Algorithms', () => {
                         url: gitRepo
                     },
                     baseImage: 'python:2.7'
-                }
+                };
                 const body2 = {
                     name: body1.name,
                     baseImage: 'python:3.7'
-                }
+                };
                 const options1 = {
                     uri: applyPath,
                     body: { payload: JSON.stringify(body1) }
@@ -882,9 +1107,9 @@ describe('Store/Algorithms', () => {
                     uri: applyPath,
                     body: { payload: JSON.stringify(body2) }
                 };
-                const response1 = await request(options1)
+                const response1 = await request(options1);
                 const response2 = await request(options2);
-                expect(response1.body).to.have.property('buildId')
+                expect(response1.body).to.have.property('buildId');
                 expect(response2.body).to.have.property('buildId');
             });
             it.skip('should create build from private repo', async () => {
@@ -899,7 +1124,7 @@ describe('Store/Algorithms', () => {
                     },
                     env: 'python',
                     type: 'Git'
-                }
+                };
                 const options1 = {
                     uri: applyPath,
                     body: { payload: JSON.stringify(algorithm) }
@@ -913,25 +1138,25 @@ describe('Store/Algorithms', () => {
                 const body1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'hkube/image',
-                    env: 'nodejs',
-                }
+                    env: 'nodejs'
+                };
                 const body2 = {
                     ...body1
-                }
+                };
                 const uri = applyPath;
                 const options1 = { uri, formData: { payload: JSON.stringify(body1), file: '' } };
                 const options2 = { uri, formData: { payload: JSON.stringify(body2), file: '' } };
-                const response1 = await request(options1)
+                const response1 = await request(options1);
                 const response2 = await request(options2);
-                expect(response1.body.algorithm).to.eql(response2.body.algorithm)
+                expect(response1.body.algorithm).to.eql(response2.body.algorithm);
             });
             it('should succeed to apply algorithm with first build', async () => {
                 const payload = {
                     name: `my-alg-${uuid()}`,
-                    mem: "50Mi",
+                    mem: '50Mi',
                     cpu: 1,
                     env: 'nodejs'
-                }
+                };
                 const formData = {
                     payload: JSON.stringify(payload),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -958,18 +1183,18 @@ describe('Store/Algorithms', () => {
             it('should succeed to apply algorithm without buildId in response', async () => {
                 const body = {
                     name: `my-alg-${uuid()}`,
-                    mem: "50Mi",
+                    mem: '50Mi',
                     cpu: 1
-                }
+                };
                 const body1 = {
                     ...body,
-                    env: 'nodejs',
-                }
+                    env: 'nodejs'
+                };
                 const body2 = {
                     ...body,
                     env: 'nodejs',
                     cpu: 2
-                }
+                };
                 const formData1 = {
                     payload: JSON.stringify(body1),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -987,7 +1212,7 @@ describe('Store/Algorithms', () => {
                     uri,
                     formData: formData2
                 };
-                await request(options1)
+                await request(options1);
                 const response = await request(options2);
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.not.have.property('buildId');
@@ -996,21 +1221,21 @@ describe('Store/Algorithms', () => {
             it('should succeed to apply algorithm without changing old data', async () => {
                 const body = {
                     name: `my-alg-${uuid()}`,
-                    mem: "50Mi",
+                    mem: '50Mi',
                     cpu: 1
-                }
+                };
                 const body1 = {
                     ...body,
                     env: 'nodejs',
                     entryPoint: 'main.py',
                     cpu: 1
-                }
+                };
                 const body2 = {
                     ...body,
                     env: 'python',
                     entryPoint: 'app.py',
                     cpu: 2
-                }
+                };
                 const formData1 = {
                     payload: JSON.stringify(body1),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -1027,7 +1252,7 @@ describe('Store/Algorithms', () => {
                     uri: applyPath,
                     formData: formData2
                 };
-                const res1 = await request(options1)
+                const res1 = await request(options1);
                 const res2 = await request(options2);
                 const optionsGet = {
                     uri: `${restPath}/${body.name}`,
@@ -1045,18 +1270,18 @@ describe('Store/Algorithms', () => {
             it('should succeed to apply algorithm with buildId due to change in env', async () => {
                 const body = {
                     name: `my-alg-${uuid()}`,
-                    mem: "50Mi",
+                    mem: '50Mi',
                     cpu: 1
-                }
+                };
                 const body1 = {
                     ...body,
                     env: 'nodejs',
                     type: 'Code'
-                }
+                };
                 const body2 = {
                     ...body,
                     env: 'python'
-                }
+                };
                 const options = {
                     uri: restPath,
                     body: body1
@@ -1079,7 +1304,7 @@ describe('Store/Algorithms', () => {
                     formData: formData2
                 };
                 await request(options);
-                await request(options1)
+                await request(options1);
 
                 const response = await request(options2);
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
@@ -1090,10 +1315,10 @@ describe('Store/Algorithms', () => {
                 const body1 = {
                     name: `my-alg-${uuid()}`,
                     env: 'python'
-                }
+                };
                 const body2 = {
                     ...body1
-                }
+                };
                 const formData1 = {
                     payload: JSON.stringify(body1),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -1106,7 +1331,7 @@ describe('Store/Algorithms', () => {
                 const options1 = { uri, formData: formData1 };
                 const options2 = { uri, formData: formData2 };
                 const response1 = await request(options1);
-                const response2 = await request(options2)
+                const response2 = await request(options2);
                 expect(response1.body).to.have.property('buildId');
                 expect(response2.body).to.have.property('buildId');
                 expect(response2.body.messages[0]).to.contains('a build was triggered due to change in checksum');
@@ -1115,11 +1340,11 @@ describe('Store/Algorithms', () => {
                 const body1 = {
                     name: `my-alg-${uuid()}`,
                     env: 'python'
-                }
+                };
                 const body2 = {
                     ...body1,
                     dependencyInstallCmd: './foo'
-                }
+                };
                 const formData1 = {
                     payload: JSON.stringify(body1),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -1132,7 +1357,7 @@ describe('Store/Algorithms', () => {
                 const options1 = { uri, formData: formData1 };
                 const options2 = { uri, formData: formData2 };
                 const response1 = await request(options1);
-                const response2 = await request(options2)
+                const response2 = await request(options2);
                 expect(response1.body).to.have.property('buildId');
                 expect(response2.body).to.have.property('buildId');
                 expect(response2.body.messages[0]).to.contains('a build was triggered due to change in dependencyInstallCmd');
@@ -1142,11 +1367,11 @@ describe('Store/Algorithms', () => {
                     name: `my-alg-${uuid()}`,
                     env: 'nodejs',
                     baseImage: 'python:2.7'
-                }
+                };
                 const body2 = {
                     ...body1,
                     baseImage: 'python:3.7'
-                }
+                };
                 const formData1 = {
                     payload: JSON.stringify(body1),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -1164,27 +1389,27 @@ describe('Store/Algorithms', () => {
                     formData: formData2
                 };
 
-                const response1 = await request(options1)
+                const response1 = await request(options1);
                 const response2 = await request(options2);
-                expect(response1.body).to.have.property('buildId')
+                expect(response1.body).to.have.property('buildId');
                 expect(response2.body).to.have.property('buildId');
             });
             it('should succeed to apply algorithm without buildId in response', async () => {
                 const body = {
                     name: `my-alg-${uuid()}`,
-                    mem: "50Mi",
+                    mem: '50Mi',
                     cpu: 1,
                     env: 'nodejs',
                     type: 'Code'
-                }
+                };
                 const body1 = {
                     ...body,
                     cpu: 1
-                }
+                };
                 const body2 = {
                     ...body,
                     cpu: 2
-                }
+                };
                 const formData1 = {
                     payload: JSON.stringify(body1),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -1201,7 +1426,7 @@ describe('Store/Algorithms', () => {
                     uri,
                     formData: formData2
                 };
-                await request(options1)
+                await request(options1);
                 const response = await request(options2);
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.not.have.property('buildId');
@@ -1209,11 +1434,11 @@ describe('Store/Algorithms', () => {
             it('should succeed to apply algorithm with force build', async () => {
                 const body1 = {
                     name: `my-alg-${uuid()}`,
-                    env: 'nodejs',
-                }
+                    env: 'nodejs'
+                };
                 const body2 = {
                     ...body1
-                }
+                };
                 const formData1 = {
                     payload: JSON.stringify(body1),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -1224,14 +1449,14 @@ describe('Store/Algorithms', () => {
                 };
                 const options1 = { uri: applyPath, formData: formData1 };
                 const options2 = { uri: applyPath, formData: formData2 };
-                const res1 = await request(options1)
+                const res1 = await request(options1);
                 const res2 = await request(options2);
                 expect(res1.body).to.have.property('buildId');
                 expect(res2.body).to.have.property('buildId');
                 expect(res1.body.messages[0]).to.eql(MESSAGES.FIRST_BUILD);
                 expect(res2.body.messages[0]).to.eql(MESSAGES.FORCE_BUILD);
             });
-            it('should succeed to watch completed build', async function () {
+            it('should succeed to watch completed build', async () => {
                 const algorithmName = `my-alg-${uuid()}`;
                 const algorithmImage = `${algorithmName}-image`;
                 const formData = {
@@ -1291,7 +1516,7 @@ describe('Store/Algorithms', () => {
                 expect(get4.body.cpu).to.eql(1);
                 expect(get4.body.options.pending).to.eql(false);
             });
-        })
+        });
         describe('GitLab', () => {
             // this test is actually perform an HTTP request
             it.skip('should create build with last commit data', async () => {
@@ -1302,11 +1527,11 @@ describe('Store/Algorithms', () => {
                     gitRepository: {
                         url,
                         token: '1234',
-                        gitKind: "gitlab"
+                        gitKind: 'gitlab'
                     },
                     env: 'nodejs',
-                    type: "Git"
-                }
+                    type: 'Git'
+                };
                 const payload = JSON.stringify(body);
                 const options = {
                     uri: applyPath,
@@ -1321,24 +1546,24 @@ describe('Store/Algorithms', () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    mem: "50Mi",
-                    type: "Image",
+                    mem: '50Mi',
+                    type: 'Image',
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
                         debug: false,
                         pending: false
                     }
-                }
+                };
                 const apply2 = {
                     name: apply1.name,
                     algorithmImage: 'new-test-algorithmImage'
-                }
+                };
                 const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
-                await request(request1)
+                await request(request1);
                 await request(request2);
 
                 const request3 = {
@@ -1353,24 +1578,24 @@ describe('Store/Algorithms', () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    mem: "50Mi",
-                    type: "Image",
+                    mem: '50Mi',
+                    type: 'Image',
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
                         debug: false,
                         pending: false
                     }
-                }
+                };
                 const apply2 = {
                     name: apply1.name,
                     algorithmImage: 'new-test-algorithmImage'
-                }
+                };
                 const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
-                await request(request1)
+                await request(request1);
                 await request(request2);
 
                 const request3 = {
@@ -1385,21 +1610,21 @@ describe('Store/Algorithms', () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    mem: "50Mi",
-                    type: "Image",
+                    mem: '50Mi',
+                    type: 'Image',
                     cpu: 1,
                     minHotWorkers: 5
-                }
+                };
                 const apply2 = {
                     name: apply1.name,
                     algorithmImage: 'new-test-algorithmImage',
-                    cpu: 2,
-                }
+                    cpu: 2
+                };
                 const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: false }), payload: JSON.stringify(apply2) } };
 
-                await request(request1)
+                await request(request1);
                 await request(request2);
 
                 const request3 = {
@@ -1414,21 +1639,21 @@ describe('Store/Algorithms', () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    mem: "50Mi",
-                    type: "Image",
+                    mem: '50Mi',
+                    type: 'Image',
                     cpu: 1,
                     minHotWorkers: 5
-                }
+                };
                 const apply2 = {
                     name: apply1.name,
                     algorithmImage: 'new-test-algorithmImage',
-                    cpu: 2,
-                }
+                    cpu: 2
+                };
                 const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
-                await request(request1)
+                await request(request1);
                 await request(request2);
 
                 const request3 = {
@@ -1443,22 +1668,20 @@ describe('Store/Algorithms', () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    mem: "50Mi",
-                    type: "Image",
+                    mem: '50Mi',
+                    type: 'Image',
                     cpu: 1,
                     minHotWorkers: 5
-                }
+                };
                 const apply2 = {
                     name: apply1.name,
                     cpu: 2
-                }
+                };
                 const uri = applyPath;
                 const request1 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
-
-                await request(request1)
-
+                await request(request1);
 
                 await request(request2);
 
@@ -1474,20 +1697,20 @@ describe('Store/Algorithms', () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    mem: "50Mi",
-                    type: "Image",
+                    mem: '50Mi',
+                    type: 'Image',
                     cpu: 1,
                     minHotWorkers: 5
-                }
+                };
                 const apply2 = {
                     name: apply1.name,
                     gpu: 2
-                }
+                };
                 const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
-                await request(request1)
+                await request(request1);
                 await request(request2);
 
                 const request3 = {
@@ -1502,24 +1725,24 @@ describe('Store/Algorithms', () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    mem: "50Mi",
-                    type: "Image",
+                    mem: '50Mi',
+                    type: 'Image',
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
                         debug: false,
                         pending: false
                     }
-                }
+                };
                 const apply2 = {
                     name: apply1.name,
-                    mem: "1.5Gi"
-                }
+                    mem: '1.5Gi'
+                };
                 const uri = applyPath;
                 const request1 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
-                await request(request1)
+                await request(request1);
                 await request(request2);
 
                 const request3 = {
@@ -1534,24 +1757,24 @@ describe('Store/Algorithms', () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    mem: "50Mi",
-                    type: "Image",
+                    mem: '50Mi',
+                    type: 'Image',
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
                         debug: false,
                         pending: false
                     }
-                }
+                };
                 const apply2 = {
                     name: apply1.name,
                     minHotWorkers: 3
-                }
+                };
                 const uri = applyPath;
                 const request1 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
-                await request(request1)
+                await request(request1);
                 await request(request2);
 
                 const request3 = {
@@ -1566,8 +1789,8 @@ describe('Store/Algorithms', () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    mem: "50Mi",
-                    type: "Image",
+                    mem: '50Mi',
+                    type: 'Image',
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
@@ -1577,18 +1800,18 @@ describe('Store/Algorithms', () => {
                     algorithmEnv: {
                         storage: 's3'
                     }
-                }
+                };
                 const apply2 = {
                     name: apply1.name,
                     algorithmEnv: {
                         storage: 'fs'
                     }
-                }
+                };
                 const uri = applyPath;
                 const request1 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
-                await request(request1)
+                await request(request1);
                 await request(request2);
 
                 const request3 = {
@@ -1607,18 +1830,18 @@ describe('Store/Algorithms', () => {
                         storage_env: 's3',
                         stam_env: 'v344'
                     }
-                }
+                };
                 const apply2 = {
                     name: apply1.name,
                     algorithmEnv: {
                         storage_env: 's3'
                     }
-                }
+                };
                 const uri = applyPath;
                 const request1 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
-                await request(request1)
+                await request(request1);
                 await request(request2);
 
                 const request3 = {
@@ -1637,12 +1860,12 @@ describe('Store/Algorithms', () => {
                         storage_env: 's3',
                         cm_env: { configMapKeyRef: { name: 'my-cm', key: 'cm_env' } }
                     }
-                }
+                };
 
                 const uri = restPath + '/apply';
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
 
-                await request(request1)
+                await request(request1);
 
                 const request3 = {
                     uri: restPath + '/' + apply1.name,
@@ -1660,22 +1883,21 @@ describe('Store/Algorithms', () => {
                         storage_env: 's3',
                         cm_env: { foo: { name: 'my-cm', key: 'cm_env' } }
                     }
-                }
+                };
 
                 const uri = restPath + '/apply';
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
 
-
-                const response1 = await request(request1)
-                expect(response1.body.error.message).to.eql("data should be equal to one of the allowed values (fieldRef,configMapKeyRef,resourceFieldRef,secretKeyRef)");
+                const response1 = await request(request1);
+                expect(response1.body.error.message).to.eql('data should be equal to one of the allowed values (fieldRef,configMapKeyRef,resourceFieldRef,secretKeyRef)');
             });
             it('should succeed to add reservedMemory', async () => {
-                const reservedMemory = "512Mi";
+                const reservedMemory = '512Mi';
                 const apply = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     reservedMemory
-                }
+                };
                 const uri = applyPath;
                 const req = { uri, formData: { payload: JSON.stringify(apply) } };
                 const res = await request(req);
@@ -1686,7 +1908,7 @@ describe('Store/Algorithms', () => {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     mem: '1024Mi'
-                }
+                };
                 const req = { uri: applyPath, formData: { payload: JSON.stringify(apply) } };
                 const res = await request(req);
                 expect(res.body.algorithm.reservedMemory).to.eql('205Mi');
@@ -1694,8 +1916,8 @@ describe('Store/Algorithms', () => {
             it('should succeed to add created and modified', async () => {
                 const apply = {
                     name: `my-alg-${uuid()}`,
-                    algorithmImage: 'test-algorithmImage',
-                }
+                    algorithmImage: 'test-algorithmImage'
+                };
                 const req = { uri: applyPath, formData: { payload: JSON.stringify(apply) } };
                 const res = await request(req);
                 expect(res.body.algorithm).to.have.property('created');
@@ -1706,11 +1928,11 @@ describe('Store/Algorithms', () => {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     baseImage: 'python:2.7'
-                }
+                };
                 const body2 = {
                     ...body1,
                     baseImage: 'python:3.7'
-                }
+                };
                 const options1 = {
                     uri: applyPath,
                     body: { payload: JSON.stringify(body1) }
@@ -1719,10 +1941,26 @@ describe('Store/Algorithms', () => {
                     uri: applyPath,
                     body: { payload: JSON.stringify(body2) }
                 };
-                const response1 = await request(options1)
+                const response1 = await request(options1);
                 const response2 = await request(options2);
-                expect(response1.body).to.not.have.property('buildId')
+                expect(response1.body).to.not.have.property('buildId');
                 expect(response2.body).to.not.have.property('buildId');
+            });
+            it('should succeed to add labels and annotations', async () => {
+                const apply = {
+                    name: `alg-${uuid()}`,
+                    algorithmImage: 'algorithmImage',
+                    labels: {
+                        'my.custom.key': 'my.custom.value'
+                    },
+                    annotations: {
+                        'my.custom.key': 'my.custom.value'
+                    }
+                };
+                const req = { uri: applyPath, formData: { payload: JSON.stringify(apply) } };
+                const res = await request(req);
+                expect(res.body.algorithm.labels).to.eql(apply.labels);
+                expect(res.body.algorithm.annotations).to.eql(apply.annotations);
             });
         });
         describe('Versions', () => {
@@ -1731,8 +1969,8 @@ describe('Store/Algorithms', () => {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     cpu: 1,
-                    mem: "50Mi"
-                }
+                    mem: '50Mi'
+                };
                 const req = { uri: applyPath, formData: { payload: JSON.stringify(apply) } };
                 const res1 = await request(req);
                 await Promise.all([request(req), request(req), request(req)]);
@@ -1755,15 +1993,15 @@ describe('Store/Algorithms', () => {
                     algorithmImage: 'test-algorithmImage',
                     mem: '50Mi',
                     cpu: 1
-                }
+                };
                 const apply2 = {
                     ...apply1,
                     cpu: 2
-                }
+                };
                 const apply3 = {
                     ...apply1,
                     cpu: 3
-                }
+                };
                 const req1 = { uri: applyPath, formData: { payload: JSON.stringify(apply1) } };
                 const req2 = { uri: applyPath, formData: { payload: JSON.stringify(apply2) } };
                 const req3 = { uri: applyPath, formData: { payload: JSON.stringify(apply3) } };
@@ -1772,7 +2010,7 @@ describe('Store/Algorithms', () => {
                 const res2 = await request(req2);
                 const res3 = await request(req3);
                 const res4 = await request(req4);
-                const versions1 = res4.body.map(v => v.version)
+                const versions1 = res4.body.map((v) => v.version);
                 const versions2 = [res3.body.algorithm.version, res2.body.algorithm.version, res1.body.algorithm.version];
                 expect(versions1).to.eql(versions2);
             });
@@ -1782,23 +2020,23 @@ describe('Store/Algorithms', () => {
                     algorithmImage: 'test-algorithmImage',
                     mem: '50Mi',
                     cpu: 1
-                }
+                };
                 const apply2 = {
                     ...apply1,
                     cpu: 2
-                }
+                };
                 const apply3 = {
                     ...apply1,
                     cpu: 3
-                }
+                };
                 const apply4 = {
                     ...apply1,
                     cpu: 4
-                }
+                };
                 const apply5 = {
                     ...apply1,
                     cpu: 5
-                }
+                };
                 const req1 = { uri: applyPath, formData: { payload: JSON.stringify(apply1) } };
                 const req2 = { uri: applyPath, formData: { payload: JSON.stringify(apply2) } };
                 const req3 = { uri: applyPath, formData: { payload: JSON.stringify(apply3) } };
@@ -1807,9 +2045,9 @@ describe('Store/Algorithms', () => {
                 const req6 = { uri: `${versionsPath}/${apply1.name}`, method: 'GET' };
                 const response = await Promise.all([request(req1), request(req2), request(req3), request(req4), request(req5)]);
                 const versionsRes = await request(req6);
-                const versions1 = response.map(v => v.body.algorithm.version).sort(); // sort because Promise.all order
-                const versions2 = versionsRes.body.map(v => v.version).sort();
-                const semver = versionsRes.body.map(v => v.semver);
+                const versions1 = response.map((v) => v.body.algorithm.version).sort(); // sort because Promise.all order
+                const versions2 = versionsRes.body.map((v) => v.version).sort();
+                const semver = versionsRes.body.map((v) => v.semver);
                 expect(versions1).to.eql(versions2);
                 expect(semver).to.eql(['1.0.4', '1.0.3', '1.0.2', '1.0.1', '1.0.0']);
             });
@@ -1867,8 +2105,8 @@ describe('Store/Algorithms', () => {
     describe('/store/algorithms/debug POST', () => {
         it('should succeed to set debugUrl', async () => {
             const body = {
-                name: uuid(),
-            }
+                name: uuid()
+            };
             const options = {
                 uri: debugRestUrl,
                 body
@@ -1878,5 +2116,5 @@ describe('Store/Algorithms', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(data.path).to.eql(pathLib.join(process.env.INGRESS_PREFIX || '', 'hkube', 'debug', body.name));
         });
-    })
+    });
 });

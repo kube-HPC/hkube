@@ -19,9 +19,7 @@ const routes = () => {
         next();
     });
     router.all('/exec/stored/trigger', methods(['POST']), logger(), async (req, res, next) => {
-        const { jobId, gateways } = await Internal.runStoredTriggerPipeline(
-            req.body
-        );
+        const { jobId, gateways } = await Internal.runStoredTriggerPipeline(req.body);
         res.json({ jobId, gateways });
         res.jobId = jobId;
         res.gateways = gateways;

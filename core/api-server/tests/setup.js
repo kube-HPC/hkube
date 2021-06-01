@@ -4,7 +4,7 @@ const { algorithms, pipelines, experiments } = require('./mocks');
 let config;
 
 before(async function () {
-    this.timeout(15000)
+    this.timeout(15000);
     const bootstrap = require('../bootstrap');
     config = await bootstrap.init();
     const redis = Factory.getClient(config.redis);
@@ -23,7 +23,7 @@ before(async function () {
         restUrl,
         internalUrl,
         config
-    }
+    };
 });
 
 after(async function () {

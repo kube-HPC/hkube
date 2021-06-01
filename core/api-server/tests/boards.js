@@ -63,7 +63,7 @@ describe('Boards', () => {
             options = {
                 uri: `${restBoardPath}/${response.body.id}`,
                 method: 'GET'
-            }
+            };
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body.status).to.equal(boardStatuses.PENDING);
@@ -103,7 +103,7 @@ describe('Boards', () => {
                 method: 'POST',
                 body: {
                     pipelineName: 'pName',
-                    nodeName: 'node',
+                    nodeName: 'node'
                 }
             };
             let response = await request(options);
@@ -111,7 +111,7 @@ describe('Boards', () => {
             options = {
                 uri: `${restBoardPath}/${response.body.id}`,
                 method: 'GET'
-            }
+            };
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body.status).to.equal(boardStatuses.PENDING);
@@ -132,13 +132,13 @@ describe('Boards', () => {
                 }
             };
             const response1 = await request(options1);
-            await graphService.setGraph({ jobId: response1.body.jobId, data: graph })
+            await graphService.setGraph({ jobId: response1.body.jobId, data: graph });
             const options = {
                 uri: restPath,
                 method: 'POST',
                 body: {
                     nodeName: 'A',
-                    jobId: response1.body.jobId,
+                    jobId: response1.body.jobId
                 }
             };
             let response = await request(options);
@@ -163,13 +163,13 @@ describe('Boards', () => {
                 }
             };
             const response1 = await request(options1);
-            await graphService.setGraph({ jobId: response1.body.jobId, data: graph })
+            await graphService.setGraph({ jobId: response1.body.jobId, data: graph });
             const options = {
                 uri: restPath,
                 method: 'POST',
                 body: {
                     nodeName: 'no_such_node',
-                    jobId: response1.body.jobId,
+                    jobId: response1.body.jobId
                 }
             };
             let response = await request(options);
@@ -183,7 +183,7 @@ describe('Boards', () => {
                 body: {
                     pipelineName: 'adfb',
                     nodeName: 'nodedd',
-                    jobId: 'no_such_job',
+                    jobId: 'no_such_job'
                 }
             };
             let response = await request(options);
@@ -211,7 +211,7 @@ describe('Boards', () => {
                 method: 'POST',
                 body: {
                     pipelineName: 'pName1',
-                    nodeName: 'node',
+                    nodeName: 'node'
                 }
             };
             let response = await request(options);
@@ -225,7 +225,7 @@ describe('Boards', () => {
             options = {
                 uri: `${restBoardPath}/${response.body.id}`,
                 method: 'GET'
-            }
+            };
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.NOT_FOUND);
         });

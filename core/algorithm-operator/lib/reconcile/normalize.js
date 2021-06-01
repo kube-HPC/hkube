@@ -1,7 +1,21 @@
 const objectPath = require('object-path');
 const { parseImageName } = require('@hkube/kubernetes-client').utils;
 
-const normalizeDeployments = (deploymentsRaw) => {
+const normalizeQueuesDeployments = (deploymentsRaw) => {
+    if (deploymentsRaw == null) {
+        return [];
+    }
+    const deployments = deploymentsRaw.body.items.map(j => ({
+        name: j.metadata.name,
+        queueId: j.metadata.labels['queue-id'],
+        image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image')),
+        imageFull: objectPath.get(j, 'spec.template.spec.containers.0.image'),
+        env: objectPath.get(j, 'spec.template.spec.containers.0.env', [])
+    }));
+    return deployments;
+};
+
+const normalizeDebugDeployments = (deploymentsRaw) => {
     if (deploymentsRaw == null) {
         return [];
     }
@@ -13,6 +27,31 @@ const normalizeDeployments = (deploymentsRaw) => {
         env: objectPath.get(j, 'spec.template.spec.containers.0.env', [])
     }));
     return deployments;
+};
+
+const normalizeQueuesDiscovery = (discovery) => {
+    if (!discovery) {
+        return [];
+    }
+    const algorithmsToQueue = Object.create(null);
+    const queueToAlgorithms = Object.create(null);
+    const duplicateAlgorithms = [];
+
+    discovery.forEach((d) => {
+        if (!queueToAlgorithms[d.queueId]) {
+            queueToAlgorithms[d.queueId] = { count: 0, active: d.active, timestamp: d.timestamp };
+        }
+        d.algorithms?.forEach((a) => {
+            if (algorithmsToQueue[a]) {
+                duplicateAlgorithms.push({ queueId: d.queueId, algorithmName: a });
+            }
+            else {
+                algorithmsToQueue[a] = d.queueId;
+                queueToAlgorithms[d.queueId].count += 1;
+            }
+        });
+    });
+    return { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms };
 };
 
 const normalizeServices = (servicesSpec) => {
@@ -79,11 +118,65 @@ const normalizeSecret = (secret) => {
     return secret.body;
 };
 
+const normalizeDrivers = (drivers) => {
+    if (!drivers) {
+        return [];
+    }
+    const driversArray = drivers.map((d) => {
+        return {
+            id: d.driverId,
+            idle: d.idle,
+            paused: d.paused,
+            podName: d.podName,
+            jobs: d.jobs?.length || 0
+        };
+    });
+    return driversArray;
+};
+
+const normalizeDriversRequests = (requests, name) => {
+    if (requests == null || requests.length === 0 || requests[0].data == null) {
+        return 0;
+    }
+    return requests[0].data.filter(r => r.name === name).length;
+};
+
+const normalizeDriversJobs = (jobsRaw, predicate = () => true) => {
+    if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
+        return [];
+    }
+    const jobs = jobsRaw.body.items
+        .filter(predicate)
+        .map(j => ({
+            name: j.metadata.name,
+            active: j.status.active === 1
+        }));
+    return jobs;
+};
+
+const normalizeDriversAmount = (drivers, requests, settings) => {
+    const { minAmount, maxAmount, concurrency } = settings;
+    const available = drivers.map(d => concurrency - d.jobs).reduce((a, b) => a + b, 0);
+    let amount = minAmount;
+
+    if (requests > available) {
+        amount = (requests - available) / concurrency;
+    }
+    const desiredDrivers = Math.min(amount, maxAmount);
+    return desiredDrivers;
+};
+
 module.exports = {
-    normalizeDeployments,
+    normalizeQueuesDeployments,
+    normalizeDebugDeployments,
+    normalizeQueuesDiscovery,
     normalizeServices,
     normalizeAlgorithms,
     normalizeBuildJobs,
     normalizeBoardDeployments,
-    normalizeSecret
+    normalizeSecret,
+    normalizeDrivers,
+    normalizeDriversRequests,
+    normalizeDriversJobs,
+    normalizeDriversAmount
 };

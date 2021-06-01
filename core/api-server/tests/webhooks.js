@@ -112,7 +112,7 @@ describe('Webhooks', () => {
                     jobId: response.body.jobId,
                     status: 'completed',
                     data: [{ res1: 400 }, { res2: 500 }]
-                }
+                };
                 await stateManager.updateJobStatus(results);
                 await stateManager.updateJobResult(results);
             });
@@ -146,8 +146,8 @@ describe('Webhooks', () => {
 
                 const results = {
                     jobId: response.body.jobId,
-                    status: 'stopped',
-                }
+                    status: 'stopped'
+                };
                 await stateManager.updateJobStatus(results);
                 await stateManager.updateJobResult(results);
             });
@@ -195,7 +195,7 @@ describe('Webhooks', () => {
                             }
                         }
                     ]
-                }
+                };
                 await stateManager.updateJobStatus(results);
                 await stateManager.updateJobResult(results);
             });
@@ -242,7 +242,7 @@ describe('Webhooks', () => {
                 status: 'completed',
                 level: 'info',
                 data: [{ res1: 400 }, { res2: 500 }]
-            }
+            };
             await stateManager._etcd.jobs.results.set(results);
             await delay(1000);
 
@@ -282,8 +282,7 @@ describe('Webhooks', () => {
                         expect(response.body.status).to.eql(requestBody.status);
                         expect(response.body.data).to.eql(requestBody.data);
                         return resolve();
-
-                    })
+                    });
                 const stored = {
                     uri: restUrl + '/exec/stored',
                     body: { name: 'webhookFlow1' }
@@ -364,7 +363,7 @@ describe('Webhooks', () => {
                 status: 'completed',
                 level: 'info',
                 data: [{ res1: 400 }, { res2: 500 }]
-            }
+            };
 
             await stateManager.updateJobResult(results);
 

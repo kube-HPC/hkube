@@ -15,8 +15,8 @@ describe('Storage', () => {
         restUrl = global.testParams.restUrl;
         maxStorageFetchKeys = global.testParams.config.maxStorageFetchKeys;
         const config = global.testParams.config;
-        const storage = config.storageAdapters[config.defaultStorage]
-        encoding = new Encoding({ type: storage.encoding })
+        const storage = config.storageAdapters[config.defaultStorage];
+        encoding = new Encoding({ type: storage.encoding });
     });
     describe('/info', () => {
         let restPath = null;
@@ -62,7 +62,7 @@ describe('Storage', () => {
         });
         it('should return two prefixes', async () => {
             const options = {
-                uri: `${restPath}/${storageManager.prefixesTypes.find(p => p === 'local-hkube-store')}`,
+                uri: `${restPath}/${storageManager.prefixesTypes.find((p) => p === 'local-hkube-store')}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -73,7 +73,7 @@ describe('Storage', () => {
         });
         it('should return zero prefixes', async () => {
             const options = {
-                uri: `${restPath}/${storageManager.prefixesTypes.find(p => p === 'local-hkube-metadata')}`,
+                uri: `${restPath}/${storageManager.prefixesTypes.find((p) => p === 'local-hkube-metadata')}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -156,7 +156,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const array = Array.from({ length }, (v, k) => k + 0);
-            await Promise.all(array.map(a => storageManager.hkube.put({ jobId, taskId: `task-${a}`, data: `data-${a}` })));
+            await Promise.all(array.map((a) => storageManager.hkube.put({ jobId, taskId: `task-${a}`, data: `data-${a}` })));
 
             const response = await request(options);
             expect(response.body.keys).to.have.lengthOf(maxStorageFetchKeys);
@@ -271,7 +271,7 @@ describe('Storage', () => {
         it('should stream with custom encode: true and value: buffer', async () => {
             const jobId = `jobId-${uuid()}`;
             const taskId = `taskId-${uuid()}`;
-            const data = Buffer.alloc(10, 0xdd)
+            const data = Buffer.alloc(10, 0xdd);
             const path = storageManager.hkube.createPath({ jobId, taskId });
             const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
             const options = {
@@ -284,7 +284,7 @@ describe('Storage', () => {
         it('should stream with custom encode: true and value: object', async () => {
             const jobId = `jobId-${uuid()}`;
             const taskId = `taskId-${uuid()}`;
-            const data = new Array(100).fill({ mydata: 'myData', myProp: 'myProp', value: "newstrvalue" });
+            const data = new Array(100).fill({ mydata: 'myData', myProp: 'myProp', value: 'newstrvalue' });
             const path = storageManager.hkube.createPath({ jobId, taskId });
             const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
             const options = {
@@ -297,7 +297,7 @@ describe('Storage', () => {
         it('should stream with custom encode: flase and value: buffer', async () => {
             const jobId = `jobId-${uuid()}`;
             const taskId = `taskId-${uuid()}`;
-            const data = Buffer.alloc(10, '0xdd')
+            const data = Buffer.alloc(10, '0xdd');
             const path = storageManager.hkube.createPath({ jobId, taskId });
             const result = await storageManager.storage.put({ path, data, encodeOptions: { ignoreEncode: true } });
             const options = {
@@ -396,7 +396,7 @@ describe('Storage', () => {
         it('should download with custom encode: true and value: buffer', async () => {
             const jobId = `jobId-${uuid()}`;
             const taskId = `taskId-${uuid()}`;
-            const data = Buffer.alloc(10, '0xdd')
+            const data = Buffer.alloc(10, '0xdd');
             const path = storageManager.hkube.createPath({ jobId, taskId });
             const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
             const options = {
@@ -409,7 +409,7 @@ describe('Storage', () => {
         it('should download with custom encode: false and value: buffer', async () => {
             const jobId = `jobId-${uuid()}`;
             const taskId = `taskId-${uuid()}`;
-            const data = Buffer.alloc(10, '0xdd')
+            const data = Buffer.alloc(10, '0xdd');
             const path = storageManager.hkube.createPath({ jobId, taskId });
             const result = await storageManager.storage.put({ path, data, encodeOptions: { ignoreEncode: true } });
             const options = {
@@ -459,7 +459,8 @@ describe('Storage', () => {
                         path: path2.path,
                         size: 20
                     }
-                }];
+                }
+            ];
 
             await workerStub.done({ jobId, data });
             const options = {
