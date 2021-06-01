@@ -96,20 +96,20 @@ const routes = (options) => {
         next();
     });
     router.get('/search', logger(), async (req, res, next) => {
-        const { experiment, pipeline, type, algorithm, status, from, to, cursor, page, sort, limit, fields, exists } = req.query;
+        const { experimentName, pipelineName, pipelineType, algorithmName, pipelineStatus, from, to, cursor, page, sort, limit, fields, exists } = req.query;
         const search = {
             query: {
-                experimentName: experiment,
-                pipelineName: pipeline,
-                pipelineType: type,
-                algorithmName: algorithm,
-                pipelineStatus: status,
+                experimentName,
+                pipelineName,
+                pipelineType,
+                algorithmName,
+                pipelineStatus,
                 datesRange: { from, to }
             },
             cursor,
             sort,
-            pageNum: formatter.parseInt(page, null),
-            limit: formatter.parseInt(limit, null),
+            pageNum: formatter.parseInt(page),
+            limit: formatter.parseInt(limit),
             fields: createQueryObjectFromString(fields),
             exists: createQueryObjectFromString(exists)
         };

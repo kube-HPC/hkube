@@ -1681,35 +1681,35 @@
         "description": "Search jobs",
         "parameters": [
           {
-            "name": "experiment",
+            "name": "experimentName",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "pipeline",
+            "name": "pipelineName",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "type",
+            "name": "pipelineType",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "algorithm",
+            "name": "algorithmName",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "status",
+            "name": "pipelineStatus",
             "in": "query",
             "schema": {
               "type": "string"
@@ -1718,12 +1718,14 @@
           {
             "name": "from",
             "in": "query",
+            "example": "2021-05-22T15:00:00",
             "schema": {
               "type": "string"
             }
           },
           {
             "name": "to",
+            "example": "2021-06-22T16:00:00",
             "in": "query",
             "schema": {
               "type": "string"
@@ -1746,6 +1748,7 @@
           {
             "name": "sort",
             "in": "query",
+            "example": "asc,desc",
             "schema": {
               "type": "string"
             }
@@ -1760,6 +1763,7 @@
           {
             "name": "fields",
             "in": "query",
+            "example": "result:false, pipeline:false",
             "schema": {
               "type": "string"
             }
@@ -1767,6 +1771,7 @@
           {
             "name": "exists",
             "in": "query",
+            "example": "result:true, pipeline:false",
             "schema": {
               "type": "string"
             }
