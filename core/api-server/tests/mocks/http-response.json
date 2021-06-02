@@ -1,8 +1,0 @@
-{
-    "cachingError": {
-        "error": {
-            "code": 400,
-            "message": "part of the data is missing or incorrect error:cant find successors for stam-alg"
-        }
-    }
-}
