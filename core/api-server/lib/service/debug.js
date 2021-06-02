@@ -33,7 +33,7 @@ class Debug extends AlgorithmBase {
             name: algorithmName,
             debugUrl,
             kind: nodeKind.Debug,
-            algorithmImage: 'hkube/algorithm-debug:v2.0.2',
+            algorithmImage: 'hkube/algorithm-debug',
             type: buildTypes.IMAGE,
             options: {
                 debug: false,
