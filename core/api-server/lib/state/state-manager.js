@@ -328,6 +328,10 @@ class StateManager {
         });
     }
 
+    async searchJobsAPI({ query, cursor, pageNum, sort, limit, fields, exists }) {
+        return this._db.jobs.searchApi({ query, cursor, pageNum, sort, limit, fields, exists });
+    }
+
     // TriggersTree
     async getTriggersTree({ jobId }) {
         return this._db.triggersTree.fetch({ jobId });

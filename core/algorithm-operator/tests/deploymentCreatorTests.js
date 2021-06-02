@@ -1,14 +1,15 @@
 const clonedeep = require('lodash.clonedeep');
-const configIt = require('@hkube/config');
-const Logger = require('@hkube/logger');
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
 const { settings } = require('../lib/helpers/settings');
 const { expect } = require('chai');
-const { createDeploymentSpec, applyQueueId, applyNodeSelector } = require('../lib/deployments/algorithm-queue');
 const { algorithmQueueTemplate } = require('./stub/deploymentTemplates');
+let config;
+let createDeploymentSpec, applyQueueId, applyNodeSelector;
 
 describe('deploymentCreator', () => {
+    before(() => {
+        config = global.testParams.config;
+        ({ createDeploymentSpec, applyQueueId, applyNodeSelector } = require('../lib/deployments/algorithm-queue'));
+    });
     beforeEach(() => {
         settings.applyResourceLimits = false;
     });
@@ -65,7 +66,6 @@ describe('deploymentCreator', () => {
         expect(res.spec.template.spec.imagePullSecrets).to.exist;
         expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({ name: 'my-secret' });
     });
-
     it('should apply resources', () => {
         settings.applyResourceLimits = true;
         const resources = {
@@ -78,7 +78,6 @@ describe('deploymentCreator', () => {
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].resources.requests.memory': '256Mi' });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].resources.requests.cpu': 0.2 });
     });
-
     it('should not apply resources', () => {
         const resources = {
             memory: 256,

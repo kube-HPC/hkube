@@ -15,6 +15,14 @@ config.algorithmQueueBalancer = {
     limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_CONCURRENCY_LIMIT, 5)
 };
 
+config.driversSetting = {
+    name: 'pipeline-driver',
+    concurrency: formatter.parseInt(process.env.PIPELINE_DRIVERS_CONCURRENCY_LIMIT, 5),
+    minAmount: formatter.parseInt(process.env.PIPELINE_DRIVERS_AMOUNT, 5),
+    scalePercent: parseFloat(process.env.PIPELINE_DRIVERS_SCALE_PERCENT || 0.5),
+    reconcileInterval: formatter.parseInt(process.env.PIPELINE_DRIVERS_RECONCILE_INTERVAL, 5000)
+};
+
 config.db = {
     provider: 'mongo',
     mongo: {
@@ -59,7 +67,8 @@ config.resources = {
         memory: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_MEMORY) || 256,
         cpu: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_CPU) || 1
     },
-    enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false)
+    enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false),
+    useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false),
 };
 
 config.healthchecks = {

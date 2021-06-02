@@ -311,16 +311,12 @@ describe('jobCreator', () => {
                     mountPath: mounts[1].path
                 }
             );
-
         });
         it('should apply 0 mounts', () => {
-
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, mounts: [] });
             expect(res.spec.template.spec.volumes).to.have.length(4)
-
         });
         it('should apply no mounts', () => {
-
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
             expect(res.spec.template.spec.volumes).to.have.length(4)
         });

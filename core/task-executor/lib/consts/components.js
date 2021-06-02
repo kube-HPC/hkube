@@ -4,8 +4,7 @@ const Components = {
     K8S: 'K8S',
     EXECUTOR: 'Executor',
     METRICS: 'Metrics',
-    RECONCILER: 'Reconciler',
-    DRIVERS_RECONCILER: 'Drivers-Reconciler'
+    RECONCILER: 'Reconciler'
 };
 
 module.exports = Components;

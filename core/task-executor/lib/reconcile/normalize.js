@@ -169,21 +169,6 @@ const normalizeColdWorkers = (normWorkers, algorithmTemplates) => {
     return coldWorkers;
 };
 
-const normalizeDrivers = (drivers) => {
-    if (!drivers) {
-        return [];
-    }
-    const driversArray = drivers.map((d) => {
-        return {
-            id: d.driverId,
-            driverStatus: d.driverStatus,
-            paused: !!d.paused,
-            podName: d.podName
-        };
-    });
-    return driversArray;
-};
-
 const calcRatioFree = (node) => {
     node.ratio = {
         cpu: node.requests.cpu / node.total.cpu,
@@ -327,18 +312,7 @@ const normalizeRequests = (requests) => {
     if (requests == null || requests.length === 0 || requests[0].data == null) {
         return [];
     }
-
     return requests[0].data.map(r => ({ algorithmName: r.name }));
-};
-
-const normalizeDriversRequests = (requests) => {
-    if (requests == null || requests.length === 0 || requests[0].data == null) {
-        return [];
-    }
-    return [{
-        name: 'pipeline-driver',
-        pods: requests[0].data.filter(r => r.name === 'pipeline-driver').length
-    }];
 };
 
 const _tryParseTime = (timeString) => {
@@ -376,19 +350,6 @@ const normalizeJobs = (jobsRaw, pods, predicate = () => true) => {
     return jobs;
 };
 
-const normalizeDriversJobs = (jobsRaw, predicate = () => true) => {
-    if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
-        return [];
-    }
-    const jobs = jobsRaw.body.items
-        .filter(predicate)
-        .map(j => ({
-            name: j.metadata.name,
-            active: j.status.active === 1
-        }));
-    return jobs;
-};
-
 const mergeWorkers = (workers, jobs) => {
     const foundJobs = [];
     const mergedWorkers = workers.map((w) => {
@@ -405,30 +366,14 @@ const mergeWorkers = (workers, jobs) => {
     return { mergedWorkers, extraJobs };
 };
 
-const normalizeDriversAmount = (jobs, requests, settings) => {
-    const { minAmount, maxAmount, name } = settings;
-    let amount = minAmount;
-    const request = requests[0] || {};
-
-    if (request.pods > minAmount) {
-        amount = maxAmount;
-    }
-    const missingDrivers = amount - jobs.length;
-    return { name, pods: missingDrivers };
-};
-
 module.exports = {
     normalizeWorkers,
     normalizeWorkerImages,
     normalizeHotRequests,
     normalizeHotWorkers,
     normalizeColdWorkers,
-    normalizeDrivers,
     normalizeRequests,
-    normalizeDriversRequests,
     normalizeJobs,
-    normalizeDriversJobs,
     mergeWorkers,
     normalizeResources,
-    normalizeDriversAmount
 };
