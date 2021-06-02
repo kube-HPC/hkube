@@ -28,13 +28,6 @@ config.rest = {
     }
 };
 
-config.cachingServer = {
-    protocol: 'http',
-    host: process.env.CACHING_SERVICE_SERVICE_HOST || 'localhost',
-    port: process.env.CACHING_SERVICE_SERVICE_PORT || 9005,
-    prefix: 'cache'
-};
-
 config.dataSourceService = {
     protocol: 'http',
     host: process.env.DATASOURCES_SERVICE_SERVICE_HOST || 'localhost',

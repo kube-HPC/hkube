@@ -16,7 +16,6 @@ const modules = [
     require('./lib/service/graph'),
     require('./lib/service/builds'),
     require('./lib/service/algorithms'),
-    require('./lib/service/caching'),
     require('./lib/service/data-sources'),
     require('./lib/service/storage'),
     require('./lib/service/gateway'),
