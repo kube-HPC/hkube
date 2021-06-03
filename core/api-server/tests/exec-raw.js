@@ -2,24 +2,11 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { pipelineTypes } = require('@hkube/consts');
 const { uid } = require('@hkube/uid');
-const nock = require('nock');
 const { request } = require('./utils');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const gatewayService = require('../lib/service/gateway');
 const pipelines = require('./mocks/pipelines.json');
-const { cachingError } = require('./mocks/http-response.json');
 let restUrl, jobId, config;
-
-const flowInputMetadata = {
-    metadata: {
-        'flowInput.files.link': {
-            type: 'string'
-        },
-        storageInfo: {
-            path: 'local-hkube/main:3b'
-        }
-    }
-};
 
 describe('Executions', () => {
     before(() => {
@@ -38,22 +25,13 @@ describe('Executions', () => {
             };
             const response = await request(options);
             jobId = response.body.jobId;
-            const { protocol, host, port, prefix } = config.cachingServer;
-            const cachingServiceURI = `${protocol}://${host}:${port}`;
-            let pathToJob = `/${prefix}?jobId=${jobId}&nodeName=black-alg`;
-            nock(cachingServiceURI)
-                .persist()
-                .get(pathToJob)
-                .reply(200, { ...pipeline, jobId, rootJobId: jobId, flowInputMetadata });
-            pathToJob = `/${prefix}?jobId=stam-job&nodeName=stam-alg`;
-            nock(cachingServiceURI).persist().get(pathToJob).reply(400, cachingError);
         });
         it('should succeed run caching', async () => {
             const options = {
                 uri: restPath,
                 body: {
                     jobId,
-                    nodeName: 'black-alg'
+                    nodeName: 'green'
                 }
             };
             const response = await request(options);
@@ -97,14 +75,14 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('part of the data is missing or incorrect error:cant find successors for stam-alg');
+            expect(response.body.error.message).to.equal('unable to find pipeline stam-job');
         });
         it('should succeed to execute with right types', async () => {
             const options = {
                 uri: restPath,
                 body: {
                     jobId,
-                    nodeName: 'black-alg'
+                    nodeName: 'black'
                 }
             };
             const res1 = await request(options);
@@ -113,14 +91,14 @@ describe('Executions', () => {
                 method: 'GET'
             };
             const res2 = await request(optionsGET);
-            expect(res2.body.types).to.eql([pipelineTypes.NODE]);
+            expect(res2.body.types).to.eql([pipelineTypes.RAW, pipelineTypes.NODE]);
         });
         it('should succeed to execute with right flowInputMetadata', async () => {
             const options = {
                 uri: restPath,
                 body: {
                     jobId,
-                    nodeName: 'black-alg'
+                    nodeName: 'black'
                 }
             };
             const res1 = await request(options);
@@ -129,14 +107,15 @@ describe('Executions', () => {
                 method: 'GET'
             };
             const res2 = await request(optionsGET);
-            expect(res2.body.flowInputMetadata).to.eql(flowInputMetadata);
+            expect(res2.body.flowInputMetadata).to.have.property('metadata');
+            expect(res2.body.flowInputMetadata).to.have.property('storageInfo');
         });
         it('should succeed to save the rootJobId', async () => {
             const options = {
                 uri: restPath,
                 body: {
                     jobId,
-                    nodeName: 'black-alg'
+                    nodeName: 'black'
                 }
             };
             await request(options);
