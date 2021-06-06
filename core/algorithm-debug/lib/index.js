@@ -1,10 +1,12 @@
 const { stateType, pipelineKind } = require('@hkube/consts');
+const Logger = require('@hkube/logger');
 const EventEmitter = require('events');
 const { uuid } = require('@hkube/uid');
 const messages = require('./consts/messages');
 const ws = require('./algorithm-communication/ws');
 const events = new EventEmitter();
 const sendMessageDelegates = {};
+const log = Logger.GetLogFromContainer();
 
 const init = async (options) => {
     events.removeAllListeners();
@@ -16,6 +18,8 @@ const init = async (options) => {
 };
 
 const start = async (options, hkubeApi) => { // eslint-disable-line consistent-return
+    log.info('in start');
+    log.info(`input:${options.input[0]}`);
     events.removeAllListeners();
     events.on('stop', () => {
         return this._resolve();
@@ -36,6 +40,7 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
         }
     });
     const optionsCopy = { ...options, kind: pipelineKind.Batch };
+    optionsCopy.flatInput = {};
     ws.send({ command: messages.incoming.start, data: optionsCopy });
     if (options.kind === pipelineKind.Stream) {
         if (options.stateType !== stateType.Stateless) {
