@@ -13,8 +13,6 @@ const init = async (options) => {
     events.on('stop', () => {
         return this._resolve();
     });
-    const optionsCopy = { ...options, kind: pipelineKind.Batch };
-    ws.send({ command: messages.incoming.initialize, data: optionsCopy });
 };
 
 const start = async (options, hkubeApi) => { // eslint-disable-line consistent-return
@@ -39,8 +37,8 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
             sendMessage(message);
         }
     });
-    const optionsCopy = { ...options, kind: pipelineKind.Batch };
-    optionsCopy.flatInput = {};
+    const optionsCopy = { ...options, kind: pipelineKind.Batch, flatInput: null };
+    ws.send({ command: messages.incoming.initialize, data: optionsCopy });
     ws.send({ command: messages.incoming.start, data: optionsCopy });
     if (options.kind === pipelineKind.Stream) {
         if (options.stateType !== stateType.Stateless) {
