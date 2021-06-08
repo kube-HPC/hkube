@@ -99,9 +99,11 @@ describe('Debug', () => {
         await wrapper._stop({});
         ws.on('connection', async () => {
             wrapper._init(jobs.jobDataStateful);
+            wrapper._start({});
         })
+
+
         await promiseInit;
-        wrapper._start({});
         await promiseStart;
 
 
@@ -122,7 +124,7 @@ describe('Debug', () => {
         });
         await promiseMessage;
 
-        socket.send(encoding.encode({ command: messages.outgoing.sendMessage, data: { payload: { message: 'myMessage', sendMessageId } } }))
+        socket.send(encoding.encode({ command: messages.outgoing.sendMessage, data: { message: 'myMessage', sendMessageId } }))
 
         await promiseMessageForwarded;
         socket.send(encoding.encode({ command: messages.outgoing.done, data: 'return value' }));
@@ -162,8 +164,8 @@ describe('Debug', () => {
         ws.on('connection', async () => {
             await wrapper._init(jobs.jobDataBatch);
         })
-        await promiseInit;
         wrapper._start({});
+        await promiseInit;
         await promiseStart;
         socket.send(encoding.encode({ command: messages.outgoing.done, data: 'return value' }));
         await promiseStartResult;
