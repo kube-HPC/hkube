@@ -1,6 +1,6 @@
-const storeManager = require('../../utils/store-manager');
+const storeManager = require('../../helpers/store-manager');
 const apiServer = require('./api-server-client');
-const BaseCleaner = require('../../baseCleaner');
+const BaseCleaner = require('../../core/base-cleaner');
 
 class Cleaner extends BaseCleaner {
     constructor(config) {
@@ -21,14 +21,8 @@ class Cleaner extends BaseCleaner {
     }
 
     async fetch() {
-        const keys = [];
         const pipelines = await storeManager.getRunningJobs();
-        pipelines.forEach((p) => {
-            const expirationTime = p.startTime + (p.ttl * 1000);
-            if (expirationTime < Date.now()) {
-                keys.push(p.jobId);
-            }
-        });
+        const keys = pipelines.filter(p => p.startTime + (p.ttl * 1000) < Date.now()).map(p => p.jobId);
         return keys;
     }
 }

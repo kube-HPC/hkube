@@ -1,5 +1,5 @@
 const RestServer = require('@hkube/rest-server');
-const cleanerManager = require('../../../lib/cleaner-manager');
+const cleanerManager = require('../../../lib/core/cleaner-manager');
 
 const routes = () => {
     const router = RestServer.router();

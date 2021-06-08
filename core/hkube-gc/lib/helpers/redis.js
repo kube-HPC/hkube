@@ -1,5 +1,5 @@
 const { Factory } = require('@hkube/redis-utils');
-const tryParseJson = require('../helpers/tryParseJson');
+const tryParseJson = require('../utils/tryParseJson');
 
 class Redis {
     init(config) {

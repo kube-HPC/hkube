@@ -1,4 +1,6 @@
 const fs = require('fs-extra');
+const cronstrue = require('cronstrue');
+const log = require('@hkube/logger').GetLogFromContainer();
 const CLEANERS_PATH = 'lib/cleaners';
 
 class CleanerManager {
@@ -12,13 +14,21 @@ class CleanerManager {
         cleaners.forEach(name => {
             const config = options.cleanerSettings[name];
             if (config.enabled) {
-                const Cleaner = require(`../${CLEANERS_PATH}/${name}`); // eslint-disable-line
+                const Cleaner = require(`../../${CLEANERS_PATH}/${name}`); // eslint-disable-line
                 const cleaner = new Cleaner({ config, name });
                 cleaner.init({ cleanMethod: (...args) => cleaner.clean(...args) });
                 cleaner.start();
                 this._cleaners.set(name, cleaner);
+                log.info(`initialized ${name} cleaner with cron ${this._cronFormat(config.cron)} next: ${cleaner.nextDate()}`);
+            }
+            else {
+                log.info(`skipped ${name} cleaner with cron ${this._cronFormat(config.cron)}`);
             }
         });
+    }
+
+    _cronFormat(cron) {
+        return `${cronstrue.toString(cron)} (${cron})`;
     }
 
     getStatus(type) {

@@ -1,6 +1,6 @@
-const redisStore = require('../../utils/redis');
-const { time } = require('../../helpers');
-const BaseCleaner = require('../../baseCleaner');
+const redisStore = require('../../helpers/redis');
+const { shouldDelete } = require('../../utils/time');
+const BaseCleaner = require('../../core/base-cleaner');
 
 const paths = [
     '/hkube:pipeline:graph',
@@ -28,7 +28,7 @@ class Cleaner extends BaseCleaner {
             for await (const data of redisStore.getKeys(`${path}/*`)) { // eslint-disable-line
                 Object.entries(data).forEach(([k, v]) => {
                     const timestamp = (v.graph && v.graph.timestamp) || v.timestamp || 0;
-                    if (time.shouldDelete(timestamp, maxJobAge)) {
+                    if (shouldDelete(timestamp, maxJobAge)) {
                         keys.push(k);
                     }
                 });

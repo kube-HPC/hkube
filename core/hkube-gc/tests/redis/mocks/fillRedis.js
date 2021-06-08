@@ -1,4 +1,4 @@
-const redis = require('../../../lib/utils/redis');
+const redis = require('../../../lib/helpers/redis');
 
 const array_chunks = (array, chunk_size) => Array(Math.ceil(array.length / chunk_size))
     .fill()

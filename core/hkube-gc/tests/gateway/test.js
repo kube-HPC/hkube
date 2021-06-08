@@ -2,12 +2,12 @@ const chai = require('chai');
 const { expect } = chai;
 const sinon = require('sinon');
 const algorithms = require('./mocks/algorithms');
-const cleanerManager = require('../../lib/cleaner-manager');
-let cleaner, storeManager
+let cleaner, storeManager, cleanerManager;
 
 describe('Gateways', () => {
   before(async () => {
-    storeManager = require('../../lib/utils/store-manager');
+    storeManager = require('../../lib/helpers/store-manager');
+    cleanerManager = require('../../lib/core/cleaner-manager');
     cleaner = cleanerManager.getCleaner('gateway');
     await storeManager._db.algorithms.deleteMany({}, { allowNotFound: true });
     await storeManager._db.algorithms.createMany(algorithms);

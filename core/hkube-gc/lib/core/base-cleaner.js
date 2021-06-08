@@ -1,7 +1,7 @@
 const { CronJob } = require('cron');
 const cronstrue = require('cronstrue');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { formatDate } = require('./helpers/time');
+const { formatDate } = require('../utils/time');
 
 class BaseCleaner {
     constructor({ config, name }) {
@@ -13,7 +13,7 @@ class BaseCleaner {
 
     init({ cleanMethod }) {
         this._cronJob = new CronJob(this._cron, async (cb) => {
-            log.info(`starting cleaner ${this._name}`);
+            log.debug(`starting cleaner ${this._name}`);
             try {
                 await cleanMethod(this._config);
             }
@@ -24,9 +24,12 @@ class BaseCleaner {
                 cb();
             }
         }, () => {
-            log.info(`completed cleaner ${this._name}, next: ${this._cronJob.nextDate()}`);
+            log.debug(`completed cleaner ${this._name}, next: ${this._cronJob.nextDate()}`);
         });
-        log.info(`initialized ${this._name} cleaner with cron ${cronstrue.toString(this._cron)} (${this._cron}) next: ${this._cronJob.nextDate()}`);
+    }
+
+    nextDate() {
+        return this._cronJob.nextDate();
     }
 
     start() {
@@ -53,8 +56,9 @@ class BaseCleaner {
 
     dryRunResult(data) {
         return {
+            name: this._name,
             count: data.length,
-            keys: data
+            exampleKeys: data.slice(0, 10)
         };
     }
 

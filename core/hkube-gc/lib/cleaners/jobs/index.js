@@ -1,9 +1,9 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const etcd = require('../../utils/etcd');
-const kubernetes = require('../../utils/kubernetes');
+const etcd = require('../../helpers/etcd');
+const kubernetes = require('../../helpers/kubernetes');
 const PodTypes = require('../../consts/pod-types');
 const { normalizePods } = require('./normalize');
-const BaseCleaner = require('../../baseCleaner');
+const BaseCleaner = require('../../core/base-cleaner');
 
 class Cleaner extends BaseCleaner {
     async deleteJobs(jobs) {
@@ -12,7 +12,7 @@ class Cleaner extends BaseCleaner {
         }
     }
 
-    async filterJobs({ type, pods, completedMaxAge, failedMaxAge, pendingMaxAge }) {
+    async _filterJobs({ type, pods, completedMaxAge, failedMaxAge, pendingMaxAge }) {
         const completedToDelete = pods.filter(p => p.completed && p.age > completedMaxAge);
         const failedToDelete = pods.filter(p => p.failed && p.age > failedMaxAge);
         const waitingToDelete = pods.filter(p => p.waiting && p.age > failedMaxAge);
@@ -25,24 +25,24 @@ class Cleaner extends BaseCleaner {
         return jobs.map(j => ({ podName: j.podName, jobName: j.jobName }));
     }
 
-    async fetchWorkers(options) {
+    async _fetchWorkers(options) {
         const requests = await etcd.getAlgorithmRequests();
         const podsRaw = await kubernetes.getWorkerPods();
         const jobsRaw = await kubernetes.getWorkerJobs();
         const pods = normalizePods(podsRaw, requests, jobsRaw);
-        return this.filterJobs({ type: PodTypes.WORKER, pods, ...options });
+        return this._filterJobs({ type: PodTypes.WORKER, pods, ...options });
     }
 
-    async fetchPipelineDrivers(options) {
+    async _fetchPipelineDrivers(options) {
         const podsRaw = await kubernetes.getPipelineDriversPods();
         const pods = normalizePods(podsRaw);
-        return this.filterJobs({ type: PodTypes.PIPELINE_DRIVER, pods, ...options });
+        return this._filterJobs({ type: PodTypes.PIPELINE_DRIVER, pods, ...options });
     }
 
-    async fetchAlgorithmBuilders(options) {
+    async _fetchAlgorithmBuilders(options) {
         const podsRaw = await kubernetes.getAlgorithmBuilderPods();
         const pods = normalizePods(podsRaw);
-        return this.filterJobs({ type: PodTypes.ALGORITHM_BUILDER, pods, ...options });
+        return this._filterJobs({ type: PodTypes.ALGORITHM_BUILDER, pods, ...options });
     }
 
     async clean({ maxAge } = {}) {
@@ -63,13 +63,13 @@ class Cleaner extends BaseCleaner {
         const pendingMaxAge = this.resolveMaxAge(maxAge, this._config.maxAge.pendingMaxAge);
 
         const settings = {
-            completedMaxAge: completedMaxAge / 60,
-            failedMaxAge: failedMaxAge / 60,
-            pendingMaxAge: pendingMaxAge / 60
+            completedMaxAge,
+            failedMaxAge,
+            pendingMaxAge
         };
-        const workers = await this.fetchWorkers(settings);
-        const drivers = await this.fetchPipelineDrivers(settings);
-        const builders = await this.fetchAlgorithmBuilders(settings);
+        const workers = await this._fetchWorkers(settings);
+        const drivers = await this._fetchPipelineDrivers(settings);
+        const builders = await this._fetchAlgorithmBuilders(settings);
         return [...workers, ...drivers, ...builders];
     }
 }

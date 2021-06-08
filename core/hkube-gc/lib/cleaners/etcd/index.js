@@ -1,7 +1,7 @@
-const etcdStore = require('../../utils/etcd');
-const { time } = require('../../helpers');
-const tryParseJson = require('../../helpers/tryParseJson');
-const BaseCleaner = require('../../baseCleaner');
+const etcdStore = require('../../helpers/etcd');
+const { shouldDelete } = require('../../utils/time');
+const tryParseJson = require('../../utils/tryParseJson');
+const BaseCleaner = require('../../core/base-cleaner');
 
 const COMPLETED_JOB_STATUS = [
     'completed',
@@ -50,7 +50,7 @@ class Cleaner extends BaseCleaner {
                 if (k.startsWith('/jobs/status') && !COMPLETED_JOB_STATUS.includes(obj.status)) {
                     canDelete = false;
                 }
-                if (canDelete && time.shouldDelete(timestamp, maxAgeResolved)) {
+                if (canDelete && shouldDelete(timestamp, maxAgeResolved)) {
                     keys.push(k);
                 }
             });

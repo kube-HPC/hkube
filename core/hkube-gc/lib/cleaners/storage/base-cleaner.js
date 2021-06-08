@@ -1,11 +1,11 @@
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { time } = require('../../helpers');
+const { shouldDelete } = require('../../utils/time');
 const PATH_PATTERN = /(?<bucket>hkube-index)\/(?<date>\d{4}-\d{2}-\d{2})\/(?<jobId>.*)/;
 
 class BaseCleaner {
     async getJobsToDelete({ indices, maxAge }) {
-        const expiredIndices = indices.filter(i => time.shouldDelete(i, maxAge));
+        const expiredIndices = indices.filter(i => shouldDelete(i, maxAge));
         const jobsToDelete = [];
         const datesAndJobs = await Promise.all(expiredIndices.map(date => storageManager.hkubeIndex.list({ date })));
         datesAndJobs.forEach((date) => {

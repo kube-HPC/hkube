@@ -4,11 +4,11 @@ const storageManager = require('@hkube/storage-manager');
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 const component = require('./lib/consts/componentNames').MAIN;
-const etcd = require('./lib/utils/etcd');
-const redis = require('./lib/utils/redis');
-const kubernetes = require('./lib/utils/kubernetes');
-const storeManager = require('./lib/utils/store-manager');
-const cleanerManager = require('./lib/cleaner-manager');
+const etcd = require('./lib/helpers/etcd');
+const redis = require('./lib/helpers/redis');
+const kubernetes = require('./lib/helpers/kubernetes');
+const storeManager = require('./lib/helpers/store-manager');
+const cleanerManager = require('./lib/core/cleaner-manager');
 const appServer = require('./api/rest-api/app-server');
 
 const modules = [

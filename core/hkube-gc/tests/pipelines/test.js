@@ -3,8 +3,7 @@ const { expect } = chai;
 const sinon = require('sinon');
 const nock = require('nock');
 const apiServer = require('../../lib/cleaners/pipelines/api-server-client');
-const cleanerManager = require('../../lib/cleaner-manager');
-let cleaner;
+let cleaner, cleanerManager;
 
 describe('Pipelines', () => {
   before(async () => {
@@ -12,7 +11,7 @@ describe('Pipelines', () => {
       .persist()
       .post('/internal/v1/exec/stop')
       .reply(200);
-
+    cleanerManager = require('../../lib/core/cleaner-manager');
     cleaner = cleanerManager.getCleaner('pipelines');
   });
   it('should clean only expired pipelines', async () => {

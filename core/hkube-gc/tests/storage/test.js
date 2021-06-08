@@ -3,14 +3,14 @@ const path = require('path');
 const chaiAsPromised = require('chai-as-promised');
 const moment = require('moment');
 const storageManager = require('@hkube/storage-manager');
-const cleanerManager = require('../../lib/cleaner-manager');
 const { expect } = chai;
 chai.use(chaiAsPromised);
 const adapters = ['s3', 'fs'];
-let config, settings, cleaner;
+let config, settings, cleaner, cleanerManager;
 
 describe('Storage', () => {
     before(() => {
+        cleanerManager = require('../../lib/core/cleaner-manager');
         cleaner = cleanerManager.getCleaner('storage');
         config = global.testParams.config;
         settings = config.cleanerSettings.storage.settings;
@@ -37,7 +37,6 @@ describe('Storage', () => {
                         await storageManager.hkubeExecutions.put({ jobId, data });
                         await storageManager.hkubeResults.put({ jobId, data });
                     }
-
                 }
                 await cleaner.clean();
                 for (let i = 0; i < 5; i++) {

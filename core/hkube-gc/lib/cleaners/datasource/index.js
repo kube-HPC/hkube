@@ -1,8 +1,8 @@
 const fse = require('fs-extra');
 const { getDatasourcesInUseFolder } = require('./utils/pathUtils');
 const { glob } = require('./utils/glob');
-const storeManager = require('../../utils/store-manager');
-const BaseCleaner = require('../../baseCleaner');
+const storeManager = require('../../helpers/store-manager');
+const BaseCleaner = require('../../core/base-cleaner');
 
 class Cleaner extends BaseCleaner {
     constructor(config) {

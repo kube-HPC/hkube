@@ -1,6 +1,6 @@
 
 const fillEtcd = async () => {
-    const etcd = require('../../../lib/utils/etcd');
+    const etcd = require('../../../lib/helpers/etcd');
     const prefix = '/workers';
     const count = 10;
     const dataSize = 80;

@@ -2,7 +2,7 @@ const storageManager = require('@hkube/storage-manager');
 const resultsCleaner = require('./results-cleaner');
 const tempCleaner = require('./temp-cleaner');
 const indicesCleaner = require('./indices-cleaner');
-const BaseCleaner = require('../../baseCleaner');
+const BaseCleaner = require('../../core/base-cleaner');
 
 const cleaners = {
     results: resultsCleaner,
@@ -23,7 +23,16 @@ class Cleaner extends BaseCleaner {
 
     async dryRun({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        return this.dryRunResult(data);
+        const count = data.results.length + data.temp.length + data.indices.length;
+        return {
+            name: this._name,
+            count,
+            exampleKeys: {
+                results: data.results.slice(0, 10),
+                temp: data.temp.slice(0, 10),
+                indices: data.indices.slice(0, 10),
+            }
+        };
     }
 
     async fetch({ maxAge } = {}) {

@@ -1,11 +1,11 @@
 const chai = require('chai');
 const { expect } = chai;
 const sinon = require('sinon');
-const cleanerManager = require('../../lib/cleaner-manager');
-let cleaner, kubernetes;
+let cleaner, kubernetes, cleanerManager;
 
 describe('Jobs', () => {
     before(async () => {
+        cleanerManager = require('../../lib/core/cleaner-manager');
         cleaner = cleanerManager.getCleaner('jobs');
         kubernetes = require('./mocks/kubernetes');
     });

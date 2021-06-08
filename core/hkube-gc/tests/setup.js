@@ -11,15 +11,15 @@ before(async function () {
         warnOnReplace: false,
         warnOnUnregistered: false
     });
-    mockery.registerSubstitute('./lib/utils/kubernetes', `${process.cwd()}/tests/jobs/mocks/kubernetes.js`);
-    mockery.registerSubstitute('../../utils/kubernetes', `${process.cwd()}/tests/jobs/mocks/kubernetes.js`);
-    mockery.registerSubstitute('./lib/utils/etcd', `${process.cwd()}/tests/etcd/mocks/etcd-store.js`);
-    mockery.registerSubstitute('../../utils/etcd', `${process.cwd()}/tests/etcd/mocks/etcd-store.js`);
-    mockery.registerSubstitute('./lib/utils/redis', `${process.cwd()}/tests/redis/mocks/redis-store.js`);
-    mockery.registerSubstitute('../../utils/redis', `${process.cwd()}/tests/redis/mocks/redis-store.js`);
+    mockery.registerSubstitute('./lib/helpers/kubernetes', `${process.cwd()}/tests/jobs/mocks/kubernetes.js`);
+    mockery.registerSubstitute('../../helpers/kubernetes', `${process.cwd()}/tests/jobs/mocks/kubernetes.js`);
+    mockery.registerSubstitute('./lib/helpers/etcd', `${process.cwd()}/tests/etcd/mocks/etcd-store.js`);
+    mockery.registerSubstitute('../../helpers/etcd', `${process.cwd()}/tests/etcd/mocks/etcd-store.js`);
+    mockery.registerSubstitute('./lib/helpers/redis', `${process.cwd()}/tests/redis/mocks/redis-store.js`);
+    mockery.registerSubstitute('../../helpers/redis', `${process.cwd()}/tests/redis/mocks/redis-store.js`);
     const bootstrap = require('../bootstrap');
     config = await bootstrap.init();
-    const storeManager = require('../lib/utils/store-manager');
+    const storeManager = require('../lib/helpers/store-manager');
     await storeManager._db.db.dropDatabase();
     await storeManager._db.init();
     await storeManager._db.jobs.createMany(executions.map((e, i) => ({ jobId: `job-${i}`, pipeline: e })));

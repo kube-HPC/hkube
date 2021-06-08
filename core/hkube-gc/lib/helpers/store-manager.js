@@ -22,8 +22,8 @@ class StoreManager {
         });
     }
 
-    async deleteAlgByName({ name }) {
-        return this._db.algorithms.delete({ name });
+    async deleteAlgByName({ name, kind }) {
+        return this._db.algorithms.delete({ name, kind });
     }
 
     async getAlgorithms(query) {

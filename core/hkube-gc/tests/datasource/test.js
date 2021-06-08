@@ -3,12 +3,12 @@ const fse = require('fs-extra');
 const path = require('path');
 const uuid = require('uuid');
 const { expect } = require('chai');
-const cleanerManager = require('../../lib/cleaner-manager');
-let cleaner, storeManager;
+let cleaner, storeManager, cleanerManager;
 
 describe('DataSource', () => {
     before(() => {
-        storeManager = require('../../lib/utils/store-manager');
+        storeManager = require('../../lib/helpers/store-manager');
+        cleanerManager = require('../../lib/core/cleaner-manager');
         cleaner = cleanerManager.getCleaner('datasource');
     });
     it('should perform cleanup', async () => {
