@@ -30,7 +30,7 @@ const normalizePods = (podsRaw, requestsRaw, jobsRaw) => {
         const failed = cs.some(c => c.state.terminated && c.state.terminated.exitCode !== 0)
             || (cs.some(c => c.state.terminated) && cs.some(c => !c.state.terminated));
         const waiting = cs.some(c => c.state.waiting && waitingReasons.includes(c.state.waiting.reason));
-        const conditions = !(p.status && p.status.conditions) ? [] : p.status.conditions.map(c => ({
+        const conditions = !p.status.conditions ? [] : p.status.conditions.map(c => ({
             unschedulable: c.reason === 'Unschedulable'
         }));
         const unschedulable = conditions.some(c => c.unschedulable);
