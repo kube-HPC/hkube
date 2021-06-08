@@ -1,3 +1,4 @@
+const path = require('path');
 const config = {};
 const packageJson = require(process.cwd() + '/package.json');
 const formatter = require(process.cwd() + '/lib/utils/formatters');
