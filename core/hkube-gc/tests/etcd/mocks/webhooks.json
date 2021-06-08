@@ -1,0 +1,24 @@
+[
+    {
+        "timestamp": "2016-08-23T06:20:16.896Z",
+        "url": "http://monitor-server:30010/webhook/result",
+        "pipelineStatus": "completed",
+        "responseStatus": "failed",
+        "httpResponse": {
+            "statusCode": "EAI_AGAIN",
+            "statusMessage": "getaddrinfo EAI_AGAIN monitor-server:30010"
+        },
+        "status": "completed"
+    },
+    {
+        "timestamp": "2030-08-23T06:20:17.789Z",
+        "url": "http://monitor-server:30010/webhook/progress",
+        "pipelineStatus": "completed",
+        "responseStatus": "failed",
+        "httpResponse": {
+            "statusCode": "EAI_AGAIN",
+            "statusMessage": "getaddrinfo EAI_AGAIN monitor-server:30010"
+        },
+        "status": "completed"
+    }
+]

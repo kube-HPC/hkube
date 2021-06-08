@@ -1,0 +1,255 @@
+{
+    "/pipeline-driver/graph/raw-randomPipeStored:fcff74da-5503-4345-a85d-9b8e2b043846.raw-randomPipeStored": {
+        "jobId": "raw-randomPipeStored:fcff74da-5503-4345-a85d-9b8e2b043846.raw-randomPipeStored",
+        "graph": {
+            "timestamp": 1517509734061,
+            "edges": [
+                {
+                    "from": "add0",
+                    "to": "add2",
+                    "group": "none"
+                },
+                {
+                    "from": "add0",
+                    "to": "add3",
+                    "group": "none"
+                },
+                {
+                    "from": "batch1",
+                    "to": "add3",
+                    "group": "none"
+                },
+                {
+                    "from": "add2",
+                    "to": "batch4",
+                    "group": "none"
+                },
+                {
+                    "from": "add0",
+                    "to": "sub5",
+                    "group": "none"
+                },
+                {
+                    "from": "batch1",
+                    "to": "sub5",
+                    "group": "none"
+                },
+                {
+                    "from": "add0",
+                    "to": "add6",
+                    "group": "none"
+                },
+                {
+                    "from": "add0",
+                    "to": "sub7",
+                    "group": "none"
+                },
+                {
+                    "from": "add0",
+                    "to": "add8",
+                    "group": "none"
+                },
+                {
+                    "from": "add2",
+                    "to": "add8",
+                    "group": "none"
+                },
+                {
+                    "from": "sub5",
+                    "to": "add8",
+                    "group": "none"
+                },
+                {
+                    "from": "add3",
+                    "to": "add8",
+                    "group": "none"
+                },
+                {
+                    "from": "add0",
+                    "to": "add9",
+                    "group": "none"
+                },
+                {
+                    "from": "add0",
+                    "to": "batch10",
+                    "group": "none"
+                },
+                {
+                    "from": "add0",
+                    "to": "sub11",
+                    "group": "none"
+                },
+                {
+                    "from": "batch1",
+                    "to": "sub11",
+                    "group": "none"
+                },
+                {
+                    "from": "add6",
+                    "to": "mult13",
+                    "group": "none"
+                },
+                {
+                    "from": "batch4",
+                    "to": "mult13",
+                    "group": "none"
+                },
+                {
+                    "from": "sub5",
+                    "to": "mult13",
+                    "group": "none"
+                },
+                {
+                    "from": "add2",
+                    "to": "mult13",
+                    "group": "none"
+                },
+                {
+                    "from": "add3",
+                    "to": "mult13",
+                    "group": "none"
+                },
+                {
+                    "from": "add0",
+                    "to": "mult13",
+                    "group": "none"
+                },
+                {
+                    "from": "add2",
+                    "to": "div14",
+                    "group": "none"
+                },
+                {
+                    "from": "batch1",
+                    "to": "div14",
+                    "group": "none"
+                },
+                {
+                    "from": "add3",
+                    "to": "div14",
+                    "group": "none"
+                }
+            ],
+            "nodes": [
+                {
+                    "taskId": "add0:eval-alg:97c77318-ff5b-4900-b527-a5dc79e179fe",
+                    "status": "creating",
+                    "prevErrors": [],
+                    "nodeName": "add0",
+                    "algorithmName": "eval-alg",
+                    "group": "notStarted"
+                },
+                {
+                    "taskId": "batch1:eval-alg:22a1a712-ddbb-4fca-8524-4085d4b0eb8c",
+                    "status": "creating",
+                    "prevErrors": [],
+                    "nodeName": "batch1",
+                    "algorithmName": "eval-alg",
+                    "group": "notStarted"
+                },
+                {
+                    "taskId": "add2:eval-alg:e3548a76-a2bc-47c5-9a9c-6994c7d615f9",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "add2",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                },
+                {
+                    "taskId": "add3:eval-alg:fddb454f-5d98-4e2f-99c3-bef44becf0ca",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "add3",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                },
+                {
+                    "status": "creating",
+                    "nodeName": "batch4",
+                    "algorithmName": "eval-alg",
+                    "group": "notStarted"
+                },
+                {
+                    "taskId": "sub5:eval-alg:64142549-29e4-4b1c-81d1-5b9ba99f9eb9",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "sub5",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                },
+                {
+                    "taskId": "add6:eval-alg:76f18d67-31b3-4e97-a252-2d113fbef3e1",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "add6",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                },
+                {
+                    "taskId": "sub7:eval-alg:1720850e-4aaa-4443-9463-0be8b8f71ba2",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "sub7",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                },
+                {
+                    "taskId": "add8:eval-alg:1626e3f0-dd4a-4cf2-b535-03ef8c1f9c96",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "add8",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                },
+                {
+                    "taskId": "add9:eval-alg:7c90e1e5-5d80-41d1-8d85-bc5ef638c70b",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "add9",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                },
+                {
+                    "taskId": "batch10:eval-alg:d07afab7-4f8f-4807-a705-668e781092ec",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "batch10",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                },
+                {
+                    "taskId": "sub11:eval-alg:d0078776-3062-412c-974c-a7c25c8f0881",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "sub11",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                },
+                {
+                    "taskId": "sub12:eval-alg:676db7e4-ad8f-4bc1-a204-97bfca94dd75",
+                    "status": "creating",
+                    "prevErrors": [],
+                    "nodeName": "sub12",
+                    "algorithmName": "eval-alg",
+                    "group": "notStarted"
+                },
+                {
+                    "taskId": "mult13:eval-alg:15f9b690-fcfc-447c-9418-3ee2d7fc1f6d",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "mult13",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                },
+                {
+                    "taskId": "div14:eval-alg:ead1c79d-0307-46d9-bc59-d7427674d6ff",
+                    "status": "preschedule",
+                    "prevErrors": [],
+                    "nodeName": "div14",
+                    "algorithmName": "eval-alg",
+                    "group": "running"
+                }
+            ]
+        }
+    }
+}

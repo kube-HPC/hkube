@@ -1,0 +1,26 @@
+[
+    {
+        "timestamp": "2016-08-23T06:20:06.781Z",
+        "pipeline": "raw-simple-15e78a8e08",
+        "data": {
+            "storageInfo": {
+                "Key": "2018-08-23/raw-simple-15e78a8e08:c0597839-5875-444b-af27-60170c73eb9b.raw-simple-15e78a8e08/result.json",
+                "Bucket": "hkube-results"
+            }
+        },
+        "status": "completed",
+        "timeTook": 6.516
+    },
+    {
+        "timestamp": "2030-08-23T06:20:06.781Z",
+        "pipeline": "raw-simple-15e78a8e08",
+        "data": {
+            "storageInfo": {
+                "Key": "2018-08-23/raw-simple-15e78a8e08:c0597839-5875-444b-af27-60170c73eb9b.raw-simple-15e78a8e08/result.json",
+                "Bucket": "hkube-results"
+            }
+        },
+        "status": "completed",
+        "timeTook": 6.516
+    }
+]

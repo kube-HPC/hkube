@@ -1,0 +1,68 @@
+{
+  "name": "hkube-gc",
+  "version": "2.1.1",
+  "description": "Hkube garbage collector",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "lint": "./node_modules/eslint/bin/eslint.js .",
+    "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --timeout=20000 --colors --recursive --exit",
+    "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov npm run test",
+    "start": "node app",
+    "build": "./dockerfile/build.sh hkube-gc"
+  },
+  "nyc": {
+    "exclude": [
+      "tests",
+      "bootstrap.js",
+      "lib/utils/kubernetes.js"
+    ]
+  },
+  "pre-commit": {
+    "run": [
+      "lint",
+      "test"
+    ]
+  },
+  "keywords": [
+    "hkube",
+    "hkube-core"
+  ],
+  "author": "Hkube",
+  "license": "MIT",
+  "dependencies": {
+    "@hkube/config": "^2.0.11",
+    "@hkube/consts": "^1.0.35",
+    "@hkube/db": "^1.0.40",
+    "@hkube/etcd": "^5.1.6",
+    "@hkube/healthchecks": "^1.0.2",
+    "@hkube/kubernetes-client": "^1.0.35",
+    "@hkube/logger": "^1.0.29",
+    "@hkube/redis-utils": "^1.0.3",
+    "@hkube/rest-server": "^1.0.17",
+    "@hkube/storage-manager": "^2.0.33",
+    "cron": "^1.8.2",
+    "cronstrue": "^1.113.0",
+    "fs-extra": "^10.0.0",
+    "glob": "^7.1.7",
+    "moment": "^2.25.1",
+    "nock": "^13.1.0",
+    "requestretry": "^5.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "coveralls": "^3.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-chai-friendly": "^0.6.0",
+    "eslint-plugin-import": "^2.20.2",
+    "mocha": "^7.1.1",
+    "mockery": "^2.1.0",
+    "nyc": "^15.1.0",
+    "sinon": "^11.1.1",
+    "uuid": "^3.3.3"
+  }
+}

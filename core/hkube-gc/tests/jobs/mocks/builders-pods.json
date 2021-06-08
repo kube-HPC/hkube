@@ -1,0 +1,1114 @@
+{
+    "statusCode": 200,
+    "body": {
+        "kind": "PodList",
+        "apiVersion": "v1",
+        "metadata": {
+            "selfLink": "/api/v1/namespaces/default/pods/",
+            "resourceVersion": "4194125"
+        },
+        "items": [
+            {
+                "metadata": {
+                    "name": "build-build-5-xvm43s-tb5ss",
+                    "generateName": "build-build-5-xvm43s-",
+                    "namespace": "default",
+                    "selfLink": "/api/v1/namespaces/default/pods/build-build-5-xvm43s-tb5ss",
+                    "uid": "9571cbbf-086e-433b-bd6e-315167f9c054",
+                    "resourceVersion": "4194015",
+                    "creationTimestamp": "2021-06-07T10:04:20Z",
+                    "labels": {
+                        "build-id": "build-5-xvm43s",
+                        "controller-uid": "b5311343-a3fe-4441-8596-e92128d19eb6",
+                        "group": "hkube",
+                        "job-name": "build-build-5-xvm43s",
+                        "type": "algorithm-builder"
+                    },
+                    "annotations": {
+                        "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu request for container algorithm-builder; cpu request for container kaniko"
+                    },
+                    "ownerReferences": [
+                        {
+                            "apiVersion": "batch/v1",
+                            "kind": "Job",
+                            "name": "build-build-5-xvm43s",
+                            "uid": "b5311343-a3fe-4441-8596-e92128d19eb6",
+                            "controller": true,
+                            "blockOwnerDeletion": true
+                        }
+                    ],
+                    "managedFields": [
+                        {
+                            "manager": "kube-controller-manager",
+                            "operation": "Update",
+                            "apiVersion": "v1",
+                            "time": "2021-06-07T10:04:20Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:generateName": {},
+                                    "f:labels": {
+                                        ".": {},
+                                        "f:build-id": {},
+                                        "f:controller-uid": {},
+                                        "f:group": {},
+                                        "f:job-name": {},
+                                        "f:type": {}
+                                    },
+                                    "f:ownerReferences": {
+                                        ".": {},
+                                        "k:{\"uid\":\"b5311343-a3fe-4441-8596-e92128d19eb6\"}": {
+                                            ".": {},
+                                            "f:apiVersion": {},
+                                            "f:blockOwnerDeletion": {},
+                                            "f:controller": {},
+                                            "f:kind": {},
+                                            "f:name": {},
+                                            "f:uid": {}
+                                        }
+                                    }
+                                },
+                                "f:spec": {
+                                    "f:containers": {
+                                        "k:{\"name\":\"algorithm-builder\"}": {
+                                            ".": {},
+                                            "f:env": {
+                                                ".": {},
+                                                "k:{\"name\":\"BASE_FS_ADAPTER_DIRECTORY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"BUILD_ID\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:value": {}
+                                                },
+                                                "k:{\"name\":\"BUILD_MODE\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:value": {}
+                                                },
+                                                "k:{\"name\":\"CLUSTER_NAME\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DEFAULT_STORAGE\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PULL_INSECURE\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PULL_NAMESPACE\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PULL_PASSWORD\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PULL_REGISTRY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PULL_SKIP_TLS_VERIFY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PULL_USERNAME\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PUSH_INSECURE\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PUSH_NAMESPACE\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PUSH_PASSWORD\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PUSH_REGISTRY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PUSH_SKIP_TLS_VERIFY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DOCKER_PUSH_USERNAME\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"MAVEN_REGISTRY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"MAVEN_TOKEN\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"MAVEN_USER\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"MONGODB_DB_NAME\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"MONGODB_SERVICE_PASSWORD\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"MONGODB_SERVICE_USER_NAME\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"NAMESPACE\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:fieldRef": {
+                                                            ".": {},
+                                                            "f:apiVersion": {},
+                                                            "f:fieldPath": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"NODE_ENV\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:value": {}
+                                                },
+                                                "k:{\"name\":\"NODE_WRAPPER_VERSION\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"NPM_AUTH\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"NPM_REGISTRY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"NPM_TOKEN\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"PIP_REGISTRY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"PIP_TOKEN\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"POD_ID\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:fieldRef": {
+                                                            ".": {},
+                                                            "f:apiVersion": {},
+                                                            "f:fieldPath": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"POD_NAME\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:fieldRef": {
+                                                            ".": {},
+                                                            "f:apiVersion": {},
+                                                            "f:fieldPath": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"PYTHON_WRAPPER_VERSION\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"STORAGE_BINARY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "f:image": {},
+                                            "f:imagePullPolicy": {},
+                                            "f:name": {},
+                                            "f:resources": {
+                                                ".": {},
+                                                "f:requests": {
+                                                    "f:cpu": {}
+                                                }
+                                            },
+                                            "f:terminationMessagePath": {},
+                                            "f:terminationMessagePolicy": {},
+                                            "f:volumeMounts": {
+                                                ".": {},
+                                                "k:{\"mountPath\":\"/hkubedata\"}": {
+                                                    ".": {},
+                                                    "f:mountPath": {},
+                                                    "f:name": {}
+                                                },
+                                                "k:{\"mountPath\":\"/tmp/commands\"}": {
+                                                    ".": {},
+                                                    "f:mountPath": {},
+                                                    "f:name": {}
+                                                },
+                                                "k:{\"mountPath\":\"/tmp/workspace\"}": {
+                                                    ".": {},
+                                                    "f:mountPath": {},
+                                                    "f:name": {}
+                                                }
+                                            }
+                                        },
+                                        "k:{\"name\":\"kaniko\"}": {
+                                            ".": {},
+                                            "f:image": {},
+                                            "f:imagePullPolicy": {},
+                                            "f:name": {},
+                                            "f:resources": {
+                                                ".": {},
+                                                "f:requests": {
+                                                    "f:cpu": {}
+                                                }
+                                            },
+                                            "f:terminationMessagePath": {},
+                                            "f:terminationMessagePolicy": {},
+                                            "f:volumeMounts": {
+                                                ".": {},
+                                                "k:{\"mountPath\":\"/commands\"}": {
+                                                    ".": {},
+                                                    "f:mountPath": {},
+                                                    "f:name": {}
+                                                },
+                                                "k:{\"mountPath\":\"/workspace\"}": {
+                                                    ".": {},
+                                                    "f:mountPath": {},
+                                                    "f:name": {}
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "f:dnsPolicy": {},
+                                    "f:enableServiceLinks": {},
+                                    "f:restartPolicy": {},
+                                    "f:schedulerName": {},
+                                    "f:securityContext": {},
+                                    "f:serviceAccount": {},
+                                    "f:serviceAccountName": {},
+                                    "f:terminationGracePeriodSeconds": {},
+                                    "f:volumes": {
+                                        ".": {},
+                                        "k:{\"name\":\"commands\"}": {
+                                            ".": {},
+                                            "f:emptyDir": {},
+                                            "f:name": {}
+                                        },
+                                        "k:{\"name\":\"storage-volume\"}": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:persistentVolumeClaim": {
+                                                ".": {},
+                                                "f:claimName": {}
+                                            }
+                                        },
+                                        "k:{\"name\":\"workspace\"}": {
+                                            ".": {},
+                                            "f:emptyDir": {},
+                                            "f:name": {}
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "manager": "kubelet",
+                            "operation": "Update",
+                            "apiVersion": "v1",
+                            "time": "2021-06-07T10:05:13Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:status": {
+                                    "f:conditions": {
+                                        "k:{\"type\":\"ContainersReady\"}": {
+                                            ".": {},
+                                            "f:lastProbeTime": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        },
+                                        "k:{\"type\":\"Initialized\"}": {
+                                            ".": {},
+                                            "f:lastProbeTime": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        },
+                                        "k:{\"type\":\"Ready\"}": {
+                                            ".": {},
+                                            "f:lastProbeTime": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        }
+                                    },
+                                    "f:containerStatuses": {},
+                                    "f:hostIP": {},
+                                    "f:phase": {},
+                                    "f:podIP": {},
+                                    "f:podIPs": {
+                                        ".": {},
+                                        "k:{\"ip\":\"100.96.3.13\"}": {
+                                            ".": {},
+                                            "f:ip": {}
+                                        }
+                                    },
+                                    "f:startTime": {}
+                                }
+                            }
+                        }
+                    ]
+                },
+                "spec": {
+                    "volumes": [
+                        {
+                            "name": "storage-volume",
+                            "persistentVolumeClaim": {
+                                "claimName": "hkube-storage-pvc"
+                            }
+                        },
+                        {
+                            "name": "commands",
+                            "emptyDir": {}
+                        },
+                        {
+                            "name": "workspace",
+                            "emptyDir": {}
+                        },
+                        {
+                            "name": "algorithm-builder-serviceaccount-token-cnc4d",
+                            "secret": {
+                                "secretName": "algorithm-builder-serviceaccount-token-cnc4d",
+                                "defaultMode": 420
+                            }
+                        }
+                    ],
+                    "containers": [
+                        {
+                            "name": "algorithm-builder",
+                            "image": "hkube/algorithm-builder:v2.1.2",
+                            "env": [
+                                {
+                                    "name": "NODE_ENV",
+                                    "value": "production"
+                                },
+                                {
+                                    "name": "POD_ID",
+                                    "valueFrom": {
+                                        "fieldRef": {
+                                            "apiVersion": "v1",
+                                            "fieldPath": "metadata.uid"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "POD_NAME",
+                                    "valueFrom": {
+                                        "fieldRef": {
+                                            "apiVersion": "v1",
+                                            "fieldPath": "metadata.name"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DEFAULT_STORAGE",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "DEFAULT_STORAGE"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "NAMESPACE",
+                                    "valueFrom": {
+                                        "fieldRef": {
+                                            "apiVersion": "v1",
+                                            "fieldPath": "metadata.namespace"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "CLUSTER_NAME",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "CLUSTER_NAME"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "NODE_WRAPPER_VERSION",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "NODE_WRAPPER_VERSION"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "PYTHON_WRAPPER_VERSION",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "PYTHON_WRAPPER_VERSION"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "MONGODB_SERVICE_USER_NAME",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "mongodb-secret",
+                                            "key": "mongodb-username"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "MONGODB_SERVICE_PASSWORD",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "mongodb-secret",
+                                            "key": "mongodb-password"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "MONGODB_DB_NAME",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "mongodb-secret",
+                                            "key": "mongodb-database"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "BUILD_ID",
+                                    "value": "build-5-xvm43s"
+                                },
+                                {
+                                    "name": "STORAGE_BINARY",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "STORAGE_BINARY"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "BASE_FS_ADAPTER_DIRECTORY",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "BASE_FS_ADAPTER_DIRECTORY"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "BUILD_MODE",
+                                    "value": "kaniko"
+                                },
+                                {
+                                    "name": "DOCKER_PULL_INSECURE",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_pull_insecure"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PULL_NAMESPACE",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_pull_namespace"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PULL_PASSWORD",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_pull_password"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PULL_REGISTRY",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_pull_registry"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PULL_SKIP_TLS_VERIFY",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_pull_skip_tls_verify"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PULL_USERNAME",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_pull_username"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PUSH_INSECURE",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_push_insecure"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PUSH_NAMESPACE",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_push_namespace"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PUSH_PASSWORD",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_push_password"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PUSH_REGISTRY",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_push_registry"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PUSH_SKIP_TLS_VERIFY",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_push_skip_tls_verify"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DOCKER_PUSH_USERNAME",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "docker_push_username"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "MAVEN_REGISTRY",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "maven_registry"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "MAVEN_TOKEN",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "maven_token"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "MAVEN_USER",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "maven_user"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "NPM_AUTH",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "npm_auth"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "NPM_REGISTRY",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "npm_registry"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "NPM_TOKEN",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "npm_token"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "PIP_REGISTRY",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "pip_registry"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "PIP_TOKEN",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "docker-credentials-secret",
+                                            "key": "pip_token"
+                                        }
+                                    }
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "cpu": "100m"
+                                }
+                            },
+                            "volumeMounts": [
+                                {
+                                    "name": "storage-volume",
+                                    "mountPath": "/hkubedata"
+                                },
+                                {
+                                    "name": "commands",
+                                    "mountPath": "/tmp/commands"
+                                },
+                                {
+                                    "name": "workspace",
+                                    "mountPath": "/tmp/workspace"
+                                },
+                                {
+                                    "name": "algorithm-builder-serviceaccount-token-cnc4d",
+                                    "readOnly": true,
+                                    "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                                }
+                            ],
+                            "terminationMessagePath": "/dev/termination-log",
+                            "terminationMessagePolicy": "File",
+                            "imagePullPolicy": "IfNotPresent"
+                        },
+                        {
+                            "name": "kaniko",
+                            "image": "hkube/kaniko:v2.1.1",
+                            "resources": {
+                                "requests": {
+                                    "cpu": "100m"
+                                }
+                            },
+                            "volumeMounts": [
+                                {
+                                    "name": "commands",
+                                    "mountPath": "/commands"
+                                },
+                                {
+                                    "name": "workspace",
+                                    "mountPath": "/workspace"
+                                },
+                                {
+                                    "name": "algorithm-builder-serviceaccount-token-cnc4d",
+                                    "readOnly": true,
+                                    "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                                }
+                            ],
+                            "terminationMessagePath": "/dev/termination-log",
+                            "terminationMessagePolicy": "File",
+                            "imagePullPolicy": "IfNotPresent"
+                        }
+                    ],
+                    "restartPolicy": "Never",
+                    "terminationGracePeriodSeconds": 30,
+                    "dnsPolicy": "ClusterFirst",
+                    "serviceAccountName": "algorithm-builder-serviceaccount",
+                    "serviceAccount": "algorithm-builder-serviceaccount",
+                    "nodeName": "ip-172-20-52-115.eu-west-1.compute.internal",
+                    "securityContext": {},
+                    "schedulerName": "default-scheduler",
+                    "tolerations": [
+                        {
+                            "key": "node.kubernetes.io/not-ready",
+                            "operator": "Exists",
+                            "effect": "NoExecute",
+                            "tolerationSeconds": 300
+                        },
+                        {
+                            "key": "node.kubernetes.io/unreachable",
+                            "operator": "Exists",
+                            "effect": "NoExecute",
+                            "tolerationSeconds": 300
+                        }
+                    ],
+                    "priority": 0,
+                    "enableServiceLinks": true,
+                    "preemptionPolicy": "PreemptLowerPriority"
+                },
+                "status": {
+                    "phase": "Succeeded",
+                    "conditions": [
+                        {
+                            "type": "Initialized",
+                            "status": "True",
+                            "lastProbeTime": null,
+                            "lastTransitionTime": "2021-06-07T10:04:20Z",
+                            "reason": "PodCompleted"
+                        },
+                        {
+                            "type": "Ready",
+                            "status": "False",
+                            "lastProbeTime": null,
+                            "lastTransitionTime": "2021-06-07T10:05:12Z",
+                            "reason": "PodCompleted"
+                        },
+                        {
+                            "type": "ContainersReady",
+                            "status": "False",
+                            "lastProbeTime": null,
+                            "lastTransitionTime": "2021-06-07T10:05:12Z",
+                            "reason": "PodCompleted"
+                        },
+                        {
+                            "type": "PodScheduled",
+                            "status": "True",
+                            "lastProbeTime": null,
+                            "lastTransitionTime": "2021-06-07T10:04:20Z"
+                        }
+                    ],
+                    "hostIP": "172.20.52.115",
+                    "podIP": "100.96.3.13",
+                    "podIPs": [
+                        {
+                            "ip": "100.96.3.13"
+                        }
+                    ],
+                    "startTime": "2021-06-07T10:04:20Z",
+                    "containerStatuses": [
+                        {
+                            "name": "algorithm-builder",
+                            "state": {
+                                "terminated": {
+                                    "exitCode": 0,
+                                    "reason": "Completed",
+                                    "startedAt": "2021-06-07T10:04:27Z",
+                                    "finishedAt": "2021-06-07T10:05:12Z",
+                                    "containerID": "docker://04b530e79eaefe43455c618d765df4239c22c948cc1a0be28e7d26ef56db94e7"
+                                }
+                            },
+                            "lastState": {},
+                            "ready": false,
+                            "restartCount": 0,
+                            "image": "hkube/algorithm-builder:v2.1.2",
+                            "imageID": "docker-pullable://hkube/algorithm-builder@sha256:bf12b308e6896be567cd173e8ab8de727f10923714a56d0cdf0b5db7d66dc00b",
+                            "containerID": "docker://04b530e79eaefe43455c618d765df4239c22c948cc1a0be28e7d26ef56db94e7",
+                            "started": false
+                        },
+                        {
+                            "name": "kaniko",
+                            "state": {
+                                "terminated": {
+                                    "exitCode": 0,
+                                    "reason": "Completed",
+                                    "startedAt": "2021-06-07T10:04:30Z",
+                                    "finishedAt": "2021-06-07T10:05:11Z",
+                                    "containerID": "docker://c576b4718e9ffd49451e63cc7c5fb81151340f693365c09cfd1c064c1abdec57"
+                                }
+                            },
+                            "lastState": {},
+                            "ready": false,
+                            "restartCount": 0,
+                            "image": "hkube/kaniko:v2.1.1",
+                            "imageID": "docker-pullable://hkube/kaniko@sha256:b582cdd5830831c3c32f3869e690560b7a667e6ed863eeaba924e8f9582ca5e0",
+                            "containerID": "docker://c576b4718e9ffd49451e63cc7c5fb81151340f693365c09cfd1c064c1abdec57",
+                            "started": false
+                        }
+                    ],
+                    "qosClass": "Burstable"
+                }
+            }
+        ]
+    }
+}
