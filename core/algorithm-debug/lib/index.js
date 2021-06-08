@@ -8,7 +8,7 @@ const events = new EventEmitter();
 const sendMessageDelegates = {};
 const log = Logger.GetLogFromContainer();
 
-const init = async (options) => {
+const init = async () => {
     events.removeAllListeners();
     events.on('stop', () => {
         return this._resolve();
@@ -28,13 +28,16 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
         }
         return this._resolve(value);
     });
-    ws.on(messages.outgoing.sendMessage, ({ payload: { message, flowName, sendMessageId } }) => {
+    ws.on(messages.outgoing.sendMessage, ({ message, flowName, sendMessageId }) => {
         const sendMessage = sendMessageDelegates[sendMessageId];
         if (flowName) {
             hkubeApi.sendMessage(message, flowName);
         }
-        else {
+        else if (sendMessage) {
             sendMessage(message);
+        }
+        else {
+            hkubeApi.sendMessage(message);
         }
     });
     const optionsCopy = { ...options, kind: pipelineKind.Batch, flatInput: null };
@@ -47,6 +50,7 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
                 sendMessageDelegates[sendMessageId] = sendMessage;
                 ws.send({ command: messages.incoming.message, data: { payload, origin, sendMessageId } });
             });
+            hkubeApi.startMessageListening();
         }
     }
     return new Promise((res, rej) => {
