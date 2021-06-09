@@ -1,6 +1,7 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const storageManager = require('@hkube/storage-manager');
+const { rest: healthchecks } = require('@hkube/healthchecks');
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 const component = require('./lib/consts/componentNames').MAIN;
@@ -27,7 +28,7 @@ class Bootstrap {
             log.info(`running application with env: ${configIt.env()}, version: ${config.version}, node: ${process.versions.node}`, { component });
             await cleanerManager.init(config);
             await Promise.all(modules.map(m => m.init(config)));
-            // await healthchecks.initAndStart(main.healthchecks, () => runner.checkHealth(main.healthchecks.maxDiff), main.serviceName);
+            await healthchecks.initAndStart(config.healthchecks, () => cleanerManager.checkHealth(config.healthchecks.maxDiff), config.serviceName);
         }
         catch (error) {
             this._onInitFailed(error);

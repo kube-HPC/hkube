@@ -12,7 +12,7 @@ const secured = !!process.env.IS_SSL;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.rest = {
-    port: process.env.REST_PORT || 7000,
+    port: formatter.parseInt(process.env.REST_PORT, 7000),
     prefix: 'api',
     poweredBy: 'HKube GC',
     bodySizeLimit: process.env.BODY_SIZE_LIMIT || '2000mb'
@@ -24,8 +24,6 @@ config.swagger = {
     port: process.env.BASE_URL_PORT || config.rest.port,
     path: process.env.BASE_URL_PATH ? path.join(config.ingressPrefix, process.env.BASE_URL_PATH) : config.ingressPrefix
 };
-
-// TODO: IMPLEMENT healthchecks
 
 config.cleanerSettings = {
     datasource: {
@@ -103,6 +101,14 @@ config.cleanerSettings = {
             }
         }
     },
+};
+
+config.healthchecks = {
+    path: process.env.HEALTH_CHECK_PATH || '/healthz',
+    port: formatter.parseInt(process.env.HEALTH_CHECK_PORT, 5000),
+    maxDiff: formatter.parseInt(process.env.HEALTHCHECK_MAX_DIFF, 30000),
+    enabled: formatter.parseBool(process.env.HEALTHCHECKS_ENABLE, true),
+    logExternalRequests: formatter.parseBool(process.env.LOG_EXTERNAL_REQUESTS, true)
 };
 
 config.kubernetes = {

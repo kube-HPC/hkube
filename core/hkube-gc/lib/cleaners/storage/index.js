@@ -27,7 +27,7 @@ class Cleaner extends BaseCleaner {
         return {
             name: this._name,
             count,
-            exampleKeys: {
+            sample: {
                 results: data.results.slice(0, 10),
                 temp: data.temp.slice(0, 10),
                 indices: data.indices.slice(0, 10),

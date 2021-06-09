@@ -16,7 +16,6 @@ class CleanerManager {
             if (config.enabled) {
                 const Cleaner = require(`../../${CLEANERS_PATH}/${name}`); // eslint-disable-line
                 const cleaner = new Cleaner({ config, name });
-                cleaner.init({ cleanMethod: (...args) => cleaner.clean(...args) });
                 cleaner.start();
                 this._cleaners.set(name, cleaner);
                 log.info(`initialized ${name} cleaner with cron ${this._cronFormat(config.cron)} next: ${cleaner.nextDate()}`);
@@ -29,6 +28,11 @@ class CleanerManager {
 
     _cronFormat(cron) {
         return `${cronstrue.toString(cron)} (${cron})`;
+    }
+
+    checkHealth() {
+        const cleaners = this.getCleaners();
+        return cleaners.every(c => c.isHealthy());
     }
 
     getStatus(type) {
@@ -64,11 +68,16 @@ class CleanerManager {
     }
 
     getCleaner(type) {
-        const types = this._getTypes();
-        if (!types.includes(type)) {
-            throw new Error(`cleaner type is invalid (${types})`);
+        const cleaner = this._cleaners.get(type);
+        if (!cleaner) {
+            throw new Error(`cleaner type is invalid (${this._getTypes()})`);
         }
-        return this._cleaners.get(type);
+        return cleaner;
+    }
+
+    getCleaners() {
+        const types = this._getTypes();
+        return types.map(t => this.getCleaner(t));
     }
 
     _getTypes() {

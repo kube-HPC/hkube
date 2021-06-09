@@ -8,14 +8,21 @@ class BaseCleaner {
         this._name = name;
         this._cron = config.cron;
         this._config = config.settings;
-        this._lastIntervalTime = Date.now();
+        this._lastStartTime = null;
+        this._lastEndTime = null;
     }
 
-    init({ cleanMethod }) {
+    nextDate() {
+        return this._cronJob.nextDate();
+    }
+
+    start() {
         this._cronJob = new CronJob(this._cron, async (cb) => {
             log.debug(`starting cleaner ${this._name}`);
             try {
-                await cleanMethod(this._config);
+                this._lastStartTime = Date.now();
+                await this.clean(this._config);
+                this._lastEndTime = Date.now();
             }
             catch (e) {
                 log.throttle.error(e.message, { component: this._name });
@@ -26,19 +33,11 @@ class BaseCleaner {
         }, () => {
             log.debug(`completed cleaner ${this._name}, next: ${this._cronJob.nextDate()}`);
         });
-    }
-
-    nextDate() {
-        return this._cronJob.nextDate();
-    }
-
-    start() {
         this._cronJob.start();
     }
 
     setResultCount(count) {
         this._totalCleaned = count;
-        this._lastIntervalTime = Date.now();
     }
 
     getStatus() {
@@ -48,7 +47,8 @@ class BaseCleaner {
             cronText: cronstrue.toString(this._cron),
             nextTick: this._cronJob.nextDate(),
             maxAge: this._config.maxAge,
-            lastClean: formatDate(this._lastIntervalTime) || 'Never',
+            lastCleanStartTime: formatDate(this._lastStartTime) || 'Never',
+            lastCleanEndTime: formatDate(this._lastEndTime) || 'Never',
             totalCleaned: this._totalCleaned || 0
         };
         return status;
@@ -58,12 +58,20 @@ class BaseCleaner {
         return {
             name: this._name,
             count: data.length,
-            exampleKeys: data.slice(0, 10)
+            sample: data.slice(0, 10)
         };
     }
 
-    checkHealth(maxDiff) {
-        const diff = Date.now() - this._lastIntervalTime;
+    isHealthy(maxDiff) {
+        if (!this._lastStartTime && !this._lastEndTime) {
+            return true;
+        }
+
+        let lastEndTime = this._lastEndTime;
+        if (this._lastStartTime && !this._lastEndTime) {
+            lastEndTime = Date.now();
+        }
+        const diff = lastEndTime - this._lastStartTime;
         return (diff < maxDiff);
     }
 
