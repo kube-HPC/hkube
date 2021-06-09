@@ -28,7 +28,7 @@ class AppServer {
         const { schemasInternal, ...swagger } = await swaggerUtils.loader.load({ path: path.join(__dirname, 'swagger') });
         swagger.info.version = options.version;
 
-        const { prefix, port, rateLimit, poweredBy } = options.rest;
+        const { prefix, port, rateLimit, poweredBy, bodySizeLimit } = options.rest;
         const routes = internal();
         routes.push(metrics.getRouter());
         const versions = fs.readdirSync(path.join(__dirname, 'routes'));
@@ -59,6 +59,7 @@ class AppServer {
             port: parseInt(port, 10),
             rateLimit,
             poweredBy,
+            bodySizeLimit,
             name: options.serviceName,
             beforeRoutesMiddlewares,
             afterRoutesMiddlewares: [...afterRoutesMiddlewares, afterRequest(routeLogBlacklist)]
