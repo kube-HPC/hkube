@@ -24,7 +24,7 @@ class DataSourceCleaner extends BaseCleaner {
 
     async dryRun({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        return this.runResult({ data });
+        return this.dryRunResult({ data });
     }
 
     async fetch({ maxAge } = {}) {

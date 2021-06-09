@@ -16,7 +16,7 @@ class PipelinesCleaner extends BaseCleaner {
 
     async dryRun() {
         const data = await this.fetch();
-        return this.runResult({ data });
+        return this.dryRunResult({ data });
     }
 
     async fetch() {
