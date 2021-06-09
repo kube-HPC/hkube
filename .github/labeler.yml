@@ -22,3 +22,9 @@
   - core/datasources-service/**/*
 "HKube: Resource Manager":
   - core/resource-manager/**/*
+"HKube: Algorithm-Debug":
+  - core/algorithm-debug/**/*
+"HKube: algorithm-Gateway":
+  - core/algorithm-gateway/**/*
+"HKube: gc-service":
+  - core/gc-service/**/*

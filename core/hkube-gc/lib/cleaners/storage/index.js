@@ -10,29 +10,18 @@ const cleaners = {
     indices: indicesCleaner
 };
 
-class Cleaner extends BaseCleaner {
+class StorageCleaner extends BaseCleaner {
     async clean({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        await cleaners.results.clean({ jobs: data.results });
-        await cleaners.temp.clean({ jobs: data.temp });
-        await cleaners.indices.clean({ indices: data.indices });
-        const count = data.results.length + data.temp.length + data.indices.length;
-        this.setResultCount(count);
-        return this.getStatus();
+        await this.delete(data);
+        const { count, sample } = this._createSample(data);
+        return this.runResult({ count, sample });
     }
 
     async dryRun({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        const count = data.results.length + data.temp.length + data.indices.length;
-        return {
-            name: this._name,
-            count,
-            sample: {
-                results: data.results.slice(0, 10),
-                temp: data.temp.slice(0, 10),
-                indices: data.indices.slice(0, 10),
-            }
-        };
+        const { count, sample } = this._createSample(data);
+        return this.dryRunResult({ count, sample });
     }
 
     async fetch({ maxAge } = {}) {
@@ -49,6 +38,22 @@ class Cleaner extends BaseCleaner {
         };
         return result;
     }
+
+    async delete(data) {
+        await cleaners.results.clean({ jobs: data.results });
+        await cleaners.temp.clean({ jobs: data.temp });
+        await cleaners.indices.clean({ indices: data.indices });
+    }
+
+    _createSample(data) {
+        const count = data.results.length + data.temp.length + data.indices.length;
+        const sample = {
+            results: data.results.slice(0, 10),
+            temp: data.temp.slice(0, 10),
+            indices: data.indices.slice(0, 10),
+        };
+        return { count, sample };
+    }
 }
 
-module.exports = Cleaner;
+module.exports = StorageCleaner;

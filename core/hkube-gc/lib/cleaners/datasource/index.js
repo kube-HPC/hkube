@@ -4,7 +4,7 @@ const { glob } = require('./utils/glob');
 const storeManager = require('../../helpers/store-manager');
 const BaseCleaner = require('../../core/base-cleaner');
 
-class Cleaner extends BaseCleaner {
+class DataSourceCleaner extends BaseCleaner {
     constructor(config) {
         super(config);
         this.rootDir = getDatasourcesInUseFolder(this._config);
@@ -18,14 +18,13 @@ class Cleaner extends BaseCleaner {
 
     async clean({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        await Promise.all(data.map(p => fse.remove(p)));
-        this.setResultCount(data.length);
-        return this.getStatus();
+        await this.delete(data);
+        return this.runResult({ data });
     }
 
     async dryRun({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        return this.dryRunResult(data);
+        return this.runResult({ data });
     }
 
     async fetch({ maxAge } = {}) {
@@ -46,6 +45,10 @@ class Cleaner extends BaseCleaner {
         const result = dirs.filter(([dir]) => dir).map(([dir]) => `${this.rootDir}/${dir}`);
         return result;
     }
+
+    async delete(data) {
+        await Promise.all(data.map(p => fse.remove(p)));
+    }
 }
 
-module.exports = Cleaner;
+module.exports = DataSourceCleaner;

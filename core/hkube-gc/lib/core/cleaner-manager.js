@@ -1,5 +1,4 @@
 const fs = require('fs-extra');
-const cronstrue = require('cronstrue');
 const log = require('@hkube/logger').GetLogFromContainer();
 const CLEANERS_PATH = 'lib/cleaners';
 
@@ -8,30 +7,34 @@ class CleanerManager {
         this._cleaners = new Map();
     }
 
-    // dynamically load all cleaners
     async init(options) {
         const cleaners = await fs.readdir(CLEANERS_PATH);
         cleaners.forEach(name => {
-            const config = options.cleanerSettings[name];
+            const config = options.cleanerSettings[name]; // dynamically load all cleaners
+            const Cleaner = require(`../../${CLEANERS_PATH}/${name}`); // eslint-disable-line
+            const cleaner = new Cleaner({ config, name, options });
+            this._cleaners.set(name, cleaner);
+
             if (config.enabled) {
-                const Cleaner = require(`../../${CLEANERS_PATH}/${name}`); // eslint-disable-line
-                const cleaner = new Cleaner({ config, name });
                 cleaner.start();
-                this._cleaners.set(name, cleaner);
-                log.info(`initialized ${name} cleaner with cron ${this._cronFormat(config.cron)} next: ${cleaner.nextDate()}`);
+                log.info(`initialized ${name} cleaner with cron ${cleaner.cronFormat()} next: ${cleaner.nextDate()}`);
             }
             else {
-                log.info(`skipped ${name} cleaner with cron ${this._cronFormat(config.cron)}`);
+                log.warning(`skipped ${name} cleaner with cron ${cleaner.cronFormat()}`);
             }
         });
+        this._healthInterval(options);
     }
 
-    _cronFormat(cron) {
-        return `${cronstrue.toString(cron)} (${cron})`;
+    _healthInterval(options) {
+        setInterval(() => {
+            const cleaners = this._getCleaners();
+            cleaners.forEach(c => c.checkHealth());
+        }, options.healthchecksInterval);
     }
 
     checkHealth() {
-        const cleaners = this.getCleaners();
+        const cleaners = this._getCleaners();
         return cleaners.every(c => c.isHealthy());
     }
 
@@ -75,9 +78,9 @@ class CleanerManager {
         return cleaner;
     }
 
-    getCleaners() {
+    _getCleaners() {
         const types = this._getTypes();
-        return types.map(t => this.getCleaner(t));
+        return types.map(t => this.getCleaner(t)).filter(c => c.enabled);
     }
 
     _getTypes() {

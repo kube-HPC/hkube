@@ -4,75 +4,122 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { formatDate } = require('../utils/time');
 
 class BaseCleaner {
-    constructor({ config, name }) {
+    constructor({ config, name, options }) {
         this._name = name;
         this._cron = config.cron;
+        this._healthCheckMaxDiff = options.healthchecks.maxDiff;
+        this._enabled = config.enabled;
         this._config = config.settings;
-        this._lastStartTime = null;
-        this._lastEndTime = null;
+        this._lastCronStartTime = null;
+        this._lastCronEndTime = null;
+        this._isHealthy = true;
+        this._working = false;
     }
 
-    nextDate() {
-        return this._cronJob.nextDate();
+    get enabled() {
+        return this._enabled;
     }
 
     start() {
-        this._cronJob = new CronJob(this._cron, async (cb) => {
-            log.debug(`starting cleaner ${this._name}`);
-            try {
-                this._lastStartTime = Date.now();
-                await this.clean(this._config);
-                this._lastEndTime = Date.now();
-            }
-            catch (e) {
-                log.throttle.error(e.message, { component: this._name });
-            }
-            finally {
-                cb();
-            }
-        }, () => {
-            log.debug(`completed cleaner ${this._name}, next: ${this._cronJob.nextDate()}`);
+        this._cronJob = new CronJob({
+            cronTime: this._cron,
+            onTick: async (cb) => this._cronStart(cb),
+            onComplete: () => this._cronEnd(),
+            start: true,
+            runOnInit: true
         });
-        this._cronJob.start();
     }
 
-    setResultCount(count) {
-        this._totalCleaned = count;
+    async _cronStart(cb) {
+        log.debug(`starting cleaner ${this._name}`);
+        try {
+            if (this._working) {
+                return;
+            }
+            this._working = true;
+            this._lastCronStartTime = Date.now();
+            await this.clean(this._config);
+            this._lastCronEndTime = Date.now();
+            this._error = undefined;
+            this._working = false;
+        }
+        catch (e) {
+            this._error = e.message;
+            log.throttle.error(`error in ${this._name} cleaner. ${e.message}`, { component: this._name });
+        }
+        finally {
+            cb();
+        }
+    }
+
+    async _cronEnd() {
+        log.debug(`completed cleaner ${this._name}, next: ${this.nextDate()}`);
+    }
+
+    nextDate() {
+        return this._cronJob?.nextDate();
+    }
+
+    cronFormat() {
+        return `${cronstrue.toString(this._cron)} (${this._cron})`;
     }
 
     getStatus() {
         const status = {
             name: this._name,
+            enabled: this._enabled,
+            isHealthy: this.isHealthy(),
+            error: this._error,
             cron: this._cron,
-            cronText: cronstrue.toString(this._cron),
-            nextTick: this._cronJob.nextDate(),
+            cronText: this.cronFormat(),
+            cronNextTick: this.nextDate(),
             maxAge: this._config.maxAge,
-            lastCleanStartTime: formatDate(this._lastStartTime) || 'Never',
-            lastCleanEndTime: formatDate(this._lastEndTime) || 'Never',
+            lastCronStartTime: formatDate(this._lastCronStartTime) || 'Never',
+            lastCronEndTime: formatDate(this._lastCronEndTime) || 'Never',
             totalCleaned: this._totalCleaned || 0
         };
         return status;
     }
 
-    dryRunResult(data) {
+    runResult({ count, data, sample }) {
+        this._totalCleaned = count;
+        return this._runResult({ count, data, sample });
+    }
+
+    dryRunResult({ count, data, sample }) {
+        return this._runResult({ count, data, sample });
+    }
+
+    _runResult({ count, data, sample }) {
         return {
             name: this._name,
-            count: data.length,
-            sample: data.slice(0, 10)
+            count: count >= 0 ? count : data.length,
+            sample: sample || data.slice(0, 10)
         };
     }
 
-    isHealthy(maxDiff) {
-        if (!this._lastStartTime && !this._lastEndTime) {
-            return true;
-        }
+    isHealthy() {
+        return this._isHealthy;
+    }
 
-        let lastEndTime = this._lastEndTime;
-        if (this._lastStartTime && !this._lastEndTime) {
-            lastEndTime = Date.now();
+    checkHealth() {
+        if (!this._lastCronStartTime && !this._lastCronEndTime) {
+            return;
         }
-        const diff = lastEndTime - this._lastStartTime;
-        return (diff < maxDiff);
+        let lastCronEndTime = this._lastCronEndTime;
+        if (this._lastCronStartTime && !this._lastCronEndTime) {
+            lastCronEndTime = Date.now();
+        }
+        const diff = lastCronEndTime - this._lastCronStartTime;
+        const isHealthy = (diff < this._healthCheckMaxDiff);
+        if (isHealthy && !this._isHealthy) {
+            this._isHealthy = true;
+            log.warning(`cleaner ${this._name} is now healthy`);
+        }
+        if (!isHealthy && this._isHealthy) {
+            this._isHealthy = false;
+            log.warning(`cleaner ${this._name} is now unhealthy`);
+        }
     }
 
     resolveMaxAge(maxAge, configMaxAge) {

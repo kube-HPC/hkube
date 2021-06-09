@@ -1,7 +1,7 @@
-const { shouldDelete } = require('../utils/time');
+const { isTimeBefore } = require('../utils/time');
 const storeManager = require('../helpers/store-manager');
 
-class Cleaner {
+class KindCleaner {
     async delete({ data, kind }) {
         const result = await Promise.all(data.map(a => storeManager.deleteAlgByName({ name: a.name, kind })));
         return result;
@@ -13,10 +13,10 @@ class Cleaner {
         if (algorithms.length > 0) {
             const jobs = await storeManager.getRunningJobs();
             const jobIds = jobs.map(job => job.jobId);
-            result = algorithms.filter(a => shouldDelete(a.created, maxAge) && !jobIds.includes(a.jobId)).map(a => a.name);
+            result = algorithms.filter(a => isTimeBefore(a.created, maxAge) && !jobIds.includes(a.jobId)).map(a => a.name);
         }
         return result;
     }
 }
 
-module.exports = new Cleaner();
+module.exports = new KindCleaner();

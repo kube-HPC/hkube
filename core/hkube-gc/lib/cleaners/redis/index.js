@@ -1,5 +1,5 @@
 const redisStore = require('../../helpers/redis');
-const { shouldDelete } = require('../../utils/time');
+const { isTimeBefore } = require('../../utils/time');
 const BaseCleaner = require('../../core/base-cleaner');
 
 const paths = [
@@ -8,17 +8,16 @@ const paths = [
     '/pipeline-driver/nodes-graph'
 ];
 
-class Cleaner extends BaseCleaner {
+class RedisCleaner extends BaseCleaner {
     async clean({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        await Promise.all(data.map(k => redisStore.deleteKey(k)));
-        this.setResultCount(data.length);
-        return this.getStatus();
+        await this.delete(data);
+        return this.runResult({ data });
     }
 
     async dryRun({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        return this.dryRunResult(data);
+        return this.runResult({ data });
     }
 
     async fetch({ maxAge } = {}) {
@@ -28,7 +27,7 @@ class Cleaner extends BaseCleaner {
             for await (const data of redisStore.getKeys(`${path}/*`)) { // eslint-disable-line
                 Object.entries(data).forEach(([k, v]) => {
                     const timestamp = (v.graph && v.graph.timestamp) || v.timestamp || 0;
-                    if (shouldDelete(timestamp, maxJobAge)) {
+                    if (isTimeBefore(timestamp, maxJobAge)) {
                         keys.push(k);
                     }
                 });
@@ -36,6 +35,10 @@ class Cleaner extends BaseCleaner {
         }
         return keys;
     }
+
+    async delete(data) {
+        await Promise.all(data.map(k => redisStore.deleteKey(k)));
+    }
 }
 
-module.exports = Cleaner;
+module.exports = RedisCleaner;

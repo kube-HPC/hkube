@@ -2,17 +2,16 @@ const { nodeKind } = require('@hkube/consts');
 const kindCleaner = require('../../core/kind-cleaner');
 const BaseCleaner = require('../../core/base-cleaner');
 
-class Cleaner extends BaseCleaner {
+class DebugCleaner extends BaseCleaner {
     async clean({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        await kindCleaner.delete({ data, kind: nodeKind.Debug });
-        this.setResultCount(data.length);
-        return this.getStatus();
+        await this.delete(data);
+        return this.runResult({ data });
     }
 
     async dryRun({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        return this.dryRunResult(data);
+        return this.runResult({ data });
     }
 
     async fetch({ maxAge } = {}) {
@@ -20,6 +19,10 @@ class Cleaner extends BaseCleaner {
         const algorithms = await kindCleaner.fetch({ kind: nodeKind.Debug, maxAge: maxJobAge });
         return algorithms;
     }
+
+    async delete(data) {
+        await kindCleaner.delete({ data, kind: nodeKind.Debug });
+    }
 }
 
-module.exports = Cleaner;
+module.exports = DebugCleaner;

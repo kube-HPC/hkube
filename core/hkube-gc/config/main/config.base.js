@@ -103,12 +103,13 @@ config.cleanerSettings = {
     },
 };
 
+config.healthchecksInterval = formatter.parseInt(process.env.HEALTH_CHECK_INTERVAL, 10000);
+
 config.healthchecks = {
     path: process.env.HEALTH_CHECK_PATH || '/healthz',
     port: formatter.parseInt(process.env.HEALTH_CHECK_PORT, 5000),
     maxDiff: formatter.parseInt(process.env.HEALTHCHECK_MAX_DIFF, 30000),
-    enabled: formatter.parseBool(process.env.HEALTHCHECKS_ENABLE, true),
-    logExternalRequests: formatter.parseBool(process.env.LOG_EXTERNAL_REQUESTS, true)
+    enabled: formatter.parseBool(process.env.HEALTHCHECKS_ENABLE, true)
 };
 
 config.kubernetes = {

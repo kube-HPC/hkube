@@ -1,11 +1,11 @@
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { shouldDelete } = require('../../utils/time');
+const { isTimeBefore } = require('../../utils/time');
 const PATH_PATTERN = /(?<bucket>hkube-index)\/(?<date>\d{4}-\d{2}-\d{2})\/(?<jobId>.*)/;
 
 class BaseCleaner {
     async getJobsToDelete({ indices, maxAge }) {
-        const expiredIndices = indices.filter(i => shouldDelete(i, maxAge));
+        const expiredIndices = indices.filter(i => isTimeBefore(i, maxAge));
         const jobsToDelete = [];
         const datesAndJobs = await Promise.all(expiredIndices.map(date => storageManager.hkubeIndex.list({ date })));
         datesAndJobs.forEach((date) => {
@@ -18,11 +18,11 @@ class BaseCleaner {
     }
 
     _handleErrors(results) {
-        const errors = results.filter(r => r instanceof Error);
+        const errors = results.filter(r => r.status === 'rejected');
         if (errors.length) {
-            log.info(`failed to delete ${errors.length} objects`);
+            log.error(`failed to delete ${errors.length} objects`);
             errors.forEach((error) => {
-                log.info(`failed to delete ${error.message}`);
+                log.error(`failed to delete ${error.reason.message}`);
             });
         }
     }

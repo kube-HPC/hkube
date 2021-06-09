@@ -5,8 +5,8 @@ const PodTypes = require('../../consts/pod-types');
 const { normalizePods } = require('./normalize');
 const BaseCleaner = require('../../core/base-cleaner');
 
-class Cleaner extends BaseCleaner {
-    async deleteJobs(jobs) {
+class JobsCleaner extends BaseCleaner {
+    async _deleteJobs(jobs) {
         for (const j of jobs) { // eslint-disable-line
             await kubernetes.deleteJob(j); // eslint-disable-line
         }
@@ -47,14 +47,13 @@ class Cleaner extends BaseCleaner {
 
     async clean({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        await this.deleteJobs(data);
-        this.setResultCount(data.length);
-        return this.getStatus();
+        await this.delete(data);
+        return this.runResult({ data });
     }
 
     async dryRun({ maxAge } = {}) {
         const data = await this.fetch({ maxAge });
-        return this.dryRunResult(data);
+        return this.runResult({ data });
     }
 
     async fetch({ maxAge } = {}) {
@@ -72,6 +71,10 @@ class Cleaner extends BaseCleaner {
         const builders = await this._fetchAlgorithmBuilders(settings);
         return [...workers, ...drivers, ...builders];
     }
+
+    async delete(data) {
+        await this._deleteJobs(data);
+    }
 }
 
-module.exports = Cleaner;
+module.exports = JobsCleaner;

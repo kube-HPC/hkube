@@ -26,9 +26,9 @@ class Bootstrap {
         try {
             this._handleErrors();
             log.info(`running application with env: ${configIt.env()}, version: ${config.version}, node: ${process.versions.node}`, { component });
-            await cleanerManager.init(config);
             await Promise.all(modules.map(m => m.init(config)));
-            await healthchecks.initAndStart(config.healthchecks, () => cleanerManager.checkHealth(config.healthchecks.maxDiff), config.serviceName);
+            await cleanerManager.init(config);
+            await healthchecks.initAndStart(config.healthchecks, () => cleanerManager.checkHealth(), config.serviceName);
         }
         catch (error) {
             this._onInitFailed(error);

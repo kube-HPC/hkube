@@ -2,7 +2,7 @@ const storeManager = require('../../helpers/store-manager');
 const apiServer = require('./api-server-client');
 const BaseCleaner = require('../../core/base-cleaner');
 
-class Cleaner extends BaseCleaner {
+class PipelinesCleaner extends BaseCleaner {
     constructor(config) {
         super(config);
         apiServer.init(this._config);
@@ -10,14 +10,13 @@ class Cleaner extends BaseCleaner {
 
     async clean() {
         const data = await this.fetch();
-        await Promise.all(data.map(d => apiServer.stop({ jobId: d, reason: 'pipeline expired' })));
-        this.setResultCount(data.length);
-        return this.getStatus();
+        await this.delete(data);
+        return this.runResult({ data });
     }
 
     async dryRun() {
         const data = await this.fetch();
-        return this.dryRunResult(data);
+        return this.runResult({ data });
     }
 
     async fetch() {
@@ -25,6 +24,10 @@ class Cleaner extends BaseCleaner {
         const keys = pipelines.filter(p => p.startTime + (p.ttl * 1000) < Date.now()).map(p => p.jobId);
         return keys;
     }
+
+    async delete(data) {
+        await Promise.all(data.map(d => apiServer.stop({ jobId: d, reason: 'pipeline expired' })));
+    }
 }
 
-module.exports = Cleaner;
+module.exports = PipelinesCleaner;
