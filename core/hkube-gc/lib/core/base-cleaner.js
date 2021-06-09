@@ -23,7 +23,7 @@ class BaseCleaner {
     start() {
         this._cronJob = new CronJob({
             cronTime: this._cron,
-            onTick: async (cb) => this._cronStart(cb),
+            onTick: (cb) => this._cronStart(cb),
             onComplete: () => this._cronEnd(),
             start: true,
             runOnInit: true
@@ -32,16 +32,17 @@ class BaseCleaner {
 
     async _cronStart(cb) {
         log.debug(`starting cleaner ${this._name}`);
+        if (this._working) {
+            return;
+        }
         try {
-            if (this._working) {
-                return;
-            }
             this._working = true;
-            this._lastCronStartTime = Date.now();
+            if (!this._lastCronEndTime && !this._error) {
+                this._lastCronStartTime = Date.now();
+            }
             await this.clean(this._config);
             this._lastCronEndTime = Date.now();
             this._error = undefined;
-            this._working = false;
         }
         catch (e) {
             this._error = e.message;
@@ -49,10 +50,11 @@ class BaseCleaner {
         }
         finally {
             cb();
+            this._working = false;
         }
     }
 
-    async _cronEnd() {
+    _cronEnd() {
         log.debug(`completed cleaner ${this._name}, next: ${this.nextDate()}`);
     }
 
