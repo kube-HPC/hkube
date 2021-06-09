@@ -8,14 +8,8 @@ class StateManager {
     }
 
     async getKeys(path) {
-        try {
-            const ret = await this._etcd._client.getByQuery(path, { limit: 10000, sort: 'asc' });
-            return ret;
-        }
-        catch (error) {
-            log.warning(`error getting path ${path} from etcd. Error: ${error.message}`);
-            return {};
-        }
+        const ret = await this._etcd._client.getByQuery(path, { limit: 10000, sort: 'asc' });
+        return ret;
     }
 
     deleteKey(path) {

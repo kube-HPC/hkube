@@ -1,9 +1,13 @@
 const { Factory } = require('@hkube/redis-utils');
+const log = require('@hkube/logger').GetLogFromContainer();
 const tryParseJson = require('../utils/tryParseJson');
 
 class Redis {
     init(config) {
         this._client = Factory.getClient(config.redis);
+        this._client.on('error', (e) => {
+            log.throttle.error(e.message);
+        });
     }
 
     async* keysToValues(stream) {

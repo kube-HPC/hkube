@@ -37,7 +37,7 @@ class BaseCleaner {
         }
         try {
             this._working = true;
-            if (!this._lastCronEndTime && !this._error) {
+            if (!this._error) {
                 this._lastCronStartTime = Date.now();
             }
             await this.clean(this._config);
@@ -108,10 +108,7 @@ class BaseCleaner {
         if (!this._lastCronStartTime && !this._lastCronEndTime) {
             return;
         }
-        let lastCronEndTime = this._lastCronEndTime;
-        if (this._lastCronStartTime && !this._lastCronEndTime) {
-            lastCronEndTime = Date.now();
-        }
+        const lastCronEndTime = this._lastCronEndTime || Date.now();
         const diff = lastCronEndTime - this._lastCronStartTime;
         const isHealthy = (diff < this._healthCheckMaxDiff);
         if (isHealthy && !this._isHealthy) {
