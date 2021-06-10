@@ -1,7 +1,7 @@
 ARG BASE_PRIVATE_REGISTRY=""
 FROM ${BASE_PRIVATE_REGISTRY}node:14.5.0 as install
-ADD ./package-lock.json ./package.json /hkube/hkube-gc/
-WORKDIR /hkube/hkube-gc
+ADD ./package-lock.json ./package.json /hkube/gc-service/
+WORKDIR /hkube/gc-service
 RUN npm ci --production
 
 
@@ -9,7 +9,7 @@ ARG BASE_PRIVATE_REGISTRY=""
 FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v1.2.0
 LABEL maintainer="yehiyam@gmail.com"
 RUN mkdir /hkube
-COPY . /hkube/hkube-gc
-COPY --from=install /hkube/hkube-gc/node_modules /hkube/hkube-gc/node_modules
-WORKDIR /hkube/hkube-gc
+COPY . /hkube/gc-service
+COPY --from=install /hkube/gc-service/node_modules /hkube/gc-service/node_modules
+WORKDIR /hkube/gc-service
 CMD ["node", "app.js"]
