@@ -20,6 +20,7 @@ config.rest = {
     port: process.env.API_SERVER_REST_PORT || 3000,
     prefix: 'api',
     poweredBy: 'HKube Server',
+    bodySizeLimit: process.env.BODY_SIZE_LIMIT || '2000mb',
     rateLimit: {
         route: '/api',
         ms: process.env.API_SERVER_RATE_LIMIT_MS || 1000,
