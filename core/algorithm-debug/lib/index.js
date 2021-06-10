@@ -22,11 +22,13 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
     events.on('stop', () => {
         return this._resolve();
     });
-    ws.on(messages.outgoing.done, (value, sendMessageId) => {
+    ws.on(messages.outgoing.done, (value) => {
+        return this._resolve(value);
+    });
+    ws.on(messages.outgoing.doneMessage, (sendMessageId) => {
         if (sendMessageId) {
             delete sendMessageDelegates[sendMessageId];
         }
-        return this._resolve(value);
     });
     ws.on(messages.outgoing.sendMessage, ({ message, flowName, sendMessageId }) => {
         const sendMessage = sendMessageDelegates[sendMessageId];

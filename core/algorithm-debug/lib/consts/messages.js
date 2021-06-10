@@ -1,7 +1,8 @@
 module.exports = {
     outgoing: {
         done: 'done',
-        sendMessage: 'sendMessage'
+        sendMessage: 'sendMessage',
+        doneMessage: 'doneMessage'
     },
     incoming: {
         initialize: 'initialize',
