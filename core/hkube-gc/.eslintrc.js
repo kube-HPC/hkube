@@ -1,12 +1,13 @@
 module.exports = {
-    "extends": ["airbnb-base"],
+    "extends": ["airbnb-base", "plugin:security/recommended"],
     "env": {
         "es6": true,
         "node": true,
         "mocha": true
     },
     "plugins": [
-        "chai-friendly"
+        "chai-friendly",
+        "security"
     ],
     "parserOptions": {
         "sourceType": "module",
@@ -32,6 +33,9 @@ module.exports = {
         "arrow-body-style": "off",
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
-        "arrow-parens": "off"
+        "arrow-parens": "off",
+        "security/detect-object-injection": "off",
+        "security/detect-non-literal-fs-filename": "off",
+
     }
 };
