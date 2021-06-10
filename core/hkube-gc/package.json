@@ -3,20 +3,12 @@
   "version": "2.1.1",
   "description": "Hkube garbage collector",
   "main": "app.js",
-  "directories": {
-    "lib": "lib"
-  },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --timeout=20000 --colors --recursive --exit",
     "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov npm run test",
     "start": "node app",
     "build": "./dockerfile/build.sh hkube-gc"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint && npm run test"
-    }
   },
   "nyc": {
     "exclude": [
@@ -25,10 +17,6 @@
       "lib/utils/kubernetes.js"
     ]
   },
-  "keywords": [
-    "hkube",
-    "hkube-core"
-  ],
   "author": "Hkube",
   "license": "MIT",
   "dependencies": {
@@ -58,7 +46,6 @@
     "eslint-plugin-chai-friendly": "^0.6.0",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-security": "^1.4.0",
-    "husky": "^6.0.0",
     "mocha": "^7.1.1",
     "mockery": "^2.1.0",
     "nock": "^13.1.0",
