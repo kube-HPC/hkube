@@ -84,8 +84,9 @@ class BaseCleaner {
     }
 
     runResult({ count, data, sample }) {
-        this._totalCleaned = count;
-        return this._runResult({ count, data, sample });
+        const runResult = this._runResult({ count, data, sample });
+        this._totalCleaned = runResult.count;
+        return runResult;
     }
 
     dryRunResult({ count, data, sample }) {
