@@ -56,7 +56,7 @@ const debugIngress = ({ algorithmName }, { ingressHost, ingressPrefix = '', ingr
                     paths: [{
                         path: ingressUseRegex ? `${ingressPrefix}/hkube/debug/${algorithmName}(/|$)(.*)` : `${ingressPrefix}/hkube/debug/${algorithmName}`,
                         backend: {
-                            serviceName: `service-debug${algorithmName}`,
+                            serviceName: `service-debug-${algorithmName}`,
                             servicePort: 80
                         }
                     }]
