@@ -1,0 +1,594 @@
+{
+    "statusCode": 200,
+    "body": {
+        "kind": "PodList",
+        "apiVersion": "v1",
+        "metadata": {
+            "selfLink": "/api/v1/namespaces/default/pods/",
+            "resourceVersion": "4193134"
+        },
+        "items": [
+            {
+                "metadata": {
+                    "name": "pipeline-driver-zvp40-ghqvd",
+                    "generateName": "pipeline-driver-zvp40-",
+                    "namespace": "default",
+                    "selfLink": "/api/v1/namespaces/default/pods/pipeline-driver-zvp40-ghqvd",
+                    "uid": "57f0e4df-7d7e-4ad9-8a23-e5912d799300",
+                    "resourceVersion": "4127172",
+                    "creationTimestamp": "2021-06-07T04:52:29Z",
+                    "labels": {
+                        "controller-uid": "2f9097dd-4c04-4e24-b7b6-a247a25127f3",
+                        "group": "hkube",
+                        "job-name": "pipeline-driver-zvp40",
+                        "metrics-group": "pipeline-drivers",
+                        "type": "pipeline-driver"
+                    },
+                    "annotations": {
+                        "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu request for container pipeline-driver"
+                    },
+                    "ownerReferences": [
+                        {
+                            "apiVersion": "batch/v1",
+                            "kind": "Job",
+                            "name": "pipeline-driver-zvp40",
+                            "uid": "2f9097dd-4c04-4e24-b7b6-a247a25127f3",
+                            "controller": true,
+                            "blockOwnerDeletion": true
+                        }
+                    ],
+                    "managedFields": [
+                        {
+                            "manager": "kube-controller-manager",
+                            "operation": "Update",
+                            "apiVersion": "v1",
+                            "time": "2021-06-07T04:52:29Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:generateName": {},
+                                    "f:labels": {
+                                        ".": {},
+                                        "f:controller-uid": {},
+                                        "f:group": {},
+                                        "f:job-name": {},
+                                        "f:metrics-group": {},
+                                        "f:type": {}
+                                    },
+                                    "f:ownerReferences": {
+                                        ".": {},
+                                        "k:{\"uid\":\"2f9097dd-4c04-4e24-b7b6-a247a25127f3\"}": {
+                                            ".": {},
+                                            "f:apiVersion": {},
+                                            "f:blockOwnerDeletion": {},
+                                            "f:controller": {},
+                                            "f:kind": {},
+                                            "f:name": {},
+                                            "f:uid": {}
+                                        }
+                                    }
+                                },
+                                "f:spec": {
+                                    "f:containers": {
+                                        "k:{\"name\":\"pipeline-driver\"}": {
+                                            ".": {},
+                                            "f:env": {
+                                                ".": {},
+                                                "k:{\"name\":\"BASE_FS_ADAPTER_DIRECTORY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"CLUSTER_NAME\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"CONCURRENCY_LIMIT\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"DEFAULT_STORAGE\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"INACTIVE_PAUSED_TIMEOUT_MS\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:value": {}
+                                                },
+                                                "k:{\"name\":\"JAEGER_AGENT_SERVICE_HOST\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:fieldRef": {
+                                                            ".": {},
+                                                            "f:apiVersion": {},
+                                                            "f:fieldPath": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"METRICS_PORT\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:value": {}
+                                                },
+                                                "k:{\"name\":\"MONGODB_DB_NAME\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"MONGODB_SERVICE_PASSWORD\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"MONGODB_SERVICE_USER_NAME\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:secretKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"NODE_ENV\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:value": {}
+                                                },
+                                                "k:{\"name\":\"POD_ID\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:fieldRef": {
+                                                            ".": {},
+                                                            "f:apiVersion": {},
+                                                            "f:fieldPath": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"POD_NAME\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:fieldRef": {
+                                                            ".": {},
+                                                            "f:apiVersion": {},
+                                                            "f:fieldPath": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"STORAGE_BINARY\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"STORAGE_ENCODING\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                },
+                                                "k:{\"name\":\"STORAGE_RESULTS_THRESHOLD\"}": {
+                                                    ".": {},
+                                                    "f:name": {},
+                                                    "f:valueFrom": {
+                                                        ".": {},
+                                                        "f:configMapKeyRef": {
+                                                            ".": {},
+                                                            "f:key": {},
+                                                            "f:name": {}
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "f:image": {},
+                                            "f:imagePullPolicy": {},
+                                            "f:name": {},
+                                            "f:resources": {
+                                                ".": {},
+                                                "f:requests": {
+                                                    "f:cpu": {}
+                                                }
+                                            },
+                                            "f:terminationMessagePath": {},
+                                            "f:terminationMessagePolicy": {},
+                                            "f:volumeMounts": {
+                                                ".": {},
+                                                "k:{\"mountPath\":\"/hkubedata\"}": {
+                                                    ".": {},
+                                                    "f:mountPath": {},
+                                                    "f:name": {}
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "f:dnsPolicy": {},
+                                    "f:enableServiceLinks": {},
+                                    "f:restartPolicy": {},
+                                    "f:schedulerName": {},
+                                    "f:securityContext": {},
+                                    "f:terminationGracePeriodSeconds": {},
+                                    "f:volumes": {
+                                        ".": {},
+                                        "k:{\"name\":\"storage-volume\"}": {
+                                            ".": {},
+                                            "f:name": {},
+                                            "f:persistentVolumeClaim": {
+                                                ".": {},
+                                                "f:claimName": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "manager": "kubelet",
+                            "operation": "Update",
+                            "apiVersion": "v1",
+                            "time": "2021-06-07T04:52:36Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:status": {
+                                    "f:conditions": {
+                                        "k:{\"type\":\"ContainersReady\"}": {
+                                            ".": {},
+                                            "f:lastProbeTime": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        },
+                                        "k:{\"type\":\"Initialized\"}": {
+                                            ".": {},
+                                            "f:lastProbeTime": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        },
+                                        "k:{\"type\":\"Ready\"}": {
+                                            ".": {},
+                                            "f:lastProbeTime": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        }
+                                    },
+                                    "f:containerStatuses": {},
+                                    "f:hostIP": {},
+                                    "f:phase": {},
+                                    "f:podIP": {},
+                                    "f:podIPs": {
+                                        ".": {},
+                                        "k:{\"ip\":\"100.96.2.13\"}": {
+                                            ".": {},
+                                            "f:ip": {}
+                                        }
+                                    },
+                                    "f:startTime": {}
+                                }
+                            }
+                        }
+                    ]
+                },
+                "spec": {
+                    "volumes": [
+                        {
+                            "name": "storage-volume",
+                            "persistentVolumeClaim": {
+                                "claimName": "hkube-storage-pvc"
+                            }
+                        },
+                        {
+                            "name": "default-token-b5m2d",
+                            "secret": {
+                                "secretName": "default-token-b5m2d",
+                                "defaultMode": 420
+                            }
+                        }
+                    ],
+                    "containers": [
+                        {
+                            "name": "pipeline-driver",
+                            "image": "hkube/pipeline-driver:v2.1.4",
+                            "env": [
+                                {
+                                    "name": "NODE_ENV",
+                                    "value": "production"
+                                },
+                                {
+                                    "name": "METRICS_PORT",
+                                    "value": "3001"
+                                },
+                                {
+                                    "name": "INACTIVE_PAUSED_TIMEOUT_MS",
+                                    "value": "60000"
+                                },
+                                {
+                                    "name": "POD_ID",
+                                    "valueFrom": {
+                                        "fieldRef": {
+                                            "apiVersion": "v1",
+                                            "fieldPath": "metadata.uid"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "POD_NAME",
+                                    "valueFrom": {
+                                        "fieldRef": {
+                                            "apiVersion": "v1",
+                                            "fieldPath": "metadata.name"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "CONCURRENCY_LIMIT",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "PIPELINE_DRIVERS_CONCURRENCY_LIMIT"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "DEFAULT_STORAGE",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "DEFAULT_STORAGE"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "STORAGE_ENCODING",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "STORAGE_ENCODING"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "STORAGE_RESULTS_THRESHOLD",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "pipeline-driver-configmap",
+                                            "key": "STORAGE_RESULTS_THRESHOLD"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "CLUSTER_NAME",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "CLUSTER_NAME"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "MONGODB_SERVICE_USER_NAME",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "mongodb-secret",
+                                            "key": "mongodb-username"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "MONGODB_SERVICE_PASSWORD",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "mongodb-secret",
+                                            "key": "mongodb-password"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "MONGODB_DB_NAME",
+                                    "valueFrom": {
+                                        "secretKeyRef": {
+                                            "name": "mongodb-secret",
+                                            "key": "mongodb-database"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "JAEGER_AGENT_SERVICE_HOST",
+                                    "valueFrom": {
+                                        "fieldRef": {
+                                            "apiVersion": "v1",
+                                            "fieldPath": "status.hostIP"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "STORAGE_BINARY",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "STORAGE_BINARY"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "BASE_FS_ADAPTER_DIRECTORY",
+                                    "valueFrom": {
+                                        "configMapKeyRef": {
+                                            "name": "algorithm-operator-configmap",
+                                            "key": "BASE_FS_ADAPTER_DIRECTORY"
+                                        }
+                                    }
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "cpu": "100m"
+                                }
+                            },
+                            "volumeMounts": [
+                                {
+                                    "name": "storage-volume",
+                                    "mountPath": "/hkubedata"
+                                },
+                                {
+                                    "name": "default-token-b5m2d",
+                                    "readOnly": true,
+                                    "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                                }
+                            ],
+                            "terminationMessagePath": "/dev/termination-log",
+                            "terminationMessagePolicy": "File",
+                            "imagePullPolicy": "IfNotPresent"
+                        }
+                    ],
+                    "restartPolicy": "Never",
+                    "terminationGracePeriodSeconds": 30,
+                    "dnsPolicy": "ClusterFirst",
+                    "serviceAccountName": "default",
+                    "serviceAccount": "default",
+                    "nodeName": "ip-172-20-44-29.eu-west-1.compute.internal",
+                    "securityContext": {},
+                    "schedulerName": "default-scheduler",
+                    "tolerations": [
+                        {
+                            "key": "node.kubernetes.io/not-ready",
+                            "operator": "Exists",
+                            "effect": "NoExecute",
+                            "tolerationSeconds": 300
+                        },
+                        {
+                            "key": "node.kubernetes.io/unreachable",
+                            "operator": "Exists",
+                            "effect": "NoExecute",
+                            "tolerationSeconds": 300
+                        }
+                    ],
+                    "priority": 0,
+                    "enableServiceLinks": true,
+                    "preemptionPolicy": "PreemptLowerPriority"
+                },
+                "status": {
+                    "phase": "Running",
+                    "conditions": [
+                        {
+                            "type": "Initialized",
+                            "status": "True",
+                            "lastProbeTime": null,
+                            "lastTransitionTime": "2021-06-07T04:52:29Z"
+                        },
+                        {
+                            "type": "Ready",
+                            "status": "True",
+                            "lastProbeTime": null,
+                            "lastTransitionTime": "2021-06-07T04:52:36Z"
+                        },
+                        {
+                            "type": "ContainersReady",
+                            "status": "True",
+                            "lastProbeTime": null,
+                            "lastTransitionTime": "2021-06-07T04:52:36Z"
+                        },
+                        {
+                            "type": "PodScheduled",
+                            "status": "True",
+                            "lastProbeTime": null,
+                            "lastTransitionTime": "2021-06-07T04:52:29Z"
+                        }
+                    ],
+                    "hostIP": "172.20.44.29",
+                    "podIP": "100.96.2.13",
+                    "podIPs": [
+                        {
+                            "ip": "100.96.2.13"
+                        }
+                    ],
+                    "startTime": "2021-06-07T04:52:29Z",
+                    "containerStatuses": [
+                        {
+                            "name": "pipeline-driver",
+                            "state": {
+                                "terminated": {
+                                    "exitCode": 0
+                                }
+                            },
+                            "lastState": {},
+                            "ready": true,
+                            "restartCount": 0,
+                            "image": "hkube/pipeline-driver:v2.1.4",
+                            "imageID": "docker-pullable://hkube/pipeline-driver@sha256:1379f1aa0546d9938250065d99b47677fabdcc793ee09bf08d0d6612a277af07",
+                            "containerID": "docker://5f8a042c6c6d051d3c232387febd7e76ec9fbc01480c7e50aea9d9d23fd0497f",
+                            "started": true
+                        }
+                    ],
+                    "qosClass": "Burstable"
+                }
+            }
+        ]
+    }
+}

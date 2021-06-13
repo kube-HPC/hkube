@@ -1,0 +1,5 @@
+type: object
+properties:
+  maxAge:
+    type: integer
+    description: max age to clean (minutes)

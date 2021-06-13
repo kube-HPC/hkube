@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build_job
-    name: build and deploy
+    name: deploy
     steps:
     - name: download chart
       uses: actions/download-artifact@v2
