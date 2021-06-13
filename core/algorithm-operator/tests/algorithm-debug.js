@@ -20,7 +20,7 @@ describe('jobCreator', () => {
             const { serviceSpec, ingressSpec } = createIngressServiceSpec({ algorithmName: 'myalgo1-debug', clusterOptions: { ingressHost: 'myhost' } });
             expect(ingressSpec).to.nested.include({ 'spec.rules[0].host': 'myhost' });
             expect(ingressSpec).to.nested.include({ 'spec.rules[0].http.paths[0].path': '/hkube/debug/myalgo1' });
-            expect(serviceSpec).to.nested.include({ 'spec.selector.algorithm-name': 'myalgo1' });
+            expect(serviceSpec).to.nested.include({ 'spec.selector.algorithm-name': 'myalgo1-debug' });
         });
     });
 });
