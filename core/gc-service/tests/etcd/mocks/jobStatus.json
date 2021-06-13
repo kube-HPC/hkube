@@ -1,0 +1,30 @@
+[
+    {
+        "timestamp": "2016-08-23T06:20:07.700Z",
+        "pipeline": "raw-simple-15e78a8e08",
+        "data": {
+            "progress": 100,
+            "details": "100% completed, 3 succeed",
+            "states": {
+                "succeed": 3
+            },
+            "activeNodes": []
+        },
+        "status": "completed",
+        "level": "info"
+    },
+    {
+        "timestamp": "2030-08-23T06:20:07.700Z",
+        "pipeline": "raw-simple-15e78a8e08",
+        "data": {
+            "progress": 100,
+            "details": "100% completed, 3 succeed",
+            "states": {
+                "succeed": 3
+            },
+            "activeNodes": []
+        },
+        "status": "completed",
+        "level": "info"
+    }
+]

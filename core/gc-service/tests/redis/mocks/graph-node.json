@@ -1,0 +1,406 @@
+{
+    "/pipeline-driver/nodes-graph/raw-randomPipeStored:fcff74da-5503-4345-a85d-9b8e2b043846.raw-randomPipeStored": {
+        "options": {
+            "directed": true,
+            "multigraph": false,
+            "compound": false
+        },
+        "nodes": [
+            {
+                "v": "add0",
+                "value": {
+                    "nodeName": "add0",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3,
+                        5
+                    ],
+                    "status": "creating",
+                    "batch": [],
+                    "taskId": "add0:eval-alg:97c77318-ff5b-4900-b527-a5dc79e179fe",
+                    "storage": {},
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "batch1",
+                "value": {
+                    "nodeName": "batch1",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3
+                    ],
+                    "status": "creating",
+                    "batch": [],
+                    "taskId": "batch1:eval-alg:22a1a712-ddbb-4fca-8524-4085d4b0eb8c",
+                    "storage": {},
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "add2",
+                "value": {
+                    "nodeName": "add2",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3,
+                        "@add0"
+                    ],
+                    "status": "preschedule",
+                    "batch": [],
+                    "taskId": "add2:eval-alg:e3548a76-a2bc-47c5-9a9c-6994c7d615f9",
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "batch4",
+                "value": {
+                    "nodeName": "batch4",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        "#[1...10000]",
+                        "@add2"
+                    ],
+                    "status": "creating",
+                    "batch": []
+                }
+            },
+            {
+                "v": "add6",
+                "value": {
+                    "nodeName": "add6",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3,
+                        "@add0"
+                    ],
+                    "status": "preschedule",
+                    "batch": [],
+                    "taskId": "add6:eval-alg:76f18d67-31b3-4e97-a252-2d113fbef3e1",
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "sub7",
+                "value": {
+                    "nodeName": "sub7",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3,
+                        "@add0"
+                    ],
+                    "status": "preschedule",
+                    "batch": [],
+                    "taskId": "sub7:eval-alg:1720850e-4aaa-4443-9463-0be8b8f71ba2",
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "add8",
+                "value": {
+                    "nodeName": "add8",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3,
+                        "@add0",
+                        "@add2",
+                        "@add2",
+                        "@add0"
+                    ],
+                    "status": "preschedule",
+                    "batch": [],
+                    "taskId": "add8:eval-alg:1626e3f0-dd4a-4cf2-b535-03ef8c1f9c96",
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "add9",
+                "value": {
+                    "nodeName": "add9",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3,
+                        "@add0"
+                    ],
+                    "status": "preschedule",
+                    "batch": [],
+                    "taskId": "add9:eval-alg:7c90e1e5-5d80-41d1-8d85-bc5ef638c70b",
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "batch10",
+                "value": {
+                    "nodeName": "batch10",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3,
+                        "@add0",
+                        "@add0",
+                        "@add0",
+                        "@add0"
+                    ],
+                    "status": "preschedule",
+                    "batch": [],
+                    "taskId": "batch10:eval-alg:d07afab7-4f8f-4807-a705-668e781092ec",
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "sub11",
+                "value": {
+                    "nodeName": "sub11",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3,
+                        "@add0",
+                        "@add0",
+                        "@add0",
+                        "@batch1"
+                    ],
+                    "status": "preschedule",
+                    "batch": [],
+                    "taskId": "sub11:eval-alg:d0078776-3062-412c-974c-a7c25c8f0881",
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "sub12",
+                "value": {
+                    "nodeName": "sub12",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3
+                    ],
+                    "status": "creating",
+                    "batch": [],
+                    "taskId": "sub12:eval-alg:676db7e4-ad8f-4bc1-a204-97bfca94dd75",
+                    "storage": {},
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "mult13",
+                "value": {
+                    "nodeName": "mult13",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3,
+                        "@add6",
+                        "@add6",
+                        "@batch4",
+                        "@add6",
+                        "@add2",
+                        "@add0"
+                    ],
+                    "status": "preschedule",
+                    "batch": [],
+                    "taskId": "mult13:eval-alg:15f9b690-fcfc-447c-9418-3ee2d7fc1f6d",
+                    "prevErrors": []
+                }
+            },
+            {
+                "v": "div14",
+                "value": {
+                    "nodeName": "div14",
+                    "algorithmName": "eval-alg",
+                    "input": [
+                        3,
+                        "@add2",
+                        "@batch1",
+                        "@batch1"
+                    ],
+                    "status": "preschedule",
+                    "batch": [],
+                    "taskId": "div14:eval-alg:ead1c79d-0307-46d9-bc59-d7427674d6ff",
+                    "prevErrors": []
+                }
+            }
+        ],
+        "edges": [
+            {
+                "v": "add0",
+                "w": "add2",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add0",
+                "w": "add3",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add2",
+                "w": "batch4",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add0",
+                "w": "add6",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add0",
+                "w": "sub7",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add0",
+                "w": "add8",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    },
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add2",
+                "w": "add8",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    },
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add0",
+                "w": "add9",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add0",
+                "w": "batch10",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    },
+                    {
+                        "type": "waitNode"
+                    },
+                    {
+                        "type": "waitNode"
+                    },
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add0",
+                "w": "sub11",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    },
+                    {
+                        "type": "waitNode"
+                    },
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "batch1",
+                "w": "sub11",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add6",
+                "w": "mult13",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    },
+                    {
+                        "type": "waitNode"
+                    },
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "batch4",
+                "w": "mult13",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add2",
+                "w": "mult13",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add0",
+                "w": "mult13",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "add2",
+                "w": "div14",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            },
+            {
+                "v": "batch1",
+                "w": "div14",
+                "value": [
+                    {
+                        "type": "waitNode"
+                    },
+                    {
+                        "type": "waitNode"
+                    }
+                ]
+            }
+        ]
+    }
+}
