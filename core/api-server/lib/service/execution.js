@@ -12,7 +12,6 @@ const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const pipelineCreator = require('./pipeline-creator');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
-const ActiveStates = [pipelineStatuses.PENDING, pipelineStatuses.CREATING, pipelineStatuses.ACTIVE, pipelineStatuses.RESUMED, pipelineStatuses.PAUSED];
 const PausedState = [pipelineStatuses.PAUSED];
 
 class ExecutionService {
@@ -135,10 +134,6 @@ class ExecutionService {
         return [...new Set([...newTypes])];
     }
 
-    isActiveState(state) {
-        return ActiveStates.includes(state);
-    }
-
     isPausedState(state) {
         return PausedState.includes(state);
     }
@@ -163,17 +158,17 @@ class ExecutionService {
 
     async getJobResult(options) {
         validator.jobs.validateJobID(options);
-        const jobStatus = await stateManager.getStatus({ jobId: options.jobId });
-        if (!jobStatus) {
-            throw new ResourceNotFoundError('status', options.jobId);
+        const { jobId } = options;
+        const job = await stateManager.getJob({ jobId, fields: { status: true, result: true } });
+        const { status, result } = job || {};
+        if (!status) {
+            throw new ResourceNotFoundError('status', jobId);
         }
-        if (this.isActiveState(jobStatus.status)) {
-            throw new InvalidDataError(`unable to get results for pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
+        // we only want to get job result for job that has result
+        if (!result) {
+            throw new InvalidDataError(`unable to get results for pipeline ${status.pipeline} because its in ${status.status} status`);
         }
-        const response = await stateManager.getJobResult({ jobId: options.jobId });
-        if (!response) {
-            throw new ResourceNotFoundError('results', options.jobId);
-        }
+        const response = await stateManager.getResultFromStorage({ jobId, ...result });
         return response;
     }
 
@@ -221,14 +216,16 @@ class ExecutionService {
     async stopJob(options) {
         validator.executions.validateStopPipeline(options);
         const { jobId, reason } = options;
-        const jobStatus = await stateManager.getStatus({ jobId });
-        if (!jobStatus) {
+        const job = await stateManager.getJob({ jobId, fields: { status: true, result: true, pipeline: true } });
+        const { status, result, pipeline } = job || {};
+        if (!status) {
             throw new ResourceNotFoundError('jobId', jobId);
         }
-        if (!this.isActiveState(jobStatus.status)) {
-            throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
+        // we only want to stop jobs that have no result
+        if (result) {
+            throw new InvalidDataError(`unable to stop pipeline ${status.pipeline} because its in ${status.status} status`);
         }
-        const pipeline = await stateManager.getJobPipeline({ jobId });
+
         const statusObject = { jobId, status: pipelineStatuses.STOPPED, reason, level: levels.INFO.name };
         const resultObject = { jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status: pipelineStatuses.STOPPED };
         await stateManager.updateJobStatus(statusObject);
@@ -238,12 +235,14 @@ class ExecutionService {
     async pauseJob(options) {
         validator.jobs.validateJobID(options);
         const { jobId } = options;
-        const jobStatus = await stateManager.getStatus({ jobId });
-        if (!jobStatus) {
+        const job = await stateManager.getJob({ jobId, fields: { status: true, result: true } });
+        const { status, result } = job || {};
+        if (!status) {
             throw new ResourceNotFoundError('jobId', jobId);
         }
-        if (!this.isActiveState(jobStatus.status)) {
-            throw new InvalidDataError(`unable to pause pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
+        // we only want to pause jobs that have no result
+        if (result) {
+            throw new InvalidDataError(`unable to pause pipeline ${status.pipeline} because its in ${status.status} status`);
         }
         const statusObject = { jobId, status: pipelineStatuses.PAUSED, level: levels.INFO.name };
         await stateManager.updateJobStatus(statusObject);

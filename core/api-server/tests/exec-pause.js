@@ -41,6 +41,7 @@ describe('Executions', () => {
             const stored = await request(runStored);
             const jobId = stored.body.jobId;
             await stateManager.updateJobStatus({ jobId, status });
+            await stateManager.updateJobResult({ jobId, status });
             const response = await request({ uri: restPath, body: { jobId } });
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`unable to pause pipeline ${pipeline} because its in ${status} status`);
