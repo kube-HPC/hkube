@@ -4,7 +4,7 @@ const debugService = ({ algorithmName }) => ({
     kind: 'Service',
     apiVersion: 'v1',
     metadata: {
-        name: `service-${algorithmName}`,
+        name: `service-debug-${algorithmName}`,
         annotations: {
             'prometheus.io/scrape': 'true'
         },
@@ -36,7 +36,7 @@ const debugIngress = ({ algorithmName }, { ingressHost, ingressPrefix = '', ingr
     apiVersion: 'extensions/v1beta1',
     kind: 'Ingress',
     metadata: {
-        name: `ingress-${algorithmName}`,
+        name: `ingress-debug-${algorithmName}`,
         annotations: {
             'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
             'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
