@@ -10,7 +10,7 @@ const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
-const { workerTemplate, debugEnv, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
+const { workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
 
@@ -321,9 +321,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     if (kind === nodeKind.Gateway) {
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, gatewayEnv);
     }
-    if (kind === nodeKind.Debug) {
-        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, debugEnv);
-    }
+
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
     return spec;

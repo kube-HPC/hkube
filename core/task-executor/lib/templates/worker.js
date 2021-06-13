@@ -360,14 +360,7 @@ const gatewayEnv = {
         }
     }
 };
-const debugEnv = {
-    INGRESS_PREFIX: {
-        configMapKeyRef: {
-            name: 'algorithm-debug-configmap',
-            key: 'INGRESS_PREFIX'
-        }
-    }
-};
+
 const logVolumes = [
     {
         name: 'varlog',
@@ -413,6 +406,5 @@ module.exports = {
     logVolumeMounts,
     sharedVolumeMounts,
     algoMetricVolume,
-    gatewayEnv,
-    debugEnv
+    gatewayEnv
 };
