@@ -1,7 +1,7 @@
 const { stateType, pipelineKind } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const EventEmitter = require('events');
-const { uuid } = require('@hkube/uid');
+const { uid } = require('@hkube/uid');
 const messages = require('./consts/messages');
 const ws = require('./algorithm-communication/ws');
 const events = new EventEmitter();
@@ -13,8 +13,8 @@ const init = async () => {
     events.on('stop', () => {
         return this._resolve();
     });
+    this.prevMessageDone = null;
 };
-
 const start = async (options, hkubeApi) => { // eslint-disable-line consistent-return
     log.info('in start');
     log.info(`input:${options.input[0]}`);
@@ -28,6 +28,12 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
     ws.on(messages.outgoing.doneMessage, (sendMessageId) => {
         if (sendMessageId) {
             delete sendMessageDelegates[sendMessageId];
+        }
+        this._prevMsgResolve();
+    });
+    ws.on('disconnect', () => {
+        if (this.prevMessageDone != null) {
+            this._prevMsgResolve();
         }
     });
     ws.on(messages.outgoing.sendMessage, ({ message, flowName, sendMessageId }) => {
@@ -47,10 +53,17 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
     ws.send({ command: messages.incoming.start, data: optionsCopy });
     if (options.kind === pipelineKind.Stream) {
         if (options.stateType !== stateType.Stateless) {
-            hkubeApi.registerInputListener(({ payload, origin, sendMessage }) => {
-                const sendMessageId = uuid();
+            hkubeApi.registerInputListener(async ({ payload, origin, sendMessage }) => {
+                if (this.prevMessageDone != null) {
+                    await this.prevMessageDone;
+                }
+                const sendMessageId = uid();
                 sendMessageDelegates[sendMessageId] = sendMessage;
                 ws.send({ command: messages.incoming.message, data: { payload, origin, sendMessageId } });
+                this.prevMessageDone = new Promise((res, rej) => {
+                    this._prevMsgResolve = res;
+                    this._prevMsgReject = rej;
+                });
             });
             hkubeApi.startMessageListening();
         }
