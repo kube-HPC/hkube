@@ -81,13 +81,14 @@ describe('Store/Pipelines', () => {
             const res = await request(options1);
             const jobId = res.body.jobId;
             await stateManager.updateJobStatus({ jobId, status: pipelineStatuses.STOPPED });
+            await stateManager.updateJobResult({ jobId, status: pipelineStatuses.STOPPED });
 
             const options2 = {
                 uri: `${restPath}/${pipelineName}`,
                 method: 'DELETE'
             };
             const response2 = await request(options2);
-            expect(response2.body.message).to.equal(`pipeline ${pipelineName} successfully deleted from store, stopped related running pipelines 2/3`);
+            expect(response2.body.message).to.equal(`pipeline ${pipelineName} successfully deleted from store, stopped related running pipelines 2/2`);
         });
     });
     describe('/store/pipelines GET', () => {

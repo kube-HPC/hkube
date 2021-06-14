@@ -271,6 +271,10 @@ class StateManager {
         await this._etcd.jobs.status.set({ jobId, ...status });
     }
 
+    async getJob({ jobId, fields }) {
+        return this._db.jobs.fetch({ jobId, fields });
+    }
+
     async getStatus(status) {
         return this._db.jobs.fetchStatus(status);
     }
@@ -303,14 +307,16 @@ class StateManager {
     }
 
     async getResultFromStorage(options) {
-        if (options && options.data && options.data.storageInfo) {
+        if (options?.data?.storageInfo) {
+            let data;
+            let error;
             try {
-                const data = await storageManager.get(options.data.storageInfo, tracer.startSpan.bind(tracer, { name: 'storage-get-result' }));
-                return { ...options, data, storageModule: storageManager.moduleName };
+                data = await storageManager.get(options.data.storageInfo, tracer.startSpan.bind(tracer, { name: 'storage-get-result' }));
             }
-            catch (error) {
-                return { error: new Error(`failed to get from storage: ${error.message}`) };
+            catch (e) {
+                error = `failed to get from storage: ${e.message}`;
             }
+            return { ...options, error, data, storageModule: storageManager.moduleName };
         }
         return options;
     }
