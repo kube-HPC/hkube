@@ -8,8 +8,8 @@ const HttpStatus = require('http-status-codes');
 const internal = require('./internal/index');
 const validator = require('../../lib/validation/api-validator');
 const component = require('../../lib/consts/componentNames').REST_API;
-const afterRequest = require('./middlewares/after-request');
 const rest = new RestServer();
+const routeLogBlacklist = ['/metrics', '/swagger'];
 
 class AppServer {
     async init(options) {
@@ -22,6 +22,12 @@ class AppServer {
             }
             else {
                 log.info(`status=${status}, message=${error}`, { component, route, jobId, pipelineName, httpStatus: status });
+            }
+        });
+        rest.on('request', (data) => {
+            const { method, url, status, duration } = data;
+            if (!routeLogBlacklist.some(f => url.startsWith(f))) {
+                log.info(`${method}:${url} ${status} ${duration}ms`, { component });
             }
         });
 
@@ -49,7 +55,6 @@ class AppServer {
         validator.init(swagger.components.schemas, schemasInternal);
 
         const { beforeRoutesMiddlewares, afterRoutesMiddlewares } = metrics.getMiddleware();
-        const routeLogBlacklist = ['/metrics', '/swagger'];
 
         const opt = {
             swagger,
@@ -62,7 +67,7 @@ class AppServer {
             bodySizeLimit,
             name: options.serviceName,
             beforeRoutesMiddlewares,
-            afterRoutesMiddlewares: [...afterRoutesMiddlewares, afterRequest(routeLogBlacklist)]
+            afterRoutesMiddlewares
         };
         const data = await rest.start(opt);
         log.info(`🚀 ${data.message}`, { component });
