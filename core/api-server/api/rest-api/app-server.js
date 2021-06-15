@@ -27,7 +27,7 @@ class AppServer {
         rest.on('request', (data) => {
             const { method, url, status, duration } = data;
             if (!routeLogBlacklist.some(f => url.startsWith(f))) {
-                log.info(`${method}:${url} ${status} ${duration}ms`, { component });
+                log.info(`${method}:${url} ${status} ${duration}ms`, { component, route: url, httpStatus: status });
             }
         });
 
