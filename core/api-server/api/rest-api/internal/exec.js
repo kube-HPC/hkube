@@ -3,7 +3,6 @@ const Execution = require('../../../lib/service/execution');
 const Cron = require('../../../lib/service/cron');
 const Internal = require('../../../lib/service/internal');
 const methods = require('../middlewares/methods');
-const logger = require('../middlewares/logger');
 
 const routes = () => {
     const router = RestServer.router();

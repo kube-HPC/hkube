@@ -1,7 +1,6 @@
 const RestServer = require('@hkube/rest-server');
 const Algorithms = require('../../../lib/service/algorithms');
 const methods = require('../middlewares/methods');
-const logger = require('../middlewares/logger');
 
 const routes = () => {
     const router = RestServer.router();
