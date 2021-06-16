@@ -121,7 +121,7 @@ class ExecutionService {
     _addTypesByAlgorithms(algorithms, types) {
         const newTypes = new Set();
         algorithms.forEach((v) => {
-            if (v.options.debug) {
+            if (v.kind === 'debug') {
                 newTypes.add(pipelineTypes.DEBUG);
             }
             if (v.options.devMode) {

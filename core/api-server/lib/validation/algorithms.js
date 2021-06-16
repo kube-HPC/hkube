@@ -102,7 +102,7 @@ class ApiValidator {
 
     validateAlgorithmImage(algorithms) {
         algorithms.forEach((a) => {
-            if (!a.algorithmImage && !a.options?.debug) {
+            if (!a.algorithmImage) {
                 throw new InvalidDataError(`missing image for algorithm ${a.name}`);
             }
         });

@@ -49,10 +49,6 @@
 # store
 /store/algorithms/{name}:
   $ref: ./store/algorithms_name.yaml
-/store/algorithms/debug/{name}:
-  $ref: ./store/algorithms_debug_name.yaml
-/store/algorithms/debug:
-  $ref: ./store/algorithms_debug.yaml
 /store/algorithms:
   $ref: ./store/algorithms.yaml
 /store/algorithms/apply:
