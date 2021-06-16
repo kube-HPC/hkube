@@ -58,7 +58,11 @@ class AutoScaler {
             this._queueSizeTime = new TimeMarker(this._config.scaleDown.minTimeQueueEmptyBeforeScaleDown);
             this._timeForDown = new TimeMarker(this._config.scaleDown.minTimeIdleBeforeReplicaDown);
             this._scaler?.stop();
-            this._scaler = new Scaler(this._config, {
+            let conf = this._config;
+            if (this._options.node.kind === 'debug') {
+                conf = { ...this._config, scaleUp: { ...this._config.scaleUp, maxScaleUpReplicasPerNode: 1 } };
+            }
+            this._scaler = new Scaler(conf, {
                 getCurrentSize: () => {
                     return discovery.countInstances(this._nodeName);
                 },
