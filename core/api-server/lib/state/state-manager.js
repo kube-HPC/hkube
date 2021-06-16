@@ -48,7 +48,6 @@ class StateManager {
         return this._db.algorithms.fetch(payload);
     }
 
-    // TODO DELETE ALSO BY KIND
     async deleteAlgorithm({ name, kind }) {
         return this._db.algorithms.delete({ name, kind });
     }

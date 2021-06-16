@@ -105,7 +105,7 @@ class PipelineCreator {
                 node.algorithmName = newAlgorithmName;
             }
         }
-        return { ...pipeline };
+        return pipeline;
     }
 
     /**

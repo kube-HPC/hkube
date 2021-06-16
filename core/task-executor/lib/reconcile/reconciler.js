@@ -1,11 +1,11 @@
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const clonedeep = require('lodash.clonedeep');
-
+const parse = require('@hkube/units-converter');
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
-const { commands, components, consts } = require('../consts');
+const { commands, components, consts, gpuVendors } = require('../consts');
 const component = components.RECONCILER;
 
 const { normalizeWorkers,
@@ -22,7 +22,7 @@ const { matchJobsToResources, pauseAccordingToResources, parseResources } = requ
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
 let createdJobsList = [];
-
+const MIN_AGE_FOR_STOP = 10 * 1000;
 let totalCapacityNow = 10; // how much pods are running now
 const WINDOW_SIZE_FACTOR = 3;
 const unscheduledAlgorithms = {};
@@ -258,8 +258,10 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
             if (worker) {
                 activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
                 const toStop = _createStopDetails({ worker, algorithmTemplates });
-                skippedResources = _subtractResources(skippedResources, parseResources(toStop.details));
-                stopDetails.push(toStop);
+                if (toStop) {
+                    skippedResources = _subtractResources(skippedResources, parseResources(toStop.details));
+                    stopDetails.push(toStop);
+                }
             }
         }
     });
@@ -567,6 +569,13 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
+    const resourcesToFree = skipped.reduce((prev, cur) => {
+        return {
+            cpu: prev.cpu + cur.resourceRequests.requests.cpu,
+            gpu: prev.gpu + cur.resourceRequests.requests[gpuVendors.NVIDIA],
+            memory: prev.memory + parse.getMemoryInMi(cur.resourceRequests.requests.memory)
+        };
+    }, { cpu: 0, gpu: 0, memory: 0 });
 
     _findWorkersToStop({
         skipped, idleWorkers, activeWorkers, algorithmTemplates, scheduledRequests
@@ -575,6 +584,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const { toStop } = pauseAccordingToResources(
         stopDetails,
         normResources,
+        [...idleWorkers.filter(w => (w.job && Date.now() - w.job.startTime > MIN_AGE_FOR_STOP) && !w.hotWorker), ...activeWorkers.filter(w => !w.hotWorker)],
+        resourcesToFree,
         skipped
     );
     if (created.length > 0) {

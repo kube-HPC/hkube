@@ -1,7 +1,7 @@
 const { parser } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const { sum, mean } = require('@hkube/stats');
-const { stateType } = require('@hkube/consts');
+const { stateType, nodeKind } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
 const { Statistics, Scaler, Metrics, TimeMarker } = require('../core');
 const { calcRates, calcRatio, formatNumber, relDiff } = Metrics;
@@ -59,7 +59,7 @@ class AutoScaler {
             this._timeForDown = new TimeMarker(this._config.scaleDown.minTimeIdleBeforeReplicaDown);
             this._scaler?.stop();
             let conf = this._config;
-            if (this._options.node.kind === 'debug') {
+            if (this._options.node.kind === nodeKind.Debug) {
                 conf = { ...this._config, scaleUp: { ...this._config.scaleUp, maxScaleUpReplicasPerNode: 1 } };
             }
             this._scaler = new Scaler(conf, {

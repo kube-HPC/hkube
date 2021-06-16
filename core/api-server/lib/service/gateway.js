@@ -4,6 +4,7 @@ const validator = require('../validation/api-validator');
 const { InvalidDataError } = require('../errors');
 const stateManager = require('../state/state-manager');
 const AlgorithmBase = require('./algorithmBase');
+
 class Gateway extends AlgorithmBase {
     init(config) {
         this._gatewayUrl = config.gatewayUrl.path;

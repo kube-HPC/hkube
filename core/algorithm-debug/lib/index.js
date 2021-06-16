@@ -1,12 +1,11 @@
 const { stateType, pipelineKind } = require('@hkube/consts');
-const Logger = require('@hkube/logger');
+const log = require('@hkube/logger').GetLogFromContainer();
 const EventEmitter = require('events');
 const { uid } = require('@hkube/uid');
 const messages = require('./consts/messages');
 const ws = require('./algorithm-communication/ws');
 const events = new EventEmitter();
 const sendMessageDelegates = {};
-const log = Logger.GetLogFromContainer();
 
 const init = async () => {
     events.removeAllListeners();
@@ -15,9 +14,8 @@ const init = async () => {
     });
     this.prevMessageDone = null;
 };
-const start = async (options, hkubeApi) => { // eslint-disable-line consistent-return
+const start = async (options, hkubeApi) => {
     log.info('in start');
-    log.info(`input:${options.input[0]}`);
     events.removeAllListeners();
     events.on('stop', () => {
         return this._resolve();
@@ -32,7 +30,7 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
         this._prevMsgResolve();
     });
     ws.on('disconnect', () => {
-        if (this.prevMessageDone != null) {
+        if (this.prevMessageDone) {
             this._prevMsgResolve();
         }
     });
@@ -54,7 +52,7 @@ const start = async (options, hkubeApi) => { // eslint-disable-line consistent-r
     if (options.kind === pipelineKind.Stream) {
         if (options.stateType !== stateType.Stateless) {
             hkubeApi.registerInputListener(async ({ payload, origin, sendMessage }) => {
-                if (this.prevMessageDone != null) {
+                if (this.prevMessageDone) {
                     await this.prevMessageDone;
                 }
                 const sendMessageId = uid();

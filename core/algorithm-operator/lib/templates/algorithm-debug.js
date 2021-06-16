@@ -18,13 +18,13 @@ const debugService = ({ algorithmName }) => ({
     },
     spec: {
         selector: {
-            'algorithm-name': `${algorithmName}-debug`,
+            'algorithm-name': `${algorithmName}`,
             'metrics-group': 'workers',
             group: 'hkube'
         },
         ports: [
             {
-                name: 'debug',
+                name: nodeKind.Debug,
                 port: 80,
                 targetPort: 3005
             }
@@ -32,7 +32,7 @@ const debugService = ({ algorithmName }) => ({
     }
 });
 
-const debugIngress = ({ algorithmName }, { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => ({
+const debugIngress = ({ algorithmName, debugName }, { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => ({
     apiVersion: 'extensions/v1beta1',
     kind: 'Ingress',
     metadata: {
@@ -54,7 +54,7 @@ const debugIngress = ({ algorithmName }, { ingressHost, ingressPrefix = '', ingr
             {
                 http: {
                     paths: [{
-                        path: ingressUseRegex ? `${ingressPrefix}/hkube/debug/${algorithmName}(/|$)(.*)` : `${ingressPrefix}/hkube/debug/${algorithmName}`,
+                        path: ingressUseRegex ? `${ingressPrefix}/hkube/debug/${debugName}(/|$)(.*)` : `${ingressPrefix}/hkube/debug/${debugName}`,
                         backend: {
                             serviceName: `service-debug-${algorithmName}`,
                             servicePort: 80
