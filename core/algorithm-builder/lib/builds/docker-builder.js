@@ -329,7 +329,7 @@ const _createKanikoConfigs = async (envs, tmpFolder, docker) => {
 const _createOpenshiftConfigs = async (envs, tmpFolder, docker, buildId, algorithmImage) => {
     _envsHelper(envs, 'TMP_FOLDER', tmpFolder);
     const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
-    const hasDockerCreds = Object.keys(dockerCreds?.auths).length > 0;
+    const hasDockerCreds = Object.keys(dockerCreds.auths).length > 0;
     if (hasDockerCreds) {
         const dockerCredsSecret = {
             apiVersion: 'v1',
