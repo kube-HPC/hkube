@@ -1,7 +1,7 @@
 {
     "name": "datasources-service",
     "version": "2.1.1",
-    "description": "Hkube DataSources Service",
+    "description": "Hkube Data-Sources Service",
     "main": "app.js",
     "dependencies": {
         "@gitbeaker/node": "^28.3.0",
