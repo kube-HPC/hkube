@@ -15,7 +15,8 @@ module.exports = {
         if (typeof value === 'string') {
             try {
                 return parseInt(value, 10);
-            } catch (error) {
+            }
+            catch (error) {
                 return defaultValue;
             }
         }

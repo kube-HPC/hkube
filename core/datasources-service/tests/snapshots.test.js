@@ -13,13 +13,8 @@ const setupDataSource = require('./setupDataSource');
 const { uid } = require('@hkube/uid');
 const sortBy = require('lodash.sortby');
 
-/**
- * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
- * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
- */
 describe('snapshots', () => {
     describe('create', () => {
-        /** @type {DataSource} */
         let dataSource = null;
         before(async () => {
             const { body: _dataSource } = await createDataSource(uid());
@@ -57,11 +52,8 @@ describe('snapshots', () => {
         });
     });
     describe('fetch', () => {
-        /** @type {DataSource} */
         let dataSource = null;
-        /** @type {{ name: string; query: string }[]} */
         let generatedSnapshots = null;
-        /** @type {Snapshot[]} */
         let createdSnapshots = null;
         const SNAPSHOTS_COUNT = 5;
         before(async () => {
@@ -142,7 +134,6 @@ describe('snapshots', () => {
         });
     });
     describe('filtering files', () => {
-        /** @type {DataSource} */
         let dataSource = null;
         const query = 'exciting information';
         before(async () => {

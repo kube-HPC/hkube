@@ -2,12 +2,8 @@ const { Octokit } = require('@octokit/rest');
 const { default: simpleGit } = require('simple-git');
 const { InvalidDataError, ResourceExistsError } = require('../../errors');
 const Base = require('./Base');
-const gitToken = require('./../../service/gitToken');
-/** @typedef {import('./../types').githubConfig} githubConfig */
-
-/** @augments {Base<githubConfig>} */
+const gitToken = require('../../service/gitToken');
 class Github extends Base {
-    /** @param {githubConfig} config */
     constructor(config, rawRepositoryUrl, serviceName) {
         super(config, rawRepositoryUrl, serviceName);
         this.token = config.token;
@@ -20,7 +16,6 @@ class Github extends Base {
         });
     }
 
-    /** @param {string} repositoryUrl */
     static async validateRepository(repositoryUrl, token) {
         const url = new URL(repositoryUrl);
         url.username = token;
@@ -28,7 +23,8 @@ class Github extends Base {
             await simpleGit()
                 .env('GIT_TERMINAL_PROMPT', '0')
                 .listRemote([url.toString()]);
-        } catch (error) {
+        }
+        catch (error) {
             throw new InvalidDataError('invalid git token or repository url');
         }
     }
@@ -46,32 +42,30 @@ class Github extends Base {
         let response = null;
         try {
             if (this.config.organization) {
-                this.log.debug(
-                    `creating repository for organization ${this.config.organization}`
-                );
+                this.log.debug(`creating repository for organization ${this.config.organization}`);
                 response = await this.client.repos.createInOrg({
                     name,
                     org: this.config.organization,
                     private: true,
                 });
-            } else {
-                this.log.debug(`creating repository for user`);
+            }
+            else {
+                this.log.debug('creating repository for user');
                 response = await this.client.repos.createForAuthenticatedUser({
                     private: true,
                     name,
                 });
             }
-        } catch (error) {
+        }
+        catch (error) {
             switch (error.status) {
                 case 409:
                     throw new ResourceExistsError('DataSource', name);
                 case 500:
                 case 404:
-                    throw new InvalidDataError(
-                        `Invalid Git endpoint or organization name`
-                    );
+                    throw new InvalidDataError('Invalid Git endpoint or organization name');
                 case 401:
-                    throw new InvalidDataError(`Invalid git token`);
+                    throw new InvalidDataError('Invalid git token');
                 default:
                     throw error;
             }
@@ -90,9 +84,10 @@ class Github extends Base {
         let owner;
         if (this.config.organization) {
             owner = this.config.organization;
-        } else {
+        }
+        else {
             const user = await this.client.request('GET /user');
-            // @ts-ignore
+
             owner = user.data.username;
         }
         return this.client.repos.delete({

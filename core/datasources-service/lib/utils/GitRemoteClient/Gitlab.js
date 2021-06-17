@@ -1,9 +1,7 @@
 const { Gitlab: GitlabClient } = require('@gitbeaker/node');
 const { InvalidDataError } = require('../../errors');
 const Base = require('./Base');
-/** @typedef {import('./../types').gitlabConfig} gitlabConfig */
 
-/** @augments {Base<gitlabConfig>} */
 class Gitlab extends Base {
     constructor(config, rawRepositoryUrl, serviceName) {
         super(config, rawRepositoryUrl, serviceName);
@@ -19,13 +17,14 @@ class Gitlab extends Base {
         if (this.config.token && this.config.tokenName) {
             url.username = this.config.tokenName;
             url.password = this.config.token;
-        } else {
+        }
+        else {
+            // eslint-disable-next-line quotes
             throw new InvalidDataError("missing gitlab 'token' or 'tokenName'");
         }
         return url.toString();
     }
 
-    // eslint-disable-next-line
     async createRepository(name) {
         let response = null;
         try {
@@ -37,18 +36,21 @@ class Gitlab extends Base {
                     name,
                     visibility: 'private',
                 });
-            } else {
-                this.log.debug(`creating repository for user`);
+            }
+            else {
+                this.log.debug('creating repository for user');
                 response = await this.client.Projects.create({
                     name,
                     visibility: 'private',
                 });
             }
-        } catch (error) {
+        }
+        catch (error) {
             const { statusCode } = error.response;
             if (statusCode === 401 || error.description === 'invalid_token') {
                 throw new InvalidDataError('provided invalid token');
-            } else if (statusCode === 404) {
+            }
+            else if (statusCode === 404) {
                 throw new InvalidDataError('provided invalid endpoint');
             }
             throw error;

@@ -5,34 +5,15 @@ const qs = require('query-string');
 const { request } = require('./request');
 const { fileName, createRepository } = require('./utils');
 
-/** @typedef {{ message: string; code: number }} ErrorResponse */
-/**
- * @typedef {Promise<{
- *     body: T & { error: ErrorResponse };
- *     response: { statusCode: number; body: T & { error: ErrorResponse } };
- * }>} Response
- * @template T
- */
-
-/** @param {{ name?: string; id?: string }} props */
 const setupUrl = ({ name, id }) => {
-    // @ts-ignore
     const uri = `${global.testParams.restUrl}/datasource`;
     return id && name
         ? `${uri}/${name}?id=${id}`
         : id
-        ? `${uri}/id/${id}`
-        : `${uri}/${name}`;
+            ? `${uri}/id/${id}`
+            : `${uri}/${name}`;
 };
-/**
- * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
- * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
- * @typedef {import('@hkube/db/lib/DataSource').DataSourceWithMeta} DataSourceWithMeta
- * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot
- * @typedef {import('@hkube/db/lib/DataSource').Credentials} Credentials
- */
 
-/** @returns {Response<DataSource>} */
 const createDataSource = async (
     name,
     {
@@ -48,7 +29,6 @@ const createDataSource = async (
         skipCreateRepository = false,
     } = {}
 ) => {
-    // @ts-ignore
     const { storage, git, restUrl, _git } = global.testParams;
 
     const gitKind = (() => {
@@ -69,7 +49,6 @@ const createDataSource = async (
         );
     }
 
-    /** @type {import('../lib/utils/types').gitConfig} */
     const gitConfig = (() => {
         if (ignoreGit) return;
         if (gitKind === 'internal') return;
@@ -110,23 +89,6 @@ const createDataSource = async (
     return request(options);
 };
 
-/**
- * Provide file names to be uploaded, or a complete array of file objects.
- *
- * @param {{
- *     dataSourceName: string;
- *     versionDescription?: string;
- *     fileNames?: string[];
- *     files?: { id: string; name: string }[];
- *     mapping?: {
- *         id: string;
- *         name: string;
- *         path: string;
- *     }[];
- *     droppedFileIds?: string[];
- * }} props
- * @returns {Response<DataSourceWithMeta>}
- */
 const updateVersion = async ({
     dataSourceName,
     versionDescription = 'new-version',
@@ -165,10 +127,6 @@ const updateVersion = async ({
     return request(options);
 };
 
-/**
- * @param {{ name?: string; id?: string }} query
- * @returns {Response<DataSource>}
- */
 const fetchDataSource = ({ name, id }) => {
     const getOptions = {
         uri: setupUrl({ name, id }),
@@ -185,7 +143,6 @@ const deleteDataSource = ({ name }) => {
     return request(deleteOptions);
 };
 
-/** @param {{ name: string }} query */
 const fetchDataSourceVersions = ({ name }) => {
     const uri = `${setupUrl({ name })}/versions`;
     const getOptions = {
@@ -196,7 +153,6 @@ const fetchDataSourceVersions = ({ name }) => {
 };
 
 const createJob = async ({ dataSource }) => {
-    // @ts-ignore
     const config = global.testParams.config;
     const producer = new Producer({
         setting: {
@@ -218,14 +174,6 @@ const createJob = async ({ dataSource }) => {
     return job;
 };
 
-/**
- * @param {{
- *     dataSourceName: string;
- *     snapshotName?: string;
- *     shouldResolve?: boolean;
- * }} query
- * @returns {Response<Snapshot>}
- */
 const fetchSnapshot = ({
     dataSourceName,
     snapshotName,
@@ -238,34 +186,19 @@ const fetchSnapshot = ({
         method: 'GET',
     });
 
-/**
- * @param {{ dataSourceName: string }} query
- * @returns {Response<Snapshot[]>}
- */
 const fetchAllSnapshots = ({ dataSourceName }) =>
     request({
         uri: `${setupUrl({ name: dataSourceName })}/snapshot`,
         method: 'GET',
     });
 
-/**
- * @param {{
- *     name?: string;
- *     id?: string;
- *     snapshot: { name: string; query: string };
- * }} query
- * @returns {Response<Snapshot>}
- */
 const createSnapshot = ({ name, id, snapshot }) =>
     request({
         uri: `${setupUrl({ id, name })}/snapshot`,
         body: { snapshot },
     });
 
-/**
- * @param {{ dataSourceId: string; fileIds: string[] }} query
- * @returns {Response<{ href: string }>}
- */
+
 const createDownloadLink = ({ dataSourceId, fileIds }) =>
     request({
         uri: `${setupUrl({ id: dataSourceId })}/download`,
@@ -273,57 +206,40 @@ const createDownloadLink = ({ dataSourceId, fileIds }) =>
         body: { fileIds },
     });
 
-/**
- * @param {Partial<{
- *     href: string;
- *     dataSourceId: string;
- *     downloadId: string;
- * }>} props
- */
-// @ts-ignore
 const fetchDownloadLink = ({ dataSourceId, downloadId, href }) =>
     href
         ? request({
-              // @ts-ignore
-              uri: `${global.testParams.restUrl}/${href}`,
-              method: 'GET',
-          })
+
+            uri: `${global.testParams.restUrl}/${href}`,
+            method: 'GET',
+        })
         : request({
-              uri: `${setupUrl({
-                  id: dataSourceId,
-              })}/download?download_id=${downloadId}`,
-              method: 'GET',
-          });
+            uri: `${setupUrl({
+                id: dataSourceId,
+            })}/download?download_id=${downloadId}`,
+            method: 'GET',
+        });
 
 const requestValidation = ({ name = null, id = null, snapshotName = null }) => {
     const query = qs.stringify(
         { id, name, snapshot_name: snapshotName },
         { skipNull: true }
     );
-    // @ts-ignore
+
     const url = `${global.testParams.restUrl}/datasource/validate?${query}`;
     return request({ uri: url.toString(), method: 'GET' });
 };
 
-/** @returns {Response<FileMeta[]>} */
 const requestPreview = ({ dataSourceId, query }) =>
     request({
         uri: `${setupUrl({ id: dataSourceId })}/snapshot/preview`,
         body: { query },
     });
 
-/** @returns {Response<DataSourceWithMeta>} */
 const syncDataSource = ({ name }) =>
     request({ uri: `${setupUrl({ name })}/sync` });
 
-/**
- * @param {{
- *     name: string;
- *     credentials?: Credentials;
- *     ignoreCredentials?: boolean;
- * }} props
- * @returns {Response<{ updatedCount: number }>}
- */
+
 const updateCredentials = async ({
     name,
     credentials,

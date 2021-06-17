@@ -1,20 +1,17 @@
 const RestServer = require('@hkube/rest-server');
-const logger = require('../../middlewares/logger');
 
 const routes = (options) => {
     const router = RestServer.router();
-    router.get('/', (req, res, next) => {
+    router.get('/', (req, res) => {
         res.json({ message: `${options.version} ${options.file} api` });
-        next();
     });
-    router.get('/version', logger(), async (req, res, next) => {
+    router.get('/version', async (req, res) => {
         const version = {
             systemVersion: options.systemVersion,
             clusterName: options.clusterName,
             storage: options.defaultStorage,
         };
         res.json(version);
-        next();
     });
     return router;
 };

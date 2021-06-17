@@ -6,20 +6,12 @@ const generateSnapshot = (name, query) => ({
     query: query || `${name} query`,
 });
 
-/**
- * @returns {Promise<{
- *     dataSource: import('@hkube/db/lib/DataSource').DataSource;
- *     generatedSnapshots: { name: string; query: string }[];
- *     createdSnapshots: import('@hkube/db/lib/Snapshots').Snapshot[];
- * }>}
- */
 const setupDataSource = async (numberOfSnapshots = 1) => {
     const name = uid();
     const { body: dataSource } = await createDataSource(name);
     const generatedSnapshots = new Array(numberOfSnapshots)
         .fill(0)
         .map((_, ii) => generateSnapshot(`snapshot-${ii}`));
-    /** @type {import('@hkube/db/lib/Snapshots').Snapshot[]} */
     const createdSnapshots = await Promise.all(
         generatedSnapshots.map(snapshot =>
             createSnapshot({

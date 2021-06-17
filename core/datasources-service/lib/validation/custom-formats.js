@@ -10,14 +10,8 @@ class ApiValidator {
     }
 
     _init(validatorInstance, definitions) {
-        // eslint-disable-next-line no-param-reassign
-        validatorInstance.errorsText = this.wrapErrorMessageFn(
-            validatorInstance.errorsText.bind(validatorInstance)
-        ).bind(this); // eslint-disable-line
-        validatorInstance.addFormat(
-            'dataSource-name',
-            this._validateDataSourceName
-        );
+        validatorInstance.errorsText = this.wrapErrorMessageFn(validatorInstance.errorsText.bind(validatorInstance)).bind(this); // eslint-disable-line
+        validatorInstance.addFormat('dataSource-name', this._validateDataSourceName);
         validatorInstance.addFormat('url', this._validateURL);
         validatorInstance.addFormat('git-url', this._validateURL);
         validatorInstance.addFormat('download-id', this._validateDownloadId);
@@ -30,14 +24,8 @@ class ApiValidator {
 
     _addFormatMessages() {
         formatMessages.set('binary', validationMessages.BINARY_FILE_NAME);
-        formatMessages.set(
-            'dataSource-name',
-            validationMessages.DATASOURCE_NAME_FORMAT
-        );
-        formatMessages.set(
-            'download-id',
-            validationMessages.DOWNLOAD_ID_FORMAT
-        );
+        formatMessages.set('dataSource-name', validationMessages.DATASOURCE_NAME_FORMAT);
+        formatMessages.set('download-id', validationMessages.DOWNLOAD_ID_FORMAT);
         formatMessages.set('url', validationMessages.URL_FORMAT);
         formatMessages.set('git-url', validationMessages.GIT_URL_FORMAT);
     }
@@ -61,7 +49,8 @@ class ApiValidator {
         let parsedUrl;
         try {
             parsedUrl = new URL(url);
-        } catch (e) {
+        }
+        catch (e) {
             return false;
         }
         return parsedUrl;

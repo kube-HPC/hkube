@@ -1,7 +1,6 @@
 const { expect } = require('chai');
 const { StatusCodes } = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
-
 const { createDataSource, updateCredentials } = require('./api');
 
 describe('update credentials', () => {
@@ -13,7 +12,8 @@ describe('update credentials', () => {
                     name: 'non-existing',
                     ignoreCredentials: true,
                 });
-            } catch (error) {
+            }
+            catch (error) {
                 response = error;
             }
             expect(response.body).to.haveOwnProperty('error');
@@ -31,7 +31,8 @@ describe('update credentials', () => {
                         git: { token: 'irrelevant' },
                     },
                 });
-            } catch (error) {
+            }
+            catch (error) {
                 response = error;
             }
             expect(response.body).to.haveOwnProperty('error');
