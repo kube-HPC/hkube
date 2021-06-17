@@ -13,7 +13,6 @@ const defaultProps = {
 
 const delay = d => new Promise(r => setTimeout(r, d));
 
-/** @param {import('request').CoreOptions & { uri: string }} options */
 const request = options => {
     return new Promise((resolve, reject) => {
         const method = options.method || 'POST';

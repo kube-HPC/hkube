@@ -1,14 +1,3 @@
-/**
- * @typedef {{ endpoint: string; bucketName: string }} StorageConfig
- * @typedef {{ accessKeyId: string; secretAccessKey: string }} Credentials
- */
-
-/**
- * @type {(
- *     config: StorageConfig,
- *     credentials: Credentials
- * ) => (repositoryName: string) => string}
- */
 const S3Config = (
     { endpoint, bucketName },
     { accessKeyId, secretAccessKey }
@@ -27,21 +16,10 @@ const configMap = {
     S3: S3Config,
 };
 
-/**
- * @type {(
- *      type: string,
- *      config: StorageConfig,
- *      credentials: Credentials
- * ) => (repositoryName: string) => string}
- */
 module.exports = (type, config, credentials) => {
     const generator = configMap[type];
     if (!generator) {
-        throw new Error(
-            `Invalid config.dvcStorage, the available options are ${Object.keys(
-                configMap
-            ).join(', ')}`
-        );
+        throw new Error(`Invalid config.dvcStorage, the available options are ${Object.keys(configMap).join(', ')}`);
     }
     return generator(config, credentials);
 };

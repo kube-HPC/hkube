@@ -3,7 +3,6 @@ class Downloads {
         this._validator = validator;
     }
 
-    /** @param {{ dataSourceId: string; fileIds: string[] }} props */
     validatePrepareForDownload({ dataSourceId, fileIds }) {
         this._validator.validate(
             this._validator.definitions.CreateDownloadLinkRequest,

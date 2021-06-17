@@ -25,7 +25,7 @@ const fetchGithubRepo = name => {
             github: { endpoint },
         },
         git: { github },
-        // @ts-ignore
+
     } = global.testParams;
     const client = new Octokit({
         baseUrl: `${endpoint}/api/v1`,
@@ -37,14 +37,13 @@ const fetchGithubRepo = name => {
     });
 };
 
-/** @returns {Promise<any>} */
 const fetchGitlabRepo = async repositoryUrl => {
     const {
         git: { gitlab },
         _git: {
             gitlab: { endpoint },
         },
-        // @ts-ignore
+
     } = global.testParams;
     const client = new GitlabClient({
         host: endpoint,
@@ -61,9 +60,9 @@ const listDvcRepository = name => dedicatedStorage.list({ path: name });
 
 describe('Datasource', () => {
     before(() => {
-        // @ts-ignore
+
         restUrl = global.testParams.restUrl;
-        // @ts-ignore
+
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
         restPath = `${restUrl}/datasource`;
     });
@@ -171,7 +170,7 @@ describe('Datasource', () => {
     describe('/datasource GET', () => {
         it('should succeed list all dataSources', async () => {
             const names = new Array(3).fill(0).map(() => uuid());
-            for (const name of names){
+            for (const name of names) {
                 await createDataSource(name)
             }
             const options = {
@@ -204,7 +203,7 @@ describe('Datasource', () => {
                 'text/markdown',
                 'application/json',
             ]);
-            // @ts-ignore
+
             expect(fileTypes).to.have.lengthOf([...new Set(fileTypes)].length);
         });
     });

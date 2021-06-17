@@ -11,7 +11,7 @@ let DATASOURCE_GIT_REPOS_DIR;
 
 describe('/dataSource POST', () => {
     before(() => {
-        // @ts-ignore
+
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
     });
     describe('validation', () => {

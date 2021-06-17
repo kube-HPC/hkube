@@ -13,7 +13,7 @@ class DataSourceCleaner extends BaseCleaner {
     _extractIds(collection) {
         return collection
             .flatMap(({ nodes }) => nodes)
-            .map(({ dataSource }) => dataSource.id || `${dataSource.name}/${dataSource.snapshot.name}`);
+            .map(({ spec }) => spec.id || `${spec.name}/${spec.snapshot.name}`);
     }
 
     async clean({ maxAge } = {}) {

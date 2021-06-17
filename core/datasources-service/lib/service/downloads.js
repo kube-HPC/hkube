@@ -2,20 +2,13 @@ const { uid } = require('@hkube/uid');
 const pathLib = require('path');
 const fse = require('fs-extra');
 const archiver = require('archiver');
-const {
-    filePath: { getFilePath },
-} = require('@hkube/datasource-utils');
+const { filePath: { getFilePath } } = require('@hkube/datasource-utils');
+const log = require('@hkube/logger').GetLogFromContainer();
 const dbConnection = require('../db');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 
-/**
- * @typedef {import('../utils/types').config} config
- * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
- */
-
 class Downloads {
-    /** @param {config} config */
     async init(config) {
         this.config = config;
         this.db = dbConnection.connection;
@@ -36,12 +29,13 @@ class Downloads {
             archive.pipe(output);
             output.on('close', () => res(archive.pointer()));
             output.on('end', () => {
-                console.info('Data has been drained');
+                log.info('Data has been drained');
             });
             archive.on('warning', err => {
                 if (err.code === 'ENOENT') {
-                    console.warn(err);
-                } else {
+                    log.warning(err);
+                }
+                else {
                     rej(err);
                 }
             });
@@ -49,12 +43,6 @@ class Downloads {
         });
     }
 
-    /**
-     * @type {(props: {
-     *     dataSourceId: string;
-     *     fileIds: string[];
-     * }) => Promise<string>} }
-     */
     async prepareForDownload({ dataSourceId, fileIds }) {
         validator.downloads.validatePrepareForDownload({
             dataSourceId,
@@ -78,12 +66,11 @@ class Downloads {
             dataSource._credentials
         );
 
-        /** @type {{ filesToKeep: FileMeta[]; filesToDrop: FileMeta[] }} */
         const { filesToKeep, filesToDrop } = dataSource.files.reduce(
-            (acc, file) =>
-                fileIdsSet.has(file.id)
-                    ? { ...acc, filesToKeep: acc.filesToKeep.concat(file) }
-                    : { ...acc, filesToDrop: acc.filesToDrop.concat(file) },
+            // eslint-disable-next-line no-confusing-arrow
+            (acc, file) => fileIdsSet.has(file.id)
+                ? { ...acc, filesToKeep: acc.filesToKeep.concat(file) }
+                : { ...acc, filesToDrop: acc.filesToDrop.concat(file) },
             {
                 filesToKeep: [],
                 filesToDrop: [],

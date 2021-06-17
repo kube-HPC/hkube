@@ -1,5 +1,4 @@
 const RestServer = require('@hkube/rest-server');
-const logger = require('../../middlewares/logger');
 const storage = require('../../../../lib/service/storage');
 const {
     handleStorageError,
@@ -15,16 +14,16 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
-    router.get('/info', logger(), async (req, res, next) => {
+    router.get('/info', async (req, res, next) => {
         const response = await storage.getInfo();
         res.json(response);
         next();
     });
-    router.get('/prefix/types', logger(), (req, res, next) => {
+    router.get('/prefix/types', (req, res, next) => {
         res.json(storage.prefixesTypes);
         next();
     });
-    router.get('/prefixes', logger(), async (req, res, next) => {
+    router.get('/prefixes', async (req, res, next) => {
         const { sort, order, from, to } = req.query;
         try {
             const response = await storage.getAllPrefixes({ sort, order, from, to });
@@ -35,7 +34,7 @@ const routes = (options) => {
             next(handleStorageError(e));
         }
     });
-    router.get('/prefixes/*', logger(), async (req, res, next) => {
+    router.get('/prefixes/*', async (req, res, next) => {
         const path = req.params[0];
         const { sort, order, from, to } = req.query;
         try {
@@ -47,7 +46,7 @@ const routes = (options) => {
             next(handleStorageError(e, 'prefix', path));
         }
     });
-    router.get('/keys', logger(), async (req, res, next) => {
+    router.get('/keys', async (req, res, next) => {
         const { sort, order, from, to } = req.query;
         try {
             const response = await storage.getAllKeys({ sort, order, from, to });
@@ -58,7 +57,7 @@ const routes = (options) => {
             next(handleStorageError(e));
         }
     });
-    router.get('/keys/*', logger(), async (req, res, next) => {
+    router.get('/keys/*', async (req, res, next) => {
         const path = req.params[0];
         const { sort, order, from, to } = req.query;
         try {
@@ -70,7 +69,7 @@ const routes = (options) => {
             next(handleStorageError(e, 'key', path));
         }
     });
-    router.get('/values/*', logger(), async (req, res, next) => {
+    router.get('/values/*', async (req, res, next) => {
         const path = req.params[0];
         try {
             const metadata = await storage.getMetadata({ path });
@@ -86,7 +85,7 @@ const routes = (options) => {
             next(handleStorageError(e, 'value', path));
         }
     });
-    router.get('/stream/custom/*', logger(), async (req, res, next) => {
+    router.get('/stream/custom/*', async (req, res, next) => {
         const path = req.params[0];
         try {
             const stream = await storage.getCustomStream({ path });
@@ -96,7 +95,7 @@ const routes = (options) => {
             handleStreamError(e, path, res, next);
         }
     });
-    router.get('/stream/*', logger(), async (req, res, next) => {
+    router.get('/stream/*', async (req, res, next) => {
         const path = req.params[0];
         try {
             const stream = await storage.getStream({ path });
@@ -106,7 +105,7 @@ const routes = (options) => {
             handleStreamError(e, path, res, next);
         }
     });
-    router.get('/download/custom/*', logger(), async (req, res, next) => {
+    router.get('/download/custom/*', async (req, res, next) => {
         const path = req.params[0];
         const { ext } = req.query;
         try {
@@ -117,7 +116,7 @@ const routes = (options) => {
             handleStreamError(e, path, res, next);
         }
     });
-    router.get('/download/pipeline/result/*', logger(), async (req, res, next) => {
+    router.get('/download/pipeline/result/*', async (req, res, next) => {
         const jobId = req.params[0];
         try {
             const stream = await storage.getPipelineResult({ jobId });
@@ -127,7 +126,7 @@ const routes = (options) => {
             handleStreamError(e, 'path', res, next);
         }
     });
-    router.get('/download/*', logger(), async (req, res, next) => {
+    router.get('/download/*', async (req, res, next) => {
         const path = req.params[0];
         const { ext } = req.query;
         try {

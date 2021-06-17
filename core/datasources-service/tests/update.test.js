@@ -1,20 +1,17 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
+const sortBy = require('lodash.sortby');
 const { StatusCodes } = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const { hiddenProperties, mockDeleteClone } = require('./utils');
 const { uploadGrouped, splitArr } = require('./uploadGrouped');
 const { createDataSource, fetchDataSource, updateVersion } = require('./api');
-const sortBy = require('lodash.sortby');
-const pathLib = require('path');
 
 let DATASOURCE_GIT_REPOS_DIR;
+
 describe('/datasource/:name POST', () => {
     before(() => {
-        // @ts-ignore
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
-        // @ts-ignore
-        STORAGE_DIR = global.testParams.STORAGE_DIR;
     });
     it('should throw missing filesAdded, filesDropped and mapping error', async () => {
         const name = uuid();
@@ -113,7 +110,7 @@ describe('/datasource/:name POST', () => {
         ]);
         expect(uploadResponse.statusCode).to.eql(StatusCodes.CREATED);
     });
-    it('should move a file', async () => {
+    it.skip('should move a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource(name);
         const [existingFile] = dataSource.files;

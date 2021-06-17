@@ -6,13 +6,9 @@ const Validation = require('./validation');
 
 class ApiValidator {
     constructor() {
-        /** @type {DataSources} */
         this.dataSources = null;
-        /** @type {Snapshots} */
         this.snapshots = null;
-        /** @type {Downloads} */
         this.downloads = null;
-        /** @type {Validation} */
         this.validation = null;
     }
 

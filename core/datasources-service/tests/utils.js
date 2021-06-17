@@ -19,21 +19,17 @@ const mockDeleteClone = () => {
     return mock;
 };
 
-/**
- * @param {import('../lib/utils/types').githubConfig} config
- * @returns {Promise<string>}
- */
 const createRepository = async (config, name) => {
     const { kind = 'github' } = config;
     let client;
     if (kind === 'github') {
         client = new Github(config, null, '');
-    } else {
+    }
+    else {
         client = new Gitlab(config, null, '');
     }
     return client.createRepository(name);
 };
-
 
 // a list of properties that should not be returned to the client
 const hiddenProperties = ['_id', '_credentials', 'isPartial'];

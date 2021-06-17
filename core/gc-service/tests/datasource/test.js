@@ -14,7 +14,7 @@ describe('DataSource', () => {
     it('should perform cleanup', async () => {
         const prepare = node => ({
             id: uuid.v1(),
-            nodes: [{ dataSource: node }],
+            nodes: [{ spec: node }],
         });
         const activeNodes = [
             { id: 'still-active' },

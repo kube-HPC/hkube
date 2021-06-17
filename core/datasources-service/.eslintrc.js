@@ -1,26 +1,37 @@
 module.exports = {
-    extends: ['airbnb-base', 'plugin:prettier/recommended'],
+    extends: ["airbnb-base"],
     env: {
+        es6: true,
         node: true,
-        mocha: true,
+        mocha: true
     },
-    globals: {
-        Atomics: 'readonly',
-        SharedArrayBuffer: 'readonly',
-    },
-    plugins: ['chai-friendly', 'prettier'],
+    plugins: ["chai-friendly"],
     parserOptions: {
-        sourceType: 'module',
-        ecmaVersion: 2020,
+        sourceType: "module",
+        ecmaVersion: 2020
     },
     rules: {
-        'import/no-extraneous-dependencies': [0],
-        'no-console': [1, { allow: ['info', 'warn', 'error'] }],
-        'import/no-useless-path-segments': [0],
-        'no-nested-ternary': [0],
-        'import/no-named-as-default-member': [0],
-        'import/no-named-as-default': [0],
-        'no-underscore-dangle': [0],
-        'class-methods-use-this': [0],
-    },
+        "no-param-reassign": "error",
+        "prefer-template": "error",
+        "no-trailing-spaces": "error",
+        "no-console": "error",
+        "no-use-before-define": "warn",
+        "object-curly-spacing": "error",
+        "no-var": "error",
+        "import/newline-after-import": "off",
+        "max-len": ["error", 240],
+        "brace-style": ["error", "stroustrup"],
+        "indent": ["warn", 4, { "SwitchCase": 1 }],
+        "quotes": ["error", "single"],
+        "comma-dangle": "off",
+        "no-underscore-dangle": "off",
+        "linebreake-style": "off",
+        "object-curly-newline": "off",
+        "newline-per-chained-call": "off",
+        "arrow-body-style": "off",
+        "class-methods-use-this": "off",
+        "no-unused-expressions": 0,
+        "arrow-parens": "off",
+        "no-nested-ternary": "off"
+    }
 };

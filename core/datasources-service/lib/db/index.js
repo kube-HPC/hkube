@@ -2,7 +2,6 @@ const dbConnect = require('@hkube/db');
 
 class DBConnection {
     constructor() {
-        /** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
         this.connection = null;
     }
 
