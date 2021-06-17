@@ -12,7 +12,6 @@ const setupGithubToken = async ({ user: { name, password }, endpoint }) => {
     return response.data;
 };
 
-
 const removeGithubToken = async (
     { user: { name, password }, endpoint },
     token

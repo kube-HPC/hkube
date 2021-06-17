@@ -24,12 +24,12 @@ const createRepository = async (config, name) => {
     let client;
     if (kind === 'github') {
         client = new Github(config, null, '');
-    } else {
+    }
+    else {
         client = new Gitlab(config, null, '');
     }
     return client.createRepository(name);
 };
-
 
 // a list of properties that should not be returned to the client
 const hiddenProperties = ['_id', '_credentials', 'isPartial'];

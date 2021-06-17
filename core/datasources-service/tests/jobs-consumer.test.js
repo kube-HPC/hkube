@@ -5,16 +5,13 @@ const waitFor = require('./waitFor');
 const pathLib = require('path');
 const { getDatasourcesInUseFolder } = require('../lib/utils/pathUtils');
 const { mockRemove, nonExistingId } = require('./utils');
-const { uploadGrouped, splitArr } = require('./uploadGrouped');
 const {
     createDataSource,
-    updateVersion,
     createSnapshot,
     createJob,
 } = require('./api');
 let jobConsumer;
 let storageManager;
-
 let rootDir = null;
 
 const waitForStatus = async ({ jobId, taskId }, status) => {

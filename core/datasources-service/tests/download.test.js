@@ -14,7 +14,6 @@ let ZIP_DIRECTORY;
 
 describe('download', () => {
     before(() => {
-
         ZIP_DIRECTORY = global.testParams.directories.zipFiles;
     });
     describe('validation', () => {
@@ -50,7 +49,6 @@ describe('download', () => {
             expect(error.code).to.eql(StatusCodes.BAD_REQUEST);
         });
     });
-
     it('generate a download link and fetch it', async () => {
         sinon.restore();
         const name = uuid();
@@ -93,7 +91,6 @@ describe('download', () => {
         expect(await fse.pathExists(`${ZIP_DIRECTORY}/${downloadId}.zip`)).to.be.false;
         expect(response.statusCode).to.eq(StatusCodes.OK);
     });
-
     it('should fail with non existing download Id', async () => {
         const { response } = await fetchDownloadLink({
             dataSourceId: '5ff5ba21d3ace12d33fdb826',

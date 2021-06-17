@@ -40,7 +40,6 @@ before(async function () {
         };
     })();
 
-
     global.testParams = {
         restUrl,
         internalUrl,

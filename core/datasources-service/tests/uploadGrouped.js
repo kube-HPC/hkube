@@ -1,6 +1,6 @@
 const pathLib = require('path');
-const { createDataSource } = require('./api');
 const fse = require('fs-extra');
+const { createDataSource } = require('./api');
 
 const uploadGrouped = async name => {
     const fileNames = await fse.readdir(

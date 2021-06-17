@@ -3,16 +3,11 @@ const { StatusCodes } = require('http-status-codes');
 const { nonExistingId } = require('./utils');
 const { requestValidation } = require('./api');
 const setupDataSource = require('./setupDataSource');
-
 let dataSource;
 let createdSnapshots;
 
 describe('validation', () => {
     before(async () => {
-
-        DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
-
-        STORAGE_DIR = global.testParams.STORAGE_DIR;
         const {
             dataSource: _dataSource,
             createdSnapshots: _createdSnapshots,
