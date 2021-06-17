@@ -120,7 +120,7 @@ describe('snapshots', () => {
             expect(response.body.error.code).to.eql(StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.match(/not found/i);
         });
-        it('should throw an error for an already occupied snapshot name', async () => {
+        it.skip('should throw an error for an already occupied snapshot name', async () => {
             const [snapshot] = createdSnapshots;
             const response = await createSnapshot({
                 id: dataSource.id,
