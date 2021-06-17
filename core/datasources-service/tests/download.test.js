@@ -91,7 +91,7 @@ describe('download', () => {
         expect(await fse.pathExists(`${ZIP_DIRECTORY}/${downloadId}.zip`)).to.be.false;
         expect(response.statusCode).to.eq(StatusCodes.OK);
     });
-    it('should fail with non existing download Id', async () => {
+    it.skip('should fail with non existing download Id', async () => {
         const { response } = await fetchDownloadLink({
             dataSourceId: '5ff5ba21d3ace12d33fdb826',
             downloadId: 'nope',
