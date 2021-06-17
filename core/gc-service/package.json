@@ -1,6 +1,6 @@
 {
   "name": "gc-service",
-  "version": "2.1.3",
+  "version": "2.1.5",
   "description": "Hkube garbage collector",
   "main": "app.js",
   "scripts": {
@@ -28,7 +28,7 @@
     "@hkube/kubernetes-client": "^1.0.35",
     "@hkube/logger": "^1.0.30",
     "@hkube/redis-utils": "^1.0.3",
-    "@hkube/rest-server": "^1.0.17",
+    "@hkube/rest-server": "^1.0.18",
     "@hkube/storage-manager": "^2.0.33",
     "cron": "^1.8.2",
     "cronstrue": "^1.114.0",

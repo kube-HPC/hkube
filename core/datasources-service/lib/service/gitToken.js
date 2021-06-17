@@ -1,17 +1,7 @@
 const { default: axios } = require('axios');
 const { uid } = require('@hkube/uid');
 
-/**
- * @typedef {{
- *     id: number;
- *     name: string;
- *     sha1: string;
- *     token_last_eight: string;
- * }} Token
- */
-
 class GitToken {
-    /** @param {import('./../utils/types').config} config */
     async init(config) {
         this.config = config;
         this.token = null;
@@ -30,9 +20,7 @@ class GitToken {
         await this._setupToken();
     }
 
-    /** @param {string} [name] */
     async _setupToken(name) {
-        /** @type {import('axios').AxiosResponse<Token>} */
         const response = await this.client.post('', {
             name: name || `service-token-${uid()}`,
         });

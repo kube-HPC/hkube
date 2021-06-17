@@ -7,7 +7,7 @@ RUN echo stam
 
 ARG BASE_PRIVATE_REGISTRY=""
 FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v1.2.1
-LABEL maintainer="reggev.am@gmail.com"
+LABEL maintainer="yehiyam@gmail.com"
 
 RUN curl \
     https://dvc.org/deb/dvc.list \

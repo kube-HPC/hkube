@@ -28,7 +28,6 @@ class StateManager {
         return this._etcd.jobs.results.watch();
     }
 
-    /** @param {(job: import('./service/types').DoneJob) => void} cb */
     onDone(cb) {
         return this._etcd.jobs.results.on('change', cb);
     }

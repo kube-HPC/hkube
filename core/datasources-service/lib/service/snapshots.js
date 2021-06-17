@@ -2,15 +2,7 @@ const { ResourceNotFoundError } = require('../errors');
 const validator = require('../validation');
 const dbConnection = require('../db');
 
-/**
- * @typedef {import('./../utils/types').config} config
- * @typedef {import('@hkube/db/lib/Snapshots').Snapshot} Snapshot;
- * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
- * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSource
- */
-
 class Snapshots {
-    /** @param {config} config */
     async init(config) {
         this.config = config;
         this.db = dbConnection.connection;
@@ -22,12 +14,6 @@ class Snapshots {
         });
     }
 
-    /**
-     * @type {(
-     *     snapshot: { name: string; query: string },
-     *     dataSource: { name?: string; id?: string }
-     * ) => Promise<Snapshot>}
-     */
     async create(snapshot, { name, id }) {
         validator.snapshots.validateSnapshot({
             ...snapshot,
@@ -71,25 +57,18 @@ class Snapshots {
         return response;
     }
 
-    /**
-     * @param {{ files: FileMeta[]; query: string }} props
-     * @returns {{ matching: FileMeta[]; nonMatching: FileMeta[] }}
-     */
     filterFilesListByQuery({ files, query }) {
         const queryRegexp = new RegExp(query, 'i');
-        return files.reduce(
-            (acc, file) =>
-                file.meta.match(queryRegexp)
-                    ? {
-                          ...acc,
-                          matching: acc.matching.concat(file),
-                      }
-                    : {
-                          ...acc,
-                          nonMatching: acc.nonMatching.concat(file),
-                      },
-            { matching: [], nonMatching: [] }
-        );
+        // eslint-disable-next-line no-confusing-arrow
+        return files.reduce((acc, file) => file.meta.match(queryRegexp)
+            ? {
+                ...acc,
+                matching: acc.matching.concat(file),
+            }
+            : {
+                ...acc,
+                nonMatching: acc.nonMatching.concat(file),
+            }, { matching: [], nonMatching: [] });
     }
 
     async previewSnapshot({ id, query }) {

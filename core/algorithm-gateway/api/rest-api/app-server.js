@@ -5,6 +5,7 @@ const { swaggerUtils } = require('@hkube/rest-server');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../lib/consts/componentNames').REST_API;
 const rest = new RestServer();
+const routeLogBlacklist = ['/metrics', '/swagger'];
 
 class AppServer {
     async init(options) {
@@ -39,6 +40,13 @@ class AppServer {
             poweredBy,
             port: parseInt(port, 10),
             name: options.serviceName,
+            logger: {
+                filterRoutes: routeLogBlacklist,
+                onResponse: (data) => {
+                    const { method, url, status, duration } = data;
+                    log.info(`${method}:${url} ${status} ${duration}ms`, { component, route: url, httpStatus: status });
+                }
+            }
         };
         const data = await rest.start(opt);
         log.info(`🚀 ${data.message}`, { component });

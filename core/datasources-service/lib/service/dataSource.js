@@ -12,31 +12,13 @@ const { ResourceNotFoundError } = require('../errors');
 const { Github } = require('../utils/GitRemoteClient');
 const gitToken = require('./gitToken');
 
-/**
- * @typedef {import('./../utils/types').FileMeta} FileMeta
- * @typedef {import('./../utils/types').MulterFile} MulterFile
- * @typedef {import('./../utils/types').NormalizedFileMeta} NormalizedFileMeta
- * @typedef {import('./../utils/types').SourceTargetArray} SourceTargetArray
- * @typedef {import('./../utils/types').config} config
- * @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
- * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig;
- * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig;
- * @typedef {import('@hkube/db/lib/DataSource').Credentials} Credentials
- * @typedef {{ createdPath: string; fileName: string }} uploadFileResponse
- * @typedef {{ name?: string; id?: string }} NameOrId
- */
-
-/** @type {(str: string, to: string) => string} */
 const convertWhiteSpace = (str, to) => str.split(' ').join(to);
-
 const metaRegex = new RegExp('.meta');
-/** @param {string} fileName */
 const isMetaFile = fileName => fileName.match(metaRegex);
 
 const extractFileName = metaData => metaData.input.slice(0, metaData.index);
 
 class DataSource {
-    /** @param {config} config */
     async init(config) {
         this.config = config;
         this.db = dbConnection.connection;
@@ -47,14 +29,6 @@ class DataSource {
      * Converts temporary ids given by the client to permanent ids. fills in missing details for all
      * the files.
      *
-     * @param {NormalizedFileMeta} normalizedMapping
-     * @param {MulterFile[]} files
-     * @returns {{
-     *     allFiles: MulterFile[];
-     *     normalizedAddedFiles: NormalizedFileMeta;
-     *     byPath: { [path: string]: string }; // maps from path to fileId
-     *     metaFilesByPath: { [path: string]: MulterFile };
-     * }}
      */
     prepareAddedFiles(normalizedMapping, files) {
         return files.reduce(
@@ -104,7 +78,6 @@ class DataSource {
                     };
                 }
                 const {
-                    // @ts-ignore
                     [tmpFileName]: droppedId,
                     ...nextMapping
                 } = acc.normalizedAddedFiles;
@@ -140,27 +113,12 @@ class DataSource {
      * Splits the inputs to groups by their respective actions. **note**: the normalizedAddedFiles
      * collection includes all the added files including updated file.
      *
-     * @param {{
-     *     currentFiles?: FileMeta[];
-     *     mapping: FileMeta[];
-     *     addedFiles?: MulterFile[];
-     * }} props
-     * @returns {{
-     *     allAddedFiles: MulterFile[];
-     *     normalizedAddedFiles: NormalizedFileMeta;
-     *     byPath: { [path: string]: string };
-     *     updatedFiles: SourceTargetArray[];
-     *     movedFiles: SourceTargetArray[];
-     *     touchedFileIds: string[];
-     *     metaFilesByPath: { [path: string]: MulterFile };
-     * }}
      */
     _categorizeFiles({
         currentFiles = [],
         mapping,
         addedFiles: _addedFiles = [],
     }) {
-        /** @type {{ [fileID: string]: FileMeta }} */
         const normalizedMapping = normalize(mapping, 'id', file => ({
             ...file,
             path: convertWhiteSpace(file.path, '-'),
@@ -172,13 +130,6 @@ class DataSource {
             metaFilesByPath,
         } = this.prepareAddedFiles(normalizedMapping, _addedFiles);
 
-        /**
-         * @type {{
-         *     movedFiles: SourceTargetArray[];
-         *     updatedFiles: SourceTargetArray[];
-         *     touchedFileIds: string[];
-         * }}
-         */
         const {
             movedFiles,
             updatedFiles,
@@ -221,18 +172,6 @@ class DataSource {
         };
     }
 
-    /**
-     * @param {{
-     *     repository: Repository;
-     *     commitMessage: string;
-     *     files: {
-     *         added: MulterFile[];
-     *         mapping?: FileMeta[];
-     *         dropped?: string[];
-     *     };
-     *     currentFiles?: FileMeta[];
-     * }} props
-     */
     async commitChange({
         repository,
         commitMessage,
@@ -268,17 +207,6 @@ class DataSource {
         };
     }
 
-    /**
-     * @param {{
-     *     name: string;
-     *     versionDescription: string;
-     *     files: {
-     *         mapping: FileMeta[];
-     *         added: MulterFile[];
-     *         dropped: string[];
-     *     };
-     * }} props
-     */
     async update({ name, files: _files, versionDescription }) {
         validator.dataSources.update({
             name,
@@ -333,20 +261,6 @@ class DataSource {
         };
     }
 
-    /**
-     * @param {{
-     *     name: string;
-     *     files: MulterFile[];
-     *     git: GitConfig & {
-     *         token: string;
-     *         tokenName?: string;
-     *     };
-     *     storage: StorageConfig & {
-     *         accessKeyId: string;
-     *         secretAccessKey: string;
-     *     };
-     * }} query
-     */
     async create({ name, git: _git, storage, files: _files }) {
         await validator.dataSources.create({
             name,
@@ -357,7 +271,6 @@ class DataSource {
 
         let { repositoryUrl = null } = _git;
         // create repository when using internal git
-        /** @type {Github} */
         let gitClient;
         if (_git.kind === 'internal') {
             const { credentials, config } = this.internalGit;
@@ -399,7 +312,6 @@ class DataSource {
         });
 
         let updatedDataSource;
-        /** @type {Repository} */
         const repository = new Repository(
             name,
             this.config,
@@ -421,17 +333,18 @@ class DataSource {
                 files,
                 commitHash,
             });
-        } catch (error) {
+        }
+        catch (error) {
             await this.db.dataSources.delete({ name }, { allowNotFound: true });
             await repository.delete(true);
             throw error;
-        } finally {
+        }
+        finally {
             await repository.deleteClone();
         }
         return updatedDataSource;
     }
 
-    /** @param {{ name?: string; id?: string }} query */
     fetch({ name, id }) {
         return this.db.dataSources.fetch({
             name,
@@ -456,13 +369,12 @@ class DataSource {
         );
         try {
             await repository.delete();
-        } catch (error) {
-            if (
-                error.isAxiosError &&
-                error.response.status === StatusCodes.NOT_FOUND
-            ) {
+        }
+        catch (error) {
+            if (error.isAxiosError && error.response.status === StatusCodes.NOT_FOUND) {
                 throw new ResourceNotFoundError('dataSource', name, error);
-            } else {
+            }
+            else {
                 throw error;
             }
         }
@@ -473,17 +385,10 @@ class DataSource {
         return response;
     }
 
-    /**
-     * @type {(query: {
-     *     names?: string[];
-     *     ids?: string[];
-     * }) => Promise<DataSourceItem[]>}
-     */
     async fetchDataSources({ names, ids }) {
         return this.db.dataSources.fetchMany({ names, ids });
     }
 
-    // eslint-disable-next-line
     async sync({ name }) {
         validator.dataSources.sync({ name });
         const {
@@ -501,7 +406,8 @@ class DataSource {
         );
         try {
             await repository.ensureClone();
-        } catch (error) {
+        }
+        catch (error) {
             await repository.deleteClone();
             if (error.message.match(/not found/i)) {
                 throw new ResourceNotFoundError('datasource', name, error);
@@ -548,17 +454,10 @@ class DataSource {
         return this.db.dataSources.listDataSources();
     }
 
-    /** @param {string} name */
     async listVersions(name) {
         return this.db.dataSources.listVersions({ name });
     }
 
-    /**
-     * @param {{
-     *     name: string;
-     *     credentials: Credentials;
-     * }} props
-     */
     async updateCredentials({ name, credentials }) {
         validator.dataSources.updateCredentials({ name, credentials });
         return this.db.dataSources.updateCredentials({ name, credentials });
