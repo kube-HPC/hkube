@@ -1,15 +1,16 @@
 const { NodesMap: DAG } = require('@hkube/dag');
+const { nodeKind } = require('@hkube/consts');
 const { parser, consts } = require('@hkube/parsers');
 const stateManager = require('../state/state-manager');
 const { InvalidDataError, } = require('../errors');
 const { relations } = consts;
 
 class CachingService {
-    async exec({ jobId, nodeName }) {
+    async exec({ jobId, nodeName, debug }) {
         const stored = await this._getStoredExecution(jobId);
         this._validateType(stored.nodes);
         const { successors } = this._findRelations(stored, nodeName);
-        const pipeline = this._createSubPipeline(stored, nodeName, successors);
+        const pipeline = this._createSubPipeline(stored, nodeName, successors, debug);
         return pipeline;
     }
 
@@ -20,11 +21,14 @@ class CachingService {
         }
     }
 
-    _createSubPipeline(pipeline, nodeName, successors) {
+    _createSubPipeline(pipeline, nodeName, successors, debug) {
         const nodes = [];
         pipeline.nodes.forEach((n) => {
             if (n.nodeName === nodeName) {
                 n.cacheJobId = pipeline.rootJobId || pipeline.jobId; //eslint-disable-line
+                if (debug) {
+                    n.kind = nodeKind.Debug; //eslint-disable-line
+                }
             }
             if (successors.includes(n.nodeName)) {
                 nodes.push(n);

@@ -29,7 +29,7 @@ class ExecutionService {
 
     async runCaching(options) {
         validator.executions.validateCaching(options);
-        const pipeline = await cachingService.exec({ jobId: options.jobId, nodeName: options.nodeName });
+        const pipeline = await cachingService.exec({ jobId: options.jobId, nodeName: options.nodeName, debug: options.debug });
         let { rootJobId } = pipeline;
         if (!rootJobId) {
             rootJobId = pipeline.jobId;
