@@ -8,22 +8,14 @@ const component = require('../consts/componentNames').JOBS_CONSUMER;
 const Etcd = require('../Etcd');
 const dbConnection = require('../db');
 const Repository = require('../utils/Repository');
-const { ResourceNotFoundError } = require('./../errors');
+const { ResourceNotFoundError } = require('../errors');
 const { getDatasourcesInUseFolder } = require('../utils/pathUtils');
-/**
- * @typedef {import('./../utils/types').config} config
- * @typedef {import('./types').onJobHandler} onJobHandler
- * @typedef {import('./types').PipelineDatasourceDescriptor} PipelineDatasourceDescriptor
- * @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta
- * @typedef {import('./types').Job} Job
- */
 
 class JobConsumer {
     constructor() {
         this._inactiveTimer = null;
     }
 
-    /** @param {config} config */
     async init(config) {
         this.config = config;
         this.rootDir = getDatasourcesInUseFolder(config);
@@ -39,18 +31,12 @@ class JobConsumer {
         this.state = new Etcd(config);
         this.consumer = new Consumer(consumerSettings);
         this.consumer.register(consumerSettings);
-        /** @type {import('@hkube/db/lib/MongoDB').ProviderInterface} */
         this.db = dbConnection.connection;
         await this.state.startWatch();
-        // @ts-ignore
-        this.consumer.on(
-            'job',
-            /** @type {onJobHandler} */
-            async job => {
-                await this.fetchDataSource(job.data);
-                job.done(); // send job done to redis
-            }
-        );
+        this.consumer.on('job', async job => {
+            await this.fetchDataSource(job.data);
+            job.done(); // send job done to redis
+        });
 
         this.state.onDone(job => {
             this.unmountDataSource(job.jobId);
@@ -77,13 +63,9 @@ class JobConsumer {
         });
     }
 
-    /** @param {Job} props */
     async fetchDataSource({ dataSource: dataSourceDescriptor, ...job }) {
         const { taskId } = job;
-        log.info(`got job, starting to fetch dataSource`, {
-            component,
-            taskId,
-        });
+        log.info('got job, starting to fetch dataSource', { component, taskId, });
         await this.setActive(job);
 
         let dataSource;
@@ -98,23 +80,21 @@ class JobConsumer {
                         dataSourceName: dataSourceDescriptor.name,
                     }
                 );
-                if (!resolvedSnapshot)
-                    throw new ResourceNotFoundError(
-                        'snapshot',
-                        `${dataSourceDescriptor.name}:${snapshot.name}`
-                    );
+                if (!resolvedSnapshot) {
+                    throw new ResourceNotFoundError('snapshot', `${dataSourceDescriptor.name}:${snapshot.name}`);
+                }
                 dataSource = resolvedSnapshot.dataSource;
-            } else if (dataSourceDescriptor.id) {
+            }
+            else if (dataSourceDescriptor.id) {
                 dataSource = await this.db.dataSources.fetchWithCredentials({
                     id: dataSourceDescriptor.id,
                 });
-            } else {
-                return this.handleFail({
-                    ...job,
-                    error: 'invalid datasource descriptor',
-                });
             }
-        } catch (e) {
+            else {
+                return this.handleFail({ ...job, error: 'invalid datasource descriptor' });
+            }
+        }
+        catch (e) {
             return this.handleFail({ ...job, error: e.message });
         }
 
@@ -138,20 +118,19 @@ class JobConsumer {
             });
             await repository.ensureClone(dataSource.commitHash);
             await repository.pullFiles();
-        } catch (e) {
+        }
+        catch (e) {
             let message = `could not clone the datasource ${dataSource.name}. ${e.message}`;
             if (typeof e === 'string') {
                 if (e.match(/files do not exist/i)) {
                     message = `could not clone the datasource ${dataSource.name}. 
                         MISSING FILES: The storage is not synced with the git repository`;
-                } else {
+                }
+                else {
                     message = `could not clone the datasource ${dataSource.name}. ${e}`;
                 }
             }
-            return this.handleFail({
-                ...job,
-                error: message,
-            });
+            return this.handleFail({ ...job, error: message });
         }
 
         if (resolvedSnapshot) {
@@ -164,7 +143,8 @@ class JobConsumer {
                 dataSource: dataSourceDescriptor,
                 ...job,
             });
-        } else {
+        }
+        else {
             await this.storeResult({
                 payload: { dataSourceId: dataSource.id },
                 dataSource: dataSourceDescriptor,
@@ -172,22 +152,13 @@ class JobConsumer {
             });
         }
 
-        log.info(
-            `successfully cloned and stored dataSource ${dataSource.name}`,
-            { component, taskId }
-        );
+        log.info(`successfully cloned and stored dataSource ${dataSource.name}`, { component, taskId });
         return null;
     }
 
-    /**
-     * @param {{
-     *     payload: { dataSourceId?: string; snapshotId?: string };
-     * } & Job} props
-     */
     async storeResult({ payload, dataSource, ...job }) {
         const { jobId, taskId } = job;
         try {
-            /** @type {{ path: string }} */
             const storageInfo = await storageManager.hkube.put({
                 jobId,
                 taskId,
@@ -205,11 +176,9 @@ class JobConsumer {
                 endTime: Date.now(),
                 status: taskStatuses.SUCCEED,
             });
-        } catch (e) {
-            return this.handleFail({
-                ...job,
-                error: `failed storing datasource ${dataSource.name}. ${e.message}`,
-            });
+        }
+        catch (e) {
+            return this.handleFail({ ...job, error: `failed storing datasource ${dataSource.name}. ${e.message}` });
         }
         return null;
     }

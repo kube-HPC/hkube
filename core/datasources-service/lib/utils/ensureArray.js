@@ -5,9 +5,6 @@ const arrayEndRegex = /\]$/;
 
 /**
  * Takes a stringified payload and converts it to an array.
- *
- * @type {(payload: any, fieldName: string) => T[]}
- * @template T
  */
 module.exports = (payload, fieldName) => {
     let collection = [];
@@ -22,7 +19,8 @@ module.exports = (payload, fieldName) => {
     }
     try {
         collection = [].concat(JSON.parse(_payload));
-    } catch (e) {
+    }
+    catch (e) {
         throw new InvalidDataError(`invalid ${fieldName} provided`);
     }
     return collection;

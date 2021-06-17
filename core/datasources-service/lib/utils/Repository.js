@@ -1,44 +1,19 @@
 const fse = require('fs-extra');
 const pathLib = require('path');
 const {
-    glob,
-    Repository: RepositoryBase,
+    glob, Repository: RepositoryBase,
     filePath: { extractRelativePath, getFilePath },
 } = require('@hkube/datasource-utils');
 const { default: simpleGit } = require('simple-git');
+const log = require('@hkube/logger').GetLogFromContainer();
 const normalize = require('./normalize');
 const dvcConfig = require('./dvcConfig');
-const dedicatedStorage = require('./../DedicatedStorage');
+const dedicatedStorage = require('../DedicatedStorage');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { Github } = require('./GitRemoteClient');
-const gitToken = require('./../service/gitToken');
-
-/**
- * @typedef {import('@hkube/db/lib/DataSource').GitConfig} GitConfig
- * @typedef {import('@hkube/db/lib/DataSource').StorageConfig} StorageConfig
- * @typedef {import('@hkube/db/lib/DataSource').Credentials} Credentials
- * @typedef {import('./types').FileMeta} FileMeta
- * @typedef {import('./types').LocalFileMeta} LocalFileMeta
- * @typedef {import('./types').MulterFile} MulterFile
- * @typedef {import('./types').NormalizedFileMeta} NormalizedFileMeta
- * @typedef {import('./types').SourceTargetArray} SourceTargetArray
- * @typedef {import('./types').config} config
- */
-
-/**
- * @typedef {{ [path: string]: T }} ByPath
- * @template T
- */
+const gitToken = require('../service/gitToken');
 
 class Repository extends RepositoryBase {
-    /**
-     * @param {string}        repositoryName
-     * @param {config}        config
-     * @param {string}        rootDir
-     * @param {GitConfig}     gitConfig
-     * @param {StorageConfig} storageConfig
-     * @param {Credentials}   credentials
-     */
     constructor(
         repositoryName,
         config,
@@ -51,10 +26,9 @@ class Repository extends RepositoryBase {
         this.config = config;
         this.rawRepositoryUrl = gitConfig.repositoryUrl;
         this.rawStorageConfig = storageConfig;
-        this.storageConfig =
-            storageConfig.kind === 'internal'
-                ? this.internalStorage.config
-                : storageConfig;
+        this.storageConfig = storageConfig.kind === 'internal'
+            ? this.internalStorage.config
+            : storageConfig;
         this.gitConfig = gitConfig;
         this.credentials = this.setupCredentials(
             credentials,
@@ -68,13 +42,6 @@ class Repository extends RepositoryBase {
         );
     }
 
-    /**
-     * @type {(
-     * source: Credentials,
-     * gitConfig: GitConfig,
-     * storageConfig: StorageConfig
-     * ) => Credentials}
-     */
     setupCredentials(source, gitConfig, storageConfig) {
         const { git, storage } = source;
         return {
@@ -94,7 +61,6 @@ class Repository extends RepositoryBase {
             accessKeyId: this.config.s3.accessKeyId,
             secretAccessKey: this.config.s3.secretAccessKey,
         };
-        /** @type {StorageConfig} */
         const config = {
             kind: 'S3',
             endpoint: this.config.s3.endpoint,
@@ -130,10 +96,10 @@ class Repository extends RepositoryBase {
             if (git.token && git.tokenName) {
                 url.username = git.tokenName;
                 url.password = git.token;
-            } else {
-                throw new InvalidDataError(
-                    "missing gitlab 'token' or 'tokenName'"
-                );
+            }
+            else {
+                // eslint-disable-next-line quotes
+                throw new InvalidDataError("missing gitlab 'token' or 'tokenName'");
             }
             return url.toString();
         }
@@ -167,10 +133,6 @@ class Repository extends RepositoryBase {
         ]);
     }
 
-    /**
-     * @param {FileMeta}      fileMeta
-     * @param {LocalFileMeta} metaData
-     */
     async _enrichDvcFile(fileMeta, metaData) {
         const nextMeta = { ...(metaData || {}) };
         const filePath = getFilePath(fileMeta);
@@ -191,9 +153,7 @@ class Repository extends RepositoryBase {
         await this.ensureClone(null, false);
         const dir = await fse.readdir(this.cwd);
         if (dir.length > 1 || (dir.length === 1 && dir[0] !== '.git')) {
-            throw new InvalidDataError(
-                'the provided git repository is not empty'
-            );
+            throw new InvalidDataError('the provided git repository is not empty');
         }
         await this._setupDvcRepository();
         await this.createHkubeFile();
@@ -210,18 +170,13 @@ class Repository extends RepositoryBase {
         let response;
         try {
             response = await super.push();
-        } catch (error) {
+        }
+        catch (error) {
             if (typeof error === 'string') {
                 if (error.match(/SignatureDoesNotMatch|InvalidAccessKeyId/i)) {
-                    throw new InvalidDataError(
-                        'invalid S3 accessKeyId or invalid accessKey'
-                    );
+                    throw new InvalidDataError('invalid S3 accessKeyId or invalid accessKey');
                 }
-                if (
-                    error.match(
-                        /Invalid endpoint|Could not connect to the endpoint URL/i
-                    )
-                ) {
+                if (error.match(/Invalid endpoint|Could not connect to the endpoint URL/i)) {
                     throw new InvalidDataError('invalid S3 endpoint');
                 }
                 if (error.match(/Bucket '.+' does not exist/i)) {
@@ -233,7 +188,6 @@ class Repository extends RepositoryBase {
         return response;
     }
 
-    /** @param {string=} commitHash */
     async ensureClone(commitHash, shouldConfigDvc = true) {
         await fse.ensureDir(this.cwd);
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
@@ -245,17 +199,18 @@ class Repository extends RepositoryBase {
                 const repositoryName = pathLib.parse(this.repositoryUrl).name;
                 const currentDir = pathLib.join(this.rootDir, repositoryName);
                 fse.rename(currentDir, this.cwd);
-            } catch (error) {
+            }
+            catch (error) {
                 if (
-                    error?.message.match(/could not read Password for/i) ||
-                    error.message.match(/invalid credentials/i)
+                    error?.message.match(/could not read Password for/i)
+                    || error.message.match(/invalid credentials/i)
                 ) {
                     throw new InvalidDataError('Invalid git token');
                 }
                 throw error;
             }
         }
-        // @ts-ignore
+
         this.gitClient = simpleGit({ baseDir: this.cwd });
         if (commitHash) await this.gitClient.checkout(commitHash);
         if (shouldConfigDvc) return this.configDvc();
@@ -266,14 +221,8 @@ class Repository extends RepositoryBase {
         return this.dvc.config(this.generateDvcConfig(this.repositoryName));
     }
 
-    /**
-     * @param {NormalizedFileMeta} normalizedMapping
-     * @param {MulterFile[]}       allAddedFiles
-     * @param {ByPath<string>}     metaByPath
-     */
     async addFiles(normalizedMapping, allAddedFiles, metaByPath) {
         if (allAddedFiles.length === 0) return null;
-        /** @type {{ dirs: string[]; filePaths: string[] }} */
         const { dirs, filePaths } = Object.values(normalizedMapping).reduce(
             (acc, fileMeta) => {
                 const filePath = getFilePath(fileMeta);
@@ -326,7 +275,6 @@ class Repository extends RepositoryBase {
         return null;
     }
 
-    /** @param {SourceTargetArray[]} sourceTargetArray */
     async moveExistingFiles(sourceTargetArray) {
         if (sourceTargetArray.length === 0) return null;
         const fullPathSrcTargetArray = sourceTargetArray.map(
@@ -359,15 +307,15 @@ class Repository extends RepositoryBase {
             if (hasMeta) {
                 try {
                     await fse.move(srcMetaPath, targetMetaPath);
-                } catch (error) {
-                    console.error({ error });
+                }
+                catch (error) {
+                    log.error({ error });
                 }
             }
         }
         return null;
     }
 
-    /** @returns {Promise<FileMeta[]>} */
     async scanDir() {
         const dvcFiles = await glob('**/*.dvc', this.cwd);
         return Promise.all(
@@ -389,23 +337,15 @@ class Repository extends RepositoryBase {
             glob('**/.gitignore', this.cwd),
         ]);
 
-        await Promise.all(
-            [...['.git', '.dvcignore', '.dvc'], ...metaFiles.flat()].map(file =>
-                fse.remove(`${this.cwd}/${file}`)
-            )
-        );
+        await Promise.all([
+            ...['.git', '.dvcignore', '.dvc'],
+            ...metaFiles.flat()].map(file => fse.remove(`${this.cwd}/${file}`)));
     }
 
-    /**
-     * @param {string[]}   fileIds
-     * @param {FileMeta[]} currentFiles
-     */
     async dropFiles(fileIds, currentFiles) {
         if (fileIds.length === 0) return;
         const normalizedCurrentFiles = normalize(currentFiles);
-        const filePaths = fileIds.map(id =>
-            getFilePath(normalizedCurrentFiles[id])
-        );
+        const filePaths = fileIds.map(id => getFilePath(normalizedCurrentFiles[id]));
         await this.dvc.remove({ paths: filePaths });
         await Promise.all(
             filePaths.map(async filePath => {
@@ -422,10 +362,6 @@ class Repository extends RepositoryBase {
     /**
      * Loads the .meta files, adds their content to the .dvc files.
      *
-     * @param {NormalizedFileMeta} normalizedMapping
-     * @param {ByPath<string>}     byPath
-     * @param {ByPath<MulterFile>} metaFilesByPath
-     * @returns {Promise<ByPath<string>>}
      */
     async loadMetaDataFiles(normalizedMapping, byPath, metaFilesByPath) {
         const entries = await Promise.all(
@@ -434,9 +370,7 @@ class Repository extends RepositoryBase {
                 const fileId = byPath[filePath];
                 if (!fileId) {
                     const { base } = pathLib.parse(filePath);
-                    throw new InvalidDataError(
-                        `provided meta file: ${base}.meta, without a matching file: ${base}`
-                    );
+                    throw new InvalidDataError(`provided meta file: ${base}.meta, without a matching file: ${base}`);
                 }
                 const meta = content.toString('utf8');
                 const fileMeta = normalizedMapping[fileId];
@@ -453,17 +387,13 @@ class Repository extends RepositoryBase {
 
     /**
      * Filters files from a local copy of the repository.
-     *
-     * @param {FileMeta[]} filesToDrop
      */
     filterFilesFromClone(filesToDrop) {
         return Promise.all(
             filesToDrop
                 .map(file => {
                     const filePath = `${this.cwd}/${getFilePath(file)}`;
-                    return ['', '.dvc', '.meta'].map(ext =>
-                        fse.remove(`${filePath}${ext}`)
-                    );
+                    return ['', '.dvc', '.meta'].map(ext => fse.remove(`${filePath}${ext}`));
                 })
                 .flat()
         );
@@ -501,23 +431,19 @@ class Repository extends RepositoryBase {
                 this.rawRepositoryUrl,
                 this.config.serviceName
             );
-            promises.push(
-                remoteGitClient.deleteRepository(this.repositoryName)
-            );
+            promises.push(remoteGitClient.deleteRepository(this.repositoryName));
         }
         try {
             response = await Promise.allSettled(promises);
-        } catch (error) {
+        }
+        catch (error) {
             if (allowNotFound) return null;
             throw error;
         }
-        if (response.length === 0) return null;
-        if (
-            storageKind === 'internal' &&
-            // @ts-ignore
-            response[0].length === 0 &&
-            !allowNotFound
-        ) {
+        if (response.length === 0) {
+            return null;
+        }
+        if (storageKind === 'internal' && response[0].length === 0 && !allowNotFound) {
             throw new ResourceNotFoundError('datasource', this.repositoryName);
         }
         return response;

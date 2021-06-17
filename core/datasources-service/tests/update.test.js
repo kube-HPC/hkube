@@ -11,9 +11,9 @@ const pathLib = require('path');
 let DATASOURCE_GIT_REPOS_DIR;
 describe('/datasource/:name POST', () => {
     before(() => {
-        // @ts-ignore
+
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
-        // @ts-ignore
+
         STORAGE_DIR = global.testParams.STORAGE_DIR;
     });
     it('should throw missing filesAdded, filesDropped and mapping error', async () => {

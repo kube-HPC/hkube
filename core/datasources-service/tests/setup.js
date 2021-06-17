@@ -14,7 +14,6 @@ let githubToken = null;
 before(async function () {
     this.timeout(15000);
     const bootstrap = require('../bootstrap');
-    /** @type {import('./../lib/utils/types').config} */
     const config = await bootstrap.init();
     const storage = new storageManager.StorageManager();
     await storage.init({ ...config }, null, true);
@@ -41,7 +40,7 @@ before(async function () {
         };
     })();
 
-    // @ts-ignore
+
     global.testParams = {
         restUrl,
         internalUrl,

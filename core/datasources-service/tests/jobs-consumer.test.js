@@ -12,9 +12,7 @@ const {
     createSnapshot,
     createJob,
 } = require('./api');
-/** @type {import('../lib/service/jobs-consumer')} */
 let jobConsumer;
-/** @type {import('@hkube/storage-manager')} */
 let storageManager;
 
 let rootDir = null;
@@ -32,8 +30,6 @@ describe('JobsConsumer', () => {
     before(() => {
         jobConsumer = require('../lib/service/jobs-consumer');
         storageManager = require('@hkube/storage-manager');
-
-        // @ts-ignore
         rootDir = getDatasourcesInUseFolder(global.testParams.config);
     });
     after(() => {
@@ -62,7 +58,7 @@ describe('JobsConsumer', () => {
         );
         expect(storagePayload.dataSourceId).to.eq(dataSource.id);
         const mountedPath = pathLib.join(
-            // @ts-ignore
+
             global.testParams.mountedDir,
             dataSource.name,
             dataSource.id,
@@ -81,7 +77,7 @@ describe('JobsConsumer', () => {
         expect(state.status).to.equal('succeed');
         expect(state).to.have.property('result');
         const mountedPath = pathLib.join(
-            // @ts-ignore
+
             global.testParams.mountedDir,
             dataSource.name,
             dataSource.id,

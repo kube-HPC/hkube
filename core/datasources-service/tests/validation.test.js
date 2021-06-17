@@ -4,16 +4,14 @@ const { nonExistingId } = require('./utils');
 const { requestValidation } = require('./api');
 const setupDataSource = require('./setupDataSource');
 
-/** @type {import('@hkube/db/lib/DataSource').DataSource} */
 let dataSource;
-/** @type {import('@hkube/db/lib/Snapshots').Snapshot[]} */
 let createdSnapshots;
 
 describe('validation', () => {
     before(async () => {
-        // @ts-ignore
+
         DATASOURCE_GIT_REPOS_DIR = global.testParams.DATASOURCE_GIT_REPOS_DIR;
-        // @ts-ignore
+
         STORAGE_DIR = global.testParams.STORAGE_DIR;
         const {
             dataSource: _dataSource,

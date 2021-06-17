@@ -24,12 +24,6 @@ class AppServer {
                 log.info(`status=${status}, message=${error}`, { component, route, jobId, pipelineName, httpStatus: status });
             }
         });
-        rest.on('request', (data) => {
-            const { method, url, status, duration } = data;
-            if (!routeLogBlacklist.some(f => url.startsWith(f))) {
-                log.info(`${method}:${url} ${status} ${duration}ms`, { component, route: url, httpStatus: status });
-            }
-        });
 
         const { schemasInternal, ...swagger } = await swaggerUtils.loader.load({ path: path.join(__dirname, 'swagger') });
         swagger.info.version = options.version;
@@ -67,7 +61,14 @@ class AppServer {
             bodySizeLimit,
             name: options.serviceName,
             beforeRoutesMiddlewares,
-            afterRoutesMiddlewares
+            afterRoutesMiddlewares,
+            logger: {
+                filterRoutes: routeLogBlacklist,
+                onResponse: (data) => {
+                    const { method, url, status, duration } = data;
+                    log.info(`${method}:${url} ${status} ${duration}ms`, { component, route: url, httpStatus: status });
+                }
+            }
         };
         const data = await rest.start(opt);
         log.info(`🚀 ${data.message}`, { component });

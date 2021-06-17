@@ -24,8 +24,7 @@ class Bootstrap {
         try {
             this._handleErrors();
             log.info(
-                `running application with env: ${configIt.env()}, version: ${
-                    config.version
+                `running application with env: ${configIt.env()}, version: ${config.version
                 }, node: ${process.versions.node}`,
                 { component }
             );
@@ -70,19 +69,11 @@ class Bootstrap {
             process.exit(0);
         });
         process.on('unhandledRejection', error => {
-            log.error(
-                `unhandledRejection: ${error.message}`,
-                { component },
-                error
-            );
+            log.error(`unhandledRejection: ${error.message}`, { component }, error);
             process.exit(1);
         });
         process.on('uncaughtException', error => {
-            log.error(
-                `uncaughtException: ${error.message}`,
-                { component },
-                error
-            );
+            log.error(`uncaughtException: ${error.message}`, { component }, error);
             process.exit(1);
         });
     }

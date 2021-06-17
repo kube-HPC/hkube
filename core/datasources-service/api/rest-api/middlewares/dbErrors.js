@@ -3,7 +3,7 @@ const {
     ResourceNotFoundError,
     InvalidDataError,
     ResourceExistsError,
-} = require('./../../../lib/errors');
+} = require('../../../lib/errors');
 
 module.exports = (error, req, res, next) => {
     if (isDBError(error)) {

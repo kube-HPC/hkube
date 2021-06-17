@@ -19,10 +19,6 @@ const mockDeleteClone = () => {
     return mock;
 };
 
-/**
- * @param {import('../lib/utils/types').githubConfig} config
- * @returns {Promise<string>}
- */
 const createRepository = async (config, name) => {
     const { kind = 'github' } = config;
     let client;

@@ -1,7 +1,0 @@
-{
-    "compilerOptions": {
-        "checkJs": true,
-        "target": "ES2020",
-        "moduleResolution": "node"
-    }
-}
