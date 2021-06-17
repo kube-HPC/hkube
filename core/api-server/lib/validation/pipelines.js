@@ -1,3 +1,4 @@
+const { nodeKind } = require('@hkube/consts');
 const { InvalidDataError } = require('../errors');
 
 class ApiValidator {
@@ -17,6 +18,13 @@ class ApiValidator {
     validatePipelineNodes(pipeline) {
         if (!pipeline.nodes?.length) {
             throw new InvalidDataError('pipeline must have at nodes property with at least one node');
+        }
+        else {
+            pipeline.nodes.forEach((node) => {
+                if (node.kind === nodeKind.Debug && (!node.algorithmName || node.algorithmNam === '')) {
+                    throw new InvalidDataError('Node for debug must have algorithm name set');
+                }
+            });
         }
     }
 }

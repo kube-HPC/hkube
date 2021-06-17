@@ -38,6 +38,22 @@ describe('Executions', () => {
             expect(response.body).not.to.have.property('error');
             expect(response.body).to.have.property('jobId');
         });
+        it('should succeed run caching with debug', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    jobId,
+                    nodeName: 'green',
+                    debug: true
+                }
+            };
+            let response = await request(options);
+            expect(response.body).not.to.have.property('error');
+            expect(response.body).to.have.property('jobId');
+            response = await request(options);
+            expect(response.body.error.message).eq('debug green-alg-debug already exists');
+
+        });
         it('should fail on no jobId', async () => {
             const options = {
                 uri: restPath,

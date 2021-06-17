@@ -9,7 +9,6 @@ properties:
   debug:
     type: boolean
     description: Run as debug
-    minLength: 1
 additionalProperties: false
 required:
   - jobId

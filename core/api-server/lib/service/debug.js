@@ -32,6 +32,7 @@ class Debug extends AlgorithmBase {
             mem: originalAlg.mem,
             name: algorithmName,
             debugUrl,
+            debugName: originalAlgName,
             kind: nodeKind.Debug,
             algorithmImage: 'hkube/algorithm-debug',
             type: buildTypes.IMAGE,
