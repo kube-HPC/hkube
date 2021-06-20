@@ -8,6 +8,7 @@ const component = require('../consts/componentNames').JOBS_CONSUMER;
 
 class JobConsumer {
     constructor() {
+        this._maxJobs = 0;
         this._consumerPaused = false;
         this._drivers = new Map();
     }
@@ -24,6 +25,7 @@ class JobConsumer {
             }
         };
         this._options = options;
+        this._concurrency = concurrency;
         this._jobType = jobOptions.job.type;
         this._discoveryInterval = options.discoveryInterval;
         this._consumer = new Consumer(jobOptions);
@@ -83,7 +85,9 @@ class JobConsumer {
                         this._drivers.delete(job);
                     });
                 }
-
+                if (jobs.length > this._maxJobs) {
+                    this._maxJobs = jobs.length;
+                }
                 if (jobs.length) {
                     stateManager.checkUnScheduledAlgorithms();
                 }
@@ -91,7 +95,7 @@ class JobConsumer {
                     stateManager.unCheckUnScheduledAlgorithms();
                 }
 
-                await stateManager.updateDiscovery({ idle, paused, status, jobs });
+                await stateManager.updateDiscovery({ idle, paused, status, jobs, max: this._maxJobs, capacity: this._concurrency });
 
                 if (paused && idle) {
                     this._handleExit();
