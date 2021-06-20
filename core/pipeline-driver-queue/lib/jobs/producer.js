@@ -3,14 +3,16 @@ const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { componentName } = require('../consts');
+const { componentName, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
 const persistence = require('../persistency/persistence');
 const queueRunner = require('../queue-runner');
 
+
 class JobProducer {
     constructor() {
         this._lastData = [];
+        this._firstJobDequeue = false;
         this._checkQueue = this._checkQueue.bind(this);
         this._updateState = this._updateState.bind(this);
     }
@@ -32,6 +34,12 @@ class JobProducer {
         this._producerEventRegistry();
         this._checkQueue();
         this._updateState();
+
+        queueRunner.queue.on(queueEvents.INSERT, () => {
+            if (this._isActive) {
+                this._dequeueJob();
+            }
+        });
     }
 
     async _checkQueue() {
@@ -40,6 +48,9 @@ class JobProducer {
             if (queue.length > 0) {
                 const pendingAmount = await this._redisQueue.getWaitingCount();
                 if (pendingAmount === 0) {
+                    // create job first time only, then rely on two events (active/enqueue)
+                    this._firstJobDequeue = true;
+                    log.info('firstJobDequeue', { component });
                     await this.createJob(queue[0]);
                 }
             }
@@ -48,7 +59,9 @@ class JobProducer {
             log.throttle.error(error.message, { component }, error);
         }
         finally {
-            setTimeout(this._checkQueue, this._checkQueueInterval);
+            if (!this._firstJobDequeue) {
+                setTimeout(this._checkQueue, this._checkQueueInterval);
+            }
         }
     }
 
@@ -70,9 +83,12 @@ class JobProducer {
 
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
+            this._isActive = false;
             log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: Events.WAITING });
         }).on(Events.ACTIVE, (data) => {
+            this._isActive = true;
             log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: Events.ACTIVE });
+            this._dequeueJob();
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.COMPLETED });
             this._checkMaxExceeded(data.options.data);
@@ -89,6 +105,23 @@ class JobProducer {
             await persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, error, level: 'error' });
             await persistence.setJobResults({ jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime });
         });
+    }
+
+    /**
+     * This method executes if one of the following conditions are met:
+     * 1. event arrived for active consumers.
+     * 2. event arrived for new job enqueue.
+     */
+    async _dequeueJob() {
+        try {
+            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+            if (queue.length > 0) {
+                await this.createJob(queue[0]);
+            }
+        }
+        catch (error) {
+            log.throttle.error(error.message, { component }, error);
+        }
     }
 
     _checkMaxExceeded({ experiment, pipeline }) {
