@@ -9,12 +9,10 @@ ARG BASE_PRIVATE_REGISTRY=""
 FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v1.2.1
 LABEL maintainer="yehiyam@gmail.com"
 
-RUN curl \
-    https://dvc.org/deb/dvc.list \
-    -L \
-    --output /etc/apt/sources.list.d/dvc.list
-
-RUN apt update && apt install -y --no-install-recommends git dvc && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+RUN wget -O dvc.deb https://github.com/iterative/dvc/releases/download/2.1.0/dvc_2.1.0_amd64.deb &&\
+  apt install ./dvc.deb &&\
+  rm ./dvc.deb
 ADD dockerfile/gitconfig /.gitconfig
 ADD dockerfile/gitconfig /root/.gitconfig
 RUN mkdir -p /hkube/datasource-service

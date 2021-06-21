@@ -110,7 +110,7 @@ describe('/datasource/:name POST', () => {
         ]);
         expect(uploadResponse.statusCode).to.eql(StatusCodes.CREATED);
     });
-    it.skip('should move a file', async () => {
+    it('should move a file', async () => {
         const name = uuid();
         const { body: dataSource } = await createDataSource(name);
         const [existingFile] = dataSource.files;
