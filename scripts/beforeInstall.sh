@@ -2,8 +2,8 @@
 set -ev
 
 # install dvc and git
-wget -O /tmp/dvc.deb https://github.com/iterative/dvc/releases/download/2.1.0/dvc_2.1.0_amd64.deb &&\
-  apt install /tmp/dvc.deb &&\
+wget --no-verbose -O /tmp/dvc.deb https://github.com/iterative/dvc/releases/download/2.1.0/dvc_2.1.0_amd64.deb &&\
+  sudo apt install /tmp/dvc.deb &&\
   rm /tmp/dvc.deb
 git config --global user.email "hkube@hkube.io" && git config --global user.name "hkube"
 
