@@ -95,11 +95,7 @@ class PipelineCreator {
 
     async updateDebug(pipeline) {
         for (const node of pipeline.nodes) {// eslint-disable-line
-            let debugs;
             if (node.kind === nodeKind.Debug) {
-                if (!debugs) {
-                    debugs = [];
-                }
                 const { algorithmName } = node;
                 const { algorithmName: newAlgorithmName } = await debugService.createDebug({ algorithmName }); // eslint-disable-line
                 node.algorithmName = newAlgorithmName;
