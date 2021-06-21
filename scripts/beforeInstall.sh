@@ -2,8 +2,9 @@
 set -ev
 
 # install dvc and git
-sudo curl https://dvc.org/deb/dvc.list -L --output /etc/apt/sources.list.d/dvc.list
-sudo apt update && sudo apt install -y dvc
+wget -O /tmp/dvc.deb https://github.com/iterative/dvc/releases/download/2.1.0/dvc_2.1.0_amd64.deb &&\
+  apt install /tmp/dvc.deb &&\
+  rm /tmp/dvc.deb
 git config --global user.email "hkube@hkube.io" && git config --global user.name "hkube"
 
 # run all the required containers
