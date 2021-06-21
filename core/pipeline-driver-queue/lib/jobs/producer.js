@@ -48,7 +48,7 @@ class JobProducer {
             if (queue.length > 0) {
                 const pendingAmount = await this._redisQueue.getWaitingCount();
                 if (pendingAmount === 0) {
-                    // create job first time only, then rely on two events (active/enqueue)
+                    // create job first time only, then rely on 3 events (active/completed/enqueue)
                     this._firstJobDequeue = true;
                     log.info('firstJobDequeue', { component });
                     await this.createJob(queue[0]);
@@ -109,8 +109,9 @@ class JobProducer {
 
     /**
      * This method executes if one of the following conditions are met:
-     * 1. event arrived for active consumers.
-     * 2. event arrived for new job enqueue.
+     * 1. active event.
+     * 2  completed active and there is a maxExceeded in queue.
+     * 3. new job enqueue and consumers are active.
      */
     async _dequeueJob() {
         try {
@@ -131,6 +132,9 @@ class JobProducer {
         if (job) {
             log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
             job.maxExceeded = false;
+            if (this._isActive) {
+                this._dequeueJob();
+            }
         }
     }
 

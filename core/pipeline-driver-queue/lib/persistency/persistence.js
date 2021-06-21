@@ -38,8 +38,8 @@ class Persistence extends EventEmitter {
         await this._etcd.jobs.status.watch(options);
     }
 
-    async getExecution({ jobId }) {
-        return this._db.jobs.fetchPipeline({ jobId });
+    async getJob({ jobId }) {
+        return this._db.jobs.fetch({ jobId, fields: { status: true, pipeline: true } });
     }
 
     async setJobStatus(options) {
@@ -50,10 +50,6 @@ class Persistence extends EventEmitter {
     async setJobResults(options) {
         await this._etcd.jobs.results.set(options);
         await this._db.jobs.updateResult(options);
-    }
-
-    async getJobStatus({ jobId }) {
-        return this._db.jobs.fetchStatus({ jobId });
     }
 }
 
