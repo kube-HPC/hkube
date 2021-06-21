@@ -16,36 +16,35 @@ class Debug extends AlgorithmBase {
         this.getAlgorithms(options);
     }
 
-    async createDebug({ algorithmName: originalAlgName }) {
-        if ((!originalAlgName)) {
+    async createDebug({ algorithmName }) {
+        if (!algorithmName) {
             throw new InvalidDataError('Node for debug must have algorithm name set');
         }
-        const algorithmName = `${originalAlgName}-${this._kind}`;
-        const debug = await stateManager.getAlgorithm({ name: algorithmName });
+        const newAlgName = `${algorithmName}-${this._kind}`;
+        const debug = await stateManager.getAlgorithm({ name: newAlgName });
         if (debug) {
-            throw new InvalidDataError(`debug ${algorithmName} already exists`);
+            throw new InvalidDataError(`debug ${newAlgName} already exists`);
         }
-        const originalAlg = await stateManager.getAlgorithm({ name: originalAlgName });
+        const originalAlg = await stateManager.getAlgorithm({ name: algorithmName });
         if (!originalAlg) {
-            throw new InvalidDataError(`debug ${originalAlgName} does not exists`);
+            throw new InvalidDataError(`debug ${algorithmName} does not exists`);
         }
-        const debugUrl = `${this._debugUrl}/${originalAlgName}`;
+        const debugUrl = `${this._debugUrl}/${algorithmName}`;
         const algorithm = {
             cpu: originalAlg.cpu,
             mem: originalAlg.mem,
-            name: algorithmName,
+            name: newAlgName,
             debugUrl,
-            debugName: originalAlgName,
+            debugName: algorithmName,
             kind: nodeKind.Debug,
             algorithmImage: 'hkube/algorithm-debug',
             type: buildTypes.IMAGE,
             options: {
-                debug: false,
                 pending: false
             }
         };
         await stateManager.updateAlgorithm(algorithm);
-        return { algorithmName, url: debugUrl };
+        return { algorithmName: newAlgName, url: debugUrl };
     }
 
     async deleteDebug({ pipeline, jobId }) {
