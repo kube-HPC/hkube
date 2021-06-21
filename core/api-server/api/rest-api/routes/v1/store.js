@@ -53,15 +53,6 @@ const routes = (option) => {
         const response = await algorithmStore.insertAlgorithm(req.body);
         res.status(HttpStatus.CREATED).json(response);
     });
-    router.post('/algorithms/debug', async (req, res) => {
-        const algorithm = req.body;
-        const debug = {
-            ...algorithm,
-            options: { debug: true }
-        };
-        const response = await algorithmStore.insertAlgorithm(debug);
-        res.status(HttpStatus.CREATED).json(response);
-    });
     router.put('/algorithms', async (req, res) => {
         const response = await algorithmStore.updateAlgorithm(req.body);
         res.json(response);
