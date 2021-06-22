@@ -83,7 +83,7 @@ describe('Debug', () => {
             if (decodedData.command === 'start') {
                 resolveStart();
             }
-            if (decodedData.command === 'message') {
+            if (decodedData.command === messages.incoming.streamingInMessage) {
                 expect(decodedData.data.payload).to.eq('message2', 'stateful did not get the message')
                 expect(decodedData.data.origin).to.eq('a', 'stateful did not get the origin')
                 sendMessageId = decodedData.data.sendMessageId;
@@ -124,7 +124,7 @@ describe('Debug', () => {
         });
         await promiseMessage;
 
-        socket.send(encoding.encode({ command: messages.outgoing.sendMessage, data: { message: 'myMessage', sendMessageId } }))
+        socket.send(encoding.encode({ command: messages.outgoing.streamingOutMessage, data: { message: 'myMessage', sendMessageId } }))
 
         await promiseMessageForwarded;
         socket.send(encoding.encode({ command: messages.outgoing.done, data: 'return value' }));
