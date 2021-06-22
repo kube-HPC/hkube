@@ -23,7 +23,7 @@ const start = async (options, hkubeApi) => {
     ws.on(messages.outgoing.done, (value) => {
         return this._resolve(value);
     });
-    ws.on(messages.outgoing.doneMessage, ({ sendMessageId }) => {
+    ws.on(messages.outgoing.streamingInMessageDone, ({ sendMessageId }) => {
         if (sendMessageId) {
             delete sendMessageDelegates[sendMessageId];
         }
@@ -34,7 +34,7 @@ const start = async (options, hkubeApi) => {
             this._prevMsgResolve();
         }
     });
-    ws.on(messages.outgoing.sendMessage, ({ message, flowName, sendMessageId }) => {
+    ws.on(messages.outgoing.streamingOutMessage, ({ message, flowName, sendMessageId }) => {
         const sendMessage = sendMessageDelegates[sendMessageId];
         if (flowName) {
             hkubeApi.sendMessage(message, flowName);
@@ -57,7 +57,7 @@ const start = async (options, hkubeApi) => {
                 }
                 const sendMessageId = uid();
                 sendMessageDelegates[sendMessageId] = sendMessage;
-                ws.send({ command: messages.incoming.message, data: { payload, origin, sendMessageId } });
+                ws.send({ command: messages.incoming.streamingInMessage, data: { payload, origin, sendMessageId } });
                 this.prevMessageDone = new Promise((res, rej) => {
                     this._prevMsgResolve = res;
                     this._prevMsgReject = rej;

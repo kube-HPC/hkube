@@ -1,12 +1,12 @@
 module.exports = {
     outgoing: {
         done: 'done',
-        sendMessage: 'sendMessage',
-        doneMessage: 'doneMessage'
+        streamingOutMessage: 'streamingOutMessage',
+        streamingInMessageDone: 'streamingInMessageDone'
     },
     incoming: {
         initialize: 'initialize',
         start: 'start',
-        message: 'message'
+        streamingInMessage: 'streamingInMessage'
     }
 };
