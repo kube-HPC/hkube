@@ -20,6 +20,7 @@ const start = async (options, hkubeApi) => {
     events.on('stop', () => {
         return this._resolve();
     });
+    ws.removeAllListeners();
     ws.on(messages.outgoing.done, (value) => {
         return this._resolve(value);
     });
