@@ -47,7 +47,6 @@ class Gateway extends AlgorithmBase {
             },
             type: buildTypes.IMAGE,
             options: {
-                debug: false,
                 pending: false
             }
         };
