@@ -1551,7 +1551,6 @@ describe('Store/Algorithms', () => {
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
-                        debug: false,
                         pending: false
                     }
                 };
@@ -1583,7 +1582,6 @@ describe('Store/Algorithms', () => {
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
-                        debug: false,
                         pending: false
                     }
                 };
@@ -1730,7 +1728,6 @@ describe('Store/Algorithms', () => {
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
-                        debug: false,
                         pending: false
                     }
                 };
@@ -1762,7 +1759,6 @@ describe('Store/Algorithms', () => {
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
-                        debug: false,
                         pending: false
                     }
                 };
@@ -1794,7 +1790,6 @@ describe('Store/Algorithms', () => {
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
-                        debug: false,
                         pending: false
                     },
                     algorithmEnv: {
