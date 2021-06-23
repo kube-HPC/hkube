@@ -295,7 +295,7 @@ const _fixUrl = (url) => {
 };
 
 const _createURL = (options) => {
-    return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
+    return path.join(_fixUrl(options.registry), options.namespace || options.user).replace(/\s/g, '');
 };
 
 const _createDockerCredsConfig = (envs, docker, packages) => {
@@ -329,19 +329,22 @@ const _createKanikoConfigs = async (envs, tmpFolder, docker) => {
 const _createOpenshiftConfigs = async (envs, tmpFolder, docker, buildId, algorithmImage) => {
     _envsHelper(envs, 'TMP_FOLDER', tmpFolder);
     const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
-    const dockerCredsSecret = {
-        apiVersion: 'v1',
-        data: {
-            '.dockerconfigjson': `${Buffer.from(JSON.stringify(dockerCreds)).toString('base64')}`
-        },
-        kind: 'Secret',
-        metadata: {
-            name: 'build-registry-secret',
-        },
-        type: 'kubernetes.io/dockerconfigjson'
-    };
-    const dockerCredsSecretYaml = jsyaml.dump(dockerCredsSecret);
-    await fse.writeFile(path.join(tmpFolder, 'commands', 'dockerCredsSecret.yaml'), dockerCredsSecretYaml);
+    const hasDockerCreds = Object.keys(dockerCreds.auths).length > 0;
+    if (hasDockerCreds) {
+        const dockerCredsSecret = {
+            apiVersion: 'v1',
+            data: {
+                '.dockerconfigjson': `${Buffer.from(JSON.stringify(dockerCreds)).toString('base64')}`
+            },
+            kind: 'Secret',
+            metadata: {
+                name: 'build-registry-secret',
+            },
+            type: 'kubernetes.io/dockerconfigjson'
+        };
+        const dockerCredsSecretYaml = jsyaml.dump(dockerCredsSecret);
+        await fse.writeFile(path.join(tmpFolder, 'commands', 'dockerCredsSecret.yaml'), dockerCredsSecretYaml);
+    }
     const buildConf = {
         apiVersion: 'build.openshift.io/v1',
         kind: 'BuildConfig',
@@ -362,9 +365,9 @@ const _createOpenshiftConfigs = async (envs, tmpFolder, docker, buildId, algorit
             strategy: {
                 dockerStrategy: {
                     dockerfilePath: './dockerfile/Dockerfile',
-                    pullSecret: {
+                    pullSecret: hasDockerCreds? {
                         name: 'build-registry-secret'
-                    }
+                    } : null
                 },
                 type: 'Docker'
             }

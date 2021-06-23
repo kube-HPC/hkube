@@ -37,14 +37,14 @@ class JobConsumer {
     async _handleJob(job) {
         try {
             const { jobId } = job.data;
-            const pipeline = await persistence.getExecution({ jobId });
+            const jobData = await persistence.getJob({ jobId });
+            const { status, pipeline } = jobData || {};
             if (!pipeline) {
                 throw new Error(`unable to find pipeline for job ${jobId}`);
             }
-            const jobStatus = await persistence.getJobStatus({ jobId });
-            if (jobStatus.status === pipelineStatuses.STOPPED || jobStatus.status === pipelineStatuses.PAUSED) {
+            if (status.status === pipelineStatuses.STOPPED || status.status === pipelineStatuses.PAUSED) {
                 log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
-                this._stopJob(jobId, jobStatus.status);
+                this._stopJob(jobId, status.status);
             }
             else {
                 if (pipeline.maxExceeded) {
