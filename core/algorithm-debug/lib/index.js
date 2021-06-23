@@ -37,35 +37,29 @@ const start = async (options, hkubeApi) => {
     });
     ws.on(messages.outgoing.streamingOutMessage, ({ message, flowName, sendMessageId }) => {
         const sendMessage = sendMessageDelegates[sendMessageId];
-        if (flowName) {
-            hkubeApi.sendMessage(message, flowName);
-        }
-        else if (sendMessage) {
+        if (sendMessage) {
             sendMessage(message);
         }
         else {
-            hkubeApi.sendMessage(message);
+            hkubeApi.sendMessage(message, flowName);
         }
     });
     const optionsCopy = { ...options, kind: pipelineKind.Batch, flatInput: null };
     ws.send({ command: messages.incoming.initialize, data: optionsCopy });
     ws.send({ command: messages.incoming.start, data: optionsCopy });
-    if (options.kind === pipelineKind.Stream) {
-        if (options.stateType !== stateType.Stateless) {
-            hkubeApi.registerInputListener(async ({ payload, origin, sendMessage }) => {
-                if (this.prevMessageDone) {
-                    await this.prevMessageDone;
-                }
-                const sendMessageId = uid();
-                sendMessageDelegates[sendMessageId] = sendMessage;
-                ws.send({ command: messages.incoming.streamingInMessage, data: { payload, origin, sendMessageId } });
-                this.prevMessageDone = new Promise((res, rej) => {
-                    this._prevMsgResolve = res;
-                    this._prevMsgReject = rej;
-                });
+    if (options.kind === pipelineKind.Stream && options.stateType !== stateType.Stateless) {
+        hkubeApi.registerInputListener(async ({ payload, origin, sendMessage }) => {
+            if (this.prevMessageDone) {
+                await this.prevMessageDone;
+            }
+            const sendMessageId = uid();
+            sendMessageDelegates[sendMessageId] = sendMessage;
+            ws.send({ command: messages.incoming.streamingInMessage, data: { payload, origin, sendMessageId } });
+            this.prevMessageDone = new Promise((res) => {
+                this._prevMsgResolve = res;
             });
-            hkubeApi.startMessageListening();
-        }
+        });
+        hkubeApi.startMessageListening();
     }
     return new Promise((res, rej) => {
         this._resolve = res;

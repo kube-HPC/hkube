@@ -9,6 +9,7 @@ const app = require('../lib/app');
 const { Encoding } = require('@hkube/encoding');
 const ws = require('../lib/algorithm-communication/ws');
 const jobs = require('./jobs');
+const { beforeEach } = require('mocha');
 
 
 describe('Debug', () => {
@@ -16,6 +17,10 @@ describe('Debug', () => {
     const encoding = new Encoding({ type: 'bson' });
     before(() => {
         combinedUrl = `ws://${config.debugger.communication.host}:${config.debugger.communication.port}?encoding=bson`;
+    });
+    beforeEach(async () => {
+        const sleep = d => new Promise(r => setTimeout(r, d));
+        await sleep(1000)
     });
     it('streaming stateless init start', async () => {
         const socket = new WebSocket(combinedUrl, {});
@@ -163,8 +168,8 @@ describe('Debug', () => {
         await wrapper._stop({});
         ws.on('connection', async () => {
             await wrapper._init(jobs.jobDataBatch);
-        })
-        wrapper._start({});
+            wrapper._start(jobs.jobDataBatch);
+        });
         await promiseInit;
         await promiseStart;
         socket.send(encoding.encode({ command: messages.outgoing.done, data: 'return value' }));
