@@ -66,10 +66,11 @@ class WsWorkerCommunication extends EventEmitter {
         resolveConnected();
         socket.on('message', (data) => {
             const payload = this._encoding.decode(data);
-            log.debug(`got message ${payload.command}`, { component });
+            log.info(`got message ${payload.command}`, { component });
             this.emit(payload.command, payload.data);
         });
         socket.on('close', (code) => {
+            log.info('Debug connection closed');
             const reason = code === 1006 ? 'CLOSE_ABNORMAL' : `${code}`;
             this._socket = null;
             connectedPromise = new Promise((res) => {

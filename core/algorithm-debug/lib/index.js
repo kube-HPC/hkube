@@ -8,6 +8,7 @@ const events = new EventEmitter();
 const sendMessageDelegates = {};
 
 const init = async () => {
+    log.info('In debug init');
     events.removeAllListeners();
     events.on('stop', () => {
         return this._resolve();
@@ -15,7 +16,7 @@ const init = async () => {
     this.prevMessageDone = null;
 };
 const start = async (options, hkubeApi) => {
-    log.info('in start');
+    log.info('In debug start');
     events.removeAllListeners();
     events.on('stop', () => {
         return this._resolve();
@@ -37,6 +38,7 @@ const start = async (options, hkubeApi) => {
     });
     ws.on(messages.outgoing.streamingOutMessage, ({ message, flowName, sendMessageId }) => {
         const sendMessage = sendMessageDelegates[sendMessageId];
+        log.info(`sending a message, flow:${flowName}`);
         if (sendMessage) {
             sendMessage(message);
         }
@@ -60,6 +62,7 @@ const start = async (options, hkubeApi) => {
             });
         });
         hkubeApi.startMessageListening();
+        log.info('Finished starting handling stateful');
     }
     return new Promise((res, rej) => {
         this._resolve = res;
@@ -68,6 +71,7 @@ const start = async (options, hkubeApi) => {
 };
 
 const stop = async () => {
+    log.info('In debug stop');
     events.emit('stop');
 };
 
