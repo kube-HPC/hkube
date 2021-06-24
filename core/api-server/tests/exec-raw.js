@@ -38,6 +38,22 @@ describe('Executions', () => {
             expect(response.body).not.to.have.property('error');
             expect(response.body).to.have.property('jobId');
         });
+        it('should succeed run caching with debug', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    jobId,
+                    nodeName: 'green',
+                    debug: true
+                }
+            };
+            let response = await request(options);
+            expect(response.body).not.to.have.property('error');
+            expect(response.body).to.have.property('jobId');
+            response = await request(options);
+            expect(response.body.error.message).eq('debug green-alg-debug already exists');
+
+        });
         it('should fail on no jobId', async () => {
             const options = {
                 uri: restPath,
@@ -362,28 +378,6 @@ describe('Executions', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('missing image for algorithm no-image-alg');
-        });
-        it('should not throw missing image for debug algorithm', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'no-image-pipe',
-                    nodes: [
-                        {
-                            nodeName: 'green',
-                            algorithmName: 'eval-alg',
-                            input: ['data']
-                        },
-                        {
-                            nodeName: 'yellow',
-                            algorithmName: 'no-image-alg-debug',
-                            input: ['@green']
-                        }
-                    ]
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('jobId');
         });
         it('should succeed and return job id', async () => {
             const options = {
@@ -790,7 +784,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain(`gateway gateway-${name} already exists`);
+            expect(response.body.error.message).to.contain(`gateway ${name}-gateway already exists`);
         });
         it('should insert two gateway nodes', async () => {
             const options = {
@@ -912,7 +906,7 @@ describe('Executions', () => {
             const res = await request(options);
             const res1 = await request({ uri: `${restUrl}/gateway/${gatewayName}`, method: 'GET' });
             expect(res1.body.gatewayName).to.eql(gatewayName);
-            await gatewayService.deleteGatewaysByJobId({ jobId: res.body.jobId });
+            await gatewayService.deleteGateways({ jobId: res.body.jobId });
             const res2 = await request({ uri: `${restUrl}/gateway/${gatewayName}`, method: 'GET' });
             expect(res2.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(res2.body.error.message).to.contain(`gateway ${gatewayName} Not Found`);

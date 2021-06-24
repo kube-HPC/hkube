@@ -48,8 +48,8 @@ class StateManager {
         return this._db.algorithms.fetch(payload);
     }
 
-    async deleteAlgorithm({ name }) {
-        return this._db.algorithms.delete({ name });
+    async deleteAlgorithm({ name, kind }) {
+        return this._db.algorithms.delete({ name, kind });
     }
 
     async getAlgorithms({ name, names, kind, sort, limit } = {}) {

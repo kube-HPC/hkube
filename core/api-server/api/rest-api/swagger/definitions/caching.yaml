@@ -6,6 +6,9 @@ properties:
     type: string
     description: Unique node identifier
     minLength: 1
+  debug:
+    type: boolean
+    description: Run as debug
 additionalProperties: false
 required:
   - jobId

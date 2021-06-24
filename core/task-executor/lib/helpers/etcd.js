@@ -64,18 +64,16 @@ class Etcd {
             sort: { created: 'desc' },
             limit: 100,
         });
-        const templates = algorithms
-            .filter(a => !a.options || a.options.debug === false)
-            .map((a) => {
-                if (a.mem) {
-                    a.mem = parse.getMemoryInMi(a.mem);
-                }
-                if (a.reservedMemory) {
-                    a.mem += parse.getMemoryInMi(a.reservedMemory);
-                }
+        const templates = algorithms.map((a) => {
+            if (a.mem) {
+                a.mem = parse.getMemoryInMi(a.mem);
+            }
+            if (a.reservedMemory) {
+                a.mem += parse.getMemoryInMi(a.reservedMemory);
+            }
 
-                return a;
-            });
+            return a;
+        });
         return arrayToMap(templates);
     }
 }

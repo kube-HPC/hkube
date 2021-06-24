@@ -220,8 +220,7 @@ const matchWorkersToNodes = (nodeList, workers) => {
     }));
 };
 
-const pauseAccordingToResources = (stopDetails, availableResources, workers, resourcesToFree, skippedRequests) => {
-    // filter out debug workers
+const pauseAccordingToResources = (stopDetails, availableResources, skippedRequests) => {
     const toStop = [];
     if (stopDetails.length === 0) {
         return { toStop };

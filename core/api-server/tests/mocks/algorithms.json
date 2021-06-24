@@ -7,7 +7,6 @@
         "type": "Image",
         "minHotWorkers": 0,
         "options": {
-            "debug": false,
             "pending": false
         }
     },
@@ -18,7 +17,6 @@
         "mem": "6000Mi",
         "minHotWorkers": 0,
         "options": {
-            "debug": false,
             "pending": false
         },
         "gitRepository": {
@@ -37,7 +35,6 @@
         "mem": "6000Mi",
         "minHotWorkers": 0,
         "options": {
-            "debug": false,
             "pending": false
         },
         "gitRepository": {
@@ -56,7 +53,6 @@
         "mem": "1.2Gi",
         "minHotWorkers": 0,
         "options": {
-            "debug": false,
             "pending": false
         },
         "downloadFileExt": "jpg"
@@ -68,7 +64,6 @@
         "mem": "100Mi",
         "minHotWorkers": 0,
         "options": {
-            "debug": false,
             "pending": false
         },
         "downloadFileExt": "png"
@@ -79,8 +74,8 @@
         "cpu": 7.1,
         "mem": "1.2Gi",
         "minHotWorkers": 0,
+        "kind": "debug",
         "options": {
-            "debug": true,
             "pending": false,
             "devMode": true
         }

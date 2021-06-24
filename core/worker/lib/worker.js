@@ -36,7 +36,6 @@ class Worker {
         this._registerToConnectionEvents();
         this._options = options;
         this._podName = options.kubernetes.pod_name;
-        this._debugMode = options.debugMode;
         this._devMode = options.devMode;
         this._servingReportInterval = options.servingReportInterval;
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
@@ -54,7 +53,7 @@ class Worker {
 
     _initAlgorithmSettings() {
         const { storage: algorithmStorage, encoding: algorithmEncoding } = this._algorithmSettings;
-        const storage = (!this._debugMode && algorithmStorage) || this._options.defaultStorageProtocol;
+        const storage = algorithmStorage || this._options.defaultStorageProtocol;
         const encoding = algorithmEncoding || this._options.defaultWorkerAlgorithmEncoding;
         storageHelper.setStorageType(storage);
         execAlgorithms.setStorageType(storage);
@@ -273,10 +272,6 @@ class Worker {
     }
 
     async _algorithmDisconnect(reason) {
-        if (this._debugMode) {
-            stateManager.done({ error: { message: `algorithm has disconnected ${reason}` } });
-            return;
-        }
         if (this._devMode) {
             return;
         }
@@ -473,7 +468,7 @@ class Worker {
     }
 
     async handleExit(code, jobId) {
-        if (this._debugMode || this._inTerminationMode) {
+        if (this._inTerminationMode) {
             return;
         }
         this._inTerminationMode = true;
@@ -544,9 +539,6 @@ class Worker {
     }
 
     _handleTimeout(state) {
-        if (this._debugMode) {
-            return;
-        }
         if (state === workerStates.ready) {
             this._clearInactiveTimeout();
             if (!jobConsumer.hotWorker && this._inactiveTimeoutMs != 0) { // eslint-disable-line

@@ -3,7 +3,7 @@ const cloneDeep = require('lodash.clonedeep');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 const { uid } = require('@hkube/uid');
-const { pipelineTypes, pipelineStatuses } = require('@hkube/consts');
+const { pipelineTypes, pipelineStatuses, nodeKind } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const storageManager = require('@hkube/storage-manager');
 const cachingService = require('./caching');
@@ -11,6 +11,8 @@ const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const pipelineCreator = require('./pipeline-creator');
+const gatewayService = require('./gateway');
+const debugService = require('./debug');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 const PausedState = [pipelineStatuses.PAUSED];
 
@@ -27,7 +29,7 @@ class ExecutionService {
 
     async runCaching(options) {
         validator.executions.validateCaching(options);
-        const pipeline = await cachingService.exec({ jobId: options.jobId, nodeName: options.nodeName });
+        const pipeline = await cachingService.exec({ jobId: options.jobId, nodeName: options.nodeName, debug: options.debug });
         let { rootJobId } = pipeline;
         if (!rootJobId) {
             rootJobId = pipeline.jobId;
@@ -80,6 +82,7 @@ class ExecutionService {
         try {
             validator.pipelines.validatePipelineNodes(pipeline);
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
+            pipeline = await pipelineCreator.updateDebug(pipeline);
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline, jobId);
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
@@ -104,6 +107,8 @@ class ExecutionService {
             return { jobId, gateways: pipeline.streaming?.gateways };
         }
         catch (error) {
+            gatewayService.deleteGateways({ pipeline });
+            debugService.deleteDebug({ pipeline });
             span.finish(error);
             throw error;
         }
@@ -116,7 +121,7 @@ class ExecutionService {
     _addTypesByAlgorithms(algorithms, types) {
         const newTypes = new Set();
         algorithms.forEach((v) => {
-            if (v.options.debug) {
+            if (v.kind === nodeKind.Debug) {
                 newTypes.add(pipelineTypes.DEBUG);
             }
             if (v.options.devMode) {
