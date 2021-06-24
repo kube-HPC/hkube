@@ -6,7 +6,6 @@ const defaultProps = {
     type: 'Image',
     minHotWorkers: 0,
     options: {
-        debug: false,
         pending: false
     }
 };

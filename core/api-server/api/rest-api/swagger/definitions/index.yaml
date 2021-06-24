@@ -1,7 +1,5 @@
 algorithm:
   $ref: ./algorithm.yaml
-algorithmDebug:
-  $ref: ./algorithmDebug.yaml
 algorithmName:
   $ref: ./algorithmName.yaml
 algorithmImage:

@@ -170,10 +170,6 @@ class AlgorithmStore {
         if (!newAlgorithm.algorithmImage && buildId && !oldAlgorithm) {
             newAlgorithm.options.pending = true;
         }
-        if (newAlgorithm.options.debug) {
-            newAlgorithm.data = { ...newAlgorithm.data, path: `${this._debugUrl}/${newAlgorithm.name}` };
-        }
-
         if (!newAlgorithm.reservedMemory) {
             const memInMb = unitsConverter.getMemoryInMi(newAlgorithm.mem);
             const reservedMemory = Math.ceil(memInMb * this._defaultAlgorithmReservedMemoryRatio);
@@ -215,7 +211,7 @@ class AlgorithmStore {
     }
 
     _validateApplyParams(newAlgorithm) {
-        if (!newAlgorithm.options.debug && !newAlgorithm.algorithmImage && !newAlgorithm.fileInfo && !newAlgorithm.gitRepository) {
+        if (!newAlgorithm.algorithmImage && !newAlgorithm.fileInfo && !newAlgorithm.gitRepository) {
             throw new InvalidDataError(MESSAGES.APPLY_ERROR);
         }
     }

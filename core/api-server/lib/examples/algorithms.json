@@ -5,7 +5,6 @@
         "cpu": 0.5,
         "mem": "512Mi",
         "options": {
-            "debug": false,
             "pending": false
         },
         "minHotWorkers": 0,
@@ -17,7 +16,6 @@
         "cpu": 0.1,
         "mem": "256Mi",
         "options": {
-            "debug": false,
             "pending": false
         },
         "minHotWorkers": 0,
@@ -29,7 +27,6 @@
         "cpu": 0.1,
         "mem": "256Mi",
         "options": {
-            "debug": false,
             "pending": false
         },
         "minHotWorkers": 0,
@@ -41,7 +38,6 @@
         "cpu": 0.1,
         "mem": "256Mi",
         "options": {
-            "debug": false,
             "pending": false
         },
         "minHotWorkers": 0,

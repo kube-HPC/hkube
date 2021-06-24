@@ -12,7 +12,6 @@ config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
 config.hotWorker = formatters.parseBool(process.env.HOT_WORKER);
-config.debugMode = formatters.parseBool(process.env.DEBUG_MODE);
 config.devMode = formatters.parseBool(process.env.DEV_MODE);
 
 config.workerImage = process.env.WORKER_IMAGE;

@@ -1551,7 +1551,6 @@ describe('Store/Algorithms', () => {
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
-                        debug: false,
                         pending: false
                     }
                 };
@@ -1583,7 +1582,6 @@ describe('Store/Algorithms', () => {
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
-                        debug: false,
                         pending: false
                     }
                 };
@@ -1730,7 +1728,6 @@ describe('Store/Algorithms', () => {
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
-                        debug: false,
                         pending: false
                     }
                 };
@@ -1762,7 +1759,6 @@ describe('Store/Algorithms', () => {
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
-                        debug: false,
                         pending: false
                     }
                 };
@@ -1794,7 +1790,6 @@ describe('Store/Algorithms', () => {
                     cpu: 1,
                     minHotWorkers: 5,
                     options: {
-                        debug: false,
                         pending: false
                     },
                     algorithmEnv: {
@@ -2100,21 +2095,6 @@ describe('Store/Algorithms', () => {
             const response = await request(options);
             expect(response.body.version).to.be.exist;
             expect(response.body.algorithmImage).to.not.eql(body.algorithmImage);
-        });
-    });
-    describe('/store/algorithms/debug POST', () => {
-        it('should succeed to set debugUrl', async () => {
-            const body = {
-                name: uuid()
-            };
-            const options = {
-                uri: debugRestUrl,
-                body
-            };
-            const response = await request(options);
-            const { data } = response.body;
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
-            expect(data.path).to.eql(pathLib.join(process.env.INGRESS_PREFIX || '', 'hkube', 'debug', body.name));
         });
     });
 });

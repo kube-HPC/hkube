@@ -53,15 +53,6 @@ const routes = (option) => {
         const response = await algorithmStore.insertAlgorithm(req.body);
         res.status(HttpStatus.CREATED).json(response);
     });
-    router.post('/algorithms/debug', async (req, res) => {
-        const algorithm = req.body;
-        const debug = {
-            ...algorithm,
-            options: { debug: true }
-        };
-        const response = await algorithmStore.insertAlgorithm(debug);
-        res.status(HttpStatus.CREATED).json(response);
-    });
     router.put('/algorithms', async (req, res) => {
         const response = await algorithmStore.updateAlgorithm(req.body);
         res.json(response);
@@ -71,11 +62,6 @@ const routes = (option) => {
         const { force } = req.query;
         const message = await algorithmStore.deleteAlgorithm({ name, force });
         res.json({ message });
-    });
-    router.delete('/algorithms/debug/:name', async (req, res) => {
-        const { name } = req.params;
-        await algorithmStore.deleteAlgorithm({ name });
-        res.json({ message: 'OK' });
     });
     router.post('/algorithms/apply', upload.single('file'), async (req, res) => {
         const { file } = req;

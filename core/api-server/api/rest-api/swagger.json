@@ -4164,11 +4164,6 @@
                     "options": {
                       "type": "object",
                       "properties": {
-                        "debug": {
-                          "type": "boolean",
-                          "description": "debug algorithm locally",
-                          "default": false
-                        },
                         "devMode": {
                           "type": "boolean",
                           "description": "runs algorithm with mounted sources to allow rapid development cycles"
@@ -4512,206 +4507,6 @@
         }
       }
     },
-    "/store/algorithms/debug/{name}": {
-      "delete": {
-        "tags": [
-          "StoreAlgorithms"
-        ],
-        "summary": "Delete debug algorithm",
-        "description": "Delete existing algorithm from store",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "algorithm name to get from the store",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "action summery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "algorithm Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/store/algorithms/debug": {
-      "post": {
-        "tags": [
-          "StoreAlgorithms"
-        ],
-        "summary": "Insert debug algorithm",
-        "description": "Insert new debug algorithm to store if not exists",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Unique identifier representing a specific algorithm",
-                    "minLength": 1,
-                    "maxLength": 32,
-                    "format": "algorithm-name"
-                  }
-                },
-                "required": [
-                  "name"
-                ]
-              }
-            }
-          },
-          "description": "algorithm descriptor to be added to the store",
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "algorithm created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "pipeline conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/store/algorithms": {
       "get": {
         "tags": [
@@ -4786,11 +4581,6 @@
                       "options": {
                         "type": "object",
                         "properties": {
-                          "debug": {
-                            "type": "boolean",
-                            "description": "debug algorithm locally",
-                            "default": false
-                          },
                           "devMode": {
                             "type": "boolean",
                             "description": "runs algorithm with mounted sources to allow rapid development cycles"
@@ -5055,11 +4845,6 @@
                   "options": {
                     "type": "object",
                     "properties": {
-                      "debug": {
-                        "type": "boolean",
-                        "description": "debug algorithm locally",
-                        "default": false
-                      },
                       "devMode": {
                         "type": "boolean",
                         "description": "runs algorithm with mounted sources to allow rapid development cycles"
@@ -5379,11 +5164,6 @@
                   "options": {
                     "type": "object",
                     "properties": {
-                      "debug": {
-                        "type": "boolean",
-                        "description": "debug algorithm locally",
-                        "default": false
-                      },
                       "devMode": {
                         "type": "boolean",
                         "description": "runs algorithm with mounted sources to allow rapid development cycles"
@@ -5689,11 +5469,6 @@
                       "options": {
                         "type": "object",
                         "properties": {
-                          "debug": {
-                            "type": "boolean",
-                            "description": "debug algorithm locally",
-                            "default": false
-                          },
                           "devMode": {
                             "type": "boolean",
                             "description": "runs algorithm with mounted sources to allow rapid development cycles"
@@ -5963,11 +5738,6 @@
                         "options": {
                           "type": "object",
                           "properties": {
-                            "debug": {
-                              "type": "boolean",
-                              "description": "debug algorithm locally",
-                              "default": false
-                            },
                             "devMode": {
                               "type": "boolean",
                               "description": "runs algorithm with mounted sources to allow rapid development cycles"
@@ -10849,11 +10619,6 @@
                       "options": {
                         "type": "object",
                         "properties": {
-                          "debug": {
-                            "type": "boolean",
-                            "description": "debug algorithm locally",
-                            "default": false
-                          },
                           "devMode": {
                             "type": "boolean",
                             "description": "runs algorithm with mounted sources to allow rapid development cycles"
@@ -11186,11 +10951,6 @@
                       "options": {
                         "type": "object",
                         "properties": {
-                          "debug": {
-                            "type": "boolean",
-                            "description": "debug algorithm locally",
-                            "default": false
-                          },
                           "devMode": {
                             "type": "boolean",
                             "description": "runs algorithm with mounted sources to allow rapid development cycles"
@@ -13671,11 +13431,6 @@
           "options": {
             "type": "object",
             "properties": {
-              "debug": {
-                "type": "boolean",
-                "description": "debug algorithm locally",
-                "default": false
-              },
               "devMode": {
                 "type": "boolean",
                 "description": "runs algorithm with mounted sources to allow rapid development cycles"
@@ -13849,21 +13604,6 @@
             "type": "string",
             "nullable": true,
             "description": "the extension name that will be attached to a file when downloading algorithm result"
-          }
-        },
-        "required": [
-          "name"
-        ]
-      },
-      "algorithmDebug": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Unique identifier representing a specific algorithm",
-            "minLength": 1,
-            "maxLength": 32,
-            "format": "algorithm-name"
           }
         },
         "required": [
@@ -14061,11 +13801,6 @@
               "options": {
                 "type": "object",
                 "properties": {
-                  "debug": {
-                    "type": "boolean",
-                    "description": "debug algorithm locally",
-                    "default": false
-                  },
                   "devMode": {
                     "type": "boolean",
                     "description": "runs algorithm with mounted sources to allow rapid development cycles"

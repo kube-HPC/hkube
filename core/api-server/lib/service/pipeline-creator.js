@@ -3,6 +3,7 @@ const { NodesMap: DAG } = require('@hkube/dag');
 const { parser, consts } = require('@hkube/parsers');
 const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
 const gatewayService = require('./gateway');
+const debugService = require('./debug');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
@@ -92,6 +93,17 @@ class PipelineCreator {
         return newPipeline;
     }
 
+    async updateDebug(pipeline) {
+        for (const node of pipeline.nodes) {// eslint-disable-line
+            if (node.kind === nodeKind.Debug) {
+                const { algorithmName } = node;
+                const { algorithmName: newAlgorithmName } = await debugService.createDebug({ algorithmName }); // eslint-disable-line
+                node.algorithmName = newAlgorithmName;
+            }
+        }
+        return pipeline;
+    }
+
     /**
      * This method accept pipeline and check if it is streaming with flows.
      * If it has flows, it creates edges and parsed flow.
@@ -133,6 +145,7 @@ class PipelineCreator {
             [defaultFlow] = Object.keys(flows);
         }
         let gateways;
+
         for (const node of pipeline.nodes) { // eslint-disable-line
             const type = node.stateType || stateType.Stateless;
             node.retry = StreamRetryPolicy[type];
@@ -143,7 +156,7 @@ class PipelineCreator {
                 }
                 const { nodeName, spec } = node;
                 const { algorithmName, url } = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
-                node.algorithmName = algorithmName; // eslint-disable-line
+                node.algorithmName = algorithmName;
                 gateways.push({ nodeName, url });
             }
         }
