@@ -25,6 +25,11 @@ const nodes = [
         nodeName: 'D',
         algorithmName: 'green-alg',
         input: [],
+    },
+    {
+        nodeName: 'E',
+        algorithmName: 'green-alg',
+        input: [],
         stateType: 'stateful'
     }
 ];
@@ -201,7 +206,7 @@ describe.only('Streaming', () => {
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal('invalid relation found A >> A in flow analyze');
         });
-        it.only('should not throw invalid relation found', async () => {
+        it('should not throw invalid relation found', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -211,6 +216,23 @@ describe.only('Streaming', () => {
                     streaming: {
                         flows: {
                             analyze: 'A >> B >> C >> B >> A'
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body).to.have.property('jobId');
+        });
+        it.only('should not throw invalid relation found', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: 'stream',
+                    nodes,
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B >> C >> D, A >> C >> E'
                         }
                     }
                 }

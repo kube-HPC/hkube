@@ -45,13 +45,13 @@ properties:
       flows:
         type: object
         description: define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like "A >> B&C , B >> D
-        example: 
+        example:
           main: A >> B&C , B >> D
           second: A >> B >> C
   edges:
     type: array
     description: edges define relation between nodes
     items: {}
-    example: [{source: A, target: B}]
+    example: [{ source: A, target: B }]
 required:
   - name

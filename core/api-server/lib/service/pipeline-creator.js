@@ -178,33 +178,27 @@ class PipelineCreator {
                             throw new InvalidDataError(`invalid node ${s} in stream flow ${k}`);
                         }
                         const next = [];
-                        targets?.forEach((t) => {
-                            if (s === t) {
-                                throw new InvalidDataError(`invalid relation found ${s} >> ${t} in flow ${k}`);
-                            }
-                            next.push(t);
-                            const edgeKey = `${s}->${t}`;
-                            const flowEdge = flowEdges[edgeKey];
-                            if (flowEdge) {
-                                throw new InvalidDataError(`duplicate relation found ${s} >> ${t} in flow ${k}`);
-                            }
-                            const edgeValue = { source: s, target: t, types: [consts.relations.CUSTOM_STREAM] };
-                            flowEdges[edgeKey] = edgeValue;
+                        if (targets?.length) {
+                            targets.forEach((t) => {
+                                if (s === t) {
+                                    throw new InvalidDataError(`invalid relation found ${s} >> ${t} in flow ${k}`);
+                                }
+                                next.push(t);
+                                const edgeKey = `${s}->${t}`;
+                                const flowEdge = flowEdges[edgeKey];
+                                if (flowEdge) {
+                                    throw new InvalidDataError(`duplicate relation found ${s} >> ${t} in flow ${k}`);
+                                }
+                                const edgeValue = { source: s, target: t, types: [consts.relations.CUSTOM_STREAM] };
+                                flowEdges[edgeKey] = edgeValue;
 
-                            const edge = edges.find(d => d.source === s && d.target === t);
-                            if (!edge) {
-                                edges.push(edgeValue);
-                            }
-
-                            const fl = flow.find(f => f.source === s);
-                            if (fl) {
-                                fl.next.push(t);
-                            }
-                            else {
-                                flow.push({ source: s, next: [t] });
-                            }
-                        });
-                        // flow.push({ source: s, next });
+                                const edge = edges.find(d => d.source === s && d.target === t);
+                                if (!edge) {
+                                    edges.push(edgeValue);
+                                }
+                            });
+                            flow.push({ source: s, next });
+                        }
                     });
                 });
             });
