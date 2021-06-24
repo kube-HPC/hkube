@@ -25,16 +25,11 @@ const nodes = [
         nodeName: 'D',
         algorithmName: 'green-alg',
         input: [],
-    },
-    {
-        nodeName: 'E',
-        algorithmName: 'green-alg',
-        input: [],
         stateType: 'stateful'
     }
 ];
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
     });
@@ -143,7 +138,7 @@ describe.only('Streaming', () => {
                     streaming: {
                         flows: {
                             analyze1: 'A >> B >> C >> D >> B >> A',
-                            analyze2: 'A >> B&C , C >> D',
+                            analyze2: 'A >> B&C >> D',
                         }
                     }
                 }
@@ -161,7 +156,7 @@ describe.only('Streaming', () => {
                     nodes,
                     streaming: {
                         flows: {
-                            analyze: 'A >> B, A >> C, A >> B'
+                            analyze: 'A >> B >> C >> A >> B'
                         }
                     }
                 }
@@ -169,24 +164,6 @@ describe.only('Streaming', () => {
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal('duplicate relation found A >> B in flow analyze');
-        });
-        it('should throw on multiple sources', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'streaming-flow',
-                    kind: 'stream',
-                    nodes,
-                    streaming: {
-                        flows: {
-                            analyze: 'A >> B >> C, D >> B'
-                        }
-                    }
-                }
-            };
-            const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal('flow analyze has 2 sources (A,D) each flow should has exactly one source');
         });
         it('should throw invalid relation found', async () => {
             const options = {
@@ -197,7 +174,7 @@ describe.only('Streaming', () => {
                     nodes,
                     streaming: {
                         flows: {
-                            analyze: 'A >> B >> C, A >> A'
+                            analyze: 'A >> A'
                         }
                     }
                 }
@@ -216,40 +193,6 @@ describe.only('Streaming', () => {
                     streaming: {
                         flows: {
                             analyze: 'A >> B >> C >> B >> A'
-                        }
-                    }
-                }
-            };
-            const res = await request(options);
-            expect(res.body).to.have.property('jobId');
-        });
-        it.only('should not throw invalid relation found', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'streaming-flow',
-                    kind: 'stream',
-                    nodes,
-                    streaming: {
-                        flows: {
-                            analyze: 'A >> B >> C >> D, A >> C >> E'
-                        }
-                    }
-                }
-            };
-            const res = await request(options);
-            expect(res.body).to.have.property('jobId');
-        });
-        it('should succeed to execute with multi nodes', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'streaming-flow',
-                    kind: 'stream',
-                    nodes,
-                    streaming: {
-                        flows: {
-                            analyze: 'A >> B >> C, B >> D'
                         }
                     }
                 }
@@ -322,7 +265,7 @@ describe.only('Streaming', () => {
                     streaming: {
                         flows: {
                             analyze0: 'A >> B >> C >> D >> B >> A',
-                            analyze1: 'A >> B&C , C >> D',
+                            analyze1: 'A >> B&C >> D',
                             analyze2: 'A >> B&C >> D',
                             analyze3: 'A >> B >> C >> D >> A',
                             analyze4: 'A >> B&C&D >> E'
@@ -373,7 +316,7 @@ describe.only('Streaming', () => {
         before(() => {
             restPath = `${restUrl}/exec/raw`;
         });
-        it('should throw duplicate gateway nodes', async () => {
+        it.only('should throw duplicate gateway nodes', async () => {
             const name = `gate-name-${uid()}`;
             const options = {
                 uri: restPath,
@@ -401,7 +344,7 @@ describe.only('Streaming', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain(`gateway gateway-${name} already exists`);
+            expect(response.body.error.message).to.contain(`gateway ${name}-gateway already exists`);
         });
         it('should insert two gateway nodes', async () => {
             const options = {
@@ -523,7 +466,7 @@ describe.only('Streaming', () => {
             const res = await request(options);
             const res1 = await request({ uri: `${restUrl}/gateway/${gatewayName}`, method: 'GET' });
             expect(res1.body.gatewayName).to.eql(gatewayName);
-            await gatewayService.deleteGatewaysByJobId({ jobId: res.body.jobId });
+            await gatewayService.deleteAlgorithms({ jobId: res.body.jobId });
             const res2 = await request({ uri: `${restUrl}/gateway/${gatewayName}`, method: 'GET' });
             expect(res2.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(res2.body.error.message).to.contain(`gateway ${gatewayName} Not Found`);
@@ -650,7 +593,7 @@ describe.only('Streaming', () => {
                 streaming: {
                     flows: {
                         analyze0: 'A >> B >> C >> D >> B >> A',
-                        analyze1: 'A >> B&C , C >> D',
+                        analyze1: 'A >> B&C >> D',
                         analyze2: 'A >> B&C >> D',
                         analyze3: 'A >> B >> C >> D >> A',
                         analyze4: 'A >> B&C&D >> E'
