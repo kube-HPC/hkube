@@ -316,7 +316,7 @@ describe('Streaming', () => {
         before(() => {
             restPath = `${restUrl}/exec/raw`;
         });
-        it.only('should throw duplicate gateway nodes', async () => {
+        it('should throw duplicate gateway nodes', async () => {
             const name = `gate-name-${uid()}`;
             const options = {
                 uri: restPath,
