@@ -95,6 +95,8 @@ describe('Executions', () => {
             expect(response).to.have.property('jobId');
             const {body: job}=await getJob(response.jobId);
             expect(job.nodes[0].kind).to.eql('algorithm');
+            expect(job.types).to.not.contain('debug');
+            expect(job.types).to.contain('algorithm');
         });
         it('should set debug nodeKind', async () => {
             const options = {
@@ -108,6 +110,8 @@ describe('Executions', () => {
             const {body: response} = await request(options);
             const {body: job}=await getJob(response.jobId);
             expect(job.nodes[0].kind).to.eql('debug');
+            expect(job.types).to.contain('debug');
+            expect(job.types).to.contain('algorithm');
         });
     });
 });

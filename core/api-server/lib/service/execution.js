@@ -51,7 +51,11 @@ class ExecutionService {
                 kind: debug ? nodeKind.Debug : nodeKind.Algorithm
             }]
         };
-        return this._run({ pipeline, types: [pipelineTypes.ALGORITHM] });
+        const types = [pipelineTypes.ALGORITHM];
+        if (debug) {
+            types.push(pipelineTypes.DEBUG);
+        }
+        return this._run({ pipeline, types });
     }
 
     async _runStored(options) {
