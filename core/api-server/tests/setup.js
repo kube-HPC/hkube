@@ -26,7 +26,7 @@ before(async function () {
     };
 });
 
-after(async function () {
+after(async () => {
     const redis = Factory.getClient(config.redis);
     await redis.flushall();
     await stateManager._etcd._client.client.delete().all();

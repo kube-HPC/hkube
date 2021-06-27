@@ -2,7 +2,6 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const nock = require('nock');
 const HttpStatus = require('http-status-codes');
-const pathLib = require('path');
 const merge = require('lodash.merge');
 const { uid: uuid } = require('@hkube/uid');
 const stateManager = require('../lib/state/state-manager');
@@ -14,7 +13,7 @@ const { algorithms } = require('./mocks');
 const nodes = require('./mocks/nodes.json');
 const { request, delay, defaultProps } = require('./utils');
 const commit = require('./mocks/github-commit.json');
-let restUrl, restPath, applyPath, debugRestUrl, versionsPath;
+let restUrl, restPath, applyPath, versionsPath;
 
 const baseApi = 'https://api.github.com';
 const gitRepo = 'https://github.com/kube-HPC/hkube';
@@ -27,7 +26,6 @@ describe('Store/Algorithms', () => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/store/algorithms`;
         applyPath = `${restPath}/apply`;
-        debugRestUrl = `${restPath}/debug`;
         versionsPath = `${restUrl}/versions/algorithms`;
         nock(baseApi).persist().get(emptyGit).query(true).reply(HttpStatus.BAD_REQUEST, 'Git Repository is empty');
         nock(baseApi).persist().get(fullGit).query(true).reply(HttpStatus.OK, commit.data);

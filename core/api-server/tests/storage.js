@@ -12,9 +12,9 @@ let encoding;
 
 describe('Storage', () => {
     before(async () => {
+        const { config } = global.testParams;
         restUrl = global.testParams.restUrl;
-        maxStorageFetchKeys = global.testParams.config.maxStorageFetchKeys;
-        const config = global.testParams.config;
+        maxStorageFetchKeys = config.maxStorageFetchKeys;
         const storage = config.storageAdapters[config.defaultStorage];
         encoding = new Encoding({ type: storage.encoding });
     });

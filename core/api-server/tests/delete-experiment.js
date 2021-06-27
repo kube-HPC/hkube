@@ -3,7 +3,6 @@ const HttpStatus = require('http-status-codes');
 const { uid } = require('@hkube/uid');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../lib/state/state-manager');
-const WebhookTypes = require('../lib/webhook/States').Types;
 const { request } = require('./utils');
 let restUrl;
 

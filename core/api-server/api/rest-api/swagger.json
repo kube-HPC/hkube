@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.8",
+    "version": "2.1.14",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -417,9 +417,9 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                         "example": {
-                          "main": "A >> B&C , B >> D",
+                          "main": "A >> B&C | B >> D | C >> E",
                           "second": "A >> B >> C"
                         }
                       }
@@ -856,9 +856,9 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                         "example": {
-                          "main": "A >> B&C , B >> D",
+                          "main": "A >> B&C | B >> D | C >> E",
                           "second": "A >> B >> C"
                         }
                       }
@@ -986,6 +986,10 @@
                     "type": "string",
                     "description": "Unique node identifier",
                     "minLength": 1
+                  },
+                  "debug": {
+                    "type": "boolean",
+                    "description": "Run as debug"
                   }
                 },
                 "additionalProperties": false,
@@ -2206,9 +2210,9 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                           "example": {
-                            "main": "A >> B&C , B >> D",
+                            "main": "A >> B&C | B >> D | C >> E",
                             "second": "A >> B >> C"
                           }
                         }
@@ -2644,9 +2648,9 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                           "example": {
-                            "main": "A >> B&C , B >> D",
+                            "main": "A >> B&C | B >> D | C >> E",
                             "second": "A >> B >> C"
                           }
                         }
@@ -6331,9 +6335,9 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                           "example": {
-                            "main": "A >> B&C , B >> D",
+                            "main": "A >> B&C | B >> D | C >> E",
                             "second": "A >> B >> C"
                           }
                         }
@@ -6872,9 +6876,9 @@
                           },
                           "flows": {
                             "type": "object",
-                            "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                            "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                             "example": {
-                              "main": "A >> B&C , B >> D",
+                              "main": "A >> B&C | B >> D | C >> E",
                               "second": "A >> B >> C"
                             }
                           }
@@ -7269,9 +7273,9 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                         "example": {
-                          "main": "A >> B&C , B >> D",
+                          "main": "A >> B&C | B >> D | C >> E",
                           "second": "A >> B >> C"
                         }
                       }
@@ -7642,9 +7646,9 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                           "example": {
-                            "main": "A >> B&C , B >> D",
+                            "main": "A >> B&C | B >> D | C >> E",
                             "second": "A >> B >> C"
                           }
                         }
@@ -8076,9 +8080,9 @@
                       },
                       "flows": {
                         "type": "object",
-                        "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                        "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                         "example": {
-                          "main": "A >> B&C , B >> D",
+                          "main": "A >> B&C | B >> D | C >> E",
                           "second": "A >> B >> C"
                         }
                       }
@@ -8449,9 +8453,9 @@
                         },
                         "flows": {
                           "type": "object",
-                          "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                          "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                           "example": {
-                            "main": "A >> B&C , B >> D",
+                            "main": "A >> B&C | B >> D | C >> E",
                             "second": "A >> B >> C"
                           }
                         }
@@ -14077,6 +14081,10 @@
             "type": "string",
             "description": "Unique node identifier",
             "minLength": 1
+          },
+          "debug": {
+            "type": "boolean",
+            "description": "Run as debug"
           }
         },
         "additionalProperties": false,
@@ -14617,9 +14625,9 @@
               },
               "flows": {
                 "type": "object",
-                "description": "define streaming flow in simple syntax, if node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D",
+                "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
                 "example": {
-                  "main": "A >> B&C , B >> D",
+                  "main": "A >> B&C | B >> D | C >> E",
                   "second": "A >> B >> C"
                 }
               }

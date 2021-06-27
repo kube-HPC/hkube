@@ -9,7 +9,6 @@ let restUrl;
 describe('Graph', () => {
     before(async () => {
         restUrl = global.testParams.restUrl;
-        internalUrl = global.testParams.internalUrl;
         await graphService.setGraph({ jobId: graph.jobId, data: graph });
     });
     describe('/graph/raw', () => {

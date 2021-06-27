@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { uid: uuid } = require('@hkube/uid');
 const HttpStatus = require('http-status-codes');
-const { request, defaultProps } = require('./utils');
+const { request } = require('./utils');
 let restUrl, restPath;
 
 describe('Versions/Algorithms', () => {
@@ -142,7 +142,7 @@ describe('Versions/Algorithms', () => {
             expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(res.body.error.message).to.equal(`algorithm ${body.name} Not Found`);
         });
-        it('should throw error of running pipelines dependent on algorithm', async function () {
+        it('should throw error of running pipelines dependent on algorithm', async () => {
             const name = `my-alg-${uuid()}`;
             const algorithmImage1 = 'test-algorithmImage-1';
             const algorithmImage2 = 'test-algorithmImage-2';

@@ -585,7 +585,7 @@
         ]
     },
     {
-        "name": "streaming",
+        "name": "streaming-fail",
         "kind": "stream",
         "nodes": [
             {
@@ -601,10 +601,29 @@
                 "stateType": "stateless"
             }
         ],
-        "flowInput": {
-            "msgPerSec": 50,
-            "delay": 0.01
-        },
+        "streaming": {
+            "flows": {
+                "analyze": "A >> Z"
+            }
+        }
+    },
+    {
+        "name": "streaming-success",
+        "kind": "stream",
+        "nodes": [
+            {
+                "nodeName": "A",
+                "algorithmName": "green-alg",
+                "input": [],
+                "stateType": "stateful"
+            },
+            {
+                "nodeName": "Z",
+                "algorithmName": "green-alg",
+                "input": [],
+                "stateType": "stateless"
+            }
+        ],
         "streaming": {
             "flows": {
                 "analyze": "A >> Z"

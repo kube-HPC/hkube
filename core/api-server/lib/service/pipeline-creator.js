@@ -8,7 +8,7 @@ const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 const SEPARATORS = {
-    EXPRESSION: ',',
+    EXPRESSION: '|',
     RELATION: '>>',
     AND: '&'
 };
@@ -111,17 +111,19 @@ class PipelineCreator {
      * input
      *   streaming: {
      *        flows: {
-     *           analyze: "A >> B&C , C >> D"
+     *           analyze: "A >> B&C >> D"
      *        }}
      *
      * output
      *   edges: [{"source":"A","target":"B"},
      *           {"source":"A","target":"C"},
-     *           {"source":"C","target":"D"}]
+     *           {"source":"B","target":"D"},
+     *            {"source":"C","target":"D"}]
      *
      *   streaming: {
      *        parsedFlow: {
      *           analyze: [{ source: "A", next: ["B", "C"]}
+     *                     { source: "B", next: ["D"]}
      *                     { source: "C", next: ["D"]}]
      *        }}
      *
@@ -135,14 +137,15 @@ class PipelineCreator {
             }
             return pipeline;
         }
-        if (!flows) {
+        if (!flows || Object.keys(flows).length === 0) {
             throw new InvalidDataError('please specify a stream flow');
         }
         if (!defaultFlow) {
-            if (Object.keys(flows).length > 1) {
+            const flowNames = Object.keys(flows);
+            if (flowNames.length > 1) {
                 throw new InvalidDataError('please specify a default stream flow');
             }
-            [defaultFlow] = Object.keys(flows);
+            [defaultFlow] = flowNames;
         }
         let gateways;
 
@@ -169,6 +172,7 @@ class PipelineCreator {
                 throw new InvalidDataError(`invalid stream flow ${k}`);
             }
             const flow = [];
+            const flowEdges = {};
             const expressions = v.replace(/\s/g, '').split(SEPARATORS.EXPRESSION);
             expressions.forEach((e) => {
                 const parts = e.split(SEPARATORS.RELATION);
@@ -188,20 +192,41 @@ class PipelineCreator {
                         if (!node) {
                             throw new InvalidDataError(`invalid node ${s} in stream flow ${k}`);
                         }
-                        if (targets?.length > 0) {
-                            const next = [];
+                        if (targets?.length) {
                             targets.forEach((t) => {
-                                next.push(t);
+                                const edgeKey = `${s} >> ${t}`;
+                                if (s === t) {
+                                    throw new InvalidDataError(`invalid relation found ${edgeKey} in flow ${k}`);
+                                }
+                                const flowEdge = flowEdges[edgeKey];
+                                if (flowEdge) {
+                                    throw new InvalidDataError(`duplicate relation found ${edgeKey} in flow ${k}`);
+                                }
+                                const edgeValue = { source: s, target: t, types: [consts.relations.CUSTOM_STREAM] };
+                                flowEdges[edgeKey] = edgeValue;
+
                                 const edge = edges.find(d => d.source === s && d.target === t);
                                 if (!edge) {
-                                    edges.push({ source: s, target: t, types: [consts.relations.CUSTOM_STREAM] });
+                                    edges.push(edgeValue);
+                                }
+                                const fl = flow.find(f => f.source === s);
+                                if (fl) {
+                                    fl.next.push(t);
+                                }
+                                else {
+                                    flow.push({ source: s, next: [t] });
                                 }
                             });
-                            flow.push({ source: s, next });
                         }
                     });
                 });
             });
+            const dag = new DAG({});
+            Object.values(flowEdges).forEach(e => dag.setEdge(e.source, e.target));
+            const sources = dag.getSources();
+            if (sources.length > 1) {
+                throw new InvalidDataError(`flow ${k} has ${sources.length} sources (${sources.join(',')}) each flow should have exactly one source`);
+            }
             parsedFlow[k] = flow;
         });
         return {
