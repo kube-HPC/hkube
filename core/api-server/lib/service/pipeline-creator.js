@@ -192,17 +192,15 @@ class PipelineCreator {
                         if (!node) {
                             throw new InvalidDataError(`invalid node ${s} in stream flow ${k}`);
                         }
-                        const next = [];
                         if (targets?.length) {
                             targets.forEach((t) => {
+                                const edgeKey = `${s} >> ${t}`;
                                 if (s === t) {
-                                    throw new InvalidDataError(`invalid relation found ${s} >> ${t} in flow ${k}`);
+                                    throw new InvalidDataError(`invalid relation found ${edgeKey} in flow ${k}`);
                                 }
-                                next.push(t);
-                                const edgeKey = `${s}->${t}`;
                                 const flowEdge = flowEdges[edgeKey];
                                 if (flowEdge) {
-                                    throw new InvalidDataError(`duplicate relation found ${s} >> ${t} in flow ${k}`);
+                                    throw new InvalidDataError(`duplicate relation found ${edgeKey} in flow ${k}`);
                                 }
                                 const edgeValue = { source: s, target: t, types: [consts.relations.CUSTOM_STREAM] };
                                 flowEdges[edgeKey] = edgeValue;
