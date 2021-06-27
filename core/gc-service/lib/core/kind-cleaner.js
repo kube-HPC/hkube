@@ -3,7 +3,7 @@ const storeManager = require('../helpers/store-manager');
 
 class KindCleaner {
     async delete({ data, kind }) {
-        const result = await Promise.all(data.map(a => storeManager.deleteAlgByName({ name: a.name, kind })));
+        const result = await Promise.all(data.map(a => storeManager.deleteAlgByName({ name: a, kind })));
         return result;
     }
 
