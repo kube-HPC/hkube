@@ -2,13 +2,19 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { request } = require('./utils');
 let restUrl;
-
+let restPath = null;
+const getJob = (jobId) => {
+    const options = {
+        uri: `${restUrl}/exec/pipelines/${jobId}`,
+        method: 'GET'
+    };
+    return request(options);
+};
 describe('Executions', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
     });
     describe('/exec/algorithm', () => {
-        let restPath = null;
         before(() => {
             restPath = `${restUrl}/exec/algorithm`;
         });
@@ -77,7 +83,7 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`algorithm ${options.body.name} Not Found`);
         });
-        it('should succeed and return job id', async () => {
+        it('should succeed and return job id and not set debug kind', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -85,8 +91,23 @@ describe('Executions', () => {
                     input: []
                 }
             };
-            const response = await request(options);
-            expect(response.body).to.have.property('jobId');
+            const {body: response} = await request(options);
+            expect(response).to.have.property('jobId');
+            const {body: job}=await getJob(response.jobId);
+            expect(job.nodes[0].kind).to.eql('algorithm');
+        });
+        it('should set debug nodeKind', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'eval-alg',
+                    input: [],
+                    debug: true
+                }
+            };
+            const {body: response} = await request(options);
+            const {body: job}=await getJob(response.jobId);
+            expect(job.nodes[0].kind).to.eql('debug');
         });
     });
 });
