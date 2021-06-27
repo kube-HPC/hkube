@@ -8,6 +8,10 @@
   description: Versioning for algorithms
 - name: Cron
   description: Get pipelines cron result and status
+- name: DataSource
+  description: DataSources and their related files
+- name: GC
+  description: Hkube garbage collector operations
 - name: Pipelines
   description: Get pipelines status and result
 - name: Pipeline Readme

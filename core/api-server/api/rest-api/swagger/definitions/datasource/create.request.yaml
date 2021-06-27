@@ -1,0 +1,78 @@
+type: object
+properties:
+    name:
+        $ref: '#/components/schemas/DataSourceName'
+    files:
+        $ref: '#/components/schemas/Files'
+    storage:
+        type: object
+        description: |
+            Contains the credentials and storage information of 
+            an S3 bucket, If kind is set to "internal" 
+            no other parameters are required
+        oneOf:
+            - properties:
+                  kind:
+                      type: string
+                      enum:
+                          - S3
+                  accessKeyId:
+                      type: string
+                  secretAccessKey:
+                      type: string
+                  endpoint:
+                      $ref: '#/components/schemas/URL'
+                  bucketName:
+                      type: string
+              required:
+                  - kind
+                  - accessKeyId
+                  - secretAccessKey
+                  - endpoint
+                  - bucketName
+            - properties:
+                  kind:
+                      type: string
+                      enum:
+                          - internal
+              required:
+                  - kind
+
+    git:
+        type: object
+        description: |
+            Contains the credentials and Git information,
+            If kind is set to "internal" 
+            no other parameters are required
+        oneOf:
+            - properties:
+                  repositoryUrl:
+                      description: provide a url to an empty git repository
+                      $ref: '#/components/schemas/GitURL'
+                  token:
+                      type: string
+                  tokenName:
+                      description: the token name is *required* when using a *gitlab* account
+                      type: string
+                  kind:
+                      type: string
+                      enum:
+                          - github
+                          - gitlab
+              required:
+                  - repositoryUrl
+                  - token
+                  - kind
+            - properties:
+                  kind:
+                      type: string
+                      enum:
+                          - internal
+              required:
+                  - kind
+
+required:
+    - name
+    - files
+    - storage
+    - git

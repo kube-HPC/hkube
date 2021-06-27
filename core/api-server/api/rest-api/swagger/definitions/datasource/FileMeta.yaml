@@ -1,0 +1,20 @@
+type: object
+properties:
+    id:
+        type: string
+    name:
+        type: string
+    path:
+        type: string
+    size:
+        type: number
+    type:
+        type: string
+    description:
+        type: string
+    uploadedAt:
+        type: number
+required:
+    - id
+    - name
+    - path

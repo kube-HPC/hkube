@@ -1,0 +1,12 @@
+type: object
+properties:
+    snapshot:
+        type: object
+        properties:
+            name:
+                $ref: '#/components/schemas/SnapshotName'
+            query:
+                $ref: '#/components/schemas/SnapshotQuery'
+required:
+    - name
+    - query

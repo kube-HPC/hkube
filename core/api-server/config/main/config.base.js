@@ -33,7 +33,12 @@ config.dataSourceService = {
     protocol: 'http',
     host: process.env.DATASOURCES_SERVICE_SERVICE_HOST || 'localhost',
     port: process.env.DATASOURCES_SERVICE_SERVICE_PORT || 3005,
-    prefix: 'api/v1'
+    prefix: 'api/v1',
+    swaggerPath: 'hkube/datasources-service/api/v1'
+};
+
+config.gcService = {
+    swaggerPath: 'hkube/gc-service/api'
 };
 
 config.ingressPrefix = process.env.INGRESS_PREFIX || '';

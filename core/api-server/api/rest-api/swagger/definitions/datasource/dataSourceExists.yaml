@@ -1,0 +1,11 @@
+type: object
+properties:
+    name:
+        $ref: '#/components/schemas/DataSourceName'
+    id:
+        $ref: '#/components/schemas/DataSourceId'
+    snapshot:
+        type: object
+        properties:
+            name:
+                $ref: '#/components/schemas/SnapshotName'

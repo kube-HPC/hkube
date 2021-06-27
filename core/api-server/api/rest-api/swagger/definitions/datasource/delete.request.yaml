@@ -1,0 +1,6 @@
+type: object
+properties:
+    name:
+        $ref: '#/components/schemas/DataSourceName'
+required:
+    - name

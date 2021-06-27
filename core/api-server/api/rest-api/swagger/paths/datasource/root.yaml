@@ -1,0 +1,43 @@
+get:
+    tags:
+        - DataSource
+    summary: Fetch all dataSources meta data
+    responses:
+        '200':
+            description: A collection of dataSources
+            content:
+                application/json:
+                    schema:
+                        type: array
+                        items:
+                            $ref: '#/components/schemas/DataSourceMeta'
+post:
+    tags:
+        - DataSource
+    summary: Create a new dataSource and upload a file
+    requestBody:
+        content:
+            multipart/form-data:
+                schema:
+                    $ref: '#/components/schemas/createRequest'
+        description: DataSource name and file to upload
+        required: true
+    responses:
+        '201':
+            description: created dataSource
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/DataSourceWithMeta'
+        '400':
+            description: bad request
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Error'
+        default:
+            description: Unexpected error
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/Error'

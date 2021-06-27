@@ -46,6 +46,30 @@
 /cron/stop:
   $ref: ./cron/stop.yaml
 
+# datasource
+/datasource:
+  $ref: ./datasource/root.yaml
+/datasource/{name}:
+  $ref: ./datasource/byName.yaml
+/datasource/{name}/versions:
+  $ref: ./datasource/versions.yaml
+/datasource/{name}/sync:
+  $ref: ./datasource/sync.yaml
+/datasource/id/{id}/snapshot:
+  $ref: ./datasource/snapshots/byDataSourceId.yaml
+/datasource/id/{id}/snapshot/preview:
+  $ref: ./datasource/snapshots/preview.yaml
+/datasource/{name}/snapshot:
+  $ref: ./datasource/snapshots/byDataSourceName.yaml
+/datasource/{name}/credentials:
+  $ref: ./datasource/credentials.yaml
+/datasource/{name}/snapshot/{snapshotName}:
+  $ref: ./datasource/snapshots/byName.yaml
+/datasource/id/{id}/download:
+  $ref: ./datasource/download.yaml
+/datasource/validate:
+  $ref: ./datasource/validate.yaml
+
 # store
 /store/algorithms/{name}:
   $ref: ./store/algorithms_name.yaml
@@ -115,6 +139,20 @@
   $ref: ./gateway/gateways.yaml
 /gateway/{name}:
   $ref: ./gateway/gateway.yaml
+
+# gc
+/clean:
+  $ref: ./gc/clean.yaml
+/clean/{type}:
+  $ref: ./gc/clean_type.yaml
+/dryrun:
+  $ref: ./gc/dryrun.yaml
+/dryrun/{type}:
+  $ref: ./gc/dryrun_type.yaml
+/status:
+  $ref: ./gc/status.yaml
+/status/{type}:
+  $ref: ./gc/status_type.yaml
 
 # graph
 /graph/raw/{jobId}:

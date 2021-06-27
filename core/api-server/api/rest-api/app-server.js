@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fse = require('fs-extra');
 const path = require('path');
 const RestServer = require('@hkube/rest-server');
 const { swaggerUtils } = require('@hkube/rest-server');
@@ -29,13 +29,16 @@ class AppServer {
         swagger.info.version = options.version;
 
         const { prefix, port, rateLimit, poweredBy, bodySizeLimit } = options.rest;
+        const dsPrefix = options.dataSourceService.swaggerPath;
+        const gcPrefix = options.gcService.swaggerPath;
+
         const routes = internal();
         routes.push(metrics.getRouter());
-        const versions = fs.readdirSync(path.join(__dirname, 'routes'));
+        const versions = await fse.readdir(path.join(__dirname, 'routes'));
 
-        versions.forEach((v) => {
+        await Promise.all(versions.map(async (v) => {
             swagger.servers.push({ url: path.join('/', options.swagger.path, prefix, v) });
-            const routers = fs.readdirSync(path.join(__dirname, 'routes', v));
+            const routers = await fse.readdir(path.join(__dirname, 'routes', v));
             routers.forEach((f) => {
                 const file = path.basename(f, '.js');
                 routes.push({
@@ -43,7 +46,10 @@ class AppServer {
                     router: require('./' + path.join('routes', v, file))({ ...options, version: v, file })  // eslint-disable-line
                 });
             });
-        });
+        }));
+
+        swagger.servers.push({ url: path.join('/', options.swagger.path, dsPrefix) });
+        swagger.servers.push({ url: path.join('/', options.swagger.path, gcPrefix) });
 
         await swaggerUtils.validator.validate(swagger);
         validator.init(swagger.components.schemas, schemasInternal);

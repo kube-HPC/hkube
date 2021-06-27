@@ -1,0 +1,18 @@
+get:
+    tags:
+        - DataSource
+    summary: Fetch all dataSources meta data
+    parameters:
+        - $ref: '#/components/parameters/nameQuery'
+        - $ref: '#/components/parameters/snapshotNameQuery'
+        - $ref: '#/components/parameters/idQuery'
+    responses:
+        '200':
+            description: ensure a datasource exists by name, version or snapshot
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            exists:
+                                type: boolean

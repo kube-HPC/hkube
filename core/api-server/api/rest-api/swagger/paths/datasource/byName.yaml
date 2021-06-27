@@ -1,0 +1,58 @@
+get:
+    tags:
+        - DataSource
+    summary: Fetch a single dataSource by name
+    parameters:
+        - $ref: '#/components/parameters/nameParam'
+        - $ref: '#/components/parameters/idQuery'
+    responses:
+        '200':
+            description: A datasource item
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/DataSource'
+                            - type: object
+                              properties:
+                                  files:
+                                      type: array
+                                      items:
+                                          $ref: '#/components/schemas/FileMeta'
+post:
+    tags:
+        - DataSource
+    summary: upload a new file to a given datasource
+    parameters:
+        - $ref: '#/components/parameters/nameParam'
+    requestBody:
+        content:
+            multipart/form-data:
+                schema:
+                    $ref: '#/components/schemas/updateRequest'
+        description: DataSource name and file to upload
+        required: true
+    responses:
+        '201':
+            description: new datasource version
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/DataSourceWithMeta'
+delete:
+    tags:
+        - DataSource
+    summary: delete a datasource by name
+    parameters:
+        - $ref: '#/components/parameters/nameParam'
+    responses:
+        '200':
+            description: successfully deleted the datasource
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            deleted:
+                                type: string
+                                description: a delete acknowledgement

@@ -1,0 +1,19 @@
+type: object
+properties:
+    name:
+        $ref: '#/components/schemas/DataSourceName'
+    versionDescription:
+        $ref: '#/components/schemas/VersionDescription'
+    files:
+        type: object
+        properties:
+            mapping:
+                type: array
+                items:
+                    $ref: '#/components/schemas/FileMeta'
+            added:
+                $ref: '#/components/schemas/Files'
+            dropped:
+                type: array
+                items:
+                    type: string
