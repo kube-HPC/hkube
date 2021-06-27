@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.14",
+    "version": "2.1.16",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -32,6 +32,14 @@
     {
       "name": "Cron",
       "description": "Get pipelines cron result and status"
+    },
+    {
+      "name": "DataSource",
+      "description": "DataSources and their related files"
+    },
+    {
+      "name": "GC",
+      "description": "Hkube garbage collector operations"
     },
     {
       "name": "Pipelines",
@@ -4085,6 +4093,2009 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource": {
+      "get": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "Fetch all dataSources meta data",
+        "responses": {
+          "200": {
+            "description": "A collection of dataSources",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 24
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific dataSource",
+                        "minLength": 1,
+                        "maxLength": 32,
+                        "format": "dataSource-name"
+                      },
+                      "versionDescription": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "filesCount": {
+                        "type": "number"
+                      },
+                      "avgFileSize": {
+                        "type": "string"
+                      },
+                      "totalSize": {
+                        "type": "number"
+                      },
+                      "fileTypes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "Create a new dataSource and upload a file",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific dataSource",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "dataSource-name"
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Data file (file types: *)",
+                      "format": "binary"
+                    }
+                  },
+                  "storage": {
+                    "type": "object",
+                    "description": "Contains the credentials and storage information of \nan S3 bucket, If kind is set to \"internal\" \nno other parameters are required\n",
+                    "oneOf": [
+                      {
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "S3"
+                            ]
+                          },
+                          "accessKeyId": {
+                            "type": "string"
+                          },
+                          "secretAccessKey": {
+                            "type": "string"
+                          },
+                          "endpoint": {
+                            "type": "string",
+                            "minLength": 1,
+                            "format": "url"
+                          },
+                          "bucketName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "accessKeyId",
+                          "secretAccessKey",
+                          "endpoint",
+                          "bucketName"
+                        ]
+                      },
+                      {
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "internal"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    ]
+                  },
+                  "git": {
+                    "type": "object",
+                    "description": "Contains the credentials and Git information,\nIf kind is set to \"internal\" \nno other parameters are required\n",
+                    "oneOf": [
+                      {
+                        "properties": {
+                          "repositoryUrl": {
+                            "description": "provide a url to an empty git repository",
+                            "type": "string",
+                            "minLength": 1,
+                            "format": "git-url"
+                          },
+                          "token": {
+                            "type": "string"
+                          },
+                          "tokenName": {
+                            "description": "the token name is *required* when using a *gitlab* account",
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "github",
+                              "gitlab"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "repositoryUrl",
+                          "token",
+                          "kind"
+                        ]
+                      },
+                      {
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "internal"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "files",
+                  "storage",
+                  "git"
+                ]
+              }
+            }
+          },
+          "description": "DataSource name and file to upload",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "created dataSource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific dataSource",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "dataSource-name"
+                        },
+                        "versionDescription": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "filesCount": {
+                          "type": "number"
+                        },
+                        "avgFileSize": {
+                          "type": "string"
+                        },
+                        "totalSize": {
+                          "type": "number"
+                        },
+                        "fileTypes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "commitHash": {
+                          "description": "a commit hash",
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific dataSource",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "dataSource-name"
+                        },
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "size": {
+                                "type": "number"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "uploadedAt": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "path"
+                            ]
+                          }
+                        },
+                        "versionDescription": {
+                          "description": "a commit message supplied by the user",
+                          "type": "string"
+                        },
+                        "gitRepositoryUrl": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "id"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/{name}": {
+      "get": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "Fetch a single dataSource by name",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "request a specific version, if not stated the latest is returned",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A datasource item",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "commitHash": {
+                          "description": "a commit hash",
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific dataSource",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "dataSource-name"
+                        },
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "size": {
+                                "type": "number"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "uploadedAt": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "path"
+                            ]
+                          }
+                        },
+                        "versionDescription": {
+                          "description": "a commit message supplied by the user",
+                          "type": "string"
+                        },
+                        "gitRepositoryUrl": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "id"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "size": {
+                                "type": "number"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "uploadedAt": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "path"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "upload a new file to a given datasource",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "versionDescription": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Data file (file types: *)",
+                      "format": "binary"
+                    }
+                  },
+                  "droppedFileIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "mapping": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "path": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "uploadedAt": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "path"
+                      ]
+                    }
+                  }
+                },
+                "anyOf": [
+                  {
+                    "required": [
+                      "versionDescription",
+                      "filesDropped"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "versionDescription",
+                      "files"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "description": "DataSource name and file to upload",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "new datasource version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific dataSource",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "dataSource-name"
+                        },
+                        "versionDescription": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "filesCount": {
+                          "type": "number"
+                        },
+                        "avgFileSize": {
+                          "type": "string"
+                        },
+                        "totalSize": {
+                          "type": "number"
+                        },
+                        "fileTypes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "commitHash": {
+                          "description": "a commit hash",
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific dataSource",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "dataSource-name"
+                        },
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "size": {
+                                "type": "number"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "uploadedAt": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "path"
+                            ]
+                          }
+                        },
+                        "versionDescription": {
+                          "description": "a commit message supplied by the user",
+                          "type": "string"
+                        },
+                        "gitRepositoryUrl": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "id"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "delete a datasource by name",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successfully deleted the datasource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deleted": {
+                      "type": "string",
+                      "description": "a delete acknowledgement"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/{name}/versions": {
+      "get": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "list a all the versions of a given dataSource name",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A datasource item",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 24,
+                        "maxLength": 24
+                      },
+                      "versionDescription": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "commitHash": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/{name}/sync": {
+      "post": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "sync a version from git to the database",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          },
+          "description": "DataSource name",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "new datasource version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 24,
+                          "maxLength": 24
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific dataSource",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "dataSource-name"
+                        },
+                        "versionDescription": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "filesCount": {
+                          "type": "number"
+                        },
+                        "avgFileSize": {
+                          "type": "string"
+                        },
+                        "totalSize": {
+                          "type": "number"
+                        },
+                        "fileTypes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "commitHash": {
+                          "description": "a commit hash",
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific dataSource",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "dataSource-name"
+                        },
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string"
+                              },
+                              "size": {
+                                "type": "number"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "uploadedAt": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "path"
+                            ]
+                          }
+                        },
+                        "versionDescription": {
+                          "description": "a commit message supplied by the user",
+                          "type": "string"
+                        },
+                        "gitRepositoryUrl": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "id"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/id/{id}/snapshot": {
+      "post": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "create a new snapshot for a given datasource version",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A datasource id (indicating a version)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "snapshot": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 25
+                      },
+                      "query": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "A newly created snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "snapshot": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 25
+                            },
+                            "query": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "query"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 25
+                        },
+                        "dataSource": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "Unique identifier representing a specific dataSource",
+                              "minLength": 1,
+                              "maxLength": 32,
+                              "format": "dataSource-name"
+                            },
+                            "filteredFilesList": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "type": "string"
+                                  },
+                                  "size": {
+                                    "type": "number"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "uploadedAt": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "path"
+                                ]
+                              }
+                            },
+                            "droppedFiles": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "type": "string"
+                                  },
+                                  "size": {
+                                    "type": "number"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "uploadedAt": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "path"
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/id/{id}/snapshot/preview": {
+      "post": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "post a query for *preview only*,\nthe results are NOT persisted to the database\n",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A datasource id (indicating a version)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "a list of files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      },
+                      "size": {
+                        "type": "number"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "uploadedAt": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "path"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/{name}/snapshot": {
+      "post": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "create a new snapshot for a given datasource version",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "snapshot": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 25
+                      },
+                      "query": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "A newly created snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "snapshot": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 25
+                            },
+                            "query": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "query"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 25
+                        },
+                        "dataSource": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 24,
+                              "maxLength": 24
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "Unique identifier representing a specific dataSource",
+                              "minLength": 1,
+                              "maxLength": 32,
+                              "format": "dataSource-name"
+                            },
+                            "filteredFilesList": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "type": "string"
+                                  },
+                                  "size": {
+                                    "type": "number"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "uploadedAt": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "path"
+                                ]
+                              }
+                            },
+                            "droppedFiles": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "type": "string"
+                                  },
+                                  "size": {
+                                    "type": "number"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "uploadedAt": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "path"
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "fetch all snapshots for a given datasource",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A collection of snapshots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "allOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "snapshot": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 25
+                              },
+                              "query": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "query"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 25
+                          },
+                          "dataSource": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "minLength": 24,
+                                "maxLength": 24
+                              },
+                              "name": {
+                                "type": "string",
+                                "description": "Unique identifier representing a specific dataSource",
+                                "minLength": 1,
+                                "maxLength": 32,
+                                "format": "dataSource-name"
+                              },
+                              "filteredFilesList": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "path": {
+                                      "type": "string"
+                                    },
+                                    "size": {
+                                      "type": "number"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "uploadedAt": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "name",
+                                    "path"
+                                  ]
+                                }
+                              },
+                              "droppedFiles": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "path": {
+                                      "type": "string"
+                                    },
+                                    "size": {
+                                      "type": "number"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "uploadedAt": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "name",
+                                    "path"
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/{name}/credentials": {
+      "patch": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "update the credentials for the git repository and the storage\nupdates throughout the entire version history of a dataSource by its name\n",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "git": {
+                    "type": "object",
+                    "properties": {
+                      "token": {
+                        "type": "string"
+                      },
+                      "tokenName": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "token"
+                    ]
+                  },
+                  "storage": {
+                    "type": "object",
+                    "properties": {
+                      "accessKeyId": {
+                        "type": "string"
+                      },
+                      "secretAccessKey": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "accessKeyId",
+                      "secretAccessKey"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "description": "New credentials to update"
+        },
+        "responses": {
+          "201": {
+            "description": "number of versions updated with the new credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "updatedCount": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/{name}/snapshot/{snapshotName}": {
+      "get": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "fetch snapshots for a given datasource",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "A dataSource name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "snapshotName",
+            "in": "path",
+            "description": "A Snapshot name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resolve",
+            "in": "query",
+            "description": "return the entire dataSource with the snapshot",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A collection of snapshots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "dataSource": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "snapshot": {
+                          "allOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "snapshot": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 25
+                                    },
+                                    "query": {
+                                      "type": "string",
+                                      "minLength": 1
+                                    }
+                                  }
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "query"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 25
+                                },
+                                "dataSource": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string",
+                                      "minLength": 24,
+                                      "maxLength": 24
+                                    },
+                                    "name": {
+                                      "type": "string",
+                                      "description": "Unique identifier representing a specific dataSource",
+                                      "minLength": 1,
+                                      "maxLength": 32,
+                                      "format": "dataSource-name"
+                                    },
+                                    "filteredFilesList": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string"
+                                          },
+                                          "name": {
+                                            "type": "string"
+                                          },
+                                          "path": {
+                                            "type": "string"
+                                          },
+                                          "size": {
+                                            "type": "number"
+                                          },
+                                          "type": {
+                                            "type": "string"
+                                          },
+                                          "description": {
+                                            "type": "string"
+                                          },
+                                          "uploadedAt": {
+                                            "type": "number"
+                                          }
+                                        },
+                                        "required": [
+                                          "id",
+                                          "name",
+                                          "path"
+                                        ]
+                                      }
+                                    },
+                                    "droppedFiles": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string"
+                                          },
+                                          "name": {
+                                            "type": "string"
+                                          },
+                                          "path": {
+                                            "type": "string"
+                                          },
+                                          "size": {
+                                            "type": "number"
+                                          },
+                                          "type": {
+                                            "type": "string"
+                                          },
+                                          "description": {
+                                            "type": "string"
+                                          },
+                                          "uploadedAt": {
+                                            "type": "number"
+                                          }
+                                        },
+                                        "required": [
+                                          "id",
+                                          "name",
+                                          "path"
+                                        ]
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 25
+                        },
+                        "query": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "dataSource": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "commitHash": {
+                              "description": "a commit hash",
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "Unique identifier representing a specific dataSource",
+                              "minLength": 1,
+                              "maxLength": 32,
+                              "format": "dataSource-name"
+                            },
+                            "files": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "path": {
+                                    "type": "string"
+                                  },
+                                  "size": {
+                                    "type": "number"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "uploadedAt": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "path"
+                                ]
+                              }
+                            },
+                            "versionDescription": {
+                              "description": "a commit message supplied by the user",
+                              "type": "string"
+                            },
+                            "gitRepositoryUrl": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "id"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/id/{id}/download": {
+      "post": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "create download link",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A datasource id (indicating a version)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fileIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": "a list of file ids to include in the generated zip file",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "A Zip file",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "href": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "download an archive of the selected files",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "A datasource id (indicating a version)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique identifier representing a downloadId",
+              "minLength": 4,
+              "maxLength": 4,
+              "format": "download-id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A Zip file",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasource/validate": {
+      "get": {
+        "tags": [
+          "DataSource"
+        ],
+        "summary": "Fetch all dataSources meta data",
+        "parameters": [
+          {
+            "name": "datasource_name",
+            "in": "query",
+            "description": "a datasource name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "snapshot_name",
+            "in": "query",
+            "description": "A Snapshot name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "request a specific version, if not stated the latest is returned",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ensure a datasource exists by name, version or snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exists": {
+                      "type": "boolean"
                     }
                   }
                 }
@@ -12144,6 +14155,488 @@
         }
       }
     },
+    "/clean": {
+      "post": {
+        "tags": [
+          "GC"
+        ],
+        "summary": "Clean all",
+        "description": "Clean all",
+        "requestBody": {
+          "description": "message body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "maxAge": {
+                    "type": "integer",
+                    "description": "max age to clean (minutes)"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clean/{type}": {
+      "post": {
+        "tags": [
+          "GC"
+        ],
+        "summary": "Clean by type",
+        "description": "Clean by type",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "message body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "maxAge": {
+                    "type": "integer",
+                    "description": "max age to clean (minutes)"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dryrun": {
+      "post": {
+        "tags": [
+          "GC"
+        ],
+        "summary": "DryRun all",
+        "description": "DryRun all",
+        "requestBody": {
+          "description": "message body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "maxAge": {
+                    "type": "integer",
+                    "description": "max age to clean (minutes)"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dryrun/{type}": {
+      "post": {
+        "tags": [
+          "GC"
+        ],
+        "summary": "DryRun by type",
+        "description": "DryRun by type",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "message body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "maxAge": {
+                    "type": "integer",
+                    "description": "max age to clean (minutes)"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "tags": [
+          "GC"
+        ],
+        "summary": "Get all statuses",
+        "description": "Get all statuses",
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/status/{type}": {
+      "get": {
+        "tags": [
+          "GC"
+        ],
+        "summary": "Get status by type",
+        "description": "Get status by type",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/graph/raw/{jobId}": {
       "get": {
         "tags": [
@@ -13992,6 +16485,29 @@
           }
         }
       },
+      "algorithmBuild": {
+        "type": "object",
+        "properties": {
+          "fileExt": {
+            "type": "string",
+            "enum": [
+              "zip",
+              "gz"
+            ]
+          },
+          "env": {
+            "type": "string",
+            "enum": [
+              "nodejs",
+              "python",
+              "java"
+            ]
+          }
+        },
+        "required": [
+          "env"
+        ]
+      },
       "createBoardRequest": {
         "type": "object",
         "properties": {
@@ -14058,6 +16574,15 @@
           }
         }
       },
+      "metrics": {
+        "type": "object",
+        "properties": {
+          "tensorboard": {
+            "type": "boolean",
+            "description": "Should tensorboard metrics be collected."
+          }
+        }
+      },
       "buildId": {
         "type": "object",
         "properties": {
@@ -14070,28 +16595,58 @@
           "buildId"
         ]
       },
-      "caching": {
+      "defaultResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "defaultResponseWithName": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "jobId": {
+        "type": "string",
+        "description": "Unique identifier representing pipeline execution"
+      },
+      "jobIdObject": {
         "type": "object",
         "properties": {
           "jobId": {
             "type": "string",
             "description": "Unique identifier representing pipeline execution"
-          },
-          "nodeName": {
-            "type": "string",
-            "description": "Unique node identifier",
-            "minLength": 1
-          },
-          "debug": {
-            "type": "boolean",
-            "description": "Run as debug"
           }
         },
-        "additionalProperties": false,
         "required": [
-          "jobId",
-          "nodeName"
+          "jobId"
         ]
+      },
+      "tag": {
+        "type": "string",
+        "description": "Unique identifier representing a specific tag",
+        "minLength": 1,
+        "maxLength": 32
       },
       "cronPattern": {
         "type": "string",
@@ -14161,26 +16716,46 @@
           "id"
         ]
       },
-      "defaultResponse": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          }
+      "Files": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "description": "Data file (file types: *)",
+          "format": "binary"
         }
       },
-      "defaultResponseWithName": {
+      "FileMeta": {
         "type": "object",
         "properties": {
-          "message": {
+          "id": {
             "type": "string"
           },
           "name": {
             "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "uploadedAt": {
+            "type": "number"
           }
-        }
+        },
+        "required": [
+          "id",
+          "name",
+          "path"
+        ]
       },
-      "error": {
+      "Error": {
         "type": "object",
         "properties": {
           "code": {
@@ -14191,6 +16766,990 @@
             "type": "string"
           }
         }
+      },
+      "DataSourceMeta": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 24,
+            "maxLength": 24
+          },
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific dataSource",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "dataSource-name"
+          },
+          "versionDescription": {
+            "type": "string",
+            "minLength": 1
+          },
+          "filesCount": {
+            "type": "number"
+          },
+          "avgFileSize": {
+            "type": "string"
+          },
+          "totalSize": {
+            "type": "number"
+          },
+          "fileTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DataSource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "commitHash": {
+            "description": "a commit hash",
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific dataSource",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "dataSource-name"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "number"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "uploadedAt": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "path"
+              ]
+            }
+          },
+          "versionDescription": {
+            "description": "a commit message supplied by the user",
+            "type": "string"
+          },
+          "gitRepositoryUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "id"
+        ]
+      },
+      "DataSourceId": {
+        "type": "string",
+        "minLength": 24,
+        "maxLength": 24
+      },
+      "DataSourceWithMeta": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 24,
+                "maxLength": 24
+              },
+              "name": {
+                "type": "string",
+                "description": "Unique identifier representing a specific dataSource",
+                "minLength": 1,
+                "maxLength": 32,
+                "format": "dataSource-name"
+              },
+              "versionDescription": {
+                "type": "string",
+                "minLength": 1
+              },
+              "filesCount": {
+                "type": "number"
+              },
+              "avgFileSize": {
+                "type": "string"
+              },
+              "totalSize": {
+                "type": "number"
+              },
+              "fileTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "commitHash": {
+                "description": "a commit hash",
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "description": "Unique identifier representing a specific dataSource",
+                "minLength": 1,
+                "maxLength": 32,
+                "format": "dataSource-name"
+              },
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "uploadedAt": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "path"
+                  ]
+                }
+              },
+              "versionDescription": {
+                "description": "a commit message supplied by the user",
+                "type": "string"
+              },
+              "gitRepositoryUrl": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "id"
+            ]
+          }
+        ]
+      },
+      "DataSourceName": {
+        "type": "string",
+        "description": "Unique identifier representing a specific dataSource",
+        "minLength": 1,
+        "maxLength": 32,
+        "format": "dataSource-name"
+      },
+      "DataSourceVersion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 24,
+            "maxLength": 24
+          },
+          "versionDescription": {
+            "type": "string",
+            "minLength": 1
+          },
+          "commitHash": {
+            "type": "string"
+          }
+        }
+      },
+      "VersionDescription": {
+        "type": "string",
+        "minLength": 1
+      },
+      "dataSourceExists": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific dataSource",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "dataSource-name"
+          },
+          "id": {
+            "type": "string",
+            "minLength": 24,
+            "maxLength": 24
+          },
+          "snapshot": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 25
+              }
+            }
+          }
+        }
+      },
+      "SnapshotName": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 25
+      },
+      "SnapshotQuery": {
+        "type": "string",
+        "minLength": 1
+      },
+      "SnapshotRequest": {
+        "type": "object",
+        "properties": {
+          "snapshot": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 25
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "required": [
+          "name",
+          "query"
+        ]
+      },
+      "SnapshotCreate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 25
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dataSource": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 24,
+                "maxLength": 24
+              },
+              "name": {
+                "type": "string",
+                "description": "Unique identifier representing a specific dataSource",
+                "minLength": 1,
+                "maxLength": 32,
+                "format": "dataSource-name"
+              }
+            }
+          }
+        },
+        "required": [
+          "name",
+          "query",
+          "dataSource"
+        ]
+      },
+      "Snapshot": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "snapshot": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 25
+                  },
+                  "query": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "required": [
+              "name",
+              "query"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 25
+              },
+              "dataSource": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 24,
+                    "maxLength": 24
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific dataSource",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "dataSource-name"
+                  },
+                  "filteredFilesList": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "path": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "uploadedAt": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "path"
+                      ]
+                    }
+                  },
+                  "droppedFiles": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "path": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "uploadedAt": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "path"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ResolvedSnapshot": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 25
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dataSource": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "commitHash": {
+                "description": "a commit hash",
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "description": "Unique identifier representing a specific dataSource",
+                "minLength": 1,
+                "maxLength": 32,
+                "format": "dataSource-name"
+              },
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "uploadedAt": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "path"
+                  ]
+                }
+              },
+              "versionDescription": {
+                "description": "a commit message supplied by the user",
+                "type": "string"
+              },
+              "gitRepositoryUrl": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "id"
+            ]
+          }
+        }
+      },
+      "SnapshotPreviewRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 24,
+            "maxLength": 24
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "query",
+          "id"
+        ]
+      },
+      "createRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific dataSource",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "dataSource-name"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Data file (file types: *)",
+              "format": "binary"
+            }
+          },
+          "storage": {
+            "type": "object",
+            "description": "Contains the credentials and storage information of \nan S3 bucket, If kind is set to \"internal\" \nno other parameters are required\n",
+            "oneOf": [
+              {
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "S3"
+                    ]
+                  },
+                  "accessKeyId": {
+                    "type": "string"
+                  },
+                  "secretAccessKey": {
+                    "type": "string"
+                  },
+                  "endpoint": {
+                    "type": "string",
+                    "minLength": 1,
+                    "format": "url"
+                  },
+                  "bucketName": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "accessKeyId",
+                  "secretAccessKey",
+                  "endpoint",
+                  "bucketName"
+                ]
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "internal"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            ]
+          },
+          "git": {
+            "type": "object",
+            "description": "Contains the credentials and Git information,\nIf kind is set to \"internal\" \nno other parameters are required\n",
+            "oneOf": [
+              {
+                "properties": {
+                  "repositoryUrl": {
+                    "description": "provide a url to an empty git repository",
+                    "type": "string",
+                    "minLength": 1,
+                    "format": "git-url"
+                  },
+                  "token": {
+                    "type": "string"
+                  },
+                  "tokenName": {
+                    "description": "the token name is *required* when using a *gitlab* account",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "github",
+                      "gitlab"
+                    ]
+                  }
+                },
+                "required": [
+                  "repositoryUrl",
+                  "token",
+                  "kind"
+                ]
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "internal"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "files",
+          "storage",
+          "git"
+        ]
+      },
+      "updateRequest": {
+        "type": "object",
+        "properties": {
+          "versionDescription": {
+            "type": "string",
+            "minLength": 1
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Data file (file types: *)",
+              "format": "binary"
+            }
+          },
+          "droppedFileIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mapping": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": "number"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "uploadedAt": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "path"
+              ]
+            }
+          }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "versionDescription",
+              "filesDropped"
+            ]
+          },
+          {
+            "required": [
+              "versionDescription",
+              "files"
+            ]
+          }
+        ]
+      },
+      "deleteRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific dataSource",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "dataSource-name"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "update": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific dataSource",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "dataSource-name"
+          },
+          "versionDescription": {
+            "type": "string",
+            "minLength": 1
+          },
+          "files": {
+            "type": "object",
+            "properties": {
+              "mapping": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "uploadedAt": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "path"
+                  ]
+                }
+              },
+              "added": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "Data file (file types: *)",
+                  "format": "binary"
+                }
+              },
+              "dropped": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "syncRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateDownloadLinkRequest": {
+        "type": "object",
+        "properties": {
+          "dataSourceId": {
+            "type": "string",
+            "minLength": 24,
+            "maxLength": 24
+          },
+          "fileIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "dataSourceId",
+          "fileIds"
+        ]
+      },
+      "DownloadId": {
+        "type": "string",
+        "description": "Unique identifier representing a downloadId",
+        "minLength": 4,
+        "maxLength": 4,
+        "format": "download-id"
+      },
+      "Credentials": {
+        "type": "object",
+        "properties": {
+          "git": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string"
+              },
+              "tokenName": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "token"
+            ]
+          },
+          "storage": {
+            "type": "object",
+            "properties": {
+              "accessKeyId": {
+                "type": "string"
+              },
+              "secretAccessKey": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "accessKeyId",
+              "secretAccessKey"
+            ]
+          }
+        }
+      },
+      "updateCredentials": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific dataSource",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "dataSource-name"
+          },
+          "credentials": {
+            "type": "object",
+            "properties": {
+              "git": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "tokenName": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              },
+              "storage": {
+                "type": "object",
+                "properties": {
+                  "accessKeyId": {
+                    "type": "string"
+                  },
+                  "secretAccessKey": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "accessKeyId",
+                  "secretAccessKey"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "name",
+          "credentials"
+        ]
+      },
+      "URL": {
+        "type": "string",
+        "minLength": 1,
+        "format": "url"
+      },
+      "GitURL": {
+        "type": "string",
+        "minLength": 1,
+        "format": "git-url"
+      },
+      "caching": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
+          },
+          "nodeName": {
+            "type": "string",
+            "description": "Unique node identifier",
+            "minLength": 1
+          },
+          "debug": {
+            "type": "boolean",
+            "description": "Run as debug"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "jobId",
+          "nodeName"
+        ]
       },
       "execTreeNode": {
         "type": "object",
@@ -14221,11 +17780,24 @@
           }
         }
       },
-      "jobId": {
-        "type": "string",
-        "description": "Unique identifier representing pipeline execution"
+      "stopRequest": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
+          },
+          "reason": {
+            "type": "string",
+            "default": "requested by user",
+            "description": "reason for stop pipeline"
+          }
+        },
+        "required": [
+          "jobId"
+        ]
       },
-      "jobIdObject": {
+      "pauseRequest": {
         "type": "object",
         "properties": {
           "jobId": {
@@ -14236,6 +17808,251 @@
         "required": [
           "jobId"
         ]
+      },
+      "resumeRequest": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
+          }
+        },
+        "required": [
+          "jobId"
+        ]
+      },
+      "execAlgorithmRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific algorithm",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "algorithm-name"
+          },
+          "input": {
+            "type": "array",
+            "description": "The input for the algorithm",
+            "items": {},
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ]
+      },
+      "searchJobs": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "object",
+            "properties": {
+              "experimentName": {
+                "type": "string"
+              },
+              "pipelineName": {
+                "type": "string"
+              },
+              "pipelineType": {
+                "type": "string"
+              },
+              "algorithmName": {
+                "type": "string"
+              },
+              "pipelineStatus": {
+                "type": "string"
+              },
+              "datesRange": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "example": "2021-03-11T14:30:00"
+                  },
+                  "to": {
+                    "type": "string",
+                    "example": "2021-03-11T14:30:00"
+                  }
+                }
+              }
+            }
+          },
+          "cursor": {
+            "type": "string",
+            "description": "get the next results starting from this cursor"
+          },
+          "pageNum": {
+            "type": "integer",
+            "description": "get the next results starting from this page number"
+          },
+          "sort": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "limit the result size"
+          },
+          "fields": {
+            "type": "object",
+            "description": "select which fields to return"
+          },
+          "exists": {
+            "type": "object",
+            "description": "only return records that has fields"
+          }
+        },
+        "example": {
+          "query": {
+            "datesRange": {
+              "from": "2021-05-22T15:00:00",
+              "to": "2021-06-22T16:00:00"
+            },
+            "experimentName": "main",
+            "pipelineName": "simple",
+            "pipelineType": "stored",
+            "algorithmName": "green-alg",
+            "pipelineStatus": "completed"
+          },
+          "sort": "desc",
+          "pageNum": 1,
+          "limit": 2,
+          "fields": {
+            "jobId": true
+          }
+        }
+      },
+      "searchJobsResponse": {
+        "type": "object",
+        "properties": {
+          "hits": {
+            "type": "array",
+            "description": "the actual result records",
+            "items": {}
+          },
+          "cursor": {
+            "type": "string",
+            "description": "this cursor to the next query can be used for pagination"
+          },
+          "timeTook": {
+            "type": "string",
+            "description": "the query completion time took in milliseconds"
+          }
+        }
+      },
+      "experiment": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "experiment name",
+            "default": "main",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "experiment-name"
+          },
+          "description": {
+            "type": "string",
+            "description": "describe the experiment"
+          }
+        }
+      },
+      "experimentName": {
+        "type": "string",
+        "description": "experiment name",
+        "default": "main",
+        "minLength": 1,
+        "maxLength": 32,
+        "format": "experiment-name"
+      },
+      "gatewayName": {
+        "type": "string",
+        "description": "gateway name",
+        "minLength": 1,
+        "maxLength": 32,
+        "format": "gateway-name"
+      },
+      "gateway": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "gateway name",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "gateway-name"
+          },
+          "description": {
+            "type": "string",
+            "description": "describe the gateway"
+          },
+          "mem": {
+            "type": "string",
+            "description": "Memory allocated for streaming gateway",
+            "format": "algorithm-memory",
+            "default": "512Mi"
+          },
+          "cpu": {
+            "type": "number",
+            "description": "Cpu allocated for streaming gateway",
+            "default": 0.5
+          }
+        }
+      },
+      "clean": {
+        "type": "object",
+        "properties": {
+          "maxAge": {
+            "type": "integer",
+            "description": "max age to clean (minutes)"
+          }
+        }
+      },
+      "gcError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "graphResponse": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
+          },
+          "timestamp": {
+            "type": "number"
+          },
+          "edges": {
+            "type": "array",
+            "description": "Array of edges"
+          },
+          "nodes": {
+            "type": "array",
+            "description": "Array of nodes"
+          }
+        }
       },
       "options": {
         "type": "object",
@@ -14844,15 +18661,6 @@
           "nodeName"
         ]
       },
-      "metrics": {
-        "type": "object",
-        "properties": {
-          "tensorboard": {
-            "type": "boolean",
-            "description": "Should tensorboard metrics be collected."
-          }
-        }
-      },
       "pipelineResult": {
         "type": "object",
         "properties": {
@@ -14888,47 +18696,6 @@
         "default": 3,
         "example": 3
       },
-      "stopRequest": {
-        "type": "object",
-        "properties": {
-          "jobId": {
-            "type": "string",
-            "description": "Unique identifier representing pipeline execution"
-          },
-          "reason": {
-            "type": "string",
-            "default": "requested by user",
-            "description": "reason for stop pipeline"
-          }
-        },
-        "required": [
-          "jobId"
-        ]
-      },
-      "pauseRequest": {
-        "type": "object",
-        "properties": {
-          "jobId": {
-            "type": "string",
-            "description": "Unique identifier representing pipeline execution"
-          }
-        },
-        "required": [
-          "jobId"
-        ]
-      },
-      "resumeRequest": {
-        "type": "object",
-        "properties": {
-          "jobId": {
-            "type": "string",
-            "description": "Unique identifier representing pipeline execution"
-          }
-        },
-        "required": [
-          "jobId"
-        ]
-      },
       "triggers": {
         "type": "object",
         "properties": {
@@ -14959,6 +18726,35 @@
           }
         },
         "additionalProperties": false
+      },
+      "pipelineTriggersNode": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Pipeline name"
+          },
+          "children": {
+            "type": "array",
+            "items": {}
+          }
+        }
+      },
+      "pipelineTriggersResult": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Pipeline name"
+            },
+            "children": {
+              "type": "array",
+              "items": {}
+            }
+          }
+        }
       },
       "webhookResult": {
         "type": "object",
@@ -15020,65 +18816,6 @@
           }
         }
       },
-      "experiment": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "experiment name",
-            "default": "main",
-            "minLength": 1,
-            "maxLength": 32,
-            "format": "experiment-name"
-          },
-          "description": {
-            "type": "string",
-            "description": "describe the experiment"
-          }
-        }
-      },
-      "experimentName": {
-        "type": "string",
-        "description": "experiment name",
-        "default": "main",
-        "minLength": 1,
-        "maxLength": 32,
-        "format": "experiment-name"
-      },
-      "gatewayName": {
-        "type": "string",
-        "description": "gateway name",
-        "minLength": 1,
-        "maxLength": 32,
-        "format": "gateway-name"
-      },
-      "gateway": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "gateway name",
-            "minLength": 1,
-            "maxLength": 32,
-            "format": "gateway-name"
-          },
-          "description": {
-            "type": "string",
-            "description": "describe the gateway"
-          },
-          "mem": {
-            "type": "string",
-            "description": "Memory allocated for streaming gateway",
-            "format": "algorithm-memory",
-            "default": "512Mi"
-          },
-          "cpu": {
-            "type": "number",
-            "description": "Cpu allocated for streaming gateway",
-            "default": 0.5
-          }
-        }
-      },
       "gitlabWebhook": {
         "type": "object",
         "properties": {
@@ -15087,208 +18824,79 @@
             "description": "gitlab object which received after push for more information https://docs.gitlab.com/ee/user/project/integrations/webhooks.html"
           }
         }
-      },
-      "tag": {
-        "type": "string",
-        "description": "Unique identifier representing a specific tag",
-        "minLength": 1,
-        "maxLength": 32
-      },
-      "graphResponse": {
-        "type": "object",
-        "properties": {
-          "jobId": {
-            "type": "string",
-            "description": "Unique identifier representing pipeline execution"
-          },
-          "timestamp": {
-            "type": "number"
-          },
-          "edges": {
-            "type": "array",
-            "description": "Array of edges"
-          },
-          "nodes": {
-            "type": "array",
-            "description": "Array of nodes"
-          }
+      }
+    },
+    "parameters": {
+      "nameParam": {
+        "name": "name",
+        "in": "path",
+        "description": "A dataSource name",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       },
-      "algorithmBuild": {
-        "type": "object",
-        "properties": {
-          "fileExt": {
-            "type": "string",
-            "enum": [
-              "zip",
-              "gz"
-            ]
-          },
-          "env": {
-            "type": "string",
-            "enum": [
-              "nodejs",
-              "python",
-              "java"
-            ]
-          }
-        },
-        "required": [
-          "env"
-        ]
-      },
-      "execAlgorithmRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Unique identifier representing a specific algorithm",
-            "minLength": 1,
-            "maxLength": 32,
-            "format": "algorithm-name"
-          },
-          "input": {
-            "type": "array",
-            "description": "The input for the algorithm",
-            "items": {},
-            "default": []
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "name"
-        ]
-      },
-      "pipelineTriggersNode": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Pipeline name"
-          },
-          "children": {
-            "type": "array",
-            "items": {}
-          }
+      "idParam": {
+        "name": "id",
+        "in": "path",
+        "description": "A datasource id (indicating a version)",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       },
-      "pipelineTriggersResult": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "Pipeline name"
-            },
-            "children": {
-              "type": "array",
-              "items": {}
-            }
-          }
+      "snapshotNameParam": {
+        "name": "snapshotName",
+        "in": "path",
+        "description": "A Snapshot name",
+        "required": true,
+        "schema": {
+          "type": "string"
         }
       },
-      "searchJobs": {
-        "type": "object",
-        "properties": {
-          "query": {
-            "type": "object",
-            "properties": {
-              "experimentName": {
-                "type": "string"
-              },
-              "pipelineName": {
-                "type": "string"
-              },
-              "pipelineType": {
-                "type": "string"
-              },
-              "algorithmName": {
-                "type": "string"
-              },
-              "pipelineStatus": {
-                "type": "string"
-              },
-              "datesRange": {
-                "type": "object",
-                "properties": {
-                  "from": {
-                    "type": "string",
-                    "example": "2021-03-11T14:30:00"
-                  },
-                  "to": {
-                    "type": "string",
-                    "example": "2021-03-11T14:30:00"
-                  }
-                }
-              }
-            }
-          },
-          "cursor": {
-            "type": "string",
-            "description": "get the next results starting from this cursor"
-          },
-          "pageNum": {
-            "type": "integer",
-            "description": "get the next results starting from this page number"
-          },
-          "sort": {
-            "type": "string",
-            "enum": [
-              "asc",
-              "desc"
-            ],
-            "default": "desc"
-          },
-          "limit": {
-            "type": "integer",
-            "description": "limit the result size"
-          },
-          "fields": {
-            "type": "object",
-            "description": "select which fields to return"
-          },
-          "exists": {
-            "type": "object",
-            "description": "only return records that has fields"
-          }
-        },
-        "example": {
-          "query": {
-            "datesRange": {
-              "from": "2021-05-22T15:00:00",
-              "to": "2021-06-22T16:00:00"
-            },
-            "experimentName": "main",
-            "pipelineName": "simple",
-            "pipelineType": "stored",
-            "algorithmName": "green-alg",
-            "pipelineStatus": "completed"
-          },
-          "sort": "desc",
-          "pageNum": 1,
-          "limit": 2,
-          "fields": {
-            "jobId": true
-          }
+      "snapshotNameQuery": {
+        "name": "snapshot_name",
+        "in": "query",
+        "description": "A Snapshot name",
+        "schema": {
+          "type": "string"
         }
       },
-      "searchJobsResponse": {
-        "type": "object",
-        "properties": {
-          "hits": {
-            "type": "array",
-            "description": "the actual result records",
-            "items": {}
-          },
-          "cursor": {
-            "type": "string",
-            "description": "this cursor to the next query can be used for pagination"
-          },
-          "timeTook": {
-            "type": "string",
-            "description": "the query completion time took in milliseconds"
-          }
+      "nameQuery": {
+        "name": "datasource_name",
+        "in": "query",
+        "description": "a datasource name",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "idQuery": {
+        "name": "id",
+        "in": "query",
+        "description": "request a specific version, if not stated the latest is returned",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "idQueryRequired": {
+        "name": "id",
+        "in": "query",
+        "description": "request a specific version, if not stated the latest is returned",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "downloadIdQuery": {
+        "name": "id",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "description": "Unique identifier representing a downloadId",
+          "minLength": 4,
+          "maxLength": 4,
+          "format": "download-id"
         }
       }
     }
