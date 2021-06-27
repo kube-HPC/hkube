@@ -44,9 +44,12 @@ properties:
         description: the name of the default stream flow
       flows:
         type: object
-        description: define streaming flow in simple syntax, if node A stream data to B and C and then to D, it will be like "A >> B&C >> D
+        description: |
+          define streaming flows in simple syntax
+          example: node A stream to B and C, node B stream to D.
+          it will be: A >> B&C | B >> D
         example:
-          main: A >> B&C >> D
+          main: A >> B&C | B >> D | C >> E
           second: A >> B >> C
   edges:
     type: array

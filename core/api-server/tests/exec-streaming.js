@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes: HttpStatus } = require('http-status-codes');
 const { uid } = require('@hkube/uid');
 const { request } = require('./utils');
 const gatewayService = require('../lib/service/gateway');
@@ -24,6 +24,11 @@ const nodes = [
     {
         nodeName: 'D',
         algorithmName: 'green-alg',
+        input: []
+    },
+    {
+        nodeName: 'E',
+        algorithmName: 'green-alg',
         input: [],
         stateType: 'stateful'
     }
@@ -37,6 +42,37 @@ describe('Streaming', () => {
         let restPath = null;
         before(() => {
             restPath = `${restUrl}/exec/raw`;
+        });
+        it('should throw specify a stream flow', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: 'stream',
+                    nodes,
+                    streaming: {
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal('please specify a stream flow');
+        });
+        it('should throw specify a stream flow', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: 'stream',
+                    nodes,
+                    streaming: {
+                        flows: {}
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal('please specify a stream flow');
         });
         it('should throw invalid node in stream flow', async () => {
             const options = {
@@ -137,7 +173,7 @@ describe('Streaming', () => {
                     nodes,
                     streaming: {
                         flows: {
-                            analyze1: 'A >> B >> C >> D >> B >> A',
+                            analyze1: 'A >> B >> C',
                             analyze2: 'A >> B&C >> D',
                         }
                     }
@@ -183,6 +219,154 @@ describe('Streaming', () => {
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal('invalid relation found A >> A in flow analyze');
         });
+        it('should throw for two sources', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: 'stream',
+                    nodes,
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B >> C | D >> E'
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal('flow analyze has 2 sources (A,D) each flow should have exactly one source');
+        });
+        it('should throw invalid node name', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: 'stream',
+                    nodes,
+                    streaming: {
+                        flows: {
+                            analyze: 'A >>'
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal('invalid node name after A');
+        });
+        it('should succeed to execute with multi nodes', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: 'stream',
+                    nodes,
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B >> C | B >> D | B >> E'
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body).to.have.property('jobId');
+        });
+        it('should succeed to execute with multi relations', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: 'stream',
+                    nodes,
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B&C | B >> D | C >> E'
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body).to.have.property('jobId');
+        });
+        it('should succeed to execute with multi nodes', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: 'stream',
+                    nodes,
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B >> C&D | D >> E'
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body).to.have.property('jobId');
+        });
+        it('should succeed to execute with multi nodes', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: 'stream',
+                    nodes: [
+                        {
+                            nodeName: 'image',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful'
+                        },
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: []
+                        },
+                        {
+                            nodeName: 'B',
+                            algorithmName: 'green-alg',
+                            input: []
+                        },
+                        {
+                            nodeName: 'C',
+                            algorithmName: 'green-alg',
+                            input: []
+                        },
+                        {
+                            nodeName: 'D',
+                            algorithmName: 'green-alg',
+                            input: []
+                        },
+                        {
+                            nodeName: 'E',
+                            algorithmName: 'green-alg',
+                            input: [],
+                        },
+                        {
+                            nodeName: 'get-all',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful'
+                        },
+                        {
+                            nodeName: 'get-all2',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            stateType: 'stateful'
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'image >> A&B | B >> C >> E >> get-all2 | A >> D >> E >> get-all'
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body).to.have.property('jobId');
+        });
         it('should not throw invalid relation found', async () => {
             const options = {
                 uri: restPath,
@@ -192,7 +376,7 @@ describe('Streaming', () => {
                     nodes,
                     streaming: {
                         flows: {
-                            analyze: 'A >> B >> C >> B >> A'
+                            analyze: 'A >> B >> C&D >> B >> A'
                         }
                     }
                 }

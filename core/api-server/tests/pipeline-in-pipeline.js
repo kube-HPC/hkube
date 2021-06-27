@@ -8,7 +8,6 @@ let restUrl;
 describe('Executions', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
-        config = global.testParams.config;
     });
     describe('/exec/raw', () => {
         let restPath = null;

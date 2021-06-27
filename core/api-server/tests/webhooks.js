@@ -220,7 +220,7 @@ describe('Webhooks', () => {
             const response = await request(options);
             expect(response.body).to.have.property('jobId');
         });
-        it('should throw error when no such webhook results jobId', async function () {
+        it('should throw error when no such webhook results jobId', async () => {
             const options = {
                 method: 'GET',
                 uri: `${restUrl}/webhooks/results/no_such`
@@ -310,7 +310,7 @@ describe('Webhooks', () => {
             const response = await request(options);
             expect(response.body).to.have.property('jobId');
         });
-        it('should throw error when no such webhook status jobId', async function () {
+        it('should throw error when no such webhook status jobId', async () => {
             const options = {
                 method: 'GET',
                 uri: `${restUrl}/webhooks/status/no_such`
@@ -319,7 +319,7 @@ describe('Webhooks', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('webhook no_such Not Found');
         });
-        it('should throw error when no such jobId', async function () {
+        it('should throw error when no such jobId', async () => {
             const options = {
                 method: 'GET',
                 uri: `${restUrl}/webhooks/list/no_such`
@@ -328,7 +328,7 @@ describe('Webhooks', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('webhook no_such Not Found');
         });
-        it('should succeed and return webhooks progress', async function () {
+        it('should succeed and return webhooks progress', async () => {
             const options1 = {
                 uri: restUrl + '/exec/stored',
                 body: { name: 'webhookFlow2' }
@@ -351,7 +351,7 @@ describe('Webhooks', () => {
             expect(response2.body).to.have.property('pipelineStatus');
             expect(response2.body).to.have.property('responseStatus');
         });
-        it('should succeed and return webhook by jobId', async function () {
+        it('should succeed and return webhook by jobId', async () => {
             const options1 = {
                 uri: restUrl + '/exec/stored',
                 body: { name: 'webhookFlow2' }
