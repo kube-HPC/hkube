@@ -48,8 +48,8 @@ class AppServer {
             });
         }));
 
-        swagger.servers.push({ url: path.join('/', options.swagger.path, dsPrefix) });
-        swagger.servers.push({ url: path.join('/', options.swagger.path, gcPrefix) });
+        swagger.servers.push({ url: path.join('/', dsPrefix) });
+        swagger.servers.push({ url: path.join('/', gcPrefix) });
 
         await swaggerUtils.validator.validate(swagger);
         validator.init(swagger.components.schemas, schemasInternal);
