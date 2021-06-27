@@ -1,3 +1,0 @@
-allOf:
-    - $ref: '#/components/schemas/DataSourceMeta'
-    - $ref: '#/components/schemas/DataSource'

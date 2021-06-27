@@ -1,7 +1,6 @@
 const fse = require('fs-extra');
 const path = require('path');
 const RestServer = require('@hkube/rest-server');
-const { swaggerUtils } = require('@hkube/rest-server');
 const log = require('@hkube/logger').GetLogFromContanier();
 const { metrics } = require('@hkube/metrics');
 const HttpStatus = require('http-status-codes');
@@ -25,13 +24,8 @@ class AppServer {
             }
         });
 
-        const { schemasInternal, ...swagger } = await swaggerUtils.loader.load({ path: path.join(__dirname, 'swagger') });
-        swagger.info.version = options.version;
-
+        const swagger = await fse.readJSON('api/rest-api/swagger.json');
         const { prefix, port, rateLimit, poweredBy, bodySizeLimit } = options.rest;
-        const dsPrefix = options.dataSourceService.swaggerPath;
-        const gcPrefix = options.gcService.swaggerPath;
-
         const routes = internal();
         routes.push(metrics.getRouter());
         const versions = await fse.readdir(path.join(__dirname, 'routes'));
@@ -48,11 +42,7 @@ class AppServer {
             });
         }));
 
-        swagger.servers.push({ url: path.join('/', dsPrefix) });
-        swagger.servers.push({ url: path.join('/', gcPrefix) });
-
-        await swaggerUtils.validator.validate(swagger);
-        validator.init(swagger.components.schemas, schemasInternal);
+        validator.init(swagger.components.schemas);
 
         const { beforeRoutesMiddlewares, afterRoutesMiddlewares } = metrics.getMiddleware();
 

@@ -4,11 +4,11 @@ class ApiValidator {
     }
 
     validateResultList(pipeline) {
-        this._validator.validate(this._validator.definitionsInternal.list, pipeline, true);
+        this._validator.validate(this._validator.definitions.queryList, pipeline, true);
     }
 
     validateListRange(options) {
-        this._validator.validate(this._validator.definitionsInternal.listRange, options);
+        this._validator.validate(this._validator.definitions.queryRange, options);
     }
 }
 

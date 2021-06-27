@@ -1,5 +1,0 @@
-type: array
-items:
-    type: string
-    description: 'Data file (file types: *)'
-    format: binary

@@ -34,13 +34,13 @@ describe('Store/Algorithms', () => {
     describe('/store/algorithms:name GET', () => {
         it('should throw error algorithm not found', async () => {
             const options = {
-                uri: `${restPath}/not_exists`,
+                uri: `${restPath}/notexists`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
+            expect(response.body.error.message).to.equal('algorithm notexists Not Found');
         });
         it('should return specific algorithm', async () => {
             const body = {
