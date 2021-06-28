@@ -35,7 +35,9 @@ class ExecutionService {
             rootJobId = pipeline.jobId;
         }
         const { jobId, startTime, lastRunResult, types, ...restPipeline } = pipeline;
-        const newTypes = this._mergeTypes(types, [pipelineTypes.NODE]);
+        const newTypes = this._mergeTypes(types,
+            [pipelineTypes.NODE],
+            options.debug ? [pipelineTypes.DEBUG] : []);
         return this._run({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types: newTypes });
     }
 
