@@ -1,7 +1,6 @@
 const fse = require('fs-extra');
 const path = require('path');
 const RestServer = require('@hkube/rest-server');
-const { swaggerUtils } = require('@hkube/rest-server');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../lib/consts/componentNames').REST_API;
 const rest = new RestServer();
@@ -18,7 +17,6 @@ class AppServer {
         const swagger = await fse.readJSON('api/rest-api/swagger.json');
         const { port, prefix, bodySizeLimit, poweredBy } = options.rest;
         swagger.servers.push({ url: path.join('/', options.swagger.path, prefix) });
-        await swaggerUtils.validator.validate(swagger);
 
         const routes = [];
         const routers = await fse.readdir(path.join(__dirname, 'routes'));
