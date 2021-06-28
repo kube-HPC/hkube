@@ -39,10 +39,10 @@ describe('Executions', () => {
                     nodeName: 'green'
                 }
             };
-            const {body: response} = await request(options);
+            const { body: response } = await request(options);
             expect(response).not.to.have.property('error');
             expect(response).to.have.property('jobId');
-            const {body: job}=await getJob(response.jobId);
+            const { body: job } = await getJob(response.jobId);
             expect(job.nodes[0].kind).to.eql('algorithm');
             expect(job.types).to.not.contain('debug');
             expect(job.types).to.contain('node');
@@ -57,15 +57,15 @@ describe('Executions', () => {
                     debug: true
                 }
             };
-            const {body: response} = await request(options);
+            const { body: response } = await request(options);
             expect(response).not.to.have.property('error');
             expect(response).to.have.property('jobId');
-            const {body: job}=await getJob(response.jobId);
+            const { body: job } = await getJob(response.jobId);
             expect(job.nodes[0].kind).to.eql('debug');
             expect(job.types).to.contain('debug');
             expect(job.types).to.contain('node');
             expect(job.types).to.contain('raw');
-            const {body: response2} = await request(options);
+            const { body: response2 } = await request(options);
             expect(response2.error.message).eq('debug green-alg-debug already exists');
 
         });
