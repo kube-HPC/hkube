@@ -41,16 +41,21 @@ class ExecutionService {
 
     async runAlgorithm(options) {
         validator.executions.validateExecAlgorithmRequest(options);
-        const { name, input } = options;
+        const { name, input, debug } = options;
         const pipeline = {
             name,
             nodes: [{
                 nodeName: name,
                 algorithmName: name,
-                input
+                input,
+                kind: debug ? nodeKind.Debug : nodeKind.Algorithm
             }]
         };
-        return this._run({ pipeline, types: [pipelineTypes.ALGORITHM] });
+        const types = [pipelineTypes.ALGORITHM];
+        if (debug) {
+            types.push(pipelineTypes.DEBUG);
+        }
+        return this._run({ pipeline, types });
     }
 
     async _runStored(options) {
