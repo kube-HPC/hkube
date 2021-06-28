@@ -6,6 +6,14 @@ const validationMessages = require('../lib/consts/validationMessages.js');
 const pipelines = require('./mocks/pipelines.json');
 let restUrl, jobId;
 
+const getJob = (jobId) => {
+    const options = {
+        uri: `${restUrl}/exec/pipelines/${jobId}`,
+        method: 'GET'
+    };
+    return request(options);
+};
+
 describe('Executions', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
@@ -31,9 +39,14 @@ describe('Executions', () => {
                     nodeName: 'green'
                 }
             };
-            const response = await request(options);
-            expect(response.body).not.to.have.property('error');
-            expect(response.body).to.have.property('jobId');
+            const { body: response } = await request(options);
+            expect(response).not.to.have.property('error');
+            expect(response).to.have.property('jobId');
+            const { body: job } = await getJob(response.jobId);
+            expect(job.nodes[0].kind).to.eql('algorithm');
+            expect(job.types).to.not.contain('debug');
+            expect(job.types).to.contain('node');
+            expect(job.types).to.contain('raw');
         });
         it('should succeed run caching with debug', async () => {
             const options = {
@@ -44,11 +57,16 @@ describe('Executions', () => {
                     debug: true
                 }
             };
-            let response = await request(options);
-            expect(response.body).not.to.have.property('error');
-            expect(response.body).to.have.property('jobId');
-            response = await request(options);
-            expect(response.body.error.message).eq('debug green-alg-debug already exists');
+            const { body: response } = await request(options);
+            expect(response).not.to.have.property('error');
+            expect(response).to.have.property('jobId');
+            const { body: job } = await getJob(response.jobId);
+            expect(job.nodes[0].kind).to.eql('debug');
+            expect(job.types).to.contain('debug');
+            expect(job.types).to.contain('node');
+            expect(job.types).to.contain('raw');
+            const { body: response2 } = await request(options);
+            expect(response2.error.message).eq('debug green-alg-debug already exists');
 
         });
         it('should fail on no jobId', async () => {
