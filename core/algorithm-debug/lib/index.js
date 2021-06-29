@@ -3,6 +3,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const EventEmitter = require('events');
 const { uid } = require('@hkube/uid');
 const messages = require('@hkube/nodejs-wrapper/lib/consts/messages');
+const debugMessages = require('./consts/messages');
 const ws = require('./algorithm-communication/ws');
 const events = new EventEmitter();
 const sendMessageDelegates = {};
@@ -25,7 +26,7 @@ const start = async (options, hkubeApi) => {
     ws.on(messages.outgoing.done, (value) => {
         return this._resolve(value);
     });
-    ws.on(messages.outgoing.streamingInMessageDone, ({ sendMessageId }) => {
+    ws.on(debugMessages.outgoing.streamingInMessageDone, ({ sendMessageId }) => {
         if (sendMessageId) {
             delete sendMessageDelegates[sendMessageId];
         }
@@ -50,7 +51,7 @@ const start = async (options, hkubeApi) => {
             this._prevMsgResolve();
         }
     });
-    ws.on(messages.outgoing.streamingOutMessage, ({ message, flowName, sendMessageId }) => {
+    ws.on(debugMessages.outgoing.streamingOutMessage, ({ message, flowName, sendMessageId }) => {
         const sendMessage = sendMessageDelegates[sendMessageId];
         log.info(`sending a message, flow:${flowName}`);
         if (sendMessage) {
@@ -70,7 +71,7 @@ const start = async (options, hkubeApi) => {
             }
             const sendMessageId = uid();
             sendMessageDelegates[sendMessageId] = sendMessage;
-            ws.send({ command: messages.incoming.streamingInMessage, data: { payload, origin, sendMessageId } });
+            ws.send({ command: debugMessages.incoming.streamingInMessage, data: { payload, origin, sendMessageId } });
             this.prevMessageDone = new Promise((res) => {
                 this._prevMsgResolve = res;
             });
