@@ -2,7 +2,7 @@ const { stateType, pipelineKind } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const EventEmitter = require('events');
 const { uid } = require('@hkube/uid');
-const messages = require('./consts/messages');
+const messages = require('@hkube/nodejs-wrapper/lib/consts/messages');
 const ws = require('./algorithm-communication/ws');
 const events = new EventEmitter();
 const sendMessageDelegates = {};
@@ -31,6 +31,20 @@ const start = async (options, hkubeApi) => {
         }
         this._prevMsgResolve();
     });
+
+    ws.on(messages.outgoing.startAlgorithmExecution, async ({ execId, algorithmName, input, includeResult }) => {
+        const result = await hkubeApi.startAlgorithm(algorithmName, input, includeResult);
+        ws.send({ command: messages.incoming.execAlgorithmDone, data: { execId, response: result } });
+    });
+    ws.on(messages.outgoing.startRawSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
+        const result = await hkubeApi.startRawSubpipeline(subPipeline.name, subPipeline.nodes, subPipeline.options, subPipeline.webhooks, subPipeline.flowInput, includeResult);
+        ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response: result } });
+    });
+    ws.on(messages.outgoing.startStoredSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
+        const result = await hkubeApi.startStoredSubpipeline(subPipeline.name, subPipeline.flatInput, includeResult);
+        ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response: result } });
+    });
+
     ws.on('disconnect', () => {
         if (this.prevMessageDone) {
             this._prevMsgResolve();
