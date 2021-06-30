@@ -8,7 +8,7 @@
         "@hkube/consts": "1.0.35",
         "@hkube/encoding": "^1.0.21",
         "@hkube/logger": "^1.0.29",
-        "@hkube/nodejs-wrapper": "^2.0.41",
+        "@hkube/nodejs-wrapper": "^2.0.42",
         "@hkube/uid": "^1.0.4",
         "ajv": "^6.12.0",
         "ws": "^7.2.3"

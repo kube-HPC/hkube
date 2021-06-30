@@ -1,8 +1,7 @@
 const configIt = require('@hkube/config');
 const { main: config } = configIt.load();
 const { expect } = require('chai');
-const debugMessages = require('../lib/consts/messages')
-const messages = require('@hkube/nodejs-wrapper/lib/consts/messages')
+const messages = require('@hkube/nodejs-wrapper/lib/consts/messages');
 const WebSocket = require('ws');
 const app = require('../lib/app');
 // const Logger = require('@hkube/logger');
@@ -89,7 +88,7 @@ describe('Debug', () => {
             if (decodedData.command === 'start') {
                 resolveStart();
             }
-            if (decodedData.command === debugMessages.incoming.streamingInMessage) {
+            if (decodedData.command === messages.incoming.streamingInMessage) {
                 expect(decodedData.data.payload).to.eq('message2', 'stateful did not get the message')
                 expect(decodedData.data.origin).to.eq('a', 'stateful did not get the origin')
                 sendMessageId = decodedData.data.sendMessageId;
@@ -130,7 +129,7 @@ describe('Debug', () => {
         });
         await promiseMessage;
 
-        socket.send(encoding.encode({ command: debugMessages.outgoing.streamingOutMessage, data: { message: 'myMessage', sendMessageId } }))
+        socket.send(encoding.encode({ command: messages.outgoing.streamingOutMessage, data: { message: 'myMessage', sendMessageId } }))
 
         await promiseMessageForwarded;
         socket.send(encoding.encode({ command: messages.outgoing.done, data: 'return value' }));
