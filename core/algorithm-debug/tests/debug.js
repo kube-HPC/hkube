@@ -1,7 +1,7 @@
 const configIt = require('@hkube/config');
 const { main: config } = configIt.load();
 const { expect } = require('chai');
-const messages = require('@hkube/nodejs-wrapper/lib/consts/messages');
+const messages = require('@hkube/nodejs-wrapper/lib/consts/methods.');
 const WebSocket = require('ws');
 const app = require('../lib/app');
 // const Logger = require('@hkube/logger');

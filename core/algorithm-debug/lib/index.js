@@ -33,16 +33,32 @@ const start = async (options, hkubeApi) => {
     });
 
     ws.on(messages.outgoing.startAlgorithmExecution, async ({ execId, algorithmName, input, includeResult }) => {
-        const result = await hkubeApi.startAlgorithm(algorithmName, input, includeResult);
-        ws.send({ command: messages.incoming.execAlgorithmDone, data: { execId, response: result } });
+        hkubeApi.startAlgorithm(algorithmName, input, includeResult).then((response) => {
+            ws.send({ command: messages.incoming.execAlgorithmDone, data: { execId, response } });
+        }).catch((response) => {
+            ws.send({ command: messages.incoming.execAlgorithmError, data: { execId, response } });
+        });
     });
     ws.on(messages.outgoing.startRawSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
-        const result = await hkubeApi.startRawSubpipeline(subPipeline.name, subPipeline.nodes, subPipeline.options, subPipeline.webhooks, subPipeline.flowInput, includeResult);
-        ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response: result } });
+        hkubeApi.startRawSubpipeline(subPipeline.name, subPipeline.nodes, subPipeline.options, subPipeline.webhooks, subPipeline.flowInput, includeResult).then((response) => {
+            ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response } });
+        }).catch((response) => {
+            ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response } });
+        });
     });
     ws.on(messages.outgoing.startStoredSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
-        const result = await hkubeApi.startStoredSubpipeline(subPipeline.name, subPipeline.flatInput, includeResult);
-        ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response: result } });
+        hkubeApi.startStoredSubpipeline(subPipeline.name, subPipeline.flatInput, includeResult).then((response) => {
+            ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response } });
+        }).catch((response) => {
+            ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response } });
+        });
+    });
+    ws.on(messages.outgoing.dataSourceRequest, async ({ requestId, dataSource }) => {
+        hkubeApi.getDataSource(dataSource).then((response) => {
+            ws.send({ command: messages.incoming.dataSourceResponse, data: { requestId, response } });
+        }).catch((response) => {
+            ws.send({ command: messages.incoming.dataSourceResponseError, data: { requestId, response } });
+        });
     });
 
     ws.on('disconnect', () => {
