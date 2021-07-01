@@ -1116,6 +1116,11 @@
                     "description": "The input for the algorithm",
                     "items": {},
                     "default": []
+                  },
+                  "debug": {
+                    "type": "boolean",
+                    "description": "Is debug algorithm",
+                    "default": false
                   }
                 },
                 "additionalProperties": false,
@@ -17950,6 +17955,11 @@
             "description": "The input for the algorithm",
             "items": {},
             "default": []
+          },
+          "debug": {
+            "type": "boolean",
+            "description": "Is debug algorithm",
+            "default": false
           }
         },
         "additionalProperties": false,
