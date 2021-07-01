@@ -11,7 +11,6 @@ properties:
     type: boolean
     description: Is debug algorithm
     default: false
-
 additionalProperties: false
 required:
   - name
