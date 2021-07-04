@@ -21,7 +21,7 @@ class AppServer {
         routers.forEach((r) => {
             const file = path.basename(r, '.js');
             routes.push({
-                route: path.join('/', prefix, 'gc', file),
+                route: path.join('/', prefix, file),
                 router: require('./' + path.join('routes', file))()  // eslint-disable-line
             });
         });
