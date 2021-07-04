@@ -1116,6 +1116,11 @@
                     "description": "The input for the algorithm",
                     "items": {},
                     "default": []
+                  },
+                  "debug": {
+                    "type": "boolean",
+                    "description": "Is debug algorithm",
+                    "default": false
                   }
                 },
                 "additionalProperties": false,
@@ -14155,7 +14160,7 @@
         }
       }
     },
-    "/clean": {
+    "/gc/clean": {
       "post": {
         "tags": [
           "GC"
@@ -14236,7 +14241,7 @@
         }
       }
     },
-    "/clean/{type}": {
+    "/gc/clean/{type}": {
       "post": {
         "tags": [
           "GC"
@@ -14327,7 +14332,7 @@
         }
       }
     },
-    "/dryrun": {
+    "/gc/dryrun": {
       "post": {
         "tags": [
           "GC"
@@ -14408,7 +14413,7 @@
         }
       }
     },
-    "/dryrun/{type}": {
+    "/gc/dryrun/{type}": {
       "post": {
         "tags": [
           "GC"
@@ -14499,7 +14504,7 @@
         }
       }
     },
-    "/status": {
+    "/gc/status": {
       "get": {
         "tags": [
           "GC"
@@ -14563,7 +14568,7 @@
         }
       }
     },
-    "/status/{type}": {
+    "/gc/status/{type}": {
       "get": {
         "tags": [
           "GC"
@@ -17950,6 +17955,11 @@
             "description": "The input for the algorithm",
             "items": {},
             "default": []
+          },
+          "debug": {
+            "type": "boolean",
+            "description": "Is debug algorithm",
+            "default": false
           }
         },
         "additionalProperties": false,

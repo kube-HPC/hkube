@@ -141,17 +141,17 @@
   $ref: ./gateway/gateway.yaml
 
 # gc
-/clean:
+/gc/clean:
   $ref: ./gc/clean.yaml
-/clean/{type}:
+/gc/clean/{type}:
   $ref: ./gc/clean_type.yaml
-/dryrun:
+/gc/dryrun:
   $ref: ./gc/dryrun.yaml
-/dryrun/{type}:
+/gc/dryrun/{type}:
   $ref: ./gc/dryrun_type.yaml
-/status:
+/gc/status:
   $ref: ./gc/status.yaml
-/status/{type}:
+/gc/status/{type}:
   $ref: ./gc/status_type.yaml
 
 # graph

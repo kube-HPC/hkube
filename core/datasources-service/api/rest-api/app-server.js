@@ -7,7 +7,7 @@ const HttpStatus = require('http-status-codes');
 const validator = require('../../lib/validation');
 const component = require('../../lib/consts/componentNames').REST_API;
 const rest = new RestServer();
-const routeLogBlacklist = ['/metrics', '/swagger'];
+const routeLogBlacklist = ['/metrics'];
 
 class AppServer {
     async init(options) {
@@ -29,7 +29,6 @@ class AppServer {
         const routes = [];
 
         await Promise.all(versions.map(async (v) => {
-            swagger.servers.push({ url: path.join('/', options.swagger.path, prefix, v) });
             const routers = await fse.readdir(path.join(__dirname, 'routes', v));
             routers.forEach((f) => {
                 const file = path.basename(f, '.js');
@@ -45,7 +44,6 @@ class AppServer {
         const { beforeRoutesMiddlewares, afterRoutesMiddlewares } = metrics.getMiddleware();
 
         const opt = {
-            swagger,
             routes,
             prefix,
             versions,

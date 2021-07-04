@@ -4,7 +4,7 @@ const RestServer = require('@hkube/rest-server');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../lib/consts/componentNames').REST_API;
 const rest = new RestServer();
-const routeLogBlacklist = ['/metrics', '/swagger'];
+const routeLogBlacklist = ['/metrics'];
 
 class AppServer {
     async init(options) {
@@ -14,22 +14,19 @@ class AppServer {
             log.info(`status=${status}, message=${error}`, { component });
         });
 
-        const swagger = await fse.readJSON('api/rest-api/swagger.json');
         const { port, prefix, bodySizeLimit, poweredBy } = options.rest;
-        swagger.servers.push({ url: path.join('/', options.swagger.path, prefix) });
 
         const routes = [];
         const routers = await fse.readdir(path.join(__dirname, 'routes'));
         routers.forEach((r) => {
             const file = path.basename(r, '.js');
             routes.push({
-                route: path.join('/', prefix, file),
+                route: path.join('/', prefix, 'gc', file),
                 router: require('./' + path.join('routes', file))()  // eslint-disable-line
             });
         });
 
         const opt = {
-            swagger,
             routes,
             bodySizeLimit,
             poweredBy,
