@@ -13,7 +13,7 @@ class JobsMessageQueue {
     async getWaitingCount(algorithms) {
         const map = {};
         await Promise.all(algorithms.map(async (a) => {
-            const count = this._getWaitingCount(a.name);
+            const count = await this._getWaitingCount(a.name);
             if (count >= 0) {
                 map[a.name] = count;
             }
