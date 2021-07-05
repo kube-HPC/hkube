@@ -8,7 +8,7 @@ const JobProducer = require('./jobs/producer');
 const JobConsumer = require('./jobs/consumer');
 
 class Queue extends events {
-    constructor({ algorithmName, updateInterval, scoreHeuristic, enrichmentRunner, persistence }) {
+    constructor({ algorithmName, updateInterval, algorithmMinIdleTimeMS, scoreHeuristic, enrichmentRunner, persistence }) {
         super();
         this.algorithmName = algorithmName;
         this.scoreHeuristic = scoreHeuristic;
@@ -17,6 +17,8 @@ class Queue extends events {
         this.queue = [];
         this.isIntervalRunning = true;
         this.persistence = persistence;
+        this._lastActiveTime = Date.now();
+        this._algorithmMinIdleTimeMS = algorithmMinIdleTimeMS;
     }
 
     async start({ options, algorithmName }) {
@@ -42,13 +44,24 @@ class Queue extends events {
         this._queueInterval();
     }
 
-    async stop() {
+    async stop(force) {
+        if (!force && this.queue.length > 0) {
+            log.warning('trying to stop active queue, request ignored', { component });
+            return;
+        }
         await this._producer.stop();
         await this._consumer.stop();
         this._producer = null;
         this._consumer = null;
         this.isIntervalRunning = false;
         this.flush();
+    }
+
+    async pause() {
+        if (!this._isPaused) {
+            this._isPaused = true;
+            await this._consumer.pause();
+        }
     }
 
     flush() {
@@ -80,6 +93,7 @@ class Queue extends events {
     }
 
     addJobs(jobs) {
+        this._lastActiveTime = Date.now();
         this._removeDuplicates(jobs);
         const tasks = jobs.map(task => this.scoreHeuristic(task));
         if (tasks.length === 0) {
@@ -139,6 +153,26 @@ class Queue extends events {
 
     get get() {
         return this.queue;
+    }
+
+    async checkIdle() {
+        try {
+            const isIdle = Date.now() - this._lastActiveTime > this._algorithmMinIdleTimeMS;
+            const pendingAmount = await this._producer.getWaitingCount();
+            const isEmpty = pendingAmount === 0 && this.queue.length === 0;
+            this._isIdle = isIdle && isEmpty;
+        }
+        catch (e) {
+            log.throttle.error(`error on checkIdle ${e.message}`, { component }, e);
+        }
+    }
+
+    isIdle() {
+        return this._isIdle;
+    }
+
+    isStaled() {
+        return this._isIdle && this._isPaused;
     }
 
     getQueue() {

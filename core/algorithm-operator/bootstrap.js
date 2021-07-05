@@ -8,13 +8,15 @@ const db = require('./lib/helpers/db');
 const etcd = require('./lib/helpers/etcd');
 const kubernetes = require('./lib/helpers/kubernetes');
 const operator = require('./lib/operator');
+const jobsMessageQueue = require('./lib/helpers/jobs-message-queue');
 const { setFromConfig } = require('./lib/helpers/settings');
 
 const modules = [
     db,
     etcd,
     kubernetes,
-    operator
+    operator,
+    jobsMessageQueue
 ];
 
 class Bootstrap {

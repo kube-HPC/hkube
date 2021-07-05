@@ -8,6 +8,7 @@ const { findVersion } = require('../helpers/images');
 const component = require('../consts/componentNames').ALGORITHM_QUEUE_RECONCILER;
 const QueueActions = require('../consts/queue-actions');
 const { normalizeQueuesDeployments, normalizeQueuesDiscovery, normalizeAlgorithms } = require('./normalize');
+const jobsMessageQueue = require('../helpers/jobs-message-queue');
 const CONTAINERS = require('../consts/containers');
 
 const _createDeployment = async ({ queueId, options }) => {
@@ -117,15 +118,16 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     const normAlgorithms = normalizeAlgorithms(algorithms);
     const normDeployments = normalizeQueuesDeployments(deployments);
     const availableQueues = _findAvailableQueues({ queueToAlgorithms, limit });
-    const addAlgorithms = normAlgorithms.filter(a => !algorithmsToQueue[a.name]);
     const removeAlgorithms = _findObsoleteAlgorithms({ algorithmsToQueue, normAlgorithms });
+    const waitingCount = await jobsMessageQueue.getWaitingCount(algorithms);
+    const requiredAlgorithms = normAlgorithms.filter(a => !algorithmsToQueue[a.name] && waitingCount[a.name] > 0);
 
     if (!devMode) {
-        await _addDeployments({ limit, algorithms: normAlgorithms.length, deployments: normDeployments.length, versions, registry, clusterOptions, resources, options });
+        await _addDeployments({ limit, algorithms: requiredAlgorithms.length, deployments: normDeployments.length, versions, registry, clusterOptions, resources, options });
         await _updateDeployments({ normDeployments, options: { versions, registry, clusterOptions, resources, options } });
         await _deleteDeployments({ queues: queueToAlgorithms, normDeployments });
     }
-    await _matchAlgorithmsToQueue({ algorithms: addAlgorithms, queues: availableQueues, limit });
+    await _matchAlgorithmsToQueue({ algorithms: requiredAlgorithms, queues: availableQueues, limit });
     await _removeAlgorithmsFromQueue({ algorithms: removeAlgorithms });
     await _removeDuplicatesAlgorithms({ algorithms: duplicateAlgorithms });
 };

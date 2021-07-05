@@ -2,6 +2,7 @@ const packageJson = require(process.cwd() + '/package.json');
 const formatter = require('../../lib/helpers/formatters');
 const config = module.exports = {};
 
+const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.serviceName = packageJson.name;
 config.version = packageJson.version;
 config.intervalMs = process.env.INTERVAL_MS || 10000;
@@ -13,6 +14,17 @@ config.isDevMode = !!process.env.DEV_MODE;
 
 config.algorithmQueueBalancer = {
     limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_CONCURRENCY_LIMIT, 5)
+};
+
+config.JobsMessageQueue = {
+    enableCheckStalledJobs: false,
+    prefix: 'algorithm-queue',
+};
+
+config.redis = {
+    host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
+    port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
+    sentinel: useSentinel,
 };
 
 config.driversSetting = {
