@@ -8,7 +8,8 @@
     },
     "devDependencies": {},
     "scripts": {
-        "build-swagger": "node ./swagger-builder.js"
+        "build-swagger": "node ./swagger-builder.js",
+        "build": "echo No build!"
     },
     "author": "Hkube",
     "license": "MIT"
