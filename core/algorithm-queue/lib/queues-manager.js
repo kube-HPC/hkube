@@ -13,7 +13,7 @@ class QueuesManager extends EventEmitter {
         this._queues = new Map();
         this._actions = {
             add: (...args) => this._addAction(...args),
-            remove: (...args) => this._removeAction(...args),
+            remove: (...args) => this._removeAction(...args, 'deleted', true),
         };
     }
 
@@ -36,6 +36,10 @@ class QueuesManager extends EventEmitter {
         log.info(`queue ${queueId} is up and running`, { component });
     }
 
+    /**
+     * This method is responsible for updating the discovery data.
+     * and also doing self preparation for graceful shutdown.
+     */
     _livenessInterval() {
         setTimeout(async () => {
             try {
@@ -50,6 +54,7 @@ class QueuesManager extends EventEmitter {
                     }
                 }
                 else {
+                    await this._checkIdleAlgorithms();
                     this._lastActive = Date.now();
                 }
                 await this._discoveryUpdate();
@@ -61,6 +66,26 @@ class QueuesManager extends EventEmitter {
                 this._livenessInterval();
             }
         }, this._options.algorithmQueueBalancer.livenessInterval);
+    }
+
+    /**
+     * This method is responsible for removing staled queues.
+     * stale queue is a queue which idle for X time and also empty and paused.
+     */
+    async _checkIdleAlgorithms() {
+        const queues = Array.from(this._queues.values());
+        const isIdle = queues.filter(q => q.isIdle());
+        const isStaled = queues.filter(q => q.isStaled());
+        await Promise.all(queues.map(a => a.checkIdle()));
+        await Promise.all(isIdle.map(q => q.pause()));
+        await Promise.all(isStaled.map(async q => {
+            try {
+                await this._removeAction(q.algorithmName, 'idle', false);
+            }
+            catch (e) {
+                log.throttle.error(`error removing idle queue ${q.algorithmName} ${e.message}`, { component }, e);
+            }
+        }));
     }
 
     async _handleAction(data) {
@@ -108,12 +133,12 @@ class QueuesManager extends EventEmitter {
         }
     }
 
-    async _removeAction(algorithmName) {
+    async _removeAction(algorithmName, reason, force) {
         const queue = this._queues.get(algorithmName);
         if (queue) {
-            await queue.stop();
+            await queue.stop(force);
             this._queues.delete(algorithmName);
-            log.info(`algorithm queue from type ${algorithmName} deleted`, { component });
+            log.info(`algorithm queue from type ${algorithmName} deleted. reason: ${reason}`, { component });
         }
         else {
             log.warning(`algorithm queue from type ${algorithmName} not exists`, { component });
