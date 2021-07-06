@@ -36,7 +36,7 @@ class AlgorithmStore {
     }
 
     async getAlgorithm(options) {
-        validator.jobs.validateName(options);
+        validator.algorithms.validateAlgorithmName(options);
         const algorithm = await stateManager.getAlgorithm(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);

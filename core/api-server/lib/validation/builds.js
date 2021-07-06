@@ -4,7 +4,7 @@ class ApiValidator {
     }
 
     validateBuildId(build) {
-        this._validator.validate(this._validator.definitionsInternal.buildId, build, false);
+        this._validator.validate(this._validator.definitions.buildIdObject, build, false);
     }
 
     validateAlgorithmBuild(algorithm) {

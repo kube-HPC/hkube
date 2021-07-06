@@ -12,8 +12,8 @@ class ApiValidator {
         this.validation = null;
     }
 
-    init(schemas, schemasInternal) {
-        innerValidator.init(schemas, schemasInternal);
+    init(schemas) {
+        innerValidator.init(schemas);
         this.dataSources = new DataSources(innerValidator);
         this.snapshots = new Snapshots(innerValidator);
         this.downloads = new Downloads(innerValidator);

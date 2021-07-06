@@ -24,16 +24,6 @@ describe('Pipelines', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline results no_such_id Not Found');
         });
-        it('should throw validation error of order property', async () => {
-            const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
-            const options = {
-                uri: restPath + `?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('data.order should be equal to one of the allowed values');
-        });
         it('should throw validation error of limit should be >= 1', async () => {
             const qs = querystring.stringify({ name: 'pipe', limit: 0 });
             const options = {
@@ -97,16 +87,6 @@ describe('Pipelines', () => {
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline status no_such_id Not Found');
-        });
-        it('should throw validation error of order property', async () => {
-            const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
-            const options = {
-                uri: restPath + `?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('data.order should be equal to one of the allowed values');
         });
         it('should throw validation error of sort property', async () => {
             const qs = querystring.stringify({ name: 'pipe', sort: 'bla' });
