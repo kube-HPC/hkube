@@ -13,7 +13,7 @@ const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.rest = {
     port: formatter.parseInt(process.env.REST_PORT, 7000),
-    prefix: 'api',
+    prefix: 'api/v1/gc',
     poweredBy: 'HKube GC',
     bodySizeLimit: process.env.BODY_SIZE_LIMIT || '50mb'
 };

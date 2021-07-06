@@ -1,0 +1,16 @@
+{
+    "name": "openapi-spec",
+    "version": "2.1.0",
+    "description": "Hkube openapi-spec",
+    "main": "app.js",
+    "dependencies": {
+        "@hkube/rest-server": "^1.0.18"
+    },
+    "devDependencies": {},
+    "scripts": {
+        "build-swagger": "node ./swagger-builder.js",
+        "build": "echo No build!"
+    },
+    "author": "Hkube",
+    "license": "MIT"
+}

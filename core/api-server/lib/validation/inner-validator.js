@@ -7,9 +7,8 @@ const validator = new Validator({ useDefaults: false, coerceTypes: true, nullabl
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true, nullable: true });
 
 class ApiValidator {
-    init(schemas, schemasInternal) {
+    init(schemas) {
         this.definitions = schemas;
-        this.definitionsInternal = schemasInternal;
         customFormats.init(schemas, validator, defaulter);
     }
 

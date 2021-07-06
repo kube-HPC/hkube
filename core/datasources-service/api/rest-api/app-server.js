@@ -1,14 +1,13 @@
-const fs = require('fs');
+const fse = require('fs-extra');
 const path = require('path');
 const RestServer = require('@hkube/rest-server');
-const { swaggerUtils } = require('@hkube/rest-server');
 const log = require('@hkube/logger').GetLogFromContanier();
 const { metrics } = require('@hkube/metrics');
 const HttpStatus = require('http-status-codes');
 const validator = require('../../lib/validation');
 const component = require('../../lib/consts/componentNames').REST_API;
 const rest = new RestServer();
-const routeLogBlacklist = ['/metrics', '/swagger'];
+const routeLogBlacklist = ['/metrics'];
 
 class AppServer {
     async init(options) {
@@ -24,43 +23,34 @@ class AppServer {
             }
         });
 
-        const { schemasInternal, ...swagger } = await swaggerUtils.loader.load({ path: path.join(__dirname, 'swagger'), });
-        swagger.info.version = options.version;
+        const swagger = await fse.readJSON('api/rest-api/swagger.json');
+        const { prefix, port, rateLimit, poweredBy, bodySizeLimit } = options.rest;
+        const versions = await fse.readdir(path.join(__dirname, 'routes'));
+        const routes = [];
 
-        const { prefix, port, rateLimit, poweredBy } = options.rest;
-
-        const versions = fs.readdirSync(path.join(__dirname, 'routes'));
-        let routes = [];
-        versions.forEach(v => {
-            swagger.servers.push({ url: path.join('/', options.swagger.path, prefix, v) });
-            const routers = fs.readdirSync(path.join(__dirname, 'routes', v));
-            routes = routers.map(f => {
+        await Promise.all(versions.map(async (v) => {
+            const routers = await fse.readdir(path.join(__dirname, 'routes', v));
+            routers.forEach((f) => {
                 const file = path.basename(f, '.js');
-                return {
+                routes.push({
                     route: path.join('/', prefix, v, file),
-                    // eslint-disable-next-line
-                    router: require('./' + path.join('routes', v, file))({
-                        ...options,
-                        version: v,
-                        file,
-                    }),
-                };
+                    router: require('./' + path.join('routes', v, file))({ ...options, version: v, file })  // eslint-disable-line
+                });
             });
-        });
+        }));
 
-        await swaggerUtils.validator.validate(swagger);
-        validator.init(swagger.components.schemas, schemasInternal);
+        validator.init(swagger.components.schemas);
 
         const { beforeRoutesMiddlewares, afterRoutesMiddlewares } = metrics.getMiddleware();
 
         const opt = {
-            swagger,
             routes,
             prefix,
             versions,
             port: parseInt(port, 10),
             rateLimit,
             poweredBy,
+            bodySizeLimit,
             name: options.serviceName,
             beforeRoutesMiddlewares,
             afterRoutesMiddlewares,

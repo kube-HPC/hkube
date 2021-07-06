@@ -4,7 +4,7 @@ class ApiValidator {
     }
 
     validateGraphQuery(options) {
-        this._validator.validate(this._validator.definitionsInternal.graph, options, true);
+        this._validator.validate(this._validator.definitions.graphQuery, options, true);
     }
 }
 

@@ -1,0 +1,24 @@
+get:
+  tags:
+    - GC
+  summary: Get all statuses
+  description: Get all statuses
+  responses:
+    "200":
+      description: success response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/response"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

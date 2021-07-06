@@ -1,5 +1,0 @@
-dataSourceName:
-    $ref: ./dataSourceName.yaml
-
-downloadId:
-    $ref: ./downloadId.yaml

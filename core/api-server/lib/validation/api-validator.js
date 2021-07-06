@@ -16,8 +16,8 @@ const {
 } = require('./index');
 
 class ApiValidator {
-    init(schemas, schemasInternal) {
-        innerValidator.init(schemas, schemasInternal);
+    init(schemas) {
+        innerValidator.init(schemas);
         this.algorithms = new Algorithms(innerValidator);
         this.boards = new Boards(innerValidator);
         this.builds = new Builds(innerValidator);

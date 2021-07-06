@@ -14,9 +14,8 @@ const defaulter = new Validator({
 });
 
 class ApiValidator {
-    init(schemas, schemasInternal) {
+    init(schemas) {
         this.definitions = schemas;
-        this.definitionsInternal = schemasInternal;
         customFormats.init(schemas, validator, defaulter);
     }
 
