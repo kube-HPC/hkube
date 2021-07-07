@@ -35,4 +35,10 @@ properties:
       - warn
       - error
       - critical
+  debugOverride:
+    type: array
+    description: A list of algorithms to debug in this execution
+    items:
+      type: string
+    uniqueItems: true
 description: optional properties

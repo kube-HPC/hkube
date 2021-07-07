@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -359,6 +359,14 @@
                           "error",
                           "critical"
                         ]
+                      },
+                      "debugOverride": {
+                        "type": "array",
+                        "description": "A list of algorithms to debug in this execution",
+                        "items": {
+                          "type": "string"
+                        },
+                        "uniqueItems": true
                       }
                     },
                     "description": "optional properties"
@@ -798,6 +806,14 @@
                           "error",
                           "critical"
                         ]
+                      },
+                      "debugOverride": {
+                        "type": "array",
+                        "description": "A list of algorithms to debug in this execution",
+                        "items": {
+                          "type": "string"
+                        },
+                        "uniqueItems": true
                       }
                     },
                     "description": "optional properties"
@@ -2157,6 +2173,14 @@
                             "error",
                             "critical"
                           ]
+                        },
+                        "debugOverride": {
+                          "type": "array",
+                          "description": "A list of algorithms to debug in this execution",
+                          "items": {
+                            "type": "string"
+                          },
+                          "uniqueItems": true
                         }
                       },
                       "description": "optional properties"
@@ -2595,6 +2619,14 @@
                             "error",
                             "critical"
                           ]
+                        },
+                        "debugOverride": {
+                          "type": "array",
+                          "description": "A list of algorithms to debug in this execution",
+                          "items": {
+                            "type": "string"
+                          },
+                          "uniqueItems": true
                         }
                       },
                       "description": "optional properties"
@@ -8285,6 +8317,14 @@
                             "error",
                             "critical"
                           ]
+                        },
+                        "debugOverride": {
+                          "type": "array",
+                          "description": "A list of algorithms to debug in this execution",
+                          "items": {
+                            "type": "string"
+                          },
+                          "uniqueItems": true
                         }
                       },
                       "description": "optional properties"
@@ -8826,6 +8866,14 @@
                               "error",
                               "critical"
                             ]
+                          },
+                          "debugOverride": {
+                            "type": "array",
+                            "description": "A list of algorithms to debug in this execution",
+                            "items": {
+                              "type": "string"
+                            },
+                            "uniqueItems": true
                           }
                         },
                         "description": "optional properties"
@@ -9223,6 +9271,14 @@
                           "error",
                           "critical"
                         ]
+                      },
+                      "debugOverride": {
+                        "type": "array",
+                        "description": "A list of algorithms to debug in this execution",
+                        "items": {
+                          "type": "string"
+                        },
+                        "uniqueItems": true
                       }
                     },
                     "description": "optional properties"
@@ -9596,6 +9652,14 @@
                             "error",
                             "critical"
                           ]
+                        },
+                        "debugOverride": {
+                          "type": "array",
+                          "description": "A list of algorithms to debug in this execution",
+                          "items": {
+                            "type": "string"
+                          },
+                          "uniqueItems": true
                         }
                       },
                       "description": "optional properties"
@@ -10030,6 +10094,14 @@
                           "error",
                           "critical"
                         ]
+                      },
+                      "debugOverride": {
+                        "type": "array",
+                        "description": "A list of algorithms to debug in this execution",
+                        "items": {
+                          "type": "string"
+                        },
+                        "uniqueItems": true
                       }
                     },
                     "description": "optional properties"
@@ -10403,6 +10475,14 @@
                             "error",
                             "critical"
                           ]
+                        },
+                        "debugOverride": {
+                          "type": "array",
+                          "description": "A list of algorithms to debug in this execution",
+                          "items": {
+                            "type": "string"
+                          },
+                          "uniqueItems": true
                         }
                       },
                       "description": "optional properties"
@@ -18251,6 +18331,14 @@
               "error",
               "critical"
             ]
+          },
+          "debugOverride": {
+            "type": "array",
+            "description": "A list of algorithms to debug in this execution",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
           }
         },
         "description": "optional properties"
@@ -18528,6 +18616,14 @@
                   "error",
                   "critical"
                 ]
+              },
+              "debugOverride": {
+                "type": "array",
+                "description": "A list of algorithms to debug in this execution",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
               }
             },
             "description": "optional properties"

@@ -18,6 +18,13 @@ class ApiValidator {
         if (!pipeline.nodes?.length) {
             throw new InvalidDataError('pipeline must have at nodes property with at least one node');
         }
+        const debugOverride = pipeline.options?.debugOverride || [];
+        debugOverride.forEach((a) => {
+            const algorithm = pipeline.nodes.find(n => n.nodeName === a);
+            if (!algorithm) {
+                throw new InvalidDataError('debugOverride node not in nodes list');
+            }
+        });
     }
 }
 
