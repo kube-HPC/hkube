@@ -98,7 +98,7 @@ const _createQueueId = () => {
 const _addDeployments = async ({ limit, availableQueues, algorithms, versions, registry, clusterOptions, resources, options }) => {
     const missingDeployments = Math.ceil(algorithms / limit);
     if (availableQueues.length === 0 && missingDeployments > 0) {
-        log.info(`need to add ${missingDeployments} deployments`, { component });
+        log.info(`need to add ${missingDeployments} algorithm-queue deployments`, { component });
         for (let i = 0; i < missingDeployments; i += 1) {
             const queueId = _createQueueId();
             await _createDeployment({ queueId, options: { versions, registry, clusterOptions, resources, options } }); // eslint-disable-line
