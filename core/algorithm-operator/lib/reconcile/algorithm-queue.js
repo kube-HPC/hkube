@@ -95,19 +95,14 @@ const _createQueueId = () => {
     return uid({ length: 12 });
 };
 
-const _addDeployments = async ({ limit, algorithms, versions, registry, clusterOptions, resources, options }) => {
-    if (limit > 0) {
-        const missingDeployments = Math.ceil(algorithms / limit);
-        if (missingDeployments > 0) {
-            log.info(`need to add ${missingDeployments} deployments`, { component });
-            for (let i = 0; i < missingDeployments; i += 1) {
-                const queueId = _createQueueId();
-                await _createDeployment({ queueId, options: { versions, registry, clusterOptions, resources, options } }); // eslint-disable-line
-            }
+const _addDeployments = async ({ limit, availableQueues, algorithms, versions, registry, clusterOptions, resources, options }) => {
+    const missingDeployments = Math.ceil(algorithms / limit);
+    if (availableQueues.length === 0 && missingDeployments > 0) {
+        log.info(`need to add ${missingDeployments} algorithm-queue deployments`, { component });
+        for (let i = 0; i < missingDeployments; i += 1) {
+            const queueId = _createQueueId();
+            await _createDeployment({ queueId, options: { versions, registry, clusterOptions, resources, options } }); // eslint-disable-line
         }
-    }
-    else {
-        log.throttle.warning(`invalid deployments queue limit "${limit}"`, { component });
     }
 };
 
@@ -122,7 +117,7 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     const requiredAlgorithms = normAlgorithms.filter(a => !algorithmsToQueue[a.name] && waitingCount[a.name] > 0);
 
     if (!devMode) {
-        await _addDeployments({ limit, algorithms: requiredAlgorithms.length, versions, registry, clusterOptions, resources, options });
+        await _addDeployments({ limit, availableQueues, algorithms: requiredAlgorithms.length, versions, registry, clusterOptions, resources, options });
         await _updateDeployments({ normDeployments, options: { versions, registry, clusterOptions, resources, options } });
         await _deleteDeployments({ queues: queueToAlgorithms, normDeployments });
     }
