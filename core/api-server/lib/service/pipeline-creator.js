@@ -94,6 +94,12 @@ class PipelineCreator {
     }
 
     async updateDebug(pipeline, jobId) {
+        pipeline.options?.debugOverride?.forEach(d => {
+            const node = pipeline.nodes.find(n => n.nodeName === d);
+            if (node) {
+                node.kind = nodeKind.Debug;
+            }
+        });
         for (const node of pipeline.nodes) { // eslint-disable-line
             if (node.kind === nodeKind.Debug) {
                 const { algorithmName } = node;
