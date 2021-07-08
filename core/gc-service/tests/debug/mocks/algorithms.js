@@ -24,7 +24,7 @@ module.exports = [
     minHotWorkers: 0,
     kind: "debug",
     created: Date.now() - 300000,
-    modified: Date.now() - 300000,
+    modified: Date.now() - 650000,
     options: {
       debug: false,
       pending: false,
@@ -56,7 +56,7 @@ module.exports = [
     minHotWorkers: 0,
     kind: "debug",
     created: Date.now() - 300000,
-    modified: Date.now() - 300000,
+    modified: Date.now() - 650000,
     options: {
       debug: false,
       pending: false,

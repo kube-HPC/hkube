@@ -16,7 +16,7 @@ class Debug extends AlgorithmBase {
         this.getAlgorithms(options);
     }
 
-    async createDebug({ jobId, algorithmName }) {
+    async createDebug({ algorithmName }) {
         if (!algorithmName) {
             throw new InvalidDataError('Node for debug must have algorithm name set');
         }
@@ -36,7 +36,6 @@ class Debug extends AlgorithmBase {
             cpu: originalAlg.cpu,
             mem: originalAlg.mem,
             name: newAlgName,
-            jobId,
             debugUrl,
             debugName: algorithmName,
             kind: nodeKind.Debug,
