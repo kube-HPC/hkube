@@ -47,7 +47,7 @@ class Debug extends AlgorithmBase {
             }
         };
         await stateManager.updateAlgorithm(algorithm);
-        return { algorithmName: newAlgName, url: debugUrl };
+        return { algorithmName: newAlgName };
     }
 
     async updateLastUsed({ pipeline, jobId }) {
