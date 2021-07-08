@@ -7,7 +7,7 @@
         "@hkube/rest-server": "^1.0.18"
     },
     "scripts": {
-        "build-swagger": "node ./swagger-builder.js",
+        "build-swagger": "node ./swagger-builder.js && echo ../api-server/api/rest-api ../gc-service/api/rest-api ../datasources-service/api/rest-api | xargs -n 1 cp swagger.json",
         "build": "echo No build!"
     },
     "author": "Hkube",

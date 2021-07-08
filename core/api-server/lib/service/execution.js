@@ -89,7 +89,7 @@ class ExecutionService {
         try {
             validator.pipelines.validatePipelineNodes(pipeline);
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
-            pipeline = await pipelineCreator.updateDebug(pipeline, jobId);
+            pipeline = await pipelineCreator.updateDebug(pipeline);
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline, jobId);
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
@@ -115,7 +115,7 @@ class ExecutionService {
         }
         catch (error) {
             gatewayService.deleteGateways({ pipeline });
-            debugService.deleteDebug({ pipeline });
+            debugService.updateLastUsed({ pipeline });
             span.finish(error);
             throw error;
         }

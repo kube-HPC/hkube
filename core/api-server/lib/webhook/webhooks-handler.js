@@ -30,7 +30,7 @@ class WebhooksHandler {
             this._requestResults(response);
             const { jobId } = response;
             gatewayService.deleteGateways({ jobId });
-            debugService.deleteDebug({ jobId });
+            debugService.updateLastUsed({ jobId });
         });
         stateManager.onJobStatus((response) => {
             this._requestStatus(response);
