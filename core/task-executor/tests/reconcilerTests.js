@@ -971,6 +971,165 @@ describe('reconciler', () => {
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
     });
+    describe('reconcile with maxWorkers', () => {
+        it('should not create job when there is ready worker', async () => {
+            const algorithm1 = 'withMaxWorkers';
+            const algorithmImage = 'hkube/algorithm-example';
+            const workerImage = 'hkube/worker';
+            const workerStatus = 'ready';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                maxWorkers: 1,
+                cpu: 0.1,
+                mem: 100
+            };
+            const workers = [
+                { workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus }
+            ];
+
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                workers,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm1
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res[algorithm1].required).to.eql(0);
+            expect(res[algorithm1].created).to.eql(0);
+            expect(res[algorithm1].active).to.eql(1);
+        });
+        it('should not create job when there is active worker', async () => {
+            const algorithm1 = 'withMaxWorkers';
+            const algorithmImage = 'hkube/algorithm-example';
+            const workerImage = 'hkube/worker';
+            const workerStatus = 'active';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                maxWorkers: 1,
+                cpu: 0.1,
+                mem: 100
+            };
+            const workers = [
+                { workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus }
+            ];
+
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                workers,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm1
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res[algorithm1].required).to.eql(0);
+            expect(res[algorithm1].created).to.eql(0);
+            expect(res[algorithm1].active).to.eql(1);
+        });
+
+        it('should create job when there are not enough worker', async () => {
+            const algorithm1 = 'withMaxWorkers';
+            const algorithmImage = 'hkube/algorithm-example';
+            const workerImage = 'hkube/worker';
+            const workerStatus = 'active';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                maxWorkers: 4,
+                cpu: 0.1,
+                mem: 100
+            };
+            const workers = [
+                { workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus },
+                { workerId: `${algorithm1}-2`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus }
+            ];
+
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                workers,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        { name: algorithm1 },
+                        { name: algorithm1 },
+                        { name: algorithm1 },
+                        { name: algorithm1 },
+                        { name: algorithm1 },
+                        { name: algorithm1 },
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res[algorithm1].required).to.eql(2);
+            expect(res[algorithm1].created).to.eql(2);
+            expect(res[algorithm1].active).to.eql(2);
+        });
+        it('should create job when there is no worker', async () => {
+            const algorithm1 = 'withMaxWorkers';
+            const algorithmImage = 'hkube/algorithm-example';
+
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                maxWorkers: 1,
+                cpu: 0.1,
+                mem: 100
+            };
+            const workers = [
+            ];
+
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm1
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res[algorithm1].required).to.eql(1);
+            expect(res[algorithm1].created).to.eql(1);
+        });
+    })
     describe('reconcile algorithms quotaGuarantee', () => {
         it('should work with algorithm with no quotaGuarantee', async () => {
             const algorithm1 = 'no-requisite-x';

@@ -23,7 +23,7 @@ class Debug extends AlgorithmBase {
         const newAlgName = `${algorithmName}-${this._kind}`;
         const debug = await stateManager.getAlgorithm({ name: newAlgName });
         if (debug) {
-            throw new InvalidDataError(`debug ${newAlgName} already exists`);
+            return { algorithmName: debug.name };
         }
         const originalAlg = await stateManager.getAlgorithm({ name: algorithmName });
         if (!originalAlg) {
@@ -42,10 +42,11 @@ class Debug extends AlgorithmBase {
             type: buildTypes.IMAGE,
             options: {
                 pending: false
-            }
+            },
+            maxWorkers: 1
         };
         await stateManager.updateAlgorithm(algorithm);
-        return { algorithmName: newAlgName, url: debugUrl };
+        return { algorithmName: newAlgName };
     }
 
     async deleteDebug({ pipeline, jobId }) {

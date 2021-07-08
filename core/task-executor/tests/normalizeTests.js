@@ -333,12 +333,53 @@ describe('normalize', () => {
                     ]
                 }
             ];
-            const res = normalizeRequests(stub);
+            const algorithmTemplateStore = {
+                'yellow-alg':{},
+                'green-alg':{},
+                'black-alg':{},
+            }
+            const res = normalizeRequests(stub, algorithmTemplateStore);
             expect(res).to.have.length(4);
             expect(res).to.deep.include({
                 algorithmName: 'black-alg',
             });
             expect(res.filter(r => r.algorithmName === 'black-alg')).to.have.lengthOf(2);
+            expect(res).to.deep.include({
+                algorithmName: 'green-alg',
+            });
+            expect(res).to.deep.include({
+                algorithmName: 'yellow-alg',
+            });
+        });
+        it('should filter requests not in algorithmTemplateStore', () => {
+            const stub = [
+                {
+                    data: [
+                        {
+                            name: 'black-alg',
+                        },
+                        {
+                            name: 'black-alg',
+                        },
+                        {
+                            name: 'yellow-alg',
+                        },
+                        {
+                            name: 'green-alg',
+                        }
+
+                    ]
+                }
+            ];
+            const algorithmTemplateStore = {
+                'yellow-alg':{},
+                'green-alg':{},
+            }
+            const res = normalizeRequests(stub, algorithmTemplateStore);
+            expect(res).to.have.length(2);
+            expect(res).to.not.deep.include({
+                algorithmName: 'black-alg',
+            });
             expect(res).to.deep.include({
                 algorithmName: 'green-alg',
             });

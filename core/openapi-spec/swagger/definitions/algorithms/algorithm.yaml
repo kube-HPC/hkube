@@ -113,6 +113,11 @@ properties:
     description: how many live algorithm instances will always run
     minimum: 0
     default: 0
+  maxWorkers:
+    type: integer
+    description: Maximum number of workers for this algorithm. 0 marks no limit
+    minimum: 0
+    nullable: true
   quotaGuarantee:
     type: integer
     nullable: true

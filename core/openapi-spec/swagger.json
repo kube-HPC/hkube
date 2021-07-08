@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6309,6 +6309,12 @@
                       "minimum": 0,
                       "default": 0
                     },
+                    "maxWorkers": {
+                      "type": "integer",
+                      "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+                      "minimum": 0,
+                      "nullable": true
+                    },
                     "quotaGuarantee": {
                       "type": "integer",
                       "nullable": true,
@@ -6726,6 +6732,12 @@
                         "minimum": 0,
                         "default": 0
                       },
+                      "maxWorkers": {
+                        "type": "integer",
+                        "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+                        "minimum": 0,
+                        "nullable": true
+                      },
                       "quotaGuarantee": {
                         "type": "integer",
                         "nullable": true,
@@ -6989,6 +7001,12 @@
                     "description": "how many live algorithm instances will always run",
                     "minimum": 0,
                     "default": 0
+                  },
+                  "maxWorkers": {
+                    "type": "integer",
+                    "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+                    "minimum": 0,
+                    "nullable": true
                   },
                   "quotaGuarantee": {
                     "type": "integer",
@@ -7309,6 +7327,12 @@
                     "minimum": 0,
                     "default": 0
                   },
+                  "maxWorkers": {
+                    "type": "integer",
+                    "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+                    "minimum": 0,
+                    "nullable": true
+                  },
                   "quotaGuarantee": {
                     "type": "integer",
                     "nullable": true,
@@ -7614,6 +7638,12 @@
                         "minimum": 0,
                         "default": 0
                       },
+                      "maxWorkers": {
+                        "type": "integer",
+                        "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+                        "minimum": 0,
+                        "nullable": true
+                      },
                       "quotaGuarantee": {
                         "type": "integer",
                         "nullable": true,
@@ -7882,6 +7912,12 @@
                           "description": "how many live algorithm instances will always run",
                           "minimum": 0,
                           "default": 0
+                        },
+                        "maxWorkers": {
+                          "type": "integer",
+                          "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+                          "minimum": 0,
+                          "nullable": true
                         },
                         "quotaGuarantee": {
                           "type": "integer",
@@ -12764,6 +12800,12 @@
                         "minimum": 0,
                         "default": 0
                       },
+                      "maxWorkers": {
+                        "type": "integer",
+                        "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+                        "minimum": 0,
+                        "nullable": true
+                      },
                       "quotaGuarantee": {
                         "type": "integer",
                         "nullable": true,
@@ -13095,6 +13137,12 @@
                         "description": "how many live algorithm instances will always run",
                         "minimum": 0,
                         "default": 0
+                      },
+                      "maxWorkers": {
+                        "type": "integer",
+                        "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+                        "minimum": 0,
+                        "nullable": true
                       },
                       "quotaGuarantee": {
                         "type": "integer",
@@ -16058,6 +16106,12 @@
             "minimum": 0,
             "default": 0
           },
+          "maxWorkers": {
+            "type": "integer",
+            "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+            "minimum": 0,
+            "nullable": true
+          },
           "quotaGuarantee": {
             "type": "integer",
             "nullable": true,
@@ -16461,6 +16515,12 @@
                 "description": "how many live algorithm instances will always run",
                 "minimum": 0,
                 "default": 0
+              },
+              "maxWorkers": {
+                "type": "integer",
+                "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+                "minimum": 0,
+                "nullable": true
               },
               "quotaGuarantee": {
                 "type": "integer",
