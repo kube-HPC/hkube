@@ -32,7 +32,7 @@ class StoreManager {
             fields: {
                 jobId: true,
                 name: true,
-                created: true
+                modified: true
             }
         });
     }

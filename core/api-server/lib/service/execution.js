@@ -115,7 +115,7 @@ class ExecutionService {
         }
         catch (error) {
             gatewayService.deleteGateways({ pipeline });
-            debugService.deleteDebug({ pipeline });
+            debugService.updateLastUsed({ pipeline });
             span.finish(error);
             throw error;
         }

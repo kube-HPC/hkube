@@ -65,9 +65,6 @@ describe('Executions', () => {
             expect(job.types).to.contain('debug');
             expect(job.types).to.contain('node');
             expect(job.types).to.contain('raw');
-            const { body: response2 } = await request(options);
-            expect(response2.error.message).eq('debug green-alg-debug already exists');
-
         });
         it('should fail on no jobId', async () => {
             const options = {
