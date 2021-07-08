@@ -3,7 +3,7 @@ const { StatusCodes } = require('http-status-codes');
 const { pipelineTypes, nodeKind } = require('@hkube/consts');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { pipelines } = require('./mocks');
-const { request, delay, immediate } = require('./utils');
+const { request, delay } = require('./utils');
 const stateManager = require('../lib/state/state-manager');
 
 let restUrl;
