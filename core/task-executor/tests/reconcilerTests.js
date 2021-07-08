@@ -972,7 +972,7 @@ describe('reconciler', () => {
         });
     });
     describe('reconcile with maxWorkers', () => {
-        it('should not create job when there is worker', async () => {
+        it('should not create job when there is ready worker', async () => {
             const algorithm1 = 'withMaxWorkers';
             const algorithmImage = 'hkube/algorithm-example';
             const workerImage = 'hkube/worker';
@@ -1011,6 +1011,46 @@ describe('reconciler', () => {
             expect(res[algorithm1].created).to.eql(0);
             expect(res[algorithm1].active).to.eql(1);
         });
+        it('should not create job when there is active worker', async () => {
+            const algorithm1 = 'withMaxWorkers';
+            const algorithmImage = 'hkube/algorithm-example';
+            const workerImage = 'hkube/worker';
+            const workerStatus = 'active';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                maxWorkers: 1,
+                cpu: 0.1,
+                mem: 100
+            };
+            const workers = [
+                { workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus }
+            ];
+
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                workers,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm1
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res[algorithm1].required).to.eql(0);
+            expect(res[algorithm1].created).to.eql(0);
+            expect(res[algorithm1].active).to.eql(1);
+        });
+
         it('should create job when there are not enough worker', async () => {
             const algorithm1 = 'withMaxWorkers';
             const algorithmImage = 'hkube/algorithm-example';
