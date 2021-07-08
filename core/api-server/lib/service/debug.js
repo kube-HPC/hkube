@@ -23,6 +23,8 @@ class Debug extends AlgorithmBase {
         const newAlgName = `${algorithmName}-${this._kind}`;
         const debug = await stateManager.getAlgorithm({ name: newAlgName });
         if (debug) {
+            // update to set the last modified timestamp
+            await stateManager.updateAlgorithm(debug);
             return { algorithmName: debug.name };
         }
         const originalAlg = await stateManager.getAlgorithm({ name: algorithmName });
@@ -47,6 +49,18 @@ class Debug extends AlgorithmBase {
         };
         await stateManager.updateAlgorithm(algorithm);
         return { algorithmName: newAlgName };
+    }
+
+    async updateLastUsed({ pipeline, jobId }) {
+        if (!pipeline) {
+            // eslint-disable-next-line no-param-reassign
+            pipeline = await stateManager.getJobPipeline({ jobId });
+        }
+        if (!pipeline.nodes) {
+            return;
+        }
+        const debugAlgorithms = await Promise.all(pipeline.nodes.filter(n => n.kind === nodeKind.Debug).map(n => stateManager.getAlgorithm({ name: n.algorithmName })));
+        await Promise.all(debugAlgorithms.map(a => stateManager.updateAlgorithm(a)));
     }
 
     async deleteDebug({ pipeline, jobId }) {

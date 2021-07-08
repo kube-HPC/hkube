@@ -65,7 +65,6 @@ describe('Executions', () => {
             expect(job.types).to.contain('debug');
             expect(job.types).to.contain('node');
             expect(job.types).to.contain('raw');
-
         });
         it('should fail on no jobId', async () => {
             const options = {
