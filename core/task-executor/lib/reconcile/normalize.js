@@ -308,11 +308,12 @@ const normalizeResources = ({ pods, nodes } = {}) => {
     return { allNodes, nodeList };
 };
 
-const normalizeRequests = (requests) => {
+const normalizeRequests = (requests, algorithmTemplates) => {
     if (requests == null || requests.length === 0 || requests[0].data == null) {
         return [];
     }
-    return requests[0].data.map(r => ({ algorithmName: r.name }));
+    const normalizedRequests = requests[0].data.map(r => ({ algorithmName: r.name })).filter(r => algorithmTemplates[r.algorithmName]);
+    return normalizedRequests;
 };
 
 const _tryParseTime = (timeString) => {

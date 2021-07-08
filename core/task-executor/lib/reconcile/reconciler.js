@@ -522,7 +522,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
     const merged = mergeWorkers(normWorkers, normJobs);
-    const normRequests = normalizeRequests(algorithmRequests);
+    const normRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
     const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
     const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
     const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
