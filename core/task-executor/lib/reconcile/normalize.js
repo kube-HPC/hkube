@@ -207,13 +207,13 @@ const _getRequestsAndLimits = (pod) => {
     const { useResourceLimits } = globalSettings;
     const limitsCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.limits.cpu', '0m')));
     const { limitsGpu, requestGpu } = _getGpuSpec(pod);
-    const limitsMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.limits.memory', 0)));
+    const limitsMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.limits.memory', 0), true));
     const requestCpu = useResourceLimits && limitsCpu
         ? limitsCpu
         : sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
     const requestMem = useResourceLimits && limitsMem
         ? limitsMem
-        : sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0)));
+        : sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0), true));
     return {
         requestCpu, requestGpu, requestMem, limitsCpu, limitsGpu, limitsMem
     };
@@ -247,7 +247,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             total: {
                 cpu: parse.getCpuInCore(cur.status.allocatable.cpu),
                 gpu: parseGpu(cur.status.allocatable) || 0,
-                memory: parse.getMemoryInMi(cur.status.allocatable.memory)
+                memory: parse.getMemoryInMi(cur.status.allocatable.memory, true)
             }
         };
         return acc;
