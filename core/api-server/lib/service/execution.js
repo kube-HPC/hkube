@@ -41,11 +41,11 @@ class ExecutionService {
     async rerun(options) {
         validator.executions.validateRerun(options);
         const { jobId } = options;
-        const job = await stateManager.getJob({ jobId, fields: { pipeline: true, userPipeline: true } });
+        const job = await stateManager.getJob({ jobId, fields: { types: 'pipeline.types', userPipeline: true } });
         if (!job) {
             throw new ResourceNotFoundError('jobId', jobId);
         }
-        const types = [...job.pipeline.types, pipelineTypes.RERUN];
+        const types = [...job.types, pipelineTypes.RERUN];
         return this._run({ pipeline: job.userPipeline, types });
     }
 
