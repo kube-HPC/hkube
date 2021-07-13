@@ -236,9 +236,6 @@ class Worker {
                     this._shouldCheckAlgorithmStatus = false;
                 }
             }
-            else {
-                log.error(`algorithm container status is ${status}`, { component });
-            }
         }
         catch (e) {
             log.throttle.error(e.message, { component });
