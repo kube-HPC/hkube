@@ -38,6 +38,17 @@ class ExecutionService {
         return this._run({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types });
     }
 
+    async rerun(options) {
+        validator.executions.validateRerun(options);
+        const { jobId } = options;
+        const job = await stateManager.getJob({ jobId, fields: { types: 'pipeline.types', userPipeline: true } });
+        if (!job) {
+            throw new ResourceNotFoundError('jobId', jobId);
+        }
+        const types = [...job.types, pipelineTypes.RERUN];
+        return this._run({ pipeline: job.userPipeline, types });
+    }
+
     async runAlgorithm(options) {
         validator.executions.validateExecAlgorithmRequest(options);
         const { name, input, debug } = options;

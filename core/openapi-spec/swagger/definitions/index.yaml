@@ -157,6 +157,8 @@ searchJobs:
   $ref: ./exec/searchJobs.yaml
 searchJobsResponse:
   $ref: ./exec/searchJobsResponse.yaml
+rerun:
+  $ref: ./exec/rerun.yaml
 
 # experiment
 experiment:
