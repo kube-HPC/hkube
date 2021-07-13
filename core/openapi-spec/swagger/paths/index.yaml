@@ -7,6 +7,8 @@
   $ref: ./exec/caching.yaml
 /exec/algorithm:
   $ref: ./exec/algorithm.yaml
+/exec/rerun:
+  $ref: ./exec/rerun.yaml
 /exec/stop:
   $ref: ./exec/stop.yaml
 /exec/pause:

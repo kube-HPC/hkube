@@ -18,6 +18,10 @@ class ApiValidator {
         this._validator.validate(this._validator.definitions.caching, request, false);
     }
 
+    validateRerun(request) {
+        this._validator.validate(this._validator.definitions.rerun, request, false);
+    }
+
     validateExecAlgorithmRequest(request) {
         this._validator.validate(this._validator.definitions.execAlgorithmRequest, request, false);
     }
