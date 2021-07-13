@@ -16,7 +16,7 @@
     "@hkube/logger": "^1.0.27",
     "@hkube/metrics": "^1.0.42",
     "@hkube/prometheus-client": "^1.0.0",
-    "@hkube/units-converter": "^1.0.16",
+    "@hkube/units-converter": "^1.0.17",
     "lodash.groupby": "^4.6.0",
     "lodash.orderby": "^4.6.0",
     "median": "0.0.2"

@@ -511,7 +511,7 @@ describe('Store/Algorithms', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('memory unit must be one of Ki,M,Mi,Gi,m,K,G,T,Ti,P,Pi,E,Ei');
+                expect(response.body.error.message).to.equal('memory unit must be one of Ki,M,Mi,Gi,m,K,G,T,Ti');
             });
             it('should throw validation invalid env', async () => {
                 const body = {
