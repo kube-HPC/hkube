@@ -21,7 +21,7 @@ const pods = {
                                 },
                                 requests: {
                                     cpu: '200m',
-                                    memory: '256Mi',
+                                    memory: '268435456',
                                     [gpuVendors.NVIDIA]: '1'
                                 }
                             }

@@ -22,7 +22,7 @@ class K8sAdapter extends Adapter {
         nodes.items.forEach((node) => {
             const nodeName = node.metadata.name;
             const allocatableCpu = parse.getCpuInCore(node.status.allocatable.cpu);
-            const allocatableMemory = parse.getMemoryInMi(node.status.allocatable.memory);
+            const allocatableMemory = parse.getMemoryInMi(node.status.allocatable.memory, true);
             const pods = groupedByNodeName[nodeName];
             let cpuRequests = 0;
             let memoryRequests = 0;
@@ -31,7 +31,7 @@ class K8sAdapter extends Adapter {
                 pod.spec.containers.forEach(container => {
                     if (container.resources.requests !== undefined) {
                         cpuRequests += parse.getCpuInCore(container.resources.requests.cpu);
-                        memoryRequests += parse.getMemoryInMi(container.resources.requests.memory);
+                        memoryRequests += parse.getMemoryInMi(container.resources.requests.memory, true);
                     }
                 });
             });
