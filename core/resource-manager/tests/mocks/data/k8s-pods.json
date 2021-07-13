@@ -1653,7 +1653,7 @@
                             },
                             "requests": {
                                 "cpu": "2",
-                                "memory": "4Gi"
+                                "memory": "4294967296"
                             }
                         },
                         "volumeMounts": [
