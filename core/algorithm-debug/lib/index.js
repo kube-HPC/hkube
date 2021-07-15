@@ -8,7 +8,7 @@ const events = new EventEmitter();
 const sendMessageDelegates = {};
 
 const init = async () => {
-    log.info('In debug init');
+    log.debug('In debug init');
     events.removeAllListeners();
     events.on('stop', () => {
         return this._resolve();
@@ -16,7 +16,7 @@ const init = async () => {
     this.prevMessageDone = null;
 };
 const start = async (options, hkubeApi) => {
-    log.info('In debug start');
+    log.debug('In debug start');
     events.removeAllListeners();
     events.on('stop', () => {
         return this._resolve();
@@ -32,33 +32,41 @@ const start = async (options, hkubeApi) => {
         this._prevMsgResolve();
     });
 
-    ws.on(messages.outgoing.startAlgorithmExecution, ({ execId, algorithmName, input, includeResult }) => {
-        hkubeApi.startAlgorithm(algorithmName, input, includeResult).then((response) => {
+    ws.on(messages.outgoing.startAlgorithmExecution, async ({ execId, algorithmName, input, includeResult }) => {
+        try {
+            const response = await hkubeApi.startAlgorithm(algorithmName, input, includeResult);
             ws.send({ command: messages.incoming.execAlgorithmDone, data: { execId, response } });
-        }).catch((response) => {
+        }
+        catch (response) {
             ws.send({ command: messages.incoming.execAlgorithmError, data: { execId, response } });
-        });
+        }
     });
-    ws.on(messages.outgoing.startRawSubPipeline, ({ subPipeline, subPipelineId, includeResult }) => {
-        hkubeApi.startRawSubpipeline(subPipeline.name, subPipeline.nodes, subPipeline.options, subPipeline.webhooks, subPipeline.flowInput, includeResult).then((response) => {
+    ws.on(messages.outgoing.startRawSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
+        try {
+            const response = await hkubeApi.startRawSubpipeline(subPipeline.name, subPipeline.nodes, subPipeline.options, subPipeline.webhooks, subPipeline.flowInput, includeResult);
             ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response } });
-        }).catch((response) => {
+        }
+        catch (response) {
             ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response } });
-        });
+        }
     });
-    ws.on(messages.outgoing.startStoredSubPipeline, ({ subPipeline, subPipelineId, includeResult }) => {
-        hkubeApi.startStoredSubpipeline(subPipeline.name, subPipeline.flatInput, includeResult).then((response) => {
+    ws.on(messages.outgoing.startStoredSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
+        try {
+            const response = await hkubeApi.startStoredSubpipeline(subPipeline.name, subPipeline.flatInput, includeResult);
             ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response } });
-        }).catch((response) => {
+        }
+        catch (response) {
             ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response } });
-        });
+        }
     });
-    ws.on(messages.outgoing.dataSourceRequest, ({ requestId, dataSource }) => {
-        hkubeApi.getDataSource(dataSource).then((response) => {
+    ws.on(messages.outgoing.dataSourceRequest, async ({ requestId, dataSource }) => {
+        try {
+            const response = await hkubeApi.getDataSource(dataSource);
             ws.send({ command: messages.incoming.dataSourceResponse, data: { requestId, response } });
-        }).catch((response) => {
+        }
+        catch (response) {
             ws.send({ command: messages.incoming.dataSourceResponseError, data: { requestId, response } });
-        });
+        }
     });
 
     ws.on('disconnect', () => {
@@ -68,7 +76,7 @@ const start = async (options, hkubeApi) => {
     });
     ws.on(messages.outgoing.streamingOutMessage, ({ message, flowName, sendMessageId }) => {
         const sendMessage = sendMessageDelegates[sendMessageId];
-        log.info(`sending a message, flow:${flowName}`);
+        log.debug(`sending a message, flow:${flowName}`);
         if (sendMessage) {
             sendMessage(message);
         }
