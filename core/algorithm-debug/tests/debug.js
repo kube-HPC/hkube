@@ -136,6 +136,239 @@ describe('Debug', () => {
         await promiseStartResult;
         wrapper._stop({ forceStop: true });
     });
+
+    it('hkube api start algorithm', async () => {
+        const socket = new WebSocket(combinedUrl, {});
+        let resolveInit;
+        let resolveStart;
+        let resolveStartResult;
+        let resolveAlgorithmStartErr;
+        let resolveAlgorithmStart;
+        const promiseInit = new Promise((res, rej) => {
+            resolveInit = res;
+        });
+        const promiseStart = new Promise((res, rej) => {
+            resolveStart = res;
+        });
+        const promiseAlgorithmStartErr = new Promise((res, rej) => {
+            resolveAlgorithmStartErr = res;
+        });
+        const promiseAlgorithmStart = new Promise((res, rej) => {
+            resolveAlgorithmStart = res;
+        });
+        socket.on('message', (data) => {
+            const decodedData = encoding.decode(data);
+            if (decodedData.command === 'initialize') {
+                resolveInit();
+            }
+            if (decodedData.command === 'start') {
+                resolveStart();
+            }
+            if (decodedData.command === messages.incoming.execAlgorithmError) {
+                expect(decodedData.data.execId).to.eq('execId', 'missing exeId')
+                resolveAlgorithmStartErr();
+            }
+            if (decodedData.command === messages.incoming.execAlgorithmDone) {
+                resolveAlgorithmStart();
+            }
+        })
+        const wrapper = app.getWrapper();
+        wrapper._handleResponse = (algorithmData) => {
+            expect(algorithmData).to.eq('return value', 'wrong return value');
+            resolveStartResult()
+        }
+        await wrapper._stop({});
+        ws.on('connection', async () => {
+            wrapper._init(jobs.jobDataStateful);
+            wrapper._start({});
+        })
+
+
+        await promiseInit;
+        await promiseStart;
+        socket.send(encoding.encode({
+            command: messages.outgoing.startAlgorithmExecution, data: {
+                execId: 'execId',
+                algorithmName: 'algName',
+                storageInput: 'storageInput',
+                storage: 'storage',
+                includeResult: true
+            }
+        }));
+
+        await promiseAlgorithmStartErr;
+        const originalStartAlgorithm = wrapper._hkubeApi.startAlgorithm
+        wrapper._hkubeApi.startAlgorithm = () => {
+            wrapper._hkubeApi.startAlgorithm = originalStartAlgorithm;
+            return "StartAlgorithmExecutionDone";
+        }
+        socket.send(encoding.encode({
+            command: messages.outgoing.startAlgorithmExecution, data: {
+                execId: 'execId',
+                algorithmName: 'algName',
+                storageInput: 'storageInput',
+                storage: 'storage',
+                includeResult: true
+            }
+        }));
+        await promiseAlgorithmStart;
+        wrapper._stop({ forceStop: true });
+    });
+
+    it('hkube api start sub pipeline', async () => {
+        const socket = new WebSocket(combinedUrl, {});
+        let resolveInit;
+        let resolveStart;
+        let resolveStartResult;
+        let resolveSubStartErr;
+        let resolveSubStart;
+        const promiseInit = new Promise((res, rej) => {
+            resolveInit = res;
+        });
+        const promiseStart = new Promise((res, rej) => {
+            resolveStart = res;
+        });
+        const promiseAlgorithmStartErr = new Promise((res, rej) => {
+            resolveSubStartErr = res;
+        });
+        const promiseSubpipe = new Promise((res, rej) => {
+            resolveSubStart = res;
+        });
+        socket.on('message', (data) => {
+            const decodedData = encoding.decode(data);
+            if (decodedData.command === 'initialize') {
+                resolveInit();
+            }
+            if (decodedData.command === 'start') {
+                resolveStart();
+            }
+            if (decodedData.command === messages.incoming.subPipelineError) {
+                expect(decodedData.data.subPipelineId).to.eq('subPipelineId', 'missing subPipelineId')
+                resolveSubStartErr();
+            }
+            if (decodedData.command === messages.incoming.subPipelineDone) {
+                resolveSubStart();
+            }
+        })
+        const wrapper = app.getWrapper();
+        wrapper._handleResponse = (algorithmData) => {
+            expect(algorithmData).to.eq('return value', 'wrong return value');
+            resolveStartResult()
+        }
+        await wrapper._stop({});
+        ws.on('connection', async () => {
+            wrapper._init(jobs.jobDataStateful);
+            wrapper._start({});
+        })
+
+
+        await promiseInit;
+        await promiseStart;
+        socket.send(encoding.encode({
+            command: messages.outgoing.startStoredSubPipeline, data: {
+                subPipeline: {
+                    name: 'storedName',
+                    flowInput: {}
+                },
+                subPipelineId: 'subPipelineId',
+                includeResult: true
+            }
+        }));
+
+        await promiseAlgorithmStartErr;
+        const originalStartAlgorithm = wrapper._hkubeApi.startStoredSubPipeline
+        wrapper._hkubeApi.startStoredSubpipeline = () => {
+            wrapper._hkubeApi.startStoredSubPipeline = originalStartAlgorithm;
+            return "StartAlgorithmExecutionDone";
+        }
+        socket.send(encoding.encode({
+            command: messages.outgoing.startStoredSubPipeline, data: {
+                subPipeline: {
+                    name: 'storedName',
+                    flowInput: {}
+                },
+                subPipelineId: 'subPipelineId',
+                includeResult: true
+            }
+        }));
+        await promiseSubpipe;
+
+        wrapper._stop({ forceStop: true });
+    });
+
+    it('hkube api datasource', async () => {
+        const socket = new WebSocket(combinedUrl, {});
+        let resolveInit;
+        let resolveStart;
+        let resolveStartResult;
+        let resolveDataSourceErr;
+        let resolveDatasource;
+        const promiseInit = new Promise((res, rej) => {
+            resolveInit = res;
+        });
+        const promiseStart = new Promise((res, rej) => {
+            resolveStart = res;
+        });
+        const promiseDataSourceErr = new Promise((res, rej) => {
+            resolveDataSourceErr = res;
+        });
+        const promiseDataSource = new Promise((res, rej) => {
+            resolveDatasource = res;
+        });
+        socket.on('message', (data) => {
+            const decodedData = encoding.decode(data);
+            if (decodedData.command === 'initialize') {
+                resolveInit();
+            }
+            if (decodedData.command === 'start') {
+                resolveStart();
+            }
+            if (decodedData.command === messages.incoming.dataSourceResponseError) {
+                expect(decodedData.data.requestId).to.eq('requestId', 'missing requestId')
+                resolveDataSourceErr();
+            }
+            if (decodedData.command === messages.incoming.dataSourceResponse) {
+                resolveDatasource();
+            }
+        })
+        const wrapper = app.getWrapper();
+        wrapper._handleResponse = (algorithmData) => {
+            expect(algorithmData).to.eq('return value', 'wrong return value');
+            resolveStartResult()
+        }
+        await wrapper._stop({});
+        ws.on('connection', async () => {
+            wrapper._init(jobs.jobDataStateful);
+            wrapper._start({});
+        })
+
+
+        await promiseInit;
+        await promiseStart;
+        socket.send(encoding.encode({
+            command: messages.outgoing.dataSourceRequest, data: {
+                requestId: "requestId",
+                dataSource: "dsName"
+            }
+        }));
+
+        await promiseDataSourceErr;
+        const originalGetDataSource = wrapper._hkubeApi.getDataSource
+        wrapper._hkubeApi.getDataSource = () => {
+            wrapper._hkubeApi.getDataSource = originalGetDataSource;
+            return "dataSourceName";
+        }
+        socket.send(encoding.encode({
+            command: messages.outgoing.dataSourceRequest, data: {
+                requestId: "requestId",
+                dataSource: "dsName"
+            }
+        }));
+        await promiseDataSource;
+
+        wrapper._stop({ forceStop: true });
+    });
+
     it('batch init start', async () => {
         const socket = new WebSocket(combinedUrl, {});
         let resolveInit;

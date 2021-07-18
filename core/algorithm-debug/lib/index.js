@@ -2,7 +2,7 @@ const { stateType, pipelineKind } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const EventEmitter = require('events');
 const { uid } = require('@hkube/uid');
-const { messages } = require('@hkube/nodejs-wrapper/');
+const { messages } = require('@hkube/nodejs-wrapper');
 const ws = require('./algorithm-communication/ws');
 const events = new EventEmitter();
 const sendMessageDelegates = {};
@@ -38,7 +38,7 @@ const start = async (options, hkubeApi) => {
             ws.send({ command: messages.incoming.execAlgorithmDone, data: { execId, response } });
         }
         catch (response) {
-            ws.send({ command: messages.incoming.execAlgorithmError, data: { execId, response } });
+            ws.send({ command: messages.incoming.execAlgorithmError, data: { execId, response: response.message } });
         }
     });
     ws.on(messages.outgoing.startRawSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
@@ -47,7 +47,7 @@ const start = async (options, hkubeApi) => {
             ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response } });
         }
         catch (response) {
-            ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response } });
+            ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response: response.message } });
         }
     });
     ws.on(messages.outgoing.startStoredSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
@@ -56,7 +56,7 @@ const start = async (options, hkubeApi) => {
             ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response } });
         }
         catch (response) {
-            ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response } });
+            ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response: response.message } });
         }
     });
     ws.on(messages.outgoing.dataSourceRequest, async ({ requestId, dataSource }) => {
@@ -65,7 +65,7 @@ const start = async (options, hkubeApi) => {
             ws.send({ command: messages.incoming.dataSourceResponse, data: { requestId, response } });
         }
         catch (response) {
-            ws.send({ command: messages.incoming.dataSourceResponseError, data: { requestId, response } });
+            ws.send({ command: messages.incoming.dataSourceResponseError, data: { requestId, response: response.message } });
         }
     });
 
@@ -76,7 +76,7 @@ const start = async (options, hkubeApi) => {
     });
     ws.on(messages.outgoing.streamingOutMessage, ({ message, flowName, sendMessageId }) => {
         const sendMessage = sendMessageDelegates[sendMessageId];
-        log.debug(`sending a message, flow:${flowName}`);
+        log.throttle.info(`sending a message, flow:${flowName}`);
         if (sendMessage) {
             sendMessage(message);
         }
