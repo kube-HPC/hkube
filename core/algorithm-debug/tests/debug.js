@@ -19,8 +19,9 @@ describe('Debug', () => {
         combinedUrl = `ws://${config.debugger.communication.host}:${config.debugger.communication.port}?encoding=bson`;
     });
     beforeEach(async () => {
+        ws.removeAllListeners();
         const sleep = d => new Promise(r => setTimeout(r, d));
-        await sleep(1000)
+        await sleep(2000)
     });
     it('streaming stateless init start', async () => {
         const socket = new WebSocket(combinedUrl, {});
@@ -96,7 +97,9 @@ describe('Debug', () => {
             }
         })
         const wrapper = app.getWrapper();
+        const originalHanldeResponse = wrapper._handleResponse;
         wrapper._handleResponse = (algorithmData) => {
+            wrapper._handleResponse = originalHanldeResponse
             expect(algorithmData).to.eq('return value', 'wrong return value');
             resolveStartResult()
 
@@ -141,7 +144,6 @@ describe('Debug', () => {
         const socket = new WebSocket(combinedUrl, {});
         let resolveInit;
         let resolveStart;
-        let resolveStartResult;
         let resolveAlgorithmStartErr;
         let resolveAlgorithmStart;
         const promiseInit = new Promise((res, rej) => {
@@ -173,10 +175,6 @@ describe('Debug', () => {
             }
         })
         const wrapper = app.getWrapper();
-        wrapper._handleResponse = (algorithmData) => {
-            expect(algorithmData).to.eq('return value', 'wrong return value');
-            resolveStartResult()
-        }
         await wrapper._stop({});
         ws.on('connection', async () => {
             wrapper._init(jobs.jobDataStateful);
@@ -186,6 +184,11 @@ describe('Debug', () => {
 
         await promiseInit;
         await promiseStart;
+        const originalStartAlgorithm = wrapper._hkubeApi.startAlgorithm
+        wrapper._hkubeApi.startAlgorithm = () => {
+            wrapper._hkubeApi.startAlgorithm = originalStartAlgorithm;
+            throw 'myError';
+        }
         socket.send(encoding.encode({
             command: messages.outgoing.startAlgorithmExecution, data: {
                 execId: 'execId',
@@ -197,7 +200,6 @@ describe('Debug', () => {
         }));
 
         await promiseAlgorithmStartErr;
-        const originalStartAlgorithm = wrapper._hkubeApi.startAlgorithm
         wrapper._hkubeApi.startAlgorithm = () => {
             wrapper._hkubeApi.startAlgorithm = originalStartAlgorithm;
             return "StartAlgorithmExecutionDone";
@@ -219,7 +221,6 @@ describe('Debug', () => {
         const socket = new WebSocket(combinedUrl, {});
         let resolveInit;
         let resolveStart;
-        let resolveStartResult;
         let resolveSubStartErr;
         let resolveSubStart;
         const promiseInit = new Promise((res, rej) => {
@@ -251,10 +252,6 @@ describe('Debug', () => {
             }
         })
         const wrapper = app.getWrapper();
-        wrapper._handleResponse = (algorithmData) => {
-            expect(algorithmData).to.eq('return value', 'wrong return value');
-            resolveStartResult()
-        }
         await wrapper._stop({});
         ws.on('connection', async () => {
             wrapper._init(jobs.jobDataStateful);
@@ -264,6 +261,11 @@ describe('Debug', () => {
 
         await promiseInit;
         await promiseStart;
+        const originalStartAlgorithm = wrapper._hkubeApi.startStoredSubPipeline
+        wrapper._hkubeApi.startStoredSubpipeline = () => {
+            wrapper._hkubeApi.startStoredSubPipeline = originalStartAlgorithm;
+            throw "myErro";
+        }
         socket.send(encoding.encode({
             command: messages.outgoing.startStoredSubPipeline, data: {
                 subPipeline: {
@@ -276,7 +278,6 @@ describe('Debug', () => {
         }));
 
         await promiseAlgorithmStartErr;
-        const originalStartAlgorithm = wrapper._hkubeApi.startStoredSubPipeline
         wrapper._hkubeApi.startStoredSubpipeline = () => {
             wrapper._hkubeApi.startStoredSubPipeline = originalStartAlgorithm;
             return "StartAlgorithmExecutionDone";
@@ -300,7 +301,7 @@ describe('Debug', () => {
         const socket = new WebSocket(combinedUrl, {});
         let resolveInit;
         let resolveStart;
-        let resolveStartResult;
+
         let resolveDataSourceErr;
         let resolveDatasource;
         const promiseInit = new Promise((res, rej) => {
@@ -332,10 +333,6 @@ describe('Debug', () => {
             }
         })
         const wrapper = app.getWrapper();
-        wrapper._handleResponse = (algorithmData) => {
-            expect(algorithmData).to.eq('return value', 'wrong return value');
-            resolveStartResult()
-        }
         await wrapper._stop({});
         ws.on('connection', async () => {
             wrapper._init(jobs.jobDataStateful);
@@ -345,6 +342,11 @@ describe('Debug', () => {
 
         await promiseInit;
         await promiseStart;
+        const originalGetDataSource = wrapper._hkubeApi.getDataSource
+        wrapper._hkubeApi.getDataSource = () => {
+            wrapper._hkubeApi.getDataSource = originalGetDataSource;
+            throw "myError";
+        }
         socket.send(encoding.encode({
             command: messages.outgoing.dataSourceRequest, data: {
                 requestId: "requestId",
@@ -353,7 +355,6 @@ describe('Debug', () => {
         }));
 
         await promiseDataSourceErr;
-        const originalGetDataSource = wrapper._hkubeApi.getDataSource
         wrapper._hkubeApi.getDataSource = () => {
             wrapper._hkubeApi.getDataSource = originalGetDataSource;
             return "dataSourceName";
