@@ -8,7 +8,7 @@ const events = new EventEmitter();
 const sendMessageDelegates = {};
 
 const init = async () => {
-    log.debug('In debug init');
+    log.throttle.info('In debug init');
     events.removeAllListeners();
     events.on('stop', () => {
         return this._resolve();
@@ -52,7 +52,7 @@ const start = async (options, hkubeApi) => {
     });
     ws.on(messages.outgoing.startStoredSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
         try {
-            const response = await hkubeApi.startStoredSubpipeline(subPipeline.name, subPipeline.flatInput, includeResult);
+            const response = await hkubeApi.startStoredSubpipeline(subPipeline.name, subPipeline.flowInput, includeResult);
             ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response } });
         }
         catch (response) {
