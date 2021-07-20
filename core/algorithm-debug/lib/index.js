@@ -37,8 +37,8 @@ const start = async (options, hkubeApi) => {
             const response = await hkubeApi.startAlgorithm(algorithmName, input, includeResult);
             ws.send({ command: messages.incoming.execAlgorithmDone, data: { execId, response } });
         }
-        catch (response) {
-            ws.send({ command: messages.incoming.execAlgorithmError, data: { execId, response: response.message } });
+        catch (e) {
+            ws.send({ command: messages.incoming.execAlgorithmError, data: { execId, response: e.message || e } });
         }
     });
     ws.on(messages.outgoing.startRawSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
@@ -46,8 +46,8 @@ const start = async (options, hkubeApi) => {
             const response = await hkubeApi.startRawSubpipeline(subPipeline.name, subPipeline.nodes, subPipeline.options, subPipeline.webhooks, subPipeline.flowInput, includeResult);
             ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response } });
         }
-        catch (response) {
-            ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response: response.message } });
+        catch (e) {
+            ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response: e.message || e } });
         }
     });
     ws.on(messages.outgoing.startStoredSubPipeline, async ({ subPipeline, subPipelineId, includeResult }) => {
@@ -55,18 +55,20 @@ const start = async (options, hkubeApi) => {
             const response = await hkubeApi.startStoredSubpipeline(subPipeline.name, subPipeline.flowInput, includeResult);
             ws.send({ command: messages.incoming.subPipelineDone, data: { subPipelineId, response } });
         }
-        catch (response) {
-            ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response: response.message } });
+        catch (e) {
+            ws.send({ command: messages.incoming.subPipelineError, data: { subPipelineId, response: e.message || e } });
         }
     });
     ws.on(messages.outgoing.dataSourceRequest, async ({ requestId, dataSource }) => {
+        let response;
+        let error;
         try {
-            const response = await hkubeApi.getDataSource(dataSource);
-            ws.send({ command: messages.incoming.dataSourceResponse, data: { requestId, response } });
+            response = await hkubeApi.getDataSource(dataSource);
         }
-        catch (response) {
-            ws.send({ command: messages.incoming.dataSourceResponseError, data: { requestId, response: response.message } });
+        catch (e) {
+            error = e.message || e;
         }
+        ws.send({ command: messages.incoming.dataSourceResponse, data: { requestId, response, error } });
     });
 
     ws.on('disconnect', () => {
