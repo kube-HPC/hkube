@@ -16,7 +16,7 @@ class ApiValidator {
     }
 
     validateAlgorithmName(algorithm) {
-        this._validator.validate(this._validator.definitionsInternal.algorithmName, algorithm);
+        this._validator.validate(this._validator.definitions.algorithmNameObject, algorithm);
     }
 
     validateUpdateAlgorithm(algorithm) {
@@ -38,7 +38,7 @@ class ApiValidator {
     }
 
     validateAlgorithmDelete(algorithm) {
-        this._validator.validate(this._validator.definitionsInternal.algorithmDelete, algorithm, true);
+        this._validator.validate(this._validator.definitions.algorithmDelete, algorithm, true);
     }
 
     async validateAlgorithmResources(algorithm) {
@@ -88,7 +88,7 @@ class ApiValidator {
 
     async validateAlgorithmExists(pipeline) {
         const pipelineAlgorithms = pipeline.nodes
-            .filter(n => n.algorithmName && n.kind === nodeKind.Algorithm)
+            .filter(n => n.algorithmName && (n.kind === nodeKind.Algorithm || n.kind === nodeKind.Debug))
             .map(p => p.algorithmName);
         const algorithmsMap = await stateManager.getAlgorithmsMapByNames({ names: pipelineAlgorithms });
         pipelineAlgorithms.forEach((a) => {
@@ -125,7 +125,7 @@ class ApiValidator {
             }
             else if (this._isObject(v)) {
                 const key = Object.keys(v)[0];
-                this._validator.validate(this._validator.definitionsInternal.kubernetesValueFrom, key);
+                this._validator.validate(this._validator.definitions.kubernetesValueFrom, key);
             }
         });
     }

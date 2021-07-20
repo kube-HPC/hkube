@@ -4,15 +4,17 @@ class ApiValidator {
     }
 
     validateStoredInternal(pipeline) {
-        this._validator.validate(this._validator.definitionsInternal.pipeline, pipeline, false);
+        this._validator.validate(this._validator.definitions.pipeline, pipeline, false);
     }
 
     validateRawSubPipeline(pipeline) {
-        this._validator.validate(this._validator.definitionsInternal.rawSubPipeline, pipeline, false);
+        this._validator.validate(this._validator.definitions.codeApiPipelineRequest, pipeline, false);
+        this._validator.validate(this._validator.definitions.pipeline, pipeline, false);
     }
 
     validateStoredSubPipeline(pipeline) {
-        this._validator.validate(this._validator.definitionsInternal.storedSubPipeline, pipeline, false);
+        this._validator.validate(this._validator.definitions.codeApiPipelineRequest, pipeline, false);
+        this._validator.validate(this._validator.definitions.pipeline, pipeline, false);
     }
 }
 

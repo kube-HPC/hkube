@@ -93,11 +93,17 @@ class PipelineCreator {
         return newPipeline;
     }
 
-    async updateDebug(pipeline, jobId) {
+    async updateDebug(pipeline) {
+        pipeline.options?.debugOverride?.forEach(d => {
+            const node = pipeline.nodes.find(n => n.nodeName === d);
+            if (node) {
+                node.kind = nodeKind.Debug;
+            }
+        });
         for (const node of pipeline.nodes) { // eslint-disable-line
             if (node.kind === nodeKind.Debug) {
                 const { algorithmName } = node;
-                const { algorithmName: newAlgorithmName } = await debugService.createDebug({ jobId, algorithmName }); // eslint-disable-line
+                const { algorithmName: newAlgorithmName } = await debugService.createDebug({ algorithmName }); // eslint-disable-line
                 node.algorithmName = newAlgorithmName;
             }
         }

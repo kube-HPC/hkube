@@ -146,6 +146,11 @@ class Operator {
 
     async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms, options, count) {
         this._logAlgorithmCountError(algorithms, count);
+        const { limit } = options.algorithmQueueBalancer;
+        if (limit <= 0) {
+            log.throttle.error(`algorithm queue concurrency limit must be positive number, got ${limit}`, { component });
+            return;
+        }
         const discovery = await etcd.getAlgorithmQueues();
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.ALGORITHM_QUEUE}` });
         await algorithmQueueReconciler.reconcile({

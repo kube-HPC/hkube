@@ -32,6 +32,10 @@ const routes = (options) => {
         const { jobId, gateways } = await Execution.runAlgorithm(req.body);
         res.json({ jobId, gateways });
     });
+    router.all('/rerun', methods(['POST']), async (req, res) => {
+        const { jobId, gateways } = await Execution.rerun(req.body);
+        res.json({ jobId, gateways });
+    });
     router.all('/stop', methods(['POST']), async (req, res) => {
         const { jobId, reason } = req.body;
         await Execution.stopJob({ jobId, reason });

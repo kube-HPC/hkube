@@ -195,10 +195,13 @@ class Worker {
             this._checkAlgorithmStatus();
             return;
         }
+        log.info('algorithm connected', { component });
         if (this._isBootstrapped) {
+            if (this._devMode) {
+                jobConsumer.isConnected = true;
+            }
             return;
         }
-        log.info('algorithm connected', { component });
         this._isBootstrapped = true;
         this._initAlgorithmSettings();
         log.debug('starting bootstrap state', { component });
@@ -232,9 +235,6 @@ class Worker {
                     await this._endJob(options);
                     this._shouldCheckAlgorithmStatus = false;
                 }
-            }
-            else {
-                log.error(`algorithm container status is ${status}`, { component });
             }
         }
         catch (e) {

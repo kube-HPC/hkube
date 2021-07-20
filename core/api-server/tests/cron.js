@@ -24,16 +24,6 @@ describe('Cron', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('cron results no_such_id Not Found');
         });
-        it('should throw validation error of order property', async () => {
-            const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
-            const options = {
-                uri: `${restPath}?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('data.order should be equal to one of the allowed values');
-        });
         it('should throw validation error of sort property', async () => {
             const qs = querystring.stringify({ name: 'pipe', sort: 'bla' });
             const options = {
@@ -119,17 +109,6 @@ describe('Cron', () => {
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('cron status no_such_id Not Found');
-        });
-
-        it('should throw validation error of order property', async () => {
-            const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
-            const options = {
-                uri: `${restPath}?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('data.order should be equal to one of the allowed values');
         });
         it('should throw validation error of sort property', async () => {
             const qs = querystring.stringify({ name: 'pipe', sort: 'bla' });

@@ -48,7 +48,8 @@ class Gateway extends AlgorithmBase {
             type: buildTypes.IMAGE,
             options: {
                 pending: false
-            }
+            },
+            maxWorkers: 1
         };
         validator.gateways.validateGateway(algorithm);
         await stateManager.updateAlgorithm(algorithm);

@@ -35,10 +35,18 @@ class ExecutionService {
             rootJobId = pipeline.jobId;
         }
         const { jobId, startTime, lastRunResult, types, ...restPipeline } = pipeline;
-        const newTypes = this._mergeTypes(types,
-            [pipelineTypes.NODE],
-            options.debug ? [pipelineTypes.DEBUG] : []);
-        return this._run({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types: newTypes });
+        return this._run({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types });
+    }
+
+    async rerun(options) {
+        validator.executions.validateRerun(options);
+        const { jobId } = options;
+        const job = await stateManager.getJob({ jobId, fields: { types: 'pipeline.types', userPipeline: true } });
+        if (!job) {
+            throw new ResourceNotFoundError('jobId', jobId);
+        }
+        const types = [...job.types, pipelineTypes.RERUN];
+        return this._run({ pipeline: job.userPipeline, types });
     }
 
     async runAlgorithm(options) {
@@ -80,7 +88,7 @@ class ExecutionService {
         let { types } = payload;
         let { flowInputMetadata, ...pipeline } = payload.pipeline;
         const { rootJobId } = payload;
-        const { validateNodes, parentSpan } = payload.options || {};
+        const { parentSpan } = payload.options || {};
         const userPipeline = cloneDeep(pipeline);
 
         validator.executions.addPipelineDefaults(pipeline);
@@ -89,14 +97,19 @@ class ExecutionService {
         try {
             validator.pipelines.validatePipelineNodes(pipeline);
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
-            pipeline = await pipelineCreator.updateDebug(pipeline, jobId);
+            pipeline = await pipelineCreator.updateDebug(pipeline);
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline, jobId);
+            const isCaching = pipeline.nodes.some(n => n.cacheJobId);
+            const validateNodes = !isCaching || !!payload.options?.validateNodes;
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
             pipeline = await validator.dataSources.validate(pipeline);
             const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
             validator.algorithms.validateAlgorithmImage(algorithms);
             const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline);
+            if (isCaching) {
+                types = this._mergeTypes(types, [pipelineTypes.NODE]);
+            }
             types = this._addTypesByAlgorithms(algorithms, types);
 
             if (pipeline.flowInput && !flowInputMetadata) {
@@ -115,7 +128,7 @@ class ExecutionService {
         }
         catch (error) {
             gatewayService.deleteGateways({ pipeline });
-            debugService.deleteDebug({ pipeline });
+            debugService.updateLastUsed({ pipeline });
             span.finish(error);
             throw error;
         }

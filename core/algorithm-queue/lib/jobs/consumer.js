@@ -39,6 +39,16 @@ class JobConsumer extends EventEmitter {
         }
     }
 
+    async pause() {
+        try {
+            await this._consumer.pause({ type: this._algorithmName });
+            log.info('job consumer paused', { component });
+        }
+        catch (e) {
+            log.error(`failed to pause consumer. ${e.message}`, { component });
+        }
+    }
+
     async removeInvalidJob(data) {
         const { status, jobId } = data;
         if (isCompletedState({ status })) {

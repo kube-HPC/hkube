@@ -16,14 +16,16 @@ class Debug extends AlgorithmBase {
         this.getAlgorithms(options);
     }
 
-    async createDebug({ jobId, algorithmName }) {
+    async createDebug({ algorithmName }) {
         if (!algorithmName) {
             throw new InvalidDataError('Node for debug must have algorithm name set');
         }
         const newAlgName = `${algorithmName}-${this._kind}`;
         const debug = await stateManager.getAlgorithm({ name: newAlgName });
         if (debug) {
-            throw new InvalidDataError(`debug ${newAlgName} already exists`);
+            // update to set the last modified timestamp
+            await stateManager.updateAlgorithm(debug);
+            return { algorithmName: debug.name };
         }
         const originalAlg = await stateManager.getAlgorithm({ name: algorithmName });
         if (!originalAlg) {
@@ -34,7 +36,6 @@ class Debug extends AlgorithmBase {
             cpu: originalAlg.cpu,
             mem: originalAlg.mem,
             name: newAlgName,
-            jobId,
             debugUrl,
             debugName: algorithmName,
             kind: nodeKind.Debug,
@@ -42,10 +43,23 @@ class Debug extends AlgorithmBase {
             type: buildTypes.IMAGE,
             options: {
                 pending: false
-            }
+            },
+            maxWorkers: 1
         };
         await stateManager.updateAlgorithm(algorithm);
-        return { algorithmName: newAlgName, url: debugUrl };
+        return { algorithmName: newAlgName };
+    }
+
+    async updateLastUsed({ pipeline, jobId }) {
+        if (!pipeline) {
+            // eslint-disable-next-line no-param-reassign
+            pipeline = await stateManager.getJobPipeline({ jobId });
+        }
+        if (!pipeline.nodes) {
+            return;
+        }
+        const debugAlgorithms = await Promise.all(pipeline.nodes.filter(n => n.kind === nodeKind.Debug).map(n => stateManager.getAlgorithm({ name: n.algorithmName })));
+        await Promise.all(debugAlgorithms.map(a => stateManager.updateAlgorithm(a)));
     }
 
     async deleteDebug({ pipeline, jobId }) {

@@ -48,6 +48,25 @@ describe('Executions', () => {
             expect(job.types).to.contain('node');
             expect(job.types).to.contain('raw');
         });
+        it('should succeed run caching as raw (re-run)', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    jobId,
+                    nodeName: 'green'
+                }
+            };
+            const { body: response } = await request(options);
+            const { body: job } = await getJob(response.jobId);
+            expect(job.nodes[0].cacheJobId).to.exist;
+            const rawRestPath = `${restUrl}/exec/raw`;
+            const { body: rawResponse } = await request({ uri: rawRestPath, body: job })
+            expect(rawResponse).to.not.have.property('error')
+
+            const { body: rawJob } = await getJob(rawResponse.jobId);
+            expect(rawJob.flowInputMetadata).to.have.property('metadata');
+            expect(rawJob.flowInputMetadata).to.have.property('storageInfo');
+        });
         it('should succeed run caching with debug', async () => {
             const options = {
                 uri: restPath,
@@ -65,9 +84,6 @@ describe('Executions', () => {
             expect(job.types).to.contain('debug');
             expect(job.types).to.contain('node');
             expect(job.types).to.contain('raw');
-            const { body: response2 } = await request(options);
-            expect(response2.error.message).eq('debug green-alg-debug already exists');
-
         });
         it('should fail on no jobId', async () => {
             const options = {

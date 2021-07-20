@@ -28,3 +28,5 @@
   - core/algorithm-gateway/**/*
 "HKube: GC-Service":
   - core/gc-service/**/*
+"HKube: OpenAPI-Spec":
+  - core/openapi-spec/**/*

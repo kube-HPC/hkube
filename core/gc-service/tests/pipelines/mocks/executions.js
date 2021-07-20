@@ -166,5 +166,59 @@ module.exports = [
         },
         "priority": 3,
         "startTime": moment().subtract(60, 'seconds').toDate().getTime()
+    },
+    {
+        "name": "debug4",
+        "nodes": [
+            {
+                "nodeName": "debug-4",
+                "algorithmName": "debug-4",
+                "input": []
+            }
+        ],
+        "flowInput": {
+            "metadata": {},
+            "storageInfo": {
+                "Key": "key1",
+                "Bucket": "hkube"
+            }
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        },
+        "webhooks": {
+            "progress": "http://localhost:3003/webhook/progress",
+            "result": "http://localhost:3003/webhook/result"
+        },
+        "priority": 3,
+        "startTime": 1532506623299
+    },
+    {
+        "name": "gt-alg4",
+        "nodes": [
+            {
+                "nodeName": "gt-alg4",
+                "algorithmName": "gt-alg4",
+                "input": []
+            }
+        ],
+        "flowInput": {
+            "metadata": {},
+            "storageInfo": {
+                "Key": "key1",
+                "Bucket": "hkube"
+            }
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        },
+        "webhooks": {
+            "progress": "http://localhost:3003/webhook/progress",
+            "result": "http://localhost:3003/webhook/result"
+        },
+        "priority": 3,
+        "startTime": 1532506623299
     }
 ]

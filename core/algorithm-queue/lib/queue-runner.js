@@ -12,6 +12,7 @@ class QueueRunner {
         const queue = new Queue({
             algorithmName,
             updateInterval: options.queue.updateInterval,
+            algorithmMinIdleTimeMS: options.algorithmQueueBalancer.algorithmMinIdleTimeMS,
             scoreHeuristic: (...args) => scoreHeuristic.run(...args),
             enrichmentRunner: (...args) => enrichmentRunner.run(...args),
             persistence: new Persistence({ algorithmName }),

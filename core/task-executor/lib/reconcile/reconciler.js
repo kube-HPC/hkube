@@ -498,12 +498,31 @@ const _createRequestsWindow = (algorithmTemplates, normRequests, idleWorkers, ac
     return requestsWindow;
 };
 
+const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
+    const workersPerAlgorithm = workers.reduce((prev, cur) => {
+        const { algorithmName } = cur;
+        prev[algorithmName] = prev[algorithmName] ? prev[algorithmName] + 1 : 1;
+        return prev;
+    }, {});
+    const filtered = normRequests.filter(r => {
+        const maxWorkers = algorithmTemplates[r.algorithmName]?.maxWorkers;
+        if (!maxWorkers) {
+            return true;
+        }
+        if ((workersPerAlgorithm[r.algorithmName] || 0) < maxWorkers) {
+            workersPerAlgorithm[r.algorithmName] = workersPerAlgorithm[r.algorithmName] ? workersPerAlgorithm[r.algorithmName] + 1 : 1;
+            return true;
+        }
+        return false;
+    });
+    return filtered;
+};
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
     const merged = mergeWorkers(normWorkers, normJobs);
-    const normRequests = normalizeRequests(algorithmRequests);
+    const normRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
     const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
     const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
     const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
@@ -527,8 +546,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const jobsCreated = clonedeep(createdJobsList);
 
     _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
-
-    const requestsWindow = _createRequestsWindow(algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
+    const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
+    const requestsWindow = _createRequestsWindow(algorithmTemplates, maxFilteredRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
     const totalRequests = normalizeHotRequests(requestsWindow, algorithmTemplates);
 
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
@@ -563,7 +582,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
 
-    const unScheduledAlgorithms = _checkUnscheduled(created, skipped, normRequests, unscheduledAlgorithms, algorithmTemplates);
+    const unScheduledAlgorithms = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, algorithmTemplates);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];

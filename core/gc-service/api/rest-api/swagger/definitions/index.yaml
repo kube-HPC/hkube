@@ -1,7 +1,0 @@
-
-clean:
-  $ref: ./clean.yaml
-error:
-  $ref: ./error.yaml
-response:
-  $ref: ./response.yaml
