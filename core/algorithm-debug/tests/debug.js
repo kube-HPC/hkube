@@ -324,12 +324,16 @@ describe('Debug', () => {
             if (decodedData.command === 'start') {
                 resolveStart();
             }
-            if (decodedData.command === messages.incoming.dataSourceResponseError) {
-                expect(decodedData.data.requestId).to.eq('requestId', 'missing requestId')
-                resolveDataSourceErr();
+            if (decodedData.command === messages.incoming.dataSourceResponse) {
+                if (decodedData.data.error) {
+                    expect(decodedData.data.requestId).to.eq('requestId', 'missing requestId')
+                    resolveDataSourceErr();
+                }
             }
             if (decodedData.command === messages.incoming.dataSourceResponse) {
-                resolveDatasource();
+                if (!decodedData.data.error) {
+                    resolveDatasource();
+                }
             }
         })
         const wrapper = app.getWrapper();
