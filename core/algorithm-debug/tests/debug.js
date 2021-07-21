@@ -15,16 +15,20 @@ const { beforeEach } = require('mocha');
 describe('Debug', () => {
     let combinedUrl;
     const encoding = new Encoding({ type: 'bson' });
+    let socket;
     before(() => {
         combinedUrl = `ws://${config.debugger.communication.host}:${config.debugger.communication.port}?encoding=bson`;
     });
     beforeEach(async () => {
+        if (socket) {
+            socket.close();
+        }
         ws.removeAllListeners();
         const sleep = d => new Promise(r => setTimeout(r, d));
         await sleep(2000)
     });
     it('streaming stateless init start', async () => {
-        const socket = new WebSocket(combinedUrl, {});
+        socket = new WebSocket(combinedUrl, {});
         let resolveInit;
         let resolveStart;
         const promiseInit = new Promise((res, rej) => {
@@ -58,7 +62,7 @@ describe('Debug', () => {
     });
 
     it('streaming stateful init start', async () => {
-        const socket = new WebSocket(combinedUrl, {});
+        socket = new WebSocket(combinedUrl, {});
         let resolveInit;
         let resolveStart;
         let resolveStartResult;
@@ -141,7 +145,7 @@ describe('Debug', () => {
     });
 
     it('hkube api start algorithm', async () => {
-        const socket = new WebSocket(combinedUrl, {});
+        socket = new WebSocket(combinedUrl, {});
         let resolveInit;
         let resolveStart;
         let resolveAlgorithmStartErr;
@@ -218,7 +222,7 @@ describe('Debug', () => {
     });
 
     it('hkube api start sub pipeline', async () => {
-        const socket = new WebSocket(combinedUrl, {});
+        socket = new WebSocket(combinedUrl, {});
         let resolveInit;
         let resolveStart;
         let resolveSubStartErr;
@@ -298,7 +302,7 @@ describe('Debug', () => {
     });
 
     it('hkube api datasource', async () => {
-        const socket = new WebSocket(combinedUrl, {});
+        socket = new WebSocket(combinedUrl, {});
         let resolveInit;
         let resolveStart;
 
@@ -375,7 +379,7 @@ describe('Debug', () => {
     });
 
     it('batch init start', async () => {
-        const socket = new WebSocket(combinedUrl, {});
+        socket = new WebSocket(combinedUrl, {});
         let resolveInit;
         let resolveStart;
         let resolveStartResult;
@@ -413,5 +417,20 @@ describe('Debug', () => {
         socket.send(encoding.encode({ command: messages.outgoing.done, data: 'return value' }));
         await promiseStartResult;
         wrapper._stop({ forceStop: true });
+    });
+    it('connect twice', async () => {
+        socket = new WebSocket(combinedUrl, {});
+        const socket2 = new WebSocket(combinedUrl, {});
+        let resolveGotAlreadyConnected;
+        const gotConnectedAlready = new Promise((res, rej) => {
+            resolveGotAlreadyConnected = res;
+        });
+        socket2.on("message", (data) => {
+            const decodedData = encoding.decode(data);
+            if (decodedData == 'Debugger connected already') {
+                resolveGotAlreadyConnected();
+            }
+        });
+        await gotConnectedAlready;
     });
 });
