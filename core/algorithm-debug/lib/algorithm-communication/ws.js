@@ -34,14 +34,12 @@ class WsWorkerCommunication extends EventEmitter {
                 this._socketServer = new WebSocket.Server({ server, maxPayload: options.maxPayload });
 
                 this._socketServer.on('connection', (socket, opt) => {
-                    const data = url.parse(opt.url, true).query;
                     if (this._socketServer.clients.size > 1) {
-                        const encoding = new Encoding({ type: data.encoding });
                         log.info('Debugger connected already');
-                        socket.send(encoding.encode('Debugger connected already'));
-                        socket.close();
+                        socket.close(1007);
                     }
                     else {
+                        const data = url.parse(opt.url, true).query;
                         log.info('Connected!!!', { component });
                         this._registerSocketMessages(socket);
                         this.setEncodingType(data.encoding);

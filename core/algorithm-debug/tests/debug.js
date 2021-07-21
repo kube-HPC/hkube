@@ -425,12 +425,12 @@ describe('Debug', () => {
         const gotConnectedAlready = new Promise((res, rej) => {
             resolveGotAlreadyConnected = res;
         });
-        socket2.on("message", (data) => {
-            const decodedData = encoding.decode(data);
-            if (decodedData == 'Debugger connected already') {
+
+        socket2.on("close", (code) => {
+            if (code == 1007) {
                 resolveGotAlreadyConnected();
             }
-        });
+        })
         await gotConnectedAlready;
     });
 });

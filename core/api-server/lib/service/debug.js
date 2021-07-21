@@ -17,15 +17,15 @@ class Debug extends AlgorithmBase {
     }
 
     async createDebug({ algorithmName }) {
+        if (!algorithmName) {
+            throw new InvalidDataError('Node for debug must have algorithm name set');
+        }
         const originalAlg = await stateManager.getAlgorithm({ name: algorithmName });
         if (!originalAlg) {
             throw new InvalidDataError(`debug ${algorithmName} does not exists`);
         }
         if (originalAlg.kind === nodeKind.Debug) {
             return { algorithmName };
-        }
-        if (!algorithmName) {
-            throw new InvalidDataError('Node for debug must have algorithm name set');
         }
         const newAlgName = `${algorithmName}-${this._kind}`;
         const debug = await stateManager.getAlgorithm({ name: newAlgName });
