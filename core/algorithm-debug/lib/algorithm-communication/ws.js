@@ -36,7 +36,7 @@ class WsWorkerCommunication extends EventEmitter {
                 this._socketServer.on('connection', (socket, opt) => {
                     if (this._socketServer.clients.size > 1) {
                         log.info('Debugger connected already');
-                        socket.close(1007);
+                        socket.close(1013);
                     }
                     else {
                         const data = url.parse(opt.url, true).query;

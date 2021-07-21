@@ -427,7 +427,7 @@ describe('Debug', () => {
         });
 
         socket2.on("close", (code) => {
-            if (code == 1007) {
+            if (code == 1013) {
                 resolveGotAlreadyConnected();
             }
         })
