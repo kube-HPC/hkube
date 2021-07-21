@@ -20,16 +20,19 @@ class Debug extends AlgorithmBase {
         if (!algorithmName) {
             throw new InvalidDataError('Node for debug must have algorithm name set');
         }
+        const originalAlg = await stateManager.getAlgorithm({ name: algorithmName });
+        if (!originalAlg) {
+            throw new InvalidDataError(`debug ${algorithmName} does not exists`);
+        }
+        if (originalAlg.kind === nodeKind.Debug) {
+            return { algorithmName };
+        }
         const newAlgName = `${algorithmName}-${this._kind}`;
         const debug = await stateManager.getAlgorithm({ name: newAlgName });
         if (debug) {
             // update to set the last modified timestamp
             await stateManager.updateAlgorithm(debug);
             return { algorithmName: debug.name };
-        }
-        const originalAlg = await stateManager.getAlgorithm({ name: algorithmName });
-        if (!originalAlg) {
-            throw new InvalidDataError(`debug ${algorithmName} does not exists`);
         }
         const debugUrl = `${this._debugUrl}/${algorithmName}`;
         const algorithm = {
