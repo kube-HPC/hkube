@@ -86,6 +86,11 @@ const start = async (options, hkubeApi) => {
             hkubeApi.sendMessage(message, flowName);
         }
     });
+    ws.on(messages.outgoing.logData, (data) => {
+        data.forEach((value) => {
+            process.stdout.write(`${value}\n`);
+        });
+    });
     const optionsCopy = { ...options, kind: pipelineKind.Batch, flatInput: null };
     ws.send({ command: messages.incoming.initialize, data: optionsCopy });
     ws.send({ command: messages.incoming.start, data: optionsCopy });
