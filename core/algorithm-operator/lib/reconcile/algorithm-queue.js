@@ -106,14 +106,14 @@ const _addDeployments = async ({ limit, availableQueues, algorithms, versions, r
     }
 };
 
-const isRequired = ({ alg, algorithmsToQueue, waitingCount, algorithmQueues, algorithmMinIdleTimeMS }) => {
+const isRequired = ({ alg, algorithmsToQueue, waitingCount, algorithmQueues, maxIdleTime }) => {
     const hasRequirement = !algorithmsToQueue[alg.name] && waitingCount[alg.name] > 0;
-    const isActive = Date.now() - algorithmQueues[alg.name] < algorithmMinIdleTimeMS;
+    const isActive = Date.now() - algorithmQueues[alg.name] < maxIdleTime;
     return hasRequirement || isActive;
 };
 
 const reconcile = async ({ deployments, algorithms, discovery, versions, registry, clusterOptions, resources, options, devMode } = {}) => {
-    const { limit, algorithmMinIdleTimeMS } = options.algorithmQueueBalancer;
+    const { limit, maxIdleTime } = options.algorithmQueueBalancer;
     const { algorithmsToQueue, queueToAlgorithms, duplicateAlgorithms } = normalizeQueuesDiscovery(discovery);
     const normAlgorithms = normalizeAlgorithms(algorithms);
     const normDeployments = normalizeQueuesDeployments(deployments);
@@ -121,7 +121,7 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     const removeAlgorithms = _findObsoleteAlgorithms({ algorithmsToQueue, normAlgorithms });
     const waitingCount = await jobsMessageQueue.getWaitingCount(algorithms);
     const algorithmQueues = await etcd.getAlgorithmQueuesList();
-    const requiredAlgorithms = normAlgorithms.filter(a => isRequired({ alg: a, algorithmsToQueue, waitingCount, algorithmQueues, algorithmMinIdleTimeMS }));
+    const requiredAlgorithms = normAlgorithms.filter(a => isRequired({ alg: a, algorithmsToQueue, waitingCount, algorithmQueues, maxIdleTime }));
 
     if (!devMode) {
         await _addDeployments({ limit, availableQueues, algorithms: requiredAlgorithms.length, versions, registry, clusterOptions, resources, options });

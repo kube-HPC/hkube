@@ -14,7 +14,7 @@ config.isDevMode = !!process.env.DEV_MODE;
 
 config.algorithmQueueBalancer = {
     limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_CONCURRENCY_LIMIT, 5),
-    algorithmMinIdleTimeMS: formatter.parseInt(process.env.ALGORITHM_QUEUE_ALGORITHM_MIN_IDLE_TIME, 5 * 60 * 60 * 1000),
+    maxIdleTime: formatter.parseInt(process.env.ALGORITHM_QUEUE_MAX_IDLE_TIME, 5 * 60 * 60 * 1000),
 };
 
 config.JobsMessageQueue = {
