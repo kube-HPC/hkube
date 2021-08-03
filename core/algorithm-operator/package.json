@@ -15,20 +15,20 @@
   "license": "ISC",
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/consts": "^1.0.35",
-    "@hkube/db": "^1.0.33",
+    "@hkube/consts": "^1.0.36",
+    "@hkube/db": "^1.0.42",
     "@hkube/etcd": "^5.1.6",
-    "@hkube/healthchecks": "^1.0.1",
-    "@hkube/kubernetes-client": "^1.0.33",
-    "@hkube/logger": "^1.0.27",
+    "@hkube/healthchecks": "^1.0.2",
+    "@hkube/kubernetes-client": "^1.0.36",
+    "@hkube/logger": "^1.0.30",
     "@hkube/producer-consumer": "^1.0.50",
     "@hkube/uid": "^1.0.4",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isequalwith": "^4.4.0",
     "lodash.merge": "^4.6.1",
     "lodash.orderby": "^4.6.0",
-    "object-path": "^0.11.4",
-    "request-promise": "^4.2.5"
+    "object-path": "^0.11.5",
+    "request-promise": "^4.2.6"
   },
   "devDependencies": {
     "chai": "^4.2.0",
