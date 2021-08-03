@@ -18,6 +18,9 @@ module.exports = {
                 getVersionsConfigMap: async () => { },
                 deleteJob: async (...theArgs) => {
                     registerCount('deleteJob', theArgs)
+                },
+                kubeVersion: {
+                    version: '1.18'
                 }
             },
             callCount: (name) => { return callCount[name]; },

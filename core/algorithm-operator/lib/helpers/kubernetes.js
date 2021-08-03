@@ -2,16 +2,21 @@ const EventEmitter = require('events');
 const log = require('@hkube/logger').GetLogFromContainer();
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const { containers, components } = require('../consts');
+const formatters = require('./formatters');
 const component = components.K8S;
 
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
         this._namespace = options.kubernetes.namespace;
         this._client = new KubernetesClient(options.kubernetes);
-        log.info(`Initialized kubernetes client with options ${JSON.stringify({
-            ...options.kubernetes,
-            url: this._client._config.url
-        })}`, { component });
+        const kubeVersionRaw = await this._client.versions.get();
+        this.kubeVersion = {
+            ...kubeVersionRaw.body,
+            major: formatters.parseInt(kubeVersionRaw.body.major, 1),
+            minor: formatters.parseInt(kubeVersionRaw.body.minor, 9)
+        };
+        this.kubeVersion.version = `${this.kubeVersion.major}.${this.kubeVersion.minor}`;
+        log.info(`Initialized kubernetes client with version: ${this.kubeVersion.version} (${this.kubeVersion.gitVersion}), url: ${this._client._config.url}`, { component });
     }
 
     get namespace() {

@@ -1,4 +1,5 @@
 const { nodeKind } = require('@hkube/consts');
+const { getIngressParams } = require('../helpers/kubernetes-utils');
 
 const debugService = ({ algorithmName }) => ({
     kind: 'Service',
@@ -32,40 +33,42 @@ const debugService = ({ algorithmName }) => ({
     }
 });
 
-const debugIngress = ({ algorithmName, debugName }, { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => ({
-    apiVersion: 'extensions/v1beta1',
-    kind: 'Ingress',
-    metadata: {
-        name: `ingress-debug-${algorithmName}`,
-        annotations: {
-            'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
-            'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
-            'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000'
-        },
-        labels: {
-            app: `ingress-${nodeKind.Debug}`,
-            core: 'true',
-            type: nodeKind.Debug,
-            'algorithm-name': algorithmName,
-        }
-    },
-    spec: {
-        rules: [
-            {
-                http: {
-                    paths: [{
-                        path: ingressUseRegex ? `${ingressPrefix}/hkube/debug/${debugName}(/|$)(.*)` : `${ingressPrefix}/hkube/debug/${debugName}`,
-                        backend: {
-                            serviceName: `service-debug-${algorithmName}`,
-                            servicePort: 80
-                        }
-                    }]
-                },
-                host: ingressHost || undefined
+const debugIngress = ({ algorithmName, debugName }, { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => {
+    const { apiVersion, backend, pathType } = getIngressParams(`service-debug-${algorithmName}`, 80);
+    const ret = {
+        apiVersion,
+        kind: 'Ingress',
+        metadata: {
+            name: `ingress-debug-${algorithmName}`,
+            annotations: {
+                'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
+                'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
+                'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000'
+            },
+            labels: {
+                app: `ingress-${nodeKind.Debug}`,
+                core: 'true',
+                type: nodeKind.Debug,
+                'algorithm-name': algorithmName,
             }
-        ]
-    }
-});
+        },
+        spec: {
+            rules: [
+                {
+                    http: {
+                        paths: [{
+                            path: ingressUseRegex ? `${ingressPrefix}/hkube/debug/${debugName}(/|$)(.*)` : `${ingressPrefix}/hkube/debug/${debugName}`,
+                            backend,
+                            pathType
+                        }]
+                    },
+                    host: ingressHost || undefined
+                }
+            ]
+        }
+    };
+    return ret;
+};
 
 module.exports = {
     debugService,
