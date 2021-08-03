@@ -365,7 +365,7 @@ const _createOpenshiftConfigs = async (envs, tmpFolder, docker, buildId, algorit
             strategy: {
                 dockerStrategy: {
                     dockerfilePath: './dockerfile/Dockerfile',
-                    pullSecret: hasDockerCreds? {
+                    pullSecret: hasDockerCreds ? {
                         name: 'build-registry-secret'
                     } : null
                 },
@@ -402,7 +402,7 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imag
 
     // docker pull
     _createDockerCredsConfig(envs, docker, packages);
-    _envsHelper(envs, 'javaWrapperVersion', '2.0.00');
+    _envsHelper(envs, 'javaWrapperVersion', '2.0-SNAPSHOT');
     if (buildMode === KANIKO) {
         await _createKanikoConfigs(envs, tmpFolder, docker);
     }
