@@ -33,7 +33,7 @@ const debugService = ({ algorithmName }) => ({
     }
 });
 
-const debugIngress = ({ algorithmName, debugName }, { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => {
+const debugIngress = ({ algorithmName, debugName }, { ingressHost, ingressPrefix = '', ingressUseRegex = false, ingressClass = 'nginx' } = {}) => {
     const { apiVersion, backend, pathType } = getIngressParams(`service-debug-${algorithmName}`, 80);
     const ret = {
         apiVersion,
@@ -43,7 +43,8 @@ const debugIngress = ({ algorithmName, debugName }, { ingressHost, ingressPrefix
             annotations: {
                 'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
                 'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
-                'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000'
+                'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000',
+                'kubernetes.io/ingress.class': ingressClass
             },
             labels: {
                 app: `ingress-${nodeKind.Debug}`,

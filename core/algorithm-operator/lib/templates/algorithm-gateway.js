@@ -33,7 +33,7 @@ const gatewayService = ({ algorithmName }) => ({
     }
 });
 
-const gatewayIngress = ({ algorithmName, gatewayName }, { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => {
+const gatewayIngress = ({ algorithmName, gatewayName }, { ingressHost, ingressPrefix = '', ingressUseRegex = false, ingressClass = 'nginx' } = {}) => {
     const { apiVersion, backend, pathType } = getIngressParams(`service-gateway-${algorithmName}`, 80);
     return ({
         apiVersion,
@@ -43,7 +43,8 @@ const gatewayIngress = ({ algorithmName, gatewayName }, { ingressHost, ingressPr
             annotations: {
                 'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
                 'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
-                'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000'
+                'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000',
+                'kubernetes.io/ingress.class': ingressClass
             },
             labels: {
                 app: `ingress-${nodeKind.Gateway}`,

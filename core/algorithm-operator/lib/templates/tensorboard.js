@@ -85,7 +85,7 @@ const boardService = (boardReference = '') => ({
     }
 });
 
-const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => {
+const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '', ingressUseRegex = false, ingressClass = 'nginx' } = {}) => {
     const { apiVersion, backend, pathType } = getIngressParams(`board-service-${boardReference}`, 80);
     return {
         apiVersion,
@@ -95,7 +95,8 @@ const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '', in
             annotations: {
                 'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
                 'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
-                'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000'
+                'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000',
+                'kubernetes.io/ingress.class': ingressClass
             },
             labels: {
                 app: `ingress-${TENSORBOARD}`,
