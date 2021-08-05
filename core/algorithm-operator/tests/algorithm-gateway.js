@@ -8,18 +8,18 @@ let createIngressServiceSpec;
 
 describe('jobCreator', () => {
     before(() => {
-        createIngressServiceSpec = require('../lib/deployments/algorithm-debug.js').createIngressServiceSpec;
+        createIngressServiceSpec = require('../lib/deployments/algorithm-gateway.js').createIngressServiceSpec;
 
     })
     describe('createIngressServiceSpec', () => {
         describe('kubeVersion v1.18', () => {
             it('should include algorithm name and host', () => {
-                const { serviceSpec, ingressSpec } = createIngressServiceSpec({ algorithmName: 'myalgo1-debug', debugName: 'myalgo1', clusterOptions: { ingressHost: 'myhost' } });
+                const { serviceSpec, ingressSpec } = createIngressServiceSpec({ algorithmName: 'myalgo1-gateway', gatewayName: 'myalgo1', clusterOptions: { ingressHost: 'myhost' } });
                 expect(ingressSpec).to.nested.include({ 'spec.rules[0].host': 'myhost' });
-                expect(ingressSpec).to.nested.include({ 'spec.rules[0].http.paths[0].path': '/hkube/debug/myalgo1' });
-                expect(ingressSpec.spec.rules[0].http.paths[0].backend).to.eql({ serviceName: 'service-debug-myalgo1-debug', servicePort: 80 });
+                expect(ingressSpec).to.nested.include({ 'spec.rules[0].http.paths[0].path': '/hkube/gateway/myalgo1' });
+                expect(ingressSpec.spec.rules[0].http.paths[0].backend).to.eql({ serviceName: 'service-gateway-myalgo1-gateway', servicePort: 80 });
                 expect(ingressSpec.spec.rules[0].http.paths[0].pathTyep).to.not.exist;
-                expect(serviceSpec).to.nested.include({ 'spec.selector.algorithm-name': 'myalgo1-debug' });
+                expect(serviceSpec).to.nested.include({ 'spec.selector.algorithm-name': 'myalgo1-gateway' });
             });
         })
         describe('kubeVersion v1.22', () => {
@@ -30,19 +30,19 @@ describe('jobCreator', () => {
                 global.testParams.kubernetesMock.kubeVersion.version = 'v1.18'
             });
             it('should include algorithm name and host', () => {
-                const { serviceSpec, ingressSpec } = createIngressServiceSpec({ algorithmName: 'myalgo1-debug', debugName: 'myalgo1', clusterOptions: { ingressHost: 'myhost' } });
+                const { serviceSpec, ingressSpec } = createIngressServiceSpec({ algorithmName: 'myalgo1-gateway', gatewayName: 'myalgo1', clusterOptions: { ingressHost: 'myhost' } });
                 expect(ingressSpec).to.nested.include({ 'spec.rules[0].host': 'myhost' });
-                expect(ingressSpec).to.nested.include({ 'spec.rules[0].http.paths[0].path': '/hkube/debug/myalgo1' });
+                expect(ingressSpec).to.nested.include({ 'spec.rules[0].http.paths[0].path': '/hkube/gateway/myalgo1' });
                 expect(ingressSpec.spec.rules[0].http.paths[0].backend).to.eql({
                     service: {
-                        name: 'service-debug-myalgo1-debug',
+                        name: 'service-gateway-myalgo1-gateway',
                         port: {
                             number: 80
                         }
                     }
                 });
                 expect(ingressSpec.spec.rules[0].http.paths[0].pathType).to.exist;
-                expect(serviceSpec).to.nested.include({ 'spec.selector.algorithm-name': 'myalgo1-debug' });
+                expect(serviceSpec).to.nested.include({ 'spec.selector.algorithm-name': 'myalgo1-gateway' });
             });
         })
     });

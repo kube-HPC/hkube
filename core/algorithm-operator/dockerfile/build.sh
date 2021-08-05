@@ -7,7 +7,8 @@ else
   IMAGE_NAME=hkube/${REPO_NAME}
 fi
 echo npm_package_version=${npm_package_version}
-VERSION="v${npm_package_version}"
+VERSION="v${VERSION:-$npm_package_version}"
+echo building version $VERSION
 if [ "${TRAVIS_PULL_REQUEST:-"false"}" != "false" ]; then
   VERSION=${VERSION}-${TRAVIS_PULL_REQUEST_BRANCH}-${TRAVIS_JOB_NUMBER}
 fi
@@ -18,18 +19,10 @@ then
   BASE_PRIVATE_REGISTRY="${BASE_PRIVATE_REGISTRY}/"
 fi
 docker build -t ${TAG_VER} --build-arg BASE_PRIVATE_REGISTRY="${BASE_PRIVATE_REGISTRY}" -f ./dockerfile/Dockerfile .
-if [ "${TRAVIS_PULL_REQUEST:-"false"}" == "false" ] || [ -z "${TRAVIS_PULL_REQUEST}" ]; then
-  TAG_CUR="${IMAGE_NAME}:latest"
-  docker tag ${TAG_VER} "${TAG_CUR}"
-fi
 
 if [ -v PRIVATE_REGISTRY ]
 then
   echo docker push ${TAG_VER}
   docker push ${TAG_VER}
-  if [[ -v TAG_CUR ]]; then
-    echo docker push ${TAG_CUR}
-    docker push ${TAG_CUR}
-  fi
 fi
 

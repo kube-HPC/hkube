@@ -7,11 +7,10 @@ const component = components.K8S;
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
         this._namespace = options.kubernetes.namespace;
-        this._client = new KubernetesClient(options.kubernetes);
-        log.info(`Initialized kubernetes client with options ${JSON.stringify({
-            ...options.kubernetes,
-            url: this._client._config.url
-        })}`, { component });
+        this._client = new KubernetesClient();
+        await this._client.init(options.kubernetes);
+        this.kubeVersion = await this._client.versions.getParsedVersion();
+        log.info(`Initialized kubernetes client with version: ${this.kubeVersion.version} (${this.kubeVersion.gitVersion}), url: ${this._client._config.url}`, { component });
     }
 
     get namespace() {
