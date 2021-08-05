@@ -1,6 +1,7 @@
 const clonedeep = require('lodash.clonedeep');
 const { applyEnvToContainer, createImageFromContainer, applyImage: utilsApplyImage } = require('@hkube/kubernetes-client').utils;
-
+const { getIngressApiVersion, getIngressBackend } = require('@hkube/kubernetes-client').utils;
+const kubernetesApi = require('./kubernetes');
 const applyImage = (inputSpec, containerName, versions, registry) => {
     const image = createImageFromContainer(inputSpec, containerName, versions, registry);
     const spec = utilsApplyImage(inputSpec, image, containerName);
@@ -31,8 +32,17 @@ const createContainerResourceByFactor = ({ cpu, memory } = {}, factor = 1) => {
     const memoryFactored = `${(memory || 4) * factor}Mi`;
     return { cpu: cpuFactored, memory: memoryFactored };
 };
+
+const getIngressParams = (serviceName, servicePort) => {
+    const { kubeVersion } = kubernetesApi;
+    const apiVersion = getIngressApiVersion(kubeVersion);
+    const { backend, pathType } = getIngressBackend(serviceName, servicePort, kubeVersion);
+    return { apiVersion, backend, pathType };
+};
+
 module.exports = {
     applyImage,
     createContainerResourceByFactor,
-    applyJaeger
+    applyJaeger,
+    getIngressParams
 };

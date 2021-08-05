@@ -1,4 +1,5 @@
 const { TENSORBOARD } = require('../consts/containers');
+const { getIngressParams } = require('../helpers/kubernetes-utils');
 
 const deploymentBoardTemplate = (boardReference = '') => ({
     apiVersion: 'apps/v1',
@@ -84,40 +85,42 @@ const boardService = (boardReference = '') => ({
     }
 });
 
-const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => ({
-    apiVersion: 'extensions/v1beta1',
-    kind: 'Ingress',
-    metadata: {
-        name: `ingress-board-${boardReference}`,
-        annotations: {
-            'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
-            'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
-            'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000'
-        },
-        labels: {
-            app: `ingress-${TENSORBOARD}`,
-            core: 'true',
-            type: TENSORBOARD
-        }
-    },
-    spec: {
-        rules: [
-            {
-                http: {
-                    paths: [{
-                        path: ingressUseRegex ? `${ingressPrefix}/hkube/board/${boardReference}(/|$)(.*)` : `${ingressPrefix}/hkube/board/${boardReference}`,
-                        backend: {
-                            serviceName: `board-service-${boardReference}`,
-                            servicePort: 80
-                        }
-                    }]
-
-                },
-                host: ingressHost || undefined
+const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '', ingressUseRegex = false, ingressClass = 'nginx' } = {}) => {
+    const { apiVersion, backend, pathType } = getIngressParams(`board-service-${boardReference}`, 80);
+    return {
+        apiVersion,
+        kind: 'Ingress',
+        metadata: {
+            name: `ingress-board-${boardReference}`,
+            annotations: {
+                'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
+                'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
+                'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000',
+                'kubernetes.io/ingress.class': ingressClass
+            },
+            labels: {
+                app: `ingress-${TENSORBOARD}`,
+                core: 'true',
+                type: TENSORBOARD
             }
-        ]
-    }
-});
+        },
+        spec: {
+            rules: [
+                {
+                    http: {
+                        paths: [{
+                            path: ingressUseRegex ? `${ingressPrefix}/hkube/board/${boardReference}(/|$)(.*)` : `${ingressPrefix}/hkube/board/${boardReference}`,
+                            backend,
+                            pathType
+                        }]
+
+                    },
+                    host: ingressHost || undefined
+                }
+            ]
+        }
+    };
+};
 
 module.exports = {
     deploymentBoardTemplate,
