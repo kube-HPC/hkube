@@ -135,6 +135,7 @@ class ExecutionService {
     }
 
     async search(options) {
+        validator.executions.validateSearch(options);
         return stateManager.searchJobsAPI(options);
     }
 
