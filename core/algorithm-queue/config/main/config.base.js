@@ -84,4 +84,8 @@ config.tracer = {
     }
 };
 
+config.logging = {
+    tasks: formatter.parseBool(process.env.LOG_TASKS, true)
+};
+
 module.exports = config;

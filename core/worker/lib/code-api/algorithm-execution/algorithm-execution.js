@@ -83,7 +83,7 @@ class AlgorithmExecution {
         }
         const { includeResult, result, execId } = execution;
         const response = await this._getStorage({ includeResult, result });
-        log.debug('sending done to algorithm', { component });
+        log.debug(`sending done from ${task.taskId} to algorithm`, { component });
         this._sendCompleteToAlgorithm({ execId, response, command: messages.outgoing.execAlgorithmDone });
     }
 
@@ -92,8 +92,8 @@ class AlgorithmExecution {
         if (task.taskId && !execution) {
             return;
         }
-        const { error, execId } = task;
-        log.info(`sending error to algorithm, error: ${error}`, { component });
+        const { error, execId, taskId } = task;
+        log.info(`sending error from ${taskId} to algorithm, error: ${error}`, { component });
         this._sendCompleteToAlgorithm({ execId, error, command: messages.outgoing.execAlgorithmError });
     }
 
@@ -200,6 +200,7 @@ class AlgorithmExecution {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
             }
             const taskId = producer.createTaskID();
+            log.info(`startAlgorithmExecution for ${algorithmName} with ${taskId}`, { component });
             this._executions.set(taskId, { taskId, execId, includeResult });
             const newInput = await this._setStorage({ input, storage, jobId, storageInput });
             const tasks = [{ execId, taskId, input: newInput, storage }];

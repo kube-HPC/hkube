@@ -72,23 +72,34 @@ class JobProducer {
         }, this._producerUpdateInterval);
     }
 
+    _getJobTaskId(data) {
+        const jobId = data?.options?.data?.jobId;
+        const taskId = data?.options?.data?.taskId;
+        return { jobId, taskId };
+    }
+
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
-            log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: Events.WAITING });
+            const { jobId, taskId } = this._getJobTaskId(data);
+            log.info(`${Events.WAITING} ${jobId}, ${taskId}`, { component, jobId, taskId, status: Events.WAITING });
         });
         this._producer.on(Events.ACTIVE, async (data) => {
-            log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: Events.ACTIVE });
+            const { jobId, taskId } = this._getJobTaskId(data);
+            log.info(`${Events.ACTIVE} ${jobId}, ${taskId}`, { component, jobId, taskId, status: Events.ACTIVE });
             await this.createJob();
         });
         this._producer.on(Events.COMPLETED, (data) => {
-            log.debug(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.COMPLETED });
+            const { jobId, taskId } = this._getJobTaskId(data);
+            log.debug(`${Events.COMPLETED} ${jobId}, ${taskId}`, { component, jobId, taskId, status: Events.COMPLETED });
         });
         this._producer.on(Events.FAILED, (data) => {
-            log.info(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component, jobId: data.jobId, status: Events.FAILED });
+            const { jobId, taskId } = this._getJobTaskId(data);
+            log.info(`${Events.FAILED} ${jobId}, ${taskId}`, { component, jobId, taskId, status: Events.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
             const { jobId, taskId, nodeName, retry } = job.options;
             const data = await db.getJob({ jobId });
+            log.info(`job ${jobId}, ${taskId}, stalled with ${data?.status} status`, { component });
             if (data) {
                 log.info(`job stalled with ${data.status} status`, { component });
                 if (isCompletedState({ status: data.status })) {
@@ -158,7 +169,8 @@ class JobProducer {
         }
         const task = this._tryPop();
         if (task) {
-            log.info(`pop new task with taskId: ${task.taskId}, score: ${task.calculated.score}`, { component });
+            log.info(`pop new task with taskId: ${task.taskId} for ${task.jobId}, score: ${task.calculated.score}, Queue length: ${this._getQueue().length}`,
+                { component, jobId: task.jobId, taskId: task.taskId });
             const job = this._taskToProducerJob(task);
             return this._producer.createJob(job);
         }
