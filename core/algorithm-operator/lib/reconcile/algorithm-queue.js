@@ -107,9 +107,10 @@ const _addDeployments = async ({ limit, availableQueues, algorithms, versions, r
 };
 
 const isRequired = ({ alg, algorithmsToQueue, waitingCount, algorithmQueues, maxIdleTime }) => {
-    const hasRequirement = !algorithmsToQueue[alg.name] && waitingCount[alg.name] > 0;
+    const isMissing = !algorithmsToQueue[alg.name];
+    const isQueued = waitingCount[alg.name] > 0;
     const isActive = Date.now() - algorithmQueues[alg.name] < maxIdleTime;
-    return hasRequirement || isActive;
+    return isMissing && (isQueued || isActive);
 };
 
 const reconcile = async ({ deployments, algorithms, discovery, versions, registry, clusterOptions, resources, options, devMode } = {}) => {
