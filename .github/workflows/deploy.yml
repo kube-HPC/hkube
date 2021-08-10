@@ -43,6 +43,11 @@ jobs:
         node-version: '14'
     - name: Docker login
       run: ${{ github.workspace }}/scripts/docker-login.sh
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+        DOCKER_USER: "${{ secrets.DOCKER_USER }}"
+        EXTRA_DOCKER_LOGINS: "${{ secrets.EXTRA_DOCKER_LOGINS }}"
     - name: build changed
       id: build_changed
       uses: yehiyam/deploy-to-k8s@master
@@ -50,6 +55,9 @@ jobs:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         prNumber: ${{ github.event.deployment.payload.prNumber }}
         branchName: ${{ github.event.ref }}
+      env:
+        EXTRA_PRIVATE_REGISTRIES: "${{ secrets.EXTRA_PRIVATE_REGISTRIES }}"
+
     - uses: actions/upload-artifact@v2
       with:
         name: values.yaml
