@@ -42,7 +42,7 @@ jobs:
       with:
         node-version: '14'
     - name: Docker login
-      run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+      run: ${{ github.workspace }}/scripts/docker-login.sh
     - name: build changed
       id: build_changed
       uses: yehiyam/deploy-to-k8s@master
