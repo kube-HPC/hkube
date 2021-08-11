@@ -23,7 +23,7 @@ class ApiValidator {
     }
 
     validateSearch(request) {
-        this._validator.validate(this._validator.definitions.searchJobs, request, false);
+        this._validator.validate(this._validator.definitions.searchJobs, request, true);
     }
 
     validateExecAlgorithmRequest(request) {
