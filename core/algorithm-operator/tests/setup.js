@@ -14,6 +14,7 @@ before(async () => {
     });
     mockery.registerMock('./helpers/kubernetes', mock);
     mockery.registerMock('../helpers/kubernetes', mock);
+    mockery.registerMock('./kubernetes', mock);
     mockery.registerMock('./lib/helpers/kubernetes', mock);
     const bootstrap = require('../bootstrap');
     const etcd = require('../lib/helpers/etcd');
@@ -27,6 +28,7 @@ before(async () => {
     global.testParams = {
         config,
         callCount,
-        clearCount
+        clearCount,
+        kubernetesMock: mock
     }
 });

@@ -14,6 +14,15 @@ class EtcdClient extends EventEmitter {
         return this._etcd.discovery.list({ serviceName: 'algorithm-queue' });
     }
 
+    async getAlgorithmQueuesList() {
+        const algs = await this._etcd.algorithms.queue.list();
+        const data = algs.reduce((acc, cur) => {
+            acc[cur.name] = cur.timestamp;
+            return acc;
+        }, {});
+        return data;
+    }
+
     async sendAlgorithmQueueAction({ queueId, action, algorithmName, timestamp }) {
         return this._etcd.algorithmQueues.set({ queueId, action, algorithmName, timestamp });
     }

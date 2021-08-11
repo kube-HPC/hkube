@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.3",
+    "version": "2.1.4",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -1296,7 +1296,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "jobId Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -1711,6 +1711,10 @@
                   },
                   "limit": {
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "default": 100,
+                    "example": 100,
                     "description": "limit the result size"
                   },
                   "fields": {
@@ -18268,6 +18272,10 @@
           },
           "limit": {
             "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "default": 100,
+            "example": 100,
             "description": "limit the result size"
           },
           "fields": {

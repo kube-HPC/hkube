@@ -18,10 +18,10 @@ properties:
         properties:
           from:
             type: string
-            example: '2021-03-11T14:30:00'
+            example: "2021-03-11T14:30:00"
           to:
             type: string
-            example: '2021-03-11T14:30:00'
+            example: "2021-03-11T14:30:00"
   cursor:
     type: string
     description: get the next results starting from this cursor
@@ -31,11 +31,15 @@ properties:
   sort:
     type: string
     enum:
-    - asc
-    - desc
+      - asc
+      - desc
     default: desc
   limit:
     type: integer
+    minimum: 0
+    maximum: 100
+    default: 100
+    example: 100
     description: limit the result size
   fields:
     type: object
@@ -47,8 +51,8 @@ properties:
 example:
   query:
     datesRange:
-      from: '2021-05-22T15:00:00'
-      to: '2021-06-22T16:00:00'
+      from: "2021-05-22T15:00:00"
+      to: "2021-06-22T16:00:00"
     experimentName: main
     pipelineName: simple
     pipelineType: stored
@@ -59,5 +63,3 @@ example:
   limit: 2
   fields:
     jobId: true
-
-
