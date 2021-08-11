@@ -402,7 +402,6 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imag
 
     // docker pull
     _createDockerCredsConfig(envs, docker, packages);
-    _envsHelper(envs, 'javaWrapperVersion', '2.0.00');
     if (buildMode === KANIKO) {
         await _createKanikoConfigs(envs, tmpFolder, docker);
     }
