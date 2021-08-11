@@ -230,6 +230,16 @@ under the License.
                     <releases>
                         <updatePolicy>never</updatePolicy>
                     </releases>
+
+                </pluginRepository>
+                                <pluginRepository>
+                    <id>snapshots</id>
+                    <name>snapshots</name>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                    <layout>default</layout>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
                 </pluginRepository>
             </pluginRepositories>
         </profile>
