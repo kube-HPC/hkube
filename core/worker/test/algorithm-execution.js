@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const delay = require('delay');
 const { uuid } = require('@hkube/uid');
+const { taskStatuses } = require('@hkube/consts');
 const execAlgorithm = require('../lib/code-api/algorithm-execution/algorithm-execution');
 const jobConsumer = require('../lib/consumer/JobConsumer');
 const stateAdapter = require('../lib/states/stateAdapter');
@@ -176,13 +177,17 @@ describe('AlgorithmExecutions', () => {
         };
         spy = sinon.spy(execAlgorithm, '_createJob');
         await execAlgorithm._startAlgorithmExecution({ data });
-
+        
         const args = spy.getCalls()[0].args[0];
         expect(args.tasks[0]).to.have.property('execId');
         expect(args.tasks[0]).to.have.property('input');
         expect(args.tasks[0]).to.have.property('storage');
         expect(args.tasks[0]).to.have.property('taskId');
         expect(args.tasks[0].execId).equals(data.execId);
+        const {taskId} = args.tasks[0];
+        const task = await stateAdapter._etcd.jobs.tasks.get({taskId, jobId: jobData.jobId})
+        expect(task.taskId).to.eql(taskId);
+        expect(task.status).to.eql(taskStatuses.CREATING);
     });
     it('should succeed to send succeed status to algorithm', async function () {
         const jobData = {

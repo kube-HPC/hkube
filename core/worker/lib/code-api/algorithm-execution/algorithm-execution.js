@@ -1,6 +1,7 @@
 const Validator = require('ajv');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
+const { taskStatuses } = require('@hkube/consts');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
 const stateAdapter = require('../../states/stateAdapter');
 const messages = require('../../algorithm-communication/messages');
@@ -204,12 +205,13 @@ class AlgorithmExecution {
             this._executions.set(taskId, { taskId, execId, includeResult });
             const newInput = await this._setStorage({ input, storage, jobId, storageInput });
             const tasks = [{ execId, taskId, input: newInput, storage }];
+            const newNodeName = `${nodeName}:${algorithmName}`;
             const job = {
                 ...jobData,
                 jobId,
                 tasks,
                 algorithmName,
-                nodeName: `${nodeName}:${algorithmName}`,
+                nodeName: newNodeName,
                 parentNodeName: nodeName,
                 info: {
                     ...jobData.info,
@@ -218,6 +220,14 @@ class AlgorithmExecution {
             };
             this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
+            await stateAdapter.updateTask({ jobId,
+                taskId,
+                execId,
+                parentNodeName: nodeName,
+                algorithmName,
+                nodeName: newNodeName,
+                status: taskStatuses.CREATING
+            });
             await this._createJob(job, taskId);
         }
         catch (e) {
