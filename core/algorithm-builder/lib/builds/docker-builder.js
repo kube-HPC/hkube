@@ -58,7 +58,8 @@ const wrapperVersions = {
     java: {
         file: 'version.txt',
         parse: (file) => {
-            return file;
+            const firstLine = file.split('\n')[0];
+            return firstLine;
         },
         override: async (file, version) => {
             await fse.writeFile(file, version);
