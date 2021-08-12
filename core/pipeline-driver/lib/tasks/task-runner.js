@@ -68,6 +68,12 @@ class TaskRunner {
                 this._setTaskState(task);
                 break;
             }
+            case taskStatuses.CREATING: {
+                if (task.execId) {
+                    this._setTaskState(task);
+                }
+                break;
+            }
             case taskStatuses.ACTIVE:
                 this._setTaskState(task);
                 break;

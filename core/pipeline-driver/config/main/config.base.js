@@ -111,3 +111,7 @@ config.storageAdapters = {
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };
+
+config.logging = {
+    tasks: formatter.parseBool(process.env.LOG_TASKS, true)
+};
