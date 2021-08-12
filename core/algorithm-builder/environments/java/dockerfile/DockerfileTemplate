@@ -6,7 +6,7 @@ ENV PACKAGES_REGISTRY ${PACKAGES_REGISTRY}
 COPY ./dockerfile/settings.xml  /root/.m2/settings.xml
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 RUN cp /hkube/algorithm-runner/algorithm_unique_folder/src/main/resources/settings.xml  /root/.m2/settings.xml || true
-RUN mvn -q dependency:get -Dartifact=io.hkube:wrapper:${javaWrapperVersion}:jar:wide  -Ddest=/hkube/algorithm-runner/wrapper.jar
+RUN mvn -q dependency:get -Dartifact=io.hkube:wrapper:${WRAPPER_VERSION}:jar:wide  -Ddest=/hkube/algorithm-runner/wrapper.jar
 COPY ./runJava.sh /hkube/algorithm-runner/
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
 RUN mvn -q  package
