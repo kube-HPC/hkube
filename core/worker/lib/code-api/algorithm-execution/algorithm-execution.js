@@ -213,6 +213,7 @@ class AlgorithmExecution {
                 algorithmName,
                 nodeName: newNodeName,
                 parentNodeName: nodeName,
+                status: taskStatuses.CREATING,
                 info: {
                     ...jobData.info,
                     extraData: undefined
@@ -220,7 +221,8 @@ class AlgorithmExecution {
             };
             this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
-            await stateAdapter.updateTask({ jobId,
+            await stateAdapter.updateTask({
+                jobId,
                 taskId,
                 execId,
                 parentNodeName: nodeName,
