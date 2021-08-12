@@ -204,7 +204,7 @@ class AlgorithmExecution {
             log.info(`startAlgorithmExecution for ${algorithmName} with ${taskId}`, { component });
             this._executions.set(taskId, { taskId, execId, includeResult });
             const newInput = await this._setStorage({ input, storage, jobId, storageInput });
-            const tasks = [{ execId, taskId, input: newInput, storage }];
+            const tasks = [{ execId, taskId, input: newInput, storage, status: taskStatuses.CREATING }];
             const newNodeName = `${nodeName}:${algorithmName}`;
             const job = {
                 ...jobData,
@@ -213,7 +213,6 @@ class AlgorithmExecution {
                 algorithmName,
                 nodeName: newNodeName,
                 parentNodeName: nodeName,
-                status: taskStatuses.CREATING,
                 info: {
                     ...jobData.info,
                     extraData: undefined
