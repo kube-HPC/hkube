@@ -1,7 +1,7 @@
 const Validator = require('ajv');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const { taskStatuses } = require('@hkube/consts');
+const { taskStatuses, retryPolicy } = require('@hkube/consts');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
 const stateAdapter = require('../../states/stateAdapter');
 const messages = require('../../algorithm-communication/messages');
@@ -11,6 +11,8 @@ const producer = require('../../producer/producer');
 const { startAlgorithmSchema, stopAlgorithmSchema } = require('./schema');
 const validator = new Validator({ useDefaults: true, coerceTypes: false });
 const component = Components.ALGORITHM_EXECUTION;
+const NO_RETRY = { policy: retryPolicy.Never };
+
 let log;
 
 class AlgorithmExecution {
@@ -213,6 +215,7 @@ class AlgorithmExecution {
                 algorithmName,
                 nodeName: newNodeName,
                 parentNodeName: nodeName,
+                retry: NO_RETRY,
                 info: {
                     ...jobData.info,
                     extraData: undefined
