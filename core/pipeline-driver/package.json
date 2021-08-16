@@ -15,7 +15,7 @@
     "@hkube/etcd": "^5.1.2",
     "@hkube/logger": "^1.0.27",
     "@hkube/metrics": "^1.0.42",
-    "@hkube/parsers": "^2.1.7",
+    "@hkube/parsers": "^2.1.8",
     "@hkube/producer-consumer": "^1.0.48",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/stats": "^1.0.1",
