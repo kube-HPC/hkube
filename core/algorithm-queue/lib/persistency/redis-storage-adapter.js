@@ -1,7 +1,7 @@
 const { Factory } = require('@hkube/redis-utils');
 const { promisify } = require('util');
 const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('../consts/component-name');
+const component = require('../consts/component-name').REDIS_PERSISTENT;
 
 class RedisAdapter {
     async init(options) {
@@ -14,32 +14,26 @@ class RedisAdapter {
             lrange: promisify(client.lrange).bind(client),
         };
         this._maxPersistencySize = options.queue.maxPersistencySize;
+        log.info(`persistency initialized with max size of ${this._maxPersistencySize}`, { component });
     }
 
     async put({ data, path }) {
-        return this._set({ data, path });
-    }
-
-    async _set({ data, path }) {
-        await this._delete({ path });
         if (!data || data.length === 0) {
             return;
         }
         const jsonArray = data.map(JSON.stringify);
         const size = jsonArray.reduce((prev, cur) => prev + cur.length, 0);
+        const arrLength = data.length;
         if (this._maxPersistencySize && size > this._maxPersistencySize) {
-            log.throttle.warning(`persistency length is ${size} which is larger than ${this._maxPersistencySize}`, { component: components.ETCD_PERSISTENT });
+            log.throttle.warning(`persistency size is ${size} (${arrLength}) which is larger than ${this._maxPersistencySize}`, { component });
             return;
         }
+        await this._delete({ path });
         await this._clientAsync.rpush(path, jsonArray);
-        log.debug(`wrote ${size} bytes to persistency`, { component: components.ETCD_PERSISTENT });
+        log.throttle.info(`persistency with size ${size} (${arrLength}) successfully saved`, { component });
     }
 
     async get({ path }) {
-        return this._get({ path });
-    }
-
-    async _get({ path }) {
         const dataJson = await this._clientAsync.lrange(path, 0, -1);
         const data = dataJson.map(d => JSON.parse(d));
         return data;

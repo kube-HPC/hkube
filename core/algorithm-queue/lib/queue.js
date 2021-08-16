@@ -180,7 +180,7 @@ class Queue extends events {
     }
 
     _orderQueue() {
-        this.queue = orderBy(this.queue, j => j.calculated.score, 'desc');
+        this.queue = orderBy(this.queue, j => j.score, 'desc');
     }
 
     // the interval logic should be as follows :
@@ -208,7 +208,7 @@ class Queue extends events {
             return;
         }
         const pendingAmount = await this._producer.getWaitingCount();
-        this.enrichmentRunner(this.queue);
+        // this.enrichmentRunner(this.queue);
         this.updateScore();
         log.debug('queue update score cycle starts', { component });
         this._orderQueue();

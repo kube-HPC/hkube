@@ -132,21 +132,13 @@ class JobProducer {
     // TODO: remove this calculated stuff....
     _pipelineToQueueAdapter(taskData) {
         return {
-            initialBatchLength: 1,
-            calculated: {
-                latestScores: {},
-                entranceTime: taskData.entranceTime,
-                enrichment: {
-                    batchIndex: {}
-                }
-            },
             ...taskData,
             attempts: taskData.attempts + 1
         };
     }
 
     _taskToProducerJob(task) {
-        const { calculated, initialBatchLength, ...taskData } = task;
+        const { score, ...taskData } = task;
         return {
             job: {
                 id: `${task.taskId}-${uuidv4()}`,

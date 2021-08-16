@@ -55,15 +55,15 @@ config.consumer = {
 
 config.queue = {
     updateInterval: process.env.INTERVAL || 1000,
-    maxPersistencySize: process.env.MAX_PERSISTENCY_SIZE || '1e6'
+    maxPersistencySize: process.env.MAX_PERSISTENCY_SIZE || '2e6'
 };
 
 config.heuristicsWeights = {
     [heuristicsNames.ATTEMPTS]: 0.2,
     [heuristicsNames.PRIORITY]: 0.4,
     [heuristicsNames.ENTRANCE_TIME]: 0.2,
-    [heuristicsNames.BATCH]: 0.1,
-    [heuristicsNames.CURRENT_BATCH_PLACE]: 0.1
+    [heuristicsNames.BATCH]: 0.2,
+    // [heuristicsNames.CURRENT_BATCH_PLACE]: 0.1
 };
 
 config.metrics = {

@@ -1,7 +1,7 @@
 const Logger = require('@hkube/logger');
 const { taskStatuses } = require('@hkube/consts');
 const heuristics = require('./heuristic/index');
-const components = require('./consts/component-name');
+const component = require('./consts/component-name').HEURISTIC_RUNNER;
 const log = Logger.GetLogFromContainer();
 
 class heuristicRunner {
@@ -15,22 +15,21 @@ class heuristicRunner {
             this.heuristicMap.push({ name: heuristic.name, heuristic: heuristic.algorithm(heuristicsWeights[heuristic.name]), weight: heuristicsWeights[heuristic.name] });
         }
         else {
-            log.info('couldnt find weight for heuristic ', { component: components.HEURISTIC_RUNNER });
+            log.info('couldnt find weight for heuristic ', { component });
         }
     }
 
     run(job) {
         let score = 0;
         if (job.status !== taskStatuses.PRESCHEDULE) {
-            log.debug('start running heuristic for ', { component: components.HEURISTIC_RUNNER });
+            log.debug('start running heuristic for ', { component });
             score = this.heuristicMap.reduce((result, algorithm) => {
                 const heuristicScore = algorithm.heuristic(job);
-                job.calculated.latestScores[algorithm.name] = heuristicScore; // eslint-disable-line
-                log.debug(`during score calculation for ${algorithm.name} in ${job.jobId} score:${heuristicScore} calculated:${result + heuristicScore}`, { component: components.HEURISTIC_RUNNER });
+                log.debug(`during score calculation for ${algorithm.name} in ${job.jobId} score:${heuristicScore} calculated:${result + heuristicScore}`, { component });
                 return result + heuristicScore;
             }, 0);
         }
-        return { ...job, calculated: { ...job.calculated, score } };
+        return { ...job, score };
     }
 }
 
