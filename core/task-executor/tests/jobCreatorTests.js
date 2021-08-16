@@ -288,12 +288,12 @@ describe('jobCreator', () => {
                 {
                     pvcName: 'fromcm',
                     path: '/tmp/cm',
-                    type: 'configMap'
+                    volumeType: 'configMap'
                 },
                 {
                     pvcName: 'empty',
                     path: '/tmp/empty',
-                    type: 'emptyDir'
+                    volumeType: 'emptyDir'
                 }
             ]
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, mounts });

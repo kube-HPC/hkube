@@ -91,13 +91,13 @@ const applyMounts = (inputSpec, mounts = []) => {
             name,
             mountPath: m.path
         });
-        if (m.type === volumes.emptyDir) {
+        if (m.volumeType === volumes.emptyDir) {
             spec = applyVolumes(spec, {
                 name,
                 [volumes.emptyDir]: {}
             });
         }
-        else if (m.type === volumes.configMap) {
+        else if (m.volumeType === volumes.configMap) {
             spec = applyVolumes(spec, {
                 name,
                 [volumes.configMap]: {
