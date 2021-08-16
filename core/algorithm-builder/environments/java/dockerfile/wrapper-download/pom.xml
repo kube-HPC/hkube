@@ -155,6 +155,11 @@
             <artifactId>interfaces</artifactId>
             <version>${revision}</version>
         </dependency>
+                <dependency>
+            <groupId>io.hkube</groupId>
+            <artifactId>wrapper</artifactId>
+            <version>${revision}</version>
+        </dependency>
      </dependencies>
 
 </project>
