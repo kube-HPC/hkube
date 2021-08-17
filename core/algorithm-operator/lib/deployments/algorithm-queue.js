@@ -57,7 +57,7 @@ const createDeploymentSpec = ({ queueId, versions, registry, clusterOptions, res
     spec = applyImage(spec, CONTAINERS.ALGORITHM_QUEUE, versions, registry);
     spec = applyJaeger(spec, CONTAINERS.ALGORITHM_QUEUE, options);
     spec = applyNodeSelector(spec, clusterOptions);
-    spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'algorithm-operator-configmap');
+    spec = applyStorage(spec, options.defaultStorage, CONTAINERS.ALGORITHM_QUEUE, 'algorithm-operator-configmap');
     if (settings.applyResourceLimits) {
         spec = applyResources(spec, resources);
     }
