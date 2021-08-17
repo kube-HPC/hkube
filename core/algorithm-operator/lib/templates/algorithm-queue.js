@@ -107,7 +107,34 @@ const algorithmQueueTemplate = {
                                         key: 'mongodb-database'
                                     }
                                 }
-                            }
+                            },
+                            {
+                                name: 'CLUSTER_NAME',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'CLUSTER_NAME'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DEFAULT_STORAGE',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'DEFAULT_STORAGE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'STORAGE_ENCODING',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'STORAGE_ENCODING'
+                                    }
+                                }
+                            },
                         ]
                     }
                 ]
