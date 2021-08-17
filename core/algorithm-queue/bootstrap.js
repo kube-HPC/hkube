@@ -6,13 +6,12 @@ const log = new Logger(main.serviceName, logger);
 const monitor = require('@hkube/redis-utils').Monitor;
 const { componentName } = require('./lib/consts/index');
 const { tracer } = require('@hkube/metrics');
+const storageManager = require('@hkube/storage-manager');
 
 const modules = [
     require('./lib/persistency/db'),
     require('./lib/persistency/etcd'),
     require('./lib/queues-manager'),
-    require('./lib/persistency/redis-storage-adapter'),
-    // require('./lib/metrics/aggregation-metrics-factory')
 ];
 
 class Bootstrap {
@@ -30,6 +29,7 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
+            await storageManager.init(main, log);
             for (const m of modules) {
                 await m.init(main);
             }

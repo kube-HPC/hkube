@@ -97,6 +97,7 @@ class JobProducer {
             log.info(`${Events.FAILED} ${jobId}, ${taskId}`, { component, jobId, taskId, status: Events.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
+            let { attempts } = job.options;
             const { jobId, taskId, nodeName, retry } = job.options;
             const data = await db.getJob({ jobId });
             log.info(`job ${jobId}, ${taskId}, stalled with ${data?.status} status`, { component });
@@ -109,9 +110,12 @@ class JobProducer {
             }
             let err;
             let status;
-            const maxAttempts = (retry && retry.limit) || MAX_JOB_ATTEMPTS;
-            const task = this._pipelineToQueueAdapter(job.options);
-            let { attempts } = task;
+            const maxAttempts = retry?.limit ?? MAX_JOB_ATTEMPTS;
+
+            const task = {
+                ...job.options,
+                attempts: attempts + 1
+            };
 
             if (attempts > maxAttempts) {
                 attempts = maxAttempts;
@@ -127,14 +131,6 @@ class JobProducer {
             log.warning(`${error} ${job.jobId} `, { component, jobId });
             await etcd.updateTask({ jobId, taskId, status, error, retries: attempts });
         });
-    }
-
-    // TODO: remove this calculated stuff....
-    _pipelineToQueueAdapter(taskData) {
-        return {
-            ...taskData,
-            attempts: taskData.attempts + 1
-        };
     }
 
     _taskToProducerJob(task) {
@@ -161,7 +157,7 @@ class JobProducer {
         }
         const task = this._tryPop();
         if (task) {
-            log.info(`pop new task with taskId: ${task.taskId} for ${task.jobId}, score: ${task.calculated.score}, Queue length: ${this._getQueue().length}`,
+            log.info(`pop new task with taskId: ${task.taskId} for ${task.jobId}, score: ${task.score}, Queue length: ${this._getQueue().length}`,
                 { component, jobId: task.jobId, taskId: task.taskId });
             const job = this._taskToProducerJob(task);
             return this._producer.createJob(job);

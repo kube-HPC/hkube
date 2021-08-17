@@ -4,7 +4,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { pipelineStatuses } = require('@hkube/consts');
 const { tracer } = require('@hkube/metrics');
 const db = require('../persistency/db');
-const { heuristicsName } = require('../consts/index');
+// const { heuristicsName } = require('../consts/index');
 const { isCompletedState } = require('../utils/pipelineStatuses');
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
@@ -120,8 +120,7 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-    // TODO: remove this calculated stuff....
-    pipelineToQueueAdapter(jobData, taskData) {
+    _adaptData(jobData, taskData) {
         const batchIndex = taskData.batchIndex || 0;
         const entranceTime = Date.now();
 
@@ -136,7 +135,7 @@ class JobConsumer extends EventEmitter {
 
     queueTasksBuilder(job) {
         const { tasks, ...jobData } = job.data;
-        const taskList = tasks.map(task => this.pipelineToQueueAdapter(jobData, task));
+        const taskList = tasks.map(task => this._adaptData(jobData, task));
         this.emit('jobs-add', taskList);
     }
 }

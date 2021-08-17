@@ -6,6 +6,10 @@ config.serviceName = packageJson.name;
 
 config.recommendationMode = 'flat';  // flat, map
 
+config.scoring = {
+    maxSize: process.env.INTERVAL || 5000
+};
+
 config.etcd = {
     protocol: 'http',
     host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
