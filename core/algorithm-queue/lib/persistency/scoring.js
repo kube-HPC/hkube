@@ -6,6 +6,7 @@ class Scoring {
         try {
             const start = now();
             onStart({ key, length: data.length });
+            // do we want to limit our scoring array?
             const scoreArray = data.slice(0, 5000).map(d => d.score);
             await etcd.updateQueueData({ name: key, data: scoreArray, pendingAmount, timestamp: Date.now() });
             const end = now();

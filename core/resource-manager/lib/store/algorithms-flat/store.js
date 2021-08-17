@@ -6,7 +6,8 @@ const component = require('../../consts/components').ALGORITHM_QUEUE;
 class StoreAdapter {
     async setData(data) {
         this._log(data);
-        await stateManager.setAlgorithmsResourceRequirements({ name: 'data', data });
+        // do we want to limit our scoring array?
+        await stateManager.setAlgorithmsResourceRequirements({ name: 'data', data: data.slice(0, 5000) });
         return null;
     }
 
