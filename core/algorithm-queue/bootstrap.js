@@ -15,7 +15,7 @@ const modules = [
 ];
 
 class Bootstrap {
-    async init() {
+    async init(bootstrap) {
         try {
             this._handleErrors();
             log.info('running application in ' + configIt.env() + ' environment', { component: componentName.MAIN });
@@ -29,7 +29,7 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            await storageManager.init(main, log);
+            await storageManager.init(main, log, bootstrap);
             for (const m of modules) {
                 await m.init(main);
             }

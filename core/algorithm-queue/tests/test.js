@@ -1,5 +1,6 @@
 
 const { expect } = require('chai');
+const storageManager = require('@hkube/storage-manager');
 const { generateArr, stubTemplate } = require('./stub/stub');
 const queueEvents = require('../lib/consts/queue-events');
 const { semaphore } = require('await-done');
@@ -9,12 +10,12 @@ const algorithmName = 'green-alg'
 let _semaphore = null;
 let queue = null;
 
-const heuristic = score => job => ({ ...job, ...{ calculated: { enrichment: { batchIndex: {} }, score, entranceTime: Date.now(), latestScore: {} } } });
+const heuristic = score => job => ({ ...job, score, entranceTime: Date.now(), latestScore: {} });
 const heuristicBoilerPlate = (score, _heuristic) => _heuristic(score);
 
 describe('Test', () => {
     before(async () => {
-        config = await bootstrap.init();
+        config = await bootstrap.init(true);
         queuesManager = require('../lib/queues-manager');
         queueRunner = require('../lib/queue-runner');
     });
@@ -46,7 +47,7 @@ describe('Test', () => {
                     queue.addJobs([stubTemplate()]);
                     await queue._intervalUpdateCallback();
                     const q = queue.get;
-                    expect(q[0].calculated.score).to.eql(80);
+                    expect(q[0].score).to.eql(80);
                 });
                 it('should added to queue ordered', async () => {
                     queue.scoreHeuristic = heuristic(80);
@@ -55,8 +56,8 @@ describe('Test', () => {
                     queue.addJobs([stubTemplate()]);
                     queue.scoreHeuristic = heuristic(90);
                     queue.addJobs([stubTemplate()]);
-                    expect(queue.get[0].calculated.score).to.eql(90);
-                    expect(queue.get[2].calculated.score).to.eql(60);
+                    expect(queue.get[0].score).to.eql(90);
+                    expect(queue.get[2].score).to.eql(60);
                 });
             });
             describe('remove', () => {
@@ -138,7 +139,7 @@ describe('Test', () => {
             queue.flush()
             const arr = generateArr(100);
             queue.addJobs(arr);
-            await queue.persistenceStore({ data: queue.get, pendingAmount: 0 });
+            await queue.persistencyStore({ data: queue.get, pendingAmount: 0 });
             queue.flush();
             await queue.persistencyLoad();
             const q = queue.get;

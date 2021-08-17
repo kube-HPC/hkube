@@ -5,7 +5,6 @@ const stubTemplate = ({
     algorithmName = 'alg name',
     batchIndex = Math.floor((Math.random() * 1000)),
     priority = Math.floor((Math.random() * 5)),
-    score = Math.floor((Math.random() * 100)),
     entranceTime = Date.now()
 } = {}) => (
     {
@@ -18,16 +17,7 @@ const stubTemplate = ({
         attempts: 1,
         priority: priority,
         algorithmName: algorithmName,
-        batchIndex: batchIndex,
-        calculated: {
-            score: score,
-            entranceTime,
-            enrichment: {
-                batchIndex: {}
-            },
-            latestScores: {
-            }
-        }
+        batchIndex: batchIndex
     }
 );
 

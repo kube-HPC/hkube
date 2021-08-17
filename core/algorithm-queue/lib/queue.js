@@ -86,9 +86,8 @@ class Queue extends events {
         }
     }
 
-    async persistenceStore({ data, pendingAmount }) {
+    async persistencyStore({ data, pendingAmount }) {
         await this.persistence.store({ data, pendingAmount });
-        log.debug('store data to storage succeed', { component });
     }
 
     addJobs(jobs) {
@@ -185,10 +184,6 @@ class Queue extends events {
         this.queue = orderBy(this.queue, j => j.score, 'desc');
     }
 
-    // the interval logic should be as follows :
-    // 1.if updateScore is running every new change entered to temp queue
-    // 2. after each cycle merge with temp proceeded
-    // 3. in case something is add when there is no running cycle each job inserted/ removed directly to the queue
     _queueInterval() {
         setTimeout(async () => {
             try {
@@ -213,7 +208,7 @@ class Queue extends events {
         this.updateScore();
         log.debug('queue update score cycle starts', { component });
         this._orderQueue();
-        await this.persistenceStore({ data: this.queue, pendingAmount });
+        await this.persistencyStore({ data: this.queue, pendingAmount });
     }
 }
 
