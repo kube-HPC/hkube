@@ -6,6 +6,7 @@ class Snapshot {
         try {
             const start = now();
             onStart({ key, length: data.length });
+            // after POC, need to add persistency module inside storageManager.
             await storageManager.hkubeExecutions.put({ jobId: key, data });
             const end = now();
             const timeTook = (end - start).toFixed(3);
