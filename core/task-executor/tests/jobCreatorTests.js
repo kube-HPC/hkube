@@ -284,6 +284,16 @@ describe('jobCreator', () => {
                 {
                     pvcName: 'mypvc2',
                     path: '/tmp/foo'
+                },
+                {
+                    pvcName: 'fromcm',
+                    path: '/tmp/cm',
+                    volumeType: 'configMap'
+                },
+                {
+                    pvcName: 'empty',
+                    path: '/tmp/empty',
+                    volumeType: 'emptyDir'
                 }
             ]
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, mounts });
@@ -305,10 +315,34 @@ describe('jobCreator', () => {
                     persistentVolumeClaim: { claimName: mounts[1].pvcName }
                 }
             );
+            expect(res.spec.template.spec.volumes).to.deep.include(
+                {
+                    name: 'fromcm-2',
+                    configMap: {name: mounts[2].pvcName}
+                }
+            );
+            expect(res.spec.template.spec.volumes).to.deep.include(
+                {
+                    name: 'empty-3',
+                    emptyDir: {}
+                }
+            );
             expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
                 {
                     name: 'mypvc2-1',
                     mountPath: mounts[1].path
+                }
+            );
+            expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
+                {
+                    name: 'fromcm-2',
+                    mountPath: mounts[2].path
+                }
+            );
+            expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
+                {
+                    name: 'empty-3',
+                    mountPath: mounts[3].path
                 }
             );
         });

@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.1",
+    "version": "2.1.6",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -1229,6 +1229,113 @@
         }
       }
     },
+    "/exec/rerun": {
+      "post": {
+        "tags": [
+          "Execution"
+        ],
+        "summary": "Rerun pipeline",
+        "description": "Rerun pipeline",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobId": {
+                    "type": "string",
+                    "description": "Unique identifier representing pipeline execution"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "jobId"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "pipeline execution data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string",
+                      "description": "Unique identifier representing pipeline execution"
+                    }
+                  },
+                  "required": [
+                    "jobId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "jobId Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/exec/stop": {
       "post": {
         "tags": [
@@ -1604,6 +1711,10 @@
                   },
                   "limit": {
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "default": 100,
+                    "example": 100,
                     "description": "limit the result size"
                   },
                   "fields": {
@@ -6255,6 +6366,14 @@
                             "format": "path",
                             "minLength": 1,
                             "description": "the mount path in the algorithm container"
+                          },
+                          "volumeType": {
+                            "type": "string",
+                            "description": "Special volume types such as emptyDir",
+                            "enum": [
+                              "emptyDir",
+                              "configMap"
+                            ]
                           }
                         },
                         "required": [
@@ -6678,6 +6797,14 @@
                               "format": "path",
                               "minLength": 1,
                               "description": "the mount path in the algorithm container"
+                            },
+                            "volumeType": {
+                              "type": "string",
+                              "description": "Special volume types such as emptyDir",
+                              "enum": [
+                                "emptyDir",
+                                "configMap"
+                              ]
                             }
                           },
                           "required": [
@@ -6948,6 +7075,14 @@
                           "format": "path",
                           "minLength": 1,
                           "description": "the mount path in the algorithm container"
+                        },
+                        "volumeType": {
+                          "type": "string",
+                          "description": "Special volume types such as emptyDir",
+                          "enum": [
+                            "emptyDir",
+                            "configMap"
+                          ]
                         }
                       },
                       "required": [
@@ -7273,6 +7408,14 @@
                           "format": "path",
                           "minLength": 1,
                           "description": "the mount path in the algorithm container"
+                        },
+                        "volumeType": {
+                          "type": "string",
+                          "description": "Special volume types such as emptyDir",
+                          "enum": [
+                            "emptyDir",
+                            "configMap"
+                          ]
                         }
                       },
                       "required": [
@@ -7584,6 +7727,14 @@
                               "format": "path",
                               "minLength": 1,
                               "description": "the mount path in the algorithm container"
+                            },
+                            "volumeType": {
+                              "type": "string",
+                              "description": "Special volume types such as emptyDir",
+                              "enum": [
+                                "emptyDir",
+                                "configMap"
+                              ]
                             }
                           },
                           "required": [
@@ -7859,6 +8010,14 @@
                                 "format": "path",
                                 "minLength": 1,
                                 "description": "the mount path in the algorithm container"
+                              },
+                              "volumeType": {
+                                "type": "string",
+                                "description": "Special volume types such as emptyDir",
+                                "enum": [
+                                  "emptyDir",
+                                  "configMap"
+                                ]
                               }
                             },
                             "required": [
@@ -12794,6 +12953,14 @@
                               "format": "path",
                               "minLength": 1,
                               "description": "the mount path in the algorithm container"
+                            },
+                            "volumeType": {
+                              "type": "string",
+                              "description": "Special volume types such as emptyDir",
+                              "enum": [
+                                "emptyDir",
+                                "configMap"
+                              ]
                             }
                           },
                           "required": [
@@ -13132,6 +13299,14 @@
                               "format": "path",
                               "minLength": 1,
                               "description": "the mount path in the algorithm container"
+                            },
+                            "volumeType": {
+                              "type": "string",
+                              "description": "Special volume types such as emptyDir",
+                              "enum": [
+                                "emptyDir",
+                                "configMap"
+                              ]
                             }
                           },
                           "required": [
@@ -16100,6 +16275,14 @@
                   "format": "path",
                   "minLength": 1,
                   "description": "the mount path in the algorithm container"
+                },
+                "volumeType": {
+                  "type": "string",
+                  "description": "Special volume types such as emptyDir",
+                  "enum": [
+                    "emptyDir",
+                    "configMap"
+                  ]
                 }
               },
               "required": [
@@ -16306,6 +16489,14 @@
             "format": "path",
             "minLength": 1,
             "description": "the mount path in the algorithm container"
+          },
+          "volumeType": {
+            "type": "string",
+            "description": "Special volume types such as emptyDir",
+            "enum": [
+              "emptyDir",
+              "configMap"
+            ]
           }
         },
         "required": [
@@ -16510,6 +16701,14 @@
                       "format": "path",
                       "minLength": 1,
                       "description": "the mount path in the algorithm container"
+                    },
+                    "volumeType": {
+                      "type": "string",
+                      "description": "Special volume types such as emptyDir",
+                      "enum": [
+                        "emptyDir",
+                        "configMap"
+                      ]
                     }
                   },
                   "required": [
@@ -18161,6 +18360,10 @@
           },
           "limit": {
             "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "default": 100,
+            "example": 100,
             "description": "limit the result size"
           },
           "fields": {
@@ -18209,6 +18412,19 @@
             "description": "the query completion time took in milliseconds"
           }
         }
+      },
+      "rerun": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "jobId"
+        ]
       },
       "experiment": {
         "type": "object",
