@@ -111,11 +111,7 @@ class JobProducer {
             let err;
             let status;
             const maxAttempts = retry?.limit ?? MAX_JOB_ATTEMPTS;
-
-            const task = {
-                ...job.options,
-                attempts: attempts + 1
-            };
+            const task = this._pipelineToQueueAdapter(job.options);
 
             if (attempts > maxAttempts) {
                 attempts = maxAttempts;
@@ -133,8 +129,24 @@ class JobProducer {
         });
     }
 
+    // TODO: remove this calculated stuff....
+    _pipelineToQueueAdapter(taskData) {
+        return {
+            initialBatchLength: 1,
+            calculated: {
+                latestScores: {},
+                entranceTime: taskData.entranceTime,
+                enrichment: {
+                    batchIndex: {}
+                }
+            },
+            ...taskData,
+            attempts: taskData.attempts + 1
+        };
+    }
+
     _taskToProducerJob(task) {
-        const { score, ...taskData } = task;
+        const { calculated, initialBatchLength, ...taskData } = task;
         return {
             job: {
                 id: `${task.taskId}-${uuidv4()}`,
@@ -157,7 +169,7 @@ class JobProducer {
         }
         const task = this._tryPop();
         if (task) {
-            log.info(`pop new task with taskId: ${task.taskId} for ${task.jobId}, score: ${task.score}, Queue length: ${this._getQueue().length}`,
+            log.info(`pop new task with taskId: ${task.taskId} for ${task.jobId}, score: ${task.calculated.score}, Queue length: ${this._getQueue().length}`,
                 { component, jobId: task.jobId, taskId: task.taskId });
             const job = this._taskToProducerJob(task);
             return this._producer.createJob(job);

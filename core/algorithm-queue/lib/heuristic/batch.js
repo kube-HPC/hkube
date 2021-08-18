@@ -1,6 +1,6 @@
 /* eslint-disable */
 const heuristicsNames = require('../consts/heuristics-name');
-const maxBatch = 30000;
+const maxBatch = 1500;
 // take batchPlace or max in order to normalize it to one 
 const batch = {
     name: heuristicsNames.BATCH,

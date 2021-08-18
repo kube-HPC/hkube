@@ -65,8 +65,8 @@ config.heuristicsWeights = {
     [heuristicsNames.ATTEMPTS]: 0.2,
     [heuristicsNames.PRIORITY]: 0.4,
     [heuristicsNames.ENTRANCE_TIME]: 0.2,
-    [heuristicsNames.BATCH]: 0.2,
-    // [heuristicsNames.CURRENT_BATCH_PLACE]: 0.1
+    [heuristicsNames.BATCH]: 0.1,
+    [heuristicsNames.CURRENT_BATCH_PLACE]: 0.1
 };
 
 config.metrics = {
@@ -89,6 +89,10 @@ config.tracer = {
 
 config.logging = {
     tasks: formatter.parseBool(process.env.LOG_TASKS, true)
+};
+
+config.scoring = {
+    maxSize: formatter.parseInt(process.env.MAX_SCORING_SIZE, 5000)
 };
 
 config.s3 = {

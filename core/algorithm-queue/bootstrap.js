@@ -12,6 +12,7 @@ const modules = [
     require('./lib/persistency/db'),
     require('./lib/persistency/etcd'),
     require('./lib/queues-manager'),
+    require('./lib/metrics/aggregation-metrics-factory')
 ];
 
 class Bootstrap {

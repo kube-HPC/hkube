@@ -181,7 +181,7 @@ class Queue extends events {
     }
 
     _orderQueue() {
-        this.queue = orderBy(this.queue, j => j.score, 'desc');
+        this.queue = orderBy(this.queue, j => j.calculated.score, 'desc');
     }
 
     _queueInterval() {

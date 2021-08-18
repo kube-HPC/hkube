@@ -5,6 +5,7 @@ const stubTemplate = ({
     algorithmName = 'alg name',
     batchIndex = Math.floor((Math.random() * 1000)),
     priority = Math.floor((Math.random() * 5)),
+    score = Math.floor((Math.random() * 100)),
     entranceTime = Date.now()
 } = {}) => (
     {
@@ -17,12 +18,20 @@ const stubTemplate = ({
         attempts: 1,
         priority: priority,
         algorithmName: algorithmName,
-        batchIndex: batchIndex
+        batchIndex: batchIndex,
+        calculated: {
+            score: score,
+            entranceTime,
+            enrichment: {
+                batchIndex: {}
+            },
+            latestScores: {
+            }
+        }
     }
 );
 
 const generateArr = (number = 100, staticOptions) => Array(number).fill().map(() => stubTemplate(staticOptions));
-
 module.exports = {
     stubTemplate,
     generateArr

@@ -25,11 +25,12 @@ class heuristicRunner {
             log.debug('start running heuristic for ', { component });
             score = this.heuristicMap.reduce((result, algorithm) => {
                 const heuristicScore = algorithm.heuristic(job);
+                job.calculated.latestScores[algorithm.name] = heuristicScore; // eslint-disable-line
                 log.debug(`during score calculation for ${algorithm.name} in ${job.jobId} score:${heuristicScore} calculated:${result + heuristicScore}`, { component });
                 return result + heuristicScore;
             }, 0);
         }
-        return { ...job, score };
+        return { ...job, calculated: { ...job.calculated, score } };
     }
 }
 

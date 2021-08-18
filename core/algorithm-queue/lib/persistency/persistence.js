@@ -18,8 +18,9 @@ const LOGS = {
 };
 
 class Persistence {
-    constructor({ algorithmName }) {
+    constructor({ algorithmName, maxScoringSize }) {
         this._algorithmName = algorithmName;
+        this._maxScoringSize = maxScoringSize;
         this._prevDataLength = null;
         this._prevPendingAmount = null;
         this._printThrottleMessages = {
@@ -56,6 +57,7 @@ class Persistence {
             key: this._algorithmName,
             data,
             pendingAmount,
+            maxSize: this._maxScoringSize,
             onStart: (...args) => this._onStartScoring(...args),
             onEnd: (...args) => this._onEndScoring(...args),
             onError: (...args) => this._onErrorScoring(...args)

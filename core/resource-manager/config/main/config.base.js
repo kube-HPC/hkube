@@ -7,7 +7,7 @@ config.serviceName = packageJson.name;
 config.recommendationMode = 'flat';  // flat, map
 
 config.scoring = {
-    maxSize: process.env.INTERVAL || 5000
+    maxSize: formatter.parseInt(process.env.MAX_SCORING_SIZE, 5000)
 };
 
 config.etcd = {

@@ -2,12 +2,11 @@ const now = require('performance-now');
 const etcd = require('./etcd');
 
 class Scoring {
-    async store({ key, data, pendingAmount, onStart, onEnd, onError }) {
+    async store({ key, data, maxSize, pendingAmount, onStart, onEnd, onError }) {
         try {
             const start = now();
             onStart({ key, length: data.length });
-            // do we want to limit our scoring array?
-            const scoreArray = data.slice(0, 5000).map(d => d.score);
+            const scoreArray = data.slice(0, maxSize).map(d => d.calculated.score);
             await etcd.updateQueueData({ name: key, data: scoreArray, pendingAmount, timestamp: Date.now() });
             const end = now();
             const timeTook = (end - start).toFixed(3);
