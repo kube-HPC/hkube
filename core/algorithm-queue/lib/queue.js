@@ -8,10 +8,11 @@ const JobProducer = require('./jobs/producer');
 const JobConsumer = require('./jobs/consumer');
 
 class Queue extends events {
-    constructor({ algorithmName, updateInterval, algorithmMinIdleTimeMS, scoreHeuristic, persistence }) {
+    constructor({ algorithmName, updateInterval, algorithmMinIdleTimeMS, scoreHeuristic, enrichmentRunner, persistence }) {
         super();
         this.algorithmName = algorithmName;
         this.scoreHeuristic = scoreHeuristic;
+        this.enrichmentRunner = enrichmentRunner;
         this.updateInterval = updateInterval;
         this.queue = [];
         this.isIntervalRunning = true;
@@ -205,6 +206,7 @@ class Queue extends events {
             return;
         }
         const pendingAmount = await this._producer.getWaitingCount();
+        this.enrichmentRunner(this.queue);
         this.updateScore();
         log.debug('queue update score cycle starts', { component });
         this._orderQueue();
