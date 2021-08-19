@@ -28,7 +28,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
     const normDrivers = normalizeDrivers(drivers);
     const normJobs = normalizeDriversJobs(jobs, j => (!j.status.succeeded && !j.status.failed)).length;
     const requests = normalizeDriversRequests(driversRequests, name);
-    const desiredDrivers = normalizeDriversAmount(normDrivers, requests, normJobs, settings);
+    const desiredDrivers = normalizeDriversAmount(normDrivers, requests, settings);
     let createDetails = [];
     const stopDetails = [];
 
