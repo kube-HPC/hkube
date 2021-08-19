@@ -2,7 +2,7 @@
 set -eo pipefail
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 if [ -v $SKIP_DOWNLOAD_PACKAGES ]; then
-  ${SCRIPTPATH}/get-deps-python.sh
+  # ${SCRIPTPATH}/get-deps-python.sh
   ${SCRIPTPATH}/get-deps-nodejs.sh
   ${SCRIPTPATH}/get-deps-java.sh
 fi
