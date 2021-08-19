@@ -1,6 +1,6 @@
 {
     "name": "datasources-service",
-    "version": "2.1.6",
+    "version": "2.1.7",
     "description": "Hkube DataSources Service",
     "main": "app.js",
     "dependencies": {

@@ -7,7 +7,7 @@ const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImag
     applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation,
     applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const parse = require('@hkube/units-converter');
-const { components, containers, gpuVendors } = require('../consts');
+const { components, containers, gpuVendors, volumes } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
 const { workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
@@ -91,12 +91,28 @@ const applyMounts = (inputSpec, mounts = []) => {
             name,
             mountPath: m.path
         });
-        spec = applyVolumes(spec, {
-            name,
-            persistentVolumeClaim: {
-                claimName: m.pvcName
-            }
-        });
+        if (m.volumeType === volumes.emptyDir) {
+            spec = applyVolumes(spec, {
+                name,
+                [volumes.emptyDir]: {}
+            });
+        }
+        else if (m.volumeType === volumes.configMap) {
+            spec = applyVolumes(spec, {
+                name,
+                [volumes.configMap]: {
+                    name: m.pvcName
+                }
+            });
+        }
+        else {
+            spec = applyVolumes(spec, {
+                name,
+                persistentVolumeClaim: {
+                    claimName: m.pvcName
+                }
+            });
+        }
     });
     return spec;
 };
