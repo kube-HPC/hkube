@@ -32,6 +32,7 @@ const stubTemplate = ({
 );
 
 const generateArr = (number = 100, staticOptions) => Array(number).fill().map(() => stubTemplate(staticOptions));
+
 module.exports = {
     stubTemplate,
     generateArr

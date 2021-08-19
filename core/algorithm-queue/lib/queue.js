@@ -77,14 +77,8 @@ class Queue extends events {
     }
 
     async persistencyLoad() {
-        try {
-            const queueItems = await this.persistence.get();
-            this.addJobs(queueItems);
-            log.info('persistent recovered successfully', { component });
-        }
-        catch (e) {
-            log.warning('could not add data from persistency ', { component });
-        }
+        const queueItems = await this.persistence.get();
+        this.addJobs(queueItems);
     }
 
     async persistencyStore({ data, pendingAmount }) {

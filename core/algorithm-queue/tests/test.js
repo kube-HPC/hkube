@@ -9,7 +9,7 @@ const algorithmName = 'green-alg'
 let _semaphore = null;
 let queue = null;
 
-const heuristic = score => job => ({ ...job, ...{ calculated: { enrichment: { batchIndex: {} }, score, entranceTime: Date.now(), latestScore: {} } } });
+const heuristic = score => job => ({ ...job, ...{ calculated: { enrichment: { batchIndex: {} }, score, entranceTime: Date.now(), latestScores: {} } } });
 const heuristicBoilerPlate = (score, _heuristic) => _heuristic(score);
 
 describe('Test', () => {
@@ -61,8 +61,9 @@ describe('Test', () => {
             });
             describe('remove', () => {
                 it('should removed from queue', async () => {
-                    queue.scoreHeuristic = heuristic(80);
                     const stubJob = stubTemplate();
+                    queue.scoreHeuristic = heuristic(80);
+                    queue.flush();
                     queue.addJobs([stubJob]);
                     queue.on(queueEvents.REMOVE, () => {
                         _semaphore.callDone();
@@ -74,8 +75,9 @@ describe('Test', () => {
                 });
                 it('should not removed from queue when there is no matched id', async () => {
                     let called = false;
-                    queue.scoreHeuristic = heuristic(80);
                     const stubJob = stubTemplate();
+                    queue.scoreHeuristic = heuristic(80);
+                    queue.flush();
                     queue.addJobs([stubJob]);
                     queue.on(queueEvents.REMOVE, () => {
                         called = true;
@@ -91,6 +93,7 @@ describe('Test', () => {
                 it('should pop from queue', async () => {
                     queue.scoreHeuristic = heuristic(80);
                     const stubJob = stubTemplate();
+                    queue.flush();
                     queue.addJobs([stubJob]);
                     queue.on(queueEvents.POP, () => {
                         _semaphore.callDone();

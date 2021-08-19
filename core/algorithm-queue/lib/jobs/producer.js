@@ -97,7 +97,6 @@ class JobProducer {
             log.info(`${Events.FAILED} ${jobId}, ${taskId}`, { component, jobId, taskId, status: Events.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
-            let { attempts } = job.options;
             const { jobId, taskId, nodeName, retry } = job.options;
             const data = await db.getJob({ jobId });
             log.info(`job ${jobId}, ${taskId}, stalled with ${data?.status} status`, { component });
@@ -112,6 +111,7 @@ class JobProducer {
             let status;
             const maxAttempts = retry?.limit ?? MAX_JOB_ATTEMPTS;
             const task = this._pipelineToQueueAdapter(job.options);
+            let { attempts } = task;
 
             if (attempts > maxAttempts) {
                 attempts = maxAttempts;
