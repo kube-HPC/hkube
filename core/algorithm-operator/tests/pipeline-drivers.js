@@ -26,9 +26,9 @@ describe('bootstrap', () => {
         clearCount();
     });
     describe('reconcile drivers tests', () => {
-        it('should create min amount of drivers with one request', async () => {
+        it('should not create min amount of drivers with one request', async () => {
             const idle = drivers.filter(d => d.idle && !d.paused).length;
-            const count = options.driversSetting.minAmount;
+            const count = 0;
             const res = await driversReconciler.reconcileDrivers({
                 options,
                 drivers,
@@ -51,9 +51,6 @@ describe('bootstrap', () => {
             });
             expect(res).to.exist;
             expect(res).to.eql({ [settings.name]: { idle, required: count, paused: 0, pending: 0, created: count, skipped: 0 } });
-            expect(callCount('createJob').length).to.eql(count);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].name).to.eql(settings.name);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/pipeline-driver');
         });
         it('should paused drivers', async () => {
             const idle = drivers.filter(d => d.idle && !d.paused).length;
@@ -83,10 +80,7 @@ describe('bootstrap', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [settings.name]: { idle, required: minAmount, paused: 2, pending: 0, created: minAmount, skipped: 0 } });
-            expect(callCount('createJob').length).to.eql(minAmount);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].name).to.eql(settings.name);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/pipeline-driver');
+            expect(res).to.eql({ [settings.name]: { idle, required: 0, paused: 2, pending: 0, created: 0, skipped: 0 } });
         });
         it.skip('should create min amount of drivers not enough cpu', async () => {
             const idle = drivers.filter(d => d.idle && !d.paused).length;
@@ -162,7 +156,7 @@ describe('bootstrap', () => {
             const { minAmount } = settings
             const res = await driversReconciler.reconcileDrivers({
                 options,
-                drivers,
+                drivers: [],
                 normResources,
                 settings,
                 driverTemplates,
@@ -181,7 +175,7 @@ describe('bootstrap', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [settings.name]: { idle, required: minAmount, paused: 0, pending: 0, created: minAmount, skipped: 0 } });
+            expect(res).to.eql({ [settings.name]: { idle: 0, required: minAmount, paused: 0, pending: 0, created: minAmount, skipped: 0 } });
             expect(callCount('createJob').length).to.eql(minAmount);
         });
         it('should scale to max amount of drivers', async () => {

@@ -29,7 +29,6 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
     const normJobs = normalizeDriversJobs(jobs, j => (!j.status.succeeded && !j.status.failed)).length;
     const requests = normalizeDriversRequests(driversRequests, name);
     const desiredDrivers = normalizeDriversAmount(normDrivers, requests, settings);
-    const missingDrivers = desiredDrivers - normJobs;
     let createDetails = [];
     const stopDetails = [];
 
@@ -41,12 +40,12 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
         log.info(`need to stop ${extraDrivers.length} extra drivers (${idleDrivers.length}/${minAmount})`, { component });
         stopDetails.push(...extraDrivers.map(d => ({ id: d.id })));
     }
-    if (missingDrivers > 0) {
-        log.info(`need to add ${missingDrivers} drivers (${normJobs}/${desiredDrivers})`, { component });
+    if (desiredDrivers > 0) {
+        log.info(`need to add ${desiredDrivers} drivers (${normJobs}/${desiredDrivers + normJobs})`, { component });
         const driverTemplate = driverTemplates[name];
         const image = setPipelineDriverImage(driverTemplate, versions, registry);
         const resourceRequests = createContainerResource(driverTemplate);
-        createDetails = Array.from(Array(missingDrivers).keys()).map(() => ({ name, image, resourceRequests, clusterOptions }));
+        createDetails = Array.from(Array(desiredDrivers).keys()).map(() => ({ name, image, resourceRequests, clusterOptions }));
     }
 
     const stopPromises = stopDetails.map(r => _stopDriver(r));
@@ -55,7 +54,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
 
     const reconcileResult = {};
     reconcileResult[name] = {
-        required: missingDrivers,
+        required: desiredDrivers,
         created: createDetails.length,
         idle: idleDrivers.length,
         paused: stopDetails.length,
