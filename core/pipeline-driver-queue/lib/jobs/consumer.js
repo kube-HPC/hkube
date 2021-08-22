@@ -34,6 +34,13 @@ class JobConsumer {
         });
     }
 
+    async shutdown() {
+        if (!this._isPaused && this._consumer) {
+            this._isPaused = true;
+            await this._consumer.pause();
+        }
+    }
+
     async _handleJob(job) {
         try {
             const { jobId } = job.data;

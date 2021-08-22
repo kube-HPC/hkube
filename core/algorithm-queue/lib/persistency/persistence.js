@@ -1,7 +1,7 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const snapshot = require('./snapshot');
 const scoring = require('./scoring');
-const component = require('../consts/component-name').PERSISTENT;
+const component = require('../consts/component-name').PERSISTENCY;
 
 const LOG_TOPICS = {
     StartSavingSnapshot: 'start saving snapshot',

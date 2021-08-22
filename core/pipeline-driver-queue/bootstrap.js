@@ -3,10 +3,13 @@ const configIt = require('@hkube/config');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 const monitor = require('@hkube/redis-utils').Monitor;
+const storageManager = require('@hkube/storage-manager');
 const component = require('./lib/consts').componentName.MAIN;
 const { tracer } = require('@hkube/metrics');
+const gracefulShutdown = require('./lib/gracefulShutdown');
 
 const modules = [
+    require('./lib/persistency/data-store'),
     require('./lib/metrics/aggregation-metrics-factory'),
     require('./lib/queue-runner'),
     require('./lib/jobs/consumer'),
@@ -28,6 +31,7 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
+            await storageManager.init(main, log);
             for (const m of modules) {
                 await m.init(main);
             }
@@ -48,19 +52,27 @@ class Bootstrap {
         });
         process.on('SIGINT', () => {
             log.info('SIGINT', { component });
-            process.exit(0);
+            gracefulShutdown.shutdown(() => {
+                process.exit(0);
+            });
         });
         process.on('SIGTERM', () => {
             log.info('SIGTERM', { component });
-            process.exit(0);
+            gracefulShutdown.shutdown(() => {
+                process.exit(0);
+            });
         });
         process.on('unhandledRejection', (error) => {
             log.error(`unhandledRejection: ${error.message}`, { component }, error);
-            process.exit(1);
+            gracefulShutdown.shutdown(() => {
+                process.exit(1);
+            });
         });
         process.on('uncaughtException', (error) => {
             log.error(`uncaughtException: ${error.message}`, { component }, error);
-            process.exit(1);
+            gracefulShutdown.shutdown(() => {
+                process.exit(1);
+            });
         });
     }
 }

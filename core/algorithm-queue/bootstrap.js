@@ -1,17 +1,19 @@
 
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
-const monitor = require('@hkube/redis-utils').Monitor;
-const { componentName } = require('./lib/consts/index');
 const { tracer } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
+const monitor = require('@hkube/redis-utils').Monitor;
+const { main: config, logger } = configIt.load();
+const log = new Logger(config.serviceName, logger);
+const component = require('./lib/consts/component-name').MAIN;
+const queuesManager = require('./lib/queues-manager');
 
 const modules = [
     require('./lib/persistency/db'),
     require('./lib/persistency/etcd'),
     require('./lib/queues-manager'),
+    require('./lib/persistency/redis-storage-adapter'),
     require('./lib/metrics/aggregation-metrics-factory')
 ];
 
@@ -19,22 +21,22 @@ class Bootstrap {
     async init(bootstrap) {
         try {
             this._handleErrors();
-            log.info('running application in ' + configIt.env() + ' environment', { component: componentName.MAIN });
+            log.info(`running application with env: ${configIt.env()}, version: ${config.version}, node: ${process.versions.node}`, { component });
             monitor.on('ready', (data) => {
-                log.info((data.message).green, { component: componentName.MAIN });
+                log.info((data.message).green, { component });
             });
             monitor.on('close', (data) => {
-                log.error(data.error.message, { component: componentName.MAIN });
+                log.error(data.error.message, { component });
             });
-            await monitor.check(main.redis);
-            if (main.tracer) {
-                await tracer.init(main.tracer);
+            await monitor.check(config.redis);
+            if (config.tracer) {
+                await tracer.init(config.tracer);
             }
             await storageManager.init(main, log, bootstrap);
             for (const m of modules) {
-                await m.init(main);
+                await m.init(config);
             }
-            return main;
+            return config;
         }
         catch (error) {
             this._onInitFailed(error);
@@ -43,29 +45,37 @@ class Bootstrap {
     }
 
     _onInitFailed(error) {
-        log.error(error.message, { component: componentName.MAIN }, error);
+        log.error(error.message, { component }, error);
         process.exit(1);
     }
 
     _handleErrors() {
         process.on('exit', (code) => {
-            log.info('exit' + (code ? ' code ' + code : ''), { component: componentName.MAIN });
+            log.info(`exit code ${code}`, { component });
         });
         process.on('SIGINT', () => {
-            log.info('SIGINT', { component: componentName.MAIN });
-            process.exit(1);
+            log.info('SIGINT', { component });
+            queuesManager.gracefulShutdown(() => {
+                process.exit(0);
+            });
         });
         process.on('SIGTERM', () => {
-            log.info('SIGTERM', { component: componentName.MAIN });
-            process.exit(1);
+            log.info('SIGTERM', { component });
+            queuesManager.gracefulShutdown(() => {
+                process.exit(0);
+            });
         });
         process.on('unhandledRejection', (error) => {
-            log.error('unhandledRejection: ' + error, { component: componentName.MAIN }, error);
-            process.exit(1);
+            log.error(`unhandledRejection: ${error.message}`, { component }, error);
+            queuesManager.gracefulShutdown(() => {
+                process.exit(1);
+            });
         });
         process.on('uncaughtException', (error) => {
-            log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);
-            process.exit(1);
+            log.error(`uncaughtException: ${error.message}`, { component }, error);
+            queuesManager.gracefulShutdown(() => {
+                process.exit(1);
+            });
         });
     }
 }

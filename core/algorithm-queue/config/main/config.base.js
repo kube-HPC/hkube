@@ -1,8 +1,8 @@
 const packageJson = require(process.cwd() + '/package.json'); // eslint-disable-line
 const formatter = require(process.cwd() + '/lib/utils/formatters'); // eslint-disable-line
-const config = {};
 const heuristicsNames = require('../../lib/consts/heuristics-name');
-
+const config = {};
+config.version = packageJson.version;
 config.serviceName = packageJson.name;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.queueId = process.env.QUEUE_ID;

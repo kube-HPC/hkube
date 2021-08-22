@@ -33,6 +33,7 @@ describe('Test', () => {
     let _semaphore = null;
     beforeEach(() => {
         queue = new Queue();
+        queue.updateHeuristic({ run: heuristic(80) });
         _semaphore = new semaphore();
     });
     describe('queue-tests', () => {

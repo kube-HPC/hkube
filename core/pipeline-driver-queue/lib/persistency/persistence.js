@@ -1,55 +1,97 @@
-const EventEmitter = require('events');
-const Client = require('@hkube/etcd');
-const dbConnect = require('@hkube/db');
-const Logger = require('@hkube/logger');
-const component = require('../consts/component-name').DB;
+const log = require('@hkube/logger').GetLogFromContainer();
+const snapshot = require('./snapshot');
+const scoring = require('./scoring');
+const component = require('../consts/component-name').PERSISTENCY;
 
-class Persistence extends EventEmitter {
-    constructor() {
-        super();
-        this.queueName = null;
+const LOG_TOPICS = {
+    StartSavingSnapshot: 'start saving snapshot',
+    FinishSavingSnapshot: 'finish saving snapshot',
+    ErrorSavingSnapshot: 'error saving snapshot',
+
+    StartGetSnapshot: 'start fetching snapshot',
+    FinishGetSnapshot: 'finish fetching snapshot',
+    ErrorGetSnapshot: 'error fetching snapshot',
+
+    StartSavingScores: 'start saving scores',
+    FinishSavingScores: 'finish saving scores',
+    ErrorSavingScores: 'error saving scores',
+};
+
+class Persistence {
+    init(options) {
+        this._queueName = options.persistence.type;
     }
 
-    async init({ options }) {
-        const log = Logger.GetLogFromContainer();
-        const { etcd, persistence, serviceName } = options;
-        this.queueName = persistence.type;
-        this._etcd = new Client({ ...etcd, serviceName });
-        await this._watchJobStatus();
-        this._etcd.jobs.status.on('change', (data) => {
-            this.emit(`job-${data.status}`, data);
+    async store(data) {
+        await snapshot.store({
+            key: this._queueName,
+            data,
+            onStart: (...args) => this._onStartSnapshot(...args),
+            onEnd: (...args) => this._onEndSnapshot(...args),
+            onError: (...args) => this._onErrorSnapshot(...args)
         });
-        const { provider, ...config } = options.db;
-        this._db = dbConnect(config, provider);
-        await this._db.init();
-        log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
-        return this;
-    }
 
-    store(data) {
-        return this._etcd.pipelineDrivers.queue.set({ name: this.queueName, data });
+        await scoring.store({
+            key: this._queueName,
+            data,
+            onStart: (...args) => this._onStartScoring(...args),
+            onEnd: (...args) => this._onEndScoring(...args),
+            onError: (...args) => this._onErrorScoring(...args)
+        });
     }
 
     get() {
-        return this._etcd.pipelineDrivers.queue.get({ name: this.queueName });
+        return snapshot.get({
+            key: this._queueName,
+            onStart: (...args) => this._onStartGetSnapshot(...args),
+            onEnd: (...args) => this._onEndGetSnapshot(...args),
+            onError: (...args) => this._onErrorGetSnapshot(...args)
+        });
     }
 
-    async _watchJobStatus(options) {
-        await this._etcd.jobs.status.watch(options);
+    _onStartSnapshot({ key, length }) {
+        this._log({ level: 'info', action: LOG_TOPICS.StartSavingSnapshot, key, length });
     }
 
-    async getJob({ jobId }) {
-        return this._db.jobs.fetch({ jobId, fields: { status: true, pipeline: true } });
+    _onEndSnapshot({ key, length, timeTook }) {
+        this._log({ level: 'info', action: LOG_TOPICS.FinishSavingSnapshot, key, length, timeTook });
     }
 
-    async setJobStatus(options) {
-        await this._etcd.jobs.status.update(options);
-        await this._db.jobs.updateStatus(options);
+    _onErrorSnapshot({ key, length, error }) {
+        this._log({ level: 'error', action: LOG_TOPICS.ErrorSavingSnapshot, key, length, error });
     }
 
-    async setJobResults(options) {
-        await this._etcd.jobs.results.set(options);
-        await this._db.jobs.updateResult(options);
+    _onStartGetSnapshot({ key, length }) {
+        this._log({ level: 'info', action: LOG_TOPICS.StartGetSnapshot, key, length });
+    }
+
+    _onEndGetSnapshot({ key, length, timeTook }) {
+        this._log({ level: 'info', action: LOG_TOPICS.FinishGetSnapshot, key, length, timeTook });
+    }
+
+    _onErrorGetSnapshot({ key, length, error }) {
+        this._log({ level: 'error', action: LOG_TOPICS.ErrorGetSnapshot, key, length, error });
+    }
+
+    _onStartScoring({ key, length }) {
+        this._log({ level: 'info', action: LOG_TOPICS.StartSavingScores, key, length });
+    }
+
+    _onEndScoring({ key, length, timeTook }) {
+        this._log({ level: 'info', action: LOG_TOPICS.FinishSavingScores, key, length, timeTook });
+    }
+
+    _onErrorScoring({ key, error, length }) {
+        this._log({ level: 'error', action: LOG_TOPICS.ErrorSavingScores, key, length, error });
+    }
+
+    _log({ level, action, key, length, error, timeTook }) {
+        const lengthText = length >= 0 ? ` with length ${length}` : '';
+        const errorText = error ? `, error: ${error}` : '';
+        const timeText = timeTook ? `, ${timeTook}ms` : '';
+        const topic = `${action} for ${key}`;
+        const message = `${topic}${lengthText}${timeText}${errorText}`;
+        log.throttle[level](message, { component, throttleTopic: topic });
     }
 }
 

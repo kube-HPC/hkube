@@ -15,7 +15,7 @@ class Queue extends events {
         this.enrichmentRunner = enrichmentRunner;
         this.updateInterval = updateInterval;
         this.queue = [];
-        this.isIntervalRunning = true;
+        this._active = true;
         this.persistence = persistence;
         this._lastActiveTime = Date.now();
         this._algorithmMinIdleTimeMS = algorithmMinIdleTimeMS;
@@ -53,15 +53,22 @@ class Queue extends events {
         await this._consumer.stop();
         this._producer = null;
         this._consumer = null;
-        this.isIntervalRunning = false;
+        this._active = false;
         this.flush();
     }
 
     async pause() {
-        if (!this._isPaused) {
+        if (!this._isPaused && this._consumer) {
             this._isPaused = true;
             await this._consumer.pause();
         }
+    }
+
+    async shutdown() {
+        this._active = false;
+        await this.pause();
+        const pendingAmount = await this._producer.getWaitingCount();
+        await this.persistencyStore({ data: this.queue, pendingAmount });
     }
 
     flush() {
@@ -188,7 +195,7 @@ class Queue extends events {
                 log.throttle.error(`fail on queue interval ${error}`, { component }, error);
             }
             finally {
-                if (this.isIntervalRunning) {
+                if (this._active) {
                     this._queueInterval();
                 }
             }

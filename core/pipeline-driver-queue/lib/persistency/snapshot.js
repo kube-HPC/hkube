@@ -1,6 +1,6 @@
 const now = require('performance-now');
 const storageManager = require('@hkube/storage-manager');
-const TYPE = 'algorithmQueue';
+const TYPE = 'pipelineDriver';
 
 class Snapshot {
     async store({ key, data, onStart, onEnd, onError }) {
