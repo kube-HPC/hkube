@@ -86,7 +86,7 @@ class JobProducer {
 
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
-            this._isConsumersActive = false;
+            this._isConsumerActive = false;
             log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: Events.WAITING });
         }).on(Events.ACTIVE, (data) => {
             this._isConsumerActive = true;
