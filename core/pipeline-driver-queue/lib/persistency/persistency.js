@@ -17,9 +17,10 @@ const LOG_TOPICS = {
     ErrorSavingScores: 'error saving scores',
 };
 
-class Persistence {
+class Persistency {
     init(options) {
         this._queueName = options.persistence.type;
+        this._maxScoringSize = options.scoring.maxSize;
     }
 
     async store(data) {
@@ -34,13 +35,14 @@ class Persistence {
         await scoring.store({
             key: this._queueName,
             data,
+            maxSize: this._maxScoringSize,
             onStart: (...args) => this._onStartScoring(...args),
             onEnd: (...args) => this._onEndScoring(...args),
             onError: (...args) => this._onErrorScoring(...args)
         });
     }
 
-    get() {
+    async get() {
         return snapshot.get({
             key: this._queueName,
             onStart: (...args) => this._onStartGetSnapshot(...args),
@@ -95,4 +97,4 @@ class Persistence {
     }
 }
 
-module.exports = new Persistence();
+module.exports = new Persistency();

@@ -4,9 +4,8 @@ const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
-const persistence = require('../persistency/persistence');
+const persistence = require('../persistency/persistency');
 const queueRunner = require('../queue-runner');
-
 
 class JobProducer {
     constructor() {
@@ -73,7 +72,7 @@ class JobProducer {
     async _updateState() {
         try {
             const queue = queueRunner.queue.getQueue();
-            await persistence.store(queue);
+            await queueRunner.queue.persistenceStore(queue);
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);

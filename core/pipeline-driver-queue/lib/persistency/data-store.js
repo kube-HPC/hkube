@@ -5,7 +5,7 @@ const Logger = require('@hkube/logger');
 const component = require('../consts/component-name').DB;
 
 class DataStore extends EventEmitter {
-    async init({ options }) {
+    async init(options) {
         const log = Logger.GetLogFromContainer();
         const { etcd, serviceName } = options;
         this._etcd = new Client({ ...etcd, serviceName });
@@ -17,7 +17,6 @@ class DataStore extends EventEmitter {
         this._db = dbConnect(config, provider);
         await this._db.init();
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
-        return this;
     }
 
     async storeQueue(options) {

@@ -7,13 +7,12 @@ const monitor = require('@hkube/redis-utils').Monitor;
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 const component = require('./lib/consts/component-name').MAIN;
-const queuesManager = require('./lib/queues-manager');
+const gracefulShutdown = require('./lib/gracefulShutdown');
 
 const modules = [
     require('./lib/persistency/db'),
     require('./lib/persistency/etcd'),
     require('./lib/queues-manager'),
-    require('./lib/persistency/redis-storage-adapter'),
     require('./lib/metrics/aggregation-metrics-factory')
 ];
 
@@ -32,7 +31,7 @@ class Bootstrap {
             if (config.tracer) {
                 await tracer.init(config.tracer);
             }
-            await storageManager.init(main, log, bootstrap);
+            await storageManager.init(config, log, bootstrap);
             for (const m of modules) {
                 await m.init(config);
             }
@@ -55,25 +54,25 @@ class Bootstrap {
         });
         process.on('SIGINT', () => {
             log.info('SIGINT', { component });
-            queuesManager.gracefulShutdown(() => {
+            gracefulShutdown.shutdown(() => {
                 process.exit(0);
             });
         });
         process.on('SIGTERM', () => {
             log.info('SIGTERM', { component });
-            queuesManager.gracefulShutdown(() => {
+            gracefulShutdown.shutdown(() => {
                 process.exit(0);
             });
         });
         process.on('unhandledRejection', (error) => {
             log.error(`unhandledRejection: ${error.message}`, { component }, error);
-            queuesManager.gracefulShutdown(() => {
+            gracefulShutdown.shutdown(() => {
                 process.exit(1);
             });
         });
         process.on('uncaughtException', (error) => {
             log.error(`uncaughtException: ${error.message}`, { component }, error);
-            queuesManager.gracefulShutdown(() => {
+            gracefulShutdown.shutdown(() => {
                 process.exit(1);
             });
         });

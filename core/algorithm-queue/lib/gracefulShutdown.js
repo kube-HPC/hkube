@@ -1,17 +1,12 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const consumer = require('./jobs/consumer');
-const producer = require('./jobs/producer');
-const queueRunner = require('./queue-runner');
+const queuesManager = require('./queues-manager');
 const component = require('./consts/component-name').GRACEFUL_SHUTDOWN;
 
 class GracefulShutdown {
     async shutdown(cb) {
         try {
             log.info('starting graceful shutdown', { component });
-            await consumer.shutdown();
-            await producer.shutdown();
-            const queue = queueRunner.queue?.getQueue();
-            await queueRunner.queue.persistenceStore(queue);
+            await queuesManager.shutdown();
             log.info('finish graceful shutdown', { component });
         }
         catch (e) {

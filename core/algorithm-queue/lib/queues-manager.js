@@ -34,14 +34,11 @@ class QueuesManager {
         log.info(`queue ${queueId} is up and running`, { component });
     }
 
-    async gracefulShutdown(cb) {
-        log.info('starting graceful shutdown', { component });
+    async shutdown() {
         this._active = false;
         const queues = Array.from(this._queues.values());
         await etcd.unWatchQueueActions({ queueId: this._queueId });
         await Promise.allSettled(queues.map(q => q.shutdown()));
-        log.info('finish graceful shutdown', { component });
-        cb();
     }
 
     /**

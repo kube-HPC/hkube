@@ -6,12 +6,12 @@ const { queueEvents, componentName } = require('./consts');
 const component = componentName.QUEUE;
 
 class Queue extends Events {
-    constructor({ scoreHeuristic, persistence }) {
+    constructor({ scoreHeuristic, persistency } = {}) {
         super();
         this.scoreHeuristic = scoreHeuristic;
         this.queue = [];
         this._active = true;
-        this._persistency = persistence;
+        this._persistency = persistency;
     }
 
     flush() {
@@ -25,23 +25,33 @@ class Queue extends Events {
         await this.persistencyStore({ data: this.queue, pendingAmount });
     }
 
-
     async persistencyLoad() {
         if (!this._persistency) {
             return;
         }
-        const queueItems = await this._persistency.get();
-        if (queueItems?.data?.length > 0) {
-            queueItems.data.forEach(q => this.enqueue(q));
+        const data = await this._persistency.get();
+        if (data?.length > 0) {
+            data.forEach(q => {
+                const item = {
+                    ...q,
+                    calculated: {
+                        latestScores: {}
+                    }
+                };
+                this.enqueue(item);
+            });
         }
     }
 
     async persistenceStore(data) {
-        if (!this._persistency) {
+        if (!this._persistency || !data) {
             return;
         }
-        await this._persistency.store(data);
-        log.debug('successfully store data to storage', { component });
+        const mapData = data.map(q => {
+            const { calculated, ...rest } = q;
+            return rest;
+        });
+        await this._persistency.store(mapData);
     }
 
     updateHeuristic(scoreHeuristic) {
