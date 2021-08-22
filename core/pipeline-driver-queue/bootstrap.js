@@ -6,7 +6,7 @@ const monitor = require('@hkube/redis-utils').Monitor;
 const storageManager = require('@hkube/storage-manager');
 const component = require('./lib/consts').componentName.MAIN;
 const { tracer } = require('@hkube/metrics');
-const gracefulShutdown = require('./lib/gracefulShutdown');
+const gracefulShutdown = require('./lib/graceful-shutdown');
 
 const modules = [
     require('./lib/persistency/data-store'),

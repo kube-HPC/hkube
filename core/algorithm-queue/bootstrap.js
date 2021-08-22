@@ -7,7 +7,7 @@ const monitor = require('@hkube/redis-utils').Monitor;
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 const component = require('./lib/consts/component-name').MAIN;
-const gracefulShutdown = require('./lib/gracefulShutdown');
+const gracefulShutdown = require('./lib/graceful-shutdown');
 
 const modules = [
     require('./lib/persistency/db'),
