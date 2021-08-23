@@ -2,9 +2,11 @@
 
 FROM ${baseImage} AS build
 LABEL maintainer="hkube.dev@gmail.com"
+COPY ./wrapper/package.json /hkube/algorithm-runner/algorithm_unique_folder/
+WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
+RUN npm --registry=http://artifacts-registry:8081/hkube/artifacts-registry/repository/npm install
 COPY ./algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./dockerfile /hkube/algorithm-runner/dockerfile
-WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
 ENV packagesRegistry=${packagesRegistry}
 ENV packagesToken=${packagesToken}
 ENV packagesAuth=${packagesAuth}
