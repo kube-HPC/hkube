@@ -23,9 +23,8 @@ RUN ../dockerfile/requirements.sh
 FROM ${baseImage}
 RUN mkdir -p /hkube-logs
 COPY ./wrapper /hkube/algorithm-runner
-COPY ./packages/ /hkube/algorithm-runner/
-COPY ./nodemon ./docker-entrypoint.sh /hkube/
 COPY --from=wrapper /hkube/algorithm-runner/algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
+COPY ./nodemon ./docker-entrypoint.sh /hkube/
 COPY --from=build /hkube/algorithm-runner/algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 
 WORKDIR /hkube/algorithm-runner
