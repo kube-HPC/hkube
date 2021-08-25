@@ -35,10 +35,6 @@ class ProgressManager {
         return this._progress(levels.TRACE.name, data);
     }
 
-    silly(data) {
-        return this._progress(levels.SILLY.name, data);
-    }
-
     debug(data) {
         return this._progress(levels.DEBUG.name, data);
     }

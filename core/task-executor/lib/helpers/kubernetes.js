@@ -1,16 +1,19 @@
 const Logger = require('@hkube/logger');
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const objectPath = require('object-path');
-const { components, containers } = require('../consts');
+const { components, containers, sidecars } = require('../consts');
+const { settings } = require('./settings');
 const { cacheResults } = require('../utils/utils');
 const component = components.K8S;
 const CONTAINERS = containers;
+
 let log;
 
 class KubernetesApi {
     async init(options = {}) {
         log = Logger.GetLogFromContainer();
-        this._client = new KubernetesClient(options.kubernetes);
+        this._client = new KubernetesClient();
+        await this._client.init(options.kubernetes);
         this._isNamespaced = options.kubernetes.isNamespaced;
         this._hasNodeList = options.kubernetes.hasNodeList;
         this._defaultQuota = options.resources.defaultQuota;
@@ -20,6 +23,9 @@ class KubernetesApi {
             this.getResourcesPerNode = cacheResults(this.getResourcesPerNode.bind(this), 1000);
             this.getWorkerJobs = cacheResults(this.getWorkerJobs.bind(this), 1000);
         }
+
+        settings.sidecars = await this.getSidecarConfigs();
+        log.info(`Setting sidecars with ${JSON.stringify(settings.sidecars)}`);
     }
 
     async createJob({ spec, jobDetails = {} }) {
@@ -54,6 +60,11 @@ class KubernetesApi {
     async getVersionsConfigMap() {
         const res = await this._client.configMaps.get({ name: 'hkube-versions' });
         return this._client.configMaps.extractConfigMap(res);
+    }
+
+    async getSidecarConfigs() {
+        const ret = await Promise.allSettled(Object.values(sidecars).map(s => this._client.sidecars.get({ name: s })));
+        return ret.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
     }
 
     async _getNamespacedResources() {

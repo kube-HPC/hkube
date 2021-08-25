@@ -24,7 +24,7 @@
     "@hkube/db": "^1.0.32",
     "@hkube/etcd": "^5.1.2",
     "@hkube/kubernetes-client": "^1.0.33",
-    "@hkube/logger": "^1.0.27",
+    "@hkube/logger": "^2.0.1",
     "@hkube/storage-manager": "^2.0.32",
     "adm-zip": "^0.4.13",
     "fs-extra": "^8.1.0",

@@ -44,16 +44,11 @@ describe('Kubernetes API', () => {
     });
     beforeEach(async () => {
         instance = new KubernetesApi();
-        instance.init(options);
+        await instance.init(options);
     });
     it('should create job', async () => {
         const res = await instance.createJob({ spec: { metadata: { name: 'mySpec' } } });
         expect(res.body.metadata.name).to.eql('mySpec');
-    });
-    it('should return null of job creation failed', async () => {
-        await instance.init(optionsDummy);
-        const res = await instance.createJob({ spec: { metadata: { name: 'mySpec' } } });
-        expect(res).to.be.null;
     });
     it('should get worker jobs', async () => {
         const res = await instance.getWorkerJobs();
@@ -78,9 +73,8 @@ describe('Kubernetes API', () => {
         expect(res).to.have.property('clusterOptions');
     });
     it('should throw', async () => {
-        await instance.init(optionsDummy);
-        const res = instance.getVersionsConfigMap();
-        expect(res).to.be.rejectedWith('Invalid URI "no.such.url/api/v1/namespaces/default/configmaps/hkube-versions"');
+        const res = instance.init(optionsDummy);
+        expect(res).to.be.rejectedWith('Invalid URI "no.such.url/version"');
     });
     it('should get nodes and pods', async () => {
         const res = await instance.getResourcesPerNode();

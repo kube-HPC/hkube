@@ -17,7 +17,8 @@ module.exports = {
                 },
                 getWorkerJobs: async () => { },
                 getVersionsConfigMap: async () => { return {} },
-                getResourcesPerNode: async () => { return {} }
+                getResourcesPerNode: async () => { return {} },
+                getSidecarConfigs: async () => { return {} }
             },
             callCount: (name) => { return callCount[name]; },
             clearCount: () => {

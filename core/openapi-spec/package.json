@@ -4,6 +4,7 @@
     "description": "Hkube openapi-spec",
     "main": "app.js",
     "dependencies": {
+        "@hkube/logger": "^2.0.1",
         "@hkube/rest-server": "^1.0.18"
     },
     "scripts": {
