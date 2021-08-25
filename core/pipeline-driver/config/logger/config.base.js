@@ -1,32 +1,34 @@
+const formatter = require(process.cwd() + '/lib/utils/formatters');
 const config = {};
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.transport = {
     console: false,
-    file: !!process.env.HKUBE_LOG_FILE_ENABLED,
+    file: formatter.parseBool(process.env.HKUBE_LOG_FILE_ENABLED, false),
     redis: false,
 };
 config.console = {
-    json: false
+    json: false,
+    colors: false,
+    level: process.env.HKUBE_LOG_LEVEL,
 };
 config.file = {
     json: true,
+    level: process.env.HKUBE_LOG_LEVEL,
     filename: process.env.HKUBE_LOG_FILE_NAME || 'hkube-logs/file.log',
-    maxsize: process.env.HKUBE_LOG_FILE_MAX_SIZE || 100000,
-    maxFiles: process.env.HKUBE_LOG_FILE_MAX_FILES || 1000
+    maxsize: formatter.parseInt(process.env.HKUBE_LOG_FILE_MAX_SIZE, 100000),
+    maxFiles: formatter.parseInt(process.env.HKUBE_LOG_FILE_MAX_FILES, 1000)
 };
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
     port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
     sentinel: useSentinel,
-    clientVerbosity: process.env.CLIENT_VERBOSITY || 'error'
+    level: process.env.HKUBE_LOG_REDIS_LEVEL || 'error',
 };
 config.options = {
     throttle: {
         wait: 30000
     },
-    verbosityLevel: process.env.HKUBE_LOG_LEVEL || 2,
     extraDetails: false,
-    isDefault: true
 }
 module.exports = config;
