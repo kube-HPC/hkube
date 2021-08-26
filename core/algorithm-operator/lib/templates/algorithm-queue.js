@@ -29,6 +29,7 @@ const algorithmQueueTemplate = {
                 }
             },
             spec: {
+                serviceAccountName: 'algorithm-queue-serviceaccount',
                 nodeSelector: {
                     core: 'true'
                 },
