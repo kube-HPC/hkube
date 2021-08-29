@@ -4,6 +4,7 @@ const containers = require('./containers');
 const metricsNames = require('./metrics');
 const commands = require('./commands');
 const gpuVendors = require('./gpu-vendors');
+const sidecars = require('./sidecars');
 
 module.exports = {
     components,
@@ -11,5 +12,6 @@ module.exports = {
     containers,
     metricsNames,
     commands,
-    gpuVendors
+    gpuVendors,
+    sidecars
 };
