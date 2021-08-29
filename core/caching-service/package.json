@@ -10,7 +10,7 @@
     "@hkube/config": "^2.0.7",
     "@hkube/dag": "^2.0.8",
     "@hkube/etcd": "^5.0.37",
-    "@hkube/logger": "^1.0.26",
+    "@hkube/logger": "^2.0.1",
     "@hkube/parsers": "^2.0.8",
     "@hkube/rest-server": "^1.0.12",
     "express": "^4.17.1"
