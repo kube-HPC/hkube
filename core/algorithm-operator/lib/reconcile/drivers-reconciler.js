@@ -46,7 +46,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
         const driverTemplate = driverTemplates[name];
         const image = setPipelineDriverImage(driverTemplate, versions, registry);
         const resourceRequests = createContainerResource(driverTemplate);
-        createDetails = Array.from(Array(missingDrivers).keys()).map(() => ({ name, image, resourceRequests, clusterOptions }));
+        createDetails = Array.from(Array(desiredDrivers).keys()).map(() => ({ name, image, resourceRequests, clusterOptions }));
     }
 
     const stopPromises = stopDetails.map(r => _stopDriver(r));
@@ -55,7 +55,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
 
     const reconcileResult = {};
     reconcileResult[name] = {
-        required: missingDrivers,
+        required: desiredDrivers,
         created: createDetails.length,
         idle: idleDrivers.length,
         paused: stopDetails.length,
