@@ -4,14 +4,17 @@ const chaiAsPromised = require('chai-as-promised');
 const storageManager = require('@hkube/storage-manager');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
+const { pipelineStatuses } = require('@hkube/consts');
 const pipelines = require('./mocks/pipelines');
 const DriverStates = require('../lib/state/DriverStates');
 const { createJobId } = require('./utils');
 let stateManager;
+let db;
 
 describe('StateManager', function () {
     before(async () => {
         stateManager = require('../lib/state/state-manager');
+        db = require('../lib/state/db');
     });
     it('setJobResults', async function () {
         const jobId = createJobId();
@@ -84,6 +87,23 @@ describe('StateManager', function () {
         await stateManager._etcd.jobs.status.set({ jobId, data });
         const response = await stateManager._etcd.jobs.status.get({ jobId });
         expect(response.data).to.deep.equal(data);
+    });
+    it.only('setJobStatus', async function () {
+        const jobId = createJobId();
+        const statusObject = { jobId, status: pipelineStatuses.STOPPED };
+        await stateManager._etcd.jobs.status.set({ jobId, data: statusObject });
+        await stateManager.createJob({ jobId, status: statusObject });
+
+        const interval = setInterval(async () => {
+            await stateManager.setJobStatus(statusObject);
+        }, 50);
+        setTimeout(async () => {
+            await db.updateStatus(statusObject);
+            await stateManager._etcd.jobs.status.update({ jobId, data: statusObject });
+        }, 200);
+
+        const response = await db.fetchStatus({ jobId });
+        expect(response.status).to.eql(statusObject.status);
     });
     it('getExecution', async function () {
         const jobId = createJobId();
