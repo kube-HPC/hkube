@@ -31,7 +31,10 @@ module.exports = {
         'arrow-body-style': 'off',
         'class-methods-use-this': 'off',
         'no-unused-expressions': 0,
+        'no-continue': 'off',
+        'no-loop-func': 'off',
         'arrow-parens': ['error', 'as-needed', { requireForBlockBody: true }],
+        'no-restricted-syntax': 'off',
         indent: ['warn', 4, { SwitchCase: 1 }]
     }
 };

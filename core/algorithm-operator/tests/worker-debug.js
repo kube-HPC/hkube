@@ -5,6 +5,7 @@ const log = new Logger(main.serviceName, logger);
 const options = main;
 const { expect } = require('chai');
 const { createKindsSpec } = require('../lib/deployments/worker-debug.js');
+const { settings } = require('../lib/helpers/settings');
 
 describe('jobCreator', () => {
     describe('createKindsSpec', () => {
@@ -109,4 +110,69 @@ describe('jobCreator', () => {
         });
 
     });
+    describe('sidecars', () => {
+        before(() => {
+            settings.sidecars = [{
+                name: 'my-sidecar',
+                container: [
+                    { name: 'c1', image: 'foo/bar' },
+                    { name: 'c2', image: 'foo/bar' }
+                ],
+                volumes: [
+                    {
+                        name: "v1",
+                        emptyDir: {}
+                    },
+                    {
+                        name: "v2",
+                        configMap: {
+                            name: "cm2"
+                        }
+                    }
+                ],
+                volumeMounts: [
+                    {
+                        name: "v2",
+                        mountPath: '/tmp/foo'
+                    }
+
+                ],
+                environments: [
+                    {
+                        name: "env1",
+                        value: "val1"
+                    },
+                    {
+                        name: "env2",
+                        value: "val2"
+                    }
+                ]
+
+            }]
+        })
+        after(() => {
+            settings.sidecars = []
+        });
+        it('should not apply sidecar if not enabled', () => {
+            const { deploymentSpec, ingressSpec } = createKindsSpec({ algorithmName: 'myalgo1', options });
+            expect(deploymentSpec.spec.template.spec.containers).to.have.lengthOf(1)
+        });
+        it('should apply sidecar if enabled', () => {
+            const { deploymentSpec: res } = createKindsSpec({ algorithmName: 'myalgo1', options: { kubernetes: {} }, clusterOptions: { "my-sidecarSidecarEnabled": true } });
+
+            expect(res.spec.template.spec.containers).to.have.lengthOf(3)
+            expect(res.spec.template.spec.containers[1].name).to.eql('c1')
+            expect(res.spec.template.spec.containers[2].name).to.eql('c2')
+            expect(res.spec.template.spec.volumes).to.deep.include(settings.sidecars[0].volumes[0])
+            expect(res.spec.template.spec.volumes).to.deep.include(settings.sidecars[0].volumes[1])
+            expect(res.spec.template.spec.containers[0].volumeMounts).to.deep.include(settings.sidecars[0].volumeMounts[0])
+            expect(res.spec.template.spec.containers[0].env).to.deep.include(settings.sidecars[0].environments[0])
+            expect(res.spec.template.spec.containers[0].env).to.deep.include(settings.sidecars[0].environments[1])
+            expect(res.spec.template.spec.containers[1].env).to.not.exist;
+        });
+        it('should not apply sidecar if no sidecar configmap', () => {
+            const { deploymentSpec: res } = createKindsSpec({ algorithmName: 'myalgo1', options: { kubernetes: {} }, clusterOptions: { "no-sidecarSidecarEnabled": true } });
+            expect(res.spec.template.spec.containers).to.have.lengthOf(1)
+        });
+    })
 });
