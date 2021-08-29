@@ -25,7 +25,6 @@ class KubernetesApi {
         }
 
         settings.sidecars = await this.getSidecarConfigs();
-        log.info(`Setting sidecars with ${JSON.stringify(settings.sidecars)}`);
     }
 
     async createJob({ spec, jobDetails = {} }) {
