@@ -88,22 +88,30 @@ describe('StateManager', function () {
         const response = await stateManager._etcd.jobs.status.get({ jobId });
         expect(response.data).to.deep.equal(data);
     });
-    it.only('setJobStatus', async function () {
+    it('should update state correctly', async function () {
+        let resolve;
+        const promise = new Promise((res) => { resolve = res });
         const jobId = createJobId();
-        const statusObject = { jobId, status: pipelineStatuses.STOPPED };
-        await stateManager._etcd.jobs.status.set({ jobId, data: statusObject });
-        await stateManager.createJob({ jobId, status: statusObject });
+        const statusActive = { jobId, status: pipelineStatuses.ACTIVE };
+        const statusStopped = { jobId, status: pipelineStatuses.STOPPED };
+        await stateManager._etcd.jobs.status.set(statusActive);
+        await stateManager.createJob({ jobId, status: { status: statusActive.status } });
 
         const interval = setInterval(async () => {
-            await stateManager.setJobStatus(statusObject);
-        }, 50);
+            await stateManager.setJobStatus(statusActive);
+        }, 10);
         setTimeout(async () => {
-            await db.updateStatus(statusObject);
-            await stateManager._etcd.jobs.status.update({ jobId, data: statusObject });
+            clearInterval(interval);
+            await db.updateStatus(statusStopped);
+            await stateManager._etcd.jobs.status.update(statusStopped);
+            resolve();
         }, 200);
 
-        const response = await db.fetchStatus({ jobId });
-        expect(response.status).to.eql(statusObject.status);
+        await promise;
+        const res1 = await db.fetchStatus({ jobId });
+        const res2 = await stateManager._etcd.jobs.status.get({ jobId });
+        expect(res1.status).to.eql(statusStopped.status);
+        expect(res2.status).to.eql(statusStopped.status);
     });
     it('getExecution', async function () {
         const jobId = createJobId();
