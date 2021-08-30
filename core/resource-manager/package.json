@@ -1,6 +1,6 @@
 {
   "name": "resource-manager",
-  "version": "1.3.6",
+  "version": "1.3.7",
   "description": "resource-manager",
   "main": "app.js",
   "directories": {
