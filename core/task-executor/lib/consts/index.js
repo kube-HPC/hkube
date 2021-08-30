@@ -5,6 +5,7 @@ const metricsNames = require('./metrics');
 const commands = require('./commands');
 const gpuVendors = require('./gpu-vendors');
 const volumes = require('./volumes');
+const sidecars = require('./sidecars');
 
 module.exports = {
     components,
@@ -13,5 +14,6 @@ module.exports = {
     metricsNames,
     commands,
     gpuVendors,
-    volumes
+    volumes,
+    sidecars
 };

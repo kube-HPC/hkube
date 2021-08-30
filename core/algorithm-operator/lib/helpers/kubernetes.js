@@ -1,7 +1,9 @@
 const EventEmitter = require('events');
 const log = require('@hkube/logger').GetLogFromContainer();
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
-const { containers, components } = require('../consts');
+const { containers, components, sidecars } = require('../consts');
+const { settings } = require('./settings');
+
 const component = components.K8S;
 
 class KubernetesApi extends EventEmitter {
@@ -11,6 +13,8 @@ class KubernetesApi extends EventEmitter {
         await this._client.init(options.kubernetes);
         this.kubeVersion = await this._client.versions.getParsedVersion();
         log.info(`Initialized kubernetes client with version: ${this.kubeVersion.version} (${this.kubeVersion.gitVersion}), url: ${this._client._config.url}`, { component });
+
+        settings.sidecars = await this.getSidecarConfigs();
     }
 
     get namespace() {
@@ -95,6 +99,11 @@ class KubernetesApi extends EventEmitter {
     async getVersionsConfigMap() {
         const res = await this._client.configMaps.get({ name: 'hkube-versions' });
         return this._client.configMaps.extractConfigMap(res);
+    }
+
+    async getSidecarConfigs() {
+        const ret = await Promise.allSettled(Object.values(sidecars).map(s => this._client.sidecars.get({ name: s })));
+        return ret.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
     }
 
     async deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name }, type) {

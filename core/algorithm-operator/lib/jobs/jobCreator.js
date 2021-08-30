@@ -6,7 +6,7 @@ const { components, containers } = require('../consts');
 const component = components.K8S;
 const pipelineDriverTemplate = require('../templates/pipeline-driver');
 const { settings } = require('../helpers/settings');
-const { applyJaeger } = require('../helpers/kubernetes-utils');
+const { applyJaeger, applySidecars } = require('../helpers/kubernetes-utils');
 const CONTAINERS = containers;
 
 const applyPipelineDriverResourceRequests = (inputSpec, resourceRequests) => {
@@ -45,6 +45,7 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'algorithm-operator-configmap');
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
+    spec = applySidecars(spec, clusterOptions, CONTAINERS.PIPELINE_DRIVER);
     return spec;
 };
 

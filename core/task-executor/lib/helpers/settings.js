@@ -3,7 +3,8 @@ const settingsFactory = () => {
         {
             useResourceLimits: false,
             applyResources: false,
-            labels: {}
+            labels: {},
+            sidecars: []
         }
     );
 };

@@ -3,7 +3,7 @@ const { main: config } = configIt.load();
 const { expect } = require('chai');
 const { messages } = require('@hkube/nodejs-wrapper');
 const WebSocket = require('ws');
-const app = require('../lib/app');
+let app;
 // const Logger = require('@hkube/logger');
 // const log = new Logger('debugTest', logger);
 const { Encoding } = require('@hkube/encoding');
@@ -17,6 +17,7 @@ describe('Debug', () => {
     const encoding = new Encoding({ type: 'bson' });
     let socket;
     before(() => {
+        app = require('../lib/app');
         combinedUrl = `ws://${config.debugger.communication.host}:${config.debugger.communication.port}?encoding=bson`;
     });
     beforeEach(async () => {
