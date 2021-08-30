@@ -1,18 +1,19 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI-PR
+name: CI-FROZEN
 
 # Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
-  pull_request:
+  push:
     branches: [release*]
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  test:
+  test_and_build:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     services:
@@ -33,6 +34,11 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      - run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
       - run: git fetch --prune --unshallow
       - uses: actions/setup-node@v1
         with:
@@ -41,29 +47,20 @@ jobs:
       - run: |
           npm ci
           echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
-      - name: setup-git
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
       - name: bootstrap
         run: |
           export CHANGED=$(lerna changed --includeMergedTags)||true
           echo ${CHANGED}
-          # export CHANGED=${CHANGED:-$(lerna list)}
-          # echo ${CHANGED}
-          for i in $CHANGED
-          do
-            echo installing in $i
-            lerna exec npm ci --scope $i
-          done 
+          echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec npm ci --scope {}
           echo CHANGED=$CHANGED >> $GITHUB_ENV
-      - name: test
-        run: |
-          echo $CHANGED
-          if [ -z $CHANGED ]; 
-          then 
-            echo nothing changed
-          else 
-            ./scripts/test.sh
-          fi
-
+      # - name: build and test
+      #   run: |
+      #     echo $CHANGED
+      #     if [ -z $CHANGED ]; 
+      #     then 
+      #       echo nothing changed
+      #     else 
+      #       scripts/runTestAndBuild.sh
+      #     fi
+      #   env: 
+      #     DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
