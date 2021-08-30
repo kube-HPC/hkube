@@ -1,13 +1,13 @@
 {
     "name": "algorithm-debug",
-    "version": "2.1.5",
+    "version": "2.1.6",
     "description": "algorithm-debug",
     "main": "app.js",
     "dependencies": {
         "@hkube/config": "^2.0.11",
         "@hkube/consts": "1.0.35",
         "@hkube/encoding": "^1.0.21",
-        "@hkube/logger": "^1.0.29",
+        "@hkube/logger": "^2.0.1",
         "@hkube/nodejs-wrapper": "^2.0.45",
         "@hkube/uid": "^1.0.4",
         "ajv": "^6.12.0",
@@ -20,7 +20,7 @@
         "eslint-config-airbnb-base": "^14.2.1",
         "eslint-plugin-chai-friendly": "^0.6.0",
         "eslint-plugin-import": "^2.22.1",
-        "mocha": "^7.1.1",
+        "mocha": "^9.1.0",
         "nyc": "^15.1.0",
         "sinon": "^9.2.3"
     },

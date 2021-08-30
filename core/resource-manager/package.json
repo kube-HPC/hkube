@@ -1,6 +1,6 @@
 {
   "name": "resource-manager",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "description": "resource-manager",
   "main": "app.js",
   "directories": {
@@ -13,7 +13,7 @@
     "@hkube/etcd": "^5.1.2",
     "@hkube/healthchecks": "^1.0.2",
     "@hkube/kubernetes-client": "^1.0.33",
-    "@hkube/logger": "^1.0.27",
+    "@hkube/logger": "^2.0.1",
     "@hkube/metrics": "^1.0.42",
     "@hkube/prometheus-client": "^1.0.0",
     "@hkube/units-converter": "^1.0.17",
