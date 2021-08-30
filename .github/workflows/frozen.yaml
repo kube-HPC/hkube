@@ -66,6 +66,12 @@ jobs:
           fi
         env: 
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: set branch
+        run: |
+          echo GITHUB_REF=$GITHUB_REF
+          export BRANCH=${GITHUB_REF##*/}
+          echo BRANCH=$BRANCH
+          echo BRANCH=$BRANCH >> $GITHUB_ENV
       - name: trigger
         if: env.CHANGED
         id: trigger
@@ -76,4 +82,4 @@ jobs:
           client_payload: "{\"BRANCH\": \"${{ env.BRANCH }}\" }"
         env:
           GITHUB_TOKEN: '${{ secrets.GH_TOKEN }}'
-          BRANCH: ${GITHUB_REF##*/}
+          BRANCH: ${{ env.BRANCH }}
