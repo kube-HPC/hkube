@@ -53,14 +53,14 @@ jobs:
           echo ${CHANGED}
           echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec npm ci --scope {}
           echo CHANGED=$CHANGED >> $GITHUB_ENV
-      # - name: build and test
-      #   run: |
-      #     echo $CHANGED
-      #     if [ -z $CHANGED ]; 
-      #     then 
-      #       echo nothing changed
-      #     else 
-      #       scripts/runTestAndBuild.sh
-      #     fi
-      #   env: 
-      #     DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: build and test
+        run: |
+          echo $CHANGED
+          if [ -z $CHANGED ]; 
+          then 
+            echo nothing changed
+          else 
+            scripts/runTestAndBuild.sh
+          fi
+        env: 
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
