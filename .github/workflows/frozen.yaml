@@ -71,6 +71,7 @@ jobs:
         with:
           route: POST /repos/kube-HPC/release-manager/dispatches
           event_type: trigger
-          client_payload: "{\"BRANCH\": \"${{ ${GITHUB_REF##*/} }}\" }"
+          client_payload: "{\"BRANCH\": \"${{ env.BRANCH }}\" }"
         env:
           GITHUB_TOKEN: '${{ secrets.GH_TOKEN }}'
+          BRANCH: ${GITHUB_REF##*/}
