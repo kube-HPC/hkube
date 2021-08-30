@@ -3,7 +3,7 @@ const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { applyEnvToContainer, applyStorage, applyVolumeMounts: applyVolumeMount, applyVolumes: applyVolume,
     applyPrivileged, applySecret, applyResourceRequests, applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
-const { applyImage, createContainerResourceByFactor } = require('../helpers/kubernetes-utils');
+const { applyImage, createContainerResourceByFactor, applySidecars } = require('../helpers/kubernetes-utils');
 const components = require('../consts/componentNames');
 const { ALGORITHM_BUILDS, KANIKO, OC_BUILDER } = require('../consts/containers');
 const { jobTemplate, kanikoContainer, dockerVolumes, kanikoVolumes, openshiftContainer, openshiftVolumes } = require('../templates/algorithm-builder');
@@ -102,6 +102,8 @@ const createBuildJobSpec = ({ buildId, versions, secret, registry, options, clus
         }
     }
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
+
+    spec = applySidecars(spec, clusterOptions, CONTAINERS.ALGORITHM_BUILDS);
 
     return spec;
 };

@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 const clonedeep = require('lodash.clonedeep');
 const { randomString } = require('@hkube/uid');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -12,6 +13,37 @@ const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
+
+const applySidecars = (inputSpec, clusterOptions = {}, containerName) => {
+    let spec = clonedeep(inputSpec);
+    for (const sidecar of settings.sidecars) {
+        const { name, container, volumes, volumeMounts, environments } = sidecar;
+        if (!clusterOptions[`${name}SidecarEnabled`]) {
+            continue;
+        }
+        spec.spec.template.spec.containers.push(...container);
+        if (volumes) {
+            // eslint-disable-next-line no-loop-func
+            volumes.forEach(v => {
+                spec = applyVolumes(spec, v);
+            });
+        }
+        if (volumeMounts) {
+            // eslint-disable-next-line no-loop-func
+            volumeMounts.forEach(v => {
+                spec = applyVolumeMounts(spec, containerName, v);
+            });
+        }
+        if (environments) {
+            // eslint-disable-next-line no-loop-func
+            environments.forEach(v => {
+                spec = applyEnvToContainer(spec, containerName, { [v.name]: v.value });
+            });
+        }
+    }
+
+    return spec;
+};
 
 const applyAlgorithmResourceRequests = (inputSpec, resourceRequests, node) => {
     if (!resourceRequests) {
@@ -267,7 +299,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyDevMode(spec, { options, algorithmOptions, clusterOptions, algorithmName });
     spec = applyMounts(spec, mounts);
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
-
+    spec = applySidecars(spec, clusterOptions, CONTAINERS.WORKER);
     return spec;
 };
 
@@ -287,6 +319,7 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     spec = applyJaeger(spec, CONTAINERS.PIPELINE_DRIVER, options);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'task-executor-configmap');
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
+    spec = applySidecars(spec, clusterOptions, CONTAINERS.PIPELINE_DRIVER);
 
     return spec;
 };

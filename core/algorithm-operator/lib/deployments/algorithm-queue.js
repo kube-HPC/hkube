@@ -6,7 +6,7 @@ const { applyImage, applyJaeger } = require('../helpers/kubernetes-utils');
 const component = require('../consts/componentNames').K8S;
 const { algorithmQueueTemplate } = require('../templates/algorithm-queue');
 const { isValidDeploymentName } = require('../helpers/images');
-const { createContainerResourceByFactor } = require('../helpers/kubernetes-utils');
+const { createContainerResourceByFactor, applySidecars } = require('../helpers/kubernetes-utils');
 const CONTAINERS = require('../consts/containers');
 const { settings } = require('../helpers/settings');
 
@@ -63,6 +63,8 @@ const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOption
         spec = applyResources(spec, resources);
     }
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
+
+    spec = applySidecars(spec, clusterOptions, CONTAINERS.ALGORITHM_QUEUE);
 
     return spec;
 };

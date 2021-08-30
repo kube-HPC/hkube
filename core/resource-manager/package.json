@@ -11,7 +11,7 @@
     "@hkube/config": "^2.0.7",
     "@hkube/etcd": "^5.0.35",
     "@hkube/kubernetes-client": "^1.0.30",
-    "@hkube/logger": "^1.0.25",
+    "@hkube/logger": "^2.0.1",
     "@hkube/metrics": "^1.0.39",
     "@hkube/prometheus-client": "^1.0.0",
     "@hkube/rest-server": "^1.0.12",

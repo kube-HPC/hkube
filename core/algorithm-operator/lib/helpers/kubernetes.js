@@ -2,12 +2,15 @@ const EventEmitter = require('events');
 const log = require('@hkube/logger').GetLogFromContainer();
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const component = require('../consts/componentNames').K8S;
+const sidecars = require('../consts/sidecars');
 const { logWrappers } = require('./tracing');
+const { settings } = require('./settings');
 
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
         this._namespace = options.kubernetes.namespace;
-        this._client = new KubernetesClient(options.kubernetes);
+        this._client = new KubernetesClient();
+        await this._client.init(options.kubernetes);
         if (options.healthchecks.logExternalRequests) {
             logWrappers([
                 'getDeployments',
@@ -20,6 +23,7 @@ class KubernetesApi extends EventEmitter {
             ...options.kubernetes,
             url: this._client._config.url
         })}`, { component });
+        settings.sidecars = await this.getSidecarConfigs();
     }
 
     get namespace() {
@@ -104,6 +108,11 @@ class KubernetesApi extends EventEmitter {
     async getVersionsConfigMap() {
         const res = await this._client.configMaps.get({ name: 'hkube-versions' });
         return this._client.configMaps.extractConfigMap(res);
+    }
+
+    async getSidecarConfigs() {
+        const ret = await Promise.allSettled(Object.values(sidecars).map(s => this._client.sidecars.get({ name: s })));
+        return ret.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
     }
 
     async deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name }, type) {

@@ -8,7 +8,8 @@ const settingsFactory = () => (
         resourcesBuilder: {
             memory: 256,
             cpu: 1,
-        }
+        },
+        sidecars: []
     }
 );
 
