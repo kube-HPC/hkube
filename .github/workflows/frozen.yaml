@@ -64,3 +64,13 @@ jobs:
           fi
         env: 
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: trigger
+        if: env.CHANGED
+        id: trigger
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/kube-HPC/release-manager/dispatches
+          event_type: trigger
+          client_payload: "{\"BRANCH\": \"${{ ${GITHUB_REF##*/} }}\" }"
+        env:
+          GITHUB_TOKEN: '${{ secrets.GH_TOKEN }}'
