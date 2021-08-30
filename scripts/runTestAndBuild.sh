@@ -6,6 +6,6 @@ echo ./scripts/test.sh exited with code $?
 echo running ./scripts/createVersion.sh
 ./scripts/createVersion.sh
 echo ./scripts/createVersion.sh exited with code $?
-# echo running ./scripts/build.sh
-# ./scripts/build.sh
+echo running ./scripts/build.sh
+./scripts/build.sh
 
