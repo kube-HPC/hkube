@@ -51,7 +51,7 @@ jobs:
         run: |
           export CHANGED=$(lerna changed --includeMergedTags)||true
           echo ${CHANGED}
-          if [ ! -z $CHANGED ]; then
+          if [ ! -z "$CHANGED" ]; then
             echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec npm ci --scope {}
           fi
           echo CHANGED=$CHANGED >> $GITHUB_ENV
