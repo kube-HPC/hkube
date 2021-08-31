@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const { Consumer } = require('@hkube/producer-consumer');
+const { Consumer, Events } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const { pipelineStatuses } = require('@hkube/consts');
@@ -32,6 +32,15 @@ class JobConsumer extends EventEmitter {
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
+        this._consumer.on(Events.DEFAULT_HANDLER_CALLED, job => {
+            try {
+                const sanitized = { ...job, queue: {}, data: { ...job.data, tasks: job.data.tasks.map(t => ({ ...t, input: ['cut'] })) } };
+                log.info(`${Events.DEFAULT_HANDLER_CALLED}: ${JSON.stringify(sanitized)}`);
+            }
+            catch (error) {
+                log.info(`${Events.DEFAULT_HANDLER_CALLED}: failed to serialize`);
+            }
+        });
         this.etcd.jobs.status.on('change', (data) => {
             const { status, jobId } = data;
             if (this._isCompletedState({ status })) {
@@ -45,6 +54,7 @@ class JobConsumer extends EventEmitter {
             }
         });
         this._consumer.register({ job: { type: algorithmType, concurrency: options.consumer.concurrency } });
+        this._logging = options.logging;
     }
 
     _isCompletedState({ status }) {
@@ -59,7 +69,10 @@ class JobConsumer extends EventEmitter {
         try {
             const { jobId } = job.data;
             const data = await this.etcd.jobs.status.get({ jobId });
-            log.info(`job arrived with ${data.status} state and ${job.data.tasks.length} tasks`, { component });
+            log.info(`job ${jobId} arrived with ${data.status} state and ${job.data.tasks.length} tasks`, { component, jobId });
+            if (this._logging.tasks) {
+                job.data.tasks.forEach(t => log.info(`task ${t.taskId} enqueued. Status: ${t.status}`, { component, jobId, taskId: t.taskId }));
+            }
             if (this._isCompletedState({ status: data.status })) {
                 this._removeInvalidJob({ jobId });
             }

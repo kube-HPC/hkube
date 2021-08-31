@@ -1,4 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
+const formatters = require('../../lib/utils/formatters');
 const config = module.exports = {};
 
 config.serviceName = packageJson.name;
@@ -93,3 +94,7 @@ config.storageAdapters = {
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };
+
+config.logging = {
+    tasks: formatters.parseBool(process.env.LOG_TASKS, true)
+}

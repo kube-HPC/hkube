@@ -52,6 +52,7 @@ class TaskRunner extends EventEmitter {
         this._stateManager.on(`job-${pipelineStatuses.PAUSED}`, (d) => this._onPause(d));
         this._stateManager.on('task-changed', (task) => this._handleTaskEvent(task));
         this._stateManager.on('events-warning', (event) => this._handleEvents(event));
+        this._logging = options.logging;
     }
 
     _onStop(data) {
@@ -711,6 +712,9 @@ class TaskRunner extends EventEmitter {
                 }
             }
         };
+        if (this._logging.tasks) {
+            tasks.forEach(t => log.info(`task ${t.taskId} created`, { component, jobId: this._jobId, taskId: t.taskId, algorithmName: options.node.algorithmName }));
+        }
         return producer.createJob(jobOptions);
     }
 }

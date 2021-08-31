@@ -2,7 +2,7 @@ const { uid } = require('@hkube/uid');
 const Validator = require('ajv');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const { Producer } = require('@hkube/producer-consumer');
+const { Producer, Events } = require('@hkube/producer-consumer');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
 const stateAdapter = require('../../states/stateAdapter');
 const messages = require('../../algorithm-communication/messages');
@@ -68,6 +68,31 @@ class AlgorithmExecution {
             throw new Error(validator.errorsText(this._producerSchema.errors));
         }
         this._producer = new Producer({ setting });
+        this._producer.on(Events.WAITING, (data) => {
+            const jobId = data?.options?.data?.jobId;
+            const taskId = data?.options?.data?.tasks[0]?.taskId;
+            log.info(`${Events.WAITING} ${jobId} ${taskId}`, { component, jobId, taskId, status: Events.WAITING });
+        });
+        this._producer.on(Events.ACTIVE, async (data) => {
+            const jobId = data?.options?.data?.jobId;
+            const taskId = data?.options?.data?.tasks[0]?.taskId;
+            log.info(`${Events.ACTIVE} ${jobId} ${taskId}`, { component, jobId, taskId, status: Events.ACTIVE });
+        });
+        this._producer.on(Events.COMPLETED, (data) => {
+            const jobId = data?.options?.data?.jobId;
+            const taskId = data?.options?.data?.tasks[0]?.taskId;
+            log.info(`${Events.COMPLETED} ${jobId} ${taskId}`, { component, jobId, taskId, status: Events.COMPLETED });
+        });
+        this._producer.on(Events.FAILED, (data) => {
+            const jobId = data?.options?.data?.jobId;
+            const taskId = data?.options?.data?.tasks[0]?.taskId;
+            log.info(`${Events.FAILED} ${jobId} ${taskId} error: ${data?.error}`, { component, jobId, taskId, status: Events.FAILED });
+            // workaround for __default__ handler being called
+            if (data?.error === Events.DEFAULT_HANDLER_CALLED && this._executions.get(taskId)) {
+                log.error('Crashing process because of error');
+                process.exit(1);
+            }
+        });
     }
 
     _registerToAlgorithmEvents() {
@@ -225,6 +250,7 @@ class AlgorithmExecution {
             const newInput = await this._setStorage({ input, storage, jobId, storageInput });
             const task = { execId, taskId, input: newInput, storage };
             const job = this._createJobData({ nodeName, algorithmName, task, jobData });
+            log.info(`startAlgorithmExecution for ${algorithmName} with type ${job.type} and taskId ${taskId}`, { component });
             this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
             await this._createJob(job, taskId);

@@ -26,7 +26,7 @@
         "@hkube/logger": "^2.0.1",
         "@hkube/metrics": "^1.0.39",
         "@hkube/parsers": "^2.0.0",
-        "@hkube/producer-consumer": "^1.0.46",
+        "@hkube/producer-consumer": "1.0.46-default-handler-bug-1",
         "@hkube/redis-utils": "^1.0.3",
         "@hkube/rest-server": "^1.0.12",
         "@hkube/storage-manager": "^2.0.26",
