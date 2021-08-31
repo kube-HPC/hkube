@@ -10,11 +10,11 @@ class EtcdClient extends EventEmitter {
         log.info(`initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
     }
 
-    async getAlgorithmQueues() {
+    async getAlgorithmQueuesDiscovery() {
         return this._etcd.discovery.list({ serviceName: 'algorithm-queue' });
     }
 
-    async getAlgorithmQueuesList() {
+    async getAlgorithmQueuesMap() {
         const algs = await this._etcd.algorithms.queue.list();
         const data = algs.reduce((acc, cur) => {
             acc[cur.name] = cur.timestamp;

@@ -44,6 +44,7 @@ const gatewayIngress = ({ algorithmName, gatewayName }, { ingressHost, ingressPr
                 'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
                 'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
                 'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000',
+                'nginx.ingress.kubernetes.io/proxy-body-size': '5000m',
                 'kubernetes.io/ingress.class': ingressClass
             },
             labels: {

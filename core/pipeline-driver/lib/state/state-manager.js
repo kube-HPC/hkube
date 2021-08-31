@@ -187,15 +187,19 @@ class StateManager {
 
     async setJobStatus(options) {
         return this._etcd.jobs.status.update(options, (oldItem) => {
-            if (oldItem.status !== DriverStates.STOPPED && oldItem.status !== DriverStates.PAUSED) {
+            if (this._isActiveStatus(oldItem.status)) {
                 const data = { ...oldItem, ...options };
-                db.updateStatus(data);
+                db.updateStatus(data, true);
                 return data;
             }
             return null;
         }).catch(e => {
             log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
         });
+    }
+
+    _isActiveStatus(status) {
+        return status !== DriverStates.STOPPED && status !== DriverStates.PAUSED;
     }
 
     getJobStatus(options) {

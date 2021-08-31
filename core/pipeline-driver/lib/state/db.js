@@ -14,8 +14,8 @@ class DB {
         return this._db.jobs.updateResult(options);
     }
 
-    updateStatus(options) {
-        return this._db.jobs.updateStatus(options);
+    updateStatus(options, updateOnlyActive) {
+        return this._db.jobs.updateStatus(options, updateOnlyActive);
     }
 
     fetchStatus(options) {
