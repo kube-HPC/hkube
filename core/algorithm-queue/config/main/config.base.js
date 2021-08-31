@@ -1,4 +1,6 @@
-const packageJson = require(process.cwd() + '/package.json'); // eslint-disable-line 
+const packageJson = require(process.cwd() + '/package.json'); // eslint-disable-line
+const formatters = require('../../lib/utils/formatters');
+
 const config = {};
 const heuristicsNames = require('../../lib/consts/heuristics-name');
 
@@ -63,4 +65,7 @@ config.tracer = {
     }
 };
 
+config.logging = {
+    tasks: formatters.parseBool(process.env.LOG_TASKS, true)
+};
 module.exports = config;

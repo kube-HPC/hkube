@@ -33,20 +33,32 @@ class JobProducer {
 
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
-            log.info(`${Events.WAITING} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: Events.WAITING });
+            const jobId = data?.options?.data?.jobId;
+            const taskId = data?.options?.data?.taskId;
+            log.info(`${Events.WAITING} ${jobId} ${taskId}`, { component: componentName.JOBS_PRODUCER, jobId, taskId, status: Events.WAITING });
         });
         this._producer.on(Events.ACTIVE, async (data) => {
-            log.info(`${Events.ACTIVE} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: Events.ACTIVE });
+            const jobId = data?.options?.data?.jobId;
+            const taskId = data?.options?.data?.taskId;
+            log.info(`${Events.ACTIVE} ${jobId} ${taskId}`, { component: componentName.JOBS_PRODUCER, jobId, taskId, status: Events.ACTIVE });
             await this.createJob();
         });
         this._producer.on(Events.COMPLETED, (data) => {
-            log.debug(`${Events.COMPLETED} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: Events.COMPLETED });
+            const jobId = data?.options?.data?.jobId;
+            const taskId = data?.options?.data?.taskId;
+            log.info(`${Events.COMPLETED} ${jobId} ${taskId}`, { component: componentName.JOBS_PRODUCER, jobId, taskId, status: Events.COMPLETED });
         });
         this._producer.on(Events.FAILED, (data) => {
-            log.info(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: Events.FAILED });
+            const jobId = data?.options?.data?.jobId;
+            const taskId = data?.options?.data?.taskId;
+            log.info(`${Events.FAILED} ${jobId} ${taskId} error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId, taskId, status: Events.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
-            const { jobId, taskId, nodeName, batchIndex, retry } = job.options;
+            const { jobId, taskId, nodeName, batchIndex, retry, status: jobStatus } = job.options;
+            if (jobStatus === taskStatuses.PRESCHEDULE) {
+                log.info(`${Events.STUCK} ${jobId} ${taskId} ${jobStatus}`, { component: componentName.JOBS_PRODUCER, jobId, taskId, status: jobStatus, event: Events.STUCK });
+                return;
+            }
             let err;
             let status;
             const maxAttempts = (retry && retry.limit) || MAX_JOB_ATTEMPTS;
@@ -64,7 +76,7 @@ class JobProducer {
                 queueRunner.queue.add([task]);
             }
             const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${maxAttempts}`;
-            log.warning(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
+            log.warning(`${error} ${jobId} ${taskId}`, { component: componentName.JOBS_PRODUCER, jobId, taskId });
             await this.etcd.jobs.tasks.set({ jobId, taskId, nodeName, batchIndex, status, error, retries: attempts });
         });
     }
@@ -105,7 +117,8 @@ class JobProducer {
     async createJob() {
         const task = queueRunner.queue.tryPop();
         if (task) {
-            log.info(`pop new task with taskId: ${task.taskId}, score: ${task.calculated.score}`, { component: componentName.JOBS_PRODUCER });
+            log.info(`pop new task with taskId: ${task.taskId} for ${task.jobId}, score: ${task.calculated.score}`,
+                { component: componentName.JOBS_PRODUCER, jobId: task.jobId, taskId: task.taskId });
             const job = this._taskToProducerJob(task);
             return this._producer.createJob(job);
         }
