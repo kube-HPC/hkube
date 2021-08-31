@@ -13,6 +13,9 @@ module.exports = {
                 createJob: async (...theArgs) => {
                     registerCount('createJob', theArgs)
                 },
+                createDeployment: async () => { },
+                updateDeployment: async () => { },
+                deleteDeployment: async () => { },
                 getWorkerJobs: async () => { },
                 getPipelineDriversJobs: async () => { },
                 getVersionsConfigMap: async () => { },
