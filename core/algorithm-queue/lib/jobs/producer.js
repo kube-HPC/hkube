@@ -51,7 +51,7 @@ class JobProducer {
         this._producer.on(Events.FAILED, (data) => {
             const jobId = data?.options?.data?.jobId;
             const taskId = data?.options?.data?.taskId;
-            log.info(`${Events.FAILED} ${jobId} ${taskId} error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId, taskId, status: Events.FAILED });
+            log.info(`${Events.FAILED} ${jobId} ${taskId} error: ${data?.error}`, { component: componentName.JOBS_PRODUCER, jobId, taskId, status: Events.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
             const { jobId, taskId, nodeName, batchIndex, retry, status: jobStatus } = job.options;
