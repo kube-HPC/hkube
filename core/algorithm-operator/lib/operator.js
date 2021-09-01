@@ -151,7 +151,7 @@ class Operator {
             log.throttle.error(`algorithm queue concurrency limit must be positive number, got ${limit}`, { component });
             return;
         }
-        const discovery = await etcd.getAlgorithmQueues();
+        const discovery = await etcd.getAlgorithmQueuesDiscovery();
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.ALGORITHM_QUEUE}` });
         await algorithmQueueReconciler.reconcile({
             deployments,
@@ -173,7 +173,7 @@ class Operator {
             try {
                 this._isIntervalActive = true;
                 const { algorithms } = await db.getAlgorithmTemplates();
-                const discovery = await etcd.getAlgorithmQueues();
+                const discovery = await etcd.getAlgorithmQueuesDiscovery();
 
                 await algorithmQueueReconciler.reconcileDevMode({
                     algorithms,

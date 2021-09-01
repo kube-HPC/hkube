@@ -1,0 +1,26 @@
+{
+    "eval-alg": {
+        "name": "eval-alg",
+        "data": [],
+        "pendingAmount": 0,
+        "timestamp": 1630228854549
+    },
+    "green-alg": {
+        "name": "green-alg",
+        "data": [],
+        "pendingAmount": 0,
+        "timestamp": 1630228854549
+    },
+    "yellow-alg": {
+        "name": "yellow-alg",
+        "data": [],
+        "pendingAmount": 0,
+        "timestamp": 1630228854549
+    },
+    "black-alg": {
+        "name": "black-alg",
+        "data": [],
+        "pendingAmount": 0,
+        "timestamp": 1630228854549
+    }
+}
