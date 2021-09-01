@@ -27,12 +27,29 @@ class StateManger extends EventEmitter {
         });
     }
 
-    async watchBuild(options) {
-        return this._etcd.algorithms.builds.watch({ buildId: options.buildId });
+    /**
+     * This function first tries to get the build object from db.
+     * Then it tries to watch the build using etcd.
+     * if the build does not exist, it will create it.
+     */
+    async watchBuild({ buildId }) {
+        const build = await this.getBuild({ buildId });
+        if (!build) {
+            throw new Error(`unable to find build -> ${buildId}`);
+        }
+        const buildWatch = await this._etcd.algorithms.builds.watch({ buildId });
+        if (!buildWatch) {
+            await this._etcd.algorithms.builds.set(build);
+        }
+        return build;
     }
 
-    async insertBuild(options) {
-        return this._etcd.algorithms.builds.set({ buildId: options.buildId, ...options });
+    async getBuild({ buildId }) {
+        return this._db.algorithms.builds.fetch({ buildId });
+    }
+
+    async insertBuild(build) {
+        await this._db.algorithms.builds.create(build);
     }
 
     async updateBuild(options) {
