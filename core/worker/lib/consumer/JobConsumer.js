@@ -58,11 +58,11 @@ class JobConsumer extends EventEmitter {
 
         this._jobProvider.on('job', async (job) => {
             if (job.data.status === taskStatuses.PRESCHEDULE) {
-                log.info(`job ${job.data.jobId} is in ${job.data.status} mode, calling done...`);
+                log.info(`job ${job.data.jobId} ${job.data.taskId} is in ${job.data.status} mode, calling done...`);
                 job.done();
                 return;
             }
-            log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
+            log.info(`execute job ${job.data.jobId} ${job.data.taskId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
             const watchState = await stateAdapter.watch({ jobId: job.data.jobId });
             if (watchState && this._isCompletedState({ status: watchState.status })) {
                 await this._stopJob(job, watchState.status);
@@ -112,7 +112,7 @@ class JobConsumer extends EventEmitter {
         const shouldCompleteJob = this._shouldNormalExit(options);
         if (this._job && shouldCompleteJob) {
             this._job.done(this._job.error);
-            log.info(`finish job ${this._jobId}`);
+            log.info(`finish job ${this._jobId} ${this._taskId}`);
         }
         this._job = null;
         this._jobId = undefined;
@@ -137,7 +137,7 @@ class JobConsumer extends EventEmitter {
 
     async _stopJob(job, status) {
         await stateAdapter.unwatch({ jobId: job.data.jobId });
-        log.info(`job ${job.data.jobId} already in ${status} status`);
+        log.info(`job ${job.data.jobId} ${job.data.taskId} already in ${status} status`, { component });
         job.done();
     }
 
