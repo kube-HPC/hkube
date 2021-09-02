@@ -31,23 +31,23 @@ describe('algorithm-queue', () => {
         sandbox.restore();
     });
     describe('reconcile', () => {
-        it('should not add new deployments', async () => {
+        it('should scale new deployments', async () => {
             await algorithmQueueReconciler.reconcile({
                 deployments,
                 algorithms,
                 discovery,
                 options: config
             });
-            expect(spy.callCount).to.eql(0);
+            expect(spy.callCount).to.eql(2);
         });
-        it('should add new deployments', async () => {
+        it('should scale new deployments', async () => {
             await algorithmQueueReconciler.reconcile({
                 deployments: null,
                 algorithms,
                 discovery,
                 options: config
             });
-            expect(spy.callCount).to.eql(2);
+            expect(spy.callCount).to.eql(6);
         });
     });
 });
