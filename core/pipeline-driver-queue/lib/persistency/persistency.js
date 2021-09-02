@@ -17,23 +17,15 @@ const LOG_TOPICS = {
     ErrorSavingScores: 'error saving scores',
 };
 
-class Persistence {
-    constructor({ algorithmName, maxScoringSize }) {
-        this._algorithmName = algorithmName;
-        this._maxScoringSize = maxScoringSize;
-        this._prevDataLength = null;
-        this._prevPendingAmount = null;
+class Persistency {
+    init(options) {
+        this._queueName = options.persistence.type;
+        this._maxScoringSize = options.scoring.maxSize;
     }
 
-    async store({ data, pendingAmount }) {
-        if (this._prevDataLength === 0 && data.length === 0 && this._prevPendingAmount === pendingAmount) {
-            return;
-        }
-        this._prevDataLength = data.length;
-        this._prevPendingAmount = pendingAmount;
-
+    async store(data) {
         await snapshot.store({
-            key: this._algorithmName,
+            key: this._queueName,
             data,
             onStart: (...args) => this._onStartSnapshot(...args),
             onEnd: (...args) => this._onEndSnapshot(...args),
@@ -41,9 +33,8 @@ class Persistence {
         });
 
         await scoring.store({
-            key: this._algorithmName,
+            key: this._queueName,
             data,
-            pendingAmount,
             maxSize: this._maxScoringSize,
             onStart: (...args) => this._onStartScoring(...args),
             onEnd: (...args) => this._onEndScoring(...args),
@@ -53,7 +44,7 @@ class Persistence {
 
     async get() {
         return snapshot.get({
-            key: this._algorithmName,
+            key: this._queueName,
             onStart: (...args) => this._onStartGetSnapshot(...args),
             onEnd: (...args) => this._onEndGetSnapshot(...args),
             onError: (...args) => this._onErrorGetSnapshot(...args)
@@ -106,4 +97,4 @@ class Persistence {
     }
 }
 
-module.exports = Persistence;
+module.exports = new Persistency();

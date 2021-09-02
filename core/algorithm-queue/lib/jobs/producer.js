@@ -109,7 +109,7 @@ class JobProducer {
             }
             let err;
             let status;
-            const maxAttempts = (retry && retry.limit) || MAX_JOB_ATTEMPTS;
+            const maxAttempts = retry?.limit ?? MAX_JOB_ATTEMPTS;
             const task = this._pipelineToQueueAdapter(job.options);
             let { attempts } = task;
 
