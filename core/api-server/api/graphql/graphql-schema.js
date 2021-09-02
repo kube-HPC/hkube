@@ -358,7 +358,6 @@ type AlgorithmBuild {
   algorithm: Algorithm
  }
  `
-
 const SubscriptionIncNumbersTypeDefs = gql`
 type Subscription {
     numberIncremented: Int
@@ -369,13 +368,13 @@ type Subscription {
 const Query = gql`  
 type Query {
     currentNumber: Int
-    jobs: [Jobs]
+    jobs(experimentName:String, pipelineName:String, pipelineType:String, algorithmName:String, pipelineStatus:String): [Jobs]
     job(id: String!): Jobs
     jobsByExperimentName(experimentName: String!): [Jobs]
     algorithms:[Algorithms]
-    algorithmsByName(name: String): Algorithms
+    algorithmsByName(name: String!): Algorithms
     pipelines:[Pipelines]
-    algorithmBuilds:[AlgorithmBuild]
+    algorithmBuilds(algorithmName:String!):[AlgorithmBuild]
     experiments:[Experiments]
     nodeStatistics:[NodeStatistics]
     dataSources:[DataSources]
@@ -394,18 +393,18 @@ type Subscription {
 
 const types = [
 
-    dataSourcesTypeDefs,
-    algorithmBuildsTypeDefs,
-    jobTypeDefs,
-    algorithmTypeDefs,
-    pipelineTypeDefs,
-    experimentTypeDefs,
-    nodeStatisticTypeDefs,
-    diskSpaceTypeDefs,
-    pipelineStatsTypeDefs,
-    SubscriptionIncNumbersTypeDefs,
-    Query,
-    Subscription
+  dataSourcesTypeDefs,
+  algorithmBuildsTypeDefs,
+  jobTypeDefs,
+  algorithmTypeDefs,
+  pipelineTypeDefs,
+  experimentTypeDefs,
+  nodeStatisticTypeDefs,
+  diskSpaceTypeDefs,
+  pipelineStatsTypeDefs,
+  SubscriptionIncNumbersTypeDefs,
+  Query,
+  Subscription
 ];
 
 

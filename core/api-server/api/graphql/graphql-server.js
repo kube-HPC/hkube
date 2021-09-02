@@ -4,75 +4,16 @@ const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core');
 const { SubscriptionServer } = require('subscriptions-transport-ws');
 const { PubSub, withFilter } = require("graphql-subscriptions");
 const { GraphQLScalarType, execute, subscribe } = require('graphql');
-const stubs = require('./stub.json');
+//const stubs = require('./stub.json');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
-const typeDefs = require('./graphqlSchema');
+const typeDefs = require('./graphql-schema');
+const resolvers = require('./resolvers');
 
 
-const ObjectScalarType = new GraphQLScalarType({
-    name: 'Object',
-    description: 'Arbitrary object',
-    parseValue: (value) => {
-        return typeof value === 'object' ? value
-            : typeof value === 'string' ? JSON.parse(value)
-                : null
-    },
-    serialize: (value) => {
-        return typeof value === 'object' ? value
-            : typeof value === 'string' ? JSON.parse(value)
-                : null
-    },
-    parseLiteral: (ast) => {
-        switch (ast.kind) {
-            case Kind.STRING: return JSON.parse(ast.value)
-            case Kind.OBJECT: throw new Error(`Not sure what to do with OBJECT for ObjectScalarType`)
-            default: return null
-        }
-    }
-})
 const pubsub = new PubSub();
-const resolvers = {
-    Object: ObjectScalarType,
-    Query: {
-        jobs: () => stubs.jobs,
-        algorithms: () => stubs.algorithms,
-        algorithmsByName: (parent, args, context, info) => {
-            return stubs.algorithms.find(algorithm => algorithm.name === args.name);
-        },
-        jobsByExperimentName: (parent, args, context, info) => {
-            return stubs.jobs.filter(job => job.pipeline.experimentName === args.experimentName);
-        },
-        pipelines: () => stubs.pipelines,
-        algorithmBuilds: () => stubs.algorithmBuilds,
-    },
-    Subscription: {
-        numberIncremented: {
-            subscribe: () => {
-                return pubsub.asyncIterator(["NUMBER_INCREMENTED"])
-            }
-        },
-        numberIncrementedOdd: {
-            subscribe: withFilter(
-                () => pubsub.asyncIterator('NUMBER_INCREMENTED_ODD'),
-                (payload, variables) => {
-                    // Only push an update if the comment is on
-                    // the correct repository for this operation
-                    console.log(variables)
-                    return ((payload.numberIncrementedOdd % variables.number) === 0);
-                },
-            )
-        }
-    },
-
-};
-
-
-
 
 async function startApolloServer(typeDefs, resolvers, app, httpServer, port) {
 
-    // const app = express();
-    //   const httpServer = createServer(app);
     const schema = makeExecutableSchema({
         typeDefs,
         resolvers,
@@ -130,9 +71,70 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port) {
 
 
 const graphqlServer = (app, httpServer, port) => {
-    startApolloServer(typeDefs, resolvers, app, httpServer, port).catch(err => {
+    startApolloServer(typeDefs, resolvers.getResolvers(), app, httpServer, port).catch(err => {
         console.log(err);
     });
 }
 
 module.exports = graphqlServer;
+
+
+
+
+// const ObjectScalarType = new GraphQLScalarType({
+//     name: 'Object',
+//     description: 'Arbitrary object',
+//     parseValue: (value) => {
+//         return typeof value === 'object' ? value
+//             : typeof value === 'string' ? JSON.parse(value)
+//                 : null
+//     },
+//     serialize: (value) => {
+//         return typeof value === 'object' ? value
+//             : typeof value === 'string' ? JSON.parse(value)
+//                 : null
+//     },
+//     parseLiteral: (ast) => {
+//         switch (ast.kind) {
+//             case Kind.STRING: return JSON.parse(ast.value)
+//             case Kind.OBJECT: throw new Error(`Not sure what to do with OBJECT for ObjectScalarType`)
+//             default: return null
+//         }
+//     }
+// })
+
+
+// const resolvers = {
+//     Object: ObjectScalarType,
+//     Query: {
+//         jobs: () => stubs.jobs,
+//         algorithms: () => stubs.algorithms,
+//         algorithmsByName: (parent, args, context, info) => {
+//             return stubs.algorithms.find(algorithm => algorithm.name === args.name);
+//         },
+//         jobsByExperimentName: (parent, args, context, info) => {
+//             return stubs.jobs.filter(job => job.pipeline.experimentName === args.experimentName);
+//         },
+//         pipelines: () => stubs.pipelines,
+//         algorithmBuilds: () => stubs.algorithmBuilds,
+//     },
+//     Subscription: {
+//         numberIncremented: {
+//             subscribe: () => {
+//                 return pubsub.asyncIterator(["NUMBER_INCREMENTED"])
+//             }
+//         },
+//         numberIncrementedOdd: {
+//             subscribe: withFilter(
+//                 () => pubsub.asyncIterator('NUMBER_INCREMENTED_ODD'),
+//                 (payload, variables) => {
+//                     // Only push an update if the comment is on
+//                     // the correct repository for this operation
+//                     console.log(variables)
+//                     return ((payload.numberIncrementedOdd % variables.number) === 0);
+//                 },
+//             )
+//         }
+//     },
+
+// };

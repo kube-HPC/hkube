@@ -152,4 +152,17 @@ config.storageAdapters = {
     }
 };
 
+
+//monitor-server
+
+config.sizes = {
+    maxFlowInputSize: formatter.parseInt(process.env.MAX_FLOW_INPUT_SIZE, 3000),
+};
+
+config.graph = {
+    enableStreamingMetrics: formatter.parseBool(process.env.ENABLE_STREAMING_METRICS, false),
+    maxBatchSize: formatter.parseInt(process.env.MAX_BATCH_SIZE, 10),
+
+};
+
 module.exports = config;
