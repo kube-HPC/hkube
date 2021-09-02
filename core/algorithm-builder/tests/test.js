@@ -3,10 +3,16 @@ const fse = require('fs-extra');
 const { uuid } = require('@hkube/uid');
 const storageManager = require('@hkube/storage-manager');
 const stateManger = require('../lib/state/state-manager');
-const mockBuildNodejs = require('./mocks/nodejs/build.json');
-const mockBuildNodejsFromGit = require('./mocks/nodejs/build-from-git');
-const mockBuildPython = require('./mocks/python/build.json');
+const { createBuild } = require('./builds');
 let config, dockerBuilder;
+
+const runBuild = async ({ buildId, env }) => {
+    const tar = `${process.cwd()}/tests/mocks/${env}/alg.tar.gz`;
+    const file = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(tar) });
+    const buildObj = createBuild({ buildId, env, filePath: file.path });
+    await stateManger.insertBuild(buildObj);
+    await dockerBuilder.runBuild({ ...config, buildId });
+}
 
 describe('Test', function () {
     before(async () => {
@@ -33,68 +39,32 @@ describe('Test', function () {
             expect(response).to.have.property('status');
             expect(response).to.have.property('result');
         });
-        it('should build', async function () {
-            const mockBuild = require(`./mocks/python/build.json`);
-
-            await stateManger.insertBuild(mockBuild);
-            await stateManger.updateBuild(mockBuild);
+        it('java: build', async function () {
+            const env = 'java';
+            const buildId = uuid();
+            await runBuild({ buildId, env });
+            const build = await stateManger.getBuild({ buildId });
+            expect(build.status).to.equal('completed');
+            expect(build.algorithmImage).to.equal('docker.io/sort-alg:v5.0.0');
+            expect(build.progress).to.equal(100);
         });
-        xit('should succeed to build docker', async function () {
-            this.timeout(5000)
-            const env = config.testModeEnv;
-            const tar = `${process.cwd()}/tests/mocks/${env}/alg.tar.gz`;
-            const mockBuild = require(`./mocks/${env}/build.json`);
-            const mockAlg = require(`./mocks/${env}/algorithm.json`);
-
-            const { buildId } = mockBuild;
-            await stateManger._etcd.algorithms.store.set(mockAlg);
-            await stateManger.insertBuild(mockBuild);
-            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(tar) });
-            config.buildId = buildId;
-
-            await dockerBuilder.runBuild(config);
-            const build = await stateManger.watchBuild({ buildId });
-            expect(build.algorithmImage).to.contain(mockBuild.algorithmName);
-            expect(build.algorithmImage).to.contain(mockBuild.version);
+        it('nodejs: build', async function () {
+            const env = 'nodejs';
+            const buildId = uuid();
+            await runBuild({ buildId, env });
+            const build = await stateManger.getBuild({ buildId });
+            expect(build.status).to.equal('completed');
+            expect(build.algorithmImage).to.equal('docker.io/sort-alg:v5.0.0');
+            expect(build.progress).to.equal(100);
         });
-        xit('NODEJS: should succeed to build docker', async function () {
-            this.timeout(50000);
-            const mockZip = `${process.cwd()}/tests/mocks/nodejs/sort-alg-nodejs.tar.gz`;
-            const { buildId } = mockBuildNodejs;
-            await stateManger.insertBuild(mockBuildNodejs);
-            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
-            config.buildId = buildId;
-            const response = await dockerBuilder.runBuild(config);
-            expect(response.status).to.equal('completed');
-            expect(response).to.have.property('buildId');
-            expect(response).to.have.property('status');
-            expect(response).to.have.property('result');
-        });
-        xit('NODEJS: should succeed to build docker from git', async function () {
-            this.timeout(5000000);
-            const { buildId } = mockBuildNodejsFromGit;
-            await stateManger.insertBuild(mockBuildNodejsFromGit);
-            config.buildId = buildId;
-            const response = await dockerBuilder.runBuild(config);
-            expect(response.status).to.equal('completed');
-            expect(response).to.have.property('buildId');
-            expect(response.result).to.contain('docker version')
-            expect(response).to.have.property('status');
-            expect(response).to.have.property('result');
-        });
-        xit('PYTHON: should succeed to build docker', async function () {
-            this.timeout(200000);
-            const mockZip = `${process.cwd()}/tests/mocks/python/web-scrap.tar.gz`;
-            const { buildId } = mockBuildPython;
-            await stateManger.insertBuild(mockBuildPython);
-            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
-            config.buildId = buildId;
-            const response = await dockerBuilder.runBuild(config);
-            expect(response.status).to.equal('completed');
-            expect(response).to.have.property('buildId');
-            expect(response.result).to.contain('docker version')
-            expect(response).to.have.property('status');
-            expect(response).to.have.property('result');
+        it('python: build', async function () {
+            const env = 'python';
+            const buildId = uuid();
+            await runBuild({ buildId, env });
+            const build = await stateManger.getBuild({ buildId });
+            expect(build.status).to.equal('completed');
+            expect(build.algorithmImage).to.equal('docker.io/sort-alg:v5.0.0');
+            expect(build.progress).to.equal(100);
         });
     });
 });

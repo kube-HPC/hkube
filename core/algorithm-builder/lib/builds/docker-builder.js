@@ -169,9 +169,6 @@ const _watchBuild = async ({ buildId }) => {
     log.info(`watch build -> ${buildId}`, { component });
     stateManger.on(`build-${buildStatuses.STOPPED}`, () => { isStopped = true; });
     const build = await stateManger.watchBuild({ buildId });
-    if (!build) {
-        throw new Error(`unable to find build -> ${buildId}`);
-    }
     return build;
 };
 
@@ -516,7 +513,6 @@ const runBuild = async (options) => {
 
 module.exports = {
     runBuild,
-    runBash,
-    buildAlgorithmImage
+    buildAlgorithmImage,
 };
 
