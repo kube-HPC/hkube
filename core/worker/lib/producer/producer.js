@@ -10,7 +10,8 @@ class Producers {
         this._schema = validator.compile(schema);
         const setting = {
             redis: options.redis,
-            tracer
+            tracer,
+            enableCheckStalledJobs: false
         };
         const valid = this._schema(setting);
         if (!valid) {
