@@ -43,7 +43,15 @@
         "request-promise": "^4.2.6",
         "requestretry": "^4.1.2",
         "semver": "^7.3.4",
-        "string-template": "^1.0.0"
+        "string-template": "^1.0.0",
+        "apollo-server": "^3.3.0",
+        "apollo-server-core": "^3.3.0",
+        "apollo-server-express": "^3.3.0",
+        "express": "^4.17.1",
+        "graphql": "^15.5.2",
+        "graphql-subscriptions": "^1.2.1",
+        "graphql-tools": "^8.1.0",
+        "subscriptions-transport-ws": "^0.9.19"
     },
     "devDependencies": {
         "@hkube/encoding": "^1.0.21",
