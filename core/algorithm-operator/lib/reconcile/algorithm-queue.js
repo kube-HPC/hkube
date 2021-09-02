@@ -95,8 +95,9 @@ const _createQueueId = () => {
     return uid({ length: 12 });
 };
 
-const _addDeployments = async ({ limit, deployments, availableQueues, algorithms, versions, registry, clusterOptions, resources, options }) => {
-    const requiredDeployments = Math.ceil(algorithms / limit);
+const _addDeployments = async ({ limit, deployments, availableQueues, algorithmsToQueue, requiredAlgorithms, versions, registry, clusterOptions, resources, options }) => {
+    const totalAlgorithms = Object.keys(algorithmsToQueue).length + requiredAlgorithms;
+    const requiredDeployments = Math.ceil(totalAlgorithms / limit);
     const desiredDeployments = requiredDeployments - deployments;
     if (availableQueues.length === 0 && desiredDeployments > 0) {
         log.info(`need to add ${desiredDeployments} algorithm-queue deployments`, { component });
@@ -126,7 +127,7 @@ const reconcile = async ({ deployments, algorithms, discovery, versions, registr
     const requiredAlgorithms = normAlgorithms.filter(a => isRequired({ alg: a, algorithmsToQueue, waitingCount, algorithmQueues, maxIdleTime }));
 
     if (!devMode) {
-        await _addDeployments({ limit, deployments: normDeployments.length, availableQueues, algorithms: requiredAlgorithms.length, versions, registry, clusterOptions, resources, options });
+        await _addDeployments({ limit, deployments: normDeployments.length, availableQueues, algorithmsToQueue, requiredAlgorithms: requiredAlgorithms.length, versions, registry, clusterOptions, resources, options });
         await _updateDeployments({ normDeployments, options: { versions, registry, clusterOptions, resources, options } });
         await _deleteDeployments({ queues: queueToAlgorithms, normDeployments });
     }
