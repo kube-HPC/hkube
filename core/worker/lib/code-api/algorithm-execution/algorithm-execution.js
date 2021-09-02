@@ -63,7 +63,8 @@ class AlgorithmExecution {
     _initProducer(options) {
         const setting = {
             redis: options.redis,
-            tracer
+            tracer,
+            enableCheckStalledJobs: false
         };
         const valid = this._producerSchema(setting);
         if (!valid) {
