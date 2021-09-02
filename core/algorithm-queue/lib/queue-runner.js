@@ -1,9 +1,9 @@
-const { queueEvents, metricsName, metricsTypes } = require('./consts/index');
 const Queue = require('./queue');
 const HeuristicRunner = require('./heuristic-runner');
-const EnrichmentRunner = require('./enrichment-runner');
 const Persistence = require('./persistency/persistence');
+const EnrichmentRunner = require('./enrichment-runner');
 const aggregationMetricFactory = require('./metrics/aggregation-metrics-factory');
+const { queueEvents, metricsName, metricsTypes } = require('./consts/index');
 
 class QueueRunner {
     create({ algorithmName, options }) {
@@ -15,7 +15,7 @@ class QueueRunner {
             algorithmMinIdleTimeMS: options.algorithmQueueBalancer.algorithmMinIdleTimeMS,
             scoreHeuristic: (...args) => scoreHeuristic.run(...args),
             enrichmentRunner: (...args) => enrichmentRunner.run(...args),
-            persistence: new Persistence({ algorithmName }),
+            persistence: new Persistence({ algorithmName, maxScoringSize: options.scoring.maxSize }),
         });
         queue.on(queueEvents.UPDATE_SCORE, queueScore => aggregationMetricFactory.scoreHistogram(queueScore));
         queue.on(queueEvents.INSERT, (taskArr) => {

@@ -6,47 +6,52 @@ const { queueEvents, componentName } = require('./consts');
 const component = componentName.QUEUE;
 
 class Queue extends Events {
-    constructor({ scoreHeuristic = { run: null }, persistence = null } = {}) {
+    constructor({ scoreHeuristic, persistency } = {}) {
         super();
-        this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
+        this.scoreHeuristic = scoreHeuristic;
         this.queue = [];
-        this.isIntervalRunning = true;
-        this.persistence = persistence;
+        this._active = true;
+        this._persistency = persistency;
     }
 
     flush() {
         this.queue = [];
     }
 
+    async shutdown() {
+        this._active = false;
+        await this.pause();
+        const pendingAmount = await this._producer.getWaitingCount();
+        await this.persistencyStore({ data: this.queue, pendingAmount });
+    }
+
     async persistencyLoad() {
-        if (!this.persistence) {
+        if (!this._persistency) {
             return;
         }
-        log.info('try to load data from persistent storage', { component });
-        try {
-            const queueItems = await this.persistence.get();
-            if (queueItems && queueItems.data && queueItems.data.length > 0) {
-                queueItems.data.forEach(q => this.enqueue(q));
-            }
-            log.info('successfully load data from persistent storage', { component });
-        }
-        catch (e) {
-            log.error(`failed to load data from persistent storage, ${e.message}`, { component }, e);
+        const data = await this._persistency.get();
+        if (data?.length > 0) {
+            data.forEach(q => {
+                const item = {
+                    ...q,
+                    calculated: {
+                        latestScores: {}
+                    }
+                };
+                this.enqueue(item);
+            });
         }
     }
 
     async persistenceStore(data) {
-        if (!this.persistence) {
+        if (!this._persistency || !data) {
             return;
         }
-        log.debug('try to store data to persistent storage', { component });
-        try {
-            await this.persistence.store(data);
-            log.debug('successfully store data to storage', { component });
-        }
-        catch (e) {
-            log.error(`failed to store data to persistent storage, ${e.message}`, { component }, e);
-        }
+        const mapData = data.map(q => {
+            const { calculated, ...rest } = q;
+            return rest;
+        });
+        await this._persistency.store(mapData);
     }
 
     updateHeuristic(scoreHeuristic) {
@@ -82,10 +87,6 @@ class Queue extends Events {
 
     getQueue(filter = () => true) {
         return this.queue.filter(filter);
-    }
-
-    set intervalRunningStatus(status) {
-        this.isIntervalRunning = status;
     }
 }
 

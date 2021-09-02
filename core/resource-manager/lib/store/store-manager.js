@@ -8,6 +8,7 @@ class StoreManager {
         const log = Logger.GetLogFromContainer();
         this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
         const { provider, ...config } = options.db;
+        this._maxScoringSize = options.scoring.maxSize;
         this._db = dbConnect(config, provider);
         await this._db.init();
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
@@ -25,8 +26,8 @@ class StoreManager {
         });
     }
 
-    async setAlgorithmsResourceRequirements(options) {
-        return this._etcd.algorithms.requirements.set(options);
+    async setAlgorithmsResourceRequirements({ name, data }) {
+        return this._etcd.algorithms.requirements.set({ name, data: data.slice(0, this._maxScoringSize) });
     }
 
     async getPipelineDriverQueue(options) {

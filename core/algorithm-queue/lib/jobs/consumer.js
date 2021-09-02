@@ -120,8 +120,7 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-    // TODO: remove this calculated stuff....
-    pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
+    _adaptData(jobData, taskData, initialBatchLength) {
         const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
             acc[cur] = 0.00001;
             return acc;
@@ -149,7 +148,7 @@ class JobConsumer extends EventEmitter {
 
     queueTasksBuilder(job) {
         const { tasks, ...jobData } = job.data;
-        const taskList = tasks.map(task => this.pipelineToQueueAdapter(jobData, task, tasks.length));
+        const taskList = tasks.map(task => this._adaptData(jobData, task, tasks.length));
         this.emit('jobs-add', taskList);
     }
 }

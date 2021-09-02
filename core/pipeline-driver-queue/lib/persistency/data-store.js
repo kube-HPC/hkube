@@ -4,16 +4,10 @@ const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 const component = require('../consts/component-name').DB;
 
-class Persistence extends EventEmitter {
-    constructor() {
-        super();
-        this.queueName = null;
-    }
-
-    async init({ options }) {
+class DataStore extends EventEmitter {
+    async init(options) {
         const log = Logger.GetLogFromContainer();
-        const { etcd, persistence, serviceName } = options;
-        this.queueName = persistence.type;
+        const { etcd, serviceName } = options;
         this._etcd = new Client({ ...etcd, serviceName });
         await this._watchJobStatus();
         this._etcd.jobs.status.on('change', (data) => {
@@ -23,15 +17,10 @@ class Persistence extends EventEmitter {
         this._db = dbConnect(config, provider);
         await this._db.init();
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
-        return this;
     }
 
-    store(data) {
-        return this._etcd.pipelineDrivers.queue.set({ name: this.queueName, data });
-    }
-
-    get() {
-        return this._etcd.pipelineDrivers.queue.get({ name: this.queueName });
+    async storeQueue(options) {
+        return this._etcd.pipelineDrivers.queue.set(options);
     }
 
     async _watchJobStatus(options) {
@@ -53,4 +42,4 @@ class Persistence extends EventEmitter {
     }
 }
 
-module.exports = new Persistence();
+module.exports = new DataStore();

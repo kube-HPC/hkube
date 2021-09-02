@@ -1,6 +1,6 @@
 {
   "name": "algorithm-queue",
-  "version": "2.1.9",
+  "version": "2.1.10",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -25,10 +25,12 @@
     "@hkube/metrics": "^1.0.42",
     "@hkube/producer-consumer": "^1.0.50",
     "@hkube/redis-utils": "^1.0.3",
+    "@hkube/storage-manager": "^2.0.34",
     "@hkube/uid": "^1.0.4",
     "lodash.isequal": "^4.5.0",
     "lodash.orderby": "^4.6.0",
-    "lodash.remove": "^4.7.0"
+    "lodash.remove": "^4.7.0",
+    "performance-now": "^2.1.0"
   },
   "devDependencies": {
     "await-delay": "^1.0.0",
