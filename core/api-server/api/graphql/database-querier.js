@@ -102,13 +102,21 @@ class DatabaseQuerier extends Events {
         });
         return { experimentName, jobs };
     }
-    async getJobs(experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName) {
-        const jobs = await this._db.jobs.search({
-            experimentName,
-            pipelineName,
-            pipelineType,
-            pipelineStatus,
-            algorithmName,
+    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, cursor, pageNum, sort }) {
+
+        const jobs = await this._db.jobs.searchApi({
+            query: {
+                experimentName,
+                pipelineName,
+                pipelineType,
+                pipelineStatus,
+                algorithmName,
+                datesRange
+            },
+            cursor,
+            pageNum,
+            sort,
+            fields: {},
             limit: MAX_ITEMS,
             maxItemsSize: this._options.sizes.maxFlowInputSize,
             itemsToRemove: ['pipeline.flowInput', 'userPipeline.flowInput', 'pipeline.flowInputMetadata']

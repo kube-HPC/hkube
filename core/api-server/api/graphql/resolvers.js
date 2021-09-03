@@ -28,9 +28,15 @@ class GraphqlResolvers {
 
     }
 
-    async queryJobs(experimentName, pipelineName, pipelineType, algorithmName, pipelineStatus) {
-        const jobs = await dbQueires.getJobs()
-        return jobs.map(job => ({ ...job, key: job.jobId, results: job.result }));
+
+
+    async queryJobs(query) {
+        const jobs = await dbQueires.getJobs(query || {});
+        return {
+            jobs: jobs.hits.map(job => ({ ...job, key: job.jobId, results: job.result })),
+            cursor: jobs.cursor
+
+        };
     }
 
     async queryJob(jobId) {
@@ -61,7 +67,9 @@ class GraphqlResolvers {
 
     _getQueryResolvers() {
         return {
-            jobs: () => this.queryJobs(),
+            jobsAggregated: (parent, args, context, info) => {
+                return this.queryJobs({ ...args })
+            },
             algorithms: () => this.queryAlgorithms(),
             algorithmsByName: (parent, args, context, info) => {
                 return this.queryAlgorithmsByName(args.name);
