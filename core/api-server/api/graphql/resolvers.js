@@ -56,19 +56,20 @@ class GraphqlResolvers {
     }
 
     async queryPipelines() {
-
         return await dbQueires._getStoredPipelines()
-
     }
-
+    async queryPipelinesStats(pipelineName) {
+        return await dbQueires.getPipelinesStats();
+    }
     async queryAlgorithmBuilds(algorithmName) {
         return await stateManager.getBuilds({ algorithmName });
     }
 
     _getQueryResolvers() {
         return {
-            jobsAggregated: (parent, args, context, info) => {
-                return this.queryJobs({ ...args })
+            jobsAggregated: async (parent, args, context, info) => {
+                const jobs = await this.queryJobs({ ...args })
+                return { jobs: jobs.jobs, cursor: jobs.cursor };
             },
             algorithms: () => this.queryAlgorithms(),
             algorithmsByName: (parent, args, context, info) => {
@@ -81,7 +82,10 @@ class GraphqlResolvers {
             algorithmBuilds: (parent, args, context, info) => {
 
                 return this.queryAlgorithmBuilds(args.algorithmName)
-            }
+            },
+            pipelineStats: (parent, args, context, info) => {
+                return this.queryPipelinesStats()
+            },
         }
 
     }

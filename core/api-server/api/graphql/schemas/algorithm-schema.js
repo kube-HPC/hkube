@@ -15,11 +15,11 @@ type GitRepository { gitKind: String
 
 type Algorithms { 
  name: String
-  cpu: Int
+  cpu: String
   created: Float
   entryPoint: String
   env: String
-  gpu: Int
+  gpu: String
   mem: String
   minHotWorkers: Int
   modified: Float

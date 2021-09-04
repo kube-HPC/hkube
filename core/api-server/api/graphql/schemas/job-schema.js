@@ -126,7 +126,7 @@ type Results {
 
 
   extend type Query {
-    jobsAggregated(experimentName:String, pipelineName:String, pipelineType:String, algorithmName:String, pipelineStatus:String,datesRange:Range,cursor:String): AggregatedJobs
+    jobsAggregated(experimentName:String, pipelineName:String, pipelineType:String, algorithmName:String, pipelineStatus:String,datesRange:Range,cursor:String,limit:Int): AggregatedJobs
     job(id: String!): Job
     jobsByExperimentName(experimentName: String!): [Job]
   }

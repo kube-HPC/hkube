@@ -2,6 +2,7 @@ const Events = require('events');
 const Etcd = require('@hkube/etcd');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
+const pipelineStats = require('./get-pipeline-stats');
 let log;
 const ETCD_INTERVAL = 2000;
 const MAX_ITEMS = 100;
@@ -88,8 +89,8 @@ class DatabaseQuerier extends Events {
         return experimentName;
     }
 
-    getPipelinesStats({ limit, pipelineType }) {
-        return this._db.jobs.getPipelinesStats({ limit, pipelineType });
+    getPipelinesStats() {
+        return pipelineStats({ limit: 1000, db: this._db });
     }
 
     async getJobsForExperiment(experimentName) {
@@ -102,7 +103,7 @@ class DatabaseQuerier extends Events {
         });
         return { experimentName, jobs };
     }
-    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, cursor, pageNum, sort }) {
+    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, cursor, pageNum, sort, limit = MAX_ITEMS }) {
 
         const jobs = await this._db.jobs.searchApi({
             query: {
@@ -117,7 +118,8 @@ class DatabaseQuerier extends Events {
             pageNum,
             sort,
             fields: {},
-            limit: MAX_ITEMS,
+            limit,
+            // limit: MAX_ITEMS,
             maxItemsSize: this._options.sizes.maxFlowInputSize,
             itemsToRemove: ['pipeline.flowInput', 'userPipeline.flowInput', 'pipeline.flowInputMetadata']
         });
