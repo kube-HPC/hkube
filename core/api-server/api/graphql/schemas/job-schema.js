@@ -1,7 +1,5 @@
 const { gql } = require('apollo-server');
 
-
-
 const jobTypeDefs = gql`
 
 scalar Object
@@ -65,7 +63,7 @@ type Results {
 
   type States { succeed: Int }
 
-  type Data { progress: Int details: String states: States }
+  type Data { progress: Float details: String states: States }
 
   type Status { timestamp: Float
     status: String
@@ -134,7 +132,6 @@ type Results {
   # Types with identical fields:
   # Green FlowInputfileslink
 
-`
-
+`;
 
 module.exports = jobTypeDefs;
