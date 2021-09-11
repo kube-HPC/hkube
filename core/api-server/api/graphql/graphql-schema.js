@@ -38,6 +38,7 @@ const types = [
   experimentTypeDefs,
   nodeStatisticTypeDefs,
   diskSpaceTypeDefs,
+  discoveryTypeDefs,
   pipelineStatsTypeDefs,
   SubscriptionIncNumbersTypeDefs,
   Query,

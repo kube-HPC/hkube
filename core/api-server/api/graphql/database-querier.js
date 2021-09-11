@@ -38,7 +38,8 @@ class DatabaseQuerier extends Events {
             try {
                 this._working = true;
                 await this.getResult();
-                await this.getJobs();
+                // await this.getJobs();
+                await this._getDiscovery();
             }
             catch (error) {
                 log.throttle.error(error.message, { component }, error);
@@ -63,16 +64,20 @@ class DatabaseQuerier extends Events {
     }
 
     async getResult() {
-        const [discovery, algorithms, pipelines, algorithmBuilds, experiments, dataSources, boards] = await Promise.all([
+        //   const [discovery, algorithms, pipelines, algorithmBuilds, experiments, dataSources, boards] = await Promise.all([
+        const [discovery] = await Promise.all([
+
             this._getDiscovery(),
-            this._getAlgorithms(),
-            this._getStoredPipelines(),
-            this._getAlgorithmBuilds(),
-            this._getExperiments(),
-            this._getDataSources(),
-            this._getBoards()
+            // this._getAlgorithms(),
+            // this._getStoredPipelines(),
+            // this._getAlgorithmBuilds(),
+            // this._getExperiments(),
+            // this._getDataSources(),
+            // this._getBoards()
         ]);
-        this.lastResults = { discovery, algorithms, pipelines, algorithmBuilds, experiments, dataSources, boards };
+        // this.lastResults = { discovery, algorithms, pipelines, algorithmBuilds, experiments, dataSources, boards };
+        this.lastResults = { discovery };
+
         return this.lastResults;
     }
 
@@ -142,8 +147,8 @@ class DatabaseQuerier extends Events {
     async _getDiscovery() {
         const discovery = Object.create(null);
         discovery.worker = await this._getDiscoveryType('worker');
-        discovery['task-executor'] = await this._getDiscoveryType('task-executor');
-        discovery['pipeline-driver'] = await this._getDiscoveryType('pipeline-driver');
+        discovery['taskExecutor'] = await this._getDiscoveryType('task-executor');
+        discovery['pipelineDriver'] = await this._getDiscoveryType('pipeline-driver');
         return discovery;
     }
 

@@ -40,7 +40,9 @@ class GraphqlResolvers {
     }
 
     async queryJob(jobId) {
-        return await stateManager.getJob(jobId);
+
+        const { result, ...job } = await stateManager.getJob(jobId);
+        return { ...job, key: job.jobId, results: result };
     }
     async queryAlgorithms() {
         return await stateManager.getAlgorithms();
@@ -65,6 +67,11 @@ class GraphqlResolvers {
         return await stateManager.getBuilds({ algorithmName });
     }
 
+    async getDiscovery() {
+        // return await dbQueires._getDiscovery();
+        return dbQueires.lastResults?.discovery;
+    }
+
     _getQueryResolvers() {
         return {
             jobsAggregated: async (parent, args, context, info) => {
@@ -86,6 +93,12 @@ class GraphqlResolvers {
             pipelineStats: (parent, args, context, info) => {
                 return this.queryPipelinesStats()
             },
+            job: (parent, args, context, info) => {
+                return this.queryJob(args.id)
+            },
+            discovery: (parent, args, context, info) => {
+                return this.getDiscovery()
+            }
         }
 
     }
