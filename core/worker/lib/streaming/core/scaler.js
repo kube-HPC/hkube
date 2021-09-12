@@ -48,7 +48,7 @@ class Scaler {
     _startInterval() {
         this._interval = new Interval({ delay: this._scaleInterval })
             .onFunc(() => this._checkScale())
-            .onError((e) => log.throttle.error(e.message, { component }))
+            .onError((e) => log.throttle.error(e.message, { component }, e))
             .start();
     }
 
