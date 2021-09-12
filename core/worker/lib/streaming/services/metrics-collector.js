@@ -17,7 +17,7 @@ class MetricsCollector extends EventEmitter {
     _start() {
         this._metricsInterval = new Interval({ delay: this._options.metrics.interval })
             .onFunc(() => this._checkMetrics())
-            .onError((e) => log.throttle.error(e.message, { component }))
+            .onError((e) => log.throttle.error(e.message, { component }, e))
             .start();
     }
 
