@@ -64,7 +64,11 @@ jobs:
             scripts/runTestAndBuild.sh
           fi
         env: 
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+          DOCKER_USER: "${{ secrets.DOCKER_USER }}"
+          EXTRA_DOCKER_LOGINS: "${{ secrets.EXTRA_DOCKER_LOGINS }}"
+          EXTRA_PRIVATE_REGISTRIES: "${{ secrets.EXTRA_PRIVATE_REGISTRIES }}"
       - name: trigger
         if: env.CHANGED
         id: trigger
