@@ -1,10 +1,38 @@
 const clonedeep = require('lodash.clonedeep');
 const { applyEnvToContainer, createImageFromContainer, applyImage: utilsApplyImage } = require('@hkube/kubernetes-client').utils;
-const { getIngressApiVersion, getIngressBackend } = require('@hkube/kubernetes-client').utils;
+const { getIngressApiVersion, getIngressBackend, applyVolumeMounts, applyVolumes } = require('@hkube/kubernetes-client').utils;
 const kubernetesApi = require('./kubernetes');
+const { settings } = require('./settings');
 const applyImage = (inputSpec, containerName, versions, registry) => {
     const image = createImageFromContainer(inputSpec, containerName, versions, registry);
     const spec = utilsApplyImage(inputSpec, image, containerName);
+    return spec;
+};
+
+const applySidecars = (inputSpec, clusterOptions = {}, serviceContainer) => {
+    let spec = clonedeep(inputSpec);
+    for (const sidecar of settings.sidecars) {
+        const { name, container, volumes, volumeMounts, environments } = sidecar;
+        if (!clusterOptions[`${name}SidecarEnabled`]) {
+            continue;
+        }
+        spec.spec.template.spec.containers.push(...container);
+        if (volumes) {
+            volumes.forEach((v) => {
+                spec = applyVolumes(spec, v);
+            });
+        }
+        if (volumeMounts) {
+            volumeMounts.forEach((v) => {
+                spec = applyVolumeMounts(spec, serviceContainer, v);
+            });
+        }
+        if (environments) {
+            environments.forEach((v) => {
+                spec = applyEnvToContainer(spec, serviceContainer, { [v.name]: v.value });
+            });
+        }
+    }
     return spec;
 };
 
@@ -44,5 +72,6 @@ module.exports = {
     applyImage,
     createContainerResourceByFactor,
     applyJaeger,
-    getIngressParams
+    getIngressParams,
+    applySidecars
 };

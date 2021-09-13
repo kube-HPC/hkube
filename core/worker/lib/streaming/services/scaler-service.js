@@ -21,7 +21,7 @@ class ScalerService {
     async _start() {
         this._autoScaleInterval = new Interval({ delay: this._options.interval })
             .onFunc(() => this.autoScale())
-            .onError((e) => log.throttle.error(e.message, { component }))
+            .onError((e) => log.throttle.error(e.message, { component }, e))
             .start();
     }
 

@@ -79,7 +79,7 @@ describe('Gateway', () => {
                 method: 'POST'
             };
             const wrapper = app.getWrapper();
-            await wrapper._stop({});
+            await wrapper._stop({ forceStop: true });
             wrapper._init(jobData);
             wrapper._start({});
             await request(options1);
@@ -107,7 +107,7 @@ describe('Gateway', () => {
             const wrapper = app.getWrapper();
             await wrapper._stop({});
             const response = await request(options);
-            expect(response.body.data).to.be.null;
+            expect(response.body.message).to.eql('this algorithm is not active yet');
         });
         it('should get job data params', async () => {
             const options = {
@@ -119,9 +119,9 @@ describe('Gateway', () => {
             wrapper._init(jobData);
             wrapper._start({});
             const response = await request(options);
-            expect(response.body.data.jobId).to.eql(jobData.jobId);
-            expect(response.body.data.defaultFlow).to.eql(jobData.defaultFlow);
-            expect(response.body.data.parsedFlow).to.eql(jobData.parsedFlow);
+            expect(response.body.jobId).to.eql(jobData.jobId);
+            expect(response.body.defaultFlow).to.eql(jobData.defaultFlow);
+            expect(response.body.parsedFlow).to.eql(jobData.parsedFlow);
         });
     });
 });

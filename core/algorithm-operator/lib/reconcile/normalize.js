@@ -154,17 +154,23 @@ const normalizeDriversJobs = (jobsRaw, predicate = () => true) => {
     return jobs;
 };
 
+/**
+ * calculate the desired drivers amount
+ */
 const normalizeDriversAmount = (drivers, requests, settings) => {
     const { minAmount, maxAmount, concurrency } = settings;
+    const current = drivers.length;
     const available = drivers.map(d => concurrency - d.jobs).reduce((a, b) => a + b, 0);
-    let amount = minAmount;
-
-    if (requests > available) {
-        amount = (requests - available) / concurrency;
-        amount = Math.ceil(amount);
+    let amount = 0;
+    if (current === 0) {
+        amount = minAmount;
     }
-    const desiredDrivers = Math.min(amount, maxAmount);
-    return desiredDrivers;
+    else if (requests > available) {
+        amount = (requests - available) / concurrency;
+        amount = current + Math.ceil(amount);
+        amount = Math.min(amount, maxAmount);
+    }
+    return amount;
 };
 
 module.exports = {

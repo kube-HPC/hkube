@@ -58,7 +58,8 @@ const wrapperVersions = {
     java: {
         file: 'version.txt',
         parse: (file) => {
-            return file;
+            const firstLine = file.split('\n')[0];
+            return firstLine;
         },
         override: async (file, version) => {
             await fse.writeFile(file, version);
@@ -168,9 +169,6 @@ const _watchBuild = async ({ buildId }) => {
     log.info(`watch build -> ${buildId}`, { component });
     stateManger.on(`build-${buildStatuses.STOPPED}`, () => { isStopped = true; });
     const build = await stateManger.watchBuild({ buildId });
-    if (!build) {
-        throw new Error(`unable to find build -> ${buildId}`);
-    }
     return build;
 };
 
@@ -402,7 +400,6 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imag
 
     // docker pull
     _createDockerCredsConfig(envs, docker, packages);
-    _envsHelper(envs, 'javaWrapperVersion', '2.0-SNAPSHOT');
     if (buildMode === KANIKO) {
         await _createKanikoConfigs(envs, tmpFolder, docker);
     }
@@ -516,7 +513,6 @@ const runBuild = async (options) => {
 
 module.exports = {
     runBuild,
-    runBash,
-    buildAlgorithmImage
+    buildAlgorithmImage,
 };
 

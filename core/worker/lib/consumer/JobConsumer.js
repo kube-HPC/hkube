@@ -51,7 +51,8 @@ class JobConsumer extends EventEmitter {
 
         this._consumer.on('job', async (job) => {
             if (job.data.status === taskStatuses.PRESCHEDULE) {
-                log.info(`job ${job.data.jobId} is in ${job.data.status} mode, calling done...`);
+                log.info(`job ${job.data.jobId}, taskId ${job.data.taskId} is in ${job.data.status} mode, calling done...`,
+                    { component, jobId: job.data.jobId, taskId: job.data.taskId });
                 job.done();
                 return;
             }

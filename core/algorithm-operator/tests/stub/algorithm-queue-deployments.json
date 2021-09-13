@@ -1,0 +1,1513 @@
+{
+    "statusCode": 200,
+    "body": {
+        "kind": "DeploymentList",
+        "apiVersion": "apps/v1",
+        "metadata": {
+            "selfLink": "/apis/apps/v1/namespaces/default/deployments/",
+            "resourceVersion": "22535550"
+        },
+        "items": [
+            {
+                "metadata": {
+                    "name": "algorithm-queue-kivrq7kzkgjy",
+                    "namespace": "default",
+                    "selfLink": "/apis/apps/v1/namespaces/default/deployments/algorithm-queue-kivrq7kzkgjy",
+                    "uid": "cd75ef65-85b7-47d8-a7c1-dc75070df65b",
+                    "resourceVersion": "22527982",
+                    "generation": 1,
+                    "creationTimestamp": "2021-08-29T09:20:48Z",
+                    "labels": {
+                        "app": "algorithm-queue",
+                        "core": "true",
+                        "group": "hkube",
+                        "queue-id": "kivrq7kzkgjy",
+                        "type": "algorithm-queue"
+                    },
+                    "annotations": {
+                        "deployment.kubernetes.io/revision": "1"
+                    },
+                    "managedFields": [
+                        {
+                            "manager": "unknown",
+                            "operation": "Update",
+                            "apiVersion": "apps/v1",
+                            "time": "2021-08-29T09:20:48Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:labels": {
+                                        ".": {},
+                                        "f:app": {},
+                                        "f:core": {},
+                                        "f:group": {},
+                                        "f:queue-id": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:spec": {
+                                    "f:progressDeadlineSeconds": {},
+                                    "f:replicas": {},
+                                    "f:revisionHistoryLimit": {},
+                                    "f:selector": {
+                                        "f:matchLabels": {
+                                            ".": {},
+                                            "f:app": {},
+                                            "f:queue-id": {}
+                                        }
+                                    },
+                                    "f:strategy": {
+                                        "f:rollingUpdate": {
+                                            ".": {},
+                                            "f:maxSurge": {},
+                                            "f:maxUnavailable": {}
+                                        },
+                                        "f:type": {}
+                                    },
+                                    "f:template": {
+                                        "f:metadata": {
+                                            "f:labels": {
+                                                ".": {},
+                                                "f:app": {},
+                                                "f:group": {},
+                                                "f:metrics-group": {},
+                                                "f:queue-id": {},
+                                                "f:type": {}
+                                            }
+                                        },
+                                        "f:spec": {
+                                            "f:containers": {
+                                                "k:{\"name\":\"algorithm-queue\"}": {
+                                                    ".": {},
+                                                    "f:env": {
+                                                        ".": {},
+                                                        "k:{\"name\":\"CONCURRENCY_LIMIT\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"INTERVAL\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"JAEGER_AGENT_SERVICE_HOST\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:fieldRef": {
+                                                                    ".": {},
+                                                                    "f:apiVersion": {},
+                                                                    "f:fieldPath": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"METRICS_PORT\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_DB_NAME\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_SERVICE_PASSWORD\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_SERVICE_USER_NAME\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"NODE_ENV\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        },
+                                                        "k:{\"name\":\"PRODUCER_UPDATE_INTERVAL\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"QUEUE_ID\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        }
+                                                    },
+                                                    "f:image": {},
+                                                    "f:imagePullPolicy": {},
+                                                    "f:name": {},
+                                                    "f:ports": {
+                                                        ".": {},
+                                                        "k:{\"containerPort\":3000,\"protocol\":\"TCP\"}": {
+                                                            ".": {},
+                                                            "f:containerPort": {},
+                                                            "f:protocol": {}
+                                                        }
+                                                    },
+                                                    "f:resources": {},
+                                                    "f:terminationMessagePath": {},
+                                                    "f:terminationMessagePolicy": {}
+                                                }
+                                            },
+                                            "f:dnsPolicy": {},
+                                            "f:restartPolicy": {},
+                                            "f:schedulerName": {},
+                                            "f:securityContext": {},
+                                            "f:terminationGracePeriodSeconds": {}
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "manager": "kube-controller-manager",
+                            "operation": "Update",
+                            "apiVersion": "apps/v1",
+                            "time": "2021-08-29T09:20:50Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:annotations": {
+                                        ".": {},
+                                        "f:deployment.kubernetes.io/revision": {}
+                                    }
+                                },
+                                "f:status": {
+                                    "f:availableReplicas": {},
+                                    "f:conditions": {
+                                        ".": {},
+                                        "k:{\"type\":\"Available\"}": {
+                                            ".": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:lastUpdateTime": {},
+                                            "f:message": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        },
+                                        "k:{\"type\":\"Progressing\"}": {
+                                            ".": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:lastUpdateTime": {},
+                                            "f:message": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        }
+                                    },
+                                    "f:observedGeneration": {},
+                                    "f:readyReplicas": {},
+                                    "f:replicas": {},
+                                    "f:updatedReplicas": {}
+                                }
+                            }
+                        }
+                    ]
+                },
+                "spec": {
+                    "replicas": 1,
+                    "selector": {
+                        "matchLabels": {
+                            "app": "algorithm-queue",
+                            "queue-id": "kivrq7kzkgjy"
+                        }
+                    },
+                    "template": {
+                        "metadata": {
+                            "creationTimestamp": null,
+                            "labels": {
+                                "app": "algorithm-queue",
+                                "group": "hkube",
+                                "metrics-group": "algorithm-queue",
+                                "queue-id": "kivrq7kzkgjy",
+                                "type": "algorithm-queue"
+                            }
+                        },
+                        "spec": {
+                            "containers": [
+                                {
+                                    "name": "algorithm-queue",
+                                    "image": "hkube/algorithm-queue:v2.1.8",
+                                    "ports": [
+                                        {
+                                            "containerPort": 3000,
+                                            "protocol": "TCP"
+                                        }
+                                    ],
+                                    "env": [
+                                        {
+                                            "name": "QUEUE_ID",
+                                            "value": "kivrq7kzkgjy"
+                                        },
+                                        {
+                                            "name": "NODE_ENV",
+                                            "value": "production"
+                                        },
+                                        {
+                                            "name": "METRICS_PORT",
+                                            "value": "3000"
+                                        },
+                                        {
+                                            "name": "INTERVAL",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_INTERVAL"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "CONCURRENCY_LIMIT",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_CONCURRENCY_LIMIT"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "PRODUCER_UPDATE_INTERVAL",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_PRODUCER_UPDATE_INTERVAL"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_SERVICE_USER_NAME",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-username"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_SERVICE_PASSWORD",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-password"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_DB_NAME",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-database"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "JAEGER_AGENT_SERVICE_HOST",
+                                            "valueFrom": {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "status.hostIP"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "resources": {},
+                                    "terminationMessagePath": "/dev/termination-log",
+                                    "terminationMessagePolicy": "File",
+                                    "imagePullPolicy": "IfNotPresent"
+                                }
+                            ],
+                            "restartPolicy": "Always",
+                            "terminationGracePeriodSeconds": 30,
+                            "dnsPolicy": "ClusterFirst",
+                            "securityContext": {},
+                            "schedulerName": "default-scheduler"
+                        }
+                    },
+                    "strategy": {
+                        "type": "RollingUpdate",
+                        "rollingUpdate": {
+                            "maxUnavailable": "25%",
+                            "maxSurge": "25%"
+                        }
+                    },
+                    "revisionHistoryLimit": 10,
+                    "progressDeadlineSeconds": 600
+                }
+            },
+            {
+                "metadata": {
+                    "name": "algorithm-queue-kku3aqvwn2tp",
+                    "namespace": "default",
+                    "selfLink": "/apis/apps/v1/namespaces/default/deployments/algorithm-queue-kku3aqvwn2tp",
+                    "uid": "f7ec4e85-a311-4833-b063-af919a330680",
+                    "resourceVersion": "22527997",
+                    "generation": 1,
+                    "creationTimestamp": "2021-08-29T09:20:49Z",
+                    "labels": {
+                        "app": "algorithm-queue",
+                        "core": "true",
+                        "group": "hkube",
+                        "queue-id": "kku3aqvwn2tp",
+                        "type": "algorithm-queue"
+                    },
+                    "annotations": {
+                        "deployment.kubernetes.io/revision": "1"
+                    },
+                    "managedFields": [
+                        {
+                            "manager": "unknown",
+                            "operation": "Update",
+                            "apiVersion": "apps/v1",
+                            "time": "2021-08-29T09:20:49Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:labels": {
+                                        ".": {},
+                                        "f:app": {},
+                                        "f:core": {},
+                                        "f:group": {},
+                                        "f:queue-id": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:spec": {
+                                    "f:progressDeadlineSeconds": {},
+                                    "f:replicas": {},
+                                    "f:revisionHistoryLimit": {},
+                                    "f:selector": {
+                                        "f:matchLabels": {
+                                            ".": {},
+                                            "f:app": {},
+                                            "f:queue-id": {}
+                                        }
+                                    },
+                                    "f:strategy": {
+                                        "f:rollingUpdate": {
+                                            ".": {},
+                                            "f:maxSurge": {},
+                                            "f:maxUnavailable": {}
+                                        },
+                                        "f:type": {}
+                                    },
+                                    "f:template": {
+                                        "f:metadata": {
+                                            "f:labels": {
+                                                ".": {},
+                                                "f:app": {},
+                                                "f:group": {},
+                                                "f:metrics-group": {},
+                                                "f:queue-id": {},
+                                                "f:type": {}
+                                            }
+                                        },
+                                        "f:spec": {
+                                            "f:containers": {
+                                                "k:{\"name\":\"algorithm-queue\"}": {
+                                                    ".": {},
+                                                    "f:env": {
+                                                        ".": {},
+                                                        "k:{\"name\":\"CONCURRENCY_LIMIT\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"INTERVAL\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"JAEGER_AGENT_SERVICE_HOST\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:fieldRef": {
+                                                                    ".": {},
+                                                                    "f:apiVersion": {},
+                                                                    "f:fieldPath": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"METRICS_PORT\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_DB_NAME\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_SERVICE_PASSWORD\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_SERVICE_USER_NAME\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"NODE_ENV\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        },
+                                                        "k:{\"name\":\"PRODUCER_UPDATE_INTERVAL\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"QUEUE_ID\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        }
+                                                    },
+                                                    "f:image": {},
+                                                    "f:imagePullPolicy": {},
+                                                    "f:name": {},
+                                                    "f:ports": {
+                                                        ".": {},
+                                                        "k:{\"containerPort\":3000,\"protocol\":\"TCP\"}": {
+                                                            ".": {},
+                                                            "f:containerPort": {},
+                                                            "f:protocol": {}
+                                                        }
+                                                    },
+                                                    "f:resources": {},
+                                                    "f:terminationMessagePath": {},
+                                                    "f:terminationMessagePolicy": {}
+                                                }
+                                            },
+                                            "f:dnsPolicy": {},
+                                            "f:restartPolicy": {},
+                                            "f:schedulerName": {},
+                                            "f:securityContext": {},
+                                            "f:terminationGracePeriodSeconds": {}
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "manager": "kube-controller-manager",
+                            "operation": "Update",
+                            "apiVersion": "apps/v1",
+                            "time": "2021-08-29T09:20:51Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:annotations": {
+                                        ".": {},
+                                        "f:deployment.kubernetes.io/revision": {}
+                                    }
+                                },
+                                "f:status": {
+                                    "f:availableReplicas": {},
+                                    "f:conditions": {
+                                        ".": {},
+                                        "k:{\"type\":\"Available\"}": {
+                                            ".": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:lastUpdateTime": {},
+                                            "f:message": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        },
+                                        "k:{\"type\":\"Progressing\"}": {
+                                            ".": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:lastUpdateTime": {},
+                                            "f:message": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        }
+                                    },
+                                    "f:observedGeneration": {},
+                                    "f:readyReplicas": {},
+                                    "f:replicas": {},
+                                    "f:updatedReplicas": {}
+                                }
+                            }
+                        }
+                    ]
+                },
+                "spec": {
+                    "replicas": 1,
+                    "selector": {
+                        "matchLabels": {
+                            "app": "algorithm-queue",
+                            "queue-id": "kku3aqvwn2tp"
+                        }
+                    },
+                    "template": {
+                        "metadata": {
+                            "creationTimestamp": null,
+                            "labels": {
+                                "app": "algorithm-queue",
+                                "group": "hkube",
+                                "metrics-group": "algorithm-queue",
+                                "queue-id": "kku3aqvwn2tp",
+                                "type": "algorithm-queue"
+                            }
+                        },
+                        "spec": {
+                            "containers": [
+                                {
+                                    "name": "algorithm-queue",
+                                    "image": "hkube/algorithm-queue:v2.1.8",
+                                    "ports": [
+                                        {
+                                            "containerPort": 3000,
+                                            "protocol": "TCP"
+                                        }
+                                    ],
+                                    "env": [
+                                        {
+                                            "name": "QUEUE_ID",
+                                            "value": "kku3aqvwn2tp"
+                                        },
+                                        {
+                                            "name": "NODE_ENV",
+                                            "value": "production"
+                                        },
+                                        {
+                                            "name": "METRICS_PORT",
+                                            "value": "3000"
+                                        },
+                                        {
+                                            "name": "INTERVAL",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_INTERVAL"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "CONCURRENCY_LIMIT",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_CONCURRENCY_LIMIT"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "PRODUCER_UPDATE_INTERVAL",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_PRODUCER_UPDATE_INTERVAL"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_SERVICE_USER_NAME",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-username"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_SERVICE_PASSWORD",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-password"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_DB_NAME",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-database"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "JAEGER_AGENT_SERVICE_HOST",
+                                            "valueFrom": {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "status.hostIP"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "resources": {},
+                                    "terminationMessagePath": "/dev/termination-log",
+                                    "terminationMessagePolicy": "File",
+                                    "imagePullPolicy": "IfNotPresent"
+                                }
+                            ],
+                            "restartPolicy": "Always",
+                            "terminationGracePeriodSeconds": 30,
+                            "dnsPolicy": "ClusterFirst",
+                            "securityContext": {},
+                            "schedulerName": "default-scheduler"
+                        }
+                    },
+                    "strategy": {
+                        "type": "RollingUpdate",
+                        "rollingUpdate": {
+                            "maxUnavailable": "25%",
+                            "maxSurge": "25%"
+                        }
+                    },
+                    "revisionHistoryLimit": 10,
+                    "progressDeadlineSeconds": 600
+                }
+            },
+            {
+                "metadata": {
+                    "name": "algorithm-queue-nnp850bwwkjz",
+                    "namespace": "default",
+                    "selfLink": "/apis/apps/v1/namespaces/default/deployments/algorithm-queue-nnp850bwwkjz",
+                    "uid": "12f97511-ad9c-4e21-8201-9726f3952817",
+                    "resourceVersion": "22528001",
+                    "generation": 1,
+                    "creationTimestamp": "2021-08-29T09:20:49Z",
+                    "labels": {
+                        "app": "algorithm-queue",
+                        "core": "true",
+                        "group": "hkube",
+                        "queue-id": "nnp850bwwkjz",
+                        "type": "algorithm-queue"
+                    },
+                    "annotations": {
+                        "deployment.kubernetes.io/revision": "1"
+                    },
+                    "managedFields": [
+                        {
+                            "manager": "unknown",
+                            "operation": "Update",
+                            "apiVersion": "apps/v1",
+                            "time": "2021-08-29T09:20:49Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:labels": {
+                                        ".": {},
+                                        "f:app": {},
+                                        "f:core": {},
+                                        "f:group": {},
+                                        "f:queue-id": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:spec": {
+                                    "f:progressDeadlineSeconds": {},
+                                    "f:replicas": {},
+                                    "f:revisionHistoryLimit": {},
+                                    "f:selector": {
+                                        "f:matchLabels": {
+                                            ".": {},
+                                            "f:app": {},
+                                            "f:queue-id": {}
+                                        }
+                                    },
+                                    "f:strategy": {
+                                        "f:rollingUpdate": {
+                                            ".": {},
+                                            "f:maxSurge": {},
+                                            "f:maxUnavailable": {}
+                                        },
+                                        "f:type": {}
+                                    },
+                                    "f:template": {
+                                        "f:metadata": {
+                                            "f:labels": {
+                                                ".": {},
+                                                "f:app": {},
+                                                "f:group": {},
+                                                "f:metrics-group": {},
+                                                "f:queue-id": {},
+                                                "f:type": {}
+                                            }
+                                        },
+                                        "f:spec": {
+                                            "f:containers": {
+                                                "k:{\"name\":\"algorithm-queue\"}": {
+                                                    ".": {},
+                                                    "f:env": {
+                                                        ".": {},
+                                                        "k:{\"name\":\"CONCURRENCY_LIMIT\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"INTERVAL\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"JAEGER_AGENT_SERVICE_HOST\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:fieldRef": {
+                                                                    ".": {},
+                                                                    "f:apiVersion": {},
+                                                                    "f:fieldPath": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"METRICS_PORT\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_DB_NAME\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_SERVICE_PASSWORD\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_SERVICE_USER_NAME\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"NODE_ENV\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        },
+                                                        "k:{\"name\":\"PRODUCER_UPDATE_INTERVAL\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"QUEUE_ID\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        }
+                                                    },
+                                                    "f:image": {},
+                                                    "f:imagePullPolicy": {},
+                                                    "f:name": {},
+                                                    "f:ports": {
+                                                        ".": {},
+                                                        "k:{\"containerPort\":3000,\"protocol\":\"TCP\"}": {
+                                                            ".": {},
+                                                            "f:containerPort": {},
+                                                            "f:protocol": {}
+                                                        }
+                                                    },
+                                                    "f:resources": {},
+                                                    "f:terminationMessagePath": {},
+                                                    "f:terminationMessagePolicy": {}
+                                                }
+                                            },
+                                            "f:dnsPolicy": {},
+                                            "f:restartPolicy": {},
+                                            "f:schedulerName": {},
+                                            "f:securityContext": {},
+                                            "f:terminationGracePeriodSeconds": {}
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "manager": "kube-controller-manager",
+                            "operation": "Update",
+                            "apiVersion": "apps/v1",
+                            "time": "2021-08-29T09:20:51Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:annotations": {
+                                        ".": {},
+                                        "f:deployment.kubernetes.io/revision": {}
+                                    }
+                                },
+                                "f:status": {
+                                    "f:availableReplicas": {},
+                                    "f:conditions": {
+                                        ".": {},
+                                        "k:{\"type\":\"Available\"}": {
+                                            ".": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:lastUpdateTime": {},
+                                            "f:message": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        },
+                                        "k:{\"type\":\"Progressing\"}": {
+                                            ".": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:lastUpdateTime": {},
+                                            "f:message": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        }
+                                    },
+                                    "f:observedGeneration": {},
+                                    "f:readyReplicas": {},
+                                    "f:replicas": {},
+                                    "f:updatedReplicas": {}
+                                }
+                            }
+                        }
+                    ]
+                },
+                "spec": {
+                    "replicas": 1,
+                    "selector": {
+                        "matchLabels": {
+                            "app": "algorithm-queue",
+                            "queue-id": "nnp850bwwkjz"
+                        }
+                    },
+                    "template": {
+                        "metadata": {
+                            "creationTimestamp": null,
+                            "labels": {
+                                "app": "algorithm-queue",
+                                "group": "hkube",
+                                "metrics-group": "algorithm-queue",
+                                "queue-id": "nnp850bwwkjz",
+                                "type": "algorithm-queue"
+                            }
+                        },
+                        "spec": {
+                            "containers": [
+                                {
+                                    "name": "algorithm-queue",
+                                    "image": "hkube/algorithm-queue:v2.1.8",
+                                    "ports": [
+                                        {
+                                            "containerPort": 3000,
+                                            "protocol": "TCP"
+                                        }
+                                    ],
+                                    "env": [
+                                        {
+                                            "name": "QUEUE_ID",
+                                            "value": "nnp850bwwkjz"
+                                        },
+                                        {
+                                            "name": "NODE_ENV",
+                                            "value": "production"
+                                        },
+                                        {
+                                            "name": "METRICS_PORT",
+                                            "value": "3000"
+                                        },
+                                        {
+                                            "name": "INTERVAL",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_INTERVAL"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "CONCURRENCY_LIMIT",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_CONCURRENCY_LIMIT"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "PRODUCER_UPDATE_INTERVAL",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_PRODUCER_UPDATE_INTERVAL"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_SERVICE_USER_NAME",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-username"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_SERVICE_PASSWORD",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-password"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_DB_NAME",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-database"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "JAEGER_AGENT_SERVICE_HOST",
+                                            "valueFrom": {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "status.hostIP"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "resources": {},
+                                    "terminationMessagePath": "/dev/termination-log",
+                                    "terminationMessagePolicy": "File",
+                                    "imagePullPolicy": "IfNotPresent"
+                                }
+                            ],
+                            "restartPolicy": "Always",
+                            "terminationGracePeriodSeconds": 30,
+                            "dnsPolicy": "ClusterFirst",
+                            "securityContext": {},
+                            "schedulerName": "default-scheduler"
+                        }
+                    },
+                    "strategy": {
+                        "type": "RollingUpdate",
+                        "rollingUpdate": {
+                            "maxUnavailable": "25%",
+                            "maxSurge": "25%"
+                        }
+                    },
+                    "revisionHistoryLimit": 10,
+                    "progressDeadlineSeconds": 600
+                }
+            },
+            {
+                "metadata": {
+                    "name": "algorithm-queue-ql6nly9b1io2",
+                    "namespace": "default",
+                    "selfLink": "/apis/apps/v1/namespaces/default/deployments/algorithm-queue-ql6nly9b1io2",
+                    "uid": "e77e7780-63b8-409c-9148-64d1ae8f4843",
+                    "resourceVersion": "22527977",
+                    "generation": 1,
+                    "creationTimestamp": "2021-08-29T09:20:48Z",
+                    "labels": {
+                        "app": "algorithm-queue",
+                        "core": "true",
+                        "group": "hkube",
+                        "queue-id": "ql6nly9b1io2",
+                        "type": "algorithm-queue"
+                    },
+                    "annotations": {
+                        "deployment.kubernetes.io/revision": "1"
+                    },
+                    "managedFields": [
+                        {
+                            "manager": "unknown",
+                            "operation": "Update",
+                            "apiVersion": "apps/v1",
+                            "time": "2021-08-29T09:20:48Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:labels": {
+                                        ".": {},
+                                        "f:app": {},
+                                        "f:core": {},
+                                        "f:group": {},
+                                        "f:queue-id": {},
+                                        "f:type": {}
+                                    }
+                                },
+                                "f:spec": {
+                                    "f:progressDeadlineSeconds": {},
+                                    "f:replicas": {},
+                                    "f:revisionHistoryLimit": {},
+                                    "f:selector": {
+                                        "f:matchLabels": {
+                                            ".": {},
+                                            "f:app": {},
+                                            "f:queue-id": {}
+                                        }
+                                    },
+                                    "f:strategy": {
+                                        "f:rollingUpdate": {
+                                            ".": {},
+                                            "f:maxSurge": {},
+                                            "f:maxUnavailable": {}
+                                        },
+                                        "f:type": {}
+                                    },
+                                    "f:template": {
+                                        "f:metadata": {
+                                            "f:labels": {
+                                                ".": {},
+                                                "f:app": {},
+                                                "f:group": {},
+                                                "f:metrics-group": {},
+                                                "f:queue-id": {},
+                                                "f:type": {}
+                                            }
+                                        },
+                                        "f:spec": {
+                                            "f:containers": {
+                                                "k:{\"name\":\"algorithm-queue\"}": {
+                                                    ".": {},
+                                                    "f:env": {
+                                                        ".": {},
+                                                        "k:{\"name\":\"CONCURRENCY_LIMIT\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"INTERVAL\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"JAEGER_AGENT_SERVICE_HOST\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:fieldRef": {
+                                                                    ".": {},
+                                                                    "f:apiVersion": {},
+                                                                    "f:fieldPath": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"METRICS_PORT\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_DB_NAME\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_SERVICE_PASSWORD\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"MONGODB_SERVICE_USER_NAME\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:secretKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"NODE_ENV\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        },
+                                                        "k:{\"name\":\"PRODUCER_UPDATE_INTERVAL\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:valueFrom": {
+                                                                ".": {},
+                                                                "f:configMapKeyRef": {
+                                                                    ".": {},
+                                                                    "f:key": {},
+                                                                    "f:name": {}
+                                                                }
+                                                            }
+                                                        },
+                                                        "k:{\"name\":\"QUEUE_ID\"}": {
+                                                            ".": {},
+                                                            "f:name": {},
+                                                            "f:value": {}
+                                                        }
+                                                    },
+                                                    "f:image": {},
+                                                    "f:imagePullPolicy": {},
+                                                    "f:name": {},
+                                                    "f:ports": {
+                                                        ".": {},
+                                                        "k:{\"containerPort\":3000,\"protocol\":\"TCP\"}": {
+                                                            ".": {},
+                                                            "f:containerPort": {},
+                                                            "f:protocol": {}
+                                                        }
+                                                    },
+                                                    "f:resources": {},
+                                                    "f:terminationMessagePath": {},
+                                                    "f:terminationMessagePolicy": {}
+                                                }
+                                            },
+                                            "f:dnsPolicy": {},
+                                            "f:restartPolicy": {},
+                                            "f:schedulerName": {},
+                                            "f:securityContext": {},
+                                            "f:terminationGracePeriodSeconds": {}
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "manager": "kube-controller-manager",
+                            "operation": "Update",
+                            "apiVersion": "apps/v1",
+                            "time": "2021-08-29T09:20:50Z",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:metadata": {
+                                    "f:annotations": {
+                                        ".": {},
+                                        "f:deployment.kubernetes.io/revision": {}
+                                    }
+                                },
+                                "f:status": {
+                                    "f:availableReplicas": {},
+                                    "f:conditions": {
+                                        ".": {},
+                                        "k:{\"type\":\"Available\"}": {
+                                            ".": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:lastUpdateTime": {},
+                                            "f:message": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        },
+                                        "k:{\"type\":\"Progressing\"}": {
+                                            ".": {},
+                                            "f:lastTransitionTime": {},
+                                            "f:lastUpdateTime": {},
+                                            "f:message": {},
+                                            "f:reason": {},
+                                            "f:status": {},
+                                            "f:type": {}
+                                        }
+                                    },
+                                    "f:observedGeneration": {},
+                                    "f:readyReplicas": {},
+                                    "f:replicas": {},
+                                    "f:updatedReplicas": {}
+                                }
+                            }
+                        }
+                    ]
+                },
+                "spec": {
+                    "replicas": 1,
+                    "selector": {
+                        "matchLabels": {
+                            "app": "algorithm-queue",
+                            "queue-id": "ql6nly9b1io2"
+                        }
+                    },
+                    "template": {
+                        "metadata": {
+                            "creationTimestamp": null,
+                            "labels": {
+                                "app": "algorithm-queue",
+                                "group": "hkube",
+                                "metrics-group": "algorithm-queue",
+                                "queue-id": "ql6nly9b1io2",
+                                "type": "algorithm-queue"
+                            }
+                        },
+                        "spec": {
+                            "containers": [
+                                {
+                                    "name": "algorithm-queue",
+                                    "image": "hkube/algorithm-queue:v2.1.8",
+                                    "ports": [
+                                        {
+                                            "containerPort": 3000,
+                                            "protocol": "TCP"
+                                        }
+                                    ],
+                                    "env": [
+                                        {
+                                            "name": "QUEUE_ID",
+                                            "value": "ql6nly9b1io2"
+                                        },
+                                        {
+                                            "name": "NODE_ENV",
+                                            "value": "production"
+                                        },
+                                        {
+                                            "name": "METRICS_PORT",
+                                            "value": "3000"
+                                        },
+                                        {
+                                            "name": "INTERVAL",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_INTERVAL"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "CONCURRENCY_LIMIT",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_CONCURRENCY_LIMIT"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "PRODUCER_UPDATE_INTERVAL",
+                                            "valueFrom": {
+                                                "configMapKeyRef": {
+                                                    "name": "algorithm-operator-configmap",
+                                                    "key": "ALGORITHM_QUEUE_PRODUCER_UPDATE_INTERVAL"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_SERVICE_USER_NAME",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-username"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_SERVICE_PASSWORD",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-password"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "MONGODB_DB_NAME",
+                                            "valueFrom": {
+                                                "secretKeyRef": {
+                                                    "name": "mongodb-secret",
+                                                    "key": "mongodb-database"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "name": "JAEGER_AGENT_SERVICE_HOST",
+                                            "valueFrom": {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "status.hostIP"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "resources": {},
+                                    "terminationMessagePath": "/dev/termination-log",
+                                    "terminationMessagePolicy": "File",
+                                    "imagePullPolicy": "IfNotPresent"
+                                }
+                            ],
+                            "restartPolicy": "Always",
+                            "terminationGracePeriodSeconds": 30,
+                            "dnsPolicy": "ClusterFirst",
+                            "securityContext": {},
+                            "schedulerName": "default-scheduler"
+                        }
+                    },
+                    "strategy": {
+                        "type": "RollingUpdate",
+                        "rollingUpdate": {
+                            "maxUnavailable": "25%",
+                            "maxSurge": "25%"
+                        }
+                    },
+                    "revisionHistoryLimit": 10,
+                    "progressDeadlineSeconds": 600
+                }
+            }
+        ]
+    }
+}

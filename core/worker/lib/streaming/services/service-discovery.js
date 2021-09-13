@@ -27,7 +27,7 @@ class ServiceDiscovery extends EventEmitter {
 
         this._interval = new Interval({ delay: this._options.interval })
             .onFunc(() => this._discoveryInterval({ jobId, taskId, parents, stateType }))
-            .onError((e) => log.throttle.error(e.message, { component }))
+            .onError((e) => log.throttle.error(e.message, { component }, e))
             .start();
     }
 

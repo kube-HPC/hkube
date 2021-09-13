@@ -1,15 +1,17 @@
 const config = {};
 
 config.transport = {
-    console: false
+    console: true
 };
-config.throttle = {
-    wait: 30000
+config.console = {
+    json: false,
+    colors: false,
+    format: 'wrapper::{level}::{message}',
+    level: process.env.HKUBE_LOG_LEVEL
 };
-
-config.enableColors = false;
-config.format = 'wrapper::{level}::{message}';
-config.extraDetails = false;
-config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
-config.isDefault = true;
+config.options = {
+    throttle: {
+        wait: 30000
+    }
+};
 module.exports = config;

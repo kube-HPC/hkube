@@ -20,6 +20,7 @@ const template = {
                 }
             },
             spec: {
+                serviceAccountName: 'pipeline-driver-serviceaccount',
                 containers: [
                     {
                         name: 'pipeline-driver',

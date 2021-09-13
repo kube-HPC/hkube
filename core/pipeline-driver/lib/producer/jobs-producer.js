@@ -2,6 +2,9 @@ const EventEmitter = require('events');
 const { Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { nodeKind } = require('@hkube/consts');
+const logger = require('@hkube/logger');
+const log = logger.GetLogFromContainer();
+const component = require('../consts/componentNames').JOBS_PRODUCER;
 
 class JobProducer extends EventEmitter {
     constructor() {
@@ -19,6 +22,7 @@ class JobProducer extends EventEmitter {
                 ...this._options.producer
             }
         });
+        this._queueLogging = options.logging;
     }
 
     async createJob({ jobId, pipeline, options, batch }) {
@@ -69,6 +73,9 @@ class JobProducer extends EventEmitter {
                     }
                 }
             };
+            if (this._queueLogging.tasks) {
+                tasks.forEach(t => log.info(`task ${t.taskId} created`, { component, jobId, taskId: t.taskId, algorithmName: options.node.algorithmName }));
+            }
             await this._createJob(jobOptions);
         }
     }

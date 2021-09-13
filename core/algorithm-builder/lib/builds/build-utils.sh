@@ -55,7 +55,11 @@ dockerBuildOpenshift() {
 
   echo BUILD_ID=${BUILD_ID}
   echo '#!/bin/bash' > ${commands}/run
-  echo 'set -o pipefail' >> ${commands}/run
+  echo 'set -eo pipefail' >> ${commands}/run
+  # cleanup
+  echo "cleanup() { oc delete -f /commands/buildConfig.yaml; }" >> ${commands}/run
+  echo "trap cleanup ERR" >> ${commands}/run
+
   echo 'oc login \
   --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
   --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) \
@@ -66,7 +70,7 @@ dockerBuildOpenshift() {
   echo "oc secrets link builder build-registry-secret" >> ${commands}/run
   echo 'fi'>> ${commands}/run
   echo "oc start-build ${BUILD_ID} --from-dir /workspace/ --follow --wait" >>${commands}/run
-
+  echo "cleanup" >>${commands}/run
   chmod +x ${commands}/run
   touch ${commands}/output
   touch ${commands}/start

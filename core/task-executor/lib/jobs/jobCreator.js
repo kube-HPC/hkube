@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 const clonedeep = require('lodash.clonedeep');
 const { randomString } = require('@hkube/uid');
 const { nodeKind } = require('@hkube/consts');
@@ -7,7 +8,7 @@ const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImag
     applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation,
     applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const parse = require('@hkube/units-converter');
-const { components, containers, gpuVendors } = require('../consts');
+const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
 const { workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
@@ -91,12 +92,28 @@ const applyMounts = (inputSpec, mounts = []) => {
             name,
             mountPath: m.path
         });
-        spec = applyVolumes(spec, {
-            name,
-            persistentVolumeClaim: {
-                claimName: m.pvcName
-            }
-        });
+        if (m.volumeType === volumeKinds.emptyDir) {
+            spec = applyVolumes(spec, {
+                name,
+                [volumeKinds.emptyDir]: {}
+            });
+        }
+        else if (m.volumeType === volumeKinds.configMap) {
+            spec = applyVolumes(spec, {
+                name,
+                [volumeKinds.configMap]: {
+                    name: m.pvcName
+                }
+            });
+        }
+        else {
+            spec = applyVolumes(spec, {
+                name,
+                persistentVolumeClaim: {
+                    claimName: m.pvcName
+                }
+            });
+        }
     });
     return spec;
 };
@@ -274,6 +291,37 @@ const applyAnnotations = (spec, keyVal) => {
     return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
 };
 
+const applySidecars = (inputSpec, clusterOptions = {}) => {
+    let spec = clonedeep(inputSpec);
+    for (const sidecar of settings.sidecars) {
+        const { name, container, volumes, volumeMounts, environments } = sidecar;
+        if (!clusterOptions[`${name}SidecarEnabled`]) {
+            continue;
+        }
+        spec.spec.template.spec.containers.push(...container);
+        if (volumes) {
+            // eslint-disable-next-line no-loop-func
+            volumes.forEach(v => {
+                spec = applyVolumes(spec, v);
+            });
+        }
+        if (volumeMounts) {
+            // eslint-disable-next-line no-loop-func
+            volumeMounts.forEach(v => {
+                spec = applyVolumeMounts(spec, CONTAINERS.WORKER, v);
+            });
+        }
+        if (environments) {
+            // eslint-disable-next-line no-loop-func
+            environments.forEach(v => {
+                spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { [v.name]: v.value });
+            });
+        }
+    }
+
+    return spec;
+};
+
 const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
     nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
     if (!algorithmName) {
@@ -324,6 +372,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
 
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
+    spec = applySidecars(spec, clusterOptions);
     return spec;
 };
 

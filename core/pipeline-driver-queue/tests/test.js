@@ -9,7 +9,7 @@ const { semaphore } = require('await-done');
 const { pipelines } = require('./mock/index');
 const bootstrap = require('../bootstrap');
 const queueRunner = require('../lib/queue-runner');
-const persistence = require('../lib/persistency/persistence');
+const dataStore = require('../lib/persistency/data-store');
 const producerLib = require('../lib/jobs/producer');
 const setting = { prefix: 'pipeline-driver-queue' }
 const producer = new Producer({ setting });
@@ -24,16 +24,21 @@ const heuristicBoilerPlate = (score, _heuristic) => ({
 
 let queue = null;
 let consumer;
+let _semaphore = null;
 
 describe('Test', () => {
     before(async () => {
         await bootstrap.init();
         consumer = require('../lib/jobs/consumer');
     });
-    let _semaphore = null;
     beforeEach(() => {
         queue = new Queue();
+        queue.updateHeuristic({ run: heuristic(80) });
+        producerLib._isConsumerActive = false;
         _semaphore = new semaphore();
+    });
+    afterEach(() => {
+        producerLib._isConsumerActive = true;
     });
     describe('queue-tests', () => {
         describe('add', () => {
@@ -113,7 +118,7 @@ describe('Test', () => {
             const half = totalJobs / 2;
             const keys = Array.from(Array(totalJobs).keys());
             const jobsList = [];
-            producerLib._isActive = true;
+            producerLib._isConsumerActive = true;
             let spy = sinon.spy(producerLib, 'createJob');
 
             // creating 10 jobs which half are maxExceeded
@@ -134,7 +139,7 @@ describe('Test', () => {
                     status: 'pending'
                 };
                 jobsList.push({ jobId, maxExceeded, experiment: 'test', pipeline: 'test' });
-                await persistence._db.jobs.create({ jobId, pipeline, status });
+                await dataStore._db.jobs.create({ jobId, pipeline, status });
                 await consumer._handleJob(job);
             }));
 
@@ -147,7 +152,7 @@ describe('Test', () => {
             let index = 0;
             while (jobs.length) {
                 const job = jobs.pop();
-                producerLib._isActive = true;
+                producerLib._isConsumerActive = true;
                 producerLib._producer.emit('job-completed', { options: { data: job } });
                 expect(spy.callCount).to.eql(++index);
                 await delay(100);
@@ -180,7 +185,7 @@ describe('Test', () => {
     describe('job-consume', () => {
         it('should consume job with params', async () => {
             const jobId = uuidv4();
-            await persistence._db.jobs.create({ jobId, pipeline: pipelines[0] });
+            await dataStore._db.jobs.create({ jobId, pipeline: pipelines[0] });
             const options = {
                 job: {
                     type: 'pipeline-job',

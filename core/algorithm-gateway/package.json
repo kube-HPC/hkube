@@ -1,12 +1,12 @@
 {
     "name": "algorithm-gateway",
-    "version": "2.0.2",
+    "version": "2.0.4",
     "description": "algorithm-gateway",
     "main": "app.js",
     "dependencies": {
         "@hkube/config": "^2.0.11",
-        "@hkube/logger": "^1.0.29",
-        "@hkube/nodejs-wrapper": "^2.0.40",
+        "@hkube/logger": "^2.0.1",
+        "@hkube/nodejs-wrapper": "^2.0.50",
         "@hkube/rest-server": "^1.0.18"
     },
     "devDependencies": {

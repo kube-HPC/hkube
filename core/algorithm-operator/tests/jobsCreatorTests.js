@@ -241,4 +241,104 @@ describe('jobCreator', () => {
         expect(res.spec.template.spec.imagePullSecrets).to.exist;
         expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({ name: 'my-secret' });
     });
+    describe('sidecars', () => {
+        before(() => {
+            settings.sidecars = [{
+                name: 'my-sidecar',
+                container: [
+                    { name: 'c1', image: 'foo/bar' },
+                    { name: 'c2', image: 'foo/bar' }
+                ],
+                volumes: [
+                    {
+                        name: "v1",
+                        emptyDir: {}
+                    },
+                    {
+                        name: "v2",
+                        configMap: {
+                            name: "cm2"
+                        }
+                    }
+                ],
+                volumeMounts: [
+                    {
+                        name: "v2",
+                        mountPath: '/tmp/foo'
+                    }
+
+                ],
+                environments: [
+                    {
+                        name: "env1",
+                        value: "val1"
+                    },
+                    {
+                        name: "env2",
+                        value: "val2"
+                    }
+                ]
+
+            }]
+        })
+        after(() => {
+            settings.sidecars = []
+        });
+        it('should not apply sidecar if not enabled', () => {
+            const buildId = 'my-alg-12345'
+            const res = createBuildJobSpec({
+                buildId, versions: { versions: [{ project: 'algorithm-builder', tag: 'v1.2' }] }, secret: {
+                    metadata: {
+                        name: 'test'
+                    },
+                    data: {
+
+                    }
+                }, options: config
+            });
+            expect(res.spec.template.spec.containers).to.have.lengthOf(2)
+        });
+        it('should apply sidecar if enabled', () => {
+            const buildId = 'my-alg-12345'
+            const res = createBuildJobSpec({
+                buildId, versions: { versions: [{ project: 'algorithm-builder', tag: 'v1.2' }] }, secret: {
+                    metadata: {
+                        name: 'test'
+                    },
+                    data: {
+
+                    }
+                },
+                options: config,
+                clusterOptions: { "my-sidecarSidecarEnabled": true }
+            });
+            
+            expect(res.spec.template.spec.containers).to.have.lengthOf(4)
+            expect(res.spec.template.spec.containers[2].name).to.eql('c1')
+            expect(res.spec.template.spec.containers[3].name).to.eql('c2')
+            expect(res.spec.template.spec.volumes).to.deep.include(settings.sidecars[0].volumes[0])
+            expect(res.spec.template.spec.volumes).to.deep.include(settings.sidecars[0].volumes[1])
+            expect(res.spec.template.spec.containers[0].volumeMounts).to.deep.include(settings.sidecars[0].volumeMounts[0])
+            expect(res.spec.template.spec.containers[1].volumeMounts).to.not.deep.include(settings.sidecars[0].volumeMounts[0])
+            expect(res.spec.template.spec.containers[0].env).to.deep.include(settings.sidecars[0].environments[0])
+            expect(res.spec.template.spec.containers[0].env).to.deep.include(settings.sidecars[0].environments[1])
+            expect(res.spec.template.spec.containers[1].env).to.not.exist;
+        });
+        it('should not apply sidecar if no sidecar configmap', () => {
+            const buildId = 'my-alg-12345'
+            const res = createBuildJobSpec({
+                buildId, versions: { versions: [{ project: 'algorithm-builder', tag: 'v1.2' }] }, secret: {
+                    metadata: {
+                        name: 'test'
+                    },
+                    data: {
+
+                    }
+                },
+                options: config,
+                clusterOptions: { "no-sidecarSidecarEnabled": true }
+            });
+            expect(res.spec.template.spec.containers).to.have.lengthOf(2)
+        });
+    })
 });

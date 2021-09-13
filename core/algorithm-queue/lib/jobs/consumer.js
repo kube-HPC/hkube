@@ -30,6 +30,7 @@ class JobConsumer extends EventEmitter {
                 concurrency: options.consumer.concurrency
             }
         });
+        this._queueLogging = options.logging;
     }
 
     async stop() {
@@ -100,7 +101,10 @@ class JobConsumer extends EventEmitter {
         try {
             const { jobId } = job.data;
             const data = await db.getJob({ jobId });
-            log.info(`job arrived with ${data.status} state and ${job.data.tasks.length} tasks`, { component });
+            log.info(`job arrived with ${data.status} state for jobId ${jobId} and ${job.data.tasks.length} tasks`, { component, jobId });
+            if (this._queueLogging.tasks) {
+                job.data.tasks.forEach(t => log.info(`task ${t.taskId} enqueued. Status: ${t.status}`, { component, jobId, taskId: t.taskId }));
+            }
             if (isCompletedState({ status: data.status })) {
                 this._removeInvalidJob([{ jobId }]);
             }
@@ -116,8 +120,7 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-    // TODO: remove this calculated stuff....
-    pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
+    _adaptData(jobData, taskData, initialBatchLength) {
         const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
             acc[cur] = 0.00001;
             return acc;
@@ -145,7 +148,7 @@ class JobConsumer extends EventEmitter {
 
     queueTasksBuilder(job) {
         const { tasks, ...jobData } = job.data;
-        const taskList = tasks.map(task => this.pipelineToQueueAdapter(jobData, task, tasks.length));
+        const taskList = tasks.map(task => this._adaptData(jobData, task, tasks.length));
         this.emit('jobs-add', taskList);
     }
 }

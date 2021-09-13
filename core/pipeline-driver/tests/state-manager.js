@@ -4,14 +4,17 @@ const chaiAsPromised = require('chai-as-promised');
 const storageManager = require('@hkube/storage-manager');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
+const { pipelineStatuses } = require('@hkube/consts');
 const pipelines = require('./mocks/pipelines');
 const DriverStates = require('../lib/state/DriverStates');
 const { createJobId } = require('./utils');
 let stateManager;
+let db;
 
 describe('StateManager', function () {
     before(async () => {
         stateManager = require('../lib/state/state-manager');
+        db = require('../lib/state/db');
     });
     it('setJobResults', async function () {
         const jobId = createJobId();
@@ -84,6 +87,31 @@ describe('StateManager', function () {
         await stateManager._etcd.jobs.status.set({ jobId, data });
         const response = await stateManager._etcd.jobs.status.get({ jobId });
         expect(response.data).to.deep.equal(data);
+    });
+    it('should update state correctly', async function () {
+        let resolve;
+        const promise = new Promise((res) => { resolve = res });
+        const jobId = createJobId();
+        const statusActive = { jobId, status: pipelineStatuses.ACTIVE };
+        const statusStopped = { jobId, status: pipelineStatuses.STOPPED };
+        await stateManager._etcd.jobs.status.set(statusActive);
+        await stateManager.createJob({ jobId, status: { status: statusActive.status } });
+
+        const interval = setInterval(async () => {
+            await stateManager.setJobStatus(statusActive);
+        }, 10);
+        setTimeout(async () => {
+            clearInterval(interval);
+            await db.updateStatus(statusStopped);
+            await stateManager._etcd.jobs.status.update(statusStopped);
+            resolve();
+        }, 200);
+
+        await promise;
+        const res1 = await db.fetchStatus({ jobId });
+        const res2 = await stateManager._etcd.jobs.status.get({ jobId });
+        expect(res1.status).to.eql(statusStopped.status);
+        expect(res2.status).to.eql(statusStopped.status);
     });
     it('getExecution', async function () {
         const jobId = createJobId();

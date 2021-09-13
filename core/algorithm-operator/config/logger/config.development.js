@@ -1,4 +1,5 @@
 const config = {};
-config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
-
+config.transport = {
+    console: true,
+};
 module.exports = config;

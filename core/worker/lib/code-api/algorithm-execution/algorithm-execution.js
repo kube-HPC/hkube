@@ -1,6 +1,7 @@
 const Validator = require('ajv');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
+const { taskStatuses, retryPolicy } = require('@hkube/consts');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
 const stateAdapter = require('../../states/stateAdapter');
 const messages = require('../../algorithm-communication/messages');
@@ -10,6 +11,8 @@ const producer = require('../../producer/producer');
 const { startAlgorithmSchema, stopAlgorithmSchema } = require('./schema');
 const validator = new Validator({ useDefaults: true, coerceTypes: false });
 const component = Components.ALGORITHM_EXECUTION;
+const NO_RETRY = { policy: retryPolicy.Never };
+
 let log;
 
 class AlgorithmExecution {
@@ -83,7 +86,7 @@ class AlgorithmExecution {
         }
         const { includeResult, result, execId } = execution;
         const response = await this._getStorage({ includeResult, result });
-        log.debug('sending done to algorithm', { component });
+        log.debug(`sending done from ${task.taskId} to algorithm`, { component });
         this._sendCompleteToAlgorithm({ execId, response, command: messages.outgoing.execAlgorithmDone });
     }
 
@@ -92,8 +95,8 @@ class AlgorithmExecution {
         if (task.taskId && !execution) {
             return;
         }
-        const { error, execId } = task;
-        log.info(`sending error to algorithm, error: ${error}`, { component });
+        const { error, execId, taskId } = task;
+        log.info(`sending error from ${taskId} to algorithm, error: ${error}`, { component });
         this._sendCompleteToAlgorithm({ execId, error, command: messages.outgoing.execAlgorithmError });
     }
 
@@ -200,16 +203,19 @@ class AlgorithmExecution {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
             }
             const taskId = producer.createTaskID();
+            log.info(`startAlgorithmExecution for ${algorithmName} with ${taskId}`, { component });
             this._executions.set(taskId, { taskId, execId, includeResult });
             const newInput = await this._setStorage({ input, storage, jobId, storageInput });
-            const tasks = [{ execId, taskId, input: newInput, storage }];
+            const tasks = [{ execId, taskId, input: newInput, storage, status: taskStatuses.CREATING }];
+            const newNodeName = `${nodeName}:${algorithmName}`;
             const job = {
                 ...jobData,
                 jobId,
                 tasks,
                 algorithmName,
-                nodeName: `${nodeName}:${algorithmName}`,
+                nodeName: newNodeName,
                 parentNodeName: nodeName,
+                retry: NO_RETRY,
                 info: {
                     ...jobData.info,
                     extraData: undefined
@@ -217,6 +223,15 @@ class AlgorithmExecution {
             };
             this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
+            await stateAdapter.updateTask({
+                jobId,
+                taskId,
+                execId,
+                parentNodeName: nodeName,
+                algorithmName,
+                nodeName: newNodeName,
+                status: taskStatuses.CREATING
+            });
             await this._createJob(job, taskId);
         }
         catch (e) {
