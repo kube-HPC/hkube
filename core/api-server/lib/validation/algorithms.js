@@ -96,16 +96,11 @@ class ApiValidator {
             if (!algorithm) {
                 throw new ResourceNotFoundError('algorithm', a);
             }
-        });
-        return algorithmsMap;
-    }
-
-    validateAlgorithmImage(algorithms) {
-        algorithms.forEach((a) => {
-            if (!a.algorithmImage) {
-                throw new InvalidDataError(`missing image for algorithm ${a.name}`);
+            if (!algorithm.algorithmImage) {
+                throw new InvalidDataError(`missing image for algorithm ${a}`);
             }
         });
+        return algorithmsMap;
     }
 
     _validateAlgorithmEnvVar(algorithm) {
