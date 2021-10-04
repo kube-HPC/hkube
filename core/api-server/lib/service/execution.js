@@ -29,13 +29,15 @@ class ExecutionService {
 
     async runCaching(options) {
         validator.executions.validateCaching(options);
-        const pipeline = await cachingService.exec({ jobId: options.jobId, nodeName: options.nodeName, debug: options.debug });
+        const pipeline = await cachingService.exec({ jobId: options.jobId, nodeName: options.nodeName });
         let { rootJobId } = pipeline;
         if (!rootJobId) {
             rootJobId = pipeline.jobId;
         }
-        const { jobId, startTime, lastRunResult, types, ...restPipeline } = pipeline;
-        return this._runPipeline({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types });
+        const { jobId, startTime, lastRunResult, ...restPipeline } = pipeline;
+        const debugNode = options.debug ? options.nodeName : null;
+        const types = [...pipeline.types, pipelineTypes.NODE];
+        return this._runPipeline({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types, debugNode });
     }
 
     async rerun(options) {
@@ -62,9 +64,6 @@ class ExecutionService {
             }]
         };
         const types = [pipelineTypes.ALGORITHM];
-        if (debug) {
-            types.push(pipelineTypes.DEBUG);
-        }
         return this._runPipeline({ pipeline, types });
     }
 
@@ -85,7 +84,7 @@ class ExecutionService {
     }
 
     async _runPipeline(payload) {
-        const { types, pipeline, rootJobId, options } = payload;
+        const { pipeline, rootJobId, options, types, debugNode } = payload;
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
         const { parentSpan, validateNodes } = options || {};
         let extendedPipeline = restPipeline;
@@ -97,21 +96,17 @@ class ExecutionService {
         try {
             validator.pipelines.validatePipelineNodes(extendedPipeline);
             extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(extendedPipeline);
-            extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline);
+            extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline, debugNode);
             extendedPipeline = await pipelineCreator.buildStreamingFlow(extendedPipeline, jobId);
-            const isCaching = extendedPipeline.nodes.some(n => n.cacheJobId);
+
             const shouldValidateNodes = validateNodes ?? true;
             validator.executions.validatePipeline({ ...extendedPipeline, flowInput: extendedPipeline.flowInput || flowInput }, { validateNodes: shouldValidateNodes });
             await validator.experiments.validateExperimentExists(extendedPipeline);
             extendedPipeline = await validator.dataSources.validate(extendedPipeline);
             const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
             const maxExceeded = await validator.executions.validateConcurrentPipelines(extendedPipeline);
-            let pipeTypes = types;
+            const pipeTypes = this._addTypesByAlgorithms(algorithms, types);
             let pipeFlowInputMetadata = flowInputMetadata;
-            if (isCaching) {
-                pipeTypes = this._mergeTypes(pipeTypes, [pipelineTypes.NODE]);
-            }
-            pipeTypes = this._addTypesByAlgorithms(algorithms, pipeTypes);
 
             if (flowInput && Object.keys(flowInput).length && !pipeFlowInputMetadata) {
                 const metadata = parser.replaceFlowInput(extendedPipeline);
@@ -119,6 +114,7 @@ class ExecutionService {
                 pipeFlowInputMetadata = { metadata, storageInfo };
             }
             userPipeline.flowInputMetadata = pipeFlowInputMetadata;
+            extendedPipeline.flowInputMetadata = pipeFlowInputMetadata;
             const lastRunResult = await this._getLastPipeline(extendedPipeline);
             const pipelineObject = { ...extendedPipeline, maxExceeded, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
             const statusObject = { timestamp: Date.now(), pipeline: extendedPipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };

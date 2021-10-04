@@ -42,5 +42,16 @@
         },
         "minHotWorkers": 0,
         "type": "Image"
+    },
+    {
+        "name": "stream-alg",
+        "algorithmImage": "docker.io/hkubedevtest/stream-alg:viv8nyysu",
+        "cpu": 0.5,
+        "mem": "512Mi",
+        "options": {
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
     }
 ]
