@@ -428,7 +428,6 @@ describe('Store/Pipelines', () => {
                 nodes: [
                     {
                         nodeName: 'A',
-                        kind: 'pipeline',
                         kind: nodeKind.Pipeline,
                         spec: {
                             name: 'simple-1'
@@ -437,7 +436,6 @@ describe('Store/Pipelines', () => {
                     },
                     {
                         nodeName: 'B',
-                        kind: 'pipeline',
                         kind: nodeKind.Pipeline,
                         spec: {
                             name: 'simple-1'
