@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { StatusCodes } = require('http-status-codes');
 const clone = require('clone');
-const { pipelineStatuses } = require('@hkube/consts');
+const { pipelineStatuses, nodeKind } = require('@hkube/consts');
 const { uuid } = require('@hkube/uid');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
@@ -225,7 +225,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('please provide algorithmName');
+            expect(response.body.error.message).to.contain('please provide algorithm name');
         });
         it('should throw validation error of nodes.input should be array', async () => {
             const options = {
@@ -381,7 +381,7 @@ describe('Store/Pipelines', () => {
         it('should throw validation error if debugOverride algorithm not in nodes', async () => {
             const pipeline = clone(pipelines[0]);
             pipeline.name = uuid();
-            pipeline.options.debugOverride=['not-exist']
+            pipeline.options.debugOverride = ['not-exist']
             const body = pipeline;
             const options = {
                 uri: restPath,
@@ -429,13 +429,19 @@ describe('Store/Pipelines', () => {
                     {
                         nodeName: 'A',
                         kind: 'pipeline',
-                        pipelineName: 'simple',
+                        kind: nodeKind.Pipeline,
+                        spec: {
+                            name: 'simple-1'
+                        },
                         input: []
                     },
                     {
                         nodeName: 'B',
                         kind: 'pipeline',
-                        pipelineName: 'simple',
+                        kind: nodeKind.Pipeline,
+                        spec: {
+                            name: 'simple-1'
+                        },
                         input: [{ data: '@A' }]
                     }
                 ]

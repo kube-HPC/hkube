@@ -21,75 +21,80 @@ const StreamRetryPolicy = {
 class PipelineCreator {
     async buildPipelineOfPipelines(pipeline) {
         let newPipeline = pipeline;
-        const duplicates = pipeline.nodes.some(p => p.algorithmName && p.pipelineName);
-        if (duplicates.length > 0) {
-            throw new InvalidDataError('algorithmName and pipelineName are not allowed in single node');
-        }
-        const pipelineNames = pipeline.nodes.filter(p => p.pipelineName).map(p => p.pipelineName);
-        const pipelinesNames = [...new Set(pipelineNames)];
-        if (pipelinesNames.length > 0) {
-            const pipelines = await stateManager.getPipelines({ pipelinesNames });
-            const flowInput = pipeline.flowInput || {};
-
-            pipelinesNames.forEach(pl => {
-                const storedPipeline = pipelines.find(p => p.name === pl);
-                if (!storedPipeline) {
-                    throw new ResourceNotFoundError('pipeline', pl);
+        const pipelineNames = pipeline.nodes
+            .filter(n => n.kind === nodeKind.Pipeline)
+            .map(n => {
+                if (!n.spec?.name) {
+                    throw new InvalidDataError(`node ${n.nodeName} must have spec with name`);
                 }
-                mergeWith(flowInput, storedPipeline.flowInput);
+                return n.spec.name;
             });
+        const pipelinesNames = [...new Set(pipelineNames)];
+        if (!pipelinesNames.length) {
+            return newPipeline;
+        }
 
-            const nodes = [];
-            const edges = [];
-            const validateNodesRelations = false;
+        const pipelines = await stateManager.getPipelines({ pipelinesNames });
+        const flowInput = pipeline.flowInput || {};
 
-            pipeline.nodes.forEach(node => {
-                if (node.input.length > 0) {
-                    node.input.forEach((i) => {
-                        const results = parser.extractNodesFromInput(i);
-                        if (results.length > 0) {
-                            results.forEach(r => {
-                                const nd = pipeline.nodes.find(n => n.nodeName === r.nodeName);
-                                const source = nd;
-                                const target = node;
+        pipelinesNames.forEach(pl => {
+            const storedPipeline = pipelines.find(p => p.name === pl);
+            if (!storedPipeline) {
+                throw new ResourceNotFoundError('pipeline', pl);
+            }
+            mergeWith(flowInput, storedPipeline.flowInput);
+        });
 
-                                const sourceNodes = this._mapNodes(source, pipelines);
-                                const targetNodes = this._mapNodes(target, pipelines);
+        const nodes = [];
+        const edges = [];
+        const validateNodesRelations = false;
 
-                                nodes.push(...sourceNodes, ...targetNodes);
+        pipeline.nodes.forEach(node => {
+            if (node.input.length > 0) {
+                node.input.forEach((i) => {
+                    const results = parser.extractNodesFromInput(i);
+                    if (results.length > 0) {
+                        results.forEach(r => {
+                            const nd = pipeline.nodes.find(n => n.nodeName === r.nodeName);
+                            const source = nd;
+                            const target = node;
 
-                                const sourceGraph = new DAG({ nodes: sourceNodes }, { validateNodesRelations });
-                                const targetGraph = new DAG({ nodes: targetNodes }, { validateNodesRelations });
+                            const sourceNodes = this._mapNodes(source, pipelines);
+                            const targetNodes = this._mapNodes(target, pipelines);
 
-                                const sinks = sourceGraph.getSinks();
-                                const sources = targetGraph.getSources();
+                            nodes.push(...sourceNodes, ...targetNodes);
 
-                                sinks.forEach(s => {
-                                    sources.forEach(t => {
-                                        edges.push({ source: s, target: t });
-                                    });
+                            const sourceGraph = new DAG({ nodes: sourceNodes }, { validateNodesRelations });
+                            const targetGraph = new DAG({ nodes: targetNodes }, { validateNodesRelations });
+
+                            const sinks = sourceGraph.getSinks();
+                            const sources = targetGraph.getSources();
+
+                            sinks.forEach(s => {
+                                sources.forEach(t => {
+                                    edges.push({ source: s, target: t });
                                 });
                             });
-                        }
-                        else {
-                            const mapNodes = this._mapNodes(node, pipelines);
-                            nodes.push(...mapNodes);
-                        }
-                    });
-                }
-                else {
-                    const mapNodes = this._mapNodes(node, pipelines);
-                    nodes.push(...mapNodes);
-                }
-            });
-            const nodesList = nodes.filter((n, i, s) => i === s.findIndex((t) => t.nodeName === n.nodeName));
-            newPipeline = {
-                ...pipeline,
-                flowInput,
-                nodes: nodesList,
-                edges
-            };
-        }
+                        });
+                    }
+                    else {
+                        const mapNodes = this._mapNodes(node, pipelines);
+                        nodes.push(...mapNodes);
+                    }
+                });
+            }
+            else {
+                const mapNodes = this._mapNodes(node, pipelines);
+                nodes.push(...mapNodes);
+            }
+        });
+        const nodesList = nodes.filter((n, i, s) => i === s.findIndex((t) => t.nodeName === n.nodeName));
+        newPipeline = {
+            ...pipeline,
+            flowInput,
+            nodes: nodesList,
+            edges
+        };
         return newPipeline;
     }
 
@@ -248,8 +253,8 @@ class PipelineCreator {
     }
 
     _mapNodes(node, pipelines) {
-        if (node.pipelineName) {
-            const pipeline = pipelines.find(p => p.name === node.pipelineName);
+        if (node.spec?.name) {
+            const pipeline = pipelines.find(p => p.name === node.spec.name);
             const nodes = this._mapInput(pipeline.nodes, node.nodeName);
             return nodes;
         }

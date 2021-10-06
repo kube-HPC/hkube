@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.6",
+    "version": "2.1.7",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -134,12 +134,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -212,6 +206,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -581,12 +586,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -659,6 +658,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -2059,12 +2069,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -2137,6 +2141,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -2505,12 +2520,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -2583,6 +2592,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -8287,12 +8307,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -8365,6 +8379,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -8836,12 +8861,6 @@
                               "maxLength": 32,
                               "format": "algorithm-name"
                             },
-                            "pipelineName": {
-                              "type": "string",
-                              "description": "Unique identifier representing a specific pipeline",
-                              "minLength": 1,
-                              "format": "pipeline-name"
-                            },
                             "input": {
                               "type": "array",
                               "description": "The input for the algorithm",
@@ -8914,6 +8933,17 @@
                             },
                             "spec": {
                               "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "Unique identifier representing a specific pipeline",
+                                      "minLength": 1,
+                                      "format": "pipeline-name"
+                                    }
+                                  }
+                                },
                                 {
                                   "type": "object",
                                   "properties": {
@@ -9241,12 +9271,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -9319,6 +9343,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -9622,12 +9657,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -9700,6 +9729,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -10064,12 +10104,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -10142,6 +10176,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -10445,12 +10490,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -10523,6 +10562,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -18667,12 +18717,6 @@
                   "maxLength": 32,
                   "format": "algorithm-name"
                 },
-                "pipelineName": {
-                  "type": "string",
-                  "description": "Unique identifier representing a specific pipeline",
-                  "minLength": 1,
-                  "format": "pipeline-name"
-                },
                 "input": {
                   "type": "array",
                   "description": "The input for the algorithm",
@@ -18745,6 +18789,17 @@
                 },
                 "spec": {
                   "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific pipeline",
+                          "minLength": 1,
+                          "format": "pipeline-name"
+                        }
+                      }
+                    },
                     {
                       "type": "object",
                       "properties": {
@@ -18996,6 +19051,17 @@
         "minLength": 1,
         "format": "pipeline-name"
       },
+      "kindPipeline": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          }
+        }
+      },
       "pipelineKind": {
         "type": "string",
         "default": "batch",
@@ -19030,12 +19096,6 @@
             "minLength": 1,
             "maxLength": 32,
             "format": "algorithm-name"
-          },
-          "pipelineName": {
-            "type": "string",
-            "description": "Unique identifier representing a specific pipeline",
-            "minLength": 1,
-            "format": "pipeline-name"
           },
           "input": {
             "type": "array",
@@ -19109,6 +19169,17 @@
           },
           "spec": {
             "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                  }
+                }
+              },
               {
                 "type": "object",
                 "properties": {

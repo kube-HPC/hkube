@@ -193,6 +193,8 @@ pipeline:
   $ref: ./pipelines/pipeline.yaml
 pipelineName:
   $ref: ./pipelines/pipelineName.yaml
+kindPipeline:
+  $ref: ./pipelines/kindPipeline.yaml
 pipelineKind:
   $ref: ./pipelines/pipelineKind.yaml
 nodeKind:
