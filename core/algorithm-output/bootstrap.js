@@ -1,26 +1,11 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const { tracer, metrics } = require('@hkube/metrics');
-const storageManager = require('@hkube/storage-manager');
-const monitor = require('@hkube/redis-utils').Monitor;
-const component = require('./lib/consts/componentNames').MAIN;
+const component = require('./lib/algorithm-communication/consts/component-names').MAIN;
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 
 const modules = [
-    require('./lib/state/state-manager'),
-    require('./api/rest-api/app-server'),
-    require('./lib/producer/jobs-producer'),
-    require('./lib/examples/pipelines-updater'),
-    require('./lib/webhook/webhooks-handler'),
-    require('./lib/service/graph'),
-    require('./lib/service/builds'),
-    require('./lib/service/algorithms'),
-    require('./lib/service/data-sources'),
-    require('./lib/service/storage'),
-    require('./lib/service/gateway'),
-    require('./lib/service/debug'),
-    require('./lib/service/output'),
+    require('./lib/app')
 ];
 
 class Bootstrap {
@@ -28,18 +13,7 @@ class Bootstrap {
         try {
             this._handleErrors();
             log.info(`running application with env: ${configIt.env()}, version: ${config.version}, node: ${process.versions.node}`, { component });
-            monitor.on('ready', (data) => {
-                log.info((data.message).green, { component });
-            });
-            monitor.on('close', (data) => {
-                log.error(data.error.message, { component });
-            });
-            await monitor.check(config.redis);
-            await metrics.init(config.metrics);
-            await storageManager.init(config, log, true);
-            if (config.tracer) {
-                await tracer.init(config.tracer);
-            }
+
             for (const m of modules) {
                 await m.init(config);
             }

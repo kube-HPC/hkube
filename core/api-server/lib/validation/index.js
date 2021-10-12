@@ -11,6 +11,7 @@ const Lists = require('./lists');
 const Pipelines = require('./pipelines');
 const DataSources = require('./data-sources');
 const Gateways = require('./gateways');
+const Outputs = require('./outputs');
 
 module.exports = {
     Algorithms,
@@ -25,5 +26,6 @@ module.exports = {
     Jobs,
     Lists,
     Pipelines,
-    DataSources
+    DataSources,
+    Outputs
 };

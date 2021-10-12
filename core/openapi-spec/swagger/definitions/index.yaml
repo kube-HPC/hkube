@@ -172,6 +172,9 @@ gatewayName:
 gateway:
   $ref: ./gateway/gateway.yaml
 
+output:
+  $ref: ./output/output.yaml
+
 # GC
 clean:
   $ref: ./gc/clean.yaml
