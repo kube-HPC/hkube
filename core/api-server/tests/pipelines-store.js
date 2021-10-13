@@ -381,7 +381,7 @@ describe('Store/Pipelines', () => {
         it('should throw validation error if debugOverride algorithm not in nodes', async () => {
             const pipeline = clone(pipelines[0]);
             pipeline.name = uuid();
-            pipeline.options.debugOverride=['not-exist']
+            pipeline.options.debugOverride = ['not-exist']
             const body = pipeline;
             const options = {
                 uri: restPath,
@@ -455,7 +455,6 @@ describe('Store/Pipelines', () => {
             pipeline.kind = 'stream';
             pipeline.nodes.forEach((n) => {
                 n.kind = 'algorithm';
-                n.stateType = 'stateless';
             });
             const options = {
                 uri: restPath,

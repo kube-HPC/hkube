@@ -2,6 +2,8 @@ type: object
 properties:
   name:
     $ref: "#/components/schemas/algorithmName"
+  kind:
+    $ref: "#/components/schemas/algorithmKind"
   env:
     $ref: "#/components/schemas/algorithmEnv"
   algorithmImage:
@@ -145,6 +147,10 @@ properties:
     type: object
     nullable: true
     description: attach key value metadata to algorithm pod, usually for tools and libraries
+  streamKind:
+    enum:
+      - stateless
+      - stateful
   type:
     type: string
     description: type of algorithm code resource

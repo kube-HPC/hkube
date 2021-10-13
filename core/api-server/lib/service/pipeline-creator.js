@@ -247,6 +247,15 @@ class PipelineCreator {
         };
     }
 
+    buildNodes(pipeline, algorithms) {
+        if (pipeline.kind === pipelineKind.Stream) {
+            pipeline.nodes.forEach(n => {
+                const algorithm = algorithms.get(n.algorithmName);
+                n.stateType = algorithm.streamKind || stateType.Stateless;  // eslint-disable-line
+            });
+        }
+    }
+
     _mapNodes(node, pipelines) {
         if (node.pipelineName) {
             const pipeline = pipelines.find(p => p.name === node.pipelineName);

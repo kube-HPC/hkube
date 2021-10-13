@@ -8,8 +8,7 @@ const nodes = [
     {
         nodeName: 'A',
         algorithmName: 'green-alg',
-        input: [],
-        stateType: 'stateful'
+        input: []
     },
     {
         nodeName: 'B',
@@ -29,8 +28,7 @@ const nodes = [
     {
         nodeName: 'E',
         algorithmName: 'green-alg',
-        input: [],
-        stateType: 'stateful'
+        input: []
     }
 ];
 
@@ -316,8 +314,7 @@ describe('Streaming', () => {
                         {
                             nodeName: 'image',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateful'
+                            input: []
                         },
                         {
                             nodeName: 'A',
@@ -347,14 +344,12 @@ describe('Streaming', () => {
                         {
                             nodeName: 'get-all',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateful'
+                            input: []
                         },
                         {
                             nodeName: 'get-all2',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateful'
+                            input: []
                         }
                     ],
                     streaming: {
@@ -418,32 +413,27 @@ describe('Streaming', () => {
                         {
                             nodeName: 'A',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateful'
+                            input: []
                         },
                         {
                             nodeName: 'B',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateless'
+                            input: []
                         },
                         {
                             nodeName: 'C',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateless'
+                            input: []
                         },
                         {
                             nodeName: 'D',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateless'
+                            input: []
                         },
                         {
                             nodeName: 'E',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateless'
+                            input: []
                         }
                     ],
                     streaming: {
@@ -742,35 +732,30 @@ describe('Streaming', () => {
                         nodeName: 'A',
                         algorithmName: 'green-alg',
                         input: [],
-                        stateType: 'stateful',
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'B',
                         algorithmName: 'green-alg',
                         input: [],
-                        stateType: 'stateless',
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'C',
                         algorithmName: 'green-alg',
                         input: [],
-                        stateType: 'stateless',
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'D',
                         algorithmName: 'green-alg',
                         input: [],
-                        stateType: 'stateless',
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'E',
                         algorithmName: 'green-alg',
                         input: [],
-                        stateType: 'stateless',
                         kind: 'algorithm'
                     }
                 ],

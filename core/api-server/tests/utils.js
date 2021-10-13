@@ -1,6 +1,7 @@
 const requestClient = require('request');
 
 const defaultProps = {
+    kind: 'batch',
     mem: '256Mi',
     cpu: 0.1,
     type: 'Image',

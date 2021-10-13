@@ -99,12 +99,13 @@ class ExecutionService {
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
             pipeline = await pipelineCreator.updateDebug(pipeline);
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline, jobId);
+            const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
+            await pipelineCreator.buildNodes(pipeline, algorithms);
             const isCaching = pipeline.nodes.some(n => n.cacheJobId);
             const validateNodes = !isCaching || !!payload.options?.validateNodes;
             validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
             pipeline = await validator.dataSources.validate(pipeline);
-            const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
             validator.algorithms.validateAlgorithmImage(algorithms);
             const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline);
             if (isCaching) {
