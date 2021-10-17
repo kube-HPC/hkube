@@ -41,7 +41,7 @@ class JobProducer {
             if (queue.length > 0) {
                 const pendingAmount = await this._redisQueue.getWaitingCount();
                 if (pendingAmount === 0) {
-                    await this.createJob();
+                    await this.createJob(queue[0]);
                 }
             }
         }
@@ -100,6 +100,7 @@ class JobProducer {
             if (job) {
                 log.info(`found and disable job with prefix ${jobIdPrefix} that marked as maxExceeded`, { component });
                 job.maxExceeded = false;
+                queueRunner.queue.updateQueueOrder();
             }
         }
     }
@@ -126,11 +127,11 @@ class JobProducer {
         };
     }
 
-    async createJob() {
-        const pipeline = queueRunner.queue.dequeue();
+    async createJob(job) {
+        const pipeline = queueRunner.queue.dequeue(job);
         log.debug(`creating new job ${pipeline.jobId}, calculated score: ${pipeline.score}`, { component });
-        const job = this._pipelineToJob(pipeline);
-        await this._producer.createJob(job);
+        const jobData = this._pipelineToJob(pipeline);
+        await this._producer.createJob(jobData);
     }
 }
 
