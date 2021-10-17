@@ -113,7 +113,9 @@ class ExecutionService {
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
                 pipeFlowInputMetadata = { metadata, storageInfo };
             }
+            userPipeline.flowInput = null;
             userPipeline.flowInputMetadata = pipeFlowInputMetadata;
+            extendedPipeline.flowInput = null;
             extendedPipeline.flowInputMetadata = pipeFlowInputMetadata;
             const lastRunResult = await this._getLastPipeline(extendedPipeline);
             const pipelineObject = { ...extendedPipeline, maxExceeded, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
