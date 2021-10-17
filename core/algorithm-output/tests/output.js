@@ -25,7 +25,6 @@ describe('inout', () => {
         }
         wrapper._init(jobData);
         wrapper._start({});
-
     });
 
 });
