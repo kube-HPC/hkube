@@ -1,6 +1,6 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const component = require('./lib/algorithm-communication/consts/component-names').MAIN;
+const component = require('./lib/consts/component-names').MAIN;
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 

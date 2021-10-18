@@ -5,7 +5,6 @@
     "main": "app.js",
     "dependencies": {
         "@hkube/config": "^2.0.11",
-        "@hkube/consts": "1.0.35",
         "@hkube/logger": "^2.0.1",
         "@hkube/nodejs-wrapper": "^2.0.45",
         "@hkube/uid": "^1.0.4"
