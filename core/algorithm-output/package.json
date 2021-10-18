@@ -6,8 +6,7 @@
     "dependencies": {
         "@hkube/config": "^2.0.11",
         "@hkube/logger": "^2.0.1",
-        "@hkube/nodejs-wrapper": "^2.0.45",
-        "@hkube/uid": "^1.0.4"
+        "@hkube/nodejs-wrapper": "^2.0.45"
     },
     "devDependencies": {
         "chai": "^4.2.0",
@@ -16,7 +15,8 @@
         "eslint-config-airbnb-base": "^14.2.1",
         "eslint-plugin-chai-friendly": "^0.6.0",
         "eslint-plugin-import": "^2.22.1",
-        "mocha": "^9.1.0"
+        "mocha": "^9.1.0",
+        "@hkube/uid": "^1.0.4"
     },
     "scripts": {
         "lint": "./node_modules/eslint/bin/eslint.js .",
