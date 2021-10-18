@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.6",
+    "version": "2.2.1",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -291,6 +291,7 @@
                   },
                   "flowInput": {
                     "type": "object",
+                    "nullable": true,
                     "description": "input object"
                   },
                   "webhooks": {
@@ -738,6 +739,7 @@
                   },
                   "flowInput": {
                     "type": "object",
+                    "nullable": true,
                     "description": "input object"
                   },
                   "webhooks": {
@@ -2216,6 +2218,7 @@
                     },
                     "flowInput": {
                       "type": "object",
+                      "nullable": true,
                       "description": "input object"
                     },
                     "webhooks": {
@@ -2662,6 +2665,7 @@
                     },
                     "flowInput": {
                       "type": "object",
+                      "nullable": true,
                       "description": "input object"
                     },
                     "webhooks": {
@@ -8444,6 +8448,7 @@
                     },
                     "flowInput": {
                       "type": "object",
+                      "nullable": true,
                       "description": "input object"
                     },
                     "webhooks": {
@@ -8993,6 +8998,7 @@
                       },
                       "flowInput": {
                         "type": "object",
+                        "nullable": true,
                         "description": "input object"
                       },
                       "webhooks": {
@@ -9398,6 +9404,7 @@
                   },
                   "flowInput": {
                     "type": "object",
+                    "nullable": true,
                     "description": "input object"
                   },
                   "webhooks": {
@@ -9779,6 +9786,7 @@
                     },
                     "flowInput": {
                       "type": "object",
+                      "nullable": true,
                       "description": "input object"
                     },
                     "webhooks": {
@@ -10221,6 +10229,7 @@
                   },
                   "flowInput": {
                     "type": "object",
+                    "nullable": true,
                     "description": "input object"
                   },
                   "webhooks": {
@@ -10602,6 +10611,7 @@
                     },
                     "flowInput": {
                       "type": "object",
+                      "nullable": true,
                       "description": "input object"
                     },
                     "webhooks": {
@@ -18824,6 +18834,7 @@
           },
           "flowInput": {
             "type": "object",
+            "nullable": true,
             "description": "input object"
           },
           "webhooks": {
