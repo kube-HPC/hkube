@@ -66,6 +66,7 @@ jobs:
           fi
         env: 
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USER: "${{ secrets.DOCKER_USER }}"
       - name: set branch
         run: |
           echo GITHUB_REF=$GITHUB_REF
