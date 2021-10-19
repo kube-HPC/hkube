@@ -56,15 +56,19 @@ class Queue extends Events {
     enqueue(job) {
         this.queue.push(job);
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
-        this.queue = orderby(this.queue, ['maxExceeded', 'score'], ['asc', 'desc']);
+        this.updateQueueOrder();
         const jobQ = this.queue.find(j => j.jobId === job.jobId);
         this.emit(queueEvents.INSERT, jobQ);
         this.emit(queueEvents.UPDATE_SCORE, jobQ);
         log.info(`new job inserted to queue, queue size: ${this.size}`, { component });
     }
 
-    dequeue() {
-        const job = this.queue.shift();
+    updateQueueOrder() {
+        this.queue = orderby(this.queue, ['maxExceeded', 'score'], ['asc', 'desc']);
+    }
+
+    dequeue(job) {
+        remove(this.queue, j => j.jobId === job.jobId);
         this.emit(queueEvents.POP, job);
         log.info(`job pop from queue, queue size: ${this.size}`, { component });
         return job;

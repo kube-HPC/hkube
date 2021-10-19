@@ -1,0 +1,43 @@
+global:
+  clusterName: dev1-spot
+  storage:
+    binary: true
+    fs:
+      pvc:
+         name: 'hkube-storage'
+         capacity: '50Gi'
+         storage_class: '-'
+         nfs_root: '/nfs/storageclass/dev1'
+         nfs_server: '172.20.46.223'
+      dev_pvc: 
+        name: hkube-dev-sources
+        capacity: 10Gi
+        storage_class: 'nfs-client'
+        enabled: true
+      base_directory: '/hkubedata'
+  ingress:
+    use_regex: true
+env:
+  default_storage: 'fs'
+build_secret:
+  docker_registry: ''
+  docker_namespace: ''
+  docker_username: ${DOCKER_BUILD_PUSH_USERNAME}
+  docker_password: ${DOCKER_BUILD_PUSH_PASSWORD}
+etcd:
+  persistentVolume:
+    enabled: true
+    storageClass: etcd-sc
+task_executor:
+  env:
+    pipeline_drivers_amount: 5
+    use_resource_limits: true
+monitor_server:
+  env:
+    elasticsearch_service_url: 'http://elasticsearch-ingest.logging:9200'
+storage_cleaner:
+  pattern: "30 7 * * *"
+etcd_cleaner:
+  pattern: "30 7 * * *"
+jaeger:
+  enable: true  

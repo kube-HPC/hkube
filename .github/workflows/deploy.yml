@@ -42,7 +42,12 @@ jobs:
       with:
         node-version: '14'
     - name: Docker login
-      run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+      run: ${{ github.workspace }}/scripts/docker-login.sh
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+        DOCKER_USER: "${{ secrets.DOCKER_USER }}"
+        EXTRA_DOCKER_LOGINS: "${{ secrets.EXTRA_DOCKER_LOGINS }}"
     - name: build changed
       id: build_changed
       uses: yehiyam/deploy-to-k8s@master
@@ -50,6 +55,9 @@ jobs:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         prNumber: ${{ github.event.deployment.payload.prNumber }}
         branchName: ${{ github.event.ref }}
+      env:
+        EXTRA_PRIVATE_REGISTRIES: "${{ secrets.EXTRA_PRIVATE_REGISTRIES }}"
+
     - uses: actions/upload-artifact@v2
       with:
         name: values.yaml
@@ -81,6 +89,17 @@ jobs:
       with:
         name: chart.tgz
         path: /tmp/chart.tgz
+    - name: set values
+      run: |
+        envsubst < ${{ github.workspace }}/scripts/values-dev1-template.yml > /tmp/dev1.yml
+      shell: bash
+      env:
+        DOCKER_BUILD_PUSH_PASSWORD: ${{ secrets.DOCKER_BUILD_PUSH_PASSWORD }}
+        DOCKER_BUILD_PUSH_USERNAME: ${{ secrets.DOCKER_BUILD_PUSH_USERNAME }}
+    - uses: actions/upload-artifact@v2
+      with:
+        name: dev1.yml
+        path: /tmp/dev1.yml
     - name: set deployment status to failure
       id: failed_deployment
       uses: octokit/request-action@v2.x
@@ -98,34 +117,34 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     outputs:
       chart: chart.tgz
+      values: dev1.yml
   deploy:
     runs-on: ubuntu-latest
     needs:
       - build_job
-    name: build and deploy
+    name: deploy
     steps:
     - name: download chart
       uses: actions/download-artifact@v2
       with:
         name: ${{ needs.build_job.outputs.chart }}
-    - name: set values
-      run: |
-        echo "$DEV1_VALUES" > ${{ github.workspace }}/dev1.yaml
-        cat ${{ github.workspace }}/dev1.yaml
-      shell: bash
-      env:
-        DEV1_VALUES: ${{secrets.DEV1_VALUES}}
-    - name: deploy
-      uses: 'deliverybot/helm@v1'
+    - name: download values
+      uses: actions/download-artifact@v2
       with:
-        chart: "${{ github.workspace }}/${{ needs.build_job.outputs.chart }}"
-        release: 'hkube' 
-        namespace: default
-        helm: helm3
-        value-files: "${{ github.workspace }}/dev1.yaml"
-        token: "${{ secrets.GITHUB_TOKEN }}"
+        name: ${{ needs.build_job.outputs.values }}
+    - name: create kubeconfig
+      run: |
+          echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/config
+          echo KUBECONFIG=/tmp/config >> $GITHUB_ENV
       env:
-        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+        KUBE_CONFIG_DATA: ${{ secrets.DEV1_KUBECONFIG }}
+    - name: verify kubectl
+      run: kubectl cluster-info
+    - name: deploy
+      run: |
+          helm ls
+          helm upgrade -i hkube --wait -f ${{ github.workspace }}/${{ needs.build_job.outputs.values }} ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
+          helm ls
     - name: set deployment status to success
       id: successful_deployment
       uses: octokit/request-action@v2.x

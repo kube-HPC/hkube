@@ -90,11 +90,28 @@ describe('Test', () => {
                     queue.on(queueEvents.POP, () => {
                         _semaphore.callDone();
                     });
-                    const job = queue.dequeue();
+                    const job = queue.dequeue(stubJob);
                     await _semaphore.done({ doneAmount: 1 });
                     const q = queue.getQueue();
                     expect(job.jobId).to.be.eql(stubJob.jobId);
                     expect(q).to.have.length(0);
+                });
+                it('should pop correct job from queue', async () => {
+                    queue.updateHeuristic({ run: heuristic(80) });
+                    for (let i = 0; i < 10; i++) {
+                        const stubJob = stubTemplate();
+                        queue.enqueue(stubJob);
+                    }
+                    queue.on(queueEvents.POP, () => {
+                        _semaphore.callDone();
+                    });
+                    const jobToPop = queue.getQueue()[3];
+                    const job = queue.dequeue(jobToPop);
+                    await _semaphore.done({ doneAmount: 1 });
+                    const q = queue.getQueue();
+                    expect(job.jobId).to.be.eql(jobToPop.jobId);
+                    expect(q).to.have.length(9);
+                    expect(q).to.not.include(jobToPop);
                 });
             });
             describe('queue-events', () => {

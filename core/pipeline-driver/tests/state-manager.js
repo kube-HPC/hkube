@@ -84,6 +84,22 @@ describe('StateManager', function () {
         await stateManager._etcd.jobs.status.set({ jobId, data });
         const response = await stateManager._etcd.jobs.status.get({ jobId });
         expect(response.data).to.deep.equal(data);
+        expect(response.netTimeTook).to.not.exist
+        expect(response.grossTimeTook).to.not.exist
+    });
+    it('setJobStatus should set timeTook', async function () {
+        const jobId = `jobid-${uuidv4()}`;
+        const data = { status: 'completed' };
+        await stateManager._etcd.jobs.status.set({ jobId, data });
+        await stateManager.setJobStatus({jobId, queueTime: Date.now()-1000, startTime: Date.now() });
+        let response = await stateManager._etcd.jobs.status.get({ jobId });
+        expect(response.data).to.deep.equal(data);
+        expect(response.timeTook).to.not.exist
+        await stateManager.setJobStatus({jobId}, true)
+        response = await stateManager._etcd.jobs.status.get({ jobId });
+        expect(response.data).to.deep.equal(data);
+        expect(response.netTimeTook).to.exist
+        expect(response.grossTimeTook).to.exist
     });
     it('getExecution', async function () {
         const jobId = `jobid-${uuidv4()}`;

@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
+const moment = require('moment');
 const Etcd = require('@hkube/etcd');
 const logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
@@ -163,11 +164,21 @@ class StateManager extends EventEmitter {
         return this._updateDiscovery();
     }
 
-    async setJobStatus(options) {
+    async setJobStatus(options, setTimeTook) {
         await this._updateDiscovery();
         return this._etcd.jobs.status.update(options, (oldItem) => {
             if (oldItem.status !== DriverStates.STOPPED && oldItem.status !== DriverStates.PAUSED) {
-                return { ...oldItem, ...options };
+                const times = {};
+                if (setTimeTook) {
+                    const now = moment(Date.now());
+                    if (oldItem.startTime) {
+                        times.netTimeTook = now.diff(moment(oldItem.startTime), 'seconds', true);
+                    }
+                    if (oldItem.queueTime) {
+                        times.grossTimeTook = now.diff(moment(oldItem.queueTime), 'seconds', true);
+                    }
+                }
+                return { ...oldItem, ...options, ...times };
             }
             return null;
         }).catch(e => {
