@@ -56,5 +56,6 @@ properties:
       - $ref: "#/components/schemas/dataSource-id"
       - $ref: "#/components/schemas/dataSource-name"
       - $ref: "#/components/schemas/dataSource-snapshot"
+      - $ref: "#/components/schemas/output"
 required:
   - nodeName
