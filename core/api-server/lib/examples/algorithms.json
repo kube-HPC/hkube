@@ -42,5 +42,16 @@
         },
         "minHotWorkers": 0,
         "type": "Image"
+    },
+    {
+        "name": "stream-alg",
+        "algorithmImage": "hkube/algorithm-example-python",
+        "cpu": 0.5,
+        "mem": "512Mi",
+        "options": {
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
     }
 ]

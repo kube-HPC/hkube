@@ -17,7 +17,7 @@ class ApiValidator {
 
     validatePipelineNodes(pipeline) {
         if (!pipeline.nodes?.length) {
-            throw new InvalidDataError('pipeline must have at nodes property with at least one node');
+            throw new InvalidDataError('pipeline must have at least one node');
         }
         const outputs = pipeline.nodes.filter(n => n.kind === nodeKind.Output);
         if (outputs?.length > 1) {

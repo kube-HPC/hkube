@@ -30,7 +30,7 @@ class InternalService {
     async runRawSubPipeline(options) {
         validator.internal.validateRawSubPipeline(options);
         const { pipeline, rootJobId, parentSpan } = await this._createPipeline(options);
-        return execution._run({ pipeline, rootJobId, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE] });
+        return execution._runPipeline({ pipeline, rootJobId, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE] });
     }
 
     async _createPipeline(options) {
