@@ -1,3 +1,4 @@
+const { nodeKind } = require('@hkube/consts');
 const { InvalidDataError } = require('../errors');
 
 class ApiValidator {
@@ -17,6 +18,10 @@ class ApiValidator {
     validatePipelineNodes(pipeline) {
         if (!pipeline.nodes?.length) {
             throw new InvalidDataError('pipeline must have at nodes property with at least one node');
+        }
+        const outputs = pipeline.nodes.filter(n => n.kind === nodeKind.Output);
+        if (outputs?.length > 1) {
+            throw new InvalidDataError('pipeline can not have more than one output');
         }
         const debugOverride = pipeline.options?.debugOverride || [];
         debugOverride.forEach((a) => {

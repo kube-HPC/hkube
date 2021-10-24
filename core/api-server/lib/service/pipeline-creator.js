@@ -4,6 +4,7 @@ const { parser, consts } = require('@hkube/parsers');
 const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
 const gatewayService = require('./gateway');
 const debugService = require('./debug');
+const outputService = require('./output');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
@@ -109,6 +110,18 @@ class PipelineCreator {
             if (node.kind === nodeKind.Debug) {
                 const { algorithmName } = node;
                 const { algorithmName: newAlgorithmName } = await debugService.createDebug({ algorithmName }); // eslint-disable-line
+                node.algorithmName = newAlgorithmName;
+            }
+        }
+        return pipeline;
+    }
+
+    async updateOutput(pipeline, jobId) {
+        const { name: pipelineName } = pipeline;
+        for (const node of pipeline.nodes) { // eslint-disable-line
+            if (node.kind === nodeKind.Output) {
+                const { spec } = node;
+                const { algorithmName: newAlgorithmName } = await outputService.createOutput(pipelineName, jobId, spec); // eslint-disable-line
                 node.algorithmName = newAlgorithmName;
             }
         }

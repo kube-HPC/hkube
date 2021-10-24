@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.6",
+    "version": "2.1.7",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -207,7 +207,8 @@
                             "pipeline",
                             "debug",
                             "dataSource",
-                            "gateway"
+                            "gateway",
+                            "output"
                           ]
                         },
                         "spec": {
@@ -280,6 +281,21 @@
                                 "name",
                                 "snapshot"
                               ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the outputformat"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for output",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                }
+                              }
                             }
                           ]
                         }
@@ -654,7 +670,8 @@
                             "pipeline",
                             "debug",
                             "dataSource",
-                            "gateway"
+                            "gateway",
+                            "output"
                           ]
                         },
                         "spec": {
@@ -727,6 +744,21 @@
                                 "name",
                                 "snapshot"
                               ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the outputformat"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for output",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                }
+                              }
                             }
                           ]
                         }
@@ -2132,7 +2164,8 @@
                               "pipeline",
                               "debug",
                               "dataSource",
-                              "gateway"
+                              "gateway",
+                              "output"
                             ]
                           },
                           "spec": {
@@ -2205,6 +2238,21 @@
                                   "name",
                                   "snapshot"
                                 ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the outputformat"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for output",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  }
+                                }
                               }
                             ]
                           }
@@ -2578,7 +2626,8 @@
                               "pipeline",
                               "debug",
                               "dataSource",
-                              "gateway"
+                              "gateway",
+                              "output"
                             ]
                           },
                           "spec": {
@@ -2651,6 +2700,21 @@
                                   "name",
                                   "snapshot"
                                 ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the outputformat"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for output",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  }
+                                }
                               }
                             ]
                           }
@@ -8360,7 +8424,8 @@
                               "pipeline",
                               "debug",
                               "dataSource",
-                              "gateway"
+                              "gateway",
+                              "output"
                             ]
                           },
                           "spec": {
@@ -8433,6 +8498,21 @@
                                   "name",
                                   "snapshot"
                                 ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the outputformat"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for output",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  }
+                                }
                               }
                             ]
                           }
@@ -8909,7 +8989,8 @@
                                 "pipeline",
                                 "debug",
                                 "dataSource",
-                                "gateway"
+                                "gateway",
+                                "output"
                               ]
                             },
                             "spec": {
@@ -8982,6 +9063,21 @@
                                     "name",
                                     "snapshot"
                                   ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the outputformat"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for output",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    }
+                                  }
                                 }
                               ]
                             }
@@ -9314,7 +9410,8 @@
                             "pipeline",
                             "debug",
                             "dataSource",
-                            "gateway"
+                            "gateway",
+                            "output"
                           ]
                         },
                         "spec": {
@@ -9387,6 +9484,21 @@
                                 "name",
                                 "snapshot"
                               ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the outputformat"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for output",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                }
+                              }
                             }
                           ]
                         }
@@ -9695,7 +9807,8 @@
                               "pipeline",
                               "debug",
                               "dataSource",
-                              "gateway"
+                              "gateway",
+                              "output"
                             ]
                           },
                           "spec": {
@@ -9768,6 +9881,21 @@
                                   "name",
                                   "snapshot"
                                 ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the outputformat"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for output",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  }
+                                }
                               }
                             ]
                           }
@@ -10137,7 +10265,8 @@
                             "pipeline",
                             "debug",
                             "dataSource",
-                            "gateway"
+                            "gateway",
+                            "output"
                           ]
                         },
                         "spec": {
@@ -10210,6 +10339,21 @@
                                 "name",
                                 "snapshot"
                               ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the outputformat"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for output",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                }
+                              }
                             }
                           ]
                         }
@@ -10518,7 +10662,8 @@
                               "pipeline",
                               "debug",
                               "dataSource",
-                              "gateway"
+                              "gateway",
+                              "output"
                             ]
                           },
                           "spec": {
@@ -10591,6 +10736,21 @@
                                   "name",
                                   "snapshot"
                                 ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the outputformat"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for output",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  }
+                                }
                               }
                             ]
                           }
@@ -18485,6 +18645,21 @@
           }
         }
       },
+      "output": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "describe the outputformat"
+          },
+          "mem": {
+            "type": "string",
+            "description": "Memory allocated for output",
+            "format": "algorithm-memory",
+            "default": "512Mi"
+          }
+        }
+      },
       "clean": {
         "type": "object",
         "properties": {
@@ -18740,7 +18915,8 @@
                     "pipeline",
                     "debug",
                     "dataSource",
-                    "gateway"
+                    "gateway",
+                    "output"
                   ]
                 },
                 "spec": {
@@ -18813,6 +18989,21 @@
                         "name",
                         "snapshot"
                       ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string",
+                          "description": "describe the outputformat"
+                        },
+                        "mem": {
+                          "type": "string",
+                          "description": "Memory allocated for output",
+                          "format": "algorithm-memory",
+                          "default": "512Mi"
+                        }
+                      }
                     }
                   ]
                 }
@@ -19013,7 +19204,8 @@
           "pipeline",
           "debug",
           "dataSource",
-          "gateway"
+          "gateway",
+          "output"
         ]
       },
       "pipelineNode": {
@@ -19104,7 +19296,8 @@
               "pipeline",
               "debug",
               "dataSource",
-              "gateway"
+              "gateway",
+              "output"
             ]
           },
           "spec": {
@@ -19177,6 +19370,21 @@
                   "name",
                   "snapshot"
                 ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "describe the outputformat"
+                  },
+                  "mem": {
+                    "type": "string",
+                    "description": "Memory allocated for output",
+                    "format": "algorithm-memory",
+                    "default": "512Mi"
+                  }
+                }
               }
             ]
           }

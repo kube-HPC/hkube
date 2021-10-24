@@ -98,6 +98,7 @@ class ExecutionService {
             validator.pipelines.validatePipelineNodes(pipeline);
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
             pipeline = await pipelineCreator.updateDebug(pipeline);
+            pipeline = await pipelineCreator.updateOutput(pipeline, jobId);
             pipeline = await pipelineCreator.buildStreamingFlow(pipeline, jobId);
             const isCaching = pipeline.nodes.some(n => n.cacheJobId);
             const validateNodes = !isCaching || !!payload.options?.validateNodes;
