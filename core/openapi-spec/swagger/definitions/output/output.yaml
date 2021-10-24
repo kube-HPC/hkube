@@ -1,0 +1,10 @@
+type: object
+properties:
+  description:
+    type: string
+    description: describe the outputformat
+  mem:
+    type: string
+    description: Memory allocated for output
+    format: algorithm-memory
+    default: 512Mi

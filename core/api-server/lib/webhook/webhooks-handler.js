@@ -9,6 +9,7 @@ const { States, Types } = require('./States');
 const { metricsNames } = require('../consts/metricsNames');
 const storage = require('../service/storage');
 const gatewayService = require('../service/gateway');
+const outputService = require('../service/output');
 const debugService = require('../service/debug');
 const CompletedState = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 
@@ -30,6 +31,7 @@ class WebhooksHandler {
             this._requestResults(response);
             const { jobId } = response;
             gatewayService.deleteGateways({ jobId });
+            outputService.deleteOutputs({ jobId });
             debugService.updateLastUsed({ jobId });
         });
         stateManager.onJobStatus((response) => {
