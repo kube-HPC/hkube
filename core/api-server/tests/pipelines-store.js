@@ -146,7 +146,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('pipeline must have at nodes property with at least one node');
+            expect(response.body.error.message).to.equal('pipeline must have at least one node');
         });
         it('should throw validation error of required property nodes.nodeName', async () => {
             const options = {

@@ -504,5 +504,57 @@
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
         }
+    },
+    {
+        "name": "streaming",
+        "kind": "stream",
+        "nodes": [
+            {
+                "nodeName": "A",
+                "algorithmName": "stream-alg",
+                "input": [
+                    {
+                        "msgPerSec": "@flowInput.msgPerSec"
+                    }
+                ],
+                "stateType": "stateful"
+            },
+            {
+                "nodeName": "B",
+                "algorithmName": "stream-alg",
+                "input": [
+                    {
+                        "delay": "@flowInput.delay"
+                    }
+                ]
+            },
+            {
+                "nodeName": "C",
+                "algorithmName": "stream-alg",
+                "input": [
+                    {
+                        "delay": "@flowInput.delay"
+                    }
+                ]
+            },
+            {
+                "nodeName": "D",
+                "algorithmName": "stream-alg",
+                "input": [
+                    {
+                        "delay": "@flowInput.delay"
+                    }
+                ]
+            }
+        ],
+        "streaming": {
+            "flows": {
+                "analyze": "A >> B&C&D"
+            }
+        },
+        "flowInput": {
+            "msgPerSec": 30,
+            "delay": 0.033
+        }
     }
 ]
