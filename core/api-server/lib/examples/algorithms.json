@@ -45,7 +45,7 @@
     },
     {
         "name": "stream-alg",
-        "algorithmImage": "docker.io/hkubedevtest/stream-alg:viv8nyysu",
+        "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.5,
         "mem": "512Mi",
         "options": {
