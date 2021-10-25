@@ -68,6 +68,24 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm dummy Not Found');
         });
+        it.only('should throw validation error if algorithmName not exists', async () => {
+            const options = {
+                uri: restUrl + '/exec/raw',
+                body: {
+                    name: 'exec-pipeline',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            kind: 'optimizer',
+                            input: []
+                        }
+                    ]
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('jobId');
+        });
+
         it('should succeed and return job id', async () => {
             const options1 = {
                 uri: restUrl + '/exec/raw',

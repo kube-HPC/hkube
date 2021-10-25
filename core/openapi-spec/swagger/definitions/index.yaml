@@ -175,6 +175,9 @@ gateway:
 output:
   $ref: ./output/output.yaml
 
+optimizer:
+  $ref: ./optimizer/optimizer.yaml  
+
 # GC
 clean:
   $ref: ./gc/clean.yaml

@@ -3,7 +3,7 @@ class ApiValidator {
         this._validator = validator;
     }
 
-    validateOutput(optimizer) {
+    validateOptimizer(optimizer) {
         this._validator.validate(this._validator.definitions.optimizer, optimizer, true);
     }
 }

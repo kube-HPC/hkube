@@ -126,7 +126,7 @@ class PipelineCreator {
         for (const node of pipeline.nodes) { // eslint-disable-line
             if (node.kind === nodeKind.Optimizer) {
                 const { spec } = node;
-                const { algorithmName: newAlgorithmName } = await optimizeService.createOptimize(pipelineName, jobId, spec); // eslint-disable-line
+                const { algorithmName: newAlgorithmName } = await optimizeService.createOptimizer(pipelineName, jobId, spec); // eslint-disable-line
                 node.algorithmName = newAlgorithmName;
             }
         }

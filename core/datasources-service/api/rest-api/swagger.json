@@ -18680,6 +18680,22 @@
           }
         }
       },
+      "optimizer": {
+        "type": "object",
+        "properties": {
+          "numberOfTrials": {
+            "type": "number",
+            "description": "number Of Trials"
+          },
+          "hyperParams": {
+            "type": "array",
+            "description": "list of hyper params to optimize",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
       "clean": {
         "type": "object",
         "properties": {

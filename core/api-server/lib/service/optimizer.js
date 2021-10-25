@@ -25,7 +25,6 @@ class Optimizer extends AlgorithmBase {
         }
         const algorithm = {
             name: algorithmName,
-            mem,
             description,
             jobId,
             kind: nodeKind.Optimizer,
