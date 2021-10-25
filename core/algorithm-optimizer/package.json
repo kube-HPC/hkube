@@ -19,10 +19,10 @@
         "@hkube/uid": "^1.0.4"
     },
     "scripts": {
-        "lint": "./node_modules/eslint/bin/eslint.js .",
-        "test": "echo test here",
-        "test:cov": "echo test cov",
-        "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+        "lint": "echo no lint",
+        "test": "echo no test",
+        "test:cov": "echo no test cov",
+        "coverage": "echo no cov",
         "start": "python app.py",
         "build": "./dockerfile/build.sh algorithm-optimizer"
     },
