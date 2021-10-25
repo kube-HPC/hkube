@@ -27,6 +27,7 @@ class Optimizer extends AlgorithmBase {
             name: algorithmName,
             description,
             jobId,
+            mem: '1Gi',
             kind: nodeKind.Optimizer,
             algorithmImage: 'hkube/algorithm-optimizer',
             type: buildTypes.IMAGE,
