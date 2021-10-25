@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.1.7",
+    "version": "2.2.3",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -208,7 +208,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "optimizer"
                           ]
                         },
                         "spec": {
@@ -307,6 +308,7 @@
                   },
                   "flowInput": {
                     "type": "object",
+                    "nullable": true,
                     "description": "input object"
                   },
                   "webhooks": {
@@ -671,7 +673,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "optimizer"
                           ]
                         },
                         "spec": {
@@ -770,6 +773,7 @@
                   },
                   "flowInput": {
                     "type": "object",
+                    "nullable": true,
                     "description": "input object"
                   },
                   "webhooks": {
@@ -2165,7 +2169,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "optimizer"
                             ]
                           },
                           "spec": {
@@ -2264,6 +2269,7 @@
                     },
                     "flowInput": {
                       "type": "object",
+                      "nullable": true,
                       "description": "input object"
                     },
                     "webhooks": {
@@ -2627,7 +2633,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "optimizer"
                             ]
                           },
                           "spec": {
@@ -2726,6 +2733,7 @@
                     },
                     "flowInput": {
                       "type": "object",
+                      "nullable": true,
                       "description": "input object"
                     },
                     "webhooks": {
@@ -8425,7 +8433,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "optimizer"
                             ]
                           },
                           "spec": {
@@ -8524,6 +8533,7 @@
                     },
                     "flowInput": {
                       "type": "object",
+                      "nullable": true,
                       "description": "input object"
                     },
                     "webhooks": {
@@ -8990,7 +9000,8 @@
                                 "debug",
                                 "dataSource",
                                 "gateway",
-                                "output"
+                                "output",
+                                "optimizer"
                               ]
                             },
                             "spec": {
@@ -9089,6 +9100,7 @@
                       },
                       "flowInput": {
                         "type": "object",
+                        "nullable": true,
                         "description": "input object"
                       },
                       "webhooks": {
@@ -9411,7 +9423,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "optimizer"
                           ]
                         },
                         "spec": {
@@ -9510,6 +9523,7 @@
                   },
                   "flowInput": {
                     "type": "object",
+                    "nullable": true,
                     "description": "input object"
                   },
                   "webhooks": {
@@ -9808,7 +9822,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "optimizer"
                             ]
                           },
                           "spec": {
@@ -9907,6 +9922,7 @@
                     },
                     "flowInput": {
                       "type": "object",
+                      "nullable": true,
                       "description": "input object"
                     },
                     "webhooks": {
@@ -10266,7 +10282,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "optimizer"
                           ]
                         },
                         "spec": {
@@ -10365,6 +10382,7 @@
                   },
                   "flowInput": {
                     "type": "object",
+                    "nullable": true,
                     "description": "input object"
                   },
                   "webhooks": {
@@ -10663,7 +10681,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "optimizer"
                             ]
                           },
                           "spec": {
@@ -10762,6 +10781,7 @@
                     },
                     "flowInput": {
                       "type": "object",
+                      "nullable": true,
                       "description": "input object"
                     },
                     "webhooks": {
@@ -18916,7 +18936,8 @@
                     "debug",
                     "dataSource",
                     "gateway",
-                    "output"
+                    "output",
+                    "optimizer"
                   ]
                 },
                 "spec": {
@@ -19015,6 +19036,7 @@
           },
           "flowInput": {
             "type": "object",
+            "nullable": true,
             "description": "input object"
           },
           "webhooks": {
@@ -19205,7 +19227,8 @@
           "debug",
           "dataSource",
           "gateway",
-          "output"
+          "output",
+          "optimizer"
         ]
       },
       "pipelineNode": {
@@ -19297,7 +19320,8 @@
               "debug",
               "dataSource",
               "gateway",
-              "output"
+              "output",
+              "optimizer"
             ]
           },
           "spec": {

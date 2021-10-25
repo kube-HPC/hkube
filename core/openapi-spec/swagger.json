@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.1",
+    "version": "2.2.3",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -208,7 +208,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "optimizer"
                           ]
                         },
                         "spec": {
@@ -672,7 +673,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "optimizer"
                           ]
                         },
                         "spec": {
@@ -2167,7 +2169,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "optimizer"
                             ]
                           },
                           "spec": {
@@ -2630,7 +2633,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "optimizer"
                             ]
                           },
                           "spec": {
@@ -8429,7 +8433,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "optimizer"
                             ]
                           },
                           "spec": {
@@ -8995,7 +9000,8 @@
                                 "debug",
                                 "dataSource",
                                 "gateway",
-                                "output"
+                                "output",
+                                "optimizer"
                               ]
                             },
                             "spec": {
@@ -9417,7 +9423,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "optimizer"
                           ]
                         },
                         "spec": {
@@ -9815,7 +9822,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "optimizer"
                             ]
                           },
                           "spec": {
@@ -10274,7 +10282,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "optimizer"
                           ]
                         },
                         "spec": {
@@ -10672,7 +10681,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "optimizer"
                             ]
                           },
                           "spec": {
@@ -18926,7 +18936,8 @@
                     "debug",
                     "dataSource",
                     "gateway",
-                    "output"
+                    "output",
+                    "optimizer"
                   ]
                 },
                 "spec": {
@@ -19216,7 +19227,8 @@
           "debug",
           "dataSource",
           "gateway",
-          "output"
+          "output",
+          "optimizer"
         ]
       },
       "pipelineNode": {
@@ -19308,7 +19320,8 @@
               "debug",
               "dataSource",
               "gateway",
-              "output"
+              "output",
+              "optimizer"
             ]
           },
           "spec": {

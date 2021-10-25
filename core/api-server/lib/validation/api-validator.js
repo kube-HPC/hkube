@@ -13,7 +13,8 @@ const {
     Lists,
     Pipelines,
     DataSources,
-    Outputs
+    Outputs,
+    Optimizers
 } = require('./index');
 
 class ApiValidator {
@@ -27,6 +28,7 @@ class ApiValidator {
         this.experiments = new Experiments(innerValidator);
         this.gateways = new Gateways(innerValidator);
         this.outputs = new Outputs(innerValidator);
+        this.optimizers = new Optimizers(innerValidator);
         this.graphs = new Graphs(innerValidator);
         this.internal = new Internal(innerValidator);
         this.jobs = new Jobs(innerValidator);

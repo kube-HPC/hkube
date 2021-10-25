@@ -12,6 +12,7 @@ const Pipelines = require('./pipelines');
 const DataSources = require('./data-sources');
 const Gateways = require('./gateways');
 const Outputs = require('./outputs');
+const Optimizers = require('./optimizers');
 
 module.exports = {
     Algorithms,
@@ -27,5 +28,6 @@ module.exports = {
     Lists,
     Pipelines,
     DataSources,
-    Outputs
+    Outputs,
+    Optimizers
 };

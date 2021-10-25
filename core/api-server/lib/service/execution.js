@@ -98,6 +98,7 @@ class ExecutionService {
             extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(extendedPipeline);
             extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline, debugNode);
             extendedPipeline = await pipelineCreator.updateOutput(extendedPipeline, jobId);
+            extendedPipeline = await pipelineCreator.updateOptimize(extendedPipeline, jobId);
             extendedPipeline = await pipelineCreator.buildStreamingFlow(extendedPipeline, jobId);
 
             const shouldValidateNodes = validateNodes ?? true;
