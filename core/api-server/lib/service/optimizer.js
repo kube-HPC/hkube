@@ -17,7 +17,7 @@ class Optimizer extends AlgorithmBase {
     }
 
     async createOptimizer(pipelineName, jobId, spec) {
-        const { description, mem } = spec || {};
+        const { description } = spec || {};
         const algorithmName = `${pipelineName}-${nodeKind.Optimizer}`;
         const optimizer = await stateManager.getAlgorithm({ name: algorithmName });
         if (optimizer) {
