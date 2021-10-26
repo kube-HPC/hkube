@@ -7,7 +7,7 @@
         "@hkube/config": "^2.0.11",
         "@hkube/consts": "1.0.35",
         "@hkube/encoding": "^1.0.21",
-        "@hkube/logger": "^2.0.1",
+        "@hkube/logger": "^2.0.2",
         "@hkube/nodejs-wrapper": "^2.0.45",
         "@hkube/uid": "^1.0.4",
         "ajv": "^6.12.0",
