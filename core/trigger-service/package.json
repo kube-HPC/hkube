@@ -23,7 +23,7 @@
     "@hkube/config": "^2.0.11",
     "@hkube/db": "^1.0.32",
     "@hkube/etcd": "^5.1.2",
-    "@hkube/logger": "^2.0.1",
+    "@hkube/logger": "^2.0.2",
     "async": "^3.2.0",
     "cron": "^1.8.2",
     "requestretry": "^4.1.2"
