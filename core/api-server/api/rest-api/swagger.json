@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.1",
+    "version": "2.2.4",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6348,8 +6348,6 @@
                     },
                     "kind": {
                       "type": "string",
-                      "default": "batch",
-                      "example": "batch",
                       "enum": [
                         "batch",
                         "stream"
@@ -6794,8 +6792,6 @@
                       },
                       "kind": {
                         "type": "string",
-                        "default": "batch",
-                        "example": "batch",
                         "enum": [
                           "batch",
                           "stream"
@@ -7087,8 +7083,6 @@
                   },
                   "kind": {
                     "type": "string",
-                    "default": "batch",
-                    "example": "batch",
                     "enum": [
                       "batch",
                       "stream"
@@ -7435,8 +7429,6 @@
                   },
                   "kind": {
                     "type": "string",
-                    "default": "batch",
-                    "example": "batch",
                     "enum": [
                       "batch",
                       "stream"
@@ -7769,8 +7761,6 @@
                       },
                       "kind": {
                         "type": "string",
-                        "default": "batch",
-                        "example": "batch",
                         "enum": [
                           "batch",
                           "stream"
@@ -8067,8 +8057,6 @@
                         },
                         "kind": {
                           "type": "string",
-                          "default": "batch",
-                          "example": "batch",
                           "enum": [
                             "batch",
                             "stream"
@@ -13115,8 +13103,6 @@
                       },
                       "kind": {
                         "type": "string",
-                        "default": "batch",
-                        "example": "batch",
                         "enum": [
                           "batch",
                           "stream"
@@ -13476,8 +13462,6 @@
                       },
                       "kind": {
                         "type": "string",
-                        "default": "batch",
-                        "example": "batch",
                         "enum": [
                           "batch",
                           "stream"
@@ -16467,8 +16451,6 @@
           },
           "kind": {
             "type": "string",
-            "default": "batch",
-            "example": "batch",
             "enum": [
               "batch",
               "stream"
@@ -16716,8 +16698,6 @@
       },
       "algorithmKind": {
         "type": "string",
-        "default": "batch",
-        "example": "batch",
         "enum": [
           "batch",
           "stream"
@@ -16917,8 +16897,6 @@
               },
               "kind": {
                 "type": "string",
-                "default": "batch",
-                "example": "batch",
                 "enum": [
                   "batch",
                   "stream"

@@ -611,7 +611,7 @@
         "nodes": [
             {
                 "nodeName": "A",
-                "algorithmName": "green-alg",
+                "algorithmName": "stateful-alg",
                 "input": []
             },
             {

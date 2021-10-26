@@ -98,15 +98,13 @@ class ExecutionService {
             extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(extendedPipeline);
             extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline, debugNode);
             extendedPipeline = await pipelineCreator.updateOutput(extendedPipeline, jobId);
-            extendedPipeline = await pipelineCreator.buildStreamingFlow(extendedPipeline, jobId);
             const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
-            await pipelineCreator.buildNodes(extendedPipeline, algorithms);
+            extendedPipeline = await pipelineCreator.buildStreamingFlow(extendedPipeline, jobId, algorithms);
 
             const shouldValidateNodes = validateNodes ?? true;
             validator.executions.validatePipeline({ ...extendedPipeline, flowInput: extendedPipeline.flowInput || flowInput }, { validateNodes: shouldValidateNodes });
             await validator.experiments.validateExperimentExists(extendedPipeline);
             extendedPipeline = await validator.dataSources.validate(extendedPipeline);
-          
             const maxExceeded = await validator.executions.validateConcurrentPipelines(extendedPipeline);
             const pipeTypes = this._addTypesByAlgorithms(algorithms, types);
             let pipeFlowInputMetadata = flowInputMetadata;

@@ -1599,7 +1599,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, kind, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...apply1, ...apply2 });
             });
             it('should not apply changes to current when algorithmImage changes', async () => {
@@ -2068,7 +2068,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { reservedMemory, kind, ...res } = response.body;
+            const { reservedMemory, ...res } = response.body;
             expect(res).to.eql(body);
         });
         it('should failed to update algorithm', async () => {
