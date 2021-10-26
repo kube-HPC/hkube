@@ -1,6 +1,6 @@
 {
     "name": "algorithm-debug",
-    "version": "2.1.7",
+    "version": "2.1.8",
     "description": "algorithm-debug",
     "main": "app.js",
     "dependencies": {
