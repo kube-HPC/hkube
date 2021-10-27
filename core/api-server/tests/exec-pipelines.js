@@ -68,7 +68,7 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm dummy Not Found');
         });
-        it.only('should throw validation error if algorithmName not exists', async () => {
+        it('should throw validation error if algorithmName not exists', async () => {
             const options = {
                 uri: restUrl + '/exec/raw',
                 body: {

@@ -76,6 +76,12 @@ class JobProducer extends EventEmitter {
             if (this._queueLogging.tasks) {
                 tasks.forEach(t => log.info(`task ${t.taskId} created`, { component, jobId, taskId: t.taskId, algorithmName: options.node.algorithmName }));
             }
+            if (options.node.kind === nodeKind.Optimizer) {
+                jobOptions.data.hyperParams = options.node.spec.hyperParams;
+                jobOptions.data.numberOfTrials = options.node.spec.numberOfTrials;
+                jobOptions.data.objectivePipeline = options.node.spec.objectivePipeline;
+            }
+
             await this._createJob(jobOptions);
         }
     }

@@ -288,7 +288,7 @@
                               "properties": {
                                 "description": {
                                   "type": "string",
-                                  "description": "describe the outputformat"
+                                  "description": "describe the output"
                                 },
                                 "mem": {
                                   "type": "string",
@@ -297,6 +297,61 @@
                                   "default": "512Mi"
                                 }
                               }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "numberOfTrials": {
+                                  "type": "number",
+                                  "description": "number Of Trials"
+                                },
+                                "hyperParams": {
+                                  "type": "array",
+                                  "description": "list of hyper params to optimize",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "suggest": {
+                                        "type": "string",
+                                        "enum": [
+                                          "uniform",
+                                          "loguniform",
+                                          "int",
+                                          "discrete_uniform",
+                                          "categorical"
+                                        ]
+                                      },
+                                      "low": {
+                                        "type": "number"
+                                      },
+                                      "hight": {
+                                        "type": "number"
+                                      },
+                                      "choices": {
+                                        "type": "array"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "name",
+                                      "suggest"
+                                    ]
+                                  }
+                                },
+                                "objectivePipeline": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              },
+                              "required": [
+                                "numberOfTrials",
+                                "hyperParams",
+                                "objectivePipeline"
+                              ]
                             }
                           ]
                         }
@@ -753,7 +808,7 @@
                               "properties": {
                                 "description": {
                                   "type": "string",
-                                  "description": "describe the outputformat"
+                                  "description": "describe the output"
                                 },
                                 "mem": {
                                   "type": "string",
@@ -762,6 +817,61 @@
                                   "default": "512Mi"
                                 }
                               }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "numberOfTrials": {
+                                  "type": "number",
+                                  "description": "number Of Trials"
+                                },
+                                "hyperParams": {
+                                  "type": "array",
+                                  "description": "list of hyper params to optimize",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "suggest": {
+                                        "type": "string",
+                                        "enum": [
+                                          "uniform",
+                                          "loguniform",
+                                          "int",
+                                          "discrete_uniform",
+                                          "categorical"
+                                        ]
+                                      },
+                                      "low": {
+                                        "type": "number"
+                                      },
+                                      "hight": {
+                                        "type": "number"
+                                      },
+                                      "choices": {
+                                        "type": "array"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "name",
+                                      "suggest"
+                                    ]
+                                  }
+                                },
+                                "objectivePipeline": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              },
+                              "required": [
+                                "numberOfTrials",
+                                "hyperParams",
+                                "objectivePipeline"
+                              ]
                             }
                           ]
                         }
@@ -2249,7 +2359,7 @@
                                 "properties": {
                                   "description": {
                                     "type": "string",
-                                    "description": "describe the outputformat"
+                                    "description": "describe the output"
                                   },
                                   "mem": {
                                     "type": "string",
@@ -2258,6 +2368,61 @@
                                     "default": "512Mi"
                                   }
                                 }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "numberOfTrials": {
+                                    "type": "number",
+                                    "description": "number Of Trials"
+                                  },
+                                  "hyperParams": {
+                                    "type": "array",
+                                    "description": "list of hyper params to optimize",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "suggest": {
+                                          "type": "string",
+                                          "enum": [
+                                            "uniform",
+                                            "loguniform",
+                                            "int",
+                                            "discrete_uniform",
+                                            "categorical"
+                                          ]
+                                        },
+                                        "low": {
+                                          "type": "number"
+                                        },
+                                        "hight": {
+                                          "type": "number"
+                                        },
+                                        "choices": {
+                                          "type": "array"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "name",
+                                        "suggest"
+                                      ]
+                                    }
+                                  },
+                                  "objectivePipeline": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                },
+                                "required": [
+                                  "numberOfTrials",
+                                  "hyperParams",
+                                  "objectivePipeline"
+                                ]
                               }
                             ]
                           }
@@ -2713,7 +2878,7 @@
                                 "properties": {
                                   "description": {
                                     "type": "string",
-                                    "description": "describe the outputformat"
+                                    "description": "describe the output"
                                   },
                                   "mem": {
                                     "type": "string",
@@ -2722,6 +2887,61 @@
                                     "default": "512Mi"
                                   }
                                 }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "numberOfTrials": {
+                                    "type": "number",
+                                    "description": "number Of Trials"
+                                  },
+                                  "hyperParams": {
+                                    "type": "array",
+                                    "description": "list of hyper params to optimize",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "suggest": {
+                                          "type": "string",
+                                          "enum": [
+                                            "uniform",
+                                            "loguniform",
+                                            "int",
+                                            "discrete_uniform",
+                                            "categorical"
+                                          ]
+                                        },
+                                        "low": {
+                                          "type": "number"
+                                        },
+                                        "hight": {
+                                          "type": "number"
+                                        },
+                                        "choices": {
+                                          "type": "array"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "name",
+                                        "suggest"
+                                      ]
+                                    }
+                                  },
+                                  "objectivePipeline": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                },
+                                "required": [
+                                  "numberOfTrials",
+                                  "hyperParams",
+                                  "objectivePipeline"
+                                ]
                               }
                             ]
                           }
@@ -8513,7 +8733,7 @@
                                 "properties": {
                                   "description": {
                                     "type": "string",
-                                    "description": "describe the outputformat"
+                                    "description": "describe the output"
                                   },
                                   "mem": {
                                     "type": "string",
@@ -8522,6 +8742,61 @@
                                     "default": "512Mi"
                                   }
                                 }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "numberOfTrials": {
+                                    "type": "number",
+                                    "description": "number Of Trials"
+                                  },
+                                  "hyperParams": {
+                                    "type": "array",
+                                    "description": "list of hyper params to optimize",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "suggest": {
+                                          "type": "string",
+                                          "enum": [
+                                            "uniform",
+                                            "loguniform",
+                                            "int",
+                                            "discrete_uniform",
+                                            "categorical"
+                                          ]
+                                        },
+                                        "low": {
+                                          "type": "number"
+                                        },
+                                        "hight": {
+                                          "type": "number"
+                                        },
+                                        "choices": {
+                                          "type": "array"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "name",
+                                        "suggest"
+                                      ]
+                                    }
+                                  },
+                                  "objectivePipeline": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                },
+                                "required": [
+                                  "numberOfTrials",
+                                  "hyperParams",
+                                  "objectivePipeline"
+                                ]
                               }
                             ]
                           }
@@ -9080,7 +9355,7 @@
                                   "properties": {
                                     "description": {
                                       "type": "string",
-                                      "description": "describe the outputformat"
+                                      "description": "describe the output"
                                     },
                                     "mem": {
                                       "type": "string",
@@ -9089,6 +9364,61 @@
                                       "default": "512Mi"
                                     }
                                   }
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "numberOfTrials": {
+                                      "type": "number",
+                                      "description": "number Of Trials"
+                                    },
+                                    "hyperParams": {
+                                      "type": "array",
+                                      "description": "list of hyper params to optimize",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "suggest": {
+                                            "type": "string",
+                                            "enum": [
+                                              "uniform",
+                                              "loguniform",
+                                              "int",
+                                              "discrete_uniform",
+                                              "categorical"
+                                            ]
+                                          },
+                                          "low": {
+                                            "type": "number"
+                                          },
+                                          "hight": {
+                                            "type": "number"
+                                          },
+                                          "choices": {
+                                            "type": "array"
+                                          },
+                                          "name": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "name",
+                                          "suggest"
+                                        ]
+                                      }
+                                    },
+                                    "objectivePipeline": {
+                                      "type": "string",
+                                      "description": "Unique identifier representing a specific pipeline",
+                                      "minLength": 1,
+                                      "format": "pipeline-name"
+                                    }
+                                  },
+                                  "required": [
+                                    "numberOfTrials",
+                                    "hyperParams",
+                                    "objectivePipeline"
+                                  ]
                                 }
                               ]
                             }
@@ -9503,7 +9833,7 @@
                               "properties": {
                                 "description": {
                                   "type": "string",
-                                  "description": "describe the outputformat"
+                                  "description": "describe the output"
                                 },
                                 "mem": {
                                   "type": "string",
@@ -9512,6 +9842,61 @@
                                   "default": "512Mi"
                                 }
                               }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "numberOfTrials": {
+                                  "type": "number",
+                                  "description": "number Of Trials"
+                                },
+                                "hyperParams": {
+                                  "type": "array",
+                                  "description": "list of hyper params to optimize",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "suggest": {
+                                        "type": "string",
+                                        "enum": [
+                                          "uniform",
+                                          "loguniform",
+                                          "int",
+                                          "discrete_uniform",
+                                          "categorical"
+                                        ]
+                                      },
+                                      "low": {
+                                        "type": "number"
+                                      },
+                                      "hight": {
+                                        "type": "number"
+                                      },
+                                      "choices": {
+                                        "type": "array"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "name",
+                                      "suggest"
+                                    ]
+                                  }
+                                },
+                                "objectivePipeline": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              },
+                              "required": [
+                                "numberOfTrials",
+                                "hyperParams",
+                                "objectivePipeline"
+                              ]
                             }
                           ]
                         }
@@ -9902,7 +10287,7 @@
                                 "properties": {
                                   "description": {
                                     "type": "string",
-                                    "description": "describe the outputformat"
+                                    "description": "describe the output"
                                   },
                                   "mem": {
                                     "type": "string",
@@ -9911,6 +10296,61 @@
                                     "default": "512Mi"
                                   }
                                 }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "numberOfTrials": {
+                                    "type": "number",
+                                    "description": "number Of Trials"
+                                  },
+                                  "hyperParams": {
+                                    "type": "array",
+                                    "description": "list of hyper params to optimize",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "suggest": {
+                                          "type": "string",
+                                          "enum": [
+                                            "uniform",
+                                            "loguniform",
+                                            "int",
+                                            "discrete_uniform",
+                                            "categorical"
+                                          ]
+                                        },
+                                        "low": {
+                                          "type": "number"
+                                        },
+                                        "hight": {
+                                          "type": "number"
+                                        },
+                                        "choices": {
+                                          "type": "array"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "name",
+                                        "suggest"
+                                      ]
+                                    }
+                                  },
+                                  "objectivePipeline": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                },
+                                "required": [
+                                  "numberOfTrials",
+                                  "hyperParams",
+                                  "objectivePipeline"
+                                ]
                               }
                             ]
                           }
@@ -10362,7 +10802,7 @@
                               "properties": {
                                 "description": {
                                   "type": "string",
-                                  "description": "describe the outputformat"
+                                  "description": "describe the output"
                                 },
                                 "mem": {
                                   "type": "string",
@@ -10371,6 +10811,61 @@
                                   "default": "512Mi"
                                 }
                               }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "numberOfTrials": {
+                                  "type": "number",
+                                  "description": "number Of Trials"
+                                },
+                                "hyperParams": {
+                                  "type": "array",
+                                  "description": "list of hyper params to optimize",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "suggest": {
+                                        "type": "string",
+                                        "enum": [
+                                          "uniform",
+                                          "loguniform",
+                                          "int",
+                                          "discrete_uniform",
+                                          "categorical"
+                                        ]
+                                      },
+                                      "low": {
+                                        "type": "number"
+                                      },
+                                      "hight": {
+                                        "type": "number"
+                                      },
+                                      "choices": {
+                                        "type": "array"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "name",
+                                      "suggest"
+                                    ]
+                                  }
+                                },
+                                "objectivePipeline": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              },
+                              "required": [
+                                "numberOfTrials",
+                                "hyperParams",
+                                "objectivePipeline"
+                              ]
                             }
                           ]
                         }
@@ -10761,7 +11256,7 @@
                                 "properties": {
                                   "description": {
                                     "type": "string",
-                                    "description": "describe the outputformat"
+                                    "description": "describe the output"
                                   },
                                   "mem": {
                                     "type": "string",
@@ -10770,6 +11265,61 @@
                                     "default": "512Mi"
                                   }
                                 }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "numberOfTrials": {
+                                    "type": "number",
+                                    "description": "number Of Trials"
+                                  },
+                                  "hyperParams": {
+                                    "type": "array",
+                                    "description": "list of hyper params to optimize",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "suggest": {
+                                          "type": "string",
+                                          "enum": [
+                                            "uniform",
+                                            "loguniform",
+                                            "int",
+                                            "discrete_uniform",
+                                            "categorical"
+                                          ]
+                                        },
+                                        "low": {
+                                          "type": "number"
+                                        },
+                                        "hight": {
+                                          "type": "number"
+                                        },
+                                        "choices": {
+                                          "type": "array"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "name",
+                                        "suggest"
+                                      ]
+                                    }
+                                  },
+                                  "objectivePipeline": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                },
+                                "required": [
+                                  "numberOfTrials",
+                                  "hyperParams",
+                                  "objectivePipeline"
+                                ]
                               }
                             ]
                           }
@@ -18670,7 +19220,7 @@
         "properties": {
           "description": {
             "type": "string",
-            "description": "describe the outputformat"
+            "description": "describe the output"
           },
           "mem": {
             "type": "string",
@@ -18691,10 +19241,80 @@
             "type": "array",
             "description": "list of hyper params to optimize",
             "items": {
-              "type": "object"
+              "type": "object",
+              "properties": {
+                "suggest": {
+                  "type": "string",
+                  "enum": [
+                    "uniform",
+                    "loguniform",
+                    "int",
+                    "discrete_uniform",
+                    "categorical"
+                  ]
+                },
+                "low": {
+                  "type": "number"
+                },
+                "hight": {
+                  "type": "number"
+                },
+                "choices": {
+                  "type": "array"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "suggest"
+              ]
             }
+          },
+          "objectivePipeline": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
           }
-        }
+        },
+        "required": [
+          "numberOfTrials",
+          "hyperParams",
+          "objectivePipeline"
+        ]
+      },
+      "hyperParams": {
+        "type": "object",
+        "properties": {
+          "suggest": {
+            "type": "string",
+            "enum": [
+              "uniform",
+              "loguniform",
+              "int",
+              "discrete_uniform",
+              "categorical"
+            ]
+          },
+          "low": {
+            "type": "number"
+          },
+          "hight": {
+            "type": "number"
+          },
+          "choices": {
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "suggest"
+        ]
       },
       "clean": {
         "type": "object",
@@ -19032,7 +19652,7 @@
                       "properties": {
                         "description": {
                           "type": "string",
-                          "description": "describe the outputformat"
+                          "description": "describe the output"
                         },
                         "mem": {
                           "type": "string",
@@ -19041,6 +19661,61 @@
                           "default": "512Mi"
                         }
                       }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "numberOfTrials": {
+                          "type": "number",
+                          "description": "number Of Trials"
+                        },
+                        "hyperParams": {
+                          "type": "array",
+                          "description": "list of hyper params to optimize",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "suggest": {
+                                "type": "string",
+                                "enum": [
+                                  "uniform",
+                                  "loguniform",
+                                  "int",
+                                  "discrete_uniform",
+                                  "categorical"
+                                ]
+                              },
+                              "low": {
+                                "type": "number"
+                              },
+                              "hight": {
+                                "type": "number"
+                              },
+                              "choices": {
+                                "type": "array"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "suggest"
+                            ]
+                          }
+                        },
+                        "objectivePipeline": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific pipeline",
+                          "minLength": 1,
+                          "format": "pipeline-name"
+                        }
+                      },
+                      "required": [
+                        "numberOfTrials",
+                        "hyperParams",
+                        "objectivePipeline"
+                      ]
                     }
                   ]
                 }
@@ -19416,7 +20091,7 @@
                 "properties": {
                   "description": {
                     "type": "string",
-                    "description": "describe the outputformat"
+                    "description": "describe the output"
                   },
                   "mem": {
                     "type": "string",
@@ -19425,6 +20100,61 @@
                     "default": "512Mi"
                   }
                 }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "numberOfTrials": {
+                    "type": "number",
+                    "description": "number Of Trials"
+                  },
+                  "hyperParams": {
+                    "type": "array",
+                    "description": "list of hyper params to optimize",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "suggest": {
+                          "type": "string",
+                          "enum": [
+                            "uniform",
+                            "loguniform",
+                            "int",
+                            "discrete_uniform",
+                            "categorical"
+                          ]
+                        },
+                        "low": {
+                          "type": "number"
+                        },
+                        "hight": {
+                          "type": "number"
+                        },
+                        "choices": {
+                          "type": "array"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "suggest"
+                      ]
+                    }
+                  },
+                  "objectivePipeline": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                  }
+                },
+                "required": [
+                  "numberOfTrials",
+                  "hyperParams",
+                  "objectivePipeline"
+                ]
               }
             ]
           }

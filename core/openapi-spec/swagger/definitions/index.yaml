@@ -177,6 +177,8 @@ output:
 
 optimizer:
   $ref: ./optimizer/optimizer.yaml  
+hyperParams:
+  $ref: ./optimizer/hyperParam.yaml  
 
 # GC
 clean:
