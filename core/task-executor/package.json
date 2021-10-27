@@ -1,6 +1,6 @@
 {
   "name": "task-executor",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Hkube scheduler service",
   "main": "app.js",
   "scripts": {
@@ -29,7 +29,7 @@
     "@hkube/etcd": "^5.1.2",
     "@hkube/healthchecks": "^1.0.1",
     "@hkube/kubernetes-client": "^2.0.4",
-    "@hkube/logger": "^2.0.1",
+    "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
     "@hkube/uid": "^1.0.4",
     "@hkube/units-converter": "^1.0.17",

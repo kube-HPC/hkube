@@ -14,4 +14,4 @@ git add core/*/package.json
 HUSKY_SKIP_HOOKS=1 git commit -m "${MESSAGE}" || true
 HUSKY_SKIP_HOOKS=1 npm version patch --git-tag-version --commit-hooks=false -m "${MESSAGE}"
 git remote -v
-git push origin version-branch:master --follow-tags
+git push origin version-branch:${GITHUB_REF##*/} --follow-tags
