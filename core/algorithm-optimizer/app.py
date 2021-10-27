@@ -11,9 +11,9 @@ study = optuna.create_study()
 
 
 def start(options, hkubeApi):
-    hyperParams = options['input'][0]['hyperParams']
-    pipelineName = options['input'][0]['objectivePipeline']
-    numberOfTrails = options['input'][0]['numberOfTrails']
+    hyperParams = options['spec']['hyperParams']
+    pipelineName = options['spec']['objectivePipeline']
+    numberOfTrails = options['spec']['numberOfTrials']
 
     def objective(trial):
         return objectiveWrapped(trial, hkubeApi, hyperParams, pipelineName)
@@ -39,7 +39,14 @@ def objectiveWrapped(trial, hkubeApi, hyperParams, pipelineName):
     pipelineResult = hkubeApi.start_stored_subpipeline(
         pipelineName, {'hyperParams': values}, True)
     print('printed here' + str(pipelineResult))
-    return pipelineResult[0]['result']
+    if (len(pipelineResult) == 0):
+        raise Exception('objective pipeline has no result')
+    if (isinstance(pipelineResult, str)):
+        raise Exception(pipelineResult)
+    result = pipelineResult[0]['result']
+    if (isinstance(result, list)):
+        result = result[0]
+    return result
 
 
 def suggest_uniform(param, trial):

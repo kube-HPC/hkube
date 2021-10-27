@@ -65,6 +65,7 @@ class JobProducer extends EventEmitter {
                     childs: options.childs,
                     parsedFlow: pipeline.streaming?.parsedFlow,
                     defaultFlow: pipeline.streaming?.defaultFlow,
+                    spec: options.node.spec,
                     info: {
                         extraData: options.node.extraData,
                         savePaths: options.paths,
@@ -76,12 +77,6 @@ class JobProducer extends EventEmitter {
             if (this._queueLogging.tasks) {
                 tasks.forEach(t => log.info(`task ${t.taskId} created`, { component, jobId, taskId: t.taskId, algorithmName: options.node.algorithmName }));
             }
-            if (options.node.kind === nodeKind.Optimizer) {
-                jobOptions.data.hyperParams = options.node.spec.hyperParams;
-                jobOptions.data.numberOfTrials = options.node.spec.numberOfTrials;
-                jobOptions.data.objectivePipeline = options.node.spec.objectivePipeline;
-            }
-
             await this._createJob(jobOptions);
         }
     }

@@ -27,7 +27,6 @@ class Optimizer extends AlgorithmBase {
             name: algorithmName,
             description,
             jobId,
-            mem: '1Gi',
             kind: nodeKind.Optimizer,
             algorithmImage: 'hkube/algorithm-optimizer',
             type: buildTypes.IMAGE,
@@ -36,7 +35,7 @@ class Optimizer extends AlgorithmBase {
             },
             maxWorkers: 1
         };
-        validator.optimizers.validateOptimizer(algorithm);
+        validator.optimizers.validateOptimizer(algorithm, spec);
         await stateManager.updateAlgorithm(algorithm);
         return { algorithmName };
     }
