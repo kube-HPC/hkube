@@ -112,8 +112,12 @@ class AlgorithmStore {
         return Object.entries(entities).filter(([, v]) => v).map(([k, v]) => `${v} ${k}`).join(', ');
     }
 
-    async _checkAlgorithmDependencies({ name, ...entities }) {
+    async _checkAlgorithmDependencies({ name, pipelines, executions }) {
         let message;
+        const entities = {
+            pipelines: pipelines.length,
+            executions: executions.length
+        };
         const details = this._entitiesToText(entities);
 
         if (details) {

@@ -110,7 +110,7 @@ describe('Store/Algorithms', () => {
             const response = await request(optionsDelete);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('you must first delete all related data');
+            expect(response.body.error.message).to.equal(`algorithm ${algorithmName} is stored in 1 pipelines, 1 executions. you must first delete all related data or use the force flag`);
         });
         it('should delete algorithm with related data with force', async () => {
             const algorithmName = `my-alg-${uuid()}`;
