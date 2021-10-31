@@ -1,0 +1,30 @@
+post:
+  tags:
+    - Devenv
+  summary: Creates a new development environment.
+  description: Creates a new development environment.
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/createDevenvRequest"
+    required: true
+  responses:
+    "200":
+      description: Create development environment response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/createDevenvResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

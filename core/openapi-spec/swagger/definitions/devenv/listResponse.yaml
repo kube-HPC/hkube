@@ -1,0 +1,4 @@
+type: array
+description: Array of development environments
+items:
+  $ref: "#/components/schemas/getDevenvResponse"

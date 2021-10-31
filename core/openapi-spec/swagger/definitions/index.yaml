@@ -42,6 +42,16 @@ listBoardResponse:
 metrics:
   $ref: ./boards/metrics.yaml
 
+# Development environments
+createDevenvRequest:
+  $ref: ./devenv/createRequest.yaml
+createDevenvResponse:
+  $ref: ./devenv/createResponse.yaml
+getDevenvResponse:
+  $ref: ./devenv/getResponse.yaml
+listDevenvResponse:
+  $ref: ./devenv/listResponse.yaml
+
 # builds
 buildId:
   $ref: ./builds/buildId.yaml

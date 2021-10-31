@@ -1,0 +1,11 @@
+type: object
+properties:
+  name:
+    type: string
+  type: 
+    type: string
+    description: type of development environment
+    enum:
+      - Jupyter
+    default: Jupyter
+    

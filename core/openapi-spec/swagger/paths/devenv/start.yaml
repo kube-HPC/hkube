@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Devenv
+  summary: Starts a stopped development environment
+  description: Starts the development environment with associated storage
+  parameters:
+    - name: name
+      in: path
+      description: Unique name of the development environment
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: started response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
