@@ -40,6 +40,7 @@ class Bootstrap {
             });
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
+                worker.handleExit(1);
             });
             await monitor.check(main.redis);
             await metrics.init(main.metrics);

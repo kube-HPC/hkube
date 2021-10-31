@@ -28,6 +28,7 @@ class Bootstrap {
             });
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
+                process.exit(1);
             });
             monitor.check(main.redis);
             await metrics.init(main.metrics);
