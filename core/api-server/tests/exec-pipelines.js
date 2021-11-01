@@ -68,7 +68,7 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm dummy Not Found');
         });
-        it('should throw validation error if algorithmName not exists', async () => {
+        it.only('should throw validation error if numberOfTrials not exists optimizer spec', async () => {
             const options = {
                 uri: restUrl + '/exec/raw',
                 body: {
@@ -83,7 +83,7 @@ describe('Executions', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body).to.have.property('jobId');
+            expect(response.body.error.message).to.equal('data should have required property \'numberOfTrials\'');
         });
 
         it('should succeed and return job id', async () => {
