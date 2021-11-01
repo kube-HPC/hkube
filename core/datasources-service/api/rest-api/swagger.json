@@ -345,6 +345,30 @@
                                   "description": "Unique identifier representing a specific pipeline",
                                   "minLength": 1,
                                   "format": "pipeline-name"
+                                },
+                                "sampler": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "enum": [
+                                        "Grid",
+                                        "PartialFixed",
+                                        "Random",
+                                        "TPE",
+                                        "CmaEs"
+                                      ]
+                                    },
+                                    "fixed_values": {
+                                      "type": "object"
+                                    },
+                                    "search_space": {
+                                      "type": "object"
+                                    }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
                                 }
                               },
                               "required": [
@@ -865,6 +889,30 @@
                                   "description": "Unique identifier representing a specific pipeline",
                                   "minLength": 1,
                                   "format": "pipeline-name"
+                                },
+                                "sampler": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "enum": [
+                                        "Grid",
+                                        "PartialFixed",
+                                        "Random",
+                                        "TPE",
+                                        "CmaEs"
+                                      ]
+                                    },
+                                    "fixed_values": {
+                                      "type": "object"
+                                    },
+                                    "search_space": {
+                                      "type": "object"
+                                    }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
                                 }
                               },
                               "required": [
@@ -2416,6 +2464,30 @@
                                     "description": "Unique identifier representing a specific pipeline",
                                     "minLength": 1,
                                     "format": "pipeline-name"
+                                  },
+                                  "sampler": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "enum": [
+                                          "Grid",
+                                          "PartialFixed",
+                                          "Random",
+                                          "TPE",
+                                          "CmaEs"
+                                        ]
+                                      },
+                                      "fixed_values": {
+                                        "type": "object"
+                                      },
+                                      "search_space": {
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "name"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -2935,6 +3007,30 @@
                                     "description": "Unique identifier representing a specific pipeline",
                                     "minLength": 1,
                                     "format": "pipeline-name"
+                                  },
+                                  "sampler": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "enum": [
+                                          "Grid",
+                                          "PartialFixed",
+                                          "Random",
+                                          "TPE",
+                                          "CmaEs"
+                                        ]
+                                      },
+                                      "fixed_values": {
+                                        "type": "object"
+                                      },
+                                      "search_space": {
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "name"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -8790,6 +8886,30 @@
                                     "description": "Unique identifier representing a specific pipeline",
                                     "minLength": 1,
                                     "format": "pipeline-name"
+                                  },
+                                  "sampler": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "enum": [
+                                          "Grid",
+                                          "PartialFixed",
+                                          "Random",
+                                          "TPE",
+                                          "CmaEs"
+                                        ]
+                                      },
+                                      "fixed_values": {
+                                        "type": "object"
+                                      },
+                                      "search_space": {
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "name"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -9412,6 +9532,30 @@
                                       "description": "Unique identifier representing a specific pipeline",
                                       "minLength": 1,
                                       "format": "pipeline-name"
+                                    },
+                                    "sampler": {
+                                      "type": "object",
+                                      "properties": {
+                                        "name": {
+                                          "type": "string",
+                                          "enum": [
+                                            "Grid",
+                                            "PartialFixed",
+                                            "Random",
+                                            "TPE",
+                                            "CmaEs"
+                                          ]
+                                        },
+                                        "fixed_values": {
+                                          "type": "object"
+                                        },
+                                        "search_space": {
+                                          "type": "object"
+                                        }
+                                      },
+                                      "required": [
+                                        "name"
+                                      ]
                                     }
                                   },
                                   "required": [
@@ -9890,6 +10034,30 @@
                                   "description": "Unique identifier representing a specific pipeline",
                                   "minLength": 1,
                                   "format": "pipeline-name"
+                                },
+                                "sampler": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "enum": [
+                                        "Grid",
+                                        "PartialFixed",
+                                        "Random",
+                                        "TPE",
+                                        "CmaEs"
+                                      ]
+                                    },
+                                    "fixed_values": {
+                                      "type": "object"
+                                    },
+                                    "search_space": {
+                                      "type": "object"
+                                    }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
                                 }
                               },
                               "required": [
@@ -10344,6 +10512,30 @@
                                     "description": "Unique identifier representing a specific pipeline",
                                     "minLength": 1,
                                     "format": "pipeline-name"
+                                  },
+                                  "sampler": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "enum": [
+                                          "Grid",
+                                          "PartialFixed",
+                                          "Random",
+                                          "TPE",
+                                          "CmaEs"
+                                        ]
+                                      },
+                                      "fixed_values": {
+                                        "type": "object"
+                                      },
+                                      "search_space": {
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "name"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -10859,6 +11051,30 @@
                                   "description": "Unique identifier representing a specific pipeline",
                                   "minLength": 1,
                                   "format": "pipeline-name"
+                                },
+                                "sampler": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "enum": [
+                                        "Grid",
+                                        "PartialFixed",
+                                        "Random",
+                                        "TPE",
+                                        "CmaEs"
+                                      ]
+                                    },
+                                    "fixed_values": {
+                                      "type": "object"
+                                    },
+                                    "search_space": {
+                                      "type": "object"
+                                    }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
                                 }
                               },
                               "required": [
@@ -11313,6 +11529,30 @@
                                     "description": "Unique identifier representing a specific pipeline",
                                     "minLength": 1,
                                     "format": "pipeline-name"
+                                  },
+                                  "sampler": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "enum": [
+                                          "Grid",
+                                          "PartialFixed",
+                                          "Random",
+                                          "TPE",
+                                          "CmaEs"
+                                        ]
+                                      },
+                                      "fixed_values": {
+                                        "type": "object"
+                                      },
+                                      "search_space": {
+                                        "type": "object"
+                                      }
+                                    },
+                                    "required": [
+                                      "name"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -19277,6 +19517,30 @@
             "description": "Unique identifier representing a specific pipeline",
             "minLength": 1,
             "format": "pipeline-name"
+          },
+          "sampler": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": [
+                  "Grid",
+                  "PartialFixed",
+                  "Random",
+                  "TPE",
+                  "CmaEs"
+                ]
+              },
+              "fixed_values": {
+                "type": "object"
+              },
+              "search_space": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "name"
+            ]
           }
         },
         "required": [
@@ -19314,6 +19578,30 @@
         "required": [
           "name",
           "suggest"
+        ]
+      },
+      "sampler": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "Grid",
+              "PartialFixed",
+              "Random",
+              "TPE",
+              "CmaEs"
+            ]
+          },
+          "fixed_values": {
+            "type": "object"
+          },
+          "search_space": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "name"
         ]
       },
       "clean": {
@@ -19709,6 +19997,30 @@
                           "description": "Unique identifier representing a specific pipeline",
                           "minLength": 1,
                           "format": "pipeline-name"
+                        },
+                        "sampler": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "enum": [
+                                "Grid",
+                                "PartialFixed",
+                                "Random",
+                                "TPE",
+                                "CmaEs"
+                              ]
+                            },
+                            "fixed_values": {
+                              "type": "object"
+                            },
+                            "search_space": {
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
                         }
                       },
                       "required": [
@@ -20148,6 +20460,30 @@
                     "description": "Unique identifier representing a specific pipeline",
                     "minLength": 1,
                     "format": "pipeline-name"
+                  },
+                  "sampler": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "enum": [
+                          "Grid",
+                          "PartialFixed",
+                          "Random",
+                          "TPE",
+                          "CmaEs"
+                        ]
+                      },
+                      "fixed_values": {
+                        "type": "object"
+                      },
+                      "search_space": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
                   }
                 },
                 "required": [

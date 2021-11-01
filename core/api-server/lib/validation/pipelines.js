@@ -23,6 +23,10 @@ class ApiValidator {
         if (outputs?.length > 1) {
             throw new InvalidDataError('pipeline can not have more than one output');
         }
+        const optimizers = pipeline.nodes.filter(n => n.kind === nodeKind.Optimizer);
+        optimizers.forEach((node) => {
+            this._validator.validate(this._validator.definitions.optimizer, node.spec, true);
+        });
         const debugOverride = pipeline.options?.debugOverride || [];
         debugOverride.forEach((a) => {
             const algorithm = pipeline.nodes.find(n => n.nodeName === a);

@@ -6,14 +6,41 @@ from hkube_python_wrapper import Algorunner
 import optuna
 
 _hkubeApi = None
+globalReference = []
 
-study = optuna.create_study()
+
+def getStudy(sampler):
+    if(sampler):
+        if(sampler['name'] == 'Grid'):
+            search_space = sampler['search_space']
+            study = optuna.create_study(
+                sampler=optuna.samplers.GridSampler(search_space))
+        if (sampler['name'] == 'PartialFixed'):
+            fixed_values = sampler['fixed_values']
+            study = optuna.create_study(
+                sampler=optuna.samplers.PartialFixedSampler(fixed_values))
+        if (sampler['name'] == 'Random'):
+            study = optuna.create_study(
+                sampler=optuna.samplers.RandomSampler())
+        if (sampler['name'] == 'TPE'):
+            study = optuna.create_study(sampler=optuna.samplers.TPESampler())
+        if (sampler['name'] == 'CmaEs'):
+            study = optuna.create_study(sampler=optuna.samplers.CmaEsSampler())
+    else:
+        study = optuna.create_study()
+    return study
 
 
 def start(options, hkubeApi):
+
     hyperParams = options['spec']['hyperParams']
     pipelineName = options['spec']['objectivePipeline']
     numberOfTrails = options['spec']['numberOfTrials']
+    sampler = options['spec'].get('sampler')
+
+    study = getStudy(sampler)
+
+    globalReference.append(study)
 
     def objective(trial):
         return objectiveWrapped(trial, hkubeApi, hyperParams, pipelineName)
@@ -26,7 +53,7 @@ def start(options, hkubeApi):
 
 def stop(options):
     try:
-        study.stop()
+        globalReference[0].stop()
     except:
         pass
 

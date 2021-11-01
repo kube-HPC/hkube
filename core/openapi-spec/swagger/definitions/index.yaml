@@ -179,6 +179,8 @@ optimizer:
   $ref: ./optimizer/optimizer.yaml  
 hyperParams:
   $ref: ./optimizer/hyperParam.yaml  
+sampler:
+  $ref: ./optimizer/sampler.yaml
 
 # GC
 clean:
