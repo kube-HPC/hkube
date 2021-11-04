@@ -219,24 +219,6 @@ describe('Streaming', () => {
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal('invalid relation found A >> A in flow analyze');
         });
-        it('should throw for two sources', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'streaming-flow',
-                    kind: 'stream',
-                    nodes,
-                    streaming: {
-                        flows: {
-                            analyze: 'A >> B >> C | D >> E'
-                        }
-                    }
-                }
-            };
-            const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal('flow analyze has 2 sources (A,D) each flow should have exactly one source');
-        });
         it('should throw invalid node name', async () => {
             const options = {
                 uri: restPath,

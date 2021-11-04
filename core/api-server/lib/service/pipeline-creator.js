@@ -227,12 +227,6 @@ class PipelineCreator {
                     });
                 });
             });
-            const dag = new DAG({});
-            Object.values(flowEdges).forEach(e => dag.setEdge(e.source, e.target));
-            const sources = dag.getSources();
-            if (sources.length > 1) {
-                throw new InvalidDataError(`flow ${k} has ${sources.length} sources (${sources.join(',')}) each flow should have exactly one source`);
-            }
             parsedFlow[k] = flow;
         });
         return {
