@@ -13,7 +13,8 @@ const {
     Lists,
     Pipelines,
     DataSources,
-    Outputs
+    Outputs,
+    Devenvs
 } = require('./index');
 
 class ApiValidator {
@@ -21,6 +22,7 @@ class ApiValidator {
         innerValidator.init(schemas);
         this.algorithms = new Algorithms(innerValidator);
         this.boards = new Boards(innerValidator);
+        this.devenvs = new Devenvs(innerValidator);
         this.builds = new Builds(innerValidator);
         this.cron = new Cron(innerValidator);
         this.executions = new Executions(innerValidator);

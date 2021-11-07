@@ -1,5 +1,6 @@
 const Algorithms = require('./algorithms');
 const Boards = require('./boards');
+const Devenvs = require('./devenvs');
 const Builds = require('./builds');
 const Cron = require('./cron');
 const Executions = require('./executions');
@@ -27,5 +28,6 @@ module.exports = {
     Lists,
     Pipelines,
     DataSources,
-    Outputs
+    Outputs,
+    Devenvs
 };

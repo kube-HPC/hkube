@@ -388,6 +388,22 @@ class StateManager {
         return this._etcd.algorithms.queue.list();
     }
 
+    getDevenv({name}) {
+        return this._db.devenvs.fetch({name});
+    }
+
+    getDevenvs() {
+        return this._db.devenvs.fetchAll();
+    }
+
+    createDevenv(devenv) {
+        return this._db.devenvs.create(devenv);
+    }
+
+    deleteDevenv({name}) {
+        return this._db.devenvs.delete({name});
+    }
+
     async cleanJob({ jobId }) {
         await Promise.all([
             this._etcd.jobs.results.delete({ jobId }),
