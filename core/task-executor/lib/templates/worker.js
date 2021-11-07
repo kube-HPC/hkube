@@ -362,13 +362,7 @@ const gatewayEnv = {
 };
 const optimizerEnv = {
 
-    SHARED_METRICS: '/hkube/ds-metrics'
-};
-const sharedMetricsVolume = {
-    name: 'dsmetrics',
-    hostPath: {
-        path: '/hkube/ds-metrics'
-    }
+    SHARED_METRICS: '/hkube/datasciencemetrics-storage'
 };
 const logVolumes = [
     {
@@ -418,6 +412,5 @@ module.exports = {
     sharedMetricsVolumeMount,
     algoMetricVolume,
     gatewayEnv,
-    optimizerEnv,
-    sharedMetricsVolume
+    optimizerEnv
 };

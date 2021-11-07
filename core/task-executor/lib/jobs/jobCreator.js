@@ -11,7 +11,7 @@ const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
-const { sharedMetricsVolumeMount, sharedMetricsVolume, optimizerEnv, workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
+const { workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
 
@@ -205,6 +205,24 @@ const applyDataSourcesVolumes = (inputSpec) => {
     return spec;
 };
 
+const applyDatascienceMetricsVolumes = (inputSpec) => {
+    let spec = clonedeep(inputSpec);
+    // if (!clusterOptions.dataSourcesEnabled) {
+    //     return spec;
+    // }
+    spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
+        name: 'datasciencemetrics-storage',
+        mountPath: '/hkube/datasciencemetrics-storage'
+    });
+    spec = applyVolumes(spec, {
+        name: 'datasciencemetrics-storage',
+        persistentVolumeClaim: {
+            claimName: 'hkube-datasciencemetrics'
+        }
+    });
+    return spec;
+};
+
 const applyCacheParamsToContainer = (inputSpec, reservedMemory) => {
     let spec = clonedeep(inputSpec);
     const envOptions = {};
@@ -370,9 +388,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, gatewayEnv);
     }
     if (kind === nodeKind.Optimizer) {
-        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, optimizerEnv);
-        spec = applyVolumes(spec, sharedMetricsVolume);
-        spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, sharedMetricsVolumeMount);
+        spec = applyDatascienceMetricsVolumes(spec);
     }
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
