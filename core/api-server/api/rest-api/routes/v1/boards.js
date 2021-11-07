@@ -26,6 +26,28 @@ const routes = (options) => {
         const message = 'Board started successfully';
         res.json({ id, message });
     });
+
+    router.get('/optunas', async (req, res) => {
+        const response = await boards.getOptunaboards();
+        res.json(response);
+    });
+    router.get('/optunas/:id?', async (req, res) => {
+        const { id } = req.params;
+        const response = await boards.getOptunaboard({ id });
+        res.json(response);
+    });
+    router.delete('/optunas/:id?', async (req, res) => {
+        const { id } = req.params;
+        await boards.stopOptunaboard({ id });
+        res.json({ message: 'Board deleted' });
+    });
+    router.post('/optunas/', async (req, res) => {
+        const { jobId } = req.body;
+        const id = await boards.startOptunaboard({ jobId });
+        const message = 'Board started successfully';
+        res.json({ id, message });
+    });
+
     return router;
 };
 

@@ -360,7 +360,13 @@ const gatewayEnv = {
         }
     }
 };
-
+const sharedMetrics = [
+    {
+        name: 'shared-metrics',
+        hostPath: {
+            path: '/hkube/shared-metrics'
+        }
+    }];
 const logVolumes = [
     {
         name: 'varlog',
@@ -406,5 +412,6 @@ module.exports = {
     logVolumeMounts,
     sharedVolumeMounts,
     algoMetricVolume,
-    gatewayEnv
+    gatewayEnv,
+    sharedMetrics
 };
