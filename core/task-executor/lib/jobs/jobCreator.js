@@ -372,7 +372,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     if (kind === nodeKind.Optimizer) {
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, optimizerEnv);
         spec = applyVolumes(spec, sharedMetricsVolume);
-        spec = applyVolumeMounts(spec, sharedMetricsVolumeMount);
+        spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, sharedMetricsVolumeMount);
     }
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
