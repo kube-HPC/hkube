@@ -360,13 +360,16 @@ const gatewayEnv = {
         }
     }
 };
-const sharedMetrics = [
-    {
-        name: 'shared-metrics',
-        hostPath: {
-            path: '/hkube/shared-metrics'
-        }
-    }];
+const optimizerEnv = {
+
+    SHARED_METRICS: '/hkube/shared-metrics'
+};
+const sharedMetricsVolume = {
+    name: 'shared-metrics',
+    hostPath: {
+        path: '/hkube/shared-metrics'
+    }
+};
 const logVolumes = [
     {
         name: 'varlog',
@@ -413,5 +416,6 @@ module.exports = {
     sharedVolumeMounts,
     algoMetricVolume,
     gatewayEnv,
-    sharedMetrics
+    optimizerEnv,
+    sharedMetricsVolume
 };

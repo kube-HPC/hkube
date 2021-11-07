@@ -1,5 +1,6 @@
 from __future__ import print_function, division, absolute_import
 
+import os
 import sys
 
 from hkube_python_wrapper import Algorunner
@@ -9,36 +10,38 @@ _hkubeApi = None
 globalReference = []
 
 
-def getStudy(sampler):
-    if(sampler):
-        if(sampler['name'] == 'Grid'):
+def getStudy(sampler, storagePath):
+    if (sampler):
+        if (sampler['name'] == 'Grid'):
             search_space = sampler['search_space']
             study = optuna.create_study(
-                sampler=optuna.samplers.GridSampler(search_space))
+                storage='sqlite:///' + storagePath, sampler=optuna.samplers.GridSampler(search_space))
         if (sampler['name'] == 'PartialFixed'):
             fixed_values = sampler['fixed_values']
             study = optuna.create_study(
-                sampler=optuna.samplers.PartialFixedSampler(fixed_values))
+                storage='sqlite:///' + storagePath, sampler=optuna.samplers.PartialFixedSampler(fixed_values))
         if (sampler['name'] == 'Random'):
             study = optuna.create_study(
-                sampler=optuna.samplers.RandomSampler())
+                storage='sqlite:///' + storagePath, sampler=optuna.samplers.RandomSampler())
         if (sampler['name'] == 'TPE'):
-            study = optuna.create_study(sampler=optuna.samplers.TPESampler())
+            study = optuna.create_study(
+                storage='sqlite:///' + storagePath, sampler=optuna.samplers.TPESampler())
         if (sampler['name'] == 'CmaEs'):
-            study = optuna.create_study(sampler=optuna.samplers.CmaEsSampler())
+            study = optuna.create_study(
+                storage='sqlite:///' + storagePath, sampler=optuna.samplers.CmaEsSampler())
     else:
-        study = optuna.create_study()
+        study = optuna.create_study(storage='sqlite:///'+storagePath)
     return study
 
 
 def start(options, hkubeApi):
-
     hyperParams = options['spec']['hyperParams']
     pipelineName = options['spec']['objectivePipeline']
     numberOfTrails = options['spec']['numberOfTrials']
     sampler = options['spec'].get('sampler')
-
-    study = getStudy(sampler)
+    sharedStorage = os.environ.get('SHARED_METRICS', '/hkube/shared-metrics')
+    sharedStorage = str(sharedStorage) + '/' + str(options['jobId'])
+    study = getStudy(sampler, sharedStorage)
 
     globalReference.append(study)
 
