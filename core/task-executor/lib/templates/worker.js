@@ -360,10 +360,9 @@ const gatewayEnv = {
         }
     }
 };
-const optimizerEnv = {
-
+const optimizerEnv = [{
     SHARED_METRICS: '/hkube/datasciencemetrics-storage'
-};
+}];
 const logVolumes = [
     {
         name: 'varlog',
