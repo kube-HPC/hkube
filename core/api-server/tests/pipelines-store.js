@@ -459,7 +459,6 @@ describe('Store/Pipelines', () => {
             pipeline.kind = 'stream';
             pipeline.nodes.forEach((n) => {
                 n.kind = 'algorithm';
-                n.stateType = 'stateless';
             });
             const options = {
                 uri: restPath,

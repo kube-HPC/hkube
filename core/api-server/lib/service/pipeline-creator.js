@@ -149,9 +149,11 @@ class PipelineCreator {
      *        }}
      *
      */
-    async buildStreamingFlow(pipeline, jobId) {
+    async buildStreamingFlow(pipeline, jobId, algorithms) {
         const flows = pipeline.streaming?.flows;
         let defaultFlow = pipeline.streaming?.defaultFlow;
+        let gateways;
+
         if (pipeline.kind === pipelineKind.Batch) {
             if (flows) {
                 throw new InvalidDataError(`streaming flow is only allowed in ${pipelineKind.Stream} pipeline`);
@@ -168,9 +170,12 @@ class PipelineCreator {
             }
             [defaultFlow] = flowNames;
         }
-        let gateways;
 
         for (const node of pipeline.nodes) { // eslint-disable-line
+            const algorithm = algorithms.get(node.algorithmName);
+            if (algorithm && !node.stateType) {
+                node.stateType = algorithm.streamKind || stateType.Stateless;
+            }
             const type = node.stateType || stateType.Stateless;
             node.retry = StreamRetryPolicy[type];
 
@@ -242,14 +247,23 @@ class PipelineCreator {
                     });
                 });
             });
-            const dag = new DAG({});
-            Object.values(flowEdges).forEach(e => dag.setEdge(e.source, e.target));
-            const sources = dag.getSources();
-            if (sources.length > 1) {
-                throw new InvalidDataError(`flow ${k} has ${sources.length} sources (${sources.join(',')}) each flow should have exactly one source`);
-            }
             parsedFlow[k] = flow;
         });
+
+        const dag = new DAG({});
+        edges.forEach(e => dag.setEdge(e.source, e.target));
+        const nodeNames = new Set(dag.getNodeNames());
+        const node = pipeline.nodes.find(n => !nodeNames.has(n.nodeName || n.origName));
+        if (node) {
+            throw new InvalidDataError(`node "${node.nodeName}" does not belong to any flow`);
+        }
+
+        const sources = dag.getSources().map(s => pipeline.nodes.find(n => n.nodeName === s));
+        const statelessNodes = sources.filter(s => s.stateType === stateType.Stateless);
+        if (statelessNodes.length > 0) {
+            throw new InvalidDataError(`entry node "${statelessNodes[0].nodeName}" cannot be ${stateType.Stateless} on ${pipeline.kind} pipeline`);
+        }
+
         return {
             ...pipeline,
             edges,
