@@ -26,6 +26,7 @@ class Bootstrap {
             });
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
+                this._gracefulShutdown(1);
             });
             await monitor.check(config.redis);
             if (config.tracer) {
@@ -46,34 +47,32 @@ class Bootstrap {
         process.exit(1);
     }
 
+    _gracefulShutdown(code) {
+        gracefulShutdown.shutdown(() => {
+            process.exit(code);
+        });
+    }
+
     _handleErrors() {
         process.on('exit', (code) => {
             log.info(`exit code ${code}`, { component });
         });
         process.on('SIGINT', () => {
             log.info('SIGINT', { component });
-            gracefulShutdown.shutdown(() => {
-                process.exit(0);
-            });
+            this._gracefulShutdown(0);
         });
         process.on('SIGTERM', () => {
             log.info('SIGTERM', { component });
-            gracefulShutdown.shutdown(() => {
-                process.exit(0);
-            });
+            this._gracefulShutdown(0);
         });
         process.on('unhandledRejection', (error) => {
             console.error(error)
             log.error(`unhandledRejection: ${error.message}`, { component }, error);
-            gracefulShutdown.shutdown(() => {
-                process.exit(1);
-            });
+            this._gracefulShutdown(1);
         });
         process.on('uncaughtException', (error) => {
             log.error(`uncaughtException: ${error.message}`, { component }, error);
-            gracefulShutdown.shutdown(() => {
-                process.exit(1);
-            });
+            this._gracefulShutdown(1);
         });
     }
 }
