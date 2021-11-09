@@ -68,7 +68,8 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.message).to.equal(`algorithm ${algorithmName} Not Found`);
         });
         it('should throw error on related data', async () => {
-            const algorithmName = `delete-${uuid()}`;
+            const algorithmName = `alg-${uuid()}`;
+            const pipelineName = `pipe-${uuid()}`;
             const algorithm = {
                 uri: restPath,
                 body: {
@@ -79,7 +80,7 @@ describe('Store/Algorithms', () => {
             const store = {
                 uri: `${restUrl}/store/pipelines`,
                 body: {
-                    name: `delete-${uuid()}`,
+                    name: pipelineName,
                     nodes: [
                         {
                             nodeName: 'green',
@@ -98,7 +99,8 @@ describe('Store/Algorithms', () => {
 
             const resAlg = await request(algorithm);
             await request(store);
-            await request(exec);
+            const execRes = await request(exec);
+            const jobId = execRes.body.jobId;
             await versionsService.createVersion(resAlg.body);
             await stateManager.createBuild({ buildId: `${algorithmName}-1`, algorithmName });
             await stateManager.createBuild({ buildId: `${algorithmName}-2`, algorithmName });
@@ -110,7 +112,7 @@ describe('Store/Algorithms', () => {
             const response = await request(optionsDelete);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('you must first delete all related data');
+            expect(response.body.error.message).to.equal(`algorithm ${algorithmName} is stored in 1 pipelines (${pipelineName}), 1 executions (${jobId}). you must first delete all related data or use the force flag`);
         });
         it('should delete algorithm with related data with force', async () => {
             const algorithmName = `my-alg-${uuid()}`;

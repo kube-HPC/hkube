@@ -591,14 +591,12 @@
             {
                 "nodeName": "A",
                 "algorithmName": "green-alg",
-                "input": [],
-                "stateType": "stateless"
+                "input": []
             },
             {
                 "nodeName": "Z",
                 "algorithmName": "green-alg",
-                "input": [],
-                "stateType": "stateless"
+                "input": []
             }
         ],
         "streaming": {
@@ -613,15 +611,13 @@
         "nodes": [
             {
                 "nodeName": "A",
-                "algorithmName": "green-alg",
-                "input": [],
-                "stateType": "stateful"
+                "algorithmName": "stateful-alg",
+                "input": []
             },
             {
                 "nodeName": "Z",
                 "algorithmName": "green-alg",
-                "input": [],
-                "stateType": "stateless"
+                "input": []
             }
         ],
         "streaming": {
@@ -636,9 +632,8 @@
         "nodes": [
             {
                 "nodeName": "one",
-                "algorithmName": "green-alg",
-                "input": [],
-                "stateType": "stateful"
+                "algorithmName": "stateful-alg",
+                "input": []
             }
         ]
     },

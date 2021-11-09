@@ -109,11 +109,23 @@ class AlgorithmStore {
     }
 
     _entitiesToText(entities) {
-        return Object.entries(entities).filter(([, v]) => v).map(([k, v]) => `${v} ${k}`).join(', ');
+        return Object.entries(entities)
+            .filter(([, v]) => v)
+            .map(([k, v]) => {
+                if (Array.isArray(v)) {
+                    return `${v.length} ${k} (${v.join(',')})`;
+                }
+                return `${v} ${k}`;
+            })
+            .join(', ');
     }
 
-    async _checkAlgorithmDependencies({ name, ...entities }) {
+    async _checkAlgorithmDependencies({ name, pipelines, executions }) {
         let message;
+        const entities = {
+            pipelines: pipelines.map(p => p.name),
+            executions: executions.map(e => e.jobId),
+        };
         const details = this._entitiesToText(entities);
 
         if (details) {

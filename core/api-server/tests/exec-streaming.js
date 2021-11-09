@@ -7,9 +7,8 @@ let restUrl;
 const nodes = [
     {
         nodeName: 'A',
-        algorithmName: 'green-alg',
-        input: [],
-        stateType: 'stateful'
+        algorithmName: 'stateful-alg',
+        input: []
     },
     {
         nodeName: 'B',
@@ -29,8 +28,7 @@ const nodes = [
     {
         nodeName: 'E',
         algorithmName: 'green-alg',
-        input: [],
-        stateType: 'stateful'
+        input: []
     }
 ];
 
@@ -219,24 +217,6 @@ describe('Streaming', () => {
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal('invalid relation found A >> A in flow analyze');
         });
-        it('should throw for two sources', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'streaming-flow',
-                    kind: 'stream',
-                    nodes,
-                    streaming: {
-                        flows: {
-                            analyze: 'A >> B >> C | D >> E'
-                        }
-                    }
-                }
-            };
-            const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal('flow analyze has 2 sources (A,D) each flow should have exactly one source');
-        });
         it('should throw invalid node name', async () => {
             const options = {
                 uri: restPath,
@@ -315,9 +295,8 @@ describe('Streaming', () => {
                     nodes: [
                         {
                             nodeName: 'image',
-                            algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateful'
+                            algorithmName: 'stateful-alg',
+                            input: []
                         },
                         {
                             nodeName: 'A',
@@ -347,14 +326,12 @@ describe('Streaming', () => {
                         {
                             nodeName: 'get-all',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateful'
+                            input: []
                         },
                         {
                             nodeName: 'get-all2',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateful'
+                            input: []
                         }
                     ],
                     streaming: {
@@ -367,7 +344,7 @@ describe('Streaming', () => {
             const res = await request(options);
             expect(res.body).to.have.property('jobId');
         });
-        it('should not throw invalid relation found', async () => {
+        it('should throw node does not belong to any flow', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -377,6 +354,25 @@ describe('Streaming', () => {
                     streaming: {
                         flows: {
                             analyze: 'A >> B >> C&D >> B >> A'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('node "E" does not belong to any flow');
+        });
+        it('should not throw invalid relation found', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: 'stream',
+                    nodes,
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B >> C&D&E >> B >> A'
                         }
                     }
                 }
@@ -393,7 +389,7 @@ describe('Streaming', () => {
                     nodes,
                     streaming: {
                         flows: {
-                            analyze: 'A >> B >> C >> D'
+                            analyze: 'A >> B >> C >> D >> E'
                         }
                     }
                 }
@@ -403,7 +399,7 @@ describe('Streaming', () => {
             const res = await request(optionsGET);
             const flows = Object.keys(res.body.streaming.flows);
             const parsedFlow = Object.keys(res.body.streaming.parsedFlow);
-            expect(res.body.edges).to.have.lengthOf(3);
+            expect(res.body.edges).to.have.lengthOf(4);
             expect(flows).to.eql(parsedFlow);
             expect(res.body.edges[0].types[0]).to.eql('customStream');
             expect(res.body.edges[1].types[0]).to.eql('customStream');
@@ -418,32 +414,27 @@ describe('Streaming', () => {
                         {
                             nodeName: 'A',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateful'
+                            input: []
                         },
                         {
                             nodeName: 'B',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateless'
+                            input: []
                         },
                         {
                             nodeName: 'C',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateless'
+                            input: []
                         },
                         {
                             nodeName: 'D',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateless'
+                            input: []
                         },
                         {
                             nodeName: 'E',
                             algorithmName: 'green-alg',
-                            input: [],
-                            stateType: 'stateless'
+                            input: []
                         }
                     ],
                     streaming: {
@@ -742,35 +733,30 @@ describe('Streaming', () => {
                         nodeName: 'A',
                         algorithmName: 'green-alg',
                         input: [],
-                        stateType: 'stateful',
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'B',
                         algorithmName: 'green-alg',
                         input: [],
-                        stateType: 'stateless',
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'C',
                         algorithmName: 'green-alg',
                         input: [],
-                        stateType: 'stateless',
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'D',
                         algorithmName: 'green-alg',
                         input: [],
-                        stateType: 'stateless',
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'E',
                         algorithmName: 'green-alg',
                         input: [],
-                        stateType: 'stateless',
                         kind: 'algorithm'
                     }
                 ],
