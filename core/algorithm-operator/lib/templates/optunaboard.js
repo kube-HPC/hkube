@@ -1,7 +1,7 @@
 const { OPTUNABOARD } = require('../consts/containers');
 const { getIngressParams } = require('../helpers/kubernetes-utils');
 
-const deploymentBoardTemplate = (boardReference = '', id, { ingressPrefix }) => ({
+const deploymentBoardTemplate = (boardReference = '', id, ingressPrefix) => ({
     apiVersion: 'apps/v1',
     kind: 'Deployment',
     metadata: {
