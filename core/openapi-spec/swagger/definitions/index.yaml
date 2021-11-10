@@ -33,6 +33,8 @@ kubernetesValueFrom:
 # boards
 createBoardRequest:
   $ref: ./boards/createBoardRequest.yaml
+createOptunaboardRequest:
+  $ref: ./boards/createOptunaboardRequest.yaml  
 createBoardResponse:
   $ref: ./boards/createBoardResponse.yaml
 getBoardResponse:

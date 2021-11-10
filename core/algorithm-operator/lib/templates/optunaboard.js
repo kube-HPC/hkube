@@ -1,54 +1,72 @@
-const { OPTUNBOARD } = require('../consts/containers');
+const { OPTUNABOARD } = require('../consts/containers');
 const { getIngressParams } = require('../helpers/kubernetes-utils');
 
-const deploymentBoardTemplate = (boardReference = '') => ({
+const deploymentBoardTemplate = (boardReference = '', id, { ingressPrefix }) => ({
     apiVersion: 'apps/v1',
     kind: 'Deployment',
     metadata: {
-        name: `board-${boardReference}`,
+        name: `optunaboard-${boardReference}`,
         labels: {
-            app: `board-${boardReference}`,
-            'board-id': `${boardReference}`,
+            app: `optunaboard-${boardReference}`,
+            'optunaboard-id': `${boardReference}`,
             group: 'hkube',
             core: 'true',
-            'metrics-group': OPTUNBOARD,
-            type: OPTUNBOARD
+            'metrics-group': OPTUNABOARD,
+            type: OPTUNABOARD
         }
     },
     spec: {
         replicas: 1,
         selector: {
             matchLabels: {
-                app: `board-${boardReference}`
+                app: `optunaboard-${boardReference}`
             }
         },
         template: {
             metadata: {
                 labels: {
-                    app: `board-${boardReference}`,
+                    app: `optunaboard-${boardReference}`,
                     group: 'hkube',
-                    'metrics-group': OPTUNBOARD,
-                    type: OPTUNBOARD
+                    'metrics-group': OPTUNABOARD,
+                    type: OPTUNABOARD
                 }
             },
             spec: {
                 containers: [
                     {
-                        name: OPTUNBOARD,
-                        image: `hkube/${OPTUNBOARD}`,
+                        name: OPTUNABOARD,
+                        image: 'hkube/optuna-dashboard:v1.2.10',
                         env: [
                             {
-                                name: 'SHARED_METRICS',
-                                valueFrom: {
-                                    configMapKeyRef: {
-                                        name: 'algorithm-operator-configmap',
-                                        key: 'SHARED_METRICS'
-                                    }
-                                }
+                                name: 'OPTUNADB',
+                                value: `/hkube/datasciencemetrics-storage/${id}`
                             },
+                            {
+                                name: 'BOARD_REFERENCE',
+                                value: `${boardReference}`
+                            },
+                            {
+                                name: 'INGRESS_PREFIX',
+                                value: `${ingressPrefix}`
+                            }
+
                         ],
                         port: {
                             containerPort: 8080
+                        },
+                        volumeMounts: [
+                            {
+                                mountPath: '/hkube/datasciencemetrics-storage',
+                                name: 'datasciencemetrics-storage'
+                            }
+                        ]
+                    }
+                ],
+                volumes: [
+                    {
+                        name: 'datasciencemetrics-storage',
+                        persistentVolumeClaim: {
+                            claimName: 'hkube-datasciencemetrics'
                         }
                     }
                 ]
@@ -62,19 +80,19 @@ const boardService = (boardReference = '') => ({
     kind: 'Service',
     apiVersion: 'v1',
     metadata: {
-        name: `board-service-${boardReference}`,
+        name: `optunaboard-service-${boardReference}`,
         labels: {
-            app: `board-${boardReference}`,
+            app: `optunaboard-${boardReference}`,
             group: 'hkube',
             core: 'true',
-            type: OPTUNBOARD
+            type: OPTUNABOARD
         }
     },
     spec: {
         selector: {
-            'metrics-group': OPTUNBOARD,
+            'metrics-group': OPTUNABOARD,
             group: 'hkube',
-            app: `board-${boardReference}`,
+            app: `optunaboard-${boardReference}`,
         },
         ports: [
             {
@@ -86,12 +104,12 @@ const boardService = (boardReference = '') => ({
 });
 
 const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '', ingressUseRegex = false, ingressClass = 'nginx' } = {}) => {
-    const { apiVersion, backend, pathType } = getIngressParams(`board-service-${boardReference}`, 80);
+    const { apiVersion, backend, pathType } = getIngressParams(`optunaboard-service-${boardReference}`, 80);
     return {
         apiVersion,
         kind: 'Ingress',
         metadata: {
-            name: `ingress-board-${boardReference}`,
+            name: `ingress-optunaboard-${boardReference}`,
             annotations: {
                 'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
                 'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
@@ -99,9 +117,9 @@ const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '', in
                 'kubernetes.io/ingress.class': ingressClass
             },
             labels: {
-                app: `ingress-${OPTUNBOARD}`,
+                app: `ingress-${OPTUNABOARD}`,
                 core: 'true',
-                type: OPTUNBOARD
+                type: OPTUNABOARD
             }
         },
         spec: {

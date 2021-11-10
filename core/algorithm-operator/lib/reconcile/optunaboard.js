@@ -4,12 +4,12 @@ const { boardStatuses } = require('@hkube/consts');
 const db = require('../helpers/db');
 const { createKindsSpec } = require('../deployments/optunaboard');
 const kubernetes = require('../helpers/kubernetes');
-const { normalizeBoardDeployments } = require('./normalize');
-const deploymentType = require('../consts/DeploymentTypes').BOARD;
+const { normalizeOptunaboardDeployments } = require('./normalize');
+const deploymentType = require('../consts/DeploymentTypes').OPTUNABOARD;
 const _createBoardDeployment = async (deploymentDetails) => {
     const { versions, registry, clusterOptions, options, board } = deploymentDetails;
-    const { boardReference, logDir } = board;
-    const { deploymentSpec, serviceSpec, ingressSpec } = createKindsSpec({ boardReference, logDir, versions, registry, clusterOptions, options });
+    const { boardReference, logDir, id } = board;
+    const { deploymentSpec, serviceSpec, ingressSpec } = createKindsSpec({ id, boardReference, logDir, versions, registry, clusterOptions, options });
     await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name: boardReference }, deploymentType);
     board.status = boardStatuses.CREATING;
     board.timestamp = Date.now();
@@ -17,7 +17,7 @@ const _createBoardDeployment = async (deploymentDetails) => {
 };
 
 const reconcile = async ({ boards, deployments, versions, registry, clusterOptions, boardTimeOut, options }) => {
-    const normDeployments = normalizeBoardDeployments(deployments);
+    const normDeployments = normalizeOptunaboardDeployments(deployments);
     const pending = boards.filter(b => b.status === boardStatuses.PENDING);
     const added = pending.filter(a => !normDeployments.find(d => d.boardReference === a.boardReference));
     const now = Date.now();
