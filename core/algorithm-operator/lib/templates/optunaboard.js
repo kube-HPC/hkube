@@ -35,7 +35,7 @@ const deploymentBoardTemplate = (boardReference = '', id, ingressPrefix) => ({
                 containers: [
                     {
                         name: OPTUNABOARD,
-                        image: 'hkube/optuna-dashboard:v1.2.10',
+                        image: 'hkube/optuna-dashboard',
                         env: [
                             {
                                 name: 'OPTUNADB',
