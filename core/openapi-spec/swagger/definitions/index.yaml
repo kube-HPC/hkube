@@ -177,12 +177,12 @@ gateway:
 output:
   $ref: ./output/output.yaml
 
-optimizer:
-  $ref: ./optimizer/optimizer.yaml  
+hyperparamsTuner:
+  $ref: ./hyperparamsTuner/hyperparamsTuner.yaml  
 hyperParams:
-  $ref: ./optimizer/hyperParam.yaml  
+  $ref: ./hyperparamsTuner/hyperParam.yaml  
 sampler:
-  $ref: ./optimizer/sampler.yaml
+  $ref: ./hyperparamsTuner/sampler.yaml
 
 # GC
 clean:

@@ -12,7 +12,7 @@ const Pipelines = require('./pipelines');
 const DataSources = require('./data-sources');
 const Gateways = require('./gateways');
 const Outputs = require('./outputs');
-const Optimizers = require('./optimizers');
+const HyperparamsTuner = require('./hyperparams-tuners');
 
 module.exports = {
     Algorithms,
@@ -29,5 +29,5 @@ module.exports = {
     Pipelines,
     DataSources,
     Outputs,
-    Optimizers
+    HyperparamsTuner
 };

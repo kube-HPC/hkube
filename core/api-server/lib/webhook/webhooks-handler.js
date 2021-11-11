@@ -10,7 +10,7 @@ const { metricsNames } = require('../consts/metricsNames');
 const storage = require('../service/storage');
 const gatewayService = require('../service/gateway');
 const outputService = require('../service/output');
-const optimizerService = require('../service/optimizer');
+const hyperparamsTunerService = require('../service/hyperparams-tuner');
 const debugService = require('../service/debug');
 const CompletedState = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 
@@ -33,7 +33,7 @@ class WebhooksHandler {
             const { jobId } = response;
             gatewayService.deleteGateways({ jobId });
             outputService.deleteOutputs({ jobId });
-            optimizerService.deleteOptimizers({ jobId });
+            hyperparamsTunerService.deleteHyperparamsTuners({ jobId });
             debugService.updateLastUsed({ jobId });
         });
         stateManager.onJobStatus((response) => {

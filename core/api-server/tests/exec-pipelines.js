@@ -68,7 +68,7 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm dummy Not Found');
         });
-        it.only('should throw validation error if numberOfTrials not exists optimizer spec', async () => {
+        it.only('should throw validation error if numberOfTrials not exists hyperparams-tuner spec', async () => {
             const options = {
                 uri: restUrl + '/exec/raw',
                 body: {
@@ -76,7 +76,7 @@ describe('Executions', () => {
                     nodes: [
                         {
                             nodeName: 'string',
-                            kind: 'optimizer',
+                            kind: 'hyperparamsTuner',
                             input: []
                         }
                     ]

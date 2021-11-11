@@ -360,7 +360,7 @@ const gatewayEnv = {
         }
     }
 };
-const optimizerEnv = {
+const hyperparamsTunerEnv = {
     SHARED_METRICS: '/hkube/datasciencemetrics-storage'
 };
 const logVolumes = [
@@ -411,5 +411,5 @@ module.exports = {
     sharedMetricsVolumeMount,
     algoMetricVolume,
     gatewayEnv,
-    optimizerEnv
+    hyperparamsTunerEnv
 };

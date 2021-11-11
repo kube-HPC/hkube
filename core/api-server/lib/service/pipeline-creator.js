@@ -5,7 +5,7 @@ const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/const
 const gatewayService = require('./gateway');
 const debugService = require('./debug');
 const outputService = require('./output');
-const optimizeService = require('./optimizer');
+const optimizeService = require('./hyperparams-tuner');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
@@ -124,9 +124,9 @@ class PipelineCreator {
     async updateOptimize(pipeline, jobId) {
         const { name: pipelineName } = pipeline;
         for (const node of pipeline.nodes) { // eslint-disable-line
-            if (node.kind === nodeKind.Optimizer) {
+            if (node.kind === nodeKind.HyperparamsTuner) {
                 const { spec } = node;
-                const { algorithmName: newAlgorithmName } = await optimizeService.createOptimizer(pipelineName, jobId, spec); // eslint-disable-line
+                const { algorithmName: newAlgorithmName } = await optimizeService.createHyperparamsTuner(pipelineName, jobId, spec); // eslint-disable-line
                 node.algorithmName = newAlgorithmName;
             }
         }

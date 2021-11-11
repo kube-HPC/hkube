@@ -209,7 +209,7 @@
                             "dataSource",
                             "gateway",
                             "output",
-                            "optimizer"
+                            "hyperparamsTuner"
                           ]
                         },
                         "spec": {
@@ -753,7 +753,7 @@
                             "dataSource",
                             "gateway",
                             "output",
-                            "optimizer"
+                            "hyperparamsTuner"
                           ]
                         },
                         "spec": {
@@ -2328,7 +2328,7 @@
                               "dataSource",
                               "gateway",
                               "output",
-                              "optimizer"
+                              "hyperparamsTuner"
                             ]
                           },
                           "spec": {
@@ -2871,7 +2871,7 @@
                               "dataSource",
                               "gateway",
                               "output",
-                              "optimizer"
+                              "hyperparamsTuner"
                             ]
                           },
                           "spec": {
@@ -8750,7 +8750,7 @@
                               "dataSource",
                               "gateway",
                               "output",
-                              "optimizer"
+                              "hyperparamsTuner"
                             ]
                           },
                           "spec": {
@@ -9396,7 +9396,7 @@
                                 "dataSource",
                                 "gateway",
                                 "output",
-                                "optimizer"
+                                "hyperparamsTuner"
                               ]
                             },
                             "spec": {
@@ -9898,7 +9898,7 @@
                             "dataSource",
                             "gateway",
                             "output",
-                            "optimizer"
+                            "hyperparamsTuner"
                           ]
                         },
                         "spec": {
@@ -10376,7 +10376,7 @@
                               "dataSource",
                               "gateway",
                               "output",
-                              "optimizer"
+                              "hyperparamsTuner"
                             ]
                           },
                           "spec": {
@@ -10915,7 +10915,7 @@
                             "dataSource",
                             "gateway",
                             "output",
-                            "optimizer"
+                            "hyperparamsTuner"
                           ]
                         },
                         "spec": {
@@ -11393,7 +11393,7 @@
                               "dataSource",
                               "gateway",
                               "output",
-                              "optimizer"
+                              "hyperparamsTuner"
                             ]
                           },
                           "spec": {
@@ -19829,7 +19829,7 @@
           }
         }
       },
-      "optimizer": {
+      "hyperparamsTuner": {
         "type": "object",
         "properties": {
           "numberOfTrials": {
@@ -20220,7 +20220,7 @@
                     "dataSource",
                     "gateway",
                     "output",
-                    "optimizer"
+                    "hyperparamsTuner"
                   ]
                 },
                 "spec": {
@@ -20590,7 +20590,7 @@
           "dataSource",
           "gateway",
           "output",
-          "optimizer"
+          "hyperparamsTuner"
         ]
       },
       "pipelineNode": {
@@ -20683,7 +20683,7 @@
               "dataSource",
               "gateway",
               "output",
-              "optimizer"
+              "hyperparamsTuner"
             ]
           },
           "spec": {
