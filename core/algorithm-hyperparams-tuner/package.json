@@ -1,7 +1,7 @@
 {
-    "name": "algorithm-optimizer",
+    "name": "algorithm-hyperparams-tuner",
     "version": "2.2.1",
-    "description": "algorithm-optimizer",
+    "description": "algorithm-hyperparams-tuner",
     "main": "app.js",
     "dependencies": {
         "@hkube/config": "^2.0.11",
@@ -24,7 +24,7 @@
         "test:cov": "echo no test cov",
         "coverage": "echo no cov",
         "start": "python app.py",
-        "build": "./dockerfile/build.sh algorithm-optimizer"
+        "build": "./dockerfile/build.sh algorithm-hyperparams-tuner"
     },
     "nyc": {
         "exclude": [
