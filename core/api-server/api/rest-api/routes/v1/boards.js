@@ -43,9 +43,9 @@ const routes = (options) => {
     });
     router.post('/optunas/', async (req, res) => {
         const { jobId } = req.body;
-        const id = await boards.startOptunaboard({ jobId });
+        const boardUrl = await boards.startOptunaboard({ jobId });
         const message = 'Board started successfully';
-        res.json({ id, message });
+        res.json({ id: jobId, message, boardUrl });
     });
 
     return router;

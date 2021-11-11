@@ -102,11 +102,11 @@ class Boards {
         const { jobId } = options;
         const existingBoard = await stateManager.getOptunaboard({ jobId });
         const boardReference = uid();
-        const boardLink = `hkube/board/${boardReference}/`;
+        const boardURL = `hkube/board/${boardReference}/dashboard`;
         const board = {
             id: jobId,
             boardReference,
-            boardLink,
+            boardLink: boardURL,
             status: boardStatuses.PENDING,
             result: null,
             error: null,
@@ -120,7 +120,7 @@ class Boards {
             return stateManager.updateOptunaboard(board);
         }
         await stateManager.createOptunaboard(board);
-        return jobId;
+        return boardURL;
     }
 
     async getTensorboardInfo({ taskId, jobId, nodeName }, type) {
