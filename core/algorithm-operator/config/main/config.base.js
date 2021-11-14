@@ -90,3 +90,18 @@ config.healthchecks = {
     maxDiff: process.env.HEALTHCHECK_MAX_DIFF || '30000',
     logExternalRequests: formatter.parseBool(process.env.LOG_EXTERNAL_REQUESTS, true)
 };
+
+config.ingressPrefix = process.env.INGRESS_PREFIX || '';
+
+config.devenvs = {
+    enable: formatter.parseBool(process.env.DEV_ENVS_ENABLE, false),
+    jupyter: {
+        protocol: process.env.JUPYTER_HUB_SERVICE_PROTOCOL || 'http',
+        host: process.env.JUPITER_HUB_SERVICE_HOST || '127.0.0.1',
+        port: process.env.JUPYTER_HUB_SERVICE_PORT || 8000,
+        path: process.env.JUPYTER_HUB_SERVICE_PATH ? path.join(config.ingressPrefix, process.env.JUPYTER_HUB_SERVICE_PATH) : config.ingressPrefix,
+        username: process.env.JUPYTER_HUB_SERVICE_USER || 'hkube',
+        password: process.env.JUPYTER_HUB_SERVICE_PASSWORD || 'hkube',
+    }
+
+};

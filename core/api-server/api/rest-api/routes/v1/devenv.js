@@ -21,8 +21,7 @@ const routes = (options) => {
         res.json(response);
     });
     router.post('/', async (req, res) => {
-        const { name } = req.body;
-        const response = await devenvs.create({name});
+        const response = await devenvs.create(req.body);
         res.json(response);
     });
     return router;

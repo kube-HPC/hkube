@@ -52,6 +52,10 @@ class DB extends EventEmitter {
     async deleteTensorboard(options) {
         await this._db.tensorboards.delete(options);
     }
+
+    getDevenvs(status) {
+        return this._db.devenvs.search({ status });
+    }
 }
 
 module.exports = new DB();

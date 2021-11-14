@@ -23,12 +23,12 @@
     "@hkube/logger": "^2.0.2",
     "@hkube/producer-consumer": "^1.0.50",
     "@hkube/uid": "^1.0.4",
+    "axios": "^0.24.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isequalwith": "^4.4.0",
     "lodash.merge": "^4.6.1",
     "lodash.orderby": "^4.6.0",
-    "object-path": "^0.11.5",
-    "request-promise": "^4.2.6"
+    "object-path": "^0.11.5"
   },
   "devDependencies": {
     "chai": "^4.3.4",

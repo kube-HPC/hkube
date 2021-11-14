@@ -9,6 +9,7 @@ const etcd = require('./lib/helpers/etcd');
 const kubernetes = require('./lib/helpers/kubernetes');
 const operator = require('./lib/operator');
 const jobsMessageQueue = require('./lib/helpers/jobs-message-queue');
+const devenvs = require('./lib/reconcile/devenvs');
 const { setFromConfig } = require('./lib/helpers/settings');
 
 const modules = [
@@ -16,7 +17,8 @@ const modules = [
     etcd,
     kubernetes,
     operator,
-    jobsMessageQueue
+    jobsMessageQueue,
+    devenvs
 ];
 
 class Bootstrap {

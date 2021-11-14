@@ -22,8 +22,7 @@ class Devenvs {
 
     async create(options){
         validator.devenvs.validateCreateDevenv(options);
-        const { name } = options;
-        const response = await stateManager.createDevenv({ name });
+        const response = await stateManager.createDevenv(options);
         return response;
     }
 
