@@ -206,6 +206,15 @@ under the License.
                         <enabled>true</enabled>
                     </snapshots>
                 </repository>
+                <repository>
+                    <id>internal</id>
+                    <name>Hkube internal repository</name>
+                    <url>http://artifacts-registry:8081/hkube/artifacts-registry/repository/maven-central/</url>
+                    <layout>default</layout>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
 
                 <repository>
                     <id>snapshots</id>
