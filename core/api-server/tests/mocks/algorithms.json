@@ -101,5 +101,29 @@
             "debug": true,
             "pending": false
         }
+    },
+    {
+        "name": "stateful-alg",
+        "kind": "stream",
+        "streamKind": "stateful",
+        "algorithmImage": "hkube/algorithm-example",
+        "cpu": 1,
+        "mem": "6000Mi",
+        "minHotWorkers": 0,
+        "options": {
+            "pending": false
+        }
+    },
+    {
+        "name": "stateless-alg",
+        "kind": "stream",
+        "streamKind": "stateless",
+        "algorithmImage": "hkube/algorithm-example",
+        "cpu": 1,
+        "mem": "6000Mi",
+        "minHotWorkers": 0,
+        "options": {
+            "pending": false
+        }
     }
 ]

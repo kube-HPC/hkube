@@ -6,8 +6,6 @@ properties:
     minLength: 1
   algorithmName:
     $ref: "#/components/schemas/algorithmName"
-  pipelineName:
-    $ref: "#/components/schemas/pipelineName"
   input:
     type: array
     description: The input for the algorithm
@@ -43,15 +41,11 @@ properties:
     enum:
       - indexed
       - cartesian
-  stateType:
-    type: string
-    enum:
-      - stateless
-      - stateful
   kind:
     $ref: "#/components/schemas/nodeKind"
   spec:
     anyOf:
+      - $ref: "#/components/schemas/kindPipeline"
       - $ref: "#/components/schemas/gateway"
       - $ref: "#/components/schemas/dataSource-id"
       - $ref: "#/components/schemas/dataSource-name"

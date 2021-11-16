@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { StatusCodes } = require('http-status-codes');
 const clone = require('clone');
-const { pipelineStatuses } = require('@hkube/consts');
+const { pipelineStatuses, nodeKind } = require('@hkube/consts');
 const { uuid } = require('@hkube/uid');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
@@ -428,16 +428,17 @@ describe('Store/Pipelines', () => {
                 nodes: [
                     {
                         nodeName: 'A',
-                        kind: 'pipeline',
+                        kind: nodeKind.Pipeline,
                         spec: {
-                            name: 'simple'
-                        }
+                            name: 'simple-1'
+                        },
+                        input: []
                     },
                     {
                         nodeName: 'B',
-                        kind: 'pipeline',
+                        kind: nodeKind.Pipeline,
                         spec: {
-                            name: 'simple'
+                            name: 'simple-1'
                         },
                         input: [{ data: '@A' }]
                     }
@@ -458,7 +459,6 @@ describe('Store/Pipelines', () => {
             pipeline.kind = 'stream';
             pipeline.nodes.forEach((n) => {
                 n.kind = 'algorithm';
-                n.stateType = 'stateless';
             });
             const options = {
                 uri: restPath,

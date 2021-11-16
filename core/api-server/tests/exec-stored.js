@@ -88,18 +88,6 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('unable to find flowInput.files.links');
         });
-        it('should throw stateful node is not allowed on batch pipeline', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'stateful'
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('stateful node "one" is not allowed on batch pipeline');
-        });
         it('should throw debugOverride algorithm not found', async () => {
             const options = {
                 uri: restPath,

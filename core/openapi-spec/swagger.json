@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.3",
+    "version": "2.2.4",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -134,12 +134,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -192,13 +186,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -214,6 +201,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -678,12 +676,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -736,13 +728,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -758,6 +743,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -2253,12 +2249,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -2311,13 +2301,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -2333,6 +2316,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -2796,12 +2790,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -2854,13 +2842,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -2876,6 +2857,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -6674,6 +6666,13 @@
                       "maxLength": 32,
                       "format": "algorithm-name"
                     },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "batch",
+                        "stream"
+                      ]
+                    },
                     "env": {
                       "type": "string",
                       "enum": [
@@ -6887,6 +6886,12 @@
                       "type": "object",
                       "nullable": true,
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                    },
+                    "streamKind": {
+                      "enum": [
+                        "stateless",
+                        "stateful"
+                      ]
                     },
                     "type": {
                       "type": "string",
@@ -7105,6 +7110,13 @@
                         "maxLength": 32,
                         "format": "algorithm-name"
                       },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
                       "env": {
                         "type": "string",
                         "enum": [
@@ -7319,6 +7331,12 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
+                      },
                       "type": {
                         "type": "string",
                         "description": "type of algorithm code resource",
@@ -7382,6 +7400,13 @@
                     "minLength": 1,
                     "maxLength": 32,
                     "format": "algorithm-name"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "batch",
+                      "stream"
+                    ]
                   },
                   "env": {
                     "type": "string",
@@ -7596,6 +7621,12 @@
                     "type": "object",
                     "nullable": true,
                     "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                  },
+                  "streamKind": {
+                    "enum": [
+                      "stateless",
+                      "stateful"
+                    ]
                   },
                   "type": {
                     "type": "string",
@@ -7716,6 +7747,13 @@
                     "maxLength": 32,
                     "format": "algorithm-name"
                   },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "batch",
+                      "stream"
+                    ]
+                  },
                   "env": {
                     "type": "string",
                     "enum": [
@@ -7930,6 +7968,12 @@
                     "nullable": true,
                     "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                   },
+                  "streamKind": {
+                    "enum": [
+                      "stateless",
+                      "stateful"
+                    ]
+                  },
                   "type": {
                     "type": "string",
                     "description": "type of algorithm code resource",
@@ -8034,6 +8078,13 @@
                         "minLength": 1,
                         "maxLength": 32,
                         "format": "algorithm-name"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
                       },
                       "env": {
                         "type": "string",
@@ -8249,6 +8300,12 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
+                      },
                       "type": {
                         "type": "string",
                         "description": "type of algorithm code resource",
@@ -8317,6 +8374,13 @@
                           "minLength": 1,
                           "maxLength": 32,
                           "format": "algorithm-name"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "batch",
+                            "stream"
+                          ]
                         },
                         "env": {
                           "type": "string",
@@ -8532,6 +8596,12 @@
                           "nullable": true,
                           "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
+                        "streamKind": {
+                          "enum": [
+                            "stateless",
+                            "stateful"
+                          ]
+                        },
                         "type": {
                           "type": "string",
                           "description": "type of algorithm code resource",
@@ -8675,12 +8745,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -8733,13 +8797,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -8755,6 +8812,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -9321,12 +9389,6 @@
                               "maxLength": 32,
                               "format": "algorithm-name"
                             },
-                            "pipelineName": {
-                              "type": "string",
-                              "description": "Unique identifier representing a specific pipeline",
-                              "minLength": 1,
-                              "format": "pipeline-name"
-                            },
                             "input": {
                               "type": "array",
                               "description": "The input for the algorithm",
@@ -9379,13 +9441,6 @@
                                 "cartesian"
                               ]
                             },
-                            "stateType": {
-                              "type": "string",
-                              "enum": [
-                                "stateless",
-                                "stateful"
-                              ]
-                            },
                             "kind": {
                               "type": "string",
                               "default": "algorithm",
@@ -9401,6 +9456,17 @@
                             },
                             "spec": {
                               "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "Unique identifier representing a specific pipeline",
+                                      "minLength": 1,
+                                      "format": "pipeline-name"
+                                    }
+                                  }
+                                },
                                 {
                                   "type": "object",
                                   "properties": {
@@ -9823,12 +9889,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -9881,13 +9941,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -9903,6 +9956,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -10301,12 +10365,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -10359,13 +10417,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -10381,6 +10432,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -10840,12 +10902,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -10898,13 +10954,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -10920,6 +10969,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -11318,12 +11378,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -11376,13 +11430,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -11398,6 +11445,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -14194,6 +14252,13 @@
                         "maxLength": 32,
                         "format": "algorithm-name"
                       },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
                       "env": {
                         "type": "string",
                         "enum": [
@@ -14407,6 +14472,12 @@
                         "type": "object",
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                      },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
                       },
                       "type": {
                         "type": "string",
@@ -14540,6 +14611,13 @@
                         "maxLength": 32,
                         "format": "algorithm-name"
                       },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
                       "env": {
                         "type": "string",
                         "enum": [
@@ -14753,6 +14831,12 @@
                         "type": "object",
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                      },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
                       },
                       "type": {
                         "type": "string",
@@ -17516,6 +17600,13 @@
             "maxLength": 32,
             "format": "algorithm-name"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "batch",
+              "stream"
+            ]
+          },
           "env": {
             "type": "string",
             "enum": [
@@ -17730,6 +17821,12 @@
             "nullable": true,
             "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
           },
+          "streamKind": {
+            "enum": [
+              "stateless",
+              "stateful"
+            ]
+          },
           "type": {
             "type": "string",
             "description": "type of algorithm code resource",
@@ -17748,6 +17845,13 @@
         },
         "required": [
           "name"
+        ]
+      },
+      "algorithmKind": {
+        "type": "string",
+        "enum": [
+          "batch",
+          "stream"
         ]
       },
       "algorithmName": {
@@ -17941,6 +18045,13 @@
                 "minLength": 1,
                 "maxLength": 32,
                 "format": "algorithm-name"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "batch",
+                  "stream"
+                ]
               },
               "env": {
                 "type": "string",
@@ -18155,6 +18266,12 @@
                 "type": "object",
                 "nullable": true,
                 "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+              },
+              "streamKind": {
+                "enum": [
+                  "stateless",
+                  "stateful"
+                ]
               },
               "type": {
                 "type": "string",
@@ -20145,12 +20262,6 @@
                   "maxLength": 32,
                   "format": "algorithm-name"
                 },
-                "pipelineName": {
-                  "type": "string",
-                  "description": "Unique identifier representing a specific pipeline",
-                  "minLength": 1,
-                  "format": "pipeline-name"
-                },
                 "input": {
                   "type": "array",
                   "description": "The input for the algorithm",
@@ -20203,13 +20314,6 @@
                     "cartesian"
                   ]
                 },
-                "stateType": {
-                  "type": "string",
-                  "enum": [
-                    "stateless",
-                    "stateful"
-                  ]
-                },
                 "kind": {
                   "type": "string",
                   "default": "algorithm",
@@ -20225,6 +20329,17 @@
                 },
                 "spec": {
                   "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific pipeline",
+                          "minLength": 1,
+                          "format": "pipeline-name"
+                        }
+                      }
+                    },
                     {
                       "type": "object",
                       "properties": {
@@ -20571,6 +20686,17 @@
         "minLength": 1,
         "format": "pipeline-name"
       },
+      "kindPipeline": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          }
+        }
+      },
       "pipelineKind": {
         "type": "string",
         "default": "batch",
@@ -20607,12 +20733,6 @@
             "minLength": 1,
             "maxLength": 32,
             "format": "algorithm-name"
-          },
-          "pipelineName": {
-            "type": "string",
-            "description": "Unique identifier representing a specific pipeline",
-            "minLength": 1,
-            "format": "pipeline-name"
           },
           "input": {
             "type": "array",
@@ -20666,13 +20786,6 @@
               "cartesian"
             ]
           },
-          "stateType": {
-            "type": "string",
-            "enum": [
-              "stateless",
-              "stateful"
-            ]
-          },
           "kind": {
             "type": "string",
             "default": "algorithm",
@@ -20688,6 +20801,17 @@
           },
           "spec": {
             "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                  }
+                }
+              },
               {
                 "type": "object",
                 "properties": {

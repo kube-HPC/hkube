@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const { pipelineTypes } = require('@hkube/consts');
+const { pipelineTypes, nodeKind } = require('@hkube/consts');
 const pipeInPipe = require('./mocks/pipeline-in-pipeline.json');
 const { request } = require('./utils');
 let restUrl;
@@ -24,6 +24,24 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
+        it('should throw node must have spec with name', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'pipeline_in_pipeline',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: nodeKind.Pipeline,
+                        }
+                    ]
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('node A must have spec with name');
+        });
         it('should succeed to execute pipeline depend on pipeline', async () => {
             const options = {
                 uri: restPath,
@@ -32,12 +50,17 @@ describe('Executions', () => {
                     nodes: [
                         {
                             nodeName: 'A',
-                            pipelineName: 'pipeInPipe-1',
-                            input: []
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            }
                         },
                         {
                             nodeName: 'B',
-                            pipelineName: 'pipeInPipe-1',
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            },
                             input: [{ data: '@A' }]
                         }
                     ]
@@ -60,17 +83,26 @@ describe('Executions', () => {
                     nodes: [
                         {
                             nodeName: 'A',
-                            pipelineName: 'pipeInPipe-2',
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-2'
+                            },
                             input: [1, 2, false]
                         },
                         {
                             nodeName: 'B',
-                            pipelineName: 'pipeInPipe-2',
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-2'
+                            },
                             input: [1, 2, false]
                         },
                         {
                             nodeName: 'C',
-                            pipelineName: 'pipeInPipe-1',
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            },
                             input: [{ first: '@A', second: '@B' }]
                         },
                         {
@@ -121,7 +153,10 @@ describe('Executions', () => {
                         },
                         {
                             nodeName: 'D',
-                            pipelineName: 'pipeInPipe-1',
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            },
                             input: [1, 2, false]
                         }
                     ]
@@ -143,23 +178,38 @@ describe('Executions', () => {
                     nodes: [
                         {
                             nodeName: 'A',
-                            pipelineName: 'pipeInPipe-1'
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            },
                         },
                         {
                             nodeName: 'B',
-                            pipelineName: 'pipeInPipe-1'
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            },
                         },
                         {
                             nodeName: 'C',
-                            pipelineName: 'pipeInPipe-1'
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            },
                         },
                         {
                             nodeName: 'D',
-                            pipelineName: 'pipeInPipe-1'
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            },
                         },
                         {
                             nodeName: 'E',
-                            pipelineName: 'pipeInPipe-2'
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            },
                         }
                     ],
                     flowInput: {
@@ -188,12 +238,18 @@ describe('Executions', () => {
                     nodes: [
                         {
                             nodeName: 'A',
-                            pipelineName: 'pipeInPipe-1',
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            },
                             input: []
                         },
                         {
                             nodeName: 'B',
-                            pipelineName: 'pipeInPipe-1',
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-1'
+                            },
                             input: []
                         }
                     ]
@@ -215,12 +271,18 @@ describe('Executions', () => {
                     nodes: [
                         {
                             nodeName: 'A',
-                            pipelineName: 'pipeInPipe-3',
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-3'
+                            },
                             input: []
                         },
                         {
                             nodeName: 'B',
-                            pipelineName: 'pipeInPipe-3',
+                            kind: nodeKind.Pipeline,
+                            spec: {
+                                name: 'pipeInPipe-3'
+                            },
                             input: ['@A']
                         }
                     ]
