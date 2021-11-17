@@ -12,12 +12,12 @@ const routes = (options) => {
     });
     router.get('/:name?', async (req, res) => {
         const { name } = req.params;
-        const response = await devenvs.get({name})
+        const response = await devenvs.get({ name });
         res.json(response);
     });
     router.delete('/:name?', async (req, res) => {
         const { name } = req.params;
-        const response = await devenvs.delete({name})
+        const response = await devenvs.delete({ name });
         res.json(response);
     });
     router.post('/', async (req, res) => {

@@ -24,10 +24,10 @@ describe('jobCreator', () => {
         })
         describe('kubeVersion v1.22', () => {
             before(() => {
-                global.testParams.kubernetesMock.kubeVersion.version = 'v1.22'
+                global.testParams.kubernetes.mock.kubeVersion.version = 'v1.22'
             });
             after(() => {
-                global.testParams.kubernetesMock.kubeVersion.version = 'v1.18'
+                global.testParams.kubernetes.mock.kubeVersion.version = 'v1.18'
             });
             it('should include algorithm name and host', () => {
                 const { serviceSpec, ingressSpec } = createIngressServiceSpec({ algorithmName: 'myalgo1-gateway', gatewayName: 'myalgo1', clusterOptions: { ingressHost: 'myhost' } });

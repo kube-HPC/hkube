@@ -35,7 +35,7 @@ const updateTensorboards = async () => {
     await Promise.all(creating.map(async (board) => {
         const url = `http://board-service-${board.boardReference}.${kubernetes.namespace}.svc`;
         try {
-            const result = await axios.get(uri);
+            const result = await axios.get(url);
             await db.updateTensorboard({ ...board, status: boardStatuses.RUNNING, timestamp: Date.now() });
             return { code: result.status };
         }

@@ -1,37 +1,44 @@
-const log = require('@hkube/logger').GetLogFromContainer();
-const { devenvStatuses, devenvTypes } = require('@hkube/consts');
+/* eslint-disable no-await-in-loop */
+const { devenvTypes } = require('@hkube/consts');
 const handlers = require('./devenvs');
 const db = require('../helpers/db');
 
-const reconcile = async ({ devenvs, deployments, versions, registry, clusterOptions, boardTimeOut, options }) => {
-    // const normDeployments = normalizeBoardDeployments(deployments);
-    // const pending = boards.filter(b => b.status === boardStatuses.PENDING);
-    // const added = pending.filter(a => !normDeployments.find(d => d.boardReference === a.boardReference));
-    // const now = Date.now();
-    // const timedOut = boards.filter(b => ((b.startTime + boardTimeOut) < now));
-    // await Promise.all(timedOut.map(board => (db.deleteTensorboard(board))));
-    // const boardsLeft = boards.filter(board => (timedOut.indexOf(board) === -1));
-    // const removed = normDeployments.filter(a => !boardsLeft.find(d => d.boardReference === a.boardReference));
-    // await Promise.all(added.map(a => _createBoardDeployment({ board: a, versions, registry, clusterOptions, options })));
-    // await Promise.all(removed.map(a => kubernetes.deleteExposedDeployment(a.boardReference, deploymentType)));
-};
-
-const update = async () => {
+const _getRequiredState = async () => {
     const devenvs = await db.getDevenvs();
-    const devenvsByType = devenvs.reduce((acc, devenv) => {
-        if (!acc[devenv.type]) {
-            acc[devenv.type] = [];
-        }
-        acc[devenv.type].push(devenv);
-        return acc;
-    }, {});
-
-    Object.keys(devenvsByType).forEach((devenv) => {
-
-    });
-
-    const pending = devenvs.filter(b => b.status === devenvStatuses.PENDING);
+    const devenvsByType = {};
+    for (const type of Object.values(devenvTypes)) {
+        devenvsByType[type] = devenvs.filter(d => d.type === type);
+    }
+    return devenvsByType;
 };
+
+const reconcile = async () => {
+    const requiredState = await _getRequiredState();
+    const currentState = {};
+    for (const type of Object.values(devenvTypes)) {
+        currentState[type] = await handlers[type].current();
+    }
+    const added = {};
+    for (const type of Object.values(devenvTypes)) {
+        added[type] = requiredState[type].filter(a => !currentState[type].find(c => c.name === a.name));
+    }
+    const removed = {};
+    for (const type of Object.values(devenvTypes)) {
+        removed[type] = currentState[type].filter(a => !requiredState[type].find(c => c.name === a.name));
+    }
+
+    for (const type of Object.values(devenvTypes)) {
+        const promises = added[type].map(a => handlers[type].create(a));
+        const res = await Promise.allSettled(promises);
+        await Promise.all(res.filter(r => r.status === 'fulfilled').map(s => db.updateDevenv(s.value)));
+    }
+    for (const type of Object.values(devenvTypes)) {
+        const promises = removed[type].map(a => handlers[type].remove(a));
+        await Promise.allSettled(promises);
+    }
+    return { added, removed };
+};
+
 module.exports = {
-    reconcile, updateTensorboards
+    reconcile,
 };

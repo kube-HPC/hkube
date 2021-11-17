@@ -1,9 +1,6 @@
-const storageManager = require('@hkube/storage-manager');
-const { uid } = require('@hkube/uid');
-const { boardStatuses } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
-const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
+const { ResourceNotFoundError } = require('../errors');
 class Devenvs {
     async get(options) {
         validator.devenvs.validateGetDevenv(options);
@@ -20,7 +17,7 @@ class Devenvs {
         return response;
     }
 
-    async create(options){
+    async create(options) {
         validator.devenvs.validateCreateDevenv(options);
         const response = await stateManager.createDevenv(options);
         return response;
@@ -32,8 +29,6 @@ class Devenvs {
         const response = await stateManager.deleteDevenv({ name });
         return response;
     }
-
-    
 }
 
 module.exports = new Devenvs();

@@ -56,6 +56,10 @@ class DB extends EventEmitter {
     getDevenvs(status) {
         return this._db.devenvs.search({ status });
     }
+
+    updateDevenv({ name, url }) {
+        return this._db.devenvs.update({ name, url });
+    }
 }
 
 module.exports = new DB();

@@ -3,7 +3,8 @@ const mockery = require('mockery');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
-const { callCount, mock, clearCount } = (require('./mocks/kubernetes.mock')).kubernetes();
+const kubernetesMock = (require('./mocks/kubernetes.mock')).kubernetes();
+const jupyterApiMock = (require('./mocks/jupyterhub.mock')).jupyterApi();
 const driversTemplateStore = require('./stub/driversTemplateStore');
 
 before(async () => {
@@ -12,10 +13,11 @@ before(async () => {
         warnOnUnregistered: false,
         useCleanCache: false
     });
-    mockery.registerMock('./helpers/kubernetes', mock);
-    mockery.registerMock('../helpers/kubernetes', mock);
-    mockery.registerMock('./kubernetes', mock);
-    mockery.registerMock('./lib/helpers/kubernetes', mock);
+    mockery.registerMock('./helpers/kubernetes', kubernetesMock.mock);
+    mockery.registerMock('../helpers/kubernetes', kubernetesMock.mock);
+    mockery.registerMock('./kubernetes', kubernetesMock.mock);
+    mockery.registerMock('./lib/helpers/kubernetes', kubernetesMock.mock);
+    mockery.registerMock('./jupyterApi', jupyterApiMock.mock);
     const bootstrap = require('../bootstrap');
     const etcd = require('../lib/helpers/etcd');
     const db = require('../lib/helpers/db');
@@ -27,8 +29,7 @@ before(async () => {
 
     global.testParams = {
         config,
-        callCount,
-        clearCount,
-        kubernetesMock: mock
+        kubernetes: kubernetesMock,
+        jupyterhub: jupyterApiMock,
     }
 });

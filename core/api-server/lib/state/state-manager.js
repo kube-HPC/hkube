@@ -388,8 +388,8 @@ class StateManager {
         return this._etcd.algorithms.queue.list();
     }
 
-    getDevenv({name}) {
-        return this._db.devenvs.fetch({name});
+    getDevenv({ name }) {
+        return this._db.devenvs.fetch({ name });
     }
 
     getDevenvs() {
@@ -400,8 +400,8 @@ class StateManager {
         return this._db.devenvs.create(devenv);
     }
 
-    deleteDevenv({name}) {
-        return this._db.devenvs.delete({name});
+    deleteDevenv({ name }) {
+        return this._db.devenvs.delete({ name });
     }
 
     async cleanJob({ jobId }) {

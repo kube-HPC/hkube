@@ -1,43 +1,59 @@
-const axios = require('axios');
-
+const { devenvStatuses, devenvTypes } = require('@hkube/consts');
+const { StatusCodes } = require('http-status-codes');
+const log = require('@hkube/logger').GetLogFromContainer();
+const JupyterApi = require('./jupyterApi');
 class Jupyter {
     constructor() {
         this._options = null;
         this._apiUrl = null;
+        this._type = devenvTypes.JUPYTER;
     }
 
     async init(options) {
-        this._options = options;
-        const { protocol, host, port, path } = options;
-        this._apiUrl = `${protocol}://${host}:${port}/${path}/hub/api`;
-        this._client = axios.create({
-            baseURL: this._apiUrl,
-        });
-
+        await JupyterApi.init(options);
         // get api token
-        const { username, password } = options;
-        const res = await this._client.post('authorizations/token', {
-            username,
-            password
-        },
-        {
-            json: true
-        });
-        this._token = res.data.token;
-        const servers = await this.list();
-        console.log(servers);
+        await JupyterApi.updateToken();
+    }
+
+    async current() {
+        const list = await this.list();
+        const items = list.map(i => ({
+            name: i.name,
+            state: i.ready ? devenvStatuses.RUNNING : devenvStatuses.CREATING
+        }));
+        return items;
+    }
+
+    async get(name) {
+        const list = await this.list();
+        const server = list.find(s => s.name === name);
+        return server;
     }
 
     async list() {
-        const url = `${this._apiUrl}/user`;
-        const { data } = await this._client.get(url, { headers: this._getHeaders() });
-        return data.servers;
+        const list = await JupyterApi.list();
+        return list;
     }
 
-    _getHeaders() {
+    async create({ name }) {
+        log.info(`Creating ${this._type} ${name}`);
+        const status = await JupyterApi.create({ name });
+        if (status === StatusCodes.CREATED) {
+            const server = await this.get(name);
+            log.info(`Created ${this._type} ${name} with status ${status}. Url: ${server.url}`);
+            return {
+                name: server.name,
+                url: server.url
+            };
+        }
         return {
-            Authorization: `token ${this._token}`
+            name
         };
+    }
+
+    async remove({ name }) {
+        log.info(`Removing ${this._type} ${name}`);
+        await JupyterApi.remove({ name });
     }
 }
 

@@ -15,7 +15,7 @@ let spy;
 describe('algorithm-queue', () => {
     before(() => {
         config = global.testParams.config;
-        kubernetesMock = global.testParams.kubernetesMock;
+        kubernetesMock = global.testParams.kubernetes.mock;
         const map = {};
         algorithms.map((a) => {
             map[a.name] = 1;

@@ -7,15 +7,15 @@ const { normalizeDrivers, normalizeDriversRequests, normalizeDriversJobs } = req
 const { twoCompleted } = require('./stub/jobsRaw');
 const drivers = require('./stub/drivers');
 const { settings: globalSettings } = require('../lib/helpers/settings');
-let options, callCount, settings, normResources, driversReconciler, driverTemplates;
+let options, callCount, clearCount, settings, normResources, driversReconciler, driverTemplates;
 let applyPipelineDriverImage, createDriverJobSpec, applyNodeSelector, applyEnvToContainerFromSecretOrConfigMap;
 
 describe('bootstrap', () => {
     before(async () => {
         ({ applyPipelineDriverImage, createDriverJobSpec, applyNodeSelector, applyEnvToContainerFromSecretOrConfigMap } = require('../lib/jobs/jobCreator'));
         options = global.testParams.config;
-        callCount = global.testParams.callCount;
-        clearCount = global.testParams.clearCount;
+        callCount = global.testParams.kubernetes.callCount;
+        clearCount = global.testParams.kubernetes.clearCount;
         const db = require('../lib/helpers/db');
         const operator = require('../lib/operator');
         driversReconciler = require('../lib/reconcile/drivers-reconciler');

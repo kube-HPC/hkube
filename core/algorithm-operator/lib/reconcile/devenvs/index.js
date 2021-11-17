@@ -1,9 +1,9 @@
-const jupyter = require('./jupyter');
+const Jupyter = require('./jupyter');
 
 const init = async (options) => {
-    await jupyter.init(options.devenvs.jupyter);
+    await Jupyter.init(options.devenvs.jupyter);
 };
 module.exports = {
     init,
-    jupyter
+    Jupyter
 };

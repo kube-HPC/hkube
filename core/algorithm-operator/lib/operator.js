@@ -6,6 +6,7 @@ const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
 const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
 const tensorboardReconciler = require('./reconcile/tensorboard');
+const devenv = require('./reconcile/devenv');
 const debugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const gatewaysReconciler = require('./reconcile/algorithm-gateway');
@@ -53,6 +54,7 @@ class Operator {
             await Promise.all([
                 this._algorithmBuilds({ ...configMap }, options),
                 this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
+                this._devenvs(options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
                 this._algorithmGateways({ ...configMap, algorithms }),
@@ -100,6 +102,10 @@ class Operator {
         finally {
             setTimeout(this._boardsInterval, this._boardsIntervalMs, options);
         }
+    }
+
+    async _devenvs(options) {
+        await devenv.reconcile(options);
     }
 
     async _algorithmBuilds({ versions, registry, clusterOptions }, options) {
@@ -180,6 +186,7 @@ class Operator {
                     discovery,
                     options
                 });
+                await this._devenvs(options);
             }
             catch (e) {
                 log.throttle.error(e, { component }, e);
