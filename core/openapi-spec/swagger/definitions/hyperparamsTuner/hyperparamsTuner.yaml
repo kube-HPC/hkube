@@ -1,18 +1,16 @@
 type: object
 properties:
-  numberOfTrials:
+  name:
+    $ref: "#/components/schemas/hyperparamsTunerName"
+  description:
+    type: string
+    description: describe the gateway
+  mem:
+    type: string
+    description: Memory allocated for streaming gateway
+    format: algorithm-memory
+    default: 512Mi
+  cpu:
     type: number
-    description: number Of Trials
-  hyperParams:
-    type: array
-    description: list of hyper params to optimize
-    items: 
-      $ref: "#/components/schemas/hyperParams"
-  objectivePipeline:
-    $ref: "#/components/schemas/pipelineName"
-  sampler:
-    $ref: "#/components/schemas/sampler"
-required:
-  - numberOfTrials
-  - hyperParams
-  - objectivePipeline
+    description: Cpu allocated for streaming gateway
+    default: 0.5

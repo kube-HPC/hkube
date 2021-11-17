@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.3",
+    "version": "2.2.5",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -134,12 +134,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -192,13 +186,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -214,6 +201,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -301,81 +299,29 @@
                             {
                               "type": "object",
                               "properties": {
-                                "numberOfTrials": {
-                                  "type": "number",
-                                  "description": "number Of Trials"
-                                },
-                                "hyperParams": {
-                                  "type": "array",
-                                  "description": "list of hyper params to optimize",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "suggest": {
-                                        "type": "string",
-                                        "enum": [
-                                          "uniform",
-                                          "loguniform",
-                                          "int",
-                                          "discrete_uniform",
-                                          "categorical"
-                                        ]
-                                      },
-                                      "low": {
-                                        "type": "number"
-                                      },
-                                      "hight": {
-                                        "type": "number"
-                                      },
-                                      "choices": {
-                                        "type": "array"
-                                      },
-                                      "name": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": [
-                                      "name",
-                                      "suggest"
-                                    ]
-                                  }
-                                },
-                                "objectivePipeline": {
+                                "name": {
                                   "type": "string",
-                                  "description": "Unique identifier representing a specific pipeline",
+                                  "description": "gateway name",
                                   "minLength": 1,
-                                  "format": "pipeline-name"
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
                                 },
-                                "sampler": {
-                                  "type": "object",
-                                  "properties": {
-                                    "name": {
-                                      "type": "string",
-                                      "enum": [
-                                        "Grid",
-                                        "PartialFixed",
-                                        "Random",
-                                        "TPE",
-                                        "CmaEs"
-                                      ]
-                                    },
-                                    "fixed_values": {
-                                      "type": "object"
-                                    },
-                                    "search_space": {
-                                      "type": "object"
-                                    }
-                                  },
-                                  "required": [
-                                    "name"
-                                  ]
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
                                 }
-                              },
-                              "required": [
-                                "numberOfTrials",
-                                "hyperParams",
-                                "objectivePipeline"
-                              ]
+                              }
                             }
                           ]
                         }
@@ -678,12 +624,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -736,13 +676,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -758,6 +691,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -845,81 +789,29 @@
                             {
                               "type": "object",
                               "properties": {
-                                "numberOfTrials": {
-                                  "type": "number",
-                                  "description": "number Of Trials"
-                                },
-                                "hyperParams": {
-                                  "type": "array",
-                                  "description": "list of hyper params to optimize",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "suggest": {
-                                        "type": "string",
-                                        "enum": [
-                                          "uniform",
-                                          "loguniform",
-                                          "int",
-                                          "discrete_uniform",
-                                          "categorical"
-                                        ]
-                                      },
-                                      "low": {
-                                        "type": "number"
-                                      },
-                                      "hight": {
-                                        "type": "number"
-                                      },
-                                      "choices": {
-                                        "type": "array"
-                                      },
-                                      "name": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": [
-                                      "name",
-                                      "suggest"
-                                    ]
-                                  }
-                                },
-                                "objectivePipeline": {
+                                "name": {
                                   "type": "string",
-                                  "description": "Unique identifier representing a specific pipeline",
+                                  "description": "gateway name",
                                   "minLength": 1,
-                                  "format": "pipeline-name"
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
                                 },
-                                "sampler": {
-                                  "type": "object",
-                                  "properties": {
-                                    "name": {
-                                      "type": "string",
-                                      "enum": [
-                                        "Grid",
-                                        "PartialFixed",
-                                        "Random",
-                                        "TPE",
-                                        "CmaEs"
-                                      ]
-                                    },
-                                    "fixed_values": {
-                                      "type": "object"
-                                    },
-                                    "search_space": {
-                                      "type": "object"
-                                    }
-                                  },
-                                  "required": [
-                                    "name"
-                                  ]
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
                                 }
-                              },
-                              "required": [
-                                "numberOfTrials",
-                                "hyperParams",
-                                "objectivePipeline"
-                              ]
+                              }
                             }
                           ]
                         }
@@ -2253,12 +2145,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -2311,13 +2197,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -2333,6 +2212,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -2420,81 +2310,29 @@
                               {
                                 "type": "object",
                                 "properties": {
-                                  "numberOfTrials": {
-                                    "type": "number",
-                                    "description": "number Of Trials"
-                                  },
-                                  "hyperParams": {
-                                    "type": "array",
-                                    "description": "list of hyper params to optimize",
-                                    "items": {
-                                      "type": "object",
-                                      "properties": {
-                                        "suggest": {
-                                          "type": "string",
-                                          "enum": [
-                                            "uniform",
-                                            "loguniform",
-                                            "int",
-                                            "discrete_uniform",
-                                            "categorical"
-                                          ]
-                                        },
-                                        "low": {
-                                          "type": "number"
-                                        },
-                                        "hight": {
-                                          "type": "number"
-                                        },
-                                        "choices": {
-                                          "type": "array"
-                                        },
-                                        "name": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      "required": [
-                                        "name",
-                                        "suggest"
-                                      ]
-                                    }
-                                  },
-                                  "objectivePipeline": {
+                                  "name": {
                                     "type": "string",
-                                    "description": "Unique identifier representing a specific pipeline",
+                                    "description": "gateway name",
                                     "minLength": 1,
-                                    "format": "pipeline-name"
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
                                   },
-                                  "sampler": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "enum": [
-                                          "Grid",
-                                          "PartialFixed",
-                                          "Random",
-                                          "TPE",
-                                          "CmaEs"
-                                        ]
-                                      },
-                                      "fixed_values": {
-                                        "type": "object"
-                                      },
-                                      "search_space": {
-                                        "type": "object"
-                                      }
-                                    },
-                                    "required": [
-                                      "name"
-                                    ]
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
                                   }
-                                },
-                                "required": [
-                                  "numberOfTrials",
-                                  "hyperParams",
-                                  "objectivePipeline"
-                                ]
+                                }
                               }
                             ]
                           }
@@ -2796,12 +2634,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -2854,13 +2686,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -2876,6 +2701,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -2963,81 +2799,29 @@
                               {
                                 "type": "object",
                                 "properties": {
-                                  "numberOfTrials": {
-                                    "type": "number",
-                                    "description": "number Of Trials"
-                                  },
-                                  "hyperParams": {
-                                    "type": "array",
-                                    "description": "list of hyper params to optimize",
-                                    "items": {
-                                      "type": "object",
-                                      "properties": {
-                                        "suggest": {
-                                          "type": "string",
-                                          "enum": [
-                                            "uniform",
-                                            "loguniform",
-                                            "int",
-                                            "discrete_uniform",
-                                            "categorical"
-                                          ]
-                                        },
-                                        "low": {
-                                          "type": "number"
-                                        },
-                                        "hight": {
-                                          "type": "number"
-                                        },
-                                        "choices": {
-                                          "type": "array"
-                                        },
-                                        "name": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      "required": [
-                                        "name",
-                                        "suggest"
-                                      ]
-                                    }
-                                  },
-                                  "objectivePipeline": {
+                                  "name": {
                                     "type": "string",
-                                    "description": "Unique identifier representing a specific pipeline",
+                                    "description": "gateway name",
                                     "minLength": 1,
-                                    "format": "pipeline-name"
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
                                   },
-                                  "sampler": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "enum": [
-                                          "Grid",
-                                          "PartialFixed",
-                                          "Random",
-                                          "TPE",
-                                          "CmaEs"
-                                        ]
-                                      },
-                                      "fixed_values": {
-                                        "type": "object"
-                                      },
-                                      "search_space": {
-                                        "type": "object"
-                                      }
-                                    },
-                                    "required": [
-                                      "name"
-                                    ]
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
                                   }
-                                },
-                                "required": [
-                                  "numberOfTrials",
-                                  "hyperParams",
-                                  "objectivePipeline"
-                                ]
+                                }
                               }
                             ]
                           }
@@ -6674,6 +6458,13 @@
                       "maxLength": 32,
                       "format": "algorithm-name"
                     },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "batch",
+                        "stream"
+                      ]
+                    },
                     "env": {
                       "type": "string",
                       "enum": [
@@ -6887,6 +6678,12 @@
                       "type": "object",
                       "nullable": true,
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                    },
+                    "streamKind": {
+                      "enum": [
+                        "stateless",
+                        "stateful"
+                      ]
                     },
                     "type": {
                       "type": "string",
@@ -7105,6 +6902,13 @@
                         "maxLength": 32,
                         "format": "algorithm-name"
                       },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
                       "env": {
                         "type": "string",
                         "enum": [
@@ -7319,6 +7123,12 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
+                      },
                       "type": {
                         "type": "string",
                         "description": "type of algorithm code resource",
@@ -7382,6 +7192,13 @@
                     "minLength": 1,
                     "maxLength": 32,
                     "format": "algorithm-name"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "batch",
+                      "stream"
+                    ]
                   },
                   "env": {
                     "type": "string",
@@ -7596,6 +7413,12 @@
                     "type": "object",
                     "nullable": true,
                     "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                  },
+                  "streamKind": {
+                    "enum": [
+                      "stateless",
+                      "stateful"
+                    ]
                   },
                   "type": {
                     "type": "string",
@@ -7716,6 +7539,13 @@
                     "maxLength": 32,
                     "format": "algorithm-name"
                   },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "batch",
+                      "stream"
+                    ]
+                  },
                   "env": {
                     "type": "string",
                     "enum": [
@@ -7930,6 +7760,12 @@
                     "nullable": true,
                     "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                   },
+                  "streamKind": {
+                    "enum": [
+                      "stateless",
+                      "stateful"
+                    ]
+                  },
                   "type": {
                     "type": "string",
                     "description": "type of algorithm code resource",
@@ -8034,6 +7870,13 @@
                         "minLength": 1,
                         "maxLength": 32,
                         "format": "algorithm-name"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
                       },
                       "env": {
                         "type": "string",
@@ -8249,6 +8092,12 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
+                      },
                       "type": {
                         "type": "string",
                         "description": "type of algorithm code resource",
@@ -8317,6 +8166,13 @@
                           "minLength": 1,
                           "maxLength": 32,
                           "format": "algorithm-name"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "batch",
+                            "stream"
+                          ]
                         },
                         "env": {
                           "type": "string",
@@ -8532,6 +8388,12 @@
                           "nullable": true,
                           "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
+                        "streamKind": {
+                          "enum": [
+                            "stateless",
+                            "stateful"
+                          ]
+                        },
                         "type": {
                           "type": "string",
                           "description": "type of algorithm code resource",
@@ -8675,12 +8537,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -8733,13 +8589,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -8755,6 +8604,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -8842,81 +8702,29 @@
                               {
                                 "type": "object",
                                 "properties": {
-                                  "numberOfTrials": {
-                                    "type": "number",
-                                    "description": "number Of Trials"
-                                  },
-                                  "hyperParams": {
-                                    "type": "array",
-                                    "description": "list of hyper params to optimize",
-                                    "items": {
-                                      "type": "object",
-                                      "properties": {
-                                        "suggest": {
-                                          "type": "string",
-                                          "enum": [
-                                            "uniform",
-                                            "loguniform",
-                                            "int",
-                                            "discrete_uniform",
-                                            "categorical"
-                                          ]
-                                        },
-                                        "low": {
-                                          "type": "number"
-                                        },
-                                        "hight": {
-                                          "type": "number"
-                                        },
-                                        "choices": {
-                                          "type": "array"
-                                        },
-                                        "name": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      "required": [
-                                        "name",
-                                        "suggest"
-                                      ]
-                                    }
-                                  },
-                                  "objectivePipeline": {
+                                  "name": {
                                     "type": "string",
-                                    "description": "Unique identifier representing a specific pipeline",
+                                    "description": "gateway name",
                                     "minLength": 1,
-                                    "format": "pipeline-name"
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
                                   },
-                                  "sampler": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "enum": [
-                                          "Grid",
-                                          "PartialFixed",
-                                          "Random",
-                                          "TPE",
-                                          "CmaEs"
-                                        ]
-                                      },
-                                      "fixed_values": {
-                                        "type": "object"
-                                      },
-                                      "search_space": {
-                                        "type": "object"
-                                      }
-                                    },
-                                    "required": [
-                                      "name"
-                                    ]
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
                                   }
-                                },
-                                "required": [
-                                  "numberOfTrials",
-                                  "hyperParams",
-                                  "objectivePipeline"
-                                ]
+                                }
                               }
                             ]
                           }
@@ -9321,12 +9129,6 @@
                               "maxLength": 32,
                               "format": "algorithm-name"
                             },
-                            "pipelineName": {
-                              "type": "string",
-                              "description": "Unique identifier representing a specific pipeline",
-                              "minLength": 1,
-                              "format": "pipeline-name"
-                            },
                             "input": {
                               "type": "array",
                               "description": "The input for the algorithm",
@@ -9379,13 +9181,6 @@
                                 "cartesian"
                               ]
                             },
-                            "stateType": {
-                              "type": "string",
-                              "enum": [
-                                "stateless",
-                                "stateful"
-                              ]
-                            },
                             "kind": {
                               "type": "string",
                               "default": "algorithm",
@@ -9401,6 +9196,17 @@
                             },
                             "spec": {
                               "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "Unique identifier representing a specific pipeline",
+                                      "minLength": 1,
+                                      "format": "pipeline-name"
+                                    }
+                                  }
+                                },
                                 {
                                   "type": "object",
                                   "properties": {
@@ -9488,81 +9294,29 @@
                                 {
                                   "type": "object",
                                   "properties": {
-                                    "numberOfTrials": {
-                                      "type": "number",
-                                      "description": "number Of Trials"
-                                    },
-                                    "hyperParams": {
-                                      "type": "array",
-                                      "description": "list of hyper params to optimize",
-                                      "items": {
-                                        "type": "object",
-                                        "properties": {
-                                          "suggest": {
-                                            "type": "string",
-                                            "enum": [
-                                              "uniform",
-                                              "loguniform",
-                                              "int",
-                                              "discrete_uniform",
-                                              "categorical"
-                                            ]
-                                          },
-                                          "low": {
-                                            "type": "number"
-                                          },
-                                          "hight": {
-                                            "type": "number"
-                                          },
-                                          "choices": {
-                                            "type": "array"
-                                          },
-                                          "name": {
-                                            "type": "string"
-                                          }
-                                        },
-                                        "required": [
-                                          "name",
-                                          "suggest"
-                                        ]
-                                      }
-                                    },
-                                    "objectivePipeline": {
+                                    "name": {
                                       "type": "string",
-                                      "description": "Unique identifier representing a specific pipeline",
+                                      "description": "gateway name",
                                       "minLength": 1,
-                                      "format": "pipeline-name"
+                                      "maxLength": 32,
+                                      "format": "gateway-name"
                                     },
-                                    "sampler": {
-                                      "type": "object",
-                                      "properties": {
-                                        "name": {
-                                          "type": "string",
-                                          "enum": [
-                                            "Grid",
-                                            "PartialFixed",
-                                            "Random",
-                                            "TPE",
-                                            "CmaEs"
-                                          ]
-                                        },
-                                        "fixed_values": {
-                                          "type": "object"
-                                        },
-                                        "search_space": {
-                                          "type": "object"
-                                        }
-                                      },
-                                      "required": [
-                                        "name"
-                                      ]
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the gateway"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for streaming gateway",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    },
+                                    "cpu": {
+                                      "type": "number",
+                                      "description": "Cpu allocated for streaming gateway",
+                                      "default": 0.5
                                     }
-                                  },
-                                  "required": [
-                                    "numberOfTrials",
-                                    "hyperParams",
-                                    "objectivePipeline"
-                                  ]
+                                  }
                                 }
                               ]
                             }
@@ -9823,12 +9577,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -9881,13 +9629,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -9903,6 +9644,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -9990,81 +9742,29 @@
                             {
                               "type": "object",
                               "properties": {
-                                "numberOfTrials": {
-                                  "type": "number",
-                                  "description": "number Of Trials"
-                                },
-                                "hyperParams": {
-                                  "type": "array",
-                                  "description": "list of hyper params to optimize",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "suggest": {
-                                        "type": "string",
-                                        "enum": [
-                                          "uniform",
-                                          "loguniform",
-                                          "int",
-                                          "discrete_uniform",
-                                          "categorical"
-                                        ]
-                                      },
-                                      "low": {
-                                        "type": "number"
-                                      },
-                                      "hight": {
-                                        "type": "number"
-                                      },
-                                      "choices": {
-                                        "type": "array"
-                                      },
-                                      "name": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": [
-                                      "name",
-                                      "suggest"
-                                    ]
-                                  }
-                                },
-                                "objectivePipeline": {
+                                "name": {
                                   "type": "string",
-                                  "description": "Unique identifier representing a specific pipeline",
+                                  "description": "gateway name",
                                   "minLength": 1,
-                                  "format": "pipeline-name"
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
                                 },
-                                "sampler": {
-                                  "type": "object",
-                                  "properties": {
-                                    "name": {
-                                      "type": "string",
-                                      "enum": [
-                                        "Grid",
-                                        "PartialFixed",
-                                        "Random",
-                                        "TPE",
-                                        "CmaEs"
-                                      ]
-                                    },
-                                    "fixed_values": {
-                                      "type": "object"
-                                    },
-                                    "search_space": {
-                                      "type": "object"
-                                    }
-                                  },
-                                  "required": [
-                                    "name"
-                                  ]
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
                                 }
-                              },
-                              "required": [
-                                "numberOfTrials",
-                                "hyperParams",
-                                "objectivePipeline"
-                              ]
+                              }
                             }
                           ]
                         }
@@ -10301,12 +10001,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -10359,13 +10053,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -10381,6 +10068,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -10468,81 +10166,29 @@
                               {
                                 "type": "object",
                                 "properties": {
-                                  "numberOfTrials": {
-                                    "type": "number",
-                                    "description": "number Of Trials"
-                                  },
-                                  "hyperParams": {
-                                    "type": "array",
-                                    "description": "list of hyper params to optimize",
-                                    "items": {
-                                      "type": "object",
-                                      "properties": {
-                                        "suggest": {
-                                          "type": "string",
-                                          "enum": [
-                                            "uniform",
-                                            "loguniform",
-                                            "int",
-                                            "discrete_uniform",
-                                            "categorical"
-                                          ]
-                                        },
-                                        "low": {
-                                          "type": "number"
-                                        },
-                                        "hight": {
-                                          "type": "number"
-                                        },
-                                        "choices": {
-                                          "type": "array"
-                                        },
-                                        "name": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      "required": [
-                                        "name",
-                                        "suggest"
-                                      ]
-                                    }
-                                  },
-                                  "objectivePipeline": {
+                                  "name": {
                                     "type": "string",
-                                    "description": "Unique identifier representing a specific pipeline",
+                                    "description": "gateway name",
                                     "minLength": 1,
-                                    "format": "pipeline-name"
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
                                   },
-                                  "sampler": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "enum": [
-                                          "Grid",
-                                          "PartialFixed",
-                                          "Random",
-                                          "TPE",
-                                          "CmaEs"
-                                        ]
-                                      },
-                                      "fixed_values": {
-                                        "type": "object"
-                                      },
-                                      "search_space": {
-                                        "type": "object"
-                                      }
-                                    },
-                                    "required": [
-                                      "name"
-                                    ]
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
                                   }
-                                },
-                                "required": [
-                                  "numberOfTrials",
-                                  "hyperParams",
-                                  "objectivePipeline"
-                                ]
+                                }
                               }
                             ]
                           }
@@ -10840,12 +10486,6 @@
                           "maxLength": 32,
                           "format": "algorithm-name"
                         },
-                        "pipelineName": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        },
                         "input": {
                           "type": "array",
                           "description": "The input for the algorithm",
@@ -10898,13 +10538,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -10920,6 +10553,17 @@
                         },
                         "spec": {
                           "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "Unique identifier representing a specific pipeline",
+                                  "minLength": 1,
+                                  "format": "pipeline-name"
+                                }
+                              }
+                            },
                             {
                               "type": "object",
                               "properties": {
@@ -11007,81 +10651,29 @@
                             {
                               "type": "object",
                               "properties": {
-                                "numberOfTrials": {
-                                  "type": "number",
-                                  "description": "number Of Trials"
-                                },
-                                "hyperParams": {
-                                  "type": "array",
-                                  "description": "list of hyper params to optimize",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "suggest": {
-                                        "type": "string",
-                                        "enum": [
-                                          "uniform",
-                                          "loguniform",
-                                          "int",
-                                          "discrete_uniform",
-                                          "categorical"
-                                        ]
-                                      },
-                                      "low": {
-                                        "type": "number"
-                                      },
-                                      "hight": {
-                                        "type": "number"
-                                      },
-                                      "choices": {
-                                        "type": "array"
-                                      },
-                                      "name": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": [
-                                      "name",
-                                      "suggest"
-                                    ]
-                                  }
-                                },
-                                "objectivePipeline": {
+                                "name": {
                                   "type": "string",
-                                  "description": "Unique identifier representing a specific pipeline",
+                                  "description": "gateway name",
                                   "minLength": 1,
-                                  "format": "pipeline-name"
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
                                 },
-                                "sampler": {
-                                  "type": "object",
-                                  "properties": {
-                                    "name": {
-                                      "type": "string",
-                                      "enum": [
-                                        "Grid",
-                                        "PartialFixed",
-                                        "Random",
-                                        "TPE",
-                                        "CmaEs"
-                                      ]
-                                    },
-                                    "fixed_values": {
-                                      "type": "object"
-                                    },
-                                    "search_space": {
-                                      "type": "object"
-                                    }
-                                  },
-                                  "required": [
-                                    "name"
-                                  ]
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
                                 }
-                              },
-                              "required": [
-                                "numberOfTrials",
-                                "hyperParams",
-                                "objectivePipeline"
-                              ]
+                              }
                             }
                           ]
                         }
@@ -11318,12 +10910,6 @@
                             "maxLength": 32,
                             "format": "algorithm-name"
                           },
-                          "pipelineName": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific pipeline",
-                            "minLength": 1,
-                            "format": "pipeline-name"
-                          },
                           "input": {
                             "type": "array",
                             "description": "The input for the algorithm",
@@ -11376,13 +10962,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -11398,6 +10977,17 @@
                           },
                           "spec": {
                             "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "Unique identifier representing a specific pipeline",
+                                    "minLength": 1,
+                                    "format": "pipeline-name"
+                                  }
+                                }
+                              },
                               {
                                 "type": "object",
                                 "properties": {
@@ -11485,81 +11075,29 @@
                               {
                                 "type": "object",
                                 "properties": {
-                                  "numberOfTrials": {
-                                    "type": "number",
-                                    "description": "number Of Trials"
-                                  },
-                                  "hyperParams": {
-                                    "type": "array",
-                                    "description": "list of hyper params to optimize",
-                                    "items": {
-                                      "type": "object",
-                                      "properties": {
-                                        "suggest": {
-                                          "type": "string",
-                                          "enum": [
-                                            "uniform",
-                                            "loguniform",
-                                            "int",
-                                            "discrete_uniform",
-                                            "categorical"
-                                          ]
-                                        },
-                                        "low": {
-                                          "type": "number"
-                                        },
-                                        "hight": {
-                                          "type": "number"
-                                        },
-                                        "choices": {
-                                          "type": "array"
-                                        },
-                                        "name": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      "required": [
-                                        "name",
-                                        "suggest"
-                                      ]
-                                    }
-                                  },
-                                  "objectivePipeline": {
+                                  "name": {
                                     "type": "string",
-                                    "description": "Unique identifier representing a specific pipeline",
+                                    "description": "gateway name",
                                     "minLength": 1,
-                                    "format": "pipeline-name"
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
                                   },
-                                  "sampler": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "enum": [
-                                          "Grid",
-                                          "PartialFixed",
-                                          "Random",
-                                          "TPE",
-                                          "CmaEs"
-                                        ]
-                                      },
-                                      "fixed_values": {
-                                        "type": "object"
-                                      },
-                                      "search_space": {
-                                        "type": "object"
-                                      }
-                                    },
-                                    "required": [
-                                      "name"
-                                    ]
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
                                   }
-                                },
-                                "required": [
-                                  "numberOfTrials",
-                                  "hyperParams",
-                                  "objectivePipeline"
-                                ]
+                                }
                               }
                             ]
                           }
@@ -14194,6 +13732,13 @@
                         "maxLength": 32,
                         "format": "algorithm-name"
                       },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
                       "env": {
                         "type": "string",
                         "enum": [
@@ -14407,6 +13952,12 @@
                         "type": "object",
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                      },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
                       },
                       "type": {
                         "type": "string",
@@ -14540,6 +14091,13 @@
                         "maxLength": 32,
                         "format": "algorithm-name"
                       },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
                       "env": {
                         "type": "string",
                         "enum": [
@@ -14753,6 +14311,12 @@
                         "type": "object",
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                      },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
                       },
                       "type": {
                         "type": "string",
@@ -17516,6 +17080,13 @@
             "maxLength": 32,
             "format": "algorithm-name"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "batch",
+              "stream"
+            ]
+          },
           "env": {
             "type": "string",
             "enum": [
@@ -17730,6 +17301,12 @@
             "nullable": true,
             "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
           },
+          "streamKind": {
+            "enum": [
+              "stateless",
+              "stateful"
+            ]
+          },
           "type": {
             "type": "string",
             "description": "type of algorithm code resource",
@@ -17748,6 +17325,13 @@
         },
         "required": [
           "name"
+        ]
+      },
+      "algorithmKind": {
+        "type": "string",
+        "enum": [
+          "batch",
+          "stream"
         ]
       },
       "algorithmName": {
@@ -17941,6 +17525,13 @@
                 "minLength": 1,
                 "maxLength": 32,
                 "format": "algorithm-name"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "batch",
+                  "stream"
+                ]
               },
               "env": {
                 "type": "string",
@@ -18155,6 +17746,12 @@
                 "type": "object",
                 "nullable": true,
                 "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+              },
+              "streamKind": {
+                "enum": [
+                  "stateless",
+                  "stateful"
+                ]
               },
               "type": {
                 "type": "string",
@@ -19832,6 +19429,40 @@
       "hyperparamsTuner": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "description": "gateway name",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "gateway-name"
+          },
+          "description": {
+            "type": "string",
+            "description": "describe the gateway"
+          },
+          "mem": {
+            "type": "string",
+            "description": "Memory allocated for streaming gateway",
+            "format": "algorithm-memory",
+            "default": "512Mi"
+          },
+          "cpu": {
+            "type": "number",
+            "description": "Cpu allocated for streaming gateway",
+            "default": 0.5
+          }
+        }
+      },
+      "hyperparamsTunerName": {
+        "type": "string",
+        "description": "gateway name",
+        "minLength": 1,
+        "maxLength": 32,
+        "format": "gateway-name"
+      },
+      "hyperparamsTunerSpec": {
+        "type": "object",
+        "properties": {
           "numberOfTrials": {
             "type": "number",
             "description": "number Of Trials"
@@ -20145,12 +19776,6 @@
                   "maxLength": 32,
                   "format": "algorithm-name"
                 },
-                "pipelineName": {
-                  "type": "string",
-                  "description": "Unique identifier representing a specific pipeline",
-                  "minLength": 1,
-                  "format": "pipeline-name"
-                },
                 "input": {
                   "type": "array",
                   "description": "The input for the algorithm",
@@ -20203,13 +19828,6 @@
                     "cartesian"
                   ]
                 },
-                "stateType": {
-                  "type": "string",
-                  "enum": [
-                    "stateless",
-                    "stateful"
-                  ]
-                },
                 "kind": {
                   "type": "string",
                   "default": "algorithm",
@@ -20225,6 +19843,17 @@
                 },
                 "spec": {
                   "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific pipeline",
+                          "minLength": 1,
+                          "format": "pipeline-name"
+                        }
+                      }
+                    },
                     {
                       "type": "object",
                       "properties": {
@@ -20312,81 +19941,29 @@
                     {
                       "type": "object",
                       "properties": {
-                        "numberOfTrials": {
-                          "type": "number",
-                          "description": "number Of Trials"
-                        },
-                        "hyperParams": {
-                          "type": "array",
-                          "description": "list of hyper params to optimize",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "suggest": {
-                                "type": "string",
-                                "enum": [
-                                  "uniform",
-                                  "loguniform",
-                                  "int",
-                                  "discrete_uniform",
-                                  "categorical"
-                                ]
-                              },
-                              "low": {
-                                "type": "number"
-                              },
-                              "hight": {
-                                "type": "number"
-                              },
-                              "choices": {
-                                "type": "array"
-                              },
-                              "name": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "name",
-                              "suggest"
-                            ]
-                          }
-                        },
-                        "objectivePipeline": {
+                        "name": {
                           "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
+                          "description": "gateway name",
                           "minLength": 1,
-                          "format": "pipeline-name"
+                          "maxLength": 32,
+                          "format": "gateway-name"
                         },
-                        "sampler": {
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "type": "string",
-                              "enum": [
-                                "Grid",
-                                "PartialFixed",
-                                "Random",
-                                "TPE",
-                                "CmaEs"
-                              ]
-                            },
-                            "fixed_values": {
-                              "type": "object"
-                            },
-                            "search_space": {
-                              "type": "object"
-                            }
-                          },
-                          "required": [
-                            "name"
-                          ]
+                        "description": {
+                          "type": "string",
+                          "description": "describe the gateway"
+                        },
+                        "mem": {
+                          "type": "string",
+                          "description": "Memory allocated for streaming gateway",
+                          "format": "algorithm-memory",
+                          "default": "512Mi"
+                        },
+                        "cpu": {
+                          "type": "number",
+                          "description": "Cpu allocated for streaming gateway",
+                          "default": 0.5
                         }
-                      },
-                      "required": [
-                        "numberOfTrials",
-                        "hyperParams",
-                        "objectivePipeline"
-                      ]
+                      }
                     }
                   ]
                 }
@@ -20571,6 +20148,17 @@
         "minLength": 1,
         "format": "pipeline-name"
       },
+      "kindPipeline": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          }
+        }
+      },
       "pipelineKind": {
         "type": "string",
         "default": "batch",
@@ -20607,12 +20195,6 @@
             "minLength": 1,
             "maxLength": 32,
             "format": "algorithm-name"
-          },
-          "pipelineName": {
-            "type": "string",
-            "description": "Unique identifier representing a specific pipeline",
-            "minLength": 1,
-            "format": "pipeline-name"
           },
           "input": {
             "type": "array",
@@ -20666,13 +20248,6 @@
               "cartesian"
             ]
           },
-          "stateType": {
-            "type": "string",
-            "enum": [
-              "stateless",
-              "stateful"
-            ]
-          },
           "kind": {
             "type": "string",
             "default": "algorithm",
@@ -20688,6 +20263,17 @@
           },
           "spec": {
             "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                  }
+                }
+              },
               {
                 "type": "object",
                 "properties": {
@@ -20775,81 +20361,29 @@
               {
                 "type": "object",
                 "properties": {
-                  "numberOfTrials": {
-                    "type": "number",
-                    "description": "number Of Trials"
-                  },
-                  "hyperParams": {
-                    "type": "array",
-                    "description": "list of hyper params to optimize",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "suggest": {
-                          "type": "string",
-                          "enum": [
-                            "uniform",
-                            "loguniform",
-                            "int",
-                            "discrete_uniform",
-                            "categorical"
-                          ]
-                        },
-                        "low": {
-                          "type": "number"
-                        },
-                        "hight": {
-                          "type": "number"
-                        },
-                        "choices": {
-                          "type": "array"
-                        },
-                        "name": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "name",
-                        "suggest"
-                      ]
-                    }
-                  },
-                  "objectivePipeline": {
+                  "name": {
                     "type": "string",
-                    "description": "Unique identifier representing a specific pipeline",
+                    "description": "gateway name",
                     "minLength": 1,
-                    "format": "pipeline-name"
+                    "maxLength": 32,
+                    "format": "gateway-name"
                   },
-                  "sampler": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "enum": [
-                          "Grid",
-                          "PartialFixed",
-                          "Random",
-                          "TPE",
-                          "CmaEs"
-                        ]
-                      },
-                      "fixed_values": {
-                        "type": "object"
-                      },
-                      "search_space": {
-                        "type": "object"
-                      }
-                    },
-                    "required": [
-                      "name"
-                    ]
+                  "description": {
+                    "type": "string",
+                    "description": "describe the gateway"
+                  },
+                  "mem": {
+                    "type": "string",
+                    "description": "Memory allocated for streaming gateway",
+                    "format": "algorithm-memory",
+                    "default": "512Mi"
+                  },
+                  "cpu": {
+                    "type": "number",
+                    "description": "Cpu allocated for streaming gateway",
+                    "default": 0.5
                   }
-                },
-                "required": [
-                  "numberOfTrials",
-                  "hyperParams",
-                  "objectivePipeline"
-                ]
+                }
               }
             ]
           }

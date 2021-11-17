@@ -4,8 +4,8 @@ class ApiValidator {
     }
 
     validateHyperparamsTuner(hyperparamsTuner, spec) {
-        this._validator.validate(this._validator.definitions.hyperparamsTuner, spec, true);
-        this._validator.validate(this._validator.definitions.algorithm, hyperparamsTuner, true);
+        this._validator.validate(this._validator.definitions.hyperparamsTunerSpec, spec, true);
+        this._validator.validate(this._validator.definitions.hyperparamsTuner, hyperparamsTuner, true);
     }
 }
 

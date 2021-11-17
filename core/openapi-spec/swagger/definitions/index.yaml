@@ -181,6 +181,10 @@ output:
 
 hyperparamsTuner:
   $ref: ./hyperparamsTuner/hyperparamsTuner.yaml  
+hyperparamsTunerName:
+  $ref: ./hyperparamsTuner/hyperparamsTunerName.yaml  
+hyperparamsTunerSpec:
+  $ref: ./hyperparamsTuner/hyperparamsTunerSpec.yaml      
 hyperParams:
   $ref: ./hyperparamsTuner/hyperParam.yaml  
 sampler:
