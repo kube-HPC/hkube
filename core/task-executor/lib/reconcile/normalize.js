@@ -176,9 +176,9 @@ const calcRatioFree = (node) => {
         memory: node.requests.memory / node.total.memory
     };
     node.free = {
-        cpu: node.total.cpu - node.requests.cpu,
-        gpu: node.total.gpu - node.requests.gpu,
-        memory: node.total.memory - node.requests.memory
+        cpu: Math.max(0, node.total.cpu - node.requests.cpu),
+        gpu: Math.max(0, node.total.gpu - node.requests.gpu),
+        memory: Math.max(0, node.total.memory - node.requests.memory)
     };
 };
 
