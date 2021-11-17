@@ -1,6 +1,6 @@
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
-const { ResourceNotFoundError } = require('../errors');
+const { ResourceNotFoundError, ResourceExistsError } = require('../errors');
 class Devenvs {
     async get(options) {
         validator.devenvs.validateGetDevenv(options);
@@ -19,6 +19,10 @@ class Devenvs {
 
     async create(options) {
         validator.devenvs.validateCreateDevenv(options);
+        const devenv = await stateManager.getDevenv(options);
+        if (devenv) {
+            throw new ResourceExistsError('devenv', options.name);
+        }
         const response = await stateManager.createDevenv(options);
         return response;
     }
