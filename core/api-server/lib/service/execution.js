@@ -103,7 +103,6 @@ class ExecutionService {
             const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
             extendedPipeline = await pipelineCreator.buildStreamingFlow(extendedPipeline, jobId, algorithms);
 
-
             const shouldValidateNodes = validateNodes ?? true;
             validator.executions.validatePipeline({ ...extendedPipeline, flowInput: extendedPipeline.flowInput || flowInput }, { validateNodes: shouldValidateNodes });
             await validator.experiments.validateExperimentExists(extendedPipeline);
