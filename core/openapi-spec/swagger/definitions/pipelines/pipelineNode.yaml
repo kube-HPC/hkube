@@ -41,11 +41,6 @@ properties:
     enum:
       - indexed
       - cartesian
-  stateType:
-    type: string
-    enum:
-      - stateless
-      - stateful
   kind:
     $ref: "#/components/schemas/nodeKind"
   spec:

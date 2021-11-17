@@ -186,13 +186,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -653,13 +646,6 @@
                           "enum": [
                             "indexed",
                             "cartesian"
-                          ]
-                        },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
                           ]
                         },
                         "kind": {
@@ -2155,13 +2141,6 @@
                               "cartesian"
                             ]
                           },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
-                            ]
-                          },
                           "kind": {
                             "type": "string",
                             "default": "algorithm",
@@ -2621,13 +2600,6 @@
                             "enum": [
                               "indexed",
                               "cartesian"
-                            ]
-                          },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
                             ]
                           },
                           "kind": {
@@ -6374,6 +6346,13 @@
                       "maxLength": 32,
                       "format": "algorithm-name"
                     },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "batch",
+                        "stream"
+                      ]
+                    },
                     "env": {
                       "type": "string",
                       "enum": [
@@ -6587,6 +6566,12 @@
                       "type": "object",
                       "nullable": true,
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                    },
+                    "streamKind": {
+                      "enum": [
+                        "stateless",
+                        "stateful"
+                      ]
                     },
                     "type": {
                       "type": "string",
@@ -6805,6 +6790,13 @@
                         "maxLength": 32,
                         "format": "algorithm-name"
                       },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
                       "env": {
                         "type": "string",
                         "enum": [
@@ -7019,6 +7011,12 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
+                      },
                       "type": {
                         "type": "string",
                         "description": "type of algorithm code resource",
@@ -7082,6 +7080,13 @@
                     "minLength": 1,
                     "maxLength": 32,
                     "format": "algorithm-name"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "batch",
+                      "stream"
+                    ]
                   },
                   "env": {
                     "type": "string",
@@ -7296,6 +7301,12 @@
                     "type": "object",
                     "nullable": true,
                     "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                  },
+                  "streamKind": {
+                    "enum": [
+                      "stateless",
+                      "stateful"
+                    ]
                   },
                   "type": {
                     "type": "string",
@@ -7416,6 +7427,13 @@
                     "maxLength": 32,
                     "format": "algorithm-name"
                   },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "batch",
+                      "stream"
+                    ]
+                  },
                   "env": {
                     "type": "string",
                     "enum": [
@@ -7630,6 +7648,12 @@
                     "nullable": true,
                     "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                   },
+                  "streamKind": {
+                    "enum": [
+                      "stateless",
+                      "stateful"
+                    ]
+                  },
                   "type": {
                     "type": "string",
                     "description": "type of algorithm code resource",
@@ -7734,6 +7758,13 @@
                         "minLength": 1,
                         "maxLength": 32,
                         "format": "algorithm-name"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
                       },
                       "env": {
                         "type": "string",
@@ -7949,6 +7980,12 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
+                      },
                       "type": {
                         "type": "string",
                         "description": "type of algorithm code resource",
@@ -8017,6 +8054,13 @@
                           "minLength": 1,
                           "maxLength": 32,
                           "format": "algorithm-name"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "batch",
+                            "stream"
+                          ]
                         },
                         "env": {
                           "type": "string",
@@ -8232,6 +8276,12 @@
                           "nullable": true,
                           "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
+                        "streamKind": {
+                          "enum": [
+                            "stateless",
+                            "stateful"
+                          ]
+                        },
                         "type": {
                           "type": "string",
                           "description": "type of algorithm code resource",
@@ -8425,13 +8475,6 @@
                             "enum": [
                               "indexed",
                               "cartesian"
-                            ]
-                          },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
                             ]
                           },
                           "kind": {
@@ -8998,13 +9041,6 @@
                                 "cartesian"
                               ]
                             },
-                            "stateType": {
-                              "type": "string",
-                              "enum": [
-                                "stateless",
-                                "stateful"
-                              ]
-                            },
                             "kind": {
                               "type": "string",
                               "default": "algorithm",
@@ -9425,13 +9461,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -9826,13 +9855,6 @@
                             "enum": [
                               "indexed",
                               "cartesian"
-                            ]
-                          },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
                             ]
                           },
                           "kind": {
@@ -10292,13 +10314,6 @@
                             "cartesian"
                           ]
                         },
-                        "stateType": {
-                          "type": "string",
-                          "enum": [
-                            "stateless",
-                            "stateful"
-                          ]
-                        },
                         "kind": {
                           "type": "string",
                           "default": "algorithm",
@@ -10693,13 +10708,6 @@
                             "enum": [
                               "indexed",
                               "cartesian"
-                            ]
-                          },
-                          "stateType": {
-                            "type": "string",
-                            "enum": [
-                              "stateless",
-                              "stateful"
                             ]
                           },
                           "kind": {
@@ -13640,6 +13648,13 @@
                         "maxLength": 32,
                         "format": "algorithm-name"
                       },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
                       "env": {
                         "type": "string",
                         "enum": [
@@ -13853,6 +13868,12 @@
                         "type": "object",
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                      },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
                       },
                       "type": {
                         "type": "string",
@@ -13986,6 +14007,13 @@
                         "maxLength": 32,
                         "format": "algorithm-name"
                       },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
                       "env": {
                         "type": "string",
                         "enum": [
@@ -14199,6 +14227,12 @@
                         "type": "object",
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                      },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
                       },
                       "type": {
                         "type": "string",
@@ -16962,6 +16996,13 @@
             "maxLength": 32,
             "format": "algorithm-name"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "batch",
+              "stream"
+            ]
+          },
           "env": {
             "type": "string",
             "enum": [
@@ -17176,6 +17217,12 @@
             "nullable": true,
             "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
           },
+          "streamKind": {
+            "enum": [
+              "stateless",
+              "stateful"
+            ]
+          },
           "type": {
             "type": "string",
             "description": "type of algorithm code resource",
@@ -17194,6 +17241,13 @@
         },
         "required": [
           "name"
+        ]
+      },
+      "algorithmKind": {
+        "type": "string",
+        "enum": [
+          "batch",
+          "stream"
         ]
       },
       "algorithmName": {
@@ -17387,6 +17441,13 @@
                 "minLength": 1,
                 "maxLength": 32,
                 "format": "algorithm-name"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "batch",
+                  "stream"
+                ]
               },
               "env": {
                 "type": "string",
@@ -17601,6 +17662,12 @@
                 "type": "object",
                 "nullable": true,
                 "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+              },
+              "streamKind": {
+                "enum": [
+                  "stateless",
+                  "stateful"
+                ]
               },
               "type": {
                 "type": "string",
@@ -19563,13 +19630,6 @@
                     "cartesian"
                   ]
                 },
-                "stateType": {
-                  "type": "string",
-                  "enum": [
-                    "stateless",
-                    "stateful"
-                  ]
-                },
                 "kind": {
                   "type": "string",
                   "default": "algorithm",
@@ -19959,13 +20019,6 @@
             "enum": [
               "indexed",
               "cartesian"
-            ]
-          },
-          "stateType": {
-            "type": "string",
-            "enum": [
-              "stateless",
-              "stateful"
             ]
           },
           "kind": {

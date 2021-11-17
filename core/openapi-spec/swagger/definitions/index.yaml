@@ -1,6 +1,8 @@
 # algorithms
 algorithm:
   $ref: ./algorithms/algorithm.yaml
+algorithmKind:
+  $ref: ./algorithms/algorithmKind.yaml
 algorithmName:
   $ref: ./algorithms/algorithmName.yaml
 algorithmNameObject:
