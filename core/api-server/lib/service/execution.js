@@ -95,17 +95,18 @@ class ExecutionService {
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: extendedPipeline.name }, parent: parentSpan });
         try {
             validator.pipelines.validatePipelineNodes(extendedPipeline);
+            const maxExceeded = await validator.executions.validateConcurrentPipelines(extendedPipeline);
             extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(extendedPipeline);
             extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline, debugNode);
             extendedPipeline = await pipelineCreator.updateOutput(extendedPipeline, jobId);
-            extendedPipeline = await pipelineCreator.buildStreamingFlow(extendedPipeline, jobId);
+            const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
+            extendedPipeline = await pipelineCreator.buildStreamingFlow(extendedPipeline, jobId, algorithms);
 
             const shouldValidateNodes = validateNodes ?? true;
             validator.executions.validatePipeline({ ...extendedPipeline, flowInput: extendedPipeline.flowInput || flowInput }, { validateNodes: shouldValidateNodes });
             await validator.experiments.validateExperimentExists(extendedPipeline);
             extendedPipeline = await validator.dataSources.validate(extendedPipeline);
-            const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
-            const maxExceeded = await validator.executions.validateConcurrentPipelines(extendedPipeline);
+
             const pipeTypes = this._addTypesByAlgorithms(algorithms, types);
             let pipeFlowInputMetadata = flowInputMetadata;
 
