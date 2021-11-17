@@ -187,11 +187,11 @@ const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, cluster
     return spec;
 };
 
-const applyDataSourcesVolumes = (inputSpec) => {
+const applyDataSourcesVolumes = (inputSpec, clusterOptions) => {
     let spec = clonedeep(inputSpec);
-    // if (!clusterOptions.dataSourcesEnabled) {
-    //     return spec;
-    // }
+    if (!clusterOptions?.datasourcesServiceEnabled) {
+        return spec;
+    }
     spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
         name: 'datasources-storage',
         mountPath: '/hkube/datasources-storage'
@@ -362,7 +362,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     spec = applyJaeger(spec, CONTAINERS.WORKER, options);
     spec = applyJaeger(spec, CONTAINERS.ALGORITHM, options);
     spec = applyDevMode(spec, { options, algorithmOptions, clusterOptions, algorithmName });
-    spec = applyDataSourcesVolumes(spec);
+    spec = applyDataSourcesVolumes(spec, clusterOptions);
     spec = applyMounts(spec, mounts);
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
