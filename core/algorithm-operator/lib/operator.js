@@ -105,6 +105,9 @@ class Operator {
     }
 
     async _devenvs(options) {
+        if (!options.devenvs.enable) {
+            return;
+        }
         await devenv.reconcile(options);
     }
 

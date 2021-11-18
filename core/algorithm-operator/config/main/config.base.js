@@ -97,7 +97,8 @@ config.ingressPrefix = process.env.INGRESS_PREFIX || '';
 config.devenvs = {
     enable: formatter.parseBool(process.env.DEV_ENVS_ENABLE, false),
     jupyter: {
-        protocol: process.env.JUPYTER_HUB_SERVICE_PROTOCOL || 'http',
+        enable: formatter.parseBool(process.env.JUPYTERHUB_SERVICE_ENABLE, true),
+        protocol: process.env.JUPYTERHUB_SERVICE_PROTOCOL || 'http',
         host: process.env.JUPYTERHUB_SERVICE_HOST || '127.0.0.1',
         port: process.env.JUPYTERHUB_SERVICE_PORT || 8000,
         path: process.env.JUPYTERHUB_SERVICE_PATH ? path.join(config.ingressPrefix, process.env.JUPYTERHUB_SERVICE_PATH) : config.ingressPrefix,

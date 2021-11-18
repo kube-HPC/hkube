@@ -10,12 +10,19 @@ class Jupyter {
     }
 
     async init(options) {
+        this._options = options;
+        if (!this._options.enable) {
+            return;
+        }
         await JupyterApi.init(options);
         // get api token
         await JupyterApi.updateToken();
     }
 
     async current() {
+        if (!this._options?.enable) {
+            return [];
+        }
         const list = await this.list();
         const items = list.map(i => ({
             name: i.name,
@@ -25,17 +32,26 @@ class Jupyter {
     }
 
     async get(name) {
+        if (!this._options.enable) {
+            return null;
+        }
         const list = await this.list();
         const server = list.find(s => s.name === name);
         return server;
     }
 
     async list() {
+        if (!this._options.enable) {
+            return [];
+        }
         const list = await JupyterApi.list();
         return list;
     }
 
     async create({ name }) {
+        if (!this._options.enable) {
+            return null;
+        }
         log.info(`Creating ${this._type} ${name}`);
         const status = await JupyterApi.create({ name });
         if (status === StatusCodes.CREATED) {
@@ -52,6 +68,9 @@ class Jupyter {
     }
 
     async remove({ name }) {
+        if (!this._options.enable) {
+            return;
+        }
         log.info(`Removing ${this._type} ${name}`);
         await JupyterApi.remove({ name });
     }

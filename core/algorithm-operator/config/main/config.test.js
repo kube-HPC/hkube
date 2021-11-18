@@ -9,4 +9,7 @@ config.algorithmQueueBalancer = {
     limit: 2,
 };
 
+config.devenvs = {
+    enable: true
+}
 module.exports = config;
