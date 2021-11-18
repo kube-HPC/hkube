@@ -11,7 +11,7 @@ globalReference = []
 
 def getStudy(sampler, storagePath):
     if (sampler):
-        if (sampler[consts.name] == consts.Grid):
+        if (sampler[consts.name] == consts.grid):
             search_space = sampler[consts.searchSpace]
             study = optuna.create_study(
                 storage='sqlite:///' + storagePath, sampler=optuna.samplers.GridSampler(search_space))
