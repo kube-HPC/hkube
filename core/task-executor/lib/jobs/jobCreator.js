@@ -11,7 +11,7 @@ const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
-const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
+const { hyperparamsTunerEnvNoDashboard, hyperparamsTunerEnv, workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
 
@@ -388,8 +388,13 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, gatewayEnv);
     }
     if (kind === nodeKind.HyperparamsTuner) {
-        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, hyperparamsTunerEnv);
-        spec = applyDatascienceMetricsVolumes(spec);
+        if (!clusterOptions?.optunaDashboardEnabled) {
+            spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, hyperparamsTunerEnvNoDashboard);
+        }
+        else {
+            spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, hyperparamsTunerEnv);
+            spec = applyDatascienceMetricsVolumes(spec);
+        }
     }
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);

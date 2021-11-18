@@ -8,11 +8,11 @@ class HyperparamsTuner extends AlgorithmBase {
     init() {
     }
 
-    async getHyperparamsTuner(options) {
+    getHyperparamsTuner(options) {
         return this.get(options);
     }
 
-    async getHyperparamsTuners(options) {
+    getHyperparamsTuners(options) {
         return this.getAlgorithms(options);
     }
 

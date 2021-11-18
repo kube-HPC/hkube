@@ -94,7 +94,7 @@ class Operator {
         this._lastIntervalBoardTime = Date.now();
         try {
             log.debug('Update board interval.', { component });
-            // await tensorboardReconciler.updateTensorboards();
+            await tensorboardReconciler.updateTensorboards();
             await optunaboardReconciler.updateOptunaboards();
         }
         catch (e) {
