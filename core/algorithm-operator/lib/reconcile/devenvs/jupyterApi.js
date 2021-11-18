@@ -1,4 +1,5 @@
 const { StatusCodes } = require('http-status-codes');
+const log = require('@hkube/logger').GetLogFromContainer();
 const axios = require('axios');
 class JupiterApi {
     constructor() {
@@ -13,6 +14,7 @@ class JupiterApi {
         this._client = axios.create({
             baseURL: this._apiUrl,
         });
+        log.info(`jupyterApi init: ${this._apiUrl}`);
     }
 
     async updateToken() {
