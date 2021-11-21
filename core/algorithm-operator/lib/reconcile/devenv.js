@@ -12,6 +12,10 @@ const _getRequiredState = async () => {
     return devenvsByType;
 };
 
+const _isPendingState = (state) => {
+    return state === devenvStatuses.PENDING || state === devenvStatuses.CREATING;
+};
+
 const reconcile = async () => {
     const requiredState = await _getRequiredState();
     const currentState = {};
@@ -37,7 +41,7 @@ const reconcile = async () => {
     const updateStatus = {};
     for (const type of Object.values(devenvTypes)) {
         updateStatus[type] = currentState[type].filter(c => c.status === devenvStatuses.RUNNING
-            && requiredState[type].find(r => r.name === c.name)?.status !== devenvStatuses.RUNNING);
+            && _isPendingState(requiredState[type].find(r => r.name === c.name)?.status));
     }
 
     for (const type of Object.values(devenvTypes)) {
@@ -47,7 +51,7 @@ const reconcile = async () => {
     }
     for (const type of Object.values(devenvTypes)) {
         const promises = removed[type].map(a => handlers[type].delete(a));
-        const deletedPromises = removed[type].map(a => db.deleteDevenv(a.name));
+        const deletedPromises = removed[type].map(a => db.deleteDevenv({ name: a.name }));
         await Promise.allSettled([...promises, ...deletedPromises]);
     }
     for (const type of Object.values(devenvTypes)) {
