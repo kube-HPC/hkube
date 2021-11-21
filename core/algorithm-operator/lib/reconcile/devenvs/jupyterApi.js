@@ -23,9 +23,9 @@ class JupiterApi {
             username,
             password
         },
-            {
-                json: true
-            });
+        {
+            json: true
+        });
         this._token = res.data.token;
     }
 

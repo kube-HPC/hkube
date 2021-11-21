@@ -34,6 +34,12 @@ const reconcile = async () => {
         stopped[type] = requiredState[type].filter(a => a.status === devenvStatuses.STOPPED && currentState[type].find(c => c.name === a.name));
     }
 
+    const updateStatus = {};
+    for (const type of Object.values(devenvTypes)) {
+        updateStatus[type] = currentState[type].filter(c => c.status === devenvStatuses.RUNNING
+            && requiredState[type].find(r => r.name === c.name)?.status !== devenvStatuses.RUNNING);
+    }
+
     for (const type of Object.values(devenvTypes)) {
         const promises = added[type].map(a => handlers[type].create(a));
         const res = await Promise.allSettled(promises);
@@ -43,6 +49,10 @@ const reconcile = async () => {
         const promises = removed[type].map(a => handlers[type].delete(a));
         const deletedPromises = removed[type].map(a => db.deleteDevenv(a.name));
         await Promise.allSettled([...promises, ...deletedPromises]);
+    }
+    for (const type of Object.values(devenvTypes)) {
+        const promises = updateStatus[type].map(a => db.updateDevenv({ name: a.name, status: a.status }));
+        await Promise.allSettled(promises);
     }
     for (const type of Object.values(devenvTypes)) {
         const promises = stopped[type].map(a => handlers[type].stop(a));
