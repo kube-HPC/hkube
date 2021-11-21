@@ -3,7 +3,7 @@ const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
-const { buildStatuses } = require('@hkube/consts');
+const { buildStatuses, devenvStatuses } = require('@hkube/consts');
 const component = require('../consts/componentNames').DB;
 
 class StateManager {
@@ -402,6 +402,18 @@ class StateManager {
 
     deleteDevenv({ name }) {
         return this._db.devenvs.delete({ name });
+    }
+
+    markDeleteDevenv({ name }) {
+        return this._db.devenvs.update({ name, status: devenvStatuses.DELETING });
+    }
+
+    stopDevenv({ name }) {
+        return this._db.devenvs.update({ name, status: devenvStatuses.STOPPED });
+    }
+
+    startDevenv({ name }) {
+        return this._db.devenvs.update({ name, status: devenvStatuses.PENDING });
     }
 
     async cleanJob({ jobId }) {

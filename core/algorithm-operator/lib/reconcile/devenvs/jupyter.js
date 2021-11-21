@@ -26,7 +26,7 @@ class Jupyter {
         const list = await this.list();
         const items = list.map(i => ({
             name: i.name,
-            state: i.ready ? devenvStatuses.RUNNING : devenvStatuses.CREATING
+            status: i.ready ? devenvStatuses.RUNNING : devenvStatuses.CREATING
         }));
         return items;
     }
@@ -54,12 +54,13 @@ class Jupyter {
         }
         log.info(`Creating ${this._type} ${name}`);
         const status = await JupyterApi.create({ name });
-        if (status === StatusCodes.CREATED) {
+        if (status === StatusCodes.CREATED || status === StatusCodes.OK || status === StatusCodes.ACCEPTED) {
             const server = await this.get(name);
             log.info(`Created ${this._type} ${name} with status ${status}. Url: ${server.url}`);
             return {
                 name: server.name,
-                url: server.url
+                url: server.url,
+                status: server.ready ? devenvStatuses.RUNNING : devenvStatuses.CREATING
             };
         }
         return {
@@ -67,11 +68,19 @@ class Jupyter {
         };
     }
 
-    async remove({ name }) {
+    async delete({ name }) {
         if (!this._options.enable) {
             return;
         }
         log.info(`Removing ${this._type} ${name}`);
+        await JupyterApi.delete({ name });
+    }
+
+    async stop({ name }) {
+        if (!this._options.enable) {
+            return;
+        }
+        log.info(`Stopping ${this._type} ${name}`);
         await JupyterApi.remove({ name });
     }
 }

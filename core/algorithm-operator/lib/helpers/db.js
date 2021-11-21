@@ -57,8 +57,12 @@ class DB extends EventEmitter {
         return this._db.devenvs.search({ status });
     }
 
-    updateDevenv({ name, url }) {
-        return this._db.devenvs.update({ name, url });
+    updateDevenv({ name, url, status }) {
+        return this._db.devenvs.update({ name, url, status });
+    }
+
+    deleteDevenv({ name }) {
+        return this._db.devenvs.delete({ name });
     }
 }
 

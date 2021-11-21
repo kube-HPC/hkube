@@ -30,7 +30,20 @@ describe('devenvs', () => {
         expect(res.added.Jupyter).to.be.empty;
         expect(res.removed.Jupyter.map(i=>({name: i.name}))).to.eql(list.map(i=>({name: i.name})));
         expect(callCount('create').length).to.equal(0);
+        expect(callCount('remove').length).to.equal(0);
+        expect(callCount('delete').length).to.equal(1);
+    });
+
+    it('should reconcile and stop', async () => {
+        const list=[{ name: 'a1', ready: true }];
+        setList(list)
+        await db._db.devenvs.create({name: 'a1', status: 'stopped', type: 'Jupyter'});
+        const res = await reconcile();
+        expect(res.added.Jupyter).to.be.empty;
+        expect(res.stopped.Jupyter.map(i=>({name: i.name}))).to.eql(list.map(i=>({name: i.name})));
+        expect(callCount('create').length).to.equal(0);
         expect(callCount('remove').length).to.equal(1);
+        expect(callCount('delete').length).to.equal(0);
     });
 
 });

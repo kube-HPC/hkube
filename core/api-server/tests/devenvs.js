@@ -44,12 +44,12 @@ describe('Devenvs', () => {
             expect(response.response.statusCode).to.equal(StatusCodes.OK);
             expect(response.body).to.eql({
                 name,
-                type: devenvTypes.JUPYTER
+                type: devenvTypes.JUPYTER,
+                status: devenvStatuses.PENDING
             });
         });
     });
     describe('create', () => {
-        let restPath = null;
         before(() => {
             restPath = `${restDevenvPath}/`;
         });
@@ -65,7 +65,7 @@ describe('Devenvs', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(StatusCodes.OK);
-            expect(response.body).to.eql(options.body);
+            expect(response.body).to.eql({...options.body, status: devenvStatuses.PENDING});
         });
         it('creating devenv should fail if invalid type', async () => {
             const name = randomString();
@@ -110,8 +110,7 @@ describe('Devenvs', () => {
                 
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(StatusCodes.OK);
-            expect(response.body).to.eql({deleted: 0});
+            expect(response.response.statusCode).to.equal(StatusCodes.NOT_FOUND);
         });
         it('should delete one', async () => {
             const name = randomString();
@@ -131,7 +130,7 @@ describe('Devenvs', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(StatusCodes.OK);
-            expect(response.body).to.eql({deleted: 1});
+            expect(response.body).to.eql({name, status: devenvStatuses.DELETING});
         });
         
     });

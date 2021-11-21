@@ -15,7 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/consts": "^1.0.40",
+    "@hkube/consts": "^1.0.41",
     "@hkube/db": "^1.0.46",
     "@hkube/etcd": "^5.1.6",
     "@hkube/healthchecks": "^1.0.2",

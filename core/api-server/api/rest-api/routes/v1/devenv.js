@@ -24,6 +24,14 @@ const routes = (options) => {
         const response = await devenvs.create(req.body);
         res.json(response);
     });
+    router.get('/stop/:name', async (req, res) => {
+        const response = await devenvs.stop({ name: req.params.name });
+        res.json(response);
+    });
+    router.get('/start/:name', async (req, res) => {
+        const response = await devenvs.start({ name: req.params.name });
+        res.json(response);
+    });
     return router;
 };
 

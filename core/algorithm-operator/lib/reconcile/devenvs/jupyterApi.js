@@ -23,9 +23,9 @@ class JupiterApi {
             username,
             password
         },
-        {
-            json: true
-        });
+            {
+                json: true
+            });
         this._token = res.data.token;
     }
 
@@ -49,9 +49,24 @@ class JupiterApi {
         }
     }
 
-    async remove({ name }) {
-        const url = `${this._apiUrl}/users/${this._options.username}/servers/${name}`;
-        await this._client.delete(url, { headers: this._getHeaders() });
+    remove({ name }) {
+        return this._delete({ name }, false);
+    }
+
+    async delete({ name }) {
+        return this._delete({ name }, true);
+    }
+
+    async _delete({ name }, remove) {
+        try {
+            const url = `${this._apiUrl}/users/${this._options.username}/servers/${name}`;
+            await this._client.delete(url, { headers: this._getHeaders(), data: { remove } });
+        }
+        catch (error) {
+            if (error?.response?.status === StatusCodes.FORBIDDEN) {
+                await this.updateToken(this._options);
+            }
+        }
     }
 
     _getHeaders() {

@@ -18,6 +18,9 @@ module.exports = {
                 remove: async (...theArgs) => {
                     registerCount('remove', theArgs)
                 },
+                delete: async (...theArgs) => {
+                    registerCount('delete', theArgs)
+                },
                 list: async (...theArgs) => {
                     registerCount('list', theArgs)
                     return listData;
