@@ -2,7 +2,7 @@ const { Consumer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
-const persistence = require('../persistency/persistence');
+const dataStore = require('../persistency/data-store');
 const queueRunner = require('../queue-runner');
 const { componentName } = require('../consts');
 const component = componentName.JOBS_CONSUMER;
@@ -13,6 +13,7 @@ class JobConsumer {
     }
 
     async init(options) {
+        this._jobType = options.consumer.jobType;
         this._consumer = new Consumer({
             setting: {
                 redis: options.redis,
@@ -20,24 +21,36 @@ class JobConsumer {
                 prefix: options.consumer.prefix
             }
         });
-        this._consumer.register({ job: { type: options.consumer.jobType, concurrency: options.consumer.concurrency } });
+        this._consumer.register({
+            job: {
+                type: options.consumer.jobType,
+                concurrency: options.consumer.concurrency
+            }
+        });
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
-        persistence.on(`job-${pipelineStatuses.STOPPED}`, (job) => {
+        dataStore.on(`job-${pipelineStatuses.STOPPED}`, (job) => {
             const { jobId, status } = job;
             this._stopJob(jobId, status);
         });
-        persistence.on(`job-${pipelineStatuses.PAUSED}`, (job) => {
+        dataStore.on(`job-${pipelineStatuses.PAUSED}`, (job) => {
             const { jobId, status } = job;
             this._stopJob(jobId, status);
         });
     }
 
+    async shutdown() {
+        if (!this._isPaused && this._consumer) {
+            this._isPaused = true;
+            await this._consumer.pause({ type: this._jobType });
+        }
+    }
+
     async _handleJob(job) {
         try {
             const { jobId } = job.data;
-            const jobData = await persistence.getJob({ jobId });
+            const jobData = await dataStore.getJob({ jobId });
             const { status, pipeline } = jobData || {};
             if (!pipeline) {
                 throw new Error(`unable to find pipeline for job ${jobId}`);

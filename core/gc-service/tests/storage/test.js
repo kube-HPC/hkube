@@ -2,11 +2,21 @@ const chai = require('chai');
 const path = require('path');
 const chaiAsPromised = require('chai-as-promised');
 const moment = require('moment');
+const fse = require('fs-extra');
 const storageManager = require('@hkube/storage-manager');
 const { expect } = chai;
 chai.use(chaiAsPromised);
 const adapters = ['s3', 'fs'];
 let config, settings, cleaner, cleanerManager;
+
+const streamToBuffer = (stream) => {
+    return new Promise((resolve) => {
+        const _buf = [];
+        stream.on('data', (chunk) => _buf.push(chunk));
+        stream.on('end', () => resolve(Buffer.concat(_buf)));
+        stream.on('error', (err) => resolve(err));
+    });
+}
 
 describe('Storage', () => {
     before(() => {
@@ -22,7 +32,7 @@ describe('Storage', () => {
                 storageManager._wasInit = false;
                 await storageManager.init(newConfig, null, true);
             });
-            it('clean temp objects', async () => {
+            it('should clean temp objects', async () => {
                 await cleaner.clean();
 
                 for (let i = 0; i < 5; i++) {
@@ -52,7 +62,26 @@ describe('Storage', () => {
                     }
                 }
             });
-            it('clean results+temp objects', async () => {
+            it('should clean builds objects', async () => {
+                const maxAge = 0;
+                const size = 3;
+                await cleaner.clean({ maxAge });
+
+                for (let i = 0; i < size; i++) {
+                    const buildId = `build-${i}`;
+                    const file = `${process.cwd()}/tests/storage/mocks/alg.tar.gz`;
+                    await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file) });
+                }
+                await cleaner.clean({ maxAge });
+
+                for (let i = 0; i < size; i++) {
+                    const buildId = `build-${i}`;
+                    const stream = await storageManager.hkubeBuilds.getStream({ buildId });
+                    const result = await streamToBuffer(stream);
+                    expect(result).to.be.instanceOf(Error);
+                }
+            });
+            it('should clean results+temp objects', async () => {
                 await cleaner.clean();
 
                 for (let i = 0; i < 5; i++) {
@@ -91,7 +120,7 @@ describe('Storage', () => {
                     }
                 }
             });
-            it('get and put object', async () => {
+            it('should get and put object', async () => {
                 await cleaner.clean();
 
                 for (let i = 0; i < 5; i++) {
@@ -118,7 +147,3 @@ describe('Storage', () => {
         });
     });
 });
-
-
-
-

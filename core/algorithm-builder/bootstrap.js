@@ -6,6 +6,7 @@ const log = new Logger(config.serviceName, logger);
 const component = require('./lib/consts/components').MAIN;
 const dockerBuilder = require('./lib/builds/docker-builder');
 const kubernetes = require('./lib/helpers/kubernetes');
+const { createBuild } = require('./tests/builds');
 
 const modules = [
     require('@hkube/storage-manager'),
@@ -36,13 +37,13 @@ class Bootstrap {
         if (config.testMode) {
             const env = config.testModeEnv;
             const tar = `${process.cwd()}/tests/mocks/${env}/alg.tar.gz`;
-            const mockBuild = require(`./tests/mocks/${env}/build.json`);
+            const mockBuild = createBuild({ env });
             const stateManger = require('./lib/state/state-manager');
             const storageManager = require('@hkube/storage-manager');
             const fse = require('fs-extra');
             const { buildId } = mockBuild;
-            const {path: filePath} = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(tar) });
-            await stateManger.insertBuild({...mockBuild, filePath});
+            const { path: filePath } = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(tar) });
+            await stateManger.insertBuild({ ...mockBuild, filePath });
             config.buildId = buildId;
         }
     }

@@ -5,7 +5,7 @@ const containers = require('./containers');
 const deploymentTypes = require('./DeploymentTypes');
 const kubernetesKinds = require('./kubernetes-kind-prefix');
 const queueActions = require('./queue-actions');
-
+const sidecars = require('./sidecars');
 module.exports = {
     buildStatus,
     commands,
@@ -13,5 +13,6 @@ module.exports = {
     containers,
     deploymentTypes,
     kubernetesKinds,
-    queueActions
+    queueActions,
+    sidecars
 };

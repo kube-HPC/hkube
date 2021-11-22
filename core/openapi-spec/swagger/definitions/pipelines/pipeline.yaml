@@ -16,6 +16,7 @@ properties:
       $ref: "#/components/schemas/pipelineNode"
   flowInput:
     type: object
+    nullable: true
     description: input object
   webhooks:
     $ref: "#/components/schemas/webhooks"

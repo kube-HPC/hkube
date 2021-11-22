@@ -1,6 +1,6 @@
 {
     "name": "datasources-service",
-    "version": "2.1.7",
+    "version": "2.2.3",
     "description": "Hkube DataSources Service",
     "main": "app.js",
     "dependencies": {
@@ -10,7 +10,7 @@
         "@hkube/datasource-utils": "^1.0.4",
         "@hkube/db": "^1.0.42",
         "@hkube/etcd": "^5.1.2",
-        "@hkube/logger": "^1.0.29",
+        "@hkube/logger": "^2.0.2",
         "@hkube/metrics": "^1.0.42",
         "@hkube/producer-consumer": "^1.0.48",
         "@hkube/rest-server": "^1.0.18",

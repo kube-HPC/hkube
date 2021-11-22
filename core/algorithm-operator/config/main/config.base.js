@@ -10,7 +10,7 @@ config.boardsIntervalMs = process.env.BOARDS_INTERVAL_MS || 2000;
 config.boardTimeOut = formatter.parseInt(process.env.BOARDS_TIMEOUT, 3 * 60 * 60) * 1000;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.buildMode = process.env.BUILD_MODE || 'kaniko';
-config.isDevMode = !!process.env.DEV_MODE;
+config.isDevMode = formatter.parseBool(process.env.DEV_MODE, false);
 
 config.algorithmQueueBalancer = {
     limit: formatter.parseInt(process.env.ALGORITHM_QUEUE_CONCURRENCY_LIMIT, 5),

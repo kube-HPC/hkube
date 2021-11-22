@@ -30,7 +30,7 @@ class Election {
 
         this._electInterval = new Interval({ delay: this._options.election.interval })
             .onFunc(() => this._election(nodes))
-            .onError((e) => log.throttle.error(e.message, { component }))
+            .onError((e) => log.throttle.error(e.message, { component }, e))
             .start();
     }
 

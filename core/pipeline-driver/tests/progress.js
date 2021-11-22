@@ -16,17 +16,6 @@ describe('Progress', function () {
             sendProgress: async () => null
         });
     })
-    it('should call progress with level silly', function () {
-        const jobId = createJobId();
-        const data = { status: 'active' };
-        const spy = sinon.spy(progress, "_progress");
-        progress.silly({ jobId, status: 'active' })
-        const call = spy.getCalls()[0];
-        expect(spy.calledOnce).to.equal(true);
-        expect(call.args[0]).to.equal('silly');
-        expect(call.args[1].jobId).to.equal(jobId);
-        expect(call.args[1].status).to.equal(data.status);
-    });
     it('should call progress with level debug', function () {
         const jobId = createJobId();
         const data = { status: 'active' };

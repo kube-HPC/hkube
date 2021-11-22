@@ -4,4 +4,9 @@ config.driversSetting = {
     scalePercent: 0.2,
     concurrency: 5,
 };
+
+config.algorithmQueueBalancer = {
+    limit: 2,
+};
+
 module.exports = config;

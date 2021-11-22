@@ -10,7 +10,7 @@ config.rest = {
     port: process.env.REST_PORT || 3005,
     prefix: process.env.GATEWAY_NAME || '',
     poweredBy: 'HKube Gateway Server',
-    bodySizeLimit: process.env.BODY_SIZE_LIMIT || '2000mb'
+    bodySizeLimit: process.env.BODY_SIZE_LIMIT || '5000mb'
 };
 
 config.swagger = {

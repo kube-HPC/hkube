@@ -1,17 +1,16 @@
-const isEqual = require('lodash.isequal');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
-const persistence = require('../persistency/persistence');
+const persistence = require('../persistency/persistency');
 const queueRunner = require('../queue-runner');
-
 
 class JobProducer {
     constructor() {
-        this._lastData = [];
+        this._isActive = false;
+        this._isConsumerActive = false;
         this._firstJobDequeue = false;
         this._checkQueue = this._checkQueue.bind(this);
         this._updateState = this._updateState.bind(this);
@@ -27,6 +26,7 @@ class JobProducer {
                 ...producer
             }
         });
+        this._isActive = true;
         this._redisQueue = this._producer._createQueue(this._jobType);
         this._checkQueueInterval = options.checkQueueInterval;
         this._updateStateInterval = options.updateStateInterval;
@@ -36,10 +36,14 @@ class JobProducer {
         this._updateState();
 
         queueRunner.queue.on(queueEvents.INSERT, () => {
-            if (this._isActive) {
+            if (this._isConsumerActive) {
                 this._dequeueJob();
             }
         });
+    }
+
+    shutdown() {
+        this._isActive = false;
     }
 
     async _checkQueue() {
@@ -67,26 +71,25 @@ class JobProducer {
 
     async _updateState() {
         try {
-            const queue = [...queueRunner.queue.getQueue()];
-            if (!isEqual(queue, this._lastData)) {
-                await queueRunner.queue.persistenceStore(queue);
-                this._lastData = queue;
-            }
+            const queue = queueRunner.queue.getQueue();
+            await queueRunner.queue.persistenceStore(queue);
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);
         }
         finally {
-            setTimeout(this._updateState, this._updateStateInterval);
+            if (this._isActive) {
+                setTimeout(this._updateState, this._updateStateInterval);
+            }
         }
     }
 
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
-            this._isActive = false;
+            this._isConsumerActive = false;
             log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: Events.WAITING });
         }).on(Events.ACTIVE, (data) => {
-            this._isActive = true;
+            this._isConsumerActive = true;
             log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: Events.ACTIVE });
             this._dequeueJob();
         }).on(Events.COMPLETED, (data) => {
@@ -132,7 +135,7 @@ class JobProducer {
         if (job) {
             log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
             job.maxExceeded = false;
-            if (this._isActive) {
+            if (this._isConsumerActive) {
                 this._dequeueJob();
             }
         }

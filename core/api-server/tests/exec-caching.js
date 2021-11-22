@@ -3,7 +3,7 @@ const HttpStatus = require('http-status-codes');
 const { pipelineTypes } = require('@hkube/consts');
 const { request } = require('./utils');
 const pipelines = require('./mocks/pipelines.json');
-let restUrl, jobId;
+let restUrl, jobId, flowInput;
 
 const getJob = (jobId) => {
     const options = {
@@ -29,6 +29,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             jobId = response.body.jobId;
+            flowInput = pipeline.flowInput;
         });
         it('should succeed run caching', async () => {
             const options = {
@@ -59,6 +60,7 @@ describe('Executions', () => {
             const { body: job } = await getJob(response.jobId);
             expect(job.nodes[0].cacheJobId).to.exist;
             const rawRestPath = `${restUrl}/exec/raw`;
+            job.flowInput = flowInput;
             const { body: rawResponse } = await request({ uri: rawRestPath, body: job })
             expect(rawResponse).to.not.have.property('error')
 
