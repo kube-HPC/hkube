@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.4",
+    "version": "2.2.5",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -11774,11 +11774,15 @@
                     "type": "string",
                     "description": "type of development environment",
                     "enum": [
-                      "Jupyter"
-                    ],
-                    "default": "Jupyter"
+                      "Jupyter",
+                      "Vscode"
+                    ]
                   }
-                }
+                },
+                "required": [
+                  "name",
+                  "type"
+                ]
               }
             }
           },
@@ -17814,11 +17818,15 @@
             "type": "string",
             "description": "type of development environment",
             "enum": [
-              "Jupyter"
-            ],
-            "default": "Jupyter"
+              "Jupyter",
+              "Vscode"
+            ]
           }
-        }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
       },
       "createDevenvResponse": {
         "type": "object",

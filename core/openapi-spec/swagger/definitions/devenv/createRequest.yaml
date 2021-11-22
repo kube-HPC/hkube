@@ -7,5 +7,7 @@ properties:
     description: type of development environment
     enum:
       - Jupyter
-    default: Jupyter
-    
+      - Vscode
+required:
+  - name
+  - type    

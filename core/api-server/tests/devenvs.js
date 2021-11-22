@@ -67,6 +67,20 @@ describe('Devenvs', () => {
             expect(response.response.statusCode).to.equal(StatusCodes.OK);
             expect(response.body).to.eql({...options.body, status: devenvStatuses.PENDING});
         });
+        it('create vscode devenv should succeed', async () => {
+            const name = randomString();
+            const options = {
+                uri: `${restDevenvPath}/`,
+                method: 'POST',
+                body: {
+                    name,
+                    type: devenvTypes.VSCODE
+                }
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.OK);
+            expect(response.body).to.eql({...options.body, status: devenvStatuses.PENDING});
+        });
         it('creating devenv should fail if invalid type', async () => {
             const name = randomString();
             const options = {
@@ -79,7 +93,7 @@ describe('Devenvs', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.eql('data.type should be equal to one of the allowed values (Jupyter)');
+            expect(response.body.error.message).to.eql('data.type should be equal to one of the allowed values (Jupyter,Vscode)');
         });
         it('creating with same name should fail', async () => {
             const name = randomString();
