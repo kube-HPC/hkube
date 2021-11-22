@@ -93,7 +93,7 @@ describe('Devenvs', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.eql('data.type should be equal to one of the allowed values (Jupyter,Vscode)');
+            expect(response.body.error.message).to.eql('data.type should be equal to one of the allowed values (jupyter,vscode)');
         });
         it('creating with same name should fail', async () => {
             const name = randomString();

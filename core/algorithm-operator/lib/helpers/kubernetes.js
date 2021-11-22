@@ -106,21 +106,30 @@ class KubernetesApi extends EventEmitter {
         return ret.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
     }
 
-    async deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name }, type) {
+    async deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, storageSpec, name }, type) {
         log.info(`Creating exposed service ${deploymentSpec.metadata.name}`, { component });
         let resDeployment = null;
         let resIngress = null;
         let resService = null;
-
+        let resStorage = null;
+        // first try to create the pvc. It might fail if the pvc already exists
+        try {
+            if (storageSpec) {
+                resStorage = await this._client.pvc.create({ spec: storageSpec });
+            }
+        }
+        catch (error) {
+            log.warning(`Unable to create PVC ${storageSpec.metadata.name}. error: ${error.message}`, { component }, error);
+        }
         try {
             resDeployment = await this._client.deployments.create({ spec: deploymentSpec });
             resIngress = await this._client.ingresses.create({ spec: ingressSpec });
             resService = await this._client.services.create({ spec: serviceSpec });
-
             return {
                 resDeployment,
                 resIngress,
-                resService
+                resService,
+                resStorage
             };
         }
         catch (error) {
@@ -154,12 +163,14 @@ class KubernetesApi extends EventEmitter {
         }
     }
 
-    async deleteExposedDeployment(name, type) {
+    async deleteExposedDeployment(name, type, deletePvc = true) {
         log.info(`Deleting exposed deployment ${name}`, { component });
-        const [resDeployment, resIngress, resService] = await Promise.all([
+        const [resDeployment, resIngress, resService] = await Promise.allSettled([
             this._client.deployments.delete({ deploymentName: `${type}-${name}` }),
             this._client.ingresses.delete({ ingressName: `ingress-${type}-${name}` }),
-            this._client.services.delete({ serviceName: `${type}-service-${name}` })
+            this._client.services.delete({ serviceName: `${type}-service-${name}` }),
+            deletePvc ? this._client.pvc.delete({ name: `claim-${type}-${name}` }) : Promise.resolve()
+
         ]);
         return {
             resDeployment,

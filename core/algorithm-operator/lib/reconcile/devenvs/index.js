@@ -1,12 +1,15 @@
-const Jupyter = require('./jupyter');
+const jupyter = require('./jupyter');
+const vscode = require('./vscode');
 
 const init = async (options) => {
     if (!options.devenvs.enable) {
         return;
     }
-    await Jupyter.init(options.devenvs.jupyter);
+    await jupyter.init(options.devenvs.jupyter);
+    await vscode.init(options.devenvs.vscode);
 };
 module.exports = {
     init,
-    Jupyter
+    jupyter,
+    vscode
 };

@@ -104,6 +104,16 @@ config.devenvs = {
         path: process.env.JUPYTERHUB_SERVICE_PATH ? path.join(config.ingressPrefix, process.env.JUPYTERHUB_SERVICE_PATH) : config.ingressPrefix,
         username: process.env.JUPYTERHUB_SERVICE_USER || 'hkube',
         password: process.env.JUPYTERHUB_SERVICE_PASSWORD || 'hkube',
+    },
+    vscode:{
+        enable: formatter.parseBool(process.env.VSCODE_SERVICE_ENABLE, true),
+        password: process.env.VSCODE_SERVICE_PASSWORD || 'hkube',
+        resources: formatter.parseJson(process.env.VSCODE_SERVICE_RESOURCES, {}),
+        storage: {
+            enable: formatter.parseBool(process.env.VSCODE_SERVICE_STORAGE_ENABLE, true),
+            size: formatter.parseInt(process.env.VSCODE_SERVICE_STORAGE_SIZE_GB, 10),
+            storageClass: process.env.VSCODE_SERVICE_STORAGE_CLASS,
+        }
     }
 
 };

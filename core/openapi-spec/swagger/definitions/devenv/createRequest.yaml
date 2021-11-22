@@ -6,8 +6,8 @@ properties:
     type: string
     description: type of development environment
     enum:
-      - Jupyter
-      - Vscode
+      - jupyter
+      - vscode
 required:
   - name
   - type    

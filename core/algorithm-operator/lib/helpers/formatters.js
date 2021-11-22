@@ -21,5 +21,19 @@ module.exports = {
             }
         }
         return defaultValue;
+    },
+    parseJson(value, defaultValue) {
+        if (typeof value === 'object') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            }
+            catch (error) {
+                return defaultValue;
+            }
+        }
+        return defaultValue;
     }
 };

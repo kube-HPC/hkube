@@ -108,7 +108,7 @@ class Operator {
         if (!options.devenvs.enable) {
             return;
         }
-        await devenv.reconcile(options);
+        await devenv.reconcile({ ...options, clusterOptions: { ingressUseRegex: true } });
     }
 
     async _algorithmBuilds({ versions, registry, clusterOptions }, options) {

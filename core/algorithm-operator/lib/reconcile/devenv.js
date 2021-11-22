@@ -16,7 +16,7 @@ const _isPendingState = (state) => {
     return state === devenvStatuses.PENDING || state === devenvStatuses.CREATING;
 };
 
-const reconcile = async () => {
+const reconcile = async (createOptions) => {
     const requiredState = await _getRequiredState();
     const currentState = {};
     for (const type of Object.values(devenvTypes)) {
@@ -45,7 +45,7 @@ const reconcile = async () => {
     }
 
     for (const type of Object.values(devenvTypes)) {
-        const promises = added[type].map(a => handlers[type].create(a));
+        const promises = added[type].map(a => handlers[type].create(a, createOptions));
         const res = await Promise.allSettled(promises);
         await Promise.all(res.filter(r => r.status === 'fulfilled').map(s => db.updateDevenv(s.value)));
     }

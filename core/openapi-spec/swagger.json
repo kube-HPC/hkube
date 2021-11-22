@@ -11774,8 +11774,8 @@
                     "type": "string",
                     "description": "type of development environment",
                     "enum": [
-                      "Jupyter",
-                      "Vscode"
+                      "jupyter",
+                      "vscode"
                     ]
                   }
                 },
@@ -17818,8 +17818,8 @@
             "type": "string",
             "description": "type of development environment",
             "enum": [
-              "Jupyter",
-              "Vscode"
+              "jupyter",
+              "vscode"
             ]
           }
         },
