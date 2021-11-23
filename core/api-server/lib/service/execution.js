@@ -111,7 +111,7 @@ class ExecutionService {
             let pipeFlowInputMetadata = flowInputMetadata;
 
             if (flowInput && Object.keys(flowInput).length && !pipeFlowInputMetadata) {
-                const metadata = parser.replaceFlowInput(extendedPipeline);
+                const metadata = parser.replaceFlowInput({ ...extendedPipeline, flowInput });
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
                 pipeFlowInputMetadata = { metadata, storageInfo };
             }
