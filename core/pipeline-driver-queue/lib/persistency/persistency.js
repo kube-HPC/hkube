@@ -1,17 +1,9 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const snapshot = require('./snapshot');
 const scoring = require('./scoring');
+const dataStore = require('./data-store');
 const component = require('../consts/component-name').PERSISTENCY;
 
 const LOG_TOPICS = {
-    StartSavingSnapshot: 'start saving snapshot',
-    FinishSavingSnapshot: 'finish saving snapshot',
-    ErrorSavingSnapshot: 'error saving snapshot',
-
-    StartGetSnapshot: 'start fetching snapshot',
-    FinishGetSnapshot: 'finish fetching snapshot',
-    ErrorGetSnapshot: 'error fetching snapshot',
-
     StartSavingScores: 'start saving scores',
     FinishSavingScores: 'finish saving scores',
     ErrorSavingScores: 'error saving scores',
@@ -24,14 +16,6 @@ class Persistency {
     }
 
     async store(data) {
-        await snapshot.store({
-            key: this._queueName,
-            data,
-            onStart: (...args) => this._onStartSnapshot(...args),
-            onEnd: (...args) => this._onEndSnapshot(...args),
-            onError: (...args) => this._onErrorSnapshot(...args)
-        });
-
         await scoring.store({
             key: this._queueName,
             data,
@@ -42,37 +26,8 @@ class Persistency {
         });
     }
 
-    async get() {
-        return snapshot.get({
-            key: this._queueName,
-            onStart: (...args) => this._onStartGetSnapshot(...args),
-            onEnd: (...args) => this._onEndGetSnapshot(...args),
-            onError: (...args) => this._onErrorGetSnapshot(...args)
-        });
-    }
-
-    _onStartSnapshot({ key, length }) {
-        this._log({ level: 'info', action: LOG_TOPICS.StartSavingSnapshot, key, length });
-    }
-
-    _onEndSnapshot({ key, length, timeTook }) {
-        this._log({ level: 'info', action: LOG_TOPICS.FinishSavingSnapshot, key, length, timeTook });
-    }
-
-    _onErrorSnapshot({ key, length, error }) {
-        this._log({ level: 'error', action: LOG_TOPICS.ErrorSavingSnapshot, key, length, error });
-    }
-
-    _onStartGetSnapshot({ key, length }) {
-        this._log({ level: 'info', action: LOG_TOPICS.StartGetSnapshot, key, length });
-    }
-
-    _onEndGetSnapshot({ key, length, timeTook }) {
-        this._log({ level: 'info', action: LOG_TOPICS.FinishGetSnapshot, key, length, timeTook });
-    }
-
-    _onErrorGetSnapshot({ key, length, error }) {
-        this._log({ level: 'error', action: LOG_TOPICS.ErrorGetSnapshot, key, length, error });
+    getJobs({ status }) {
+        return dataStore.getJobs({ status });
     }
 
     _onStartScoring({ key, length }) {

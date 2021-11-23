@@ -14,11 +14,11 @@ class StateManager extends EventEmitter {
         this._checkCronsIntervalMs = options.checkCronsIntervalMs;
         this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
-        await this._watchJobResults();
 
         const { provider, ...config } = options.db;
         this._db = dbConnect(config, provider);
         await this._db.init();
+        await this._watchJobResults();
         await this._checkPipelinesInterval();
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
@@ -66,9 +66,8 @@ class StateManager extends EventEmitter {
     }
 
     async _watchJobResults() {
-        await this._etcd.jobs.results.watch();
-        this._etcd.jobs.results.on(Events.CHANGE, async (result) => {
-            this.emit(Events.RESULTS, result);
+        await this._db.jobs.watchResult({}, (job) => {
+            this.emit(Events.RESULTS, job);
         });
     }
 }

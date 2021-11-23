@@ -50,6 +50,7 @@ class JobConsumer {
     async _handleJob(job) {
         try {
             const { jobId } = job.data;
+            await dataStore.setJobStatus({ jobId, status: 'queued' });
             const jobData = await dataStore.getJob({ jobId });
             const { status, pipeline } = jobData || {};
             if (!pipeline) {
@@ -81,22 +82,7 @@ class JobConsumer {
     }
 
     _queueJob({ jobId, pipeline }) {
-        const job = this._pipelineToQueueAdapter({ jobId, pipeline });
-        queueRunner.queue.enqueue(job);
-    }
-
-    _pipelineToQueueAdapter({ jobId, pipeline }) {
-        return {
-            jobId,
-            experimentName: pipeline.experimentName,
-            pipelineName: pipeline.name,
-            priority: pipeline.priority,
-            maxExceeded: pipeline.maxExceeded,
-            entranceTime: Date.now(),
-            calculated: {
-                latestScores: {}
-            }
-        };
+        queueRunner.queue.enqueue({ jobId, pipeline });
     }
 }
 

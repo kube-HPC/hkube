@@ -125,7 +125,7 @@ class JobProducer {
             }
             const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${maxAttempts}`;
             log.warning(`${error} ${job.jobId} `, { component, jobId });
-            await etcd.updateTask({ jobId, taskId, status, error, retries: attempts });
+            await db.updateTask({ jobId, taskId, status, error, retries: attempts });
         });
     }
 
@@ -172,6 +172,7 @@ class JobProducer {
             log.info(`pop new task with taskId: ${task.taskId} for ${task.jobId}, score: ${task.calculated.score}, Queue length: ${this._getQueue().length}`,
                 { component, jobId: task.jobId, taskId: task.taskId });
             const job = this._taskToProducerJob(task);
+            await db.updateTask({ taskId: task.taskId, status: 'dequeued' });
             return this._producer.createJob(job);
         }
         return null;

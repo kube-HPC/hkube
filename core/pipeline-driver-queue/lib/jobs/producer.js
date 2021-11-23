@@ -5,6 +5,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
 const persistence = require('../persistency/persistency');
+const dataStore = require('../persistency/data-store');
 const queueRunner = require('../queue-runner');
 
 class JobProducer {
@@ -104,9 +105,8 @@ class JobProducer {
             const { jobId, error } = data;
             const status = pipelineStatuses.FAILED;
             log.warning(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
-            const pipeline = await persistence.getExecution({ jobId });
-            await persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, error, level: 'error' });
-            await persistence.setJobResults({ jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime });
+            await persistence.setJobStatus({ jobId, status, error, level: 'error' });
+            await persistence.setJobResults({ jobId, status, error });
         });
     }
 
@@ -169,6 +169,7 @@ class JobProducer {
         log.debug(`creating new job ${job.jobId}, calculated score: ${job.score}`, { component });
         const jobData = this._pipelineToJob(job);
         await this._producer.createJob(jobData);
+        await dataStore.setJobStatus({ jobId: job.jobId, status: 'dequeued' });
     }
 }
 

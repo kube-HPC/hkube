@@ -9,12 +9,10 @@ const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 
 const modules = [
-    require('./lib/state/db'),
     require('./lib/state/state-manager'),
     require('./lib/producer/jobs-producer'),
     require('./lib/consumer/jobs-consumer'),
-    require('./lib/metrics/pipeline-metrics'),
-    require('./lib/datastore/graph-store')
+    require('./lib/metrics/pipeline-metrics')
 ];
 
 class Bootstrap {

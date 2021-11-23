@@ -9,12 +9,10 @@ const pipelines = require('./mocks/pipelines');
 const DriverStates = require('../lib/state/DriverStates');
 const { createJobId } = require('./utils');
 let stateManager;
-let db;
 
 describe('StateManager', function () {
     before(async () => {
         stateManager = require('../lib/state/state-manager');
-        db = require('../lib/state/db');
     });
     it('setJobResults', async function () {
         const jobId = createJobId();
@@ -102,13 +100,13 @@ describe('StateManager', function () {
         }, 10);
         setTimeout(async () => {
             clearInterval(interval);
-            await db.updateStatus(statusStopped);
+            await stateManager.updateStatus(statusStopped);
             await stateManager._etcd.jobs.status.update(statusStopped);
             resolve();
         }, 200);
 
         await promise;
-        const res1 = await db.fetchStatus({ jobId });
+        const res1 = await stateManager.fetchStatus({ jobId });
         const res2 = await stateManager._etcd.jobs.status.get({ jobId });
         expect(res1.status).to.eql(statusStopped.status);
         expect(res2.status).to.eql(statusStopped.status);
@@ -139,29 +137,27 @@ describe('StateManager', function () {
             }, 1000)
         });
     });
-    it('watchJobStatus', function () {
+    it.only('watchJobStatus', function () {
         return new Promise(async (resolve, reject) => {
             const jobId = createJobId();
             const status = DriverStates.STOPPED;
-            await stateManager.watchJobStatus({ jobId });
-            stateManager.onJobStop((response) => {
-                if (response.jobId === jobId) {
-                    expect(response.jobId).to.equal(jobId);
-                    expect(response.status).to.equal(status);
-                    resolve();
-                }
+            await stateManager.watchJob({ jobId }, (job) => {
+                expect(job.jobId).to.equal(jobId);
+                expect(job.status.status).to.equal(status);
+                resolve();
             });
-            await stateManager._etcd.jobs.status.set({ jobId, status });
+            await stateManager.createJob({ jobId, status: { status } });
+            await stateManager.updateStatus({ jobId, status });
         });
     });
     it('unWatchJobState', function () {
         return new Promise(async (resolve, reject) => {
             const jobId = createJobId();
-            await stateManager.watchJobStatus({ jobId });
+            await stateManager.watchJob({ jobId });
             stateManager.onJobStop(() => {
                 throw new Error('failed');
             });
-            await stateManager.unWatchJobStatus({ jobId });
+            await stateManager.unWatchJob({ jobId });
             await stateManager._etcd.jobs.status.set({ jobId, status: DriverStates.STOPPED });
             setTimeout(() => {
                 resolve();

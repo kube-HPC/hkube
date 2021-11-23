@@ -276,6 +276,38 @@ class PipelineCreator {
         };
     }
 
+    createGraph({ jobId, pipeline, shouldValidateNodes }) {
+        const dag = new DAG(pipeline, { validateNodesRelations: shouldValidateNodes });
+        const json = dag.getJSONGraph();
+        const edges = json.edges.map(e => this._formatEdge(e));
+        const nodes = json.nodes.map(n => this._formatNode(n.value));
+        const graph = {
+            jobId,
+            timestamp: Date.now(),
+            nodes,
+            edges
+        };
+        return graph;
+    }
+
+    _formatNode(node) {
+        return {
+            nodeName: node.nodeName,
+            algorithmName: node.algorithmName,
+            status: node.status,
+            level: node.level
+        };
+    }
+
+    _formatEdge(e) {
+        const edge = {
+            from: e.v,
+            to: e.w,
+            value: e.value
+        };
+        return edge;
+    }
+
     _mapNodes(node, pipelines) {
         if (node.spec?.name) {
             const pipeline = pipelines.find(p => p.name === node.spec.name);

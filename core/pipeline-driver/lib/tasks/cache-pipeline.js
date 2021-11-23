@@ -1,12 +1,12 @@
 const { parser } = require('@hkube/parsers');
-const GraphStore = require('../datastore/graph-store');
-const graphStore = new GraphStore();
+const stateManager = require('../state/state-manager');
+
 class Cache {
     async _checkCachePipeline(nodes) {
         const node = nodes.find(n => n.cacheJobId);
         if (node) {
             const jobId = node.cacheJobId;
-            const graph = await graphStore.getGraph({ jobId });
+            const graph = await stateManager.getGraph({ jobId });
             if (!graph) {
                 throw new Error(`unable to find graph for job ${jobId}`);
             }

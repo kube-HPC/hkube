@@ -3,7 +3,6 @@ const configIt = require('@hkube/config');
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 const monitor = require('@hkube/redis-utils').Monitor;
-const storageManager = require('@hkube/storage-manager');
 const component = require('./lib/consts').componentName.MAIN;
 const { tracer } = require('@hkube/metrics');
 const gracefulShutdown = require('./lib/graceful-shutdown');
@@ -32,7 +31,6 @@ class Bootstrap {
             if (config.tracer) {
                 await tracer.init(config.tracer);
             }
-            await storageManager.init(config, log);
             for (const m of modules) {
                 await m.init(config);
             }

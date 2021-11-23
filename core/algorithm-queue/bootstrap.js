@@ -2,7 +2,6 @@
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
 const { tracer } = require('@hkube/metrics');
-const storageManager = require('@hkube/storage-manager');
 const monitor = require('@hkube/redis-utils').Monitor;
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
@@ -32,7 +31,6 @@ class Bootstrap {
             if (config.tracer) {
                 await tracer.init(config.tracer);
             }
-            await storageManager.init(config, log, bootstrap);
             for (const m of modules) {
                 await m.init(config);
             }

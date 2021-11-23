@@ -99,12 +99,14 @@ class JobConsumer extends EventEmitter {
 
     async _handleJob(job) {
         try {
-            const { jobId } = job.data;
+            const { jobId, nodeName } = job.data;
             const data = await db.getJob({ jobId });
             log.info(`job arrived with ${data.status} state for jobId ${jobId} and ${job.data.tasks.length} tasks`, { component, jobId });
             if (this._queueLogging.tasks) {
                 job.data.tasks.forEach(t => log.info(`task ${t.taskId} enqueued. Status: ${t.status}`, { component, jobId, taskId: t.taskId }));
             }
+            const tasksIds = job.data.tasks.map(t => t.taskId);
+            await db.updateTasks({ jobId, nodeName, tasksIds, status: 'queued' });
             if (isCompletedState({ status: data.status })) {
                 this._removeInvalidJob([{ jobId }]);
             }

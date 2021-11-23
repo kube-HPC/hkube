@@ -10,7 +10,7 @@ class StateManager {
     async init(options) {
         const log = Logger.GetLogFromContainer();
         this._etcd = new Etcd(options.etcd);
-        await this._watch();
+        await this._watchBuilds();
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
         log.info(`initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
 
@@ -20,10 +20,8 @@ class StateManager {
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
 
-    async _watch() {
+    async _watchBuilds() {
         await this._etcd.algorithms.builds.singleWatch();
-        await this._etcd.jobs.results.singleWatch();
-        await this._etcd.jobs.status.singleWatch();
     }
 
     async setPipelineDriversSettings(data) {
@@ -245,16 +243,12 @@ class StateManager {
         return this._db.jobs.createMany(list);
     }
 
-    onJobResult(func) {
-        this._etcd.jobs.results.on('change', (response) => {
-            func(response);
-        });
+    onJobResult(cb) {
+        this._db.jobs.watchResult({}, cb);
     }
 
-    onJobStatus(func) {
-        this._etcd.jobs.status.on('change', (response) => {
-            func(response);
-        });
+    onJobStatus(cb) {
+        this._db.jobs.watchStatus({}, cb);
     }
 
     releaseJobResultLock({ jobId }) {
@@ -265,9 +259,8 @@ class StateManager {
         return this._etcd.jobs.status.releaseChangeLock({ jobId });
     }
 
-    async createJob({ jobId, userPipeline, pipeline, status }) {
-        await this._db.jobs.create({ jobId, userPipeline, pipeline, status });
-        await this._etcd.jobs.status.set({ jobId, ...status });
+    async createJob({ jobId, graph, userPipeline, pipeline, status }) {
+        await this._db.jobs.create({ jobId, graph, userPipeline, pipeline, status });
     }
 
     async getJob({ jobId, fields }) {
@@ -284,12 +277,10 @@ class StateManager {
 
     async updateJobStatus(status) {
         await this._db.jobs.updateStatus(status);
-        await this._etcd.jobs.status.update(status);
     }
 
     async updateJobResult(result) {
         await this._db.jobs.updateResult(result);
-        await this._etcd.jobs.results.set(result);
     }
 
     async getJobResult(options) {
@@ -390,6 +381,7 @@ class StateManager {
 
     async cleanJob({ jobId }) {
         await Promise.all([
+            this._db.jobs.delete({ jobId }),
             this._etcd.jobs.results.delete({ jobId }),
             this._etcd.jobs.status.delete({ jobId }),
             this._etcd.jobs.tasks.delete({ jobId }),

@@ -3,6 +3,7 @@ const cloneDeep = require('lodash.clonedeep');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 const { uid } = require('@hkube/uid');
+const { NodesMap: Graph } = require('@hkube/dag');
 const { pipelineTypes, pipelineStatuses, nodeKind } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const storageManager = require('@hkube/storage-manager');
@@ -111,7 +112,7 @@ class ExecutionService {
             let pipeFlowInputMetadata = flowInputMetadata;
 
             if (flowInput && Object.keys(flowInput).length && !pipeFlowInputMetadata) {
-                const metadata = parser.replaceFlowInput(extendedPipeline);
+                const metadata = parser.replaceFlowInput({ ...extendedPipeline, flowInput });
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
                 pipeFlowInputMetadata = { metadata, storageInfo };
             }
@@ -122,8 +123,9 @@ class ExecutionService {
             const lastRunResult = await this._getLastPipeline(extendedPipeline);
             const pipelineObject = { ...extendedPipeline, maxExceeded, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
             const statusObject = { timestamp: Date.now(), pipeline: extendedPipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
+            const graph = pipelineCreator.createGraph({ jobId, pipeline: extendedPipeline, shouldValidateNodes });
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
-            await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
+            await stateManager.createJob({ jobId, graph, userPipeline, pipeline: pipelineObject, status: statusObject });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return { jobId, gateways: extendedPipeline.streaming?.gateways };
@@ -248,8 +250,8 @@ class ExecutionService {
     async stopJob(options) {
         validator.executions.validateStopPipeline(options);
         const { jobId, reason } = options;
-        const job = await stateManager.getJob({ jobId, fields: { status: true, result: true, pipeline: true } });
-        const { status, result, pipeline } = job || {};
+        const job = await stateManager.getJob({ jobId, fields: { status: true, result: true } });
+        const { status, result } = job || {};
         if (!status) {
             throw new ResourceNotFoundError('jobId', jobId);
         }
@@ -258,10 +260,8 @@ class ExecutionService {
             throw new InvalidDataError(`unable to stop pipeline ${status.pipeline} because its in ${status.status} status`);
         }
 
-        const statusObject = { jobId, status: pipelineStatuses.STOPPED, reason, level: levels.INFO.name };
-        const resultObject = { jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status: pipelineStatuses.STOPPED };
-        await stateManager.updateJobStatus(statusObject);
-        await stateManager.updateJobResult(resultObject);
+        await stateManager.updateJobStatus({ jobId, status: pipelineStatuses.STOPPED, reason, level: levels.INFO.name });
+        await stateManager.updateJobResult({ jobId, reason, status: pipelineStatuses.STOPPED });
     }
 
     async pauseJob(options) {

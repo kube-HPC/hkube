@@ -58,7 +58,7 @@ class JobConsumer extends EventEmitter {
             }
             this._setJob(job);
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
-            const watchState = await stateAdapter.watch({ jobId: job.data.jobId });
+            const watchState = await stateAdapter.watchJobStatus({ jobId: job.data.jobId });
             if (this._isCompletedState({ status: watchState?.status })) {
                 await this._stopJob(job, watchState.status);
                 return;
@@ -143,7 +143,7 @@ class JobConsumer extends EventEmitter {
     }
 
     async _stopJob(job, status) {
-        await stateAdapter.unwatch({ jobId: job.data.jobId });
+        await stateAdapter.unwatchJobStatus({ jobId: job.data.jobId });
         log.info(`job ${job.data.jobId} already in ${status} status`);
         job.done();
     }
@@ -257,7 +257,6 @@ class JobConsumer extends EventEmitter {
         try {
             this._inFinishState = true;
             await this._unwatchJob();
-            await stateAdapter.unwatch({ jobId: this._jobId });
             if (this._execId) {
                 await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
             }
@@ -293,13 +292,13 @@ class JobConsumer extends EventEmitter {
     }
 
     async _unwatchJob() {
-        await stateAdapter.unwatch({ jobId: this._jobId });
+        await stateAdapter.unwatchJobStatus({ jobId: this._jobId });
         if (this._execId) {
             await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
     }
 
-    sendWarning(warning) {
+    async sendWarning(warning) {
         const data = {
             warning,
             status: taskStatuses.WARNING
@@ -307,19 +306,19 @@ class JobConsumer extends EventEmitter {
         return this.updateStatus(data);
     }
 
-    updateStatus(data = {}) {
+    async updateStatus(data = {}) {
         if (!this._jobId) {
             return null;
         }
         return stateAdapter.updateTask({ ...this._getState(), ...data });
     }
 
-    setStoringStatus(result) {
+    async setStoringStatus(result) {
         this._result = result;
         return this.updateStatus({ status: taskStatuses.STORING, result });
     }
 
-    updateMetrics(metrics) {
+    async updateMetrics(metrics) {
         return this.updateStatus({ status: taskStatuses.THROUGHPUT, metrics });
     }
 

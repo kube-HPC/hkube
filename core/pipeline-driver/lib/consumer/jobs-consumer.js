@@ -33,24 +33,6 @@ class JobConsumer {
         this._consumer.on('job', async (job) => {
             await this._handleJob(job);
         });
-        stateManager.onJobStop(async (d) => {
-            const driver = this._drivers.get(d.jobId);
-            if (driver) {
-                await driver.onStop(d);
-            }
-        });
-        stateManager.onJobPause(async (d) => {
-            const driver = this._drivers.get(d.jobId);
-            if (driver) {
-                await driver.onPause(d);
-            }
-        });
-        stateManager.onTaskStatus((d) => {
-            const driver = this._drivers.get(d.jobId);
-            if (driver) {
-                driver.handleTaskEvent(d);
-            }
-        });
         stateManager.onStopProcessing(async (data) => {
             await this._stopProcessing(data);
         });

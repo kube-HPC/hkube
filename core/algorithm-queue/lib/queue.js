@@ -84,7 +84,7 @@ class Queue extends events {
     }
 
     async persistencyLoad() {
-        const queueItems = await this.persistence.get();
+        const queueItems = await this.persistence.getTasks();
         this.addJobs(queueItems);
     }
 

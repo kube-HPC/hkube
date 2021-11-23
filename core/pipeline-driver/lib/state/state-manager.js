@@ -1,18 +1,17 @@
 const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const Etcd = require('@hkube/etcd');
+const dbConnect = require('@hkube/db');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const commands = require('../consts/commands');
-const db = require('./db');
 const DriverStates = require('./DriverStates');
 const component = require('../consts/componentNames').STATE_MANAGER;
 const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED, DriverStates.PAUSED];
 
 class StateManager {
-    init(options) {
+    async init(options) {
         this._emitter = new EventEmitter();
         this._etcd = new Etcd(options.etcd);
         this._podName = options.kubernetes.podName;
@@ -20,16 +19,15 @@ class StateManager {
         this._driverId = this._etcd.discovery._instanceId;
         this._etcd.discovery.register({ data: this._defaultDiscovery() });
         this._unScheduledAlgorithmsInterval = options.unScheduledAlgorithms.interval;
-        this._subscribe();
         this._watchDrivers();
+
+        const { provider, ...config } = options.db;
+        this._db = dbConnect(config, provider);
+        await this._db.init();
+        log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
 
-    _subscribe() {
-        this._etcd.jobs.status.on('change', (data) => {
-            this._emitter.emit(`job-${data.status}`, data);
-        });
-    }
-
+    // Discovery
     onStopProcessing(func) {
         this._etcd.drivers.on('change', (data) => {
             if (data.status.command === commands.stopProcessing) {
@@ -40,24 +38,6 @@ class StateManager {
 
     onUnScheduledAlgorithms(func) {
         this._emitter.on('events-warning', (data) => {
-            func(data);
-        });
-    }
-
-    onJobStop(func) {
-        this._emitter.on(`job-${pipelineStatuses.STOPPED}`, (data) => {
-            func(data);
-        });
-    }
-
-    onJobPause(func) {
-        this._emitter.on(`job-${pipelineStatuses.PAUSED}`, (data) => {
-            func(data);
-        });
-    }
-
-    onTaskStatus(func) {
-        this._etcd.jobs.tasks.on('change', (data) => {
             func(data);
         });
     }
@@ -107,17 +87,12 @@ class StateManager {
         return data;
     }
 
-    // TODO: Handle UI to support driver to many jobs
     async updateDiscovery(discovery) {
         const currentDiscovery = this._defaultDiscovery(discovery);
         if (!isEqual(this._lastDiscovery, currentDiscovery)) {
             this._lastDiscovery = currentDiscovery;
             await this._etcd.discovery.updateRegisteredData(currentDiscovery);
         }
-    }
-
-    isCompletedState(job) {
-        return job && CompletedState.includes(job.status);
     }
 
     async setJobResultsToStorage(options) {
@@ -173,11 +148,47 @@ class StateManager {
         data.forEach(d => Object.keys(d).forEach(k => d[k] === undefined && delete d[k]));
     }
 
+    deleteStreamingStats(options) {
+        return this._etcd.streaming.statistics.delete(options, { isPrefix: true });
+    }
+
+    _watchDrivers() {
+        return this._etcd.drivers.watch({ driverId: this._driverId });
+    }
+
+    // Jobs
+    createJob({ jobId, pipeline, status }) {
+        return this._db.jobs.create({ jobId, pipeline, status });
+    }
+
+    updateResult(options) {
+        return this._db.jobs.updateResult(options);
+    }
+
+    updateStatus(options, updateOnlyActive) {
+        return this._db.jobs.updateStatus(options, updateOnlyActive);
+    }
+
+    fetchStatus(options) {
+        return this._db.jobs.fetchStatus(options);
+    }
+
+    updatePipeline(options) {
+        return this._db.jobs.updatePipeline(options);
+    }
+
+    isCompletedState(job) {
+        return job && CompletedState.includes(job.status);
+    }
+
+    getJobStatus(options) {
+        return this._db.fetchStatus(options);
+    }
+
     async setJobResults(options) {
         let error;
         try {
-            await this._etcd.jobs.results.set(options);
-            await db.updateResult(options);
+            await this._db.jobs.updateResult(options);
         }
         catch (e) {
             error = e.message;
@@ -186,74 +197,62 @@ class StateManager {
     }
 
     async setJobStatus(options) {
-        return this._etcd.jobs.status.update(options, (oldItem) => {
-            if (this._isActiveStatus(oldItem.status)) {
-                const data = { ...oldItem, ...options };
-                db.updateStatus(data, true);
-                return data;
-            }
-            return null;
-        }).catch(e => {
+        try {
+            await this._db.jobs.updateStatus(options, true);
+        }
+        catch (e) {
             log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
-        });
+        }
     }
 
-    _isActiveStatus(status) {
-        return status !== DriverStates.STOPPED && status !== DriverStates.PAUSED;
+    getJob({ jobId }) {
+        return this._db.jobs.fetch({ jobId, fields: { status: true, pipeline: true } });
     }
 
-    getJobStatus(options) {
-        return db.fetchStatus(options);
+    watchJob({ jobId }, cb) {
+        return this._db.jobs.watchStatus({ jobId }, cb);
     }
 
-    async tasksList(options) {
-        const list = await this._etcd.jobs.tasks.list({ ...options, limit: 100000 });
+    unWatchJob({ jobId }) {
+        return this._db.jobs.unwatchStatus({ jobId });
+    }
+
+    // Graph
+    updateGraph({ jobId, graph }) {
+        return this._db.jobs.updateGraph({ jobId, graph: { jobId, timestamp: Date.now(), ...graph } });
+    }
+
+    async getGraph({ jobId }) {
+        const res = await this._db.jobs.fetchGraph({ jobId });
+        if (!res) {
+            return null;
+        }
+        if (Object.keys(res).length === 1 && res.jobId) {
+            return null;
+        }
+        return res;
+    }
+
+    // Tasks
+    createTasks(tasks) {
+        return this._db.tasks.createMany(tasks);
+    }
+
+    watchTasks({ jobId }, cb) {
+        return this._db.tasks.watch({ jobId }, cb);
+    }
+
+    unWatchTasks({ jobId }) {
+        return this._db.tasks.unwatch({ jobId });
+    }
+
+    async getTasks({ jobId }) {
+        const list = await this._db.tasks.search({ jobId });
         const results = new Map();
         list.forEach((v) => {
             results.set(v.taskId, v);
         });
         return results;
-    }
-
-    getExecution(options) {
-        return db.fetchPipeline(options);
-    }
-
-    updatePipeline(options) {
-        return db.updatePipeline(options);
-    }
-
-    watchTasks(options) {
-        return this._etcd.jobs.tasks.watch(options);
-    }
-
-    unWatchTasks(options) {
-        return this._etcd.jobs.tasks.unwatch(options);
-    }
-
-    deleteTasksList(options) {
-        return this._etcd.jobs.tasks.delete(options, { isPrefix: true });
-    }
-
-    deleteStreamingStats(options) {
-        return this._etcd.streaming.statistics.delete(options, { isPrefix: true });
-    }
-
-    watchJobStatus(options) {
-        return this._etcd.jobs.status.watch(options);
-    }
-
-    unWatchJobStatus(options) {
-        return this._etcd.jobs.status.unwatch(options);
-    }
-
-    _watchDrivers() {
-        return this._etcd.drivers.watch({ driverId: this._driverId });
-    }
-
-    async createJob({ jobId, pipeline, status }) {
-        await db.createJob({ jobId, pipeline, status });
-        await this._etcd.jobs.status.set({ jobId, ...status });
     }
 }
 

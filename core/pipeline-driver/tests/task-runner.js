@@ -7,10 +7,9 @@ const Etcd = require('@hkube/etcd');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const { Node } = NodeTypes;
 const pipelines = require('./mocks/pipelines');
-const GraphStore = require('../lib/datastore/graph-store');
+const graphStore = require('../lib/datastore/graph-store');
 const WorkerStub = require('./mocks/worker')
 const { delay, createJobId } = require('./utils');
-const graphStore = new GraphStore();
 let config, stateManager, taskRunner, TaskRunner, consumer;
 
 describe('TaskRunner', function () {
@@ -100,10 +99,9 @@ describe('TaskRunner', function () {
         nodesMap.setNode(node2);
         const status = { status: 'active' };
         await stateManager.createJob({ jobId, pipeline, status });
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
+        await stateManager._db.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
+        await stateManager._db.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
         const spy = sinon.spy(taskRunner, "_recoverPipeline");
-        await graphStore.start(job.data.jobId, nodesMap);
         await taskRunner.start(job)
         expect(spy.calledOnce).to.equal(true);
     });
@@ -124,13 +122,12 @@ describe('TaskRunner', function () {
         nodesMap.setNode(node3);
         nodesMap.setNode(node4);
 
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'active' });
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'active' });
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'active' });
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node4.taskId, status: 'active' });
+        await stateManager._db.tasks.set({ jobId, taskId: node1.taskId, status: 'active' });
+        await stateManager._db.tasks.set({ jobId, taskId: node2.taskId, status: 'active' });
+        await stateManager._db.tasks.set({ jobId, taskId: node3.taskId, status: 'active' });
+        await stateManager._db.tasks.set({ jobId, taskId: node4.taskId, status: 'active' });
         const status = { status: 'active' };
         await stateManager.createJob({ jobId, pipeline, status });
-        await graphStore.start(jobId, nodesMap);
         await consumer._handleJob(job);
         const driver = consumer._drivers.get(jobId);
         expect(driver._active).to.equal(true);
@@ -138,10 +135,10 @@ describe('TaskRunner', function () {
         // simulate restart
         await driver.onStop({});
         expect(driver._active).to.equal(false, 'onStop failed');
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node4.taskId, status: 'succeed' });
+        await stateManager._db.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
+        await stateManager._db.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
+        await stateManager._db.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });
+        await stateManager._db.tasks.set({ jobId, taskId: node4.taskId, status: 'succeed' });
         await driver.start(job);
         await delay(2000);
         expect(driver._active).to.equal(false);

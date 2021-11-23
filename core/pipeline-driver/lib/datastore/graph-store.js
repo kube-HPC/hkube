@@ -1,76 +1,19 @@
 const clone = require('clone');
-const isEqual = require('lodash.isequal');
 const objectPath = require('object-path');
 const flatten = require('flat');
-const log = require('@hkube/logger').GetLogFromContainer();
-const { Persistency } = require('@hkube/dag');
 const { taskStatuses } = require('@hkube/consts');
-const components = require('../consts/componentNames');
-const INTERVAL = 4000;
-const persistency = new Persistency();
 
 class GraphStore {
-    constructor() {
-        this._interval = null;
-        this._nodesMap = null;
-        this._jobId = null;
+    formatGraph(json) {
+        const graph = this._formatGraph(json);
+        return graph;
     }
 
-    static async init(options) {
-        return persistency.init({ connection: options.db });
-    }
-
-    async start(jobId, nodeMap) {
-        this._jobId = jobId;
-        this._nodesMap = nodeMap;
-        await this._store();
-        this._storeInterval();
-    }
-
-    async stop() {
-        await this._store();
-        clearInterval(this._interval);
-        this._interval = null;
-        this._nodesMap = null;
-        this._jobId = null;
-    }
-
-    getGraph(options) {
-        return persistency.getGraph({ jobId: options.jobId });
-    }
-
-    _storeInterval() {
-        if (this._interval) {
-            return;
-        }
-        this._interval = setInterval(async () => {
-            if (this._working) {
-                return;
-            }
-            this._working = true;
-            await this._store();
-            this._working = false;
-        }, INTERVAL);
-    }
-
-    async _store() {
-        try {
-            if (this._nodesMap) {
-                const graph = this._nodesMap.getJSONGraph();
-                await this._updateGraph(graph);
-            }
-        }
-        catch (error) {
-            log.error(error.message, { component: components.GRAPH_STORE }, error);
-        }
-    }
-
-    async _updateGraph(graph) {
-        const filterGraph = this._filterData(graph);
-        if (!isEqual(this._lastGraph, filterGraph)) {
-            this._lastGraph = filterGraph;
-            await persistency.setGraph({ jobId: this._jobId, data: { jobId: this._jobId, timestamp: Date.now(), ...filterGraph } });
-        }
+    _formatGraph(graph) {
+        return {
+            edges: graph.edges.map(e => this._formatEdge(e)),
+            nodes: graph.nodes.map(n => this._formatNode(n.value))
+        };
     }
 
     _formatEdge(e) {
@@ -82,13 +25,6 @@ class GraphStore {
         return edge;
     }
 
-    _filterData(graph) {
-        return {
-            edges: graph.edges.map(e => this._formatEdge(e)),
-            nodes: graph.nodes.map(n => this._formatNode(n.value))
-        };
-    }
-
     _formatNode(node) {
         if (node.batch.length === 0) {
             return this._handleSingle(node);
@@ -98,38 +34,22 @@ class GraphStore {
 
     _mapTask(task) {
         return {
-            taskId: task.taskId,
-            input: this._parseInput(task),
-            output: task.result,
-            podName: task.podName,
+            nodeName: task.nodeName,
+            algorithmName: task.algorithmName,
             status: task.status,
-            error: task.error,
-            warnings: task.warnings,
-            retries: task.retries,
-            batchIndex: task.batchIndex,
-            startTime: task.startTime,
-            endTime: task.endTime,
-            metricsPath: task.metricsPath,
             level: task.level
         };
     }
 
     _handleSingle(n) {
-        const node = {
-            nodeName: n.nodeName,
-            algorithmName: n.algorithmName,
-            ...this._mapTask(n)
-        };
+        const node = this._mapTask(n);
         return node;
     }
 
     _handleBatch(n) {
         const node = {
-            nodeName: n.nodeName,
-            algorithmName: n.algorithmName,
-            batch: n.batch.map(b => this._mapTask(b)),
-            batchInfo: this._batchInfo(n.batch),
-            level: n.level
+            ...this._mapTask(n),
+            batchInfo: this._batchInfo(n.batch)
         };
         return node;
     }
@@ -184,4 +104,4 @@ class GraphStore {
     }
 }
 
-module.exports = GraphStore;
+module.exports = new GraphStore();

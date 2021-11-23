@@ -38,7 +38,7 @@ class StateAdapter extends EventEmitter {
             algorithmVersion: options.algorithmVersion
         };
         this._tasksQueue = asyncQueue((task, callback) => {
-            this._etcd.jobs.tasks.set(task).then(r => callback(null, r)).catch(e => callback(e));
+            this._db.tasks.update(task).then(r => callback(null, r)).catch(e => callback(e));
         }, 1);
         await this._etcd.discovery.register({ data: this._discoveryInfo });
         log.info(`initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
@@ -54,17 +54,8 @@ class StateAdapter extends EventEmitter {
             log.info(`got worker state change ${JSON.stringify(res)}`, { component });
             this.emit(res.status.command, res);
         });
-        this._etcd.jobs.status.on('change', (res) => {
-            this.emit(res.status, res);
-        });
         this._etcd.algorithms.executions.on('change', (res) => {
             this.emit(res.status, res);
-        });
-        this._etcd.jobs.tasks.on('change', (data) => {
-            this.emit(`task-${data.status}`, data);
-        });
-        this._etcd.jobs.results.on('change', (result) => {
-            this._onJobResult(result);
         });
         this._etcd.streaming.statistics.on('change', (data) => {
             this.emit(`streaming-statistics-${data.nodeName}`, data);
@@ -126,8 +117,11 @@ class StateAdapter extends EventEmitter {
      * In case the watch already has job result, we are emit an event
      * on the next tick in order to simulate the regular watch event.
      */
-    async watchJobResults(options) {
-        const result = await this._etcd.jobs.results.watch(options);
+    async watchJobResults({ jobId }) {
+        await this._db.jobs.watchResult({ jobId }, (job) => {
+            this._onJobResult(job);
+        });
+        const result = await this._db.jobs.fetchResult({ jobId });
         if (result) {
             setImmediate(() => {
                 this._onJobResult(result);
@@ -135,8 +129,8 @@ class StateAdapter extends EventEmitter {
         }
     }
 
-    async unWatchJobResults(options) {
-        return this._etcd.jobs.results.unwatch(options);
+    async unWatchJobResults({ jobId }) {
+        return this._db.jobs.unwatchResult({ jobId });
     }
 
     async updateDiscovery(options) {
@@ -155,16 +149,31 @@ class StateAdapter extends EventEmitter {
         });
     }
 
-    async watchTasks(options) {
-        return this._etcd.jobs.tasks.watch(options);
+    async watchTasks({ jobId }) {
+        return this._db.tasks.watch({ jobId }, (task) => {
+            this.emit(`task-${task.status}`, task);
+        });
     }
 
-    async unWatchTasks(options) {
-        return this._etcd.jobs.tasks.unwatch(options);
+    async unWatchTasks({ jobId }) {
+        return this._db.tasks.unwatch({ jobId });
     }
 
-    async watch(options) {
-        return this._etcd.jobs.status.watch(options);
+    async watchJobStatus({ jobId }) {
+        return this._db.jobs.watchStatus({ jobId }, (job) => {
+            this.emit(job.status, job);
+        });
+    }
+
+    async unwatchJobStatus({ jobId }) {
+        try {
+            log.debug('start unwatch', { component });
+            await this._db.jobs.unwatchStatus({ jobId });
+            log.debug('end unwatch', { component });
+        }
+        catch (error) {
+            log.debug(`got error unwatching ${jobId}. Error: ${error.message}`, { component }, error);
+        }
     }
 
     async watchWorkerStates() {
@@ -228,17 +237,6 @@ class StateAdapter extends EventEmitter {
 
     async getQueue(name) {
         return this._etcd.algorithms.queue.get({ name });
-    }
-
-    async unwatch(options) {
-        try {
-            log.debug('start unwatch', { component });
-            await this._etcd.jobs.status.unwatch(options);
-            log.debug('end unwatch', { component });
-        }
-        catch (error) {
-            log.debug(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
-        }
     }
 
     async getDiscovery(filter) {

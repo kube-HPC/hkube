@@ -9,35 +9,36 @@ class DataStore extends EventEmitter {
         const log = Logger.GetLogFromContainer();
         const { etcd, serviceName } = options;
         this._etcd = new Client({ ...etcd, serviceName });
-        await this._watchJobStatus();
-        this._etcd.jobs.status.on('change', (data) => {
-            this.emit(`job-${data.status}`, data);
-        });
         const { provider, ...config } = options.db;
         this._db = dbConnect(config, provider);
         await this._db.init();
+        await this._watchJobStatus();
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
-    }
-
-    async storeQueue(options) {
-        return this._etcd.pipelineDrivers.queue.set(options);
-    }
-
-    async _watchJobStatus(options) {
-        await this._etcd.jobs.status.watch(options);
     }
 
     async getJob({ jobId }) {
         return this._db.jobs.fetch({ jobId, fields: { status: true, pipeline: true } });
     }
 
+    async getJobs({ status }) {
+        return this._db.jobs.search({ pipelineStatus: status, fields: { jobId: true, pipeline: true } });
+    }
+
+    async storeQueue(options) {
+        return this._etcd.pipelineDrivers.queue.set(options);
+    }
+
+    async _watchJobStatus() {
+        await this._db.jobs.watchStatus({}, (job) => {
+            this.emit(`job-${job.status}`, job);
+        });
+    }
+
     async setJobStatus(options) {
-        await this._etcd.jobs.status.update(options);
         await this._db.jobs.updateStatus(options);
     }
 
     async setJobResults(options) {
-        await this._etcd.jobs.results.set(options);
         await this._db.jobs.updateResult(options);
     }
 }

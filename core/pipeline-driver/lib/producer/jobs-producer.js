@@ -3,6 +3,7 @@ const { Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { nodeKind } = require('@hkube/consts');
 const logger = require('@hkube/logger');
+const stateManager = require('../state/state-manager');
 const log = logger.GetLogFromContainer();
 const component = require('../consts/componentNames').JOBS_PRODUCER;
 
@@ -47,12 +48,14 @@ class JobProducer extends EventEmitter {
             else {
                 tasks.push({ taskId: options.node.taskId, status: options.node.status, input: options.node.input, storage: options.storage });
             }
+            const { algorithmName, nodeName } = options.node;
             const jobOptions = {
                 type: options.node.algorithmName,
                 data: {
                     jobId,
                     tasks,
-                    nodeName: options.node.nodeName,
+                    nodeName,
+                    algorithmName,
                     metrics: options.node.metrics,
                     ttl: options.node.ttl,
                     retry: options.node.retry,
@@ -60,7 +63,6 @@ class JobProducer extends EventEmitter {
                     stateType: options.node.stateType,
                     priority: pipeline.priority,
                     kind: pipeline.kind,
-                    algorithmName: options.node.algorithmName,
                     parents: options.parents,
                     childs: options.childs,
                     parsedFlow: pipeline.streaming?.parsedFlow,
@@ -77,7 +79,21 @@ class JobProducer extends EventEmitter {
                 tasks.forEach(t => log.info(`task ${t.taskId} created`, { component, jobId, taskId: t.taskId, algorithmName: options.node.algorithmName }));
             }
             await this._createJob(jobOptions);
+            await this._createTasks({ jobId, tasks, algorithmName, nodeName });
         }
+    }
+
+    async _createTasks({ jobId, tasks, algorithmName, nodeName }) {
+        const tasksList = tasks.map(t => {
+            return {
+                jobId,
+                taskId: t.taskId,
+                status: t.status,
+                algorithmName,
+                nodeName,
+            };
+        });
+        await stateManager.createTasks(tasksList);
     }
 
     async _createJob(options) {

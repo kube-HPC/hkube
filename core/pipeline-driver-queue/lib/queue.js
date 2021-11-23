@@ -29,16 +29,11 @@ class Queue extends Events {
         if (!this._persistency) {
             return;
         }
-        const data = await this._persistency.get();
+        const data = await this._persistency.getJobs({ status: 'queued' });
         if (data?.length > 0) {
+            log.info(`recover ${data.length} jobs from db`, { component });
             data.forEach(q => {
-                const item = {
-                    ...q,
-                    calculated: {
-                        latestScores: {}
-                    }
-                };
-                this.enqueue(item);
+                this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
             });
         }
     }
@@ -58,7 +53,22 @@ class Queue extends Events {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
     }
 
-    enqueue(job) {
+    _pipelineToQueueAdapter({ jobId, pipeline }) {
+        return {
+            jobId,
+            experimentName: pipeline.experimentName,
+            pipelineName: pipeline.name,
+            priority: pipeline.priority,
+            maxExceeded: pipeline.maxExceeded,
+            entranceTime: Date.now(),
+            calculated: {
+                latestScores: {}
+            }
+        };
+    }
+
+    enqueue({ jobId, pipeline }) {
+        const job = this._pipelineToQueueAdapter({ jobId, pipeline });
         this.queue.push(job);
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
         this.queue = orderby(this.queue, 'score', 'desc');
