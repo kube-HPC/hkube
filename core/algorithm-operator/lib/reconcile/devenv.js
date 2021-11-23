@@ -19,50 +19,41 @@ const _isPendingState = (state) => {
 const reconcile = async (createOptions) => {
     const requiredState = await _getRequiredState();
     const currentState = {};
+    const added = {};
+    const removed = {};
+    const stopped = {};
+    const updateStatus = {};
     for (const type of Object.values(devenvTypes)) {
         currentState[type] = await handlers[type].current();
-    }
-    const added = {};
-    for (const type of Object.values(devenvTypes)) {
+
         added[type] = requiredState[type].filter(a => a.status === devenvStatuses.PENDING && !currentState[type].find(c => c.name === a.name));
-    }
-    const removed = {};
-    for (const type of Object.values(devenvTypes)) {
+
         const markedForRemoval = requiredState[type].filter(c => c.status === devenvStatuses.DELETING);
         removed[type] = currentState[type].filter(a => !requiredState[type].find(c => c.name === a.name));
         removed[type] = removed[type].concat(markedForRemoval);
-    }
 
-    const stopped = {};
-    for (const type of Object.values(devenvTypes)) {
         stopped[type] = requiredState[type].filter(a => a.status === devenvStatuses.STOPPED && currentState[type].find(c => c.name === a.name));
-    }
 
-    const updateStatus = {};
-    for (const type of Object.values(devenvTypes)) {
         updateStatus[type] = currentState[type].filter(c => c.status === devenvStatuses.RUNNING
             && _isPendingState(requiredState[type].find(r => r.name === c.name)?.status));
     }
 
     for (const type of Object.values(devenvTypes)) {
-        const promises = added[type].map(a => handlers[type].create(a, createOptions));
+        let promises = added[type].map(a => handlers[type].create(a, createOptions));
         const res = await Promise.allSettled(promises);
         await Promise.all(res.filter(r => r.status === 'fulfilled').map(s => db.updateDevenv(s.value)));
-    }
-    for (const type of Object.values(devenvTypes)) {
-        const promises = removed[type].map(a => handlers[type].delete(a));
+
+        promises = removed[type].map(a => handlers[type].delete(a));
         const deletedPromises = removed[type].map(a => db.deleteDevenv({ name: a.name }));
         await Promise.allSettled([...promises, ...deletedPromises]);
-    }
-    for (const type of Object.values(devenvTypes)) {
-        const promises = updateStatus[type].map(a => db.updateDevenv({ name: a.name, status: a.status }));
+
+        promises = updateStatus[type].map(a => db.updateDevenv({ name: a.name, status: a.status }));
+        await Promise.allSettled(promises);
+
+        promises = stopped[type].map(a => handlers[type].stop(a));
         await Promise.allSettled(promises);
     }
-    for (const type of Object.values(devenvTypes)) {
-        const promises = stopped[type].map(a => handlers[type].stop(a));
-        await Promise.allSettled(promises);
-    }
-    return { added, removed, stopped };
+    return { added, removed, stopped, updateStatus };
 };
 
 module.exports = {
