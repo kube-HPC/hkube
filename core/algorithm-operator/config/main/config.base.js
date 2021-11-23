@@ -105,7 +105,7 @@ config.devenvs = {
         username: process.env.JUPYTERHUB_SERVICE_USER || 'hkube',
         password: process.env.JUPYTERHUB_SERVICE_PASSWORD || 'hkube',
     },
-    vscode:{
+    vscode: {
         enable: formatter.parseBool(process.env.VSCODE_SERVICE_ENABLE, true),
         password: process.env.VSCODE_SERVICE_PASSWORD || 'hkube',
         resources: formatter.parseJson(process.env.VSCODE_SERVICE_RESOURCES, {}),

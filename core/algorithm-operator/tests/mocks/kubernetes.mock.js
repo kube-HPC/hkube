@@ -15,6 +15,7 @@ module.exports = {
                 },
                 createDeployment: async () => { },
                 updateDeployment: async () => { },
+                getDeployments: async () => ({body: {items: []}}),
                 deleteDeployment: async () => { },
                 getWorkerJobs: async () => { },
                 getPipelineDriversJobs: async () => { },

@@ -17,8 +17,8 @@ describe('devenvs', () => {
     });
     it('should reconcile empty lists', async () => {
         const res = await reconcile();
-        expect(res.added.Jupyter).to.be.empty;
-        expect(res.removed.Jupyter).to.be.empty;
+        expect(res.added.jupyter).to.be.empty;
+        expect(res.removed.jupyter).to.be.empty;
         expect(callCount('create').length).to.equal(0);
         expect(callCount('remove').length).to.equal(0);
         expect(callCount('list').length).to.equal(1);
@@ -29,8 +29,8 @@ describe('devenvs', () => {
         const list=[{ name, ready: true }];
         setList(list)
         const res = await reconcile();
-        expect(res.added.Jupyter).to.be.empty;
-        expect(res.removed.Jupyter.map(i=>({name: i.name}))).to.eql(list.map(i=>({name: i.name})));
+        expect(res.added.jupyter).to.be.empty;
+        expect(res.removed.jupyter.map(i=>({name: i.name}))).to.eql(list.map(i=>({name: i.name})));
         expect(callCount('create').length).to.equal(0);
         expect(callCount('remove').length).to.equal(0);
         expect(callCount('delete').length).to.equal(1);
@@ -40,11 +40,11 @@ describe('devenvs', () => {
         const name= randomString();
         const list=[{ name, ready: true }];
         setList(list)
-        await db._db.devenvs.create({name, status: 'stopped', type: 'Jupyter'});
+        await db._db.devenvs.create({name, status: 'stopped', type: 'jupyter'});
         const res = await reconcile();
-        expect(res.added.Jupyter).to.be.empty;
-        expect(res.removed.Jupyter).to.be.empty;
-        expect(res.stopped.Jupyter.map(i=>({name: i.name}))).to.eql(list.map(i=>({name: i.name})));
+        expect(res.added.jupyter).to.be.empty;
+        expect(res.removed.jupyter).to.be.empty;
+        expect(res.stopped.jupyter.map(i=>({name: i.name}))).to.eql(list.map(i=>({name: i.name})));
         expect(callCount('create').length).to.equal(0);
         expect(callCount('remove').length).to.equal(1);
         expect(callCount('delete').length).to.equal(0);
@@ -54,20 +54,20 @@ describe('devenvs', () => {
         const name= randomString();
         const list=[];
         setList(list)
-        await db._db.devenvs.create({name, status: 'pending', type: 'Jupyter'});
+        await db._db.devenvs.create({name, status: 'pending', type: 'jupyter'});
         let res = await reconcile();
-        expect(res.added.Jupyter.map(i=>({name: i.name}))).to.eql([{name}]);
-        expect(res.stopped.Jupyter).to.be.empty;
-        expect(res.removed.Jupyter).to.be.empty;
+        expect(res.added.jupyter.map(i=>({name: i.name}))).to.eql([{name}]);
+        expect(res.stopped.jupyter).to.be.empty;
+        expect(res.removed.jupyter).to.be.empty;
         expect(callCount('create').length).to.equal(1);
         expect(callCount('remove').length).to.equal(0);
         expect(callCount('delete').length).to.equal(0);
         setList([{ name, ready: true }]);
         clearCount();
         res = await reconcile();
-        expect(res.added.Jupyter).to.be.empty;
-        expect(res.stopped.Jupyter).to.be.empty;
-        expect(res.removed.Jupyter).to.be.empty;
+        expect(res.added.jupyter).to.be.empty;
+        expect(res.stopped.jupyter).to.be.empty;
+        expect(res.removed.jupyter).to.be.empty;
         expect(callCount('create').length).to.equal(0);
         expect(callCount('remove').length).to.equal(0);
         expect(callCount('delete').length).to.equal(0);

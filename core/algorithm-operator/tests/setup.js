@@ -15,6 +15,7 @@ before(async () => {
     });
     mockery.registerMock('./helpers/kubernetes', kubernetesMock.mock);
     mockery.registerMock('../helpers/kubernetes', kubernetesMock.mock);
+    mockery.registerMock('../../helpers/kubernetes', kubernetesMock.mock);
     mockery.registerMock('./kubernetes', kubernetesMock.mock);
     mockery.registerMock('./lib/helpers/kubernetes', kubernetesMock.mock);
     mockery.registerMock('./jupyterApi', jupyterApiMock.mock);
