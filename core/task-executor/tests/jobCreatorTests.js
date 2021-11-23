@@ -163,7 +163,7 @@ describe('jobCreator', () => {
             expect(() => createJobSpec({ algorithmImage: 'myImage1', options })).to.throw('Unable to create job spec. algorithmName is required');
         });
         it('should apply all required properties', () => {
-            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options });
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, clusterOptions: { datasourcesServiceEnabled: true } });
             expect(res).to.nested.include({ 'spec.template.spec.containers[1].image': 'myImage1' });
             expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
             expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/worker:latest' });
@@ -347,12 +347,16 @@ describe('jobCreator', () => {
             );
         });
         it('should apply 0 mounts', () => {
-            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, mounts: [] });
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, mounts: [], clusterOptions: { datasourcesServiceEnabled: true } });
             expect(res.spec.template.spec.volumes).to.have.length(4)
         });
         it('should apply no mounts', () => {
-            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, clusterOptions: { datasourcesServiceEnabled: true } });
             expect(res.spec.template.spec.volumes).to.have.length(4)
+        });
+        it('should not apply datasources pvc if disabled', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, clusterOptions: { datasourcesServiceEnabled: false } });
+            expect(res.spec.template.spec.volumes).to.have.length(3)
         });
         it('should apply opengl params', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, algorithmOptions: { opengl: true } });
@@ -422,19 +426,19 @@ describe('jobCreator', () => {
                 ],
                 environments: [
                     {
-                      name: "env1",
-                      value: "val1"
+                        name: "env1",
+                        value: "val1"
                     },
                     {
-                      name: "env2",
-                      value: "val2"
+                        name: "env2",
+                        value: "val2"
                     }
-                  ]
+                ]
 
             }]
         })
         after(() => {
-            globalSettings.sidecars=[]
+            globalSettings.sidecars = []
         });
         it('should not apply sidecar if not enabled', () => {
             const res = createJobSpec({
