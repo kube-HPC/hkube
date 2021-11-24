@@ -8,7 +8,8 @@ const Components = {
     ALGORITHM_BUILDS_RECONCILER: 'Algorithm-Builds-Reconciler',
     ALGORITHM_DEBUG_RECONCILER: 'Algorithm-Debug-Reconciler',
     ALGORITHM_QUEUE_RECONCILER: 'Algorithm-Queue-Reconciler',
-    DRIVERS_RECONCILER: 'Drivers-Reconciler'
+    DRIVERS_RECONCILER: 'Drivers-Reconciler',
+    DEVENV: 'DevEnv'
 };
 
 module.exports = Components;

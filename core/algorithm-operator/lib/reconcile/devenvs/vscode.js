@@ -5,7 +5,7 @@ const { createSpec } = require('../../deployments/devenv');
 const { createIngressPath } = require('../../templates/devenv');
 
 const { DEVENV } = require('../../consts/containers');
-
+const { DEVENV: DEVENV_COMPONENT } = require('../../consts/componentNames');
 class Vscode {
     constructor() {
         this._options = null;
@@ -18,7 +18,7 @@ class Vscode {
         if (!this._options.enable) {
             return;
         }
-        log.info(`Initializing ${this._type}`);
+        log.info(`Initializing ${this._type}`, { DEVENV_COMPONENT });
     }
 
     async current() {
@@ -58,7 +58,7 @@ class Vscode {
         if (!this._options.enable) {
             return null;
         }
-        log.info(`Creating ${this._type} ${name}`);
+        log.info(`Creating ${this._type} ${name}`, { DEVENV_COMPONENT });
         const { deploymentSpec, ingressSpec, serviceSpec, storageSpec } = createSpec({ name, type: this._type, devenvResources: this._options.resources, storage: this._options.storage, password: this._options.password, ...createOptions });
         await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, storageSpec, name }, this._type);
         return {
@@ -72,7 +72,7 @@ class Vscode {
         if (!this._options.enable) {
             return;
         }
-        log.info(`Removing ${this._type} ${name}`);
+        log.info(`Removing ${this._type} ${name}`, { DEVENV_COMPONENT });
         await kubernetes.deleteExposedDeployment(name, this._type);
     }
 
@@ -80,7 +80,7 @@ class Vscode {
         if (!this._options.enable) {
             return;
         }
-        log.info(`Stopping ${this._type} ${name}`);
+        log.info(`Stopping ${this._type} ${name}`, { DEVENV_COMPONENT });
         await kubernetes.deleteExposedDeployment(name, this._type, false);
     }
 }
