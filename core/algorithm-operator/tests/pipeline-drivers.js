@@ -342,7 +342,10 @@ describe('bootstrap', () => {
         });
         describe('createDriverJobSpec', () => {
             beforeEach(() => {
-                globalSettings.applyResources = false;
+                globalSettings.applyResourceLimits = false;
+            });
+            after(() => {
+                globalSettings.applyResourceLimits = false;
             });
             it('should throw if no image name', () => {
                 expect(() => createDriverJobSpec({ options })).to.throw('Unable to create job spec. image is required');
@@ -358,7 +361,7 @@ describe('bootstrap', () => {
                 expect(res.metadata.name).to.include(CONTAINERS.PIPELINE_DRIVER);
             });
             it('should apply resources', () => {
-                globalSettings.applyResources = true;
+                globalSettings.applyResourceLimits = true;
                 const res = createDriverJobSpec({
                     ...{ options },
                     image: 'myImage1',
