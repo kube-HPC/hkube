@@ -1,6 +1,8 @@
 module.exports = {
     kubernetes: () => {
         let callCount = {};
+        let listData = [];
+
         const registerCount = (name, args) => {
             if (!callCount[name]) {
                 callCount[name] = [];
@@ -13,9 +15,9 @@ module.exports = {
                 createJob: async (...theArgs) => {
                     registerCount('createJob', theArgs)
                 },
-                createDeployment: async () => { },
+                createDeployment: async (...theArgs) => { registerCount('createDeployment', theArgs) },
                 updateDeployment: async () => { },
-                getDeployments: async () => ({body: {items: []}}),
+                getDeployments: async () => ({ body: { items: listData } }),
                 deleteDeployment: async () => { },
                 getWorkerJobs: async () => { },
                 getPipelineDriversJobs: async () => { },
@@ -23,11 +25,17 @@ module.exports = {
                 deleteJob: async (...theArgs) => {
                     registerCount('deleteJob', theArgs)
                 },
+                deployExposedPod: async (...theArgs) => {
+                    registerCount('deployExposedPod', theArgs)
+                },
                 kubeVersion: {
                     version: '1.18'
                 }
             },
-            callCount: (name) => { return callCount[name]; },
+            setList: (list) => {
+                listData = list;
+            },
+            callCount: (name) => { return callCount[name] || []; },
             clearCount: () => { callCount = {} },
         }
     }

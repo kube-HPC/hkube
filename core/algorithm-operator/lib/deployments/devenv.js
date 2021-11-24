@@ -31,7 +31,7 @@ const createSpec = ({ name, type, resources, devenvResources, storage: devenvSto
     deploymentSpec = applyImage(deploymentSpec, CONTAINERS.DEVENV, versions, registry);
     // deploymentSpec = applyStorage(deploymentSpec, options.defaultStorage, CONTAINERS.DEVENV, 'algorithm-operator-configmap');
     deploymentSpec = applyImagePullSecret(deploymentSpec, clusterOptions?.imagePullSecretName);
-    if (resources.enable) {
+    if (resources?.enable) {
         deploymentSpec = applyResourceRequests(deploymentSpec, devenvResources, CONTAINERS.DEVENV);
     }
     if (devenvStorage?.enable) {

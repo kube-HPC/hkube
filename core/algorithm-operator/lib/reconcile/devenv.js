@@ -16,7 +16,7 @@ const _isPendingState = (state) => {
     return state === devenvStatuses.PENDING || state === devenvStatuses.CREATING;
 };
 
-const reconcile = async (createOptions) => {
+const reconcile = async (createOptions = {}) => {
     const requiredState = await _getRequiredState();
     const currentState = {};
     const added = {};

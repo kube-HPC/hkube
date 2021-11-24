@@ -63,7 +63,7 @@ class Vscode {
         await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, storageSpec, name }, this._type);
         return {
             name,
-            url: createIngressPath(name, this._type),
+            url: `${createIngressPath(name, this._type)}/`,
             status: devenvStatuses.CREATING
         };
     }
