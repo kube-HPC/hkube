@@ -5,7 +5,10 @@ class ApiValidator {
     }
 
     validateHyperparamsTuner(hyperparamsTuner, spec) {
-        if (spec.hyperParams === undefined && !(spec.sampler?.name === 'Grid')) {
+        if (spec === undefined) {
+            throw new InvalidDataError('Hyper params tuner node must have spec attribute');
+        }
+        if (spec.hyperParams === undefined && spec.sampler?.name !== 'Grid') {
             throw new InvalidDataError('spec must include hyperParams');
         }
         this._validator.validate(this._validator.definitions.hyperparamsTunerSpec, spec, true);
