@@ -36,7 +36,7 @@ class EtcdCleaner extends BaseCleaner {
             await this.delete(data);
             totalData = totalData.concat(data);
         } while (data.length > 0);
-        return this.runResult({ totalData });
+        return this.runResult({ data: totalData });
     }
 
     async dryRun({ maxAge } = {}) {
