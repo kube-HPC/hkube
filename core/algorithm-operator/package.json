@@ -1,6 +1,6 @@
 {
   "name": "algorithm-operator",
-  "version": "2.2.3",
+  "version": "2.2.3-fix3",
   "description": "",
   "main": "index.js",
   "scripts": {

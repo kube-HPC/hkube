@@ -49,7 +49,7 @@ class Vscode {
         const listRaw = await kubernetes.getDeployments({ labelSelector: this._labelSelector });
         const list = listRaw.body.items.map(i => ({
             name: i.metadata.labels.name || i.metadata.name,
-            ready: i.status.availableReplicas === i.status.replicas
+            ready: i.status.replicas && i.status.availableReplicas === i.status.replicas
         }));
         return list;
     }

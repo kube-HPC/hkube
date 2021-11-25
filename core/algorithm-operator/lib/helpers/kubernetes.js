@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const { StatusCodes } = require('http-status-codes');
 const log = require('@hkube/logger').GetLogFromContainer();
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const { containers, components, sidecars } = require('../consts');
@@ -106,25 +107,31 @@ class KubernetesApi extends EventEmitter {
         return ret.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
     }
 
+    async _ignoreAlreadyExistsError(promise) {
+        try {
+            return await promise;
+        }
+        catch (error) {
+            if (error.code === StatusCodes.CONFLICT) {
+                return null;
+            }
+            throw error;
+        }
+    }
+
     async deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, storageSpec, name }, type) {
         log.info(`Creating exposed service ${deploymentSpec.metadata.name}`, { component });
         let resDeployment = null;
         let resIngress = null;
         let resService = null;
         let resStorage = null;
-        // first try to create the pvc. It might fail if the pvc already exists
-        try {
-            if (storageSpec) {
-                resStorage = await this._client.pvc.create({ spec: storageSpec });
-            }
-        }
-        catch (error) {
-            log.warning(`Unable to create PVC ${storageSpec.metadata.name}. error: ${error.message}`, { component }, error);
-        }
         try {
             resDeployment = await this._client.deployments.create({ spec: deploymentSpec });
-            resIngress = await this._client.ingresses.create({ spec: ingressSpec });
-            resService = await this._client.services.create({ spec: serviceSpec });
+            resIngress = await this._ignoreAlreadyExistsError(this._client.ingresses.create({ spec: ingressSpec }));
+            resService = await this._ignoreAlreadyExistsError(this._client.services.create({ spec: serviceSpec }));
+            if (storageSpec) {
+                resStorage = await this._ignoreAlreadyExistsError(this._client.pvc.create({ spec: storageSpec }));
+            }
             return {
                 resDeployment,
                 resIngress,
