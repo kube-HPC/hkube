@@ -241,6 +241,76 @@ const nodes = {
     }
 };
 
+
+const podsGpu = {
+    body: {
+        items: [
+            {
+                metadata: {
+                    name: 'one container with resources',
+                    labels: {
+
+                    }
+                },
+                spec: {
+                    containers: [
+                        {
+                            resources: {
+                                limits: {
+                                    cpu: '200m',
+                                    memory: '256Mi',
+                                    [gpuVendors.NVIDIA]: '1'
+                                },
+                                requests: {
+                                    cpu: '200m',
+                                    memory: '268435456',
+                                    [gpuVendors.NVIDIA]: '1'
+                                }
+                            }
+                        }
+                    ],
+                    nodeName: 'node1',
+                },
+                status: {
+                    phase: 'Running'
+                }
+            }
+        ]
+    }
+};
+
+const nodesNoGpu = {
+    statusCode: 200,
+    body: {
+        kind: 'NodeList',
+        apiVersion: 'v1',
+        metadata: {
+            selfLink: '/api/v1/nodes',
+            resourceVersion: '7110746'
+        },
+        items: [
+            {
+                metadata: {
+                    name: 'node1'
+                },
+                status: {
+                    capacity: {
+                        cpu: '8',
+                        memory: '32Gi',
+                        pods: '110'
+                    },
+                    allocatable: {
+                        cpu: '7800m',
+                        memory: '32Gi',
+                        pods: '110'
+                    },
+                }
+            }
+        ]
+    }
+};
+
+
 const nodeWithLabels = {
     metadata: {
         name: 'node4',
@@ -268,5 +338,7 @@ const nodeWithLabels = {
 module.exports = {
     pods,
     nodes,
-    nodeWithLabels
+    nodeWithLabels,
+    nodesNoGpu,
+    podsGpu
 };
