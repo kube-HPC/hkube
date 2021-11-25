@@ -27,14 +27,14 @@ const paths = [
 
 class EtcdCleaner extends BaseCleaner {
     async clean({ maxAge } = {}) {
-        const totalData = [];
+        let totalData = [];
         let data = [];
         do {
             // eslint-disable-next-line no-await-in-loop
             data = await this.fetch({ maxAge });
             // eslint-disable-next-line no-await-in-loop
             await this.delete(data);
-            totalData.concat(data);
+            totalData = totalData.concat(data);
         } while (data.length > 0);
         return this.runResult({ totalData });
     }
