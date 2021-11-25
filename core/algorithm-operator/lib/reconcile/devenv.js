@@ -36,6 +36,11 @@ const reconcile = async (createOptions = {}) => {
 
         updateStatus[type] = currentState[type].filter(c => c.status === devenvStatuses.RUNNING
             && _isPendingState(requiredState[type].find(r => r.name === c.name)?.status));
+
+        const updateStopped = requiredState[type].filter(a => a.status === devenvStatuses.RUNNING && !currentState[type].find(c => c.name === a.name));
+        updateStopped.forEach((a) => {
+            updateStatus[type].push({ ...a, status: devenvStatuses.STOPPED });
+        });
     }
 
     for (const type of Object.values(devenvTypes)) {
