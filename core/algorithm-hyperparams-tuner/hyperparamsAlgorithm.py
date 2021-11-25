@@ -34,10 +34,16 @@ def getStudy(sampler, storagePath):
 
 
 def start(options, hkubeApi):
-    hyperParams = options[consts.spec][consts.hyperParams]
+    hyperParams = options[consts.spec].get(consts.hyperParams)
     pipelineName = options[consts.spec][consts.objectivePipeline]
     numberOfTrails = options[consts.spec][consts.numberOfTrials]
     sampler = options[consts.spec].get(consts.sampler)
+    if (sampler and sampler[consts.name] == consts.grid):
+        hyperParams = []
+        for param in sampler[consts.searchSpace].keys():
+            hyperParams.append({consts.name: param, consts.suggest: "categorical",
+                               consts.choices: sampler[consts.searchSpace][param]})
+
     sharedStorage = os.environ.get('SHARED_METRICS', '/hkube/shared-metrics')
     sharedStorage = str(sharedStorage) + '/' + str(options['jobId'])
     study = getStudy(sampler, sharedStorage)
@@ -92,4 +98,4 @@ def suggest_discrete_uniform(param, trial):
 
 
 def suggest_categorical(param, trial):
-    return trial.suggest_uniform(param[consts.name], param[consts.choices])
+    return trial.suggest_categorical(param[consts.name], param[consts.choices])

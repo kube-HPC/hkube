@@ -14,5 +14,4 @@ properties:
     $ref: "#/components/schemas/sampler"
 required:
   - numberOfTrials
-  - hyperParams
   - objectivePipeline

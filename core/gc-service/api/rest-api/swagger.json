@@ -19535,7 +19535,6 @@
         },
         "required": [
           "numberOfTrials",
-          "hyperParams",
           "objectivePipeline"
         ]
       },
