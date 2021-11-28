@@ -93,7 +93,6 @@ class TaskRunner {
                 this._onStreamingMetrics(task);
                 break;
             default:
-                log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
                 break;
         }
     }
@@ -211,9 +210,10 @@ class TaskRunner {
 
         if (status.status !== 'dequeued') {
             log.info(`starting recover process ${this._jobId}`, { component });
-            this._recoverGraph(graph);
+            const tasks = await stateManager.getTasks({ jobId: this._jobId });
+            this._recoverGraph(graph, tasks);
             await this._watchTasks((t) => this.handleTaskEvent(t));
-            await this._recoverPipeline();
+            await this._recoverPipeline(tasks);
         }
         else {
             await this._watchTasks((t) => this.handleTaskEvent(t));
@@ -264,7 +264,7 @@ class TaskRunner {
         log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
     }
 
-    _recoverGraph(graph) {
+    _recoverGraph(graph, tasks) {
         graph.edges.forEach((e) => {
             this._nodes.setEdge(e.from, e.to, e.value);
         });
@@ -277,39 +277,40 @@ class TaskRunner {
                 input: n.input,
                 result: n.output
             };
-            node.batch.forEach(b => {
-                b.result = b.output;
-            });
+            const batch = tasks.filter(t => t.nodeName === n.nodeName);
+            node.batch = batch;
             this._nodes._graph.setNode(node.nodeName, node);
         });
     }
 
-    async _recoverPipeline() {
+    async _recoverPipeline(taskList) {
         if (this._nodes.isAllNodesCompleted()) {
             this.stop();
+            return;
         }
-        else {
-            const tasks = await stateManager.getTasks({ jobId: this._jobId });
-            if (tasks.size > 0) {
-                const tasksGraph = this._nodes._getNodesAsFlat();
-                tasksGraph.forEach((gTask) => {
-                    const sTask = tasks.get(gTask.taskId);
-                    if (sTask && sTask.status !== gTask.status) {
-                        const task = {
-                            ...gTask,
-                            ...sTask
-                        };
-                        if (task.status === taskStatuses.SUCCEED && gTask.status !== taskStatuses.STORING) {
-                            this._setTaskState(task);
-                            this._onStoring(task);
-                            this._onTaskComplete(task);
-                        }
-                        else {
-                            this.handleTaskEvent(task);
-                        }
+        if (taskList.length > 0) {
+            const tasks = new Map();
+            taskList.forEach((v) => {
+                tasks.set(v.taskId, v);
+            });
+            const tasksGraph = this._nodes._getNodesAsFlat();
+            tasksGraph.forEach((gTask) => {
+                const sTask = tasks.get(gTask.taskId);
+                if (sTask && sTask.status !== gTask.status) {
+                    const task = {
+                        ...gTask,
+                        ...sTask
+                    };
+                    if (task.status === taskStatuses.SUCCEED && gTask.status !== taskStatuses.STORING) {
+                        this._setTaskState(task);
+                        this._onStoring(task);
+                        this._onTaskComplete(task);
                     }
-                });
-            }
+                    else {
+                        this.handleTaskEvent(task);
+                    }
+                }
+            });
         }
     }
 

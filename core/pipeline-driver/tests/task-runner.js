@@ -158,9 +158,9 @@ describe('TaskRunner', function () {
         await promise;
         const node = driver._nodes.getNode('green');
         const taskId = node.taskId;
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId, error: 'taskStalled', status: 'stalled' });
+        await stateManager.updateTask({ jobId, taskId, error: 'taskStalled', status: 'stalled' });
         await delay(300);
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId, status: 'succeed' });
+        await stateManager.updateTask({ jobId, taskId, status: 'succeed' });
         await delay(300);
         expect(spy.calledOnce).to.equal(true);
     });
@@ -179,9 +179,9 @@ describe('TaskRunner', function () {
         await promise;
         const node = driver._nodes.getNode('green');
         const taskId = node.taskId;
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId, error: 'taskStalled', status: 'stalled' });
+        await stateManager.updateTask({ jobId, taskId, error: 'taskStalled', status: 'stalled' });
         await delay(300);
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId, status: 'failed' });
+        await stateManager.updateTask({ jobId, taskId, status: 'failed' });
         await delay(300);
         expect(spy.calledOnce).to.equal(true);
     });
@@ -198,7 +198,7 @@ describe('TaskRunner', function () {
         await consumer._handleJob(job);
         const driver = consumer._drivers.get(jobId);
         const { taskId } = driver._nodes.getNode('green');
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId, status: 'active', metricsPath: { tensorboard: { path: 'path' } } });
+        await stateManager.updateTask({ jobId, taskId, status: 'active', metricsPath: { tensorboard: { path: 'path' } } });
         await delay(300);
         const pipe = await stateManager.getExecution({ jobId });
         expect(pipe.types).to.eql(['tensorboard']);

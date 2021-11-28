@@ -14,7 +14,7 @@ describe('StateManager', function () {
     before(async () => {
         stateManager = require('../lib/state/state-manager');
     });
-    it('setJobResults', async function () {
+    it.only('setJobResults', async function () {
         const jobId = createJobId();
         const taskId = `taskId-${uuidv4()}`;
         const data = [{ koko: [1, 2, 3] }];
@@ -25,10 +25,11 @@ describe('StateManager', function () {
         const storageInfo = await storageManager.hkube.put({ jobId, taskId, data });
         let result = { storageInfo };
         results.data = [{ result }];
+        
         const { storageResults } = await stateManager.setJobResultsToStorage(results);
         await stateManager.setJobResults({ jobId, data: storageResults });
-        const etcdResult = await stateManager._etcd.jobs.results.get({ jobId: jobId });
-        const res = await storageManager.get(etcdResult.data.storageInfo);
+        const jobResult = await stateManager.fetchResult({ jobId });
+        const res = await storageManager.get(jobResult.data.storageInfo);
         expect(data).to.deep.equal(res[0].result);
     });
     it('setJobResults with null', async function () {
@@ -44,8 +45,8 @@ describe('StateManager', function () {
         results.data = [{ result }];
         const { storageResults } = await stateManager.setJobResultsToStorage(results);
         await stateManager.setJobResults({ jobId, data: storageResults });
-        const etcdResult = await stateManager._etcd.jobs.results.get({ jobId: jobId });
-        const res = await storageManager.get(etcdResult.data.storageInfo);
+        const jobResult = await stateManager.fetchResult({ jobId: jobId });
+        const res = await storageManager.get(jobResult.data.storageInfo);
         expect(data).to.deep.equal(res[0].result);
     });
     it('setJobResults with error', async function () {
@@ -75,16 +76,9 @@ describe('StateManager', function () {
         results.data = [{ result }];
         const { storageResults } = await stateManager.setJobResultsToStorage(results);
         await stateManager.setJobResults({ jobId, data: storageResults });
-        const etcdResult = await stateManager._etcd.jobs.results.get({ jobId: jobId });
-        const res = await storageManager.get(etcdResult.data.storageInfo);
+        const jobResult = await stateManager.fetchResult({ jobId: jobId });
+        const res = await storageManager.get(jobResult.data.storageInfo);
         expect(data).to.deep.equal(res[0].result);
-    });
-    it('setJobStatus', async function () {
-        const jobId = createJobId();
-        const data = { status: 'completed' };
-        await stateManager._etcd.jobs.status.set({ jobId, data });
-        const response = await stateManager._etcd.jobs.status.get({ jobId });
-        expect(response.data).to.deep.equal(data);
     });
     it('should update state correctly', async function () {
         let resolve;
@@ -92,7 +86,7 @@ describe('StateManager', function () {
         const jobId = createJobId();
         const statusActive = { jobId, status: pipelineStatuses.ACTIVE };
         const statusStopped = { jobId, status: pipelineStatuses.STOPPED };
-        await stateManager._etcd.jobs.status.set(statusActive);
+        await stateManager.updateStatus(statusActive);
         await stateManager.createJob({ jobId, status: { status: statusActive.status } });
 
         const interval = setInterval(async () => {
@@ -101,13 +95,11 @@ describe('StateManager', function () {
         setTimeout(async () => {
             clearInterval(interval);
             await stateManager.updateStatus(statusStopped);
-            await stateManager._etcd.jobs.status.update(statusStopped);
             resolve();
         }, 200);
 
         await promise;
         const res1 = await stateManager.fetchStatus({ jobId });
-        const res2 = await stateManager._etcd.jobs.status.get({ jobId });
         expect(res1.status).to.eql(statusStopped.status);
         expect(res2.status).to.eql(statusStopped.status);
     });
@@ -131,19 +123,18 @@ describe('StateManager', function () {
                 }
             });
             await stateManager.unWatchTasks({ jobId });
-            await stateManager._etcd.jobs.tasks.set({ jobId, taskId, error: data.error, status: data.status });
+            await stateManager.updateTask({ jobId, taskId, error: data.error, status: data.status });
             setTimeout(() => {
                 resolve();
             }, 1000)
         });
     });
-    it.only('watchJobStatus', function () {
+    it('watchJobStatus', function () {
         return new Promise(async (resolve, reject) => {
             const jobId = createJobId();
             const status = DriverStates.STOPPED;
             await stateManager.watchJob({ jobId }, (job) => {
-                expect(job.jobId).to.equal(jobId);
-                expect(job.status.status).to.equal(status);
+                expect(job.status).to.equal(status);
                 resolve();
             });
             await stateManager.createJob({ jobId, status: { status } });
@@ -158,7 +149,7 @@ describe('StateManager', function () {
                 throw new Error('failed');
             });
             await stateManager.unWatchJob({ jobId });
-            await stateManager._etcd.jobs.status.set({ jobId, status: DriverStates.STOPPED });
+            await stateManager.updateStatus({ jobId, status: DriverStates.STOPPED });
             setTimeout(() => {
                 resolve();
             }, 1000)

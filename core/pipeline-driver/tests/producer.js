@@ -28,7 +28,7 @@ describe('Producer', function () {
             }
             const status = 'active';
             const workerStub = new WorkerStub(options);
-            await stateManager.createJob({ jobId, pipeline, status: { status } });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'dequeued' } });
             await consumer._handleJob(job);
             await delay(500);
             const driver = consumer._drivers.get(jobId);
@@ -38,7 +38,7 @@ describe('Producer', function () {
             expect(node.status).to.eql(status);
         });
         it('should create job and handle success status', async function () {
-            const jobId = createJobId();;
+            const jobId = createJobId();
             const job = {
                 data: { jobId },
                 done: () => { }
@@ -50,7 +50,7 @@ describe('Producer', function () {
             const status = 'succeed';
             const result = 'test-result';
             const workerStub = new WorkerStub(options);
-            await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'dequeued' } });
             await consumer._handleJob(job);
             await delay(500);
             const driver = consumer._drivers.get(jobId);
@@ -73,7 +73,7 @@ describe('Producer', function () {
             const status = 'failed';
             const error = 'test-error';
             const workerStub = new WorkerStub(options);
-            await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'dequeued' } });
             await consumer._handleJob(job);
             await delay(500);
             const driver = consumer._drivers.get(jobId);
@@ -96,7 +96,7 @@ describe('Producer', function () {
             const status = 'stalled';
             const error = 'test-stalled';
             const workerStub = new WorkerStub(options);
-            await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'dequeued' } });
             await consumer._handleJob(job);
             await delay(500);
             const driver = consumer._drivers.get(jobId);
@@ -120,7 +120,7 @@ describe('Producer', function () {
             const status = 'crashed';
             const error = 'test-crashed';
             const workerStub = new WorkerStub(options);
-            await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'dequeued' } });
             await consumer._handleJob(job);
             await delay(500);
             const driver = consumer._drivers.get(jobId);
@@ -138,7 +138,7 @@ describe('Producer', function () {
             }
             const pipeline = pipelines.find(p => p.name === 'two-nodes');
             const status = 'invalid';
-            await stateManager.createJob({ jobId, pipeline, status: { status: 'pending' } });
+            await stateManager.createJob({ jobId, pipeline, status: { status: 'dequeued' } });
             await consumer._handleJob(job);
             const driver = consumer._drivers.get(jobId);
             const node = driver._nodes.getNode('green');

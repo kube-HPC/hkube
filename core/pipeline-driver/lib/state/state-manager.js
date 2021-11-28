@@ -169,8 +169,12 @@ class StateManager {
         return this._db.jobs.updateStatus(options, updateOnlyActive);
     }
 
-    fetchStatus(options) {
-        return this._db.jobs.fetchStatus(options);
+    fetchStatus({ jobId }) {
+        return this._db.jobs.fetchStatus({ jobId });
+    }
+
+    fetchResult({ jobId }) {
+        return this._db.jobs.fetchResult({ jobId });
     }
 
     updatePipeline(options) {
@@ -238,6 +242,10 @@ class StateManager {
         return this._db.tasks.createMany(tasks);
     }
 
+    updateTask({ jobId, taskId, status, error, result, nodeName, batchIndex }) {
+        return this._db.tasks.update({ jobId, taskId, status, error, result, nodeName, batchIndex });
+    }
+
     watchTasks({ jobId }, cb) {
         return this._db.tasks.watch({ jobId }, cb);
     }
@@ -248,11 +256,7 @@ class StateManager {
 
     async getTasks({ jobId }) {
         const list = await this._db.tasks.search({ jobId });
-        const results = new Map();
-        list.forEach((v) => {
-            results.set(v.taskId, v);
-        });
-        return results;
+        return list;
     }
 }
 
