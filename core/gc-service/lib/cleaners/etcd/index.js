@@ -27,16 +27,23 @@ const paths = [
 
 class EtcdCleaner extends BaseCleaner {
     async clean({ maxAge } = {}) {
-        let totalData = [];
-        let data = [];
-        do {
-            // eslint-disable-next-line no-await-in-loop
-            data = await this.fetch({ maxAge });
-            // eslint-disable-next-line no-await-in-loop
-            await this.delete(data);
-            totalData = totalData.concat(data);
-        } while (data.length > 0);
-        return this.runResult({ data: totalData });
+        const allData = await Promise.all(paths.map(async (path) => {
+            let totalData = [];
+            let data = [];
+            do {
+                // eslint-disable-next-line no-await-in-loop
+                data = await this.fetch({ maxAge, path });
+                // eslint-disable-next-line no-await-in-loop
+                await this.delete(data);
+                totalData = totalData.concat(data);
+            } while (data.length > 0);
+            return totalData;
+        }));
+        let flatData = [];
+        allData.forEach(d => {
+            flatData = flatData.concat(d);
+        });
+        return this.runResult({ data: flatData });
     }
 
     async dryRun({ maxAge } = {}) {
@@ -44,22 +51,20 @@ class EtcdCleaner extends BaseCleaner {
         return this.dryRunResult({ data });
     }
 
-    async fetch({ maxAge } = {}) {
+    async fetch({ maxAge, path } = {}) {
         const maxAgeResolved = this.resolveMaxAge(maxAge, this._config.maxAge);
         const keys = [];
-        const data = await Promise.all(paths.map(p => etcdStore.getKeys(p)));
-        data.forEach((d) => {
-            Object.entries(d).forEach(([k, v]) => {
-                const obj = tryParseJson(v);
-                const timestamp = obj.timestamp || obj.startTime || obj.endTime || 0;
-                let canDelete = true;
-                if (k.startsWith('/jobs/status') && !COMPLETED_JOB_STATUS.includes(obj.status)) {
-                    canDelete = false;
-                }
-                if (canDelete && isTimeBefore(timestamp, maxAgeResolved)) {
-                    keys.push(k);
-                }
-            });
+        const data = await etcdStore.getKeys(path);
+        Object.entries(data).forEach(([k, v]) => {
+            const obj = tryParseJson(v);
+            const timestamp = obj.timestamp || obj.startTime || obj.endTime || 0;
+            let canDelete = true;
+            if (k.startsWith('/jobs/status') && !COMPLETED_JOB_STATUS.includes(obj.status)) {
+                canDelete = false;
+            }
+            if (canDelete && isTimeBefore(timestamp, maxAgeResolved)) {
+                keys.push(k);
+            }
         });
         return keys;
     }
