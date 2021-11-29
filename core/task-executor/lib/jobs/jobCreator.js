@@ -11,7 +11,7 @@ const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
-const { hyperparamsTunerEnvNoDashboard, hyperparamsTunerEnv, workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
+const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
 
@@ -205,7 +205,7 @@ const applyDataSourcesVolumes = (inputSpec) => {
     return spec;
 };
 
-const applyDatascienceMetricsVolumes = (inputSpec) => {
+const applyDatascienceMetricsVolumes = (inputSpec, dashboardEnabled) => {
     let spec = clonedeep(inputSpec);
     // if (!clusterOptions.dataSourcesEnabled) {
     //     return spec;
@@ -214,12 +214,20 @@ const applyDatascienceMetricsVolumes = (inputSpec) => {
         name: 'datasciencemetrics-storage',
         mountPath: '/hkube/datasciencemetrics-storage'
     });
-    spec = applyVolumes(spec, {
-        name: 'datasciencemetrics-storage',
-        persistentVolumeClaim: {
-            claimName: 'hkube-datasciencemetrics'
-        }
-    });
+    if (dashboardEnabled) {
+        spec = applyVolumes(spec, {
+            name: 'datasciencemetrics-storage',
+            persistentVolumeClaim: {
+                claimName: 'hkube-datasciencemetrics'
+            }
+        });
+    }
+    else {
+        spec = applyVolumes(spec, {
+            name: 'datasciencemetrics-storage',
+            emptyDir: {}
+        });
+    }
     return spec;
 };
 
@@ -388,13 +396,8 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, gatewayEnv);
     }
     if (kind === nodeKind.HyperparamsTuner) {
-        if (!clusterOptions?.optunaDashboardEnabled) {
-            spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, hyperparamsTunerEnvNoDashboard);
-        }
-        else {
-            spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, hyperparamsTunerEnv);
-            spec = applyDatascienceMetricsVolumes(spec);
-        }
+        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, hyperparamsTunerEnv);
+        spec = applyDatascienceMetricsVolumes(spec, clusterOptions?.optunaDashboardEnabled);
     }
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
