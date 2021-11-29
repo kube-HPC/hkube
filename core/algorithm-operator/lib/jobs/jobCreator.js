@@ -38,7 +38,7 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     spec = applyName(spec, CONTAINERS.PIPELINE_DRIVER);
     spec = applyPipelineDriverImage(spec, image);
     spec = applyEnvToContainer(spec, CONTAINERS.PIPELINE_DRIVER, inputEnv);
-    if (settings.applyResources) {
+    if (settings.applyResourceLimits) {
         spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
     }
     spec = applyJaeger(spec, CONTAINERS.PIPELINE_DRIVER, options);

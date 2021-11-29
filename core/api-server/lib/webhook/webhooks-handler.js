@@ -51,7 +51,7 @@ class WebhooksHandler {
             const clientLevel = levels[progressLevel].level;
             const pipelineLevel = levels[payloadLevel].level;
             log.debug(`progress event with ${payloadLevel} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component, jobId });
-            if (clientLevel <= pipelineLevel) {
+            if (clientLevel >= pipelineLevel) {
                 const result = await this._request(pipeline.webhooks.progress, payload, Types.PROGRESS, payload.status, jobId);
                 await stateManager.updateStatusWebhook({ jobId, ...result });
             }
