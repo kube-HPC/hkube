@@ -1,10 +1,8 @@
 {
     "name": "algorithm-hyperparams-tuner",
-    "version": "2.2.1",
+    "version": "2.2.2",
     "description": "algorithm-hyperparams-tuner",
     "main": "app.js",
-    "dependencies": {},
-    "devDependencies": {},
     "scripts": {
         "lint": "echo no lint",
         "test": "echo no test",
