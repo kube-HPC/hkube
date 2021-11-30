@@ -1,0 +1,30 @@
+post:
+  tags:
+    - Boards
+  summary: Start board
+  description: start board
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/createOptunaboardRequest"
+    required: true
+  responses:
+    "200":
+      description: start board response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/createBoardResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

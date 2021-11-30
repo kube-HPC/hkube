@@ -6,6 +6,7 @@ const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
 const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
 const tensorboardReconciler = require('./reconcile/tensorboard');
+const optunaboardReconciler = require('./reconcile/optunaboard');
 const debugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const gatewaysReconciler = require('./reconcile/algorithm-gateway');
@@ -53,6 +54,7 @@ class Operator {
             await Promise.all([
                 this._algorithmBuilds({ ...configMap }, options),
                 this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
+                this._optunaboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
                 this._algorithmGateways({ ...configMap, algorithms }),
@@ -93,6 +95,7 @@ class Operator {
         try {
             log.debug('Update board interval.', { component });
             await tensorboardReconciler.updateTensorboards();
+            await optunaboardReconciler.updateOptunaboards();
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
@@ -124,6 +127,20 @@ class Operator {
         const boards = await db.getTensorboards();
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
         await tensorboardReconciler.reconcile({
+            boards,
+            deployments,
+            versions,
+            registry,
+            clusterOptions,
+            boardTimeOut,
+            options,
+        });
+    }
+
+    async _optunaboards({ versions, registry, clusterOptions, boardTimeOut }, options) {
+        const boards = await db.getOptunaboards();
+        const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.OPTUNABOARD}` });
+        await optunaboardReconciler.reconcile({
             boards,
             deployments,
             versions,

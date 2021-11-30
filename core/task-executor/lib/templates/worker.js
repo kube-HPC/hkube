@@ -360,7 +360,9 @@ const gatewayEnv = {
         }
     }
 };
-
+const hyperparamsTunerEnv = {
+    SHARED_METRICS: '/hkube/datasciencemetrics-storage'
+};
 const logVolumes = [
     {
         name: 'varlog',
@@ -387,6 +389,7 @@ const sharedVolumeMounts = [
         mountPath: `${algoMetricsDir}`
     }
 ];
+const sharedMetricsVolumeMount = { name: 'dsmetrics', mountPath: '/var/ds-metrics' };
 
 const logVolumeMounts = [
     {
@@ -405,6 +408,8 @@ module.exports = {
     logVolumes,
     logVolumeMounts,
     sharedVolumeMounts,
+    sharedMetricsVolumeMount,
     algoMetricVolume,
-    gatewayEnv
+    gatewayEnv,
+    hyperparamsTunerEnv
 };
