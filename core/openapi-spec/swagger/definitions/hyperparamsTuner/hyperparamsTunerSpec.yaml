@@ -1,0 +1,17 @@
+type: object
+properties:
+  numberOfTrials:
+    type: number
+    description: number Of Trials
+  hyperParams:
+    type: array
+    description: list of hyper params to optimize
+    items: 
+      $ref: "#/components/schemas/hyperParams"
+  objectivePipeline:
+    $ref: "#/components/schemas/pipelineName"
+  sampler:
+    $ref: "#/components/schemas/sampler"
+required:
+  - numberOfTrials
+  - objectivePipeline

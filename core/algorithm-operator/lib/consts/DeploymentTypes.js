@@ -1,4 +1,5 @@
 module.exports = {
     WORKER: 'worker',
-    BOARD: 'board'
+    BOARD: 'board',
+    OPTUNABOARD: 'optunaboard'
 };

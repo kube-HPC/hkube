@@ -1,0 +1,24 @@
+{
+    "name": "algorithm-hyperparams-tuner",
+    "version": "2.2.1",
+    "description": "algorithm-hyperparams-tuner",
+    "main": "app.js",
+    "dependencies": {},
+    "devDependencies": {},
+    "scripts": {
+        "lint": "echo no lint",
+        "test": "echo no test",
+        "test:cov": "echo no test cov",
+        "coverage": "echo no cov",
+        "start": "python app.py",
+        "build": "./dockerfile/build.sh algorithm-hyperparams-tuner"
+    },
+    "nyc": {
+        "exclude": [
+            "bootstrap.js",
+            "tests"
+        ]
+    },
+    "author": "Hkube",
+    "license": "MIT"
+}

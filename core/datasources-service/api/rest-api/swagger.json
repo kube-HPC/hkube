@@ -195,7 +195,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "hyperparamsTuner"
                           ]
                         },
                         "spec": {
@@ -285,13 +286,40 @@
                               "properties": {
                                 "description": {
                                   "type": "string",
-                                  "description": "describe the outputformat"
+                                  "description": "describe the output"
                                 },
                                 "mem": {
                                   "type": "string",
                                   "description": "Memory allocated for output",
                                   "format": "algorithm-memory",
                                   "default": "512Mi"
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
                                 }
                               }
                             }
@@ -657,7 +685,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "hyperparamsTuner"
                           ]
                         },
                         "spec": {
@@ -747,13 +776,40 @@
                               "properties": {
                                 "description": {
                                   "type": "string",
-                                  "description": "describe the outputformat"
+                                  "description": "describe the output"
                                 },
                                 "mem": {
                                   "type": "string",
                                   "description": "Memory allocated for output",
                                   "format": "algorithm-memory",
                                   "default": "512Mi"
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
                                 }
                               }
                             }
@@ -2150,7 +2206,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "hyperparamsTuner"
                             ]
                           },
                           "spec": {
@@ -2240,13 +2297,40 @@
                                 "properties": {
                                   "description": {
                                     "type": "string",
-                                    "description": "describe the outputformat"
+                                    "description": "describe the output"
                                   },
                                   "mem": {
                                     "type": "string",
                                     "description": "Memory allocated for output",
                                     "format": "algorithm-memory",
                                     "default": "512Mi"
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
                                   }
                                 }
                               }
@@ -2611,7 +2695,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "hyperparamsTuner"
                             ]
                           },
                           "spec": {
@@ -2701,13 +2786,40 @@
                                 "properties": {
                                   "description": {
                                     "type": "string",
-                                    "description": "describe the outputformat"
+                                    "description": "describe the output"
                                   },
                                   "mem": {
                                     "type": "string",
                                     "description": "Memory allocated for output",
                                     "format": "algorithm-memory",
                                     "default": "512Mi"
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
                                   }
                                 }
                               }
@@ -8486,7 +8598,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "hyperparamsTuner"
                             ]
                           },
                           "spec": {
@@ -8576,13 +8689,40 @@
                                 "properties": {
                                   "description": {
                                     "type": "string",
-                                    "description": "describe the outputformat"
+                                    "description": "describe the output"
                                   },
                                   "mem": {
                                     "type": "string",
                                     "description": "Memory allocated for output",
                                     "format": "algorithm-memory",
                                     "default": "512Mi"
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
                                   }
                                 }
                               }
@@ -9050,7 +9190,8 @@
                                 "debug",
                                 "dataSource",
                                 "gateway",
-                                "output"
+                                "output",
+                                "hyperparamsTuner"
                               ]
                             },
                             "spec": {
@@ -9140,13 +9281,40 @@
                                   "properties": {
                                     "description": {
                                       "type": "string",
-                                      "description": "describe the outputformat"
+                                      "description": "describe the output"
                                     },
                                     "mem": {
                                       "type": "string",
                                       "description": "Memory allocated for output",
                                       "format": "algorithm-memory",
                                       "default": "512Mi"
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "gateway name",
+                                      "minLength": 1,
+                                      "maxLength": 32,
+                                      "format": "gateway-name"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the gateway"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for streaming gateway",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    },
+                                    "cpu": {
+                                      "type": "number",
+                                      "description": "Cpu allocated for streaming gateway",
+                                      "default": 0.5
                                     }
                                   }
                                 }
@@ -9470,7 +9638,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "hyperparamsTuner"
                           ]
                         },
                         "spec": {
@@ -9560,13 +9729,40 @@
                               "properties": {
                                 "description": {
                                   "type": "string",
-                                  "description": "describe the outputformat"
+                                  "description": "describe the output"
                                 },
                                 "mem": {
                                   "type": "string",
                                   "description": "Memory allocated for output",
                                   "format": "algorithm-memory",
                                   "default": "512Mi"
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
                                 }
                               }
                             }
@@ -9866,7 +10062,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "hyperparamsTuner"
                             ]
                           },
                           "spec": {
@@ -9956,13 +10153,40 @@
                                 "properties": {
                                   "description": {
                                     "type": "string",
-                                    "description": "describe the outputformat"
+                                    "description": "describe the output"
                                   },
                                   "mem": {
                                     "type": "string",
                                     "description": "Memory allocated for output",
                                     "format": "algorithm-memory",
                                     "default": "512Mi"
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
                                   }
                                 }
                               }
@@ -10323,7 +10547,8 @@
                             "debug",
                             "dataSource",
                             "gateway",
-                            "output"
+                            "output",
+                            "hyperparamsTuner"
                           ]
                         },
                         "spec": {
@@ -10413,13 +10638,40 @@
                               "properties": {
                                 "description": {
                                   "type": "string",
-                                  "description": "describe the outputformat"
+                                  "description": "describe the output"
                                 },
                                 "mem": {
                                   "type": "string",
                                   "description": "Memory allocated for output",
                                   "format": "algorithm-memory",
                                   "default": "512Mi"
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "gateway name",
+                                  "minLength": 1,
+                                  "maxLength": 32,
+                                  "format": "gateway-name"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "description": "describe the gateway"
+                                },
+                                "mem": {
+                                  "type": "string",
+                                  "description": "Memory allocated for streaming gateway",
+                                  "format": "algorithm-memory",
+                                  "default": "512Mi"
+                                },
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "Cpu allocated for streaming gateway",
+                                  "default": 0.5
                                 }
                               }
                             }
@@ -10719,7 +10971,8 @@
                               "debug",
                               "dataSource",
                               "gateway",
-                              "output"
+                              "output",
+                              "hyperparamsTuner"
                             ]
                           },
                           "spec": {
@@ -10809,13 +11062,40 @@
                                 "properties": {
                                   "description": {
                                     "type": "string",
-                                    "description": "describe the outputformat"
+                                    "description": "describe the output"
                                   },
                                   "mem": {
                                     "type": "string",
                                     "description": "Memory allocated for output",
                                     "format": "algorithm-memory",
                                     "default": "512Mi"
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "gateway name",
+                                    "minLength": 1,
+                                    "maxLength": 32,
+                                    "format": "gateway-name"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "description": "describe the gateway"
+                                  },
+                                  "mem": {
+                                    "type": "string",
+                                    "description": "Memory allocated for streaming gateway",
+                                    "format": "algorithm-memory",
+                                    "default": "512Mi"
+                                  },
+                                  "cpu": {
+                                    "type": "number",
+                                    "description": "Cpu allocated for streaming gateway",
+                                    "default": 0.5
                                   }
                                 }
                               }
@@ -11681,6 +11961,357 @@
       }
     },
     "/boards/tensors/": {
+      "get": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Board list",
+        "description": "Board list",
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "Array of boards",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "relativeUrl": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/optunas": {
+      "post": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Start board",
+        "description": "start board",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/optunas/{id}": {
+      "get": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Board details",
+        "description": "Board details",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "get board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "relativeUrl": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Stop board",
+        "description": "Stop board",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "delete board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/optunas/": {
       "get": {
         "tags": [
           "Boards"
@@ -17446,6 +18077,14 @@
           }
         }
       },
+      "createOptunaboardRequest": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          }
+        }
+      },
       "createBoardResponse": {
         "type": "object",
         "properties": {
@@ -19045,7 +19684,7 @@
         "properties": {
           "description": {
             "type": "string",
-            "description": "describe the outputformat"
+            "description": "describe the output"
           },
           "mem": {
             "type": "string",
@@ -19054,6 +19693,173 @@
             "default": "512Mi"
           }
         }
+      },
+      "hyperparamsTuner": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "gateway name",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "gateway-name"
+          },
+          "description": {
+            "type": "string",
+            "description": "describe the gateway"
+          },
+          "mem": {
+            "type": "string",
+            "description": "Memory allocated for streaming gateway",
+            "format": "algorithm-memory",
+            "default": "512Mi"
+          },
+          "cpu": {
+            "type": "number",
+            "description": "Cpu allocated for streaming gateway",
+            "default": 0.5
+          }
+        }
+      },
+      "hyperparamsTunerName": {
+        "type": "string",
+        "description": "gateway name",
+        "minLength": 1,
+        "maxLength": 32,
+        "format": "gateway-name"
+      },
+      "hyperparamsTunerSpec": {
+        "type": "object",
+        "properties": {
+          "numberOfTrials": {
+            "type": "number",
+            "description": "number Of Trials"
+          },
+          "hyperParams": {
+            "type": "array",
+            "description": "list of hyper params to optimize",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suggest": {
+                  "type": "string",
+                  "enum": [
+                    "uniform",
+                    "loguniform",
+                    "int",
+                    "discrete_uniform",
+                    "categorical"
+                  ]
+                },
+                "low": {
+                  "type": "number"
+                },
+                "hight": {
+                  "type": "number"
+                },
+                "choices": {
+                  "type": "array"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "suggest"
+              ]
+            }
+          },
+          "objectivePipeline": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          },
+          "sampler": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": [
+                  "Grid",
+                  "PartialFixed",
+                  "Random",
+                  "TPE",
+                  "CmaEs"
+                ]
+              },
+              "fixed_values": {
+                "type": "object"
+              },
+              "search_space": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+        "required": [
+          "numberOfTrials",
+          "objectivePipeline"
+        ]
+      },
+      "hyperParams": {
+        "type": "object",
+        "properties": {
+          "suggest": {
+            "type": "string",
+            "enum": [
+              "uniform",
+              "loguniform",
+              "int",
+              "discrete_uniform",
+              "categorical"
+            ]
+          },
+          "low": {
+            "type": "number"
+          },
+          "hight": {
+            "type": "number"
+          },
+          "choices": {
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "suggest"
+        ]
+      },
+      "sampler": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "Grid",
+              "PartialFixed",
+              "Random",
+              "TPE",
+              "CmaEs"
+            ]
+          },
+          "fixed_values": {
+            "type": "object"
+          },
+          "search_space": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "name"
+        ]
       },
       "clean": {
         "type": "object",
@@ -19298,7 +20104,8 @@
                     "debug",
                     "dataSource",
                     "gateway",
-                    "output"
+                    "output",
+                    "hyperparamsTuner"
                   ]
                 },
                 "spec": {
@@ -19388,13 +20195,40 @@
                       "properties": {
                         "description": {
                           "type": "string",
-                          "description": "describe the outputformat"
+                          "description": "describe the output"
                         },
                         "mem": {
                           "type": "string",
                           "description": "Memory allocated for output",
                           "format": "algorithm-memory",
                           "default": "512Mi"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "gateway name",
+                          "minLength": 1,
+                          "maxLength": 32,
+                          "format": "gateway-name"
+                        },
+                        "description": {
+                          "type": "string",
+                          "description": "describe the gateway"
+                        },
+                        "mem": {
+                          "type": "string",
+                          "description": "Memory allocated for streaming gateway",
+                          "format": "algorithm-memory",
+                          "default": "512Mi"
+                        },
+                        "cpu": {
+                          "type": "number",
+                          "description": "Cpu allocated for streaming gateway",
+                          "default": 0.5
                         }
                       }
                     }
@@ -19610,7 +20444,8 @@
           "debug",
           "dataSource",
           "gateway",
-          "output"
+          "output",
+          "hyperparamsTuner"
         ]
       },
       "pipelineNode": {
@@ -19689,7 +20524,8 @@
               "debug",
               "dataSource",
               "gateway",
-              "output"
+              "output",
+              "hyperparamsTuner"
             ]
           },
           "spec": {
@@ -19779,13 +20615,40 @@
                 "properties": {
                   "description": {
                     "type": "string",
-                    "description": "describe the outputformat"
+                    "description": "describe the output"
                   },
                   "mem": {
                     "type": "string",
                     "description": "Memory allocated for output",
                     "format": "algorithm-memory",
                     "default": "512Mi"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "gateway name",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "gateway-name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "describe the gateway"
+                  },
+                  "mem": {
+                    "type": "string",
+                    "description": "Memory allocated for streaming gateway",
+                    "format": "algorithm-memory",
+                    "default": "512Mi"
+                  },
+                  "cpu": {
+                    "type": "number",
+                    "description": "Cpu allocated for streaming gateway",
+                    "default": 0.5
                   }
                 }
               }
