@@ -1,6 +1,7 @@
 const events = require('events');
 const orderBy = require('lodash.orderby');
 const remove = require('lodash.remove');
+const { taskStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('./consts/component-name').QUEUE;
 const queueEvents = require('./consts/queue-events');
@@ -132,7 +133,7 @@ class Queue extends events {
     _removeDuplicates(tasks) {
         if (this.queue.length > 0) {
             tasks.forEach((t) => {
-                const res = remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId && q.status === 'preschedule');
+                const res = remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId && q.status === taskStatuses.PRESCHEDULE);
                 res.forEach((r) => {
                     log.warning(`found duplicate task ${r.taskId} with status ${r.status}, new task status: ${t.status}`, { component });
                 });

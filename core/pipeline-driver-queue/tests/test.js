@@ -6,7 +6,7 @@ const { uid: uuidv4 } = require('@hkube/uid');
 const { Producer } = require('@hkube/producer-consumer');
 const queueEvents = require('../lib/consts/queue-events');
 const { semaphore } = require('await-done');
-const { pipelines } = require('./mock/index');
+const pipelines = require('./stub/pipelines.json');
 const bootstrap = require('../bootstrap');
 const queueRunner = require('../lib/queue-runner');
 const dataStore = require('../lib/persistency/data-store');
@@ -113,7 +113,7 @@ describe('Test', () => {
         });
     });
     describe('concurrent', () => {
-        it('check concurrency limit', async () => {
+        it.only('check concurrency limit', async () => {
             const totalJobs = 10;
             const half = totalJobs / 2;
             const keys = Array.from(Array(totalJobs).keys());

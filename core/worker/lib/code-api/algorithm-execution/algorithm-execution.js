@@ -286,10 +286,6 @@ class AlgorithmExecution {
             topSpan.finish();
         }
     }
-
-    _isPrimitive(val) {
-        return typeof val === 'boolean' || typeof val === 'number';
-    }
 }
 
 module.exports = new AlgorithmExecution();

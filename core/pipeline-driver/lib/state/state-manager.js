@@ -157,16 +157,12 @@ class StateManager {
     }
 
     // Jobs
-    createJob({ jobId, pipeline, status }) {
-        return this._db.jobs.create({ jobId, pipeline, status });
+    createJob({ jobId, pipeline, status, graph }) {
+        return this._db.jobs.create({ jobId, pipeline, status, graph });
     }
 
     updateResult(options) {
         return this._db.jobs.updateResult(options);
-    }
-
-    updateStatus(options, updateOnlyActive) {
-        return this._db.jobs.updateStatus(options, updateOnlyActive);
     }
 
     fetchStatus({ jobId }) {
@@ -181,12 +177,8 @@ class StateManager {
         return this._db.jobs.updatePipeline(options);
     }
 
-    isCompletedState(job) {
-        return job && CompletedState.includes(job.status);
-    }
-
-    getJobStatus(options) {
-        return this._db.fetchStatus(options);
+    isCompletedState(status) {
+        return CompletedState.includes(status);
     }
 
     async setJobResults(options) {
@@ -221,20 +213,20 @@ class StateManager {
         return this._db.jobs.unwatchStatus({ jobId });
     }
 
-    // Graph
+    /** Graph
+     * a graph node should look like:
+     * - nodeName
+     * - algorithmName
+     * - status
+     * - level
+     * - batchInfo
+     */
     updateGraph({ jobId, graph }) {
         return this._db.jobs.updateGraph({ jobId, graph: { jobId, timestamp: Date.now(), ...graph } });
     }
 
-    async getGraph({ jobId }) {
-        const res = await this._db.jobs.fetchGraph({ jobId });
-        if (!res) {
-            return null;
-        }
-        if (Object.keys(res).length === 1 && res.jobId) {
-            return null;
-        }
-        return res;
+    getGraph({ jobId }) {
+        return this._db.jobs.fetchGraph({ jobId });
     }
 
     // Tasks
@@ -242,8 +234,12 @@ class StateManager {
         return this._db.tasks.createMany(tasks);
     }
 
-    updateTask({ jobId, taskId, status, error, result, nodeName, batchIndex }) {
-        return this._db.tasks.update({ jobId, taskId, status, error, result, nodeName, batchIndex });
+    createTask({ jobId, taskId, status }) {
+        return this._db.tasks.create({ jobId, taskId, status });
+    }
+
+    updateTask({ jobId, taskId, status, error, result, nodeName, batchIndex, metricsPath }) {
+        return this._db.tasks.update({ jobId, taskId, status, error, result, nodeName, batchIndex, metricsPath });
     }
 
     watchTasks({ jobId }, cb) {
@@ -254,9 +250,8 @@ class StateManager {
         return this._db.tasks.unwatch({ jobId });
     }
 
-    async getTasks({ jobId }) {
-        const list = await this._db.tasks.search({ jobId });
-        return list;
+    getTasks({ jobId }) {
+        return this._db.tasks.search({ jobId });
     }
 }
 

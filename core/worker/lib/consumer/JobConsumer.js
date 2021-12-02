@@ -50,19 +50,22 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${this._options.jobConsumer.job.type}`, { component });
 
         this._consumer.on('job', async (job) => {
+            const { jobId, taskId, status } = job.data;
             if (job.data.status === taskStatuses.PRESCHEDULE) {
-                log.info(`job ${job.data.jobId}, taskId ${job.data.taskId} is in ${job.data.status} mode, calling done...`,
-                    { component, jobId: job.data.jobId, taskId: job.data.taskId });
+                log.info(`job ${jobId}, taskId ${taskId} is in ${status} mode, calling done...`, { component, jobId, taskId });
+                await stateAdapter.deleteTasks(job.data.taskId);
                 job.done();
                 return;
             }
             this._setJob(job);
-            log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
-            const watchState = await stateAdapter.watchJobStatus({ jobId: job.data.jobId });
-            if (this._isCompletedState({ status: watchState?.status })) {
-                await this._stopJob(job, watchState.status);
+            log.info(`execute job ${jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
+            const jobStat = await stateAdapter.getJobStatus({ jobId });
+            if (this._isCompletedState({ status: jobStat?.status })) {
+                await this._stopJob(job, jobStat.status);
                 return;
             }
+
+            await stateAdapter.watchJobStatus({ jobId });
 
             metricsHelper.initMetrics(job);
 
@@ -319,7 +322,7 @@ class JobConsumer extends EventEmitter {
     }
 
     async updateMetrics(metrics) {
-        return this.updateStatus({ status: taskStatuses.THROUGHPUT, metrics });
+        return this.updateStatus({ status: taskStatuses.ACTIVE, metrics });
     }
 
     currentTaskInfo() {

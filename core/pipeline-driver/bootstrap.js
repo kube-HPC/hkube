@@ -26,7 +26,7 @@ class Bootstrap {
             });
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
-                process.exit(1);
+                process.exit(1); // TODO: exit after done with running jobs
             });
             monitor.check(main.redis);
             await metrics.init(main.metrics);

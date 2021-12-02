@@ -23,7 +23,7 @@ class TaskRunner {
         this._job = null;
         this._jobId = null;
         this._nodes = null;
-        this._active = true;
+        this._active = false;
         this._progress = null;
         this._pipeline = null;
         this._isStreaming = false;
@@ -76,6 +76,9 @@ class TaskRunner {
             }
             case taskStatuses.ACTIVE:
                 this._setTaskState(task);
+                if (task.metrics) {
+                    this._onStreamingMetrics(task);
+                }
                 break;
             case taskStatuses.STORING:
                 this._setTaskState(task);
@@ -88,9 +91,6 @@ class TaskRunner {
             case taskStatuses.SUCCEED:
                 this._setTaskState(task);
                 this._onTaskComplete(task);
-                break;
-            case taskStatuses.THROUGHPUT:
-                this._onStreamingMetrics(task);
                 break;
             default:
                 break;
@@ -127,6 +127,9 @@ class TaskRunner {
 
     async start(job) {
         let result = null;
+        if (this._active) {
+            return result;
+        }
         try {
             this._active = true;
             result = await this._startPipeline(job);
@@ -174,18 +177,18 @@ class TaskRunner {
             }
         });
         const jobData = await stateManager.getJob({ jobId });
-        const { status, pipeline } = jobData || {};
+        const { pipeline } = jobData || {};
+        const { status } = jobData.status;
 
         if (stateManager.isCompletedState(status)) {
-            throw new PipelineReprocess(status.status);
+            throw new PipelineReprocess(status);
         }
-
         if (!pipeline) {
             throw new PipelineNotFound(this._jobId);
         }
 
         await this._progressStatus({ status: DriverStates.ACTIVE });
-        this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);
+        this._isCachedPipeline = await cachePipeline.checkCachePipeline(pipeline.nodes);
 
         this.pipeline = pipeline;
         this._isStreaming = pipeline.kind === pipelineKind.Stream;
@@ -203,25 +206,23 @@ class TaskRunner {
         });
 
         this._boards = new Boards({ types: pipeline.types, updateBoard: (task) => stateManager.updatePipeline(task) });
-
         pipelineMetrics.startMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, spanId: this._job.data && this._job.data.spanId });
 
-        const graph = await stateManager.getGraph({ jobId: this._jobId });
-
-        if (status.status !== 'dequeued') {
-            log.info(`starting recover process ${this._jobId}`, { component });
+        if (status !== 'dequeued') {
+            log.info(`starting recovery process for job ${this._jobId}`, { component });
+            const graph = await stateManager.getGraph({ jobId: this._jobId });
+            if (!graph) {
+                throw new Error(`unable to start recovery, graph not found for job ${this._jobId}`);
+            }
             const tasks = await stateManager.getTasks({ jobId: this._jobId });
-            this._recoverGraph(graph, tasks);
-            await this._watchTasks((t) => this.handleTaskEvent(t));
-            await this._recoverPipeline(tasks);
+            await stateManager.watchTasks({ jobId }, (t) => this.handleTaskEvent(t));
+            await this._recoverPipeline(graph, tasks);
+            await this._progressStatus({ status });
         }
         else {
-            await this._watchTasks((t) => this.handleTaskEvent(t));
+            await stateManager.watchTasks({ jobId }, (t) => this.handleTaskEvent(t));
             this._runEntryNodes();
         }
-        // const nodes = this._nodes.getAllNodes();
-        // const tasks = nodes.map()
-        // await stateManager.createTasks(tasks);
         return this.pipeline;
     }
 
@@ -260,55 +261,54 @@ class TaskRunner {
         await stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data: storageResults, error, status, nodeName });
         await this._progressStatus({ status, error, nodeName });
 
-        pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
+        pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this.currentProgress, status });
         log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
     }
 
-    _recoverGraph(graph, tasks) {
+    async _recoverPipeline(graph, tasks) {
+        // restore edges
         graph.edges.forEach((e) => {
             this._nodes.setEdge(e.from, e.to, e.value);
         });
+        // restore nodes
         graph.nodes.forEach((n) => {
             const pNode = this.pipeline.nodes.find(p => p.nodeName === n.nodeName);
+            const tasksList = tasks.filter(t => t.nodeName === n.nodeName);
+
+            let batch = [];
+            let taskData = {};
+            // determine single or batch node
+            if (tasksList.length) {
+                if (tasksList[0].batchIndex) {
+                    batch = tasksList;
+                }
+                else {
+                    [taskData] = tasksList;
+                }
+            }
+            // merge all node data
             const node = {
                 ...n,
                 ...pNode,
-                batch: n.batch || [],
-                input: n.input,
-                result: n.output
+                ...taskData,
+                batch,
+                result: taskData.output
             };
-            const batch = tasks.filter(t => t.nodeName === n.nodeName);
-            node.batch = batch;
             this._nodes._graph.setNode(node.nodeName, node);
         });
-    }
-
-    async _recoverPipeline(taskList) {
+        // check if pipeline completed
         if (this._nodes.isAllNodesCompleted()) {
-            this.stop();
-            return;
+            await this.stop();
         }
-        if (taskList.length > 0) {
-            const tasks = new Map();
-            taskList.forEach((v) => {
-                tasks.set(v.taskId, v);
-            });
-            const tasksGraph = this._nodes._getNodesAsFlat();
-            tasksGraph.forEach((gTask) => {
-                const sTask = tasks.get(gTask.taskId);
-                if (sTask && sTask.status !== gTask.status) {
-                    const task = {
-                        ...gTask,
-                        ...sTask
-                    };
-                    if (task.status === taskStatuses.SUCCEED && gTask.status !== taskStatuses.STORING) {
-                        this._setTaskState(task);
-                        this._onStoring(task);
-                        this._onTaskComplete(task);
-                    }
-                    else {
-                        this.handleTaskEvent(task);
-                    }
+        else {
+            // try to find node with completed status to
+            // trigger the completed event
+            const nodes = this._nodes.getAllNodes();
+            nodes.forEach((node) => {
+                const completedNode = node.status === taskStatuses.SUCCEED ? node : node.batch.find(b => b.status === taskStatuses.SUCCEED);
+                if (completedNode) {
+                    this._onStoring(completedNode);
+                    this._onTaskComplete(completedNode);
                 }
             });
         }
@@ -328,12 +328,8 @@ class TaskRunner {
         return [...new Set([...sourceNodes, ...statefulNodes])];
     }
 
-    get _currentProgress() {
-        return (this._progress && this._progress.currentProgress) || 0;
-    }
-
-    async _watchTasks(cb) {
-        await stateManager.watchTasks({ jobId: this._jobId }, cb);
+    get currentProgress() {
+        return this._progress?.currentProgress || 0;
     }
 
     async _unWatchJob() {
@@ -584,7 +580,6 @@ class TaskRunner {
                 this._nodes.updateEdge(source, target, { metrics: { ...metric, ...totalRequests } });
             });
         });
-        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
 
     _getStreamMetric(source, target) {
@@ -660,25 +655,17 @@ class TaskRunner {
         return err;
     }
 
+    // TODO: Handle tasks in streaming, code-api.
     _setTaskState(task) {
         if (!this._active) {
             return;
         }
-        const { taskId, execId, isScaled, status, error } = task;
-        let taskRemoved = false;
+        const { taskId, execId, status, error, isScaled } = task;
         if (execId) {
             this._nodes.updateAlgorithmExecution(task);
         }
-        else if (isScaled) {
-            if (status === taskStatuses.ACTIVE) {
-                this._nodes.addTaskToBatch(task);
-            }
-            else {
-                this._nodes.removeTaskFromBatch(task);
-                taskRemoved = true;
-            }
-        }
-        if (!taskRemoved) {
+        // we only want to update tasks that created by pipeline-driver
+        if (!isScaled) {
             this._updateTaskState(taskId, task);
         }
 

@@ -1,22 +1,12 @@
 const { uid: uuidv4 } = require('@hkube/uid');
-const stubTemplate = ({
-    uuid = uuidv4(),
-    pipelineUuid = `pipeline-${uuidv4()}`,
-    priority = Math.floor((Math.random() * 5)),
-    score = Math.floor((Math.random() * 100)),
-    entranceTime = Date.now()
-} = {}) => (
-        {
-            jobId: `${uuid}`,
-            pipelineName: `${pipelineUuid}`,
-            priority: priority,
-            entranceTime: entranceTime,
-            score,
-            calculated: {
-                latestScores: {}
-            }
-        }
-    );
+const stubTemplate = ({ score } = {}) => ({
+    jobId: `${uuidv4()}`,
+    score: score || Math.floor((Math.random() * 100)),
+    pipeline: {
+        pipelineName: `pipeline-${uuidv4()}`,
+        priority: Math.floor((Math.random() * 5))
+    }
+});
 
 const generateConsumedArray = (number = 100) => ({
     jobId: `jobId-${uuidv4()}`,
@@ -30,4 +20,4 @@ module.exports = {
     stubTemplate,
     generateArr,
     generateConsumedArray
-}; 
+};

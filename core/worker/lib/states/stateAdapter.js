@@ -138,6 +138,14 @@ class StateAdapter extends EventEmitter {
         await this._etcd.discovery.updateRegisteredData({ ...options, ...this._discoveryInfo });
     }
 
+    createTasks(tasks) {
+        return this._db.tasks.createMany(tasks);
+    }
+
+    deleteTasks(taskId) {
+        return this._db.tasks.delete({ taskId });
+    }
+
     updateTask(options) {
         return new Promise((resolve, reject) => {
             this._tasksQueue.push(options, (err, res) => {
@@ -159,8 +167,13 @@ class StateAdapter extends EventEmitter {
         return this._db.tasks.unwatch({ jobId });
     }
 
+    async getJobStatus({ jobId }) {
+        const status = await this._db.jobs.fetchStatus({ jobId });
+        return status;
+    }
+
     async watchJobStatus({ jobId }) {
-        return this._db.jobs.watchStatus({ jobId }, (job) => {
+        await this._db.jobs.watchStatus({ jobId }, (job) => {
             this.emit(job.status, job);
         });
     }

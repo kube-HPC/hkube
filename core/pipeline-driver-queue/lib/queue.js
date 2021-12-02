@@ -53,7 +53,7 @@ class Queue extends Events {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
     }
 
-    _pipelineToQueueAdapter({ jobId, pipeline }) {
+    _pipelineToQueueAdapter({ jobId, score, pipeline }) {
         return {
             jobId,
             experimentName: pipeline.experimentName,
@@ -61,14 +61,15 @@ class Queue extends Events {
             priority: pipeline.priority,
             maxExceeded: pipeline.maxExceeded,
             entranceTime: Date.now(),
+            score,
             calculated: {
                 latestScores: {}
             }
         };
     }
 
-    enqueue({ jobId, pipeline }) {
-        const job = this._pipelineToQueueAdapter({ jobId, pipeline });
+    enqueue({ jobId, score, pipeline }) {
+        const job = this._pipelineToQueueAdapter({ jobId, score, pipeline });
         this.queue.push(job);
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
         this.queue = orderby(this.queue, 'score', 'desc');

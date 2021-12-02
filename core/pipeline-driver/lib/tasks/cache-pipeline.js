@@ -2,7 +2,7 @@ const { parser } = require('@hkube/parsers');
 const stateManager = require('../state/state-manager');
 
 class Cache {
-    async _checkCachePipeline(nodes) {
+    async checkCachePipeline(nodes) {
         const node = nodes.find(n => n.cacheJobId);
         if (node) {
             const jobId = node.cacheJobId;
