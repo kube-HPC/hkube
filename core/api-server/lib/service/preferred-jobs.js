@@ -1,4 +1,4 @@
-const { uid: uuid, uid } = require('@hkube/uid');
+const { uid } = require('@hkube/uid');
 const stateManager = require('../state/state-manager');
 const producer = require('../producer/jobs-producer');
 
