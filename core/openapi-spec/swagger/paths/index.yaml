@@ -100,6 +100,10 @@
 /boards/tensors/:
   $ref: ./boards/tensorboard_list.yaml
 
+# preferred
+/preferred:
+  $ref: ./preferred/preferred.yaml
+
 # builds
 /builds/status/{buildId}:
   $ref: ./builds/status.yaml

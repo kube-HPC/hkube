@@ -47,23 +47,47 @@ class JobConsumer {
         }
     }
 
+    async _updatePreference() {
+        const preferredJobs = await dataStore.getPreferredJobs();
+        const jobsInQueue = queueRunner.queue.getQueue(() => true);
+        jobsInQueue.forEach(job => {
+            const preferredJob = preferredJobs.filter(preferred => {
+                return preferred.jobId === job.jobId;
+            });
+            if (preferredJob.length > 0) {
+                // eslint-disable-next-line no-param-reassign
+                job.preference = preferredJob[0].preference;
+            }
+            else {
+                // eslint-disable-next-line no-param-reassign
+                job.preference = Number.MAX_SAFE_INTEGER;
+            }
+        });
+        queueRunner.queue.updateOrder();
+    }
+
     async _handleJob(job) {
         try {
             const { jobId } = job.data;
-            const jobData = await dataStore.getJob({ jobId });
-            const { status, pipeline } = jobData || {};
-            if (!pipeline) {
-                throw new Error(`unable to find pipeline for job ${jobId}`);
-            }
-            if (status.status === pipelineStatuses.STOPPED || status.status === pipelineStatuses.PAUSED) {
-                log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
-                this._stopJob(jobId, status.status);
+            if (jobId.startsWith('PREFERENCE_UPDATE')) {
+                this._updatePreference();
             }
             else {
-                if (pipeline.maxExceeded) {
-                    log.warning(`job "${jobId}" arrived with maxExceeded flag`, { component });
+                const jobData = await dataStore.getJob({ jobId });
+                const { status, pipeline } = jobData || {};
+                if (!pipeline) {
+                    throw new Error(`unable to find pipeline for job ${jobId}`);
                 }
-                this._queueJob({ jobId, pipeline });
+                if (status.status === pipelineStatuses.STOPPED || status.status === pipelineStatuses.PAUSED) {
+                    log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
+                    this._stopJob(jobId, status.status);
+                }
+                else {
+                    if (pipeline.maxExceeded) {
+                        log.warning(`job "${jobId}" arrived with maxExceeded flag`, { component });
+                    }
+                    this._queueJob({ jobId, pipeline });
+                }
             }
         }
         catch (error) {
