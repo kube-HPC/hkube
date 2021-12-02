@@ -3,7 +3,9 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
+
     "version": "2.2.6",
+r
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -12629,6 +12631,7 @@
         }
       }
     },
+
     "/builds/status/{buildId}": {
       "get": {
         "tags": [
@@ -18140,6 +18143,7 @@
           }
         }
       },
+
       "addToPreferredRequest": {
         "type": "object",
         "properties": {
@@ -18164,6 +18168,7 @@
           }
         }
       },
+
       "buildId": {
         "type": "object",
         "properties": {
