@@ -63,6 +63,8 @@ class Queue extends Events {
     }
 
     enqueue(job) {
+        // eslint-disable-next-line no-param-reassign
+        job.preference = job.preference || Number.MAX_SAFE_INTEGER;
         this.queue.push(job);
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
         this.updateOrder();

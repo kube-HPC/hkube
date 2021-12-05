@@ -4,19 +4,21 @@ const stubTemplate = ({
     pipelineUuid = `pipeline-${uuidv4()}`,
     priority = Math.floor((Math.random() * 5)),
     score = Math.floor((Math.random() * 100)),
+    preference,
     entranceTime = Date.now()
 } = {}) => (
-        {
-            jobId: `${uuid}`,
-            pipelineName: `${pipelineUuid}`,
-            priority: priority,
-            entranceTime: entranceTime,
-            score,
-            calculated: {
-                latestScores: {}
-            }
+    {
+        jobId: `${uuid}`,
+        pipelineName: `${pipelineUuid}`,
+        priority: priority,
+        entranceTime: entranceTime,
+        score,
+        preference,
+        calculated: {
+            latestScores: {}
         }
-    );
+    }
+);
 
 const generateConsumedArray = (number = 100) => ({
     jobId: `jobId-${uuidv4()}`,
@@ -30,4 +32,4 @@ module.exports = {
     stubTemplate,
     generateArr,
     generateConsumedArray
-}; 
+};

@@ -49,15 +49,17 @@ describe('Test', () => {
                 const q = queue.getQueue();
                 expect(q[0].score).to.eql(80);
             });
-            it('should added to queue ordered', async () => {
+            it.only('should added to queue ordered', async () => {
                 queue = new Queue();
                 queue.updateHeuristic({ run: heuristicStub() });
                 queue.enqueue(stubTemplate({ score: 80 }));
-                queue.enqueue(stubTemplate({ score: 60 }));
+                queue.enqueue(stubTemplate({ score: 60, preference: 2 }));
+                queue.enqueue(stubTemplate({ score: 100, preference: 1 }));
                 queue.enqueue(stubTemplate({ score: 90 }));
-                expect(queue.getQueue()[0].score).to.eql(90);
-                expect(queue.getQueue()[1].score).to.eql(80);
-                expect(queue.getQueue()[2].score).to.eql(60);
+                expect(queue.getQueue()[0].score).to.eql(100);
+                expect(queue.getQueue()[1].score).to.eql(60);
+                expect(queue.getQueue()[2].score).to.eql(90);
+                expect(queue.getQueue()[3].score).to.eql(80);
             });
         });
         describe('remove', () => {
