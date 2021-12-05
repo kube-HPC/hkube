@@ -173,7 +173,7 @@ describe('Test', () => {
         });
     });
     describe('persistency tests', () => {
-        it('persistent load', async () => {
+        it('PERSISTENCY LOAD', async () => {
             queueRunner.queue.queue = []
             const jobs = generateArr(100);
             await queueRunner.queue.persistenceStore(jobs);
