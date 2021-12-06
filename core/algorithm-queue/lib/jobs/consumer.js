@@ -17,10 +17,12 @@ class JobConsumer extends EventEmitter {
         this._options = null;
         this._job = null;
         this._active = false;
+        this._isPaused = false;
     }
 
     async init(options) {
         const { etcd, serviceName, algorithmType } = options;
+        this._algorithmType = algorithmType;
         this._options = options;
         this.etcd = new Etcd({ ...etcd, serviceName });
         await this.etcd.jobs.status.watch();
@@ -55,6 +57,14 @@ class JobConsumer extends EventEmitter {
         });
         this._consumer.register({ job: { type: algorithmType, concurrency: options.consumer.concurrency } });
         this._logging = options.logging;
+    }
+
+    async pause() {
+        if (!this._isPaused && this._consumer) {
+            this._isPaused = true;
+            this._active = false;
+            await this._consumer.pause({ type: this._algorithmType });
+        }
     }
 
     _isCompletedState({ status }) {

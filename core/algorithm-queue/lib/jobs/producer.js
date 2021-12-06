@@ -77,7 +77,12 @@ class JobProducer {
             }
             const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${maxAttempts}`;
             log.warning(`${error} ${jobId} ${taskId}`, { component: componentName.JOBS_PRODUCER, jobId, taskId });
-            await this.etcd.jobs.tasks.set({ jobId, taskId, nodeName, batchIndex, status, error, retries: attempts });
+            try {
+                await this.etcd.jobs.tasks.set({ jobId, taskId, nodeName, batchIndex, status, error, retries: attempts });
+            }
+            catch (e) {
+                log.error(`unable to update task state. ${e.message}`, { component: componentName.JOBS_PRODUCER, jobId });
+            }
         });
     }
 

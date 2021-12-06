@@ -267,7 +267,11 @@ class TaskRunner extends EventEmitter {
         this._jobStatus = status;
         this._driverStatus = DriverStates.READY;
         this._error = error;
-        await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data: storageResults, error, status, nodeName });
+        const errorResult = await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data: storageResults, error, status, nodeName });
+        if (errorResult) {
+            log.error(`unable to write results. ${errorResult}`, { component, jobId: this._jobId });
+            process.exit(1);
+        }
         await this._progressStatus({ status, error, nodeName });
         await this._stateManager.setJobStatus({ jobId: this._jobId }, true);
 
