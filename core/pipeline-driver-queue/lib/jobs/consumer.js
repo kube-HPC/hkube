@@ -50,7 +50,7 @@ class JobConsumer {
     async _handleJob(job) {
         try {
             const { jobId } = job.data;
-            await dataStore.setJobStatus({ jobId, status: 'queued' });
+            await dataStore.setJobStatus({ jobId, status: pipelineStatuses.QUEUED });
             const jobData = await dataStore.getJob({ jobId });
             const { status, pipeline } = jobData || {};
             if (!pipeline) {

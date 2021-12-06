@@ -15,7 +15,6 @@ class ProgressManager {
             stream: (...args) => this.calcProgressStream(...args)
         };
         this._calcProgress = this._progressTypes[type];
-        this._updateGraph = options.updateGraph;
         this._getGraphNodes = options.getGraphNodes;
         this._getGraphEdges = options.getGraphEdges;
         this._sendProgress = options.sendProgress;
@@ -24,7 +23,6 @@ class ProgressManager {
         this._queue = asyncQueue((task, callback) => {
             const data = this._calcProgress();
             this._currentProgress = data.progress;
-            this._updateGraph();
             this._sendProgress({ ...task, data }).then(response => callback(null, response)).catch(error => callback(error));
         }, 1);
     }

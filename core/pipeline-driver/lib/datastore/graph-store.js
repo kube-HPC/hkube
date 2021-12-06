@@ -37,7 +37,8 @@ class GraphStore {
             nodeName: task.nodeName,
             algorithmName: task.algorithmName,
             status: task.status,
-            level: task.level
+            level: task.level,
+            batch: [] // Just for now, to prevent dashboard error
         };
     }
 

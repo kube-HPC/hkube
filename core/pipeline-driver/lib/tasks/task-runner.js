@@ -199,7 +199,6 @@ class TaskRunner {
 
         this._progress = new Progress({
             type: this.pipeline.kind,
-            updateGraph: () => stateManager.updateGraph({ jobId: this._jobId, graph: this._formatGraph() }),
             getGraphNodes: (...args) => this._nodes._getNodesAsFlat(...args),
             getGraphEdges: (...args) => this._nodes.getEdges(...args),
             sendProgress: (...args) => stateManager.setJobStatus(...args)
@@ -224,12 +223,6 @@ class TaskRunner {
             this._runEntryNodes();
         }
         return this.pipeline;
-    }
-
-    _formatGraph() {
-        const json = this._nodes.getJSONGraph();
-        const graph = graphStore.formatGraph(json);
-        return graph;
     }
 
     async _stopPipeline(err, nodeName) {
@@ -354,6 +347,7 @@ class TaskRunner {
     }
 
     async _progressStatus({ status, error, nodeName }) {
+        await this._updateGraph();
         if (error) {
             await this._progressError({ status, error, nodeName });
         }
@@ -377,6 +371,14 @@ class TaskRunner {
         }
         else {
             await stateManager.setJobStatus({ jobId: this._jobId, status, level: logger.Levels.INFO.name });
+        }
+    }
+
+    async _updateGraph() {
+        if (this._nodes) {
+            const json = this._nodes.getJSONGraph();
+            const graph = graphStore.formatGraph(json);
+            await stateManager.updateGraph({ jobId: this._jobId, graph });
         }
     }
 

@@ -1,6 +1,7 @@
 const Events = require('events');
 const orderby = require('lodash.orderby');
 const remove = require('lodash.remove');
+const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { queueEvents, componentName } = require('./consts');
 const component = componentName.QUEUE;
@@ -29,9 +30,9 @@ class Queue extends Events {
         if (!this._persistency) {
             return;
         }
-        const data = await this._persistency.getJobs({ status: 'queued' });
+        const data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
         if (data?.length > 0) {
-            log.info(`recover ${data.length} jobs from db`, { component });
+            log.info(`recovering ${data.length} jobs from db`, { component });
             data.forEach(q => {
                 this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
             });

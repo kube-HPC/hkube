@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
+const { taskStatuses } = require('@hkube/consts');
 const component = require('../consts/component-name').DB;
 
 class DBConnection extends EventEmitter {
@@ -24,7 +25,7 @@ class DBConnection extends EventEmitter {
     }
 
     async getTasks({ algorithmName }) {
-        return this._db.tasks.search({ algorithmName, status: 'queued' });
+        return this._db.tasks.search({ algorithmName, status: taskStatuses.QUEUED });
     }
 
     async updateTasks({ jobId, nodeName, tasksIds, status }) {

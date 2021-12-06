@@ -10,7 +10,6 @@ let progress;
 describe('Progress', function () {
     beforeEach(() => {
         progress = new Progress({
-            updateGraph: async () => null,
             getGraphNodes: () => [],
             getGraphAllNodes: () => [],
             sendProgress: async () => null

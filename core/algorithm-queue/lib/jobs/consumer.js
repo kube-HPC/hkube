@@ -107,7 +107,7 @@ class JobConsumer extends EventEmitter {
             }
 
             const tasksIds = tasks.map(t => t.taskId);
-            await db.updateTasks({ jobId, nodeName, tasksIds, status: 'queued' });
+            await db.updateTasks({ jobId, nodeName, tasksIds, status: taskStatuses.QUEUED });
 
             if (isCompletedState({ status: data.status })) {
                 this._removeInvalidJob([{ jobId }]);
