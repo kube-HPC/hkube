@@ -46,5 +46,6 @@ config.healthchecks = {
     path: process.env.HEALTHCHECK_PATH || '/healthz',
     port: process.env.HEALTHCHECK_PORT || '5000',
     maxDiff: process.env.HEALTHCHECK_MAX_DIFF || '30000',
-    logExternalRequests: formatter.parseBool(process.env.LOG_EXTERNAL_REQUESTS, true)
+    logExternalRequests: formatter.parseBool(process.env.LOG_EXTERNAL_REQUESTS, true),
+    enabled: formatter.parseBool(process.env.HEALTHCHECK_ENABLE, true)
 };
