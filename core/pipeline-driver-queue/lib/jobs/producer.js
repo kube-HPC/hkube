@@ -127,11 +127,13 @@ class JobProducer {
         };
     }
 
+    // we only want to call done after finish with job
     async createJob(job) {
         const pipeline = queueRunner.queue.dequeue(job);
         log.debug(`creating new job ${pipeline.jobId}, calculated score: ${pipeline.score}`, { component });
         const jobData = this._pipelineToJob(pipeline);
         await this._producer.createJob(jobData);
+        pipeline.done && pipeline.done();
     }
 }
 

@@ -35,27 +35,18 @@ class JobConsumer {
     }
 
     async _handleJob(job) {
-        try {
-            const { jobId } = job.data;
-            const pipeline = await persistence.getExecution({ jobId });
-            if (!pipeline) {
-                throw new Error(`unable to find pipeline for job ${jobId}`);
-            }
-            const jobStatus = await persistence.getJobStatus({ jobId });
-            if (jobStatus.status === pipelineStatuses.STOPPED || jobStatus.status === pipelineStatuses.PAUSED) {
-                log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
-                await this._stopJob(jobId, jobStatus.status);
-            }
-            else {
-                await this._queueJob(pipeline, job.data);
-            }
+        const { jobId } = job.data;
+        const pipeline = await persistence.getExecution({ jobId });
+        if (!pipeline) {
+            throw new Error(`unable to find pipeline for job ${jobId}`);
         }
-        catch (error) {
-            log.error(error.message, { component }, error);
-            job.done(error);
+        const jobStatus = await persistence.getJobStatus({ jobId });
+        if (jobStatus.status === pipelineStatuses.STOPPED || jobStatus.status === pipelineStatuses.PAUSED) {
+            log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
+            await this._stopJob(jobId, jobStatus.status);
         }
-        finally {
-            job.done();
+        else {
+            await this._queueJob(pipeline, job);
         }
     }
 
@@ -64,14 +55,15 @@ class JobConsumer {
         queueRunner.queue.remove(jobId);
     }
 
-    async _queueJob(pipeline, jobData) {
-        const job = this._pipelineToQueueAdapter(pipeline, jobData);
-        queueRunner.queue.enqueue(job);
+    async _queueJob(pipeline, job) {
+        const jobData = this._pipelineToQueueAdapter(pipeline, job);
+        queueRunner.queue.enqueue(jobData);
     }
 
-    _pipelineToQueueAdapter(pipeline, jobData) {
+    _pipelineToQueueAdapter(pipeline, job) {
         return {
-            ...jobData,
+            ...job.data,
+            done: () => job.done(),
             pipelineName: pipeline.name,
             priority: pipeline.priority,
             entranceTime: Date.now(),

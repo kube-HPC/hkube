@@ -18,6 +18,7 @@ class Queue extends Events {
         this.queue = [];
     }
 
+    // we don't want to recover from persistence, we want to recover jobs from bull
     async persistencyLoad() {
         if (!this.persistence) {
             return;
