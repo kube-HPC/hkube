@@ -32,10 +32,7 @@ describe('TaskRunner', function () {
     });
     it('should throw exception and stop pipeline', async function () {
         const jobId = createJobId();
-        const job = {
-            data: { jobId },
-            done: () => { }
-        }
+        const job = createJob(jobId);
         const error = `unable to find pipeline for job ${jobId}`;
         const spy = sinon.spy(taskRunner, "stop");
         await taskRunner.start(job)
@@ -45,10 +42,7 @@ describe('TaskRunner', function () {
     });
     it('should start only one pipeline', async function () {
         const jobId = createJobId();
-        const job = {
-            data: { jobId },
-            done: () => { }
-        }
+        const job = createJob(jobId);
         const pipeline = pipelines.find(p => p.name === 'two-nodes');
         const status = { status: 'dequeued' };
         await stateManager.createJob({ jobId, pipeline, status });
@@ -59,10 +53,7 @@ describe('TaskRunner', function () {
     });
     it('should start pipeline successfully', async function () {
         const jobId = createJobId();
-        const job = {
-            data: { jobId },
-            done: () => { }
-        }
+        const job = createJob(jobId);
         const pipeline = pipelines.find(p => p.name === 'flow2');
         const status = { status: 'dequeued' };
         await stateManager.createJob({ jobId, pipeline, status });
@@ -73,10 +64,7 @@ describe('TaskRunner', function () {
     });
     it('should throw when check batch tolerance', async function () {
         const jobId = createJobId();
-        const job = {
-            data: { jobId },
-            done: () => { }
-        }
+        const job = createJob(jobId);
         const pipeline = pipelines.find(p => p.name === 'batch');
         const status = { status: 'dequeued' };
         await stateManager.createJob({ jobId, pipeline, status });
@@ -104,7 +92,7 @@ describe('TaskRunner', function () {
         const json = nodesMap.getJSONGraph();
         const graph = graphStore.formatGraph(json);
 
-        await stateManager.createJob({ jobId, pipeline, status });
+        await stateManager.createJob({ jobId, pipeline, status, graph });
         await stateManager.updateTask({ jobId, taskId: node1.taskId, nodeName: node1.nodeName, status: 'succeed' });
         await stateManager.updateTask({ jobId, taskId: node2.taskId, nodeName: node2.nodeName, status: 'succeed' });
         const spy = sinon.spy(taskRunner, "_recoverPipeline");

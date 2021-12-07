@@ -16,15 +16,19 @@ class DataStore extends EventEmitter {
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
 
-    async getJob({ jobId }) {
+    getJob({ jobId }) {
         return this._db.jobs.fetch({ jobId, fields: { status: true, pipeline: true } });
     }
 
-    async getJobs({ status }) {
+    createJob({ jobId, pipeline, status }) {
+        return this._db.jobs.create({ jobId, pipeline, status });
+    }
+
+    getJobs({ status }) {
         return this._db.jobs.search({ pipelineStatus: status, fields: { jobId: true, pipeline: true } });
     }
 
-    async storeQueue(options) {
+    storeQueue(options) {
         return this._etcd.pipelineDrivers.queue.set(options);
     }
 
@@ -34,12 +38,12 @@ class DataStore extends EventEmitter {
         });
     }
 
-    async setJobStatus(options) {
-        await this._db.jobs.updateStatus(options);
+    setJobStatus(options) {
+        return this._db.jobs.updateStatus(options);
     }
 
-    async setJobResults(options) {
-        await this._db.jobs.updateResult(options);
+    setJobResults(options) {
+        return this._db.jobs.updateResult(options);
     }
 }
 

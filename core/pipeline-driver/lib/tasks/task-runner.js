@@ -177,11 +177,11 @@ class TaskRunner {
             }
         });
         const jobData = await stateManager.getJob({ jobId });
-        const { pipeline } = jobData || {};
-        const { status } = jobData.status;
+        const { status, pipeline } = jobData || {};
+        const jobStatus = status?.status;
 
-        if (stateManager.isCompletedState(status)) {
-            throw new PipelineReprocess(status);
+        if (stateManager.isCompletedState(jobStatus)) {
+            throw new PipelineReprocess(jobStatus);
         }
         if (!pipeline) {
             throw new PipelineNotFound(this._jobId);
@@ -207,8 +207,8 @@ class TaskRunner {
         this._boards = new Boards({ types: pipeline.types, updateBoard: (task) => stateManager.updatePipeline(task) });
         pipelineMetrics.startMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, spanId: this._job.data && this._job.data.spanId });
 
-        if (status !== 'dequeued') {
-            log.info(`starting recovery process for job ${this._jobId}`, { component });
+        if (jobStatus !== 'dequeued') {
+            log.info(`starting recovery process for job ${this._jobId} with status ${jobStatus}`, { component });
             const graph = await stateManager.getGraph({ jobId: this._jobId });
             if (!graph) {
                 throw new Error(`unable to start recovery, graph not found for job ${this._jobId}`);
@@ -216,7 +216,7 @@ class TaskRunner {
             const tasks = await stateManager.getTasks({ jobId: this._jobId });
             await stateManager.watchTasks({ jobId }, (t) => this.handleTaskEvent(t));
             await this._recoverPipeline(graph, tasks);
-            await this._progressStatus({ status });
+            await this._progressStatus({ status: jobStatus });
         }
         else {
             await stateManager.watchTasks({ jobId }, (t) => this.handleTaskEvent(t));

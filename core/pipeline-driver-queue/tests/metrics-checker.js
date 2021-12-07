@@ -23,7 +23,7 @@ async function insertPopJobs(pipelineName, qSecDurationArr) {
 }
 
 describe('Test', () => {
-    it('should added to queue', async () => {
+    it.skip('should added to queue', async () => {
         insertPopJobs('pipe-long', [8, 2, 32, 4, 16]);
         insertPopJobs('pipe-short', [4, 8, 4, 2]);
     });

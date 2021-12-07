@@ -8,6 +8,14 @@ let consumer, TaskRunner, stateManager;
 const WorkerStub = require('./mocks/worker');
 const { delay, createJobId } = require('./utils');
 
+const createJob = (jobId) => {
+    const job = {
+        data: { jobId },
+        done: () => { }
+    }
+    return job;
+}
+
 describe('Producer', function () {
     before(async () => {
         config = testParams.config;
@@ -18,10 +26,7 @@ describe('Producer', function () {
     describe('CreateJob', function () {
         it('should create job and handle active status', async function () {
             const jobId = createJobId();
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
+            const job = createJob(jobId);
             const pipeline = pipelines.find(p => p.name === 'two-nodes');
             const options = {
                 type: 'test-job'
@@ -39,10 +44,7 @@ describe('Producer', function () {
         });
         it('should create job and handle success status', async function () {
             const jobId = createJobId();
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
+            const job = createJob(jobId);
             const pipeline = pipelines.find(p => p.name === 'two-nodes');
             const options = {
                 type: 'test-job'
@@ -62,10 +64,7 @@ describe('Producer', function () {
         });
         it('should create job and handle failed status', async function () {
             const jobId = createJobId();
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
+            const job = createJob(jobId);
             const pipeline = pipelines.find(p => p.name === 'two-nodes');
             const options = {
                 type: 'test-job'
@@ -85,10 +84,7 @@ describe('Producer', function () {
         });
         it('should create job and handle stalled status', async function () {
             const jobId = createJobId();
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
+            const job = createJob(jobId);
             const pipeline = pipelines.find(p => p.name === 'two-nodes');
             const options = {
                 type: 'test-job'
@@ -108,10 +104,7 @@ describe('Producer', function () {
         });
         it('should create job and handle crashed status', async function () {
             const jobId = createJobId();
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
+            const job = createJob(jobId);
             const pipeline = pipelines.find(p => p.name === 'two-nodes');
             const options = {
                 type: 'test-job'
@@ -132,10 +125,7 @@ describe('Producer', function () {
         });
         it('should create job and handle invalid status', async function () {
             const jobId = createJobId();
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
+            const job = createJob(jobId);
             const pipeline = pipelines.find(p => p.name === 'two-nodes');
             const status = 'invalid';
             await stateManager.createJob({ jobId, pipeline, status: { status: 'dequeued' } });
@@ -149,10 +139,7 @@ describe('Producer', function () {
     describe('CreateJobErrors', function () {
         it('should create job and handle stalled error', async function () {
             const jobId = createJobId();
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
+            const job = createJob(jobId);
             const status = 'completed';
             const error = `pipeline already in ${status} status`;
             const pipeline = pipelines.find(p => p.name === 'two-nodes');

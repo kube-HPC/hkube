@@ -113,7 +113,7 @@ describe('Test', () => {
         });
     });
     describe('concurrent', () => {
-        it.only('check concurrency limit', async () => {
+        it('check concurrency limit', async () => {
             const totalJobs = 10;
             const half = totalJobs / 2;
             const keys = Array.from(Array(totalJobs).keys());
@@ -140,7 +140,9 @@ describe('Test', () => {
                 };
                 jobsList.push({ jobId, maxExceeded, experiment: 'test', pipeline: 'test' });
                 await dataStore._db.jobs.create({ jobId, pipeline, status });
+                producerLib._isConsumerActive = true;
                 await consumer._handleJob(job);
+                producerLib._isConsumerActive = true;
             }));
 
             const nonExceededCount = spy.callCount;
@@ -174,12 +176,20 @@ describe('Test', () => {
     });
     describe('persistency tests', () => {
         it('persistent load', async () => {
-            queueRunner.queue.queue = []
-            const jobs = generateArr(100);
-            await queueRunner.queue.persistenceStore(jobs);
+            const jobId = uuidv4();
+            const pipeline = {
+                name: 'test',
+                experimentName: 'test',
+            };
+            const status = {
+                status: 'queued'
+            };
+            const count = 50;
+            const keys = Array.from(Array(count).keys());
+            await Promise.all(keys.map(() => dataStore.createJob({ jobId, pipeline, status })));
             await queueRunner.queue.persistencyLoad();
-            const q = queueRunner.queue.getQueue();
-            expect(q.length).to.be.greaterThan(98);
+            const queue = queueRunner.queue.getQueue();
+            expect(queue.length).to.be.gte(count);
         });
     });
     describe('job-consume', () => {

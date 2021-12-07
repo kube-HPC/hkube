@@ -168,8 +168,8 @@ class JobProducer {
         queueRunner.queue.dequeue(job);
         log.debug(`creating new job ${job.jobId}, calculated score: ${job.score}`, { component });
         const jobData = this._pipelineToJob(job);
+        await dataStore.setJobStatus({ jobId: job.jobId, status: pipelineStatuses.DEQUEUED });
         await this._producer.createJob(jobData);
-        await dataStore.setJobStatus({ jobId: job.jobId, status: 'dequeued' });
     }
 }
 
