@@ -246,5 +246,42 @@
             "msgPerSec": 30,
             "delay": 0.033
         }
+    },
+    {
+        "name": "code-api",
+        "nodes": [
+            {
+                "nodeName": "A",
+                "algorithmName": "green-alg",
+                "input": [
+                    {
+                        "command": "codeAPI",
+                        "action": "start_alg",
+                        "name": "green-alg",
+                        "input": [
+                            1,
+                            2,
+                            3
+                        ]
+                    }
+                ]
+            },
+            {
+                "nodeName": "B",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    {
+                        "command": "codeAPI",
+                        "action": "start_stored_subpipeline",
+                        "name": "simple",
+                        "input": [
+                            1,
+                            2,
+                            3
+                        ]
+                    }
+                ]
+            }
+        ]
     }
 ]

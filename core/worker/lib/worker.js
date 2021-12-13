@@ -204,10 +204,10 @@ class Worker {
         }
         this._isBootstrapped = true;
         this._initAlgorithmSettings();
-        log.debug('starting bootstrap state', { component });
+        log.info('starting bootstrap state', { component });
         stateManager.bootstrap();
         jobConsumer.isConnected = true;
-        log.debug('finished bootstrap state', { component });
+        log.info('finished bootstrap state', { component });
     }
 
     async _checkAlgorithmStatus() {
