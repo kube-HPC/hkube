@@ -1,15 +1,111 @@
 # Changelog
 
 
+## [v2.1.93](https://github.com/kube-HPC/hkube/compare/v2.1.0...v2.1.93)(2021-11-7)
 
-> 28 April 2021
+## major featuers 
 
-## [v2.0.146](https://github.com/kube-HPC/hkube/compare/v2.0.0...v2.0.146)
+ - Gateway API - for streaming so u will able to create a rest API to a streaming channel directly from hkube routing  [`#1233`](https://github.com/kube-HPC/hkube/issues/1233)
+ - Debugging improvements - no need to create a debug algorithm. Every algorithm can be debugged by the user by just setting a flag in the pipeline spec
+ 
+
+## Pull Request
+
+- update logger [`#1431`](https://github.com/kube-HPC/hkube/pull/1431)
+- add throttle to k8s error [`#1422`](https://github.com/kube-HPC/hkube/pull/1422)
+- feat: add builds clean [`#1418`](https://github.com/kube-HPC/hkube/pull/1418)
+- add extra registries [`#1364`](https://github.com/kube-HPC/hkube/pull/1364)
+- feat: add errors log info [`#1417`](https://github.com/kube-HPC/hkube/pull/1417)
+- disable enableCheckStalledJobs in worker [`#1416`](https://github.com/kube-HPC/hkube/pull/1416)
+- fix algorithm_queue_scale [`#1415`](https://github.com/kube-HPC/hkube/pull/1415)
+- feat: fix rebuild issue [`#1414`](https://github.com/kube-HPC/hkube/pull/1414)
+- queues snapshot [`#1387`](https://github.com/kube-HPC/hkube/pull/1387)
+- Streaming gateway [`#1413`](https://github.com/kube-HPC/hkube/pull/1413)
+- algorithm-queue scale improvement [`#1405`](https://github.com/kube-HPC/hkube/pull/1405)
+- update nodejs wrapper to 2.0.50 [`#1409`](https://github.com/kube-HPC/hkube/pull/1409)
+- Pipeline status bug [`#1408`](https://github.com/kube-HPC/hkube/pull/1408)
+- update logger and config for fluentbit [`#1403`](https://github.com/kube-HPC/hkube/pull/1403)
+- feat: improve drivers scale [`#1395`](https://github.com/kube-HPC/hkube/pull/1395)
+- update core/algorithm-builder/environments/python/wrapper/requirements.txt to hkube-python-wrapper==2.2.0.dev9 [`#1394`](https://github.com/kube-HPC/hkube/pull/1394)
+- update core/algorithm-builder/environments/python/wrapper/requirements.txt to hkube-python-wrapper==2.2.0.dev7 [`#1393`](https://github.com/kube-HPC/hkube/pull/1393)
+- clean openshift build [`#1383`](https://github.com/kube-HPC/hkube/pull/1383)
+- add emptyDir and configMap mounts [`#1379`](https://github.com/kube-HPC/hkube/pull/1379)
+- update core/algorithm-builder/environments/java/wrapper/version.txt to v2.1.7-SNAPSHOT [`#1389`](https://github.com/kube-HPC/hkube/pull/1389)
+- Support range java [`#1380`](https://github.com/kube-HPC/hkube/pull/1380)
+- update parser to handle batch on object with flowInput [`#1378`](https://github.com/kube-HPC/hkube/pull/1378)
+- don't retry for algorithm execution code api [`#1373`](https://github.com/kube-HPC/hkube/pull/1373)
+- update java wrapper to v1.0.20-SNAPSHOT [`#1372`](https://github.com/kube-HPC/hkube/pull/1372)
+- add more logs [`#1361`](https://github.com/kube-HPC/hkube/pull/1361)
+- java version in one place [`#1366`](https://github.com/kube-HPC/hkube/pull/1366)
+- fix ingress [`#1363`](https://github.com/kube-HPC/hkube/pull/1363)
+- fix: reconciler [`#1360`](https://github.com/kube-HPC/hkube/pull/1360)
+- feat: add queue active by timestamp [`#1353`](https://github.com/kube-HPC/hkube/pull/1353)
+- feat: add search limit [`#1356`](https://github.com/kube-HPC/hkube/pull/1356)
+- add ingress type [`#1355`](https://github.com/kube-HPC/hkube/pull/1355)
+- 2.0 snapshot [`#1351`](https://github.com/kube-HPC/hkube/pull/1351)
+- support log message from debug algorithm [`#1342`](https://github.com/kube-HPC/hkube/pull/1342)
+- update python wrapper in builder to version 2.2.0.dev5 [`#1346`](https://github.com/kube-HPC/hkube/pull/1346)
+- update nodejs wrapper to 2.0.45 [`#1345`](https://github.com/kube-HPC/hkube/pull/1345)
+- debug hkube api [`#1316`](https://github.com/kube-HPC/hkube/pull/1316)
+- fix algorithm container status is undefined message [`#1333`](https://github.com/kube-HPC/hkube/pull/1333)
+- feat: add rerun [`#1331`](https://github.com/kube-HPC/hkube/pull/1331)
+- update python wrapper in builder to version 2.2.0.dev3 [`#1332`](https://github.com/kube-HPC/hkube/pull/1332)
+- update units-converter to allow byte values [`#1330`](https://github.com/kube-HPC/hkube/pull/1330)
+- handle raw run of cached [`#1326`](https://github.com/kube-HPC/hkube/pull/1326)
+- add debugOverride [`#1321`](https://github.com/kube-HPC/hkube/pull/1321)
+- add maxWorkers to algorithm spec [`#1322`](https://github.com/kube-HPC/hkube/pull/1322)
+- feat: algorithm-queue scaled [`#1320`](https://github.com/kube-HPC/hkube/pull/1320)
+- feat: algorithm-queue scale [`#1318`](https://github.com/kube-HPC/hkube/pull/1318)
+- Swaggers merge [`#1310`](https://github.com/kube-HPC/hkube/pull/1310)
+- trigger consumer job when reconnected [`#1317`](https://github.com/kube-HPC/hkube/pull/1317)
+- add pipeline type for caching debug [`#1313`](https://github.com/kube-HPC/hkube/pull/1313)
+- exec algorithm as debug [`#1309`](https://github.com/kube-HPC/hkube/pull/1309)
+- feat: streaming flow validation [`#1306`](https://github.com/kube-HPC/hkube/pull/1306)
+- fix getting algorithm template [`#1307`](https://github.com/kube-HPC/hkube/pull/1307)
+- algorithm-debug [`#1264`](https://github.com/kube-HPC/hkube/pull/1264)
+- pipeline-driver-queue latency issue [`#1301`](https://github.com/kube-HPC/hkube/pull/1301)
+- pin dvc version [`#1302`](https://github.com/kube-HPC/hkube/pull/1302)
+- fix empty docker creds on openshift 3.11 [`#1292`](https://github.com/kube-HPC/hkube/pull/1292)
+- Rest Refactoring [`#1291`](https://github.com/kube-HPC/hkube/pull/1291)
+- feat: improve job stop/pause/result [`#1290`](https://github.com/kube-HPC/hkube/pull/1290)
+- Hkube gc [`#1287`](https://github.com/kube-HPC/hkube/pull/1287)
+- add bodySizeLimit [`#1288`](https://github.com/kube-HPC/hkube/pull/1288)
+- feat: move caching-service to api-server [`#1284`](https://github.com/kube-HPC/hkube/pull/1284)
+- feat: ceil drivers amount [`#1283`](https://github.com/kube-HPC/hkube/pull/1283)
+- feat: jobs search [`#1277`](https://github.com/kube-HPC/hkube/pull/1277)
+- feat: driver tests [`#1280`](https://github.com/kube-HPC/hkube/pull/1280)
+- Pipeline drivers scale [`#1259`](https://github.com/kube-HPC/hkube/pull/1259)
+- feat: worker bugs [`#1279`](https://github.com/kube-HPC/hkube/pull/1279)
+- update nodejs wrapper to 2.0.41 [`#1278`](https://github.com/kube-HPC/hkube/pull/1278)
+- feat: check algorithm container status [`#1275`](https://github.com/kube-HPC/hkube/pull/1275)
+- feat: resolve createIndices [`#1273`](https://github.com/kube-HPC/hkube/pull/1273)
+- feat: resolve edges [`#1272`](https://github.com/kube-HPC/hkube/pull/1272)
+- feat: delete algorithm nullable properties [`#1268`](https://github.com/kube-HPC/hkube/pull/1268)
+- feat: adjust envs [`#1262`](https://github.com/kube-HPC/hkube/pull/1262)
+- feat: add close method [`#1270`](https://github.com/kube-HPC/hkube/pull/1270)
+- feat: reservedMemory parse int [`#1265`](https://github.com/kube-HPC/hkube/pull/1265)
+- feat: driver_tests [`#1266`](https://github.com/kube-HPC/hkube/pull/1266)
+- feat: dataSource -&gt; spec [`#1261`](https://github.com/kube-HPC/hkube/pull/1261)
+- add healthcheks [`#1263`](https://github.com/kube-HPC/hkube/pull/1263)
+- Algorithm queue balancer [`#1251`](https://github.com/kube-HPC/hkube/pull/1251)
+- Streaming gateway [`#1234`](https://github.com/kube-HPC/hkube/pull/1234)
+- feat: add labels and annotations [`#1228`](https://github.com/kube-HPC/hkube/pull/1228)
+- update kubernetes client package to fix k3s issue [`#1257`](https://github.com/kube-HPC/hkube/pull/1257)
+- Concurrent pipelines [`#1250`](https://github.com/kube-HPC/hkube/pull/1250)
+- use later nodejswrapper [`c02659e`](https://github.com/kube-HPC/hkube/commit/c02659e3fed33b1663e2f8d204c72fb543cbc14d)
+- Revert "Support range" [`4635b04`](https://github.com/kube-HPC/hkube/commit/4635b04bfbb4bfff345ff1b288ead919e7eabc24)
+- Support range [`7907765`](https://github.com/kube-HPC/hkube/commit/7907765c223f0a5428a65b89067474da2f19d380)
+
+
+
+
+## [v2.0.146](https://github.com/kube-HPC/hkube/compare/v2.0.0...v2.0.146)(2021-04-28)
 
 ## major featuers 
 
  - Streaming pipelines - Add the ability to create pipelines that run continuously and pass the data along the flow [`#263`](https://github.com/kube-HPC/hkube/issues/263)
  - Data resource - This feature will enable managing data sources and applying them to pipelines on top of dvc [`#965`](https://github.com/kube-HPC/hkube/issues/965)
+ - Redesign Data transportaion - moving data transportaion from object storage to ZMQ [`#771`](https://github.com/kube-HPC/hkube/issues/771)
 
 ## Pull Request
 
