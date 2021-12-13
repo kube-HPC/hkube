@@ -6,7 +6,7 @@
 ## major featuers 
 
  - Gateway API - for streaming so u will able to create a rest API to a streaming channel directly from hkube routing  [`#1233`](https://github.com/kube-HPC/hkube/issues/1233)
- - Debugging improvements - no need to create a debug algorithm. Every algorithm can be debugged by the user by just setting a flag in the pipeline spec
+ - Debugging improvements - no need to create a debug algorithm. Every algorithm can be debugged by the user by just setting a flag in the pipeline spec  [design](https://docs.google.com/presentation/d/1aVs2bRIzQV2dLe4zfXDsT_Z9Q6J-a3RemZKk_HGxI48/edit?usp=sharing)
  
 
 ## Pull Request
