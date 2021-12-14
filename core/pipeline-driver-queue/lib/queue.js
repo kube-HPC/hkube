@@ -6,12 +6,13 @@ const { queueEvents, componentName } = require('./consts');
 const component = componentName.QUEUE;
 
 class Queue extends Events {
-    constructor({ scoreHeuristic, persistency } = {}) {
+    constructor({ scoreHeuristic, persistency, name } = {}) {
         super();
         this.scoreHeuristic = scoreHeuristic;
         this.queue = [];
         this._active = true;
         this._persistency = persistency;
+        this._name = name;
     }
 
     flush() {
@@ -29,7 +30,7 @@ class Queue extends Events {
         if (!this._persistency) {
             return;
         }
-        const data = await this._persistency.get();
+        const data = await this._persistency.get(this._name);
         if (data?.length > 0) {
             data.forEach(q => {
                 const item = {
@@ -51,7 +52,7 @@ class Queue extends Events {
             const { calculated, ...rest } = q;
             return rest;
         });
-        await this._persistency.store(mapData);
+        await this._persistency.store(mapData, this._name);
     }
 
     updateHeuristic(scoreHeuristic) {
@@ -59,7 +60,7 @@ class Queue extends Events {
     }
 
     updateOrder() {
-        this.queue = orderby(this.queue, ['preference', 'score'], ['asc', 'desc']);
+        this.queue = orderby(this.queue, ['score'], ['desc']);
     }
 
     enqueue(job) {
@@ -73,9 +74,10 @@ class Queue extends Events {
     }
 
     dequeue(job) {
-        remove(this.queue, j => j.jobId === job.jobId);
+        const removedJob = remove(this.queue, j => j.jobId === job.jobId);
         this.emit(queueEvents.POP, job);
         log.info(`job pop from queue, queue size: ${this.size}`, { component });
+        return removedJob;
     }
 
     remove(jobId) {

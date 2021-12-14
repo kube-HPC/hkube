@@ -1,6 +1,6 @@
 const { uid } = require('@hkube/uid');
 const stateManager = require('../state/state-manager');
-const producer = require('../producer/jobs-producer');
+const producer = require('../producer/preference-producer');
 
 class PreferredJobs {
     async getPreferredJobsList() {

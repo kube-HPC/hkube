@@ -49,7 +49,7 @@ describe('Test', () => {
                 const q = queue.getQueue();
                 expect(q[0].score).to.eql(80);
             });
-            it.only('should added to queue ordered', async () => {
+            xit('should added to queue ordered', async () => {
                 queue = new Queue();
                 queue.updateHeuristic({ run: heuristicStub() });
                 queue.enqueue(stubTemplate({ score: 80 }));
@@ -175,7 +175,7 @@ describe('Test', () => {
         });
     });
     describe('persistency tests', () => {
-        xit('persistent load', async () => {
+        it.only('persistent load', async () => {
             queueRunner.queue.queue = []
             const jobs = generateArr(100);
             await queueRunner.queue.persistenceStore(jobs);

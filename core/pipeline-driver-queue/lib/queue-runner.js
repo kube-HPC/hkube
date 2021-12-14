@@ -19,12 +19,19 @@ class QueueRunner {
         persistency.init(this.config);
         this.queue = new Queue({
             scoreHeuristic: (...args) => this.heuristicRunner.run(...args),
-            persistency
+            persistency,
+            name: 'main'
+        });
+        this.preferredQueue = new Queue({
+            scoreHeuristic: job => job,
+            persistency,
+            name: 'preferred'
         });
         this.queue.on(queueEvents.INSERT, job => this._jobAdded(job));
         this.queue.on(queueEvents.POP, job => this._jobRemoved(job));
         this.queue.on(queueEvents.REMOVE, job => this._jobRemoved(job));
         await this.queue.persistencyLoad();
+        await this.preferredQueue.persistencyLoad();
     }
 
     _jobAdded(job) {

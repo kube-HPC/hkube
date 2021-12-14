@@ -18,7 +18,7 @@ class JobProducer {
 
     async init(options) {
         const { jobType, ...producer } = options.producer;
-        this._jobType = jobType;
+        [this._jobType] = jobType;
         this._producer = new Producer({
             setting: {
                 tracer,
@@ -118,8 +118,12 @@ class JobProducer {
      */
     async _dequeueJob() {
         try {
+            const preferredQueue = queueRunner.preferredQueue.getQueue(q => !q.maxExceeded);
             const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
-            if (queue.length > 0) {
+            if (preferredQueue.length > 0) {
+                await this.createJob(preferredQueue[0]);
+            }
+            else if (queue.length > 0) {
                 await this.createJob(queue[0]);
             }
         }
@@ -129,9 +133,14 @@ class JobProducer {
     }
 
     _checkMaxExceeded({ experiment, pipeline }) {
-        const job = queueRunner.queue
+        let job = queueRunner.preferredQueue
             .getQueue(q => q.maxExceeded)
             .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+        if (!job) {
+            job = queueRunner.queue
+                .getQueue(q => q.maxExceeded)
+                .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+        }
         if (job) {
             log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
             job.maxExceeded = false;
