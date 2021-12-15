@@ -180,6 +180,10 @@ describe('Test', () => {
             await queueRunner.queue.persistencyLoad();
             const q = queueRunner.queue.getQueue();
             expect(q.length).to.be.greaterThan(98);
+            await queueRunner.preferredQueue.persistenceStore(jobs);
+            await queueRunner.preferredQueue.persistencyLoad();
+            const pq = queueRunner.queue.getQueue();
+            expect(pq.length).to.be.greaterThan(98);
         });
     });
     describe('job-consume', () => {

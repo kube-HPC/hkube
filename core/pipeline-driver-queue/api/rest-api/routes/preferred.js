@@ -10,18 +10,18 @@ const routes = () => {
     });
     router.delete('/', async (req, res) => {
         const { jobs } = req.body;
-        preferredService.deletePreferredJob(jobs);
-        res.json({ message: 'Board deleted' });
+        const deleted = await preferredService.deletePreferredJobs(jobs);
+        res.json({ message: 'Jobs deleted', jobs: deleted });
     });
     router.post('/', async (req, res) => {
         const { jobs, query, position } = req.body;
-        await preferredService.addPreferredJobs({
+        const added = await preferredService.addPreferredJobs({
             query,
             position,
             jobs
         });
         const message = 'Jobs added to preferred';
-        res.json({ message });
+        res.json({ message, jobs: added });
     });
     return router;
 };

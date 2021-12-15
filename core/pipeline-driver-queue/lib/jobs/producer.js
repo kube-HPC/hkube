@@ -73,6 +73,7 @@ class JobProducer {
         try {
             const queue = queueRunner.queue.getQueue();
             await queueRunner.queue.persistenceStore(queue);
+            await queueRunner.preferredQueue.persistenceStore(queue);
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);

@@ -1,12 +1,25 @@
 const queueRunner = require('../queue-runner');
 const validator = require('../validation');
+const InvalidDataError = require('../errors/InvalidDataError');
 class PreferredJobs {
     async getPreferredJobsList() {
-        return null;
+        return queueRunner.preferredQueue.queue;
     }
 
-    async deletePreferredJob() {
-        return null;
+    async deletePreferredJobs(jobIds) {
+        let deleted = 0;
+        const deletedJobs = jobIds.map(jobId => {
+            const deletedArr = queueRunner.preferredQueue.dequeue({ jobId });
+            if (deletedArr.length > 0) {
+                queueRunner.queue.enqueue(deletedArr[0]);
+                deleted += deletedArr.length;
+            }
+            return deletedArr;
+        });
+        if (deleted === 0) {
+            throw new InvalidDataError('JobIds do not exist in preferred queue');
+        }
+        return deletedJobs;
     }
 
     query(job, tag, pipeline, jobId) {
@@ -47,12 +60,20 @@ class PreferredJobs {
         if (position === 'last') {
             index = queueRunner.preferredQueue.queue.length;
         }
+        const allDequeued = [];
         jobs.reverse().forEach(id => {
             const dequeued = queueRunner.queue.dequeue({ jobId: id });
             if (dequeued.length > 0) {
+                allDequeued.push(dequeued[0]);
                 queueRunner.preferredQueue.queue.splice(index, 0, dequeued[0]);
             }
         });
+        if (allDequeued.length === 0) {
+            throw new InvalidDataError('JobIds do not exist in general queue');
+        }
+        else {
+            return allDequeued;
+        }
     }
 }
 
