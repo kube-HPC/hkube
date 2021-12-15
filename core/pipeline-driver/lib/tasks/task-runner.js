@@ -201,7 +201,8 @@ class TaskRunner {
             type: this.pipeline.kind,
             getGraphNodes: (...args) => this._nodes._getNodesAsFlat(...args),
             getGraphEdges: (...args) => this._nodes.getEdges(...args),
-            sendProgress: (...args) => stateManager.setJobStatus(...args)
+            sendProgress: (...args) => stateManager.setJobStatus(...args),
+            updateGraph: (...args) => this._updateGraph(...args)
         });
 
         this._boards = new Boards({ types: pipeline.types, updateBoard: (task) => stateManager.updatePipeline(task) });
@@ -347,7 +348,6 @@ class TaskRunner {
     }
 
     async _progressStatus({ status, error, nodeName }) {
-        await this._updateGraph();
         if (error) {
             await this._progressError({ status, error, nodeName });
         }
@@ -644,7 +644,7 @@ class TaskRunner {
                 const { batchTolerance } = this.pipeline.options;
                 const states = this._nodes.getNodeStates(nodeName);
                 const failed = states.filter(s => s === taskStatuses.FAILED);
-                const percent = ((failed.length / states.length) * 100).toFixed(0);
+                const percent = ((failed.length / states.length) * 100);
 
                 if (percent >= batchTolerance) {
                     err = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${error}`);

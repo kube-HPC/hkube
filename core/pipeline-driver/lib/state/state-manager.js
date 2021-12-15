@@ -213,14 +213,6 @@ class StateManager {
         return this._db.jobs.unwatchStatus({ jobId });
     }
 
-    /** Graph
-     * a graph node should look like:
-     * - nodeName
-     * - algorithmName
-     * - status
-     * - level
-     * - batchInfo
-     */
     updateGraph({ jobId, graph }) {
         return this._db.jobs.updateGraph({ jobId, graph: { jobId, timestamp: Date.now(), ...graph } });
     }

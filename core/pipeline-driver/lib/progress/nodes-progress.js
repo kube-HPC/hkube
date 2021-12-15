@@ -18,11 +18,13 @@ class ProgressManager {
         this._getGraphNodes = options.getGraphNodes;
         this._getGraphEdges = options.getGraphEdges;
         this._sendProgress = options.sendProgress;
+        this._updateGraph = options.updateGraph;
         this._throttleProgress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
 
         this._queue = asyncQueue((task, callback) => {
             const data = this._calcProgress();
             this._currentProgress = data.progress;
+            this._updateGraph();
             this._sendProgress({ ...task, data }).then(response => callback(null, response)).catch(error => callback(error));
         }, 1);
     }

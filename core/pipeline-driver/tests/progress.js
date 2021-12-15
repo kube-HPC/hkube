@@ -12,7 +12,8 @@ describe('Progress', function () {
         progress = new Progress({
             getGraphNodes: () => [],
             getGraphAllNodes: () => [],
-            sendProgress: async () => null
+            sendProgress: async () => null,
+            updateGraph: async () => null
         });
     })
     it('should call progress with level debug', function () {

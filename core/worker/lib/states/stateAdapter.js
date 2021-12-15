@@ -142,7 +142,7 @@ class StateAdapter extends EventEmitter {
         return this._db.tasks.createMany(tasks);
     }
 
-    deleteTasks(taskId) {
+    deleteTask(taskId) {
         return this._db.tasks.delete({ taskId });
     }
 
