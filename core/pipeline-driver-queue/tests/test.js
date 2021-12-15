@@ -156,6 +156,7 @@ describe('Test', () => {
         it('should consume job with params', async () => {
             const jobId = uuidv4();
             await persistence.client.executions.stored.set({ jobId, ...pipelines[0] });
+            await persistence.setJobStatus({ jobId, status: 'pending' });
             const options = {
                 job: {
                     type: 'pipeline-job',
