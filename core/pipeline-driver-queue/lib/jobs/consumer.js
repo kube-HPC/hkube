@@ -93,6 +93,7 @@ class JobConsumer {
             priority: pipeline.priority,
             maxExceeded: pipeline.maxExceeded,
             entranceTime: Date.now(),
+            tags: pipeline.tags || [],
             calculated: {
                 latestScores: {}
             }

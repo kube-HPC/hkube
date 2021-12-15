@@ -51,6 +51,8 @@ addToPreferredRequest:
   $ref: ./preferred/addToPreferredRequest.yaml
 removeFromPreferredRequest:
   $ref: ./preferred/removeFromPreferredRequest.yaml
+preferredQuery:
+  $ref: ./preferred/preferredQuery.yaml
 
 # builds
 buildId:

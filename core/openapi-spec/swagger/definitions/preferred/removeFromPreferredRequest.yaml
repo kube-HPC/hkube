@@ -4,3 +4,5 @@ properties:
     type: array
     items:
       $ref: "#/components/schemas/jobId"
+required:
+  - jobs

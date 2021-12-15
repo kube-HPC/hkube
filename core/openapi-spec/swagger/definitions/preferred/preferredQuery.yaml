@@ -1,0 +1,8 @@
+type: object
+properties:
+  tag:
+    $ref: "#/components/schemas/tag"
+  jobId:
+    $ref: "#/components/schemas/jobId"
+  pipeline:
+    $ref: "#/components/schemas/pipelineName"

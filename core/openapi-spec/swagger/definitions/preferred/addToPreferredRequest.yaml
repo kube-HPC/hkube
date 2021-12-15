@@ -4,3 +4,15 @@ properties:
     type: array
     items:
       $ref: "#/components/schemas/jobId"
+  position:
+    type: string
+    enum:
+      - first
+      - last
+      - before
+      - after
+  query:
+    $ref: "#/components/schemas/preferredQuery"
+required:
+  - jobs
+  - position

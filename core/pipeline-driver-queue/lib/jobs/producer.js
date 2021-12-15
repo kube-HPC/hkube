@@ -18,7 +18,7 @@ class JobProducer {
 
     async init(options) {
         const { jobType, ...producer } = options.producer;
-        [this._jobType] = jobType;
+        this._jobType = jobType;
         this._producer = new Producer({
             setting: {
                 tracer,
@@ -55,7 +55,7 @@ class JobProducer {
                     // create job first time only, then rely on 3 events (active/completed/enqueue)
                     this._firstJobDequeue = true;
                     log.info('firstJobDequeue', { component });
-                    await this.createJob(queue[0]);
+                    await this.createJob(queue[0], queueRunner.queue);
                 }
             }
         }
@@ -119,12 +119,15 @@ class JobProducer {
     async _dequeueJob() {
         try {
             const preferredQueue = queueRunner.preferredQueue.getQueue(q => !q.maxExceeded);
-            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+
             if (preferredQueue.length > 0) {
-                await this.createJob(preferredQueue[0]);
+                await this.createJob(preferredQueue[0], queueRunner.preferredQueue);
             }
-            else if (queue.length > 0) {
-                await this.createJob(queue[0]);
+            else {
+                const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+                if (queue.length > 0) {
+                    await this.createJob(queue[0], queueRunner.queue);
+                }
             }
         }
         catch (error) {
@@ -173,8 +176,8 @@ class JobProducer {
         };
     }
 
-    async createJob(job) {
-        queueRunner.queue.dequeue(job);
+    async createJob(job, queue) {
+        queue.dequeue(job);
         log.debug(`creating new job ${job.jobId}, calculated score: ${job.score}`, { component });
         const jobData = this._pipelineToJob(job);
         await this._producer.createJob(jobData);

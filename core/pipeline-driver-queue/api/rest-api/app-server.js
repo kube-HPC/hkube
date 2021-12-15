@@ -5,6 +5,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../lib/consts/component-name').REST_API;
 const rest = new RestServer();
 const routeLogBlacklist = ['/metrics'];
+const validator = require('../../lib/validation');
 
 class AppServer {
     async init(options) {
@@ -42,6 +43,8 @@ class AppServer {
         };
         const data = await rest.start(opt);
         log.info(`🚀 ${data.message}`, { component });
+        const swagger = await fse.readJSON('api/rest-api/swagger.json');
+        validator.init(swagger.components.schemas);
     }
 }
 

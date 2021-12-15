@@ -11,7 +11,6 @@ const modules = [
     require('./lib/state/state-manager'),
     require('./api/rest-api/app-server'),
     require('./lib/producer/jobs-producer'),
-    require('./lib/producer/preference-producer'),
     require('./lib/examples/pipelines-updater'),
     require('./lib/webhook/webhooks-handler'),
     require('./lib/service/graph'),

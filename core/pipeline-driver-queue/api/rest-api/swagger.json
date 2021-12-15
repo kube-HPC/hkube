@@ -3,9 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-
     "version": "2.2.6",
-r
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -12478,8 +12476,42 @@ r
                       "type": "string",
                       "description": "Unique identifier representing pipeline execution"
                     }
+                  },
+                  "position": {
+                    "type": "string",
+                    "enum": [
+                      "first",
+                      "last",
+                      "before",
+                      "after"
+                    ]
+                  },
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "tag": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific tag",
+                        "minLength": 1,
+                        "maxLength": 32
+                      },
+                      "jobId": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                      },
+                      "pipeline": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific pipeline",
+                        "minLength": 1,
+                        "format": "pipeline-name"
+                      }
+                    }
                   }
-                }
+                },
+                "required": [
+                  "jobs",
+                  "position"
+                ]
               }
             }
           },
@@ -12499,8 +12531,42 @@ r
                         "type": "string",
                         "description": "Unique identifier representing pipeline execution"
                       }
+                    },
+                    "position": {
+                      "type": "string",
+                      "enum": [
+                        "first",
+                        "last",
+                        "before",
+                        "after"
+                      ]
+                    },
+                    "query": {
+                      "type": "object",
+                      "properties": {
+                        "tag": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific tag",
+                          "minLength": 1,
+                          "maxLength": 32
+                        },
+                        "jobId": {
+                          "type": "string",
+                          "description": "Unique identifier representing pipeline execution"
+                        },
+                        "pipeline": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific pipeline",
+                          "minLength": 1,
+                          "format": "pipeline-name"
+                        }
+                      }
                     }
-                  }
+                  },
+                  "required": [
+                    "jobs",
+                    "position"
+                  ]
                 }
               }
             }
@@ -12564,7 +12630,10 @@ r
                       "description": "Unique identifier representing pipeline execution"
                     }
                   }
-                }
+                },
+                "required": [
+                  "jobs"
+                ]
               }
             }
           },
@@ -12585,7 +12654,10 @@ r
                         "description": "Unique identifier representing pipeline execution"
                       }
                     }
-                  }
+                  },
+                  "required": [
+                    "jobs"
+                  ]
                 }
               }
             }
@@ -12631,7 +12703,6 @@ r
         }
       }
     },
-
     "/builds/status/{buildId}": {
       "get": {
         "tags": [
@@ -18143,7 +18214,6 @@ r
           }
         }
       },
-
       "addToPreferredRequest": {
         "type": "object",
         "properties": {
@@ -18153,8 +18223,42 @@ r
               "type": "string",
               "description": "Unique identifier representing pipeline execution"
             }
+          },
+          "position": {
+            "type": "string",
+            "enum": [
+              "first",
+              "last",
+              "before",
+              "after"
+            ]
+          },
+          "query": {
+            "type": "object",
+            "properties": {
+              "tag": {
+                "type": "string",
+                "description": "Unique identifier representing a specific tag",
+                "minLength": 1,
+                "maxLength": 32
+              },
+              "jobId": {
+                "type": "string",
+                "description": "Unique identifier representing pipeline execution"
+              },
+              "pipeline": {
+                "type": "string",
+                "description": "Unique identifier representing a specific pipeline",
+                "minLength": 1,
+                "format": "pipeline-name"
+              }
+            }
           }
-        }
+        },
+        "required": [
+          "jobs",
+          "position"
+        ]
       },
       "removeFromPreferredRequest": {
         "type": "object",
@@ -18166,9 +18270,32 @@ r
               "description": "Unique identifier representing pipeline execution"
             }
           }
+        },
+        "required": [
+          "jobs"
+        ]
+      },
+      "preferredQuery": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "description": "Unique identifier representing a specific tag",
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "jobId": {
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
+          },
+          "pipeline": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          }
         }
       },
-
       "buildId": {
         "type": "object",
         "properties": {
