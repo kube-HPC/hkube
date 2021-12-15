@@ -204,7 +204,6 @@ class TaskRunner extends EventEmitter {
         }
 
         await this._progressStatus({ status: DriverStates.ACTIVE });
-        await this._stateManager.setJobStatus({ jobId: this._jobId, queueTime: pipeline.startTime, startTime: Date.now() },);
 
         this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);
 
@@ -273,7 +272,6 @@ class TaskRunner extends EventEmitter {
             process.exit(1);
         }
         await this._progressStatus({ status, error, nodeName });
-        await this._stateManager.setJobStatus({ jobId: this._jobId }, true);
 
         pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
         log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
