@@ -7,7 +7,6 @@ const { Producer } = require('@hkube/producer-consumer');
 const component = require('../consts/component-name').JOBS_PRODUCER;
 const { isCompletedState } = require('../utils/pipelineStatuses');
 const db = require('../persistency/db');
-const etcd = require('../persistency/etcd');
 const MAX_JOB_ATTEMPTS = 3;
 
 class JobProducer {
@@ -172,7 +171,7 @@ class JobProducer {
             log.info(`pop new task with taskId: ${task.taskId} for ${task.jobId}, score: ${task.calculated.score}, Queue length: ${this._getQueue().length}`,
                 { component, jobId: task.jobId, taskId: task.taskId });
             const job = this._taskToProducerJob(task);
-            await db.updateTask({ taskId: task.taskId, status: 'dequeued' });
+            await db.updateTask({ taskId: task.taskId, status: taskStatuses.DEQUEUED });
             return this._producer.createJob(job);
         }
         return null;

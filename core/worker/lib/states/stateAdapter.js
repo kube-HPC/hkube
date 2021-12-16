@@ -11,16 +11,7 @@ const component = Components.ETCD;
 let log;
 
 class StateAdapter extends EventEmitter {
-    constructor() {
-        super();
-        this._etcd = null;
-    }
-
     async init(options) {
-        if (this._etcd) {
-            this._etcd = null;
-            this.removeAllListeners();
-        }
         if (options.cacheResults.enabled) {
             this.getExistingAlgorithms = cacheResults(this.getExistingAlgorithms.bind(this), options.cacheResults.updateFrequency);
         }
@@ -50,6 +41,7 @@ class StateAdapter extends EventEmitter {
         await this._db.init();
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
 
+        // TODO: MOVE WATCH TO MONGO
         this._etcd.workers.on('change', (res) => {
             log.info(`got worker state change ${JSON.stringify(res)}`, { component });
             this.emit(res.status.command, res);
@@ -140,6 +132,10 @@ class StateAdapter extends EventEmitter {
 
     createTasks(tasks) {
         return this._db.tasks.createMany(tasks);
+    }
+
+    getTask({ taskId }) {
+        return this._db.tasks.fetch({ taskId });
     }
 
     deleteTask(taskId) {

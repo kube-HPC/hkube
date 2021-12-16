@@ -156,7 +156,7 @@ describe('AlgorithmExecutions', () => {
         expect(args.execId).equals(data.execId);
         expect(args.error).equals(`execution ${data.execId} already running`);
     });
-    it('should succeed to create job', async function () {
+    it.only('should succeed to create job', async function () {
         const jobData = {
             jobId: `job-${uuid()}`,
             nodeName: 'white',
@@ -177,15 +177,15 @@ describe('AlgorithmExecutions', () => {
         };
         spy = sinon.spy(execAlgorithm, '_createJob');
         await execAlgorithm._startAlgorithmExecution({ data });
-        
+
         const args = spy.getCalls()[0].args[0];
         expect(args.tasks[0]).to.have.property('execId');
         expect(args.tasks[0]).to.have.property('input');
         expect(args.tasks[0]).to.have.property('storage');
         expect(args.tasks[0]).to.have.property('taskId');
         expect(args.tasks[0].execId).equals(data.execId);
-        const {taskId} = args.tasks[0];
-        const task = await stateAdapter._etcd.jobs.tasks.get({taskId, jobId: jobData.jobId})
+        const { taskId } = args.tasks[0];
+        const task = await stateAdapter.getTask({ taskId })
         expect(task.taskId).to.eql(taskId);
         expect(task.status).to.eql(taskStatuses.CREATING);
     });

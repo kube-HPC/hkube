@@ -263,9 +263,6 @@ class JobConsumer extends EventEmitter {
         try {
             this._inFinishState = true;
             await this._unwatchJob();
-            if (this._execId) {
-                await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
-            }
             const { resultData, status, error, isImagePullErr, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
 
             if (shouldCompleteJob) {
