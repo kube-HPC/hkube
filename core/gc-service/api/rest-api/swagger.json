@@ -12473,7 +12473,7 @@
                   "addedJobs": {
                     "type": "object",
                     "properties": {
-                      "jobs": {
+                      "ids": {
                         "type": "array",
                         "items": {
                           "type": "string",
@@ -12510,7 +12510,11 @@
                           }
                         }
                       }
-                    }
+                    },
+                    "required": [
+                      "ids",
+                      "position"
+                    ]
                   },
                   "removedJobs": {
                     "type": "array",
@@ -12519,11 +12523,7 @@
                       "description": "Unique identifier representing pipeline execution"
                     }
                   }
-                },
-                "required": [
-                  "jobs",
-                  "position"
-                ]
+                }
               }
             }
           },
@@ -12540,7 +12540,7 @@
                     "addedJobs": {
                       "type": "object",
                       "properties": {
-                        "jobs": {
+                        "ids": {
                           "type": "array",
                           "items": {
                             "type": "string",
@@ -12577,7 +12577,11 @@
                             }
                           }
                         }
-                      }
+                      },
+                      "required": [
+                        "ids",
+                        "position"
+                      ]
                     },
                     "removedJobs": {
                       "type": "array",
@@ -12586,11 +12590,7 @@
                         "description": "Unique identifier representing pipeline execution"
                       }
                     }
-                  },
-                  "required": [
-                    "jobs",
-                    "position"
-                  ]
+                  }
                 }
               }
             }
@@ -18153,7 +18153,7 @@
           "addedJobs": {
             "type": "object",
             "properties": {
-              "jobs": {
+              "ids": {
                 "type": "array",
                 "items": {
                   "type": "string",
@@ -18190,7 +18190,11 @@
                   }
                 }
               }
-            }
+            },
+            "required": [
+              "ids",
+              "position"
+            ]
           },
           "removedJobs": {
             "type": "array",
@@ -18199,11 +18203,7 @@
               "description": "Unique identifier representing pipeline execution"
             }
           }
-        },
-        "required": [
-          "jobs",
-          "position"
-        ]
+        }
       },
       "preferredQuery": {
         "type": "object",

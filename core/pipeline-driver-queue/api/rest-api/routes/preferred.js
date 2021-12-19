@@ -13,14 +13,11 @@ const routes = () => {
         let added = [];
         let removed = [];
         if (removedJobs && Array.isArray(removedJobs)) {
-            removed = preferredService.deletePreferredJobs(removedJobs);
+            removed = await preferredService.deletePreferredJobs(removedJobs);
         }
         if (addedJobs) {
-            const { jobs, query, position } = addedJobs;
             added = preferredService.addPreferredJobs({
-                query,
-                position,
-                jobs
+                addedJobs
             });
         }
         res.json({ addedJobs: added, removedJobs: removed });

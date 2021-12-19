@@ -6,10 +6,10 @@ class Preference {
 
     validatePreferenceRequest(preferenceRequest) {
         this._validator.validate(
-            this._validator.definitions.addToPreferredRequest,
+            this._validator.definitions.updatePreferredRequest,
             preferenceRequest
         );
-        const { position, query } = preferenceRequest;
+        const { position, query } = preferenceRequest.addedJobs;
         if ((position === 'first' || position === 'last')) {
             if (query) {
                 throw new InvalidDataError('No query is needed in case of position first or last');

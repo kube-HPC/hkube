@@ -36,8 +36,9 @@ class PreferredJobs {
         return false;
     }
 
-    addPreferredJobs({ jobs, position, query }) {
-        validator.preference.validatePreferenceRequest({ jobs, position, query });
+    addPreferredJobs({ addedJobs }) {
+        validator.preference.validatePreferenceRequest({ addedJobs });
+        const { ids, position, query } = addedJobs;
         const { tag, pipeline, jobId } = query || {};
         let index;
         if (position === queuePosition.BEFORE) {
@@ -62,7 +63,7 @@ class PreferredJobs {
             index = queueRunner.preferredQueue.queue.length;
         }
         const allDequeued = [];
-        jobs.reverse().forEach(id => {
+        ids.reverse().forEach(id => {
             const dequeued = queueRunner.queue.dequeue({ jobId: id });
             if (dequeued.length > 0) {
                 allDequeued.push(dequeued[0]);

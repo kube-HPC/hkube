@@ -28,7 +28,7 @@ class ApiValidator {
         const errorsTextWrapper = (errors, options) => {
             let message;
             if (errors) {
-                message = this.getCustomMessage(errors[0]);
+                [message] = errors;
             }
             return message || wrappedFn(errors, options);
         };

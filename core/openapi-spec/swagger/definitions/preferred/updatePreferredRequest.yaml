@@ -3,7 +3,7 @@ properties:
   addedJobs:
     type: object
     properties:
-      jobs:
+      ids:
         type: array
         items:
           $ref: "#/components/schemas/jobId"
@@ -16,10 +16,10 @@ properties:
           - after
       query:
         $ref: "#/components/schemas/preferredQuery"
+    required:
+    - ids
+    - position
   removedJobs:
     type: array
     items:
       $ref: "#/components/schemas/jobId"    
-required:
-  - jobs
-  - position
