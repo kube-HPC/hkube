@@ -37,7 +37,7 @@ class PreferredJobs {
 
     async addPreferredJobs({ jobs, position, query }) {
         validator.preference.validatePreferenceRequest({ jobs, position, query });
-        const { tag, pipeline, jobId } = query;
+        const { tag, pipeline, jobId } = query || {};
         let index;
         if (position === 'before') {
             index = queueRunner.preferredQueue.queue.findIndex(job => this.query(job, tag, pipeline, jobId));
@@ -46,7 +46,7 @@ class PreferredJobs {
             }
         }
         if (position === 'after') {
-            index = queueRunner.preferredQueue.queue.reverse().findIndex(job => this.query(job, tag, pipeline, jobId));
+            index = queueRunner.preferredQueue.queue.slice(0).reverse().findIndex(job => this.query(job, tag, pipeline, jobId));
             if (index === -1) {
                 index = 0;
             }

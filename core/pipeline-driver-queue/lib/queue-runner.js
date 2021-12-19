@@ -33,7 +33,7 @@ class QueueRunner {
         this.preferredQueue.on(queueEvents.POP, job => this._jobRemoved(job));
         this.preferredQueue.on(queueEvents.REMOVE, job => this._jobRemoved(job));
         await this.queue.persistencyLoad();
-        await this.preferredQueue.persistencyLoad();
+        await this.preferredQueue.persistencyLoad(true);
     }
 
     _jobAdded(job) {

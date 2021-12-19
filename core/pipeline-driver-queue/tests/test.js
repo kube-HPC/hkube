@@ -12,6 +12,7 @@ const queueRunner = require('../lib/queue-runner');
 const dataStore = require('../lib/persistency/data-store');
 const producerLib = require('../lib/jobs/producer');
 const setting = { prefix: 'pipeline-driver-queue' }
+const preferredService = require('../lib/service/preferred-jobs');
 const producer = new Producer({ setting });
 const Queue = require('../lib/queue');
 const heuristic = score => job => ({ ...job, entranceTime: Date.now(), score, ...{ calculated: { latestScore: {} } } })
@@ -28,6 +29,7 @@ let _semaphore = null;
 
 describe('Test', () => {
     before(async () => {
+        require('../lib/jobs/producer')._updateState = function () { };
         await bootstrap.init();
         consumer = require('../lib/jobs/consumer');
     });
@@ -174,16 +176,36 @@ describe('Test', () => {
     });
     describe('persistency tests', () => {
         it('persistent load', async () => {
-            queueRunner.queue.queue = []
+            queueRunner.preferredQueue.queue = [];
+            queueRunner.queue.queue = [];
             const jobs = generateArr(100);
             await queueRunner.queue.persistenceStore(jobs);
             await queueRunner.queue.persistencyLoad();
             const q = queueRunner.queue.getQueue();
             expect(q.length).to.be.greaterThan(98);
             await queueRunner.preferredQueue.persistenceStore(jobs);
-            await queueRunner.preferredQueue.persistencyLoad();
-            const pq = queueRunner.queue.getQueue();
-            expect(pq.length).to.be.greaterThan(98);
+            await queueRunner.preferredQueue.persistencyLoad(true);
+            const pq = queueRunner.preferredQueue.getQueue();
+            expect(jobs[0].jobId == pq[0].jobId && jobs[99].jobId == pq[99].jobId)
+        });
+    });
+    describe('preferred tests', () => {
+        it('preferred order', async () => {
+            const jobs = [];
+            jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_a', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_b', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_c', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
+            await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
+            await preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
+            expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
         });
     });
     describe('job-consume', () => {
