@@ -31,10 +31,6 @@ class DataStore extends EventEmitter {
         return this._db.jobs.fetch({ jobId, fields: { status: true, pipeline: true } });
     }
 
-    async getPreferredJobs() {
-        return this._db.jobs.search({ preference: 1 });
-    }
-
     async setJobStatus(options) {
         await this._etcd.jobs.status.update(options);
         await this._db.jobs.updateStatus(options);

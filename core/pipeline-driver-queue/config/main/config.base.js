@@ -10,7 +10,7 @@ config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.rest = {
-    port: formatter.parseInt(process.env.REST_PORT, 7000),
+    port: formatter.parseInt(process.env.REST_PORT, 7100),
     prefix: 'api/v1/driverqueue',
     poweredBy: 'HKube Driver queue',
     bodySizeLimit: process.env.BODY_SIZE_LIMIT || '50mb'
