@@ -199,12 +199,12 @@ describe('Test', () => {
             jobs.push({ jobId: 'b_b', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
             jobs.push({ jobId: 'b_c', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
             await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
-            await preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
-            await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
-            await preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
-            await preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
-            await preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
-            await preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
+            preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
+            preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
+            preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
+            preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
+            preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
+            preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
             expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
         });
     });

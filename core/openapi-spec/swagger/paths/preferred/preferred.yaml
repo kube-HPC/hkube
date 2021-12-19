@@ -31,7 +31,7 @@ post:
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/addToPreferredRequest"
+          $ref: "#/components/schemas/updatePreferredRequest"
     required: true
   responses:
     "200":
@@ -39,7 +39,7 @@ post:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/addToPreferredRequest"
+            $ref: "#/components/schemas/updatePreferredRequest"
     "400":
       description: bad request
       content:
@@ -52,35 +52,3 @@ post:
         application/json:
           schema:
             $ref: "#/components/schemas/error"
-
-delete:
-  tags:
-    - Preferred
-  summary: Remover from preferred
-  description: Remover from preferred
-  requestBody:
-    content:
-      application/json:
-        schema:
-          $ref: "#/components/schemas/removeFromPreferredRequest"
-    required: true
-  responses:
-    "200":
-      description: start board response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/removeFromPreferredRequest"
-    "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-

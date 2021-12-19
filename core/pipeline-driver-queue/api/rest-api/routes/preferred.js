@@ -5,23 +5,25 @@ const routes = () => {
     const router = RestServer.router();
 
     router.get('/', async (req, res) => {
-        const response = await preferredService.getPreferredJobsList();
+        const response = preferredService.getPreferredJobsList();
         res.json(response);
     });
-    router.delete('/', async (req, res) => {
-        const { jobs } = req.body;
-        const deleted = await preferredService.deletePreferredJobs(jobs);
-        res.json({ message: 'Jobs deleted', jobs: deleted });
-    });
     router.post('/', async (req, res) => {
-        const { jobs, query, position } = req.body;
-        const added = await preferredService.addPreferredJobs({
-            query,
-            position,
-            jobs
-        });
-        const message = 'Jobs added to preferred';
-        res.json({ message, jobs: added });
+        const { addedJobs, removedJobs } = req.body;
+        let added = [];
+        let removed = [];
+        if (removedJobs && Array.isArray(removedJobs)) {
+            removed = preferredService.deletePreferredJobs(removedJobs);
+        }
+        if (addedJobs) {
+            const { jobs, query, position } = addedJobs;
+            added = preferredService.addPreferredJobs({
+                query,
+                position,
+                jobs
+            });
+        }
+        res.json({ addedJobs: added, removedJobs: removed });
     });
     return router;
 };

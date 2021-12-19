@@ -12470,41 +12470,53 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "jobs": {
+                  "addedJobs": {
+                    "type": "object",
+                    "properties": {
+                      "jobs": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "description": "Unique identifier representing pipeline execution"
+                        }
+                      },
+                      "position": {
+                        "type": "string",
+                        "enum": [
+                          "first",
+                          "last",
+                          "before",
+                          "after"
+                        ]
+                      },
+                      "query": {
+                        "type": "object",
+                        "properties": {
+                          "tag": {
+                            "type": "string",
+                            "description": "Unique identifier representing a specific tag",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "jobId": {
+                            "type": "string",
+                            "description": "Unique identifier representing pipeline execution"
+                          },
+                          "pipeline": {
+                            "type": "string",
+                            "description": "Unique identifier representing a specific pipeline",
+                            "minLength": 1,
+                            "format": "pipeline-name"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "removedJobs": {
                     "type": "array",
                     "items": {
                       "type": "string",
                       "description": "Unique identifier representing pipeline execution"
-                    }
-                  },
-                  "position": {
-                    "type": "string",
-                    "enum": [
-                      "first",
-                      "last",
-                      "before",
-                      "after"
-                    ]
-                  },
-                  "query": {
-                    "type": "object",
-                    "properties": {
-                      "tag": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific tag",
-                        "minLength": 1,
-                        "maxLength": 32
-                      },
-                      "jobId": {
-                        "type": "string",
-                        "description": "Unique identifier representing pipeline execution"
-                      },
-                      "pipeline": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific pipeline",
-                        "minLength": 1,
-                        "format": "pipeline-name"
-                      }
                     }
                   }
                 },
@@ -12525,138 +12537,59 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "jobs": {
+                    "addedJobs": {
+                      "type": "object",
+                      "properties": {
+                        "jobs": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "description": "Unique identifier representing pipeline execution"
+                          }
+                        },
+                        "position": {
+                          "type": "string",
+                          "enum": [
+                            "first",
+                            "last",
+                            "before",
+                            "after"
+                          ]
+                        },
+                        "query": {
+                          "type": "object",
+                          "properties": {
+                            "tag": {
+                              "type": "string",
+                              "description": "Unique identifier representing a specific tag",
+                              "minLength": 1,
+                              "maxLength": 32
+                            },
+                            "jobId": {
+                              "type": "string",
+                              "description": "Unique identifier representing pipeline execution"
+                            },
+                            "pipeline": {
+                              "type": "string",
+                              "description": "Unique identifier representing a specific pipeline",
+                              "minLength": 1,
+                              "format": "pipeline-name"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "removedJobs": {
                       "type": "array",
                       "items": {
                         "type": "string",
                         "description": "Unique identifier representing pipeline execution"
-                      }
-                    },
-                    "position": {
-                      "type": "string",
-                      "enum": [
-                        "first",
-                        "last",
-                        "before",
-                        "after"
-                      ]
-                    },
-                    "query": {
-                      "type": "object",
-                      "properties": {
-                        "tag": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific tag",
-                          "minLength": 1,
-                          "maxLength": 32
-                        },
-                        "jobId": {
-                          "type": "string",
-                          "description": "Unique identifier representing pipeline execution"
-                        },
-                        "pipeline": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        }
                       }
                     }
                   },
                   "required": [
                     "jobs",
                     "position"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Preferred"
-        ],
-        "summary": "Remover from preferred",
-        "description": "Remover from preferred",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "jobs": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "description": "Unique identifier representing pipeline execution"
-                    }
-                  }
-                },
-                "required": [
-                  "jobs"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "start board response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "jobs": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "description": "Unique identifier representing pipeline execution"
-                      }
-                    }
-                  },
-                  "required": [
-                    "jobs"
                   ]
                 }
               }
@@ -18214,65 +18147,62 @@
           }
         }
       },
-      "addToPreferredRequest": {
+      "updatePreferredRequest": {
         "type": "object",
         "properties": {
-          "jobs": {
+          "addedJobs": {
+            "type": "object",
+            "properties": {
+              "jobs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "Unique identifier representing pipeline execution"
+                }
+              },
+              "position": {
+                "type": "string",
+                "enum": [
+                  "first",
+                  "last",
+                  "before",
+                  "after"
+                ]
+              },
+              "query": {
+                "type": "object",
+                "properties": {
+                  "tag": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific tag",
+                    "minLength": 1,
+                    "maxLength": 32
+                  },
+                  "jobId": {
+                    "type": "string",
+                    "description": "Unique identifier representing pipeline execution"
+                  },
+                  "pipeline": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                  }
+                }
+              }
+            }
+          },
+          "removedJobs": {
             "type": "array",
             "items": {
               "type": "string",
               "description": "Unique identifier representing pipeline execution"
-            }
-          },
-          "position": {
-            "type": "string",
-            "enum": [
-              "first",
-              "last",
-              "before",
-              "after"
-            ]
-          },
-          "query": {
-            "type": "object",
-            "properties": {
-              "tag": {
-                "type": "string",
-                "description": "Unique identifier representing a specific tag",
-                "minLength": 1,
-                "maxLength": 32
-              },
-              "jobId": {
-                "type": "string",
-                "description": "Unique identifier representing pipeline execution"
-              },
-              "pipeline": {
-                "type": "string",
-                "description": "Unique identifier representing a specific pipeline",
-                "minLength": 1,
-                "format": "pipeline-name"
-              }
             }
           }
         },
         "required": [
           "jobs",
           "position"
-        ]
-      },
-      "removeFromPreferredRequest": {
-        "type": "object",
-        "properties": {
-          "jobs": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "description": "Unique identifier representing pipeline execution"
-            }
-          }
-        },
-        "required": [
-          "jobs"
         ]
       },
       "preferredQuery": {

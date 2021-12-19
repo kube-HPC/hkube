@@ -1,8 +1,9 @@
+const queuePosition = require('@hkube/consts').queuePositions;
 const queueRunner = require('../queue-runner');
 const validator = require('../validation');
 const InvalidDataError = require('../errors/InvalidDataError');
 class PreferredJobs {
-    async getPreferredJobsList() {
+    getPreferredJobsList() {
         return queueRunner.preferredQueue.queue;
     }
 
@@ -35,17 +36,17 @@ class PreferredJobs {
         return false;
     }
 
-    async addPreferredJobs({ jobs, position, query }) {
+    addPreferredJobs({ jobs, position, query }) {
         validator.preference.validatePreferenceRequest({ jobs, position, query });
         const { tag, pipeline, jobId } = query || {};
         let index;
-        if (position === 'before') {
+        if (position === queuePosition.BEFORE) {
             index = queueRunner.preferredQueue.queue.findIndex(job => this.query(job, tag, pipeline, jobId));
             if (index === -1) {
                 index = 0;
             }
         }
-        if (position === 'after') {
+        if (position === queuePosition.AFTER) {
             index = queueRunner.preferredQueue.queue.slice(0).reverse().findIndex(job => this.query(job, tag, pipeline, jobId));
             if (index === -1) {
                 index = 0;
@@ -54,10 +55,10 @@ class PreferredJobs {
                 index = queueRunner.preferredQueue.queue.length - index;
             }
         }
-        if (position === 'first') {
+        if (position === queuePosition.FIRST) {
             index = 0;
         }
-        if (position === 'last') {
+        if (position === queuePosition.LAST) {
             index = queueRunner.preferredQueue.queue.length;
         }
         const allDequeued = [];

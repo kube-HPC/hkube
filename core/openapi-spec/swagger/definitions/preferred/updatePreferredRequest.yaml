@@ -1,0 +1,25 @@
+type: object
+properties:
+  addedJobs:
+    type: object
+    properties:
+      jobs:
+        type: array
+        items:
+          $ref: "#/components/schemas/jobId"
+      position:
+        type: string
+        enum:
+          - first
+          - last
+          - before
+          - after
+      query:
+        $ref: "#/components/schemas/preferredQuery"
+  removedJobs:
+    type: array
+    items:
+      $ref: "#/components/schemas/jobId"    
+required:
+  - jobs
+  - position

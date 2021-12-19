@@ -47,10 +47,8 @@ metrics:
   $ref: ./boards/metrics.yaml
 
 #preferred
-addToPreferredRequest:
-  $ref: ./preferred/addToPreferredRequest.yaml
-removeFromPreferredRequest:
-  $ref: ./preferred/removeFromPreferredRequest.yaml
+updatePreferredRequest:
+  $ref: ./preferred/updatePreferredRequest.yaml
 preferredQuery:
   $ref: ./preferred/preferredQuery.yaml
 
