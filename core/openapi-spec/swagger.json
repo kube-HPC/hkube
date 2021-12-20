@@ -12385,7 +12385,7 @@
         }
       }
     },
-    "/preferred": {
+    "/driver-queue/preferred": {
       "get": {
         "tags": [
           "Preferred"

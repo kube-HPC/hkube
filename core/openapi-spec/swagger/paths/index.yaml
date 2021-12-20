@@ -107,7 +107,7 @@
   $ref: ./boards/optunaboard_list.yaml  
 
 # preferred
-/preferred:
+/driver-queue/preferred:
   $ref: ./preferred/preferred.yaml
 
 # builds
