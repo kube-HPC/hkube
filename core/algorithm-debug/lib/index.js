@@ -25,6 +25,9 @@ const start = async (options, hkubeApi) => {
     ws.on(messages.outgoing.done, (value) => {
         return this._resolve(value);
     });
+    ws.on(messages.outgoing.error, ({ error } = {}) => {
+        return this._reject(error);
+    });
     ws.on(messages.outgoing.streamingInMessageDone, ({ sendMessageId }) => {
         if (sendMessageId) {
             delete sendMessageDelegates[sendMessageId];

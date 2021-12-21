@@ -100,6 +100,7 @@ class ExecutionService {
             extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(extendedPipeline);
             extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline, debugNode);
             extendedPipeline = await pipelineCreator.updateOutput(extendedPipeline, jobId);
+            extendedPipeline = await pipelineCreator.updateOptimize(extendedPipeline, jobId);
             const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
             extendedPipeline = await pipelineCreator.buildStreamingFlow(extendedPipeline, jobId, algorithms);
 

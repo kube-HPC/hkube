@@ -28,7 +28,7 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
 
     const cpu = requestedCpu < freeCpu;
     const mem = requestedMemory < freeMemory;
-    const gpu = lessWithTolerance(requestedGpu, freeGpu);
+    const gpu = requestedGpu === 0 || lessWithTolerance(requestedGpu, freeGpu);
 
     const cpuMaxCapacity = requestedCpu > totalCpu;
     const memMaxCapacity = requestedMemory > totalMemory;
