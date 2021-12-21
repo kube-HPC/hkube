@@ -243,7 +243,7 @@ describe('Webhooks', () => {
                 level: 'info',
                 data: [{ res1: 400 }, { res2: 500 }]
             };
-            await stateManager._etcd.jobs.results.set(results);
+            await stateManager.updateJobResult(results);
             await delay(1000);
 
             options = {

@@ -1,22 +1,17 @@
 const orderBy = require('lodash.orderby');
-const { Persistency } = require('@hkube/dag');
 const validator = require('../validation/api-validator');
+const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError } = require('../errors');
 
 class GraphService {
-    async init(options) {
-        this._persistency = new Persistency();
-        await this._persistency.init({ connection: options.db });
-    }
-
     async setGraph({ jobId, data }) {
-        return this._persistency.setGraph({ jobId, data });
+        return stateManager.setGraph({ jobId, data });
     }
 
     async getGraphRaw(options) {
         validator.jobs.validateJobID(options);
         const { jobId } = options;
-        const graph = await this._persistency.getGraph({ jobId });
+        const graph = await stateManager.getGraph({ jobId });
         if (!graph) {
             throw new ResourceNotFoundError('graph', jobId);
         }
@@ -26,7 +21,7 @@ class GraphService {
     async getGraphParsed(options) {
         validator.graphs.validateGraphQuery(options);
         const { jobId, node, sort, order, from, to } = options;
-        const graph = await this._persistency.getGraph({ jobId });
+        const graph = await stateManager.getGraph({ jobId });
         if (!graph) {
             throw new ResourceNotFoundError('graph', jobId);
         }

@@ -126,6 +126,7 @@ class StateManager {
         await this._etcd.algorithms.builds.update(build);
     }
 
+    // TODO: Move watch to Mongo
     onBuildComplete(func) {
         this._etcd.algorithms.builds.on('change', (build) => {
             if (build.status === buildStatuses.COMPLETED) {
@@ -243,20 +244,12 @@ class StateManager {
         return this._db.jobs.createMany(list);
     }
 
-    onJobResult(cb) {
-        this._db.jobs.watchResult({}, cb);
+    async onJobResult(cb) {
+        await this._db.jobs.watchResult({}, cb);
     }
 
-    onJobStatus(cb) {
-        this._db.jobs.watchStatus({}, cb);
-    }
-
-    releaseJobResultLock({ jobId }) {
-        return this._etcd.jobs.results.releaseChangeLock({ jobId });
-    }
-
-    releaseJobStatusLock({ jobId }) {
-        return this._etcd.jobs.status.releaseChangeLock({ jobId });
+    async onJobStatus(cb) {
+        await this._db.jobs.watchStatus({}, cb);
     }
 
     async createJob({ jobId, graph, userPipeline, pipeline, status }) {
@@ -328,6 +321,14 @@ class StateManager {
         return this._db.jobs.searchApi({ query, cursor, pageNum, sort, limit, fields, exists });
     }
 
+    setGraph({ jobId, data }) {
+        return this._db.jobs.updateGraph({ jobId, graph: data });
+    }
+
+    getGraph({ jobId }) {
+        return this._db.jobs.fetchGraph({ jobId });
+    }
+
     // TriggersTree
     async getTriggersTree({ jobId }) {
         return this._db.triggersTree.fetch({ jobId });
@@ -381,10 +382,7 @@ class StateManager {
 
     async cleanJob({ jobId }) {
         await Promise.all([
-            this._db.jobs.delete({ jobId }),
-            this._etcd.jobs.results.delete({ jobId }),
-            this._etcd.jobs.status.delete({ jobId }),
-            this._etcd.jobs.tasks.delete({ jobId }),
+            this._db.jobs.delete({ jobId })
         ]);
     }
 

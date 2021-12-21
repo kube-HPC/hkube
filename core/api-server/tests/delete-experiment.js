@@ -106,16 +106,12 @@ describe('Experiment', () => {
             const response3 = await storageManager.hkube.list({ jobId });
             const response4 = await storageManager.hkubeResults.list({ jobId });
             const response5 = await storageManager.hkubeMetadata.list({ jobId });
-            const response8 = await stateManager._etcd.jobs.results.get({ jobId });
-            const response9 = await stateManager._etcd.jobs.status.get({ jobId });
-            const response10 = await stateManager._etcd.jobs.tasks.get({ jobId });
+            const response6 = await stateManager.getJob({ jobId });
 
             expect(response3).to.have.lengthOf(0);
             expect(response4).to.have.lengthOf(0);
             expect(response5).to.have.lengthOf(0);
-            expect(response8).to.be.null;
-            expect(response9).to.be.null;
-            expect(response10).to.be.null;
+            expect(response6).to.be.null;
             expect(response.body.name).to.equal(experiment);
             expect(response.body.message).to.equal('deleted successfully');
         });

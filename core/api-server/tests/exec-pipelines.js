@@ -115,8 +115,6 @@ describe('Executions', () => {
             expect(response2.body.error.message).to.equal(`maximum number [${pipeline.options.concurrentPipelines.amount}] of concurrent pipelines has been reached`);
         });
         it('should exec stored pipeline with concurrent and success if reached the max number', async () => {
-            const rp = await stateManager._etcd.executions.running.list({ jobId: 'concurrentPipelinesResolve:' });
-            await Promise.all(rp.map((p) => stateManager._etcd.executions.running.delete({ jobId: p.jobId })));
             const pipeline = pipelines.find((p) => p.name === 'concurrentPipelinesResolve');
 
             const options = {

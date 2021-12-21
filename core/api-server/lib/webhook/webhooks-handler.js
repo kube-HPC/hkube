@@ -14,7 +14,7 @@ const debugService = require('../service/debug');
 const CompletedState = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 
 class WebhooksHandler {
-    init(options) {
+    async init(options) {
         this._options = options;
         metrics.addTimeMeasure({
             name: metricsNames.pipelines_gross,
@@ -23,19 +23,19 @@ class WebhooksHandler {
             buckets: utils.arithmatcSequence(30, 0, 2)
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
-        this._watch();
+        await this._watch();
     }
 
-    _watch() {
-        stateManager.onJobResult((response) => {
-            this._requestResults(response);
+    async _watch() {
+        await stateManager.onJobResult(async (response) => {
+            await this._requestResults(response);
             const { jobId } = response;
             gatewayService.deleteGateways({ jobId });
             outputService.deleteOutputs({ jobId });
             debugService.updateLastUsed({ jobId });
         });
-        stateManager.onJobStatus((response) => {
-            this._requestStatus(response);
+        await stateManager.onJobStatus(async (response) => {
+            await this._requestStatus(response);
         });
     }
 
@@ -54,12 +54,8 @@ class WebhooksHandler {
                 await stateManager.updateStatusWebhook({ jobId, ...result });
             }
         }
-        if (this.isCompletedState(payload.status)) {
-            await stateManager.releaseJobStatusLock({ jobId });
-        }
     }
 
-    // TODO: DELETE JOB FROM ETCD
     async _requestResults(payload) {
         const { jobId } = payload;
         const pipeline = await stateManager.getJobPipeline({ jobId });
@@ -80,7 +76,6 @@ class WebhooksHandler {
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
             await stateManager.updateResultWebhook({ jobId, ...result });
         }
-        await stateManager.releaseJobResultLock({ jobId });
     }
 
     async _fillMissing(element) {

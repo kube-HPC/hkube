@@ -3,7 +3,6 @@ const cloneDeep = require('lodash.clonedeep');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 const { uid } = require('@hkube/uid');
-const { NodesMap: Graph } = require('@hkube/dag');
 const { pipelineTypes, pipelineStatuses, nodeKind } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const storageManager = require('@hkube/storage-manager');

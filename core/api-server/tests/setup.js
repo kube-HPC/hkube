@@ -10,8 +10,7 @@ before(async function () {
     const redis = Factory.getClient(config.redis);
     await redis.flushall();
     await stateManager._etcd._client.client.delete().all();
-    await stateManager._db.db.dropDatabase();
-    await stateManager._db.init();
+    await stateManager._db.algorithms.deleteMany();
     await stateManager.createPipelines(pipelines);
     await stateManager.createAlgorithms(algorithms);
     await stateManager.createExperiments(experiments);

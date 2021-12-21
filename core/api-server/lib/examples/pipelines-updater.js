@@ -87,6 +87,7 @@ class PipelinesUpdater {
 
 
     }
+
     async _transferJobsToDB() {
         try {
             const limit = 100;

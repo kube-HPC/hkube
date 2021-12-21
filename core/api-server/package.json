@@ -5,8 +5,8 @@
     "main": "app.js",
     "dependencies": {
         "@hkube/config": "^2.0.11",
-        "@hkube/consts": "^1.0.38",
-        "@hkube/dag": "^2.1.25",
+        "@hkube/consts": "^1.0.45",
+        "@hkube/dag": "^2.2.1",
         "@hkube/db": "^1.0.43",
         "@hkube/etcd": "^5.1.6",
         "@hkube/logger": "^2.0.2",
