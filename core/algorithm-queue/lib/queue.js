@@ -41,7 +41,7 @@ class Queue extends events {
         this._consumer.on('jobs-remove', (jobs) => {
             this.removeJobs(jobs);
         });
-        await this.persistencyLoad();
+        await this.persistencyLoad(true);
         this._queueInterval();
     }
 
