@@ -7,3 +7,4 @@ enum:
   - dataSource
   - gateway
   - output
+  - hyperparamsTuner

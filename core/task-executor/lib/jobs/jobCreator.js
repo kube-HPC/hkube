@@ -11,7 +11,7 @@ const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
-const { workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
+const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
 
@@ -187,11 +187,11 @@ const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, cluster
     return spec;
 };
 
-const applyDataSourcesVolumes = (inputSpec) => {
+const applyDataSourcesVolumes = (inputSpec, clusterOptions) => {
     let spec = clonedeep(inputSpec);
-    // if (!clusterOptions.dataSourcesEnabled) {
-    //     return spec;
-    // }
+    if (!clusterOptions?.datasourcesServiceEnabled) {
+        return spec;
+    }
     spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
         name: 'datasources-storage',
         mountPath: '/hkube/datasources-storage'
@@ -202,6 +202,32 @@ const applyDataSourcesVolumes = (inputSpec) => {
             claimName: 'hkube-datasources'
         }
     });
+    return spec;
+};
+
+const applyDatascienceMetricsVolumes = (inputSpec, dashboardEnabled) => {
+    let spec = clonedeep(inputSpec);
+    // if (!clusterOptions.dataSourcesEnabled) {
+    //     return spec;
+    // }
+    spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
+        name: 'datasciencemetrics-storage',
+        mountPath: '/hkube/datasciencemetrics-storage'
+    });
+    if (dashboardEnabled) {
+        spec = applyVolumes(spec, {
+            name: 'datasciencemetrics-storage',
+            persistentVolumeClaim: {
+                claimName: 'hkube-datasciencemetrics'
+            }
+        });
+    }
+    else {
+        spec = applyVolumes(spec, {
+            name: 'datasciencemetrics-storage',
+            emptyDir: {}
+        });
+    }
     return spec;
 };
 
@@ -362,14 +388,17 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     spec = applyJaeger(spec, CONTAINERS.WORKER, options);
     spec = applyJaeger(spec, CONTAINERS.ALGORITHM, options);
     spec = applyDevMode(spec, { options, algorithmOptions, clusterOptions, algorithmName });
-    spec = applyDataSourcesVolumes(spec);
+    spec = applyDataSourcesVolumes(spec, clusterOptions);
     spec = applyMounts(spec, mounts);
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
     if (kind === nodeKind.Gateway) {
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, gatewayEnv);
     }
-
+    if (kind === nodeKind.HyperparamsTuner) {
+        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, hyperparamsTunerEnv);
+        spec = applyDatascienceMetricsVolumes(spec, clusterOptions?.optunaDashboardEnabled);
+    }
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
     spec = applySidecars(spec, clusterOptions);

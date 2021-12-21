@@ -68,6 +68,37 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm dummy Not Found');
         });
+        it('should throw validation error if numberOfTrials not exists hyperparams-tuner spec', async () => {
+            const options = {
+                uri: restUrl + '/exec/raw',
+                body: {
+                    name: 'exec-pipeline',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            kind: 'hyperparamsTuner',
+                            input: [],
+                            spec: {
+                                "objectivePipeline": "green",
+                                "hyperParams": [
+                                    {
+                                        "suggest": "uniform",
+                                        "name": "x",
+                                        "low": -10,
+                                        "high": 10
+                                    }
+                                ],
+                                "mem": "512Mi",
+                                "cpu": 0.5
+                            }
+                        }
+                    ]
+                }
+            };
+            const response = await request(options);
+            expect(response.body.error.message).to.equal('data should have required property \'numberOfTrials\'');
+        });
+
         it('should succeed and return job id', async () => {
             const options1 = {
                 uri: restUrl + '/exec/raw',
