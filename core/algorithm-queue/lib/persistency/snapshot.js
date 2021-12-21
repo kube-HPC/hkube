@@ -28,7 +28,8 @@ class Snapshot {
             onEnd({ key, timeTook });
         }
         catch (e) {
-            onError({ key, error: e.message });
+            const level = e.code === 'ENOENT' ? 'warning' : 'error';
+            onError({ key, error: e.message, level });
         }
         return data;
     }

@@ -80,8 +80,8 @@ class Persistence {
         this._log({ level: 'info', action: LOG_TOPICS.FinishGetSnapshot, key, length, timeTook });
     }
 
-    _onErrorGetSnapshot({ key, length, error }) {
-        this._log({ level: 'error', action: LOG_TOPICS.ErrorGetSnapshot, key, length, error });
+    _onErrorGetSnapshot({ key, length, error, level = 'error' }) {
+        this._log({ level, action: LOG_TOPICS.ErrorGetSnapshot, key, length, error });
     }
 
     _onStartScoring({ key, length }) {
