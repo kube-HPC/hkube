@@ -48,6 +48,7 @@ class JobConsumer {
     }
 
     async _handleJob(job) {
+        let error;
         try {
             const { jobId } = job.data;
             await dataStore.setJobStatus({ jobId, status: pipelineStatuses.QUEUED });
@@ -67,12 +68,12 @@ class JobConsumer {
                 this._queueJob({ jobId, pipeline });
             }
         }
-        catch (error) {
-            log.error(error.message, { component }, error);
-            job.done(error);
+        catch (e) {
+            error = e.message;
+            log.error(e.message, { component }, e);
         }
         finally {
-            job.done();
+            job.done(error);
         }
     }
 
