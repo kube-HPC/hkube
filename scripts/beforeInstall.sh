@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ev
 
+# install mongo replica set
+docker-compose up -d
+
 # install dvc and git
 wget --no-verbose -O /tmp/dvc.deb https://github.com/iterative/dvc/releases/download/2.1.0/dvc_2.1.0_amd64.deb &&\
   sudo apt install /tmp/dvc.deb &&\
@@ -15,7 +18,8 @@ docker run -d --name etcd -p 2380:2380 -p 4001:4001 quay.io/coreos/etcd:latest /
 docker run -d -p 9000:9000 --name minio1 -e "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE" \
   -e "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" minio/minio server /data
 
-docker-compose up -d 
-# && sleep 5 && docker exec mongo-0.mongo /scripts/setup.sh
+
+# run mongo replica set
+docker exec mongo-0.mongo /scripts/setup.sh
 
 docker run -d -p 3010:3010 --name gitea hkube/gitea-dev:v1.13.0-1
