@@ -217,7 +217,8 @@ describe('Test', () => {
         });
 
         describe('preferred api', () => {
-            before(async () => {
+
+            it('preferred api', async () => {
                 const jobs = [];
                 jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
                 jobs.push({ jobId: 'b', pipeline: 'p_a', tags: ['tag1'], entranceTime: 10, calculated: { latestScores: [] } });
@@ -225,9 +226,6 @@ describe('Test', () => {
                 queueRunner.queue.queue = [];
                 queueRunner.preferredQueue.queue = [];
                 await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
-            });
-
-            it('preferred api', async () => {
                 let result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
                         "addedJobs": {
