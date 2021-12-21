@@ -65,7 +65,7 @@ class ApiServerClientMock extends EventEmitter {
             startTime: Date.now(),
             status: pipelineStatuses.STOPPED
         }
-        await stateAdapter._etcd.jobs.results.set(options);
+        await stateAdapter.setJobResult(options);
         this.emit('stop');
     }
 
@@ -82,7 +82,7 @@ class ApiServerClientMock extends EventEmitter {
             startTime: Date.now(),
             status: pipelineStatuses.COMPLETED,
         }
-        await stateAdapter._etcd.jobs.results.set(options);
+        await stateAdapter.setJobResult(options);
     }
 
     async _storeError(jobId, error) {
@@ -92,7 +92,7 @@ class ApiServerClientMock extends EventEmitter {
             status: pipelineStatuses.FAILED,
             error: error.message
         }
-        await stateAdapter._etcd.jobs.results.set(options);
+        await stateAdapter.setJobResult(options);
     }
 
     _codeResolver(code, input) {

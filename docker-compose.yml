@@ -1,0 +1,66 @@
+version: '3.8'
+services:
+    mongo-0.mongo:
+        hostname: mongo-0.mongo
+        container_name: mongo-0.mongo
+        image: mongo:4.4.1-bionic
+        command: bash -c "mongod --keyFile /data/file.key --replSet rs --journal --bind_ip_all"
+        ports:
+            - '27017:27017'
+        links:
+            - mongo-1.mongo:mongo-1.mongo
+            - mongo-2.mongo:mongo-2.mongo
+        restart: always
+        networks:
+            - mongo-net
+        volumes:
+            - './scripts/mongo.setup.sh:/scripts/setup.sh'
+            - './keys/mongodb.key:/data/file.key'
+
+    mongo-1.mongo:
+        hostname: mongo-1.mongo
+        container_name: mongo-1.mongo
+        image: mongo:4.4.1-bionic
+        entrypoint:
+            [
+                'mongod',
+                '--keyFile',
+                '/data/file.key',
+                '--replSet',
+                'rs',
+                '--journal',
+                '--bind_ip_all',
+            ]
+        ports:
+            - '27019:27017'
+        restart: always
+        networks:
+            - mongo-net
+        volumes:
+            - './keys/mongodb.key:/data/file.key'
+
+    mongo-2.mongo:
+        hostname: mongo-2.mongo
+        container_name: mongo-2.mongo
+        image: mongo:4.4.1-bionic
+        entrypoint:
+            [
+                'mongod',
+                '--keyFile',
+                '/data/file.key',
+                '--replSet',
+                'rs',
+                '--journal',
+                '--bind_ip_all',
+            ]
+        ports:
+            - '27018:27017'
+        restart: always
+        networks:
+            - mongo-net
+        volumes:
+            - './keys/mongodb.key:/data/file.key'
+
+networks:
+    mongo-net:
+        name: mongo-net

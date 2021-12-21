@@ -156,7 +156,7 @@ describe('AlgorithmExecutions', () => {
         expect(args.execId).equals(data.execId);
         expect(args.error).equals(`execution ${data.execId} already running`);
     });
-    it.only('should succeed to create job', async function () {
+    it('should succeed to create job', async function () {
         const jobData = {
             jobId: `job-${uuid()}`,
             nodeName: 'white',

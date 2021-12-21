@@ -79,7 +79,7 @@ describe('consumer tests', () => {
     });
     it('if job already stopped return and finish job', async () => {
         const config = getConfig();
-        await stateAdapter._etcd.jobs.status.set({ jobId: config.jobId, status: pipelineStatuses.STOPPED });
+        await stateAdapter.createJob({ jobId: config.jobId, status: { status: pipelineStatuses.STOPPED } });
         spy = sinon.spy(consumer, '_stopJob');
         consumer._consumer.emit('job', {
             data: {

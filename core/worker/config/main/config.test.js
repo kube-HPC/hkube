@@ -44,6 +44,12 @@ config.kubernetes = {
     isLocal: true,
 };
 
+config.db = {
+    mongo: {
+        dbName: process.env.MONGODB_DB_NAME || 'tests',
+    }
+};
+
 config.timeouts = {
     stop: 10000, // timeout to stop the algorithm in ms
     inactive: formatter.parseInt(process.env.INACTIVE_WORKER_TIMEOUT_MS, 600 * 1000),
