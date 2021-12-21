@@ -15,6 +15,7 @@ docker run -d --name etcd -p 2380:2380 -p 4001:4001 quay.io/coreos/etcd:latest /
 docker run -d -p 9000:9000 --name minio1 -e "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE" \
   -e "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" minio/minio server /data
 
-docker-compose up -d && sleep 5 && docker exec mongo-0.mongo /scripts/setup.sh
+docker-compose up -d 
+# && sleep 5 && docker exec mongo-0.mongo /scripts/setup.sh
 
 docker run -d -p 3010:3010 --name gitea hkube/gitea-dev:v1.13.0-1
