@@ -17,7 +17,7 @@ class PreferredJobs {
                 queueRunner.queue.enqueue(deletedArr[0]);
             }
             return deletedArr.length > 0 ? deletedArr[0] : null;
-        }).filter(job => !job === null);
+        }).filter(job => job !== null);
         return deletedJobs;
     }
 
