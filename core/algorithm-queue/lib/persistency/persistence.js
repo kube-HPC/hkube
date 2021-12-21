@@ -51,12 +51,13 @@ class Persistence {
         });
     }
 
-    async get() {
+    async get(initial) {
         return snapshot.get({
             key: this._algorithmName,
             onStart: (...args) => this._onStartGetSnapshot(...args),
             onEnd: (...args) => this._onEndGetSnapshot(...args),
-            onError: (...args) => this._onErrorGetSnapshot(...args)
+            onError: (...args) => this._onErrorGetSnapshot(...args),
+            initial
         });
     }
 
