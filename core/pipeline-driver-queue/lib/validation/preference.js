@@ -16,10 +16,11 @@ class Preference {
             }
         }
         else {
-            const { tag, jobId, pipeline } = query;
-            if ((tag && jobId) || (tag && pipeline) || (pipeline && jobId)) {
+            const numberOfFields = Object.keys(query).filter(key => query[key] !== undefined).length;
+            if (numberOfFields > 1) {
                 throw new InvalidDataError('Query must contain only one of jobId ,tag ,pipelineName');
             }
+            const { tag, jobId, pipeline } = query;
             if (!(tag || pipeline || jobId)) {
                 throw new InvalidDataError('Query must contain one of jobId ,tag ,pipelineName');
             }

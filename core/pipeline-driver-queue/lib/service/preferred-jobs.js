@@ -4,22 +4,20 @@ const validator = require('../validation');
 const InvalidDataError = require('../errors/InvalidDataError');
 class PreferredJobs {
     getPreferredJobsList() {
-        return queueRunner.preferredQueue.queue;
+        return queueRunner.preferredQueue.queue.map(job => {
+            const { score, calculated, next, ...rest } = job;
+            return rest;
+        });
     }
 
-    async deletePreferredJobs(jobIds) {
-        let deleted = 0;
+    deletePreferredJobs(jobIds) {
         const deletedJobs = jobIds.map(jobId => {
             const deletedArr = queueRunner.preferredQueue.dequeue({ jobId });
             if (deletedArr.length > 0) {
                 queueRunner.queue.enqueue(deletedArr[0]);
-                deleted += deletedArr.length;
             }
-            return deletedArr;
-        });
-        if (deleted === 0) {
-            throw new InvalidDataError('JobIds do not exist in preferred queue');
-        }
+            return deletedArr.length > 0 ? deletedArr[0] : null;
+        }).filter(job => !job === null);
         return deletedJobs;
     }
 
@@ -36,10 +34,7 @@ class PreferredJobs {
         return false;
     }
 
-    addPreferredJobs({ addedJobs }) {
-        validator.preference.validatePreferenceRequest({ addedJobs });
-        const { ids, position, query } = addedJobs;
-        const { tag, pipeline, jobId } = query || {};
+    getIndex(position, tag, pipeline, jobId) {
         let index;
         if (position === queuePosition.BEFORE) {
             index = queueRunner.preferredQueue.queue.findIndex(job => this.query(job, tag, pipeline, jobId));
@@ -62,6 +57,14 @@ class PreferredJobs {
         if (position === queuePosition.LAST) {
             index = queueRunner.preferredQueue.queue.length;
         }
+        return index;
+    }
+
+    addPreferredJobs({ addedJobs }) {
+        validator.preference.validatePreferenceRequest({ addedJobs });
+        const { ids, position, query } = addedJobs;
+        const { tag, pipeline, jobId } = query || {};
+        const index = this.getIndex(position, tag, pipeline, jobId);
         const allDequeued = [];
         ids.reverse().forEach(id => {
             const dequeued = queueRunner.queue.dequeue({ jobId: id });
@@ -71,7 +74,7 @@ class PreferredJobs {
             }
         });
         if (allDequeued.length === 0) {
-            throw new InvalidDataError('JobIds do not exist in general queue');
+            throw new InvalidDataError('None of the jobs exist in the general queue');
         }
         else {
             return allDequeued;

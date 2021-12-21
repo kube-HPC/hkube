@@ -15,6 +15,12 @@ config.rest = {
     poweredBy: 'HKube Pipeline Driver queue',
     bodySizeLimit: process.env.BODY_SIZE_LIMIT || '50mb'
 };
+config.swagger = {
+    protocol: 'http',
+    host: 'localhost',
+    port: config.rest.port,
+    path: config.rest.prefix
+};
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
     port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,

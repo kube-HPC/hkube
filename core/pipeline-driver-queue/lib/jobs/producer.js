@@ -71,9 +71,8 @@ class JobProducer {
 
     async _updateState() {
         try {
-            const queue = queueRunner.queue.getQueue();
-            await queueRunner.queue.persistenceStore(queue);
-            await queueRunner.preferredQueue.persistenceStore(queue);
+            await queueRunner.queue.persistenceStore();
+            await queueRunner.preferredQueue.persistenceStore();
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);

@@ -13,7 +13,7 @@ const routes = () => {
         let added = [];
         let removed = [];
         if (removedJobs && Array.isArray(removedJobs)) {
-            removed = await preferredService.deletePreferredJobs(removedJobs);
+            removed = preferredService.deletePreferredJobs(removedJobs);
         }
         if (addedJobs) {
             added = preferredService.addPreferredJobs({

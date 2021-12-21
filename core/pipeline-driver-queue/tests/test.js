@@ -14,6 +14,11 @@ const producerLib = require('../lib/jobs/producer');
 const setting = { prefix: 'pipeline-driver-queue' }
 const preferredService = require('../lib/service/preferred-jobs');
 const producer = new Producer({ setting });
+const configIt = require('@hkube/config');
+const { main: config } = configIt.load();
+const baseUrl = `http://localhost:${config.rest.port}`;
+const restUrl = `${baseUrl}/${config.rest.prefix}`;
+const { request } = require('./utils');
 const Queue = require('../lib/queue');
 const heuristic = score => job => ({ ...job, entranceTime: Date.now(), score, ...{ calculated: { latestScore: {} } } })
 const heuristicStub = score => job => ({ ...job })
@@ -42,6 +47,7 @@ describe('Test', () => {
     afterEach(() => {
         producerLib._isConsumerActive = true;
     });
+
     describe('queue-tests', () => {
         describe('add', () => {
             it('should added to queue', async () => {
@@ -179,11 +185,13 @@ describe('Test', () => {
             queueRunner.preferredQueue.queue = [];
             queueRunner.queue.queue = [];
             const jobs = generateArr(100);
-            await queueRunner.queue.persistenceStore(jobs);
+            queueRunner.queue.queue = jobs;
+            await queueRunner.queue.persistenceStore();
             await queueRunner.queue.persistencyLoad();
             const q = queueRunner.queue.getQueue();
             expect(q.length).to.be.greaterThan(98);
-            await queueRunner.preferredQueue.persistenceStore(jobs);
+            queueRunner.preferredQueue.queue = jobs;
+            await queueRunner.preferredQueue.persistenceStore();
             await queueRunner.preferredQueue.persistencyLoad(true);
             const pq = queueRunner.preferredQueue.getQueue();
             expect(jobs[0].jobId == pq[0].jobId && jobs[99].jobId == pq[99].jobId)
@@ -207,6 +215,74 @@ describe('Test', () => {
             preferredService.addPreferredJobs({ addedJobs: { 'ids': ['b_a'], position: 'before', query: { pipeline: 'p_b' } } });
             expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
         });
+
+        describe('preferred api', () => {
+            before(async () => {
+                const jobs = [];
+                jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
+                jobs.push({ jobId: 'b', pipeline: 'p_a', tags: ['tag1'], entranceTime: 10, calculated: { latestScores: [] } });
+                jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
+                queueRunner.queue.queue = [];
+                queueRunner.preferredQueue.queue = [];
+                await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
+            });
+
+            it('preferred api', async () => {
+                let result = await request({
+                    url: `${restUrl}/preferred`, method: 'POST', body: {
+                        "addedJobs": {
+                            "ids": ["b"],
+                            "position": "first"
+                        }
+                    }
+                });
+                expect(result.body.addedJobs[0].jobId === 'b');
+                result = await request({
+                    url: `${restUrl}/preferred`, method: 'POST', body: {
+                        "addedJobs": {
+                            "ids": ["b"],
+                            "position": "first"
+                        }
+                    }
+                });
+                expect(result.body.error.message === 'None of the jobs exist in the general queue');
+                result = await request({
+                    url: `${restUrl}/preferred`, method: 'POST', body: {
+                        "addedJobs": {
+                            "ids": ["a"],
+                            "position": "before",
+                            "query": { jobId: 'b' }
+                        }
+                    }
+                });
+                result = await request({
+                    url: `${restUrl}/preferred`, method: 'POST', body: {
+                        "addedJobs": {
+                            "ids": ["c"],
+                            "position": "after",
+                            "query": { tag: 'tag1' }
+                        }
+                    }
+                });
+                result = await request({
+                    url: `${restUrl}/preferred`, method: 'POST', body: {
+                        "addedJobs": {
+                            "ids": ["c"],
+                            "position": "after",
+                            "query": { tag: 'tag1', jobId: 'd' }
+                        }
+                    }
+                });
+                expect(result.body.error.message === 'Query must contain only one of jobId ,tag ,pipelineName');
+                result = await request({
+                    url: `${restUrl}/preferred`, method: 'GET'
+                });
+                expect(result.body[0].jobId === 'a' && result.body[1].jobId === 'b' && result.body[2].jobId === 'c')
+
+            });
+        });
+
+
     });
     describe('job-consume', () => {
         it('should consume job with params', async () => {

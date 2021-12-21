@@ -57,7 +57,8 @@ class Queue extends Events {
         }
     }
 
-    async persistenceStore(data) {
+    async persistenceStore() {
+        const data = this.getQueue();
         if (!this._persistency || !data) {
             return;
         }
