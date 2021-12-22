@@ -25,6 +25,7 @@
     "@hkube/metrics": "^1.0.42",
     "@hkube/producer-consumer": "^1.0.48",
     "@hkube/redis-utils": "^1.0.3",
+    "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
     "lodash.orderby": "^4.6.0",
     "lodash.remove": "^4.7.0",

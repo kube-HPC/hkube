@@ -113,6 +113,39 @@ describe('Test', () => {
         });
     });
     describe('concurrent', () => {
+        it.only('check concurrency limit', async () => {
+            const totalJobs = 10;
+            const half = totalJobs / 2;
+
+
+            for (let i = 0; i < totalJobs; i++) {
+                const jobId = uuidv4();
+                const isEven = i % 2 === 0;
+                const evenOdd = isEven ? 'even' : 'odd';
+                const pipeline = {
+                    jobId,
+                    name: `pipe-${evenOdd}`,
+                    experimentName: `experiment-${evenOdd}`,
+                    priority: 5,
+                    maxExceeded: true,
+                    options: {
+                        concurrentPipelines: {
+                            amount: 1
+                        }
+                    }
+                };
+                if (i === 5) {
+                    await dataStore._db.pipelines.create(pipeline);
+                    await dataStore._db.jobs.create({ jobId: uuidv4(), pipeline, status: { status: 'active' } });
+                }
+                queueRunner.queue.enqueue({ jobId, pipeline });
+            }
+
+            producerLib._checkMissedConcurrencyJobs();
+
+            expect(nonExceededCount).to.eql(half);
+            expect(exceededCount).to.eql(half);
+        });
         it('check concurrency limit', async () => {
             const totalJobs = 10;
             const half = totalJobs / 2;

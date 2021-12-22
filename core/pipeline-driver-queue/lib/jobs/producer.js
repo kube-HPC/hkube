@@ -1,3 +1,4 @@
+const groupBy = require('lodash.groupby');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
@@ -34,6 +35,7 @@ class JobProducer {
 
         this._producerEventRegistry();
         this._checkQueue();
+        this._checkMissedConcurrencyJobs();
         this._updateState();
 
         queueRunner.queue.on(queueEvents.INSERT, () => {
@@ -41,6 +43,36 @@ class JobProducer {
                 this._dequeueJob();
             }
         });
+    }
+
+    // TODO
+    // 1. check if there are any jobs in queue with concurrency limit
+    // 2. get from db only the jobs that are in active state
+    // 3. get only stored
+    // 4. mark these jobs maxExceeded property as false
+    async _checkMissedConcurrencyJobs() {
+        let counter = 0;
+        const queue = queueRunner.queue.getQueue(q => q.maxExceeded);
+        if (queue.length > 0) {
+            const grouped = groupBy(queue, 'pipelineName', 'experimentName');
+            const pipelinesNames = Object.keys(grouped);
+            const pipelines = await dataStore.getStoredPipelines({ pipelinesNames });
+            const jobs = await dataStore.getRunningJobs({ pipelinesNames, status: pipelineStatuses.ACTIVE });
+            jobs.forEach(j => {
+                const totalRunning = 5;
+                const pipeline = pipelines.find();
+                const required = pipeline.options?.concurrentPipelines?.amount - totalRunning;
+                if (required > 0) {
+
+                }
+                const job = queue.find(q => q.experimentName === j.experiment && q.pipelineName === j.pipeline);
+                if (job) {
+                    job.maxExceeded = false;
+                    counter += 1;
+                }
+            });
+        }
+        return counter;
     }
 
     shutdown() {

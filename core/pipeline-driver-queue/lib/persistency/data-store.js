@@ -28,6 +28,18 @@ class DataStore extends EventEmitter {
         return this._db.jobs.search({ pipelineStatus: status, fields: { jobId: true, pipeline: true } });
     }
 
+    getRunningJobs({ pipelines, status }) {
+        return this._db.jobs.search({
+            pipelineStatus: status,
+            hasResult: false,
+            field: { jobId: true, pipeline: true, experiment: true },
+        });
+    }
+
+    async getStoredPipelines({ pipelinesNames } = {}) {
+        return this._db.pipelines.search({ pipelinesNames });
+    }
+
     storeQueue(options) {
         return this._etcd.pipelineDrivers.queue.set(options);
     }
