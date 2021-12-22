@@ -109,6 +109,8 @@
 # preferred
 /driver-queue/preferred:
   $ref: ./preferred/preferred.yaml
+/driver-queue/preferred/deletes:
+  $ref: ./preferred/deletes.yaml
 
 # builds
 /builds/status/{buildId}:

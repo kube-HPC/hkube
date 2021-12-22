@@ -60,13 +60,13 @@ class PreferredJobs {
         return index;
     }
 
-    addPreferredJobs({ addedJobs }) {
-        validator.preference.validatePreferenceRequest({ addedJobs });
-        const { ids, position, query } = addedJobs;
+    addPreferredJobs(addedJobs) {
+        validator.preference.validatePreferenceRequest(addedJobs);
+        const { jobs, position, query } = addedJobs;
         const { tag, pipeline, jobId } = query || {};
         const index = this.getIndex(position, tag, pipeline, jobId);
         const allDequeued = [];
-        ids.reverse().forEach(id => {
+        jobs.reverse().forEach(id => {
             const dequeued = queueRunner.queue.dequeue({ jobId: id });
             if (dequeued.length > 0) {
                 allDequeued.push(dequeued[0]);

@@ -207,12 +207,12 @@ describe('Test', () => {
             jobs.push({ jobId: 'b_b', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
             jobs.push({ jobId: 'b_c', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
             await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
-            preferredService.addPreferredJobs({ addedJobs: { 'ids': ['b'], position: 'first' } });
-            preferredService.addPreferredJobs({ addedJobs: { 'ids': ['a'], position: 'first' } });
-            preferredService.addPreferredJobs({ addedJobs: { 'ids': ['c'], position: 'last' } });
-            preferredService.addPreferredJobs({ addedJobs: { 'ids': ['b_c'], position: 'last' } });
-            preferredService.addPreferredJobs({ addedJobs: { 'ids': ['b_b'], position: 'after', query: { pipeline: 'p_a' } } });
-            preferredService.addPreferredJobs({ addedJobs: { 'ids': ['b_a'], position: 'before', query: { pipeline: 'p_b' } } });
+            preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
+            preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
+            preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
+            preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
+            preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
+            preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
             expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
         });
 
@@ -228,47 +228,37 @@ describe('Test', () => {
                 await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
                 let result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
-                        "addedJobs": {
-                            "ids": ["b"],
-                            "position": "first"
-                        }
+                        "jobs": ["b"],
+                        "position": "first"
                     }
                 });
-                expect(result.body.addedJobs[0].jobId === 'b');
+                expect(result.body[0].jobId === 'b');
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
-                        "addedJobs": {
-                            "ids": ["b"],
-                            "position": "first"
-                        }
+                        "jobs": ["b"],
+                        "position": "first"
                     }
                 });
                 expect(result.body.error.message === 'None of the jobs exist in the general queue');
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
-                        "addedJobs": {
-                            "ids": ["a"],
-                            "position": "before",
-                            "query": { jobId: 'b' }
-                        }
+                        "jobs": ["a"],
+                        "position": "before",
+                        "query": { jobId: 'b' }
                     }
                 });
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
-                        "addedJobs": {
-                            "ids": ["c"],
-                            "position": "after",
-                            "query": { tag: 'tag1' }
-                        }
+                        "jobs": ["c"],
+                        "position": "after",
+                        "query": { tag: 'tag1' }
                     }
                 });
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
-                        "addedJobs": {
-                            "ids": ["c"],
-                            "position": "after",
-                            "query": { tag: 'tag1', jobId: 'd' }
-                        }
+                        "jobs": ["c"],
+                        "position": "after",
+                        "query": { tag: 'tag1', jobId: 'd' }
                     }
                 });
                 expect(result.body.error.message === 'Query must contain only one of jobId ,tag ,pipelineName');

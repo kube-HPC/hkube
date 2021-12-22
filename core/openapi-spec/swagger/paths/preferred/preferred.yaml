@@ -31,7 +31,7 @@ post:
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/updatePreferredRequest"
+          $ref: "#/components/schemas/addToPreferredRequest"
     required: true
   responses:
     "200":
@@ -39,7 +39,7 @@ post:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/updatePreferredRequest"
+            $ref: "#/components/schemas/addToPreferredRequest"
     "400":
       description: bad request
       content:
@@ -52,3 +52,5 @@ post:
         application/json:
           schema:
             $ref: "#/components/schemas/error"
+
+
