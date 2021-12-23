@@ -266,6 +266,12 @@ describe('Test', () => {
                     url: `${restUrl}/preferred`, method: 'GET'
                 });
                 expect(result.body[0].jobId === 'a' && result.body[1].jobId === 'b' && result.body[2].jobId === 'c')
+                result = await request({
+                    url: `${restUrl}/preferred/deletes`, method: 'POST', body: {
+                        "jobs": ['c']
+                    }
+                });
+                expect(result.body[0].jobId === 'c')
 
             });
         });
