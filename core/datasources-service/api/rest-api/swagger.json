@@ -12385,7 +12385,7 @@
         }
       }
     },
-    "/driver-queue/preferred": {
+    "/queue/preferred": {
       "get": {
         "tags": [
           "Preferred"
@@ -12612,7 +12612,7 @@
         }
       }
     },
-    "/driver-queue/preferred/deletes": {
+    "/queue/preferred/deletes": {
       "post": {
         "tags": [
           "Preferred"
