@@ -66,8 +66,11 @@ class WebhooksHandler {
         }
     }
 
-    async _deleteRunningPipeline(options) {
-        await stateManager.executions.running.delete(options);
+    async _deleteRunningPipeline({ jobId }) {
+        await Promise.all([
+            stateManager.executions.running.delete({ jobId }),
+            stateManager.jobs.active.delete({ jobId })
+        ]);
     }
 
     _request(url, body, type, pipelineStatus, jobId) {

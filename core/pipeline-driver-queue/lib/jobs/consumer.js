@@ -13,14 +13,16 @@ class JobConsumer {
     }
 
     async init(options) {
+        const { prefix, jobType, concurrency, maxStalledCount } = options.consumer;
         this._consumer = new Consumer({
             setting: {
                 redis: options.redis,
                 tracer,
-                prefix: options.consumer.prefix
-            }
+                prefix,
+                settings: { maxStalledCount }
+            },
         });
-        this._consumer.register({ job: { type: options.consumer.jobType, concurrency: options.consumer.concurrency } });
+        this._consumer.register({ job: { type: jobType, concurrency } });
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
@@ -65,6 +67,7 @@ class JobConsumer {
             ...job.data,
             done: () => job.done(),
             pipelineName: pipeline.name,
+            experimentName: pipeline.experimentName,
             priority: pipeline.priority,
             entranceTime: Date.now(),
             calculated: {

@@ -1,18 +1,19 @@
-const isEqual = require('lodash.isequal');
+const groupBy = require('lodash.groupby');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { componentName } = require('../consts');
+const { componentName, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
 const persistence = require('../persistency/persistence');
 const queueRunner = require('../queue-runner');
-const JOB_ID_PREFIX_REGEX = /.+:(.+:)?/;
 
 class JobProducer {
     constructor() {
-        this._lastData = [];
+        this._isConsumerActive = false;
+        this._firstJobDequeue = false;
         this._checkQueue = this._checkQueue.bind(this);
+        this._checkMissedConcurrencyJobs = this._checkMissedConcurrencyJobs.bind(this);
         this._updateState = this._updateState.bind(this);
     }
 
@@ -26,13 +27,22 @@ class JobProducer {
                 ...producer
             }
         });
+        this._isConsumerActive = true;
         this._redisQueue = this._producer._createQueue(this._jobType);
         this._checkQueueInterval = options.checkQueueInterval;
+        this._checkConcurrencyQueueInterval = options.checkConcurrencyQueueInterval;
         this._updateStateInterval = options.updateStateInterval;
 
         this._producerEventRegistry();
         this._checkQueue();
+        this._checkMissedConcurrencyJobs();
         this._updateState();
+
+        queueRunner.queue.on(queueEvents.INSERT, () => {
+            if (this._isConsumerActive) {
+                this._dequeueJob();
+            }
+        });
     }
 
     async _checkQueue() {
@@ -41,6 +51,8 @@ class JobProducer {
             if (queue.length > 0) {
                 const pendingAmount = await this._redisQueue.getWaitingCount();
                 if (pendingAmount === 0) {
+                    // create job first time only, then rely on 3 events (active/completed/enqueue)
+                    this._firstJobDequeue = true;
                     await this.createJob(queue[0]);
                 }
             }
@@ -49,17 +61,56 @@ class JobProducer {
             log.throttle.error(error.message, { component }, error);
         }
         finally {
-            setTimeout(this._checkQueue, this._checkQueueInterval);
+            if (!this._firstJobDequeue) {
+                setTimeout(this._checkQueue, this._checkQueueInterval);
+            }
         }
+    }
+
+    // TODO
+    // 1. check if there are any jobs in queue with concurrency limit
+    // 2. get from db only the jobs that are in active state
+    // 3. get only stored
+    // 4. mark these jobs maxExceeded property as false
+    async _checkMissedConcurrencyJobs() {
+        try {
+            const queue = queueRunner.queue.getQueue(q => q.maxExceeded);
+            if (queue.length > 0) {
+                const groupQueue = groupBy(queue, 'pipelineName', 'experimentName');
+                const pipelinesNames = Object.keys(groupQueue);
+                const pipelines = await persistence.getStoredPipelines({ pipelinesNames });
+                const activeJobs = await persistence.getActiveJobs();
+                const groupJobs = groupBy(activeJobs, 'pipeline', 'experiment');
+                pipelines.forEach((p) => {
+                    const jobsByPipeline = groupJobs[p.name];
+                    const queueByPipeline = groupQueue[p.name];
+                    const totalRunning = jobsByPipeline?.length || 0;
+                    const required = p.options?.concurrentPipelines?.amount - totalRunning;
+                    if (required > 0) {
+                        const maxExceeded = queueByPipeline.slice(0, required);
+                        maxExceeded.forEach(p => {
+                            p.maxExceeded = false;
+                            if (this._isConsumerActive) {
+                                this._dequeueJob();
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        catch (e) {
+            log.throttle.error(e.message, { component }, e);
+        }
+        finally {
+            setTimeout(this._checkMissedConcurrencyJobs, this._checkConcurrencyQueueInterval);
+        }
+
     }
 
     async _updateState() {
         try {
-            const queue = [...queueRunner.queue.getQueue()];
-            if (!isEqual(queue, this._lastData)) {
-                await queueRunner.queue.persistenceStore(queue);
-                this._lastData = queue;
-            }
+            const queue = queueRunner.queue.getQueue();
+            await queueRunner.queue.persistenceStore(queue);
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);
@@ -71,15 +122,18 @@ class JobProducer {
 
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
+            this._isConsumerActive = false;
             log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: Events.WAITING });
         }).on(Events.ACTIVE, (data) => {
+            this._isConsumerActive = true;
             log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: Events.ACTIVE });
+            this._dequeueJob();
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.COMPLETED });
-            this._checkMaxExceeded(data.jobId);
+            this._checkMaxExceeded(data.options.data);
         }).on(Events.FAILED, (data) => {
             log.info(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: Events.FAILED });
-            this._checkMaxExceeded(data.jobId);
+            this._checkMaxExceeded(data.options.data);
         }).on(Events.STALLED, (data) => {
             log.warning(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.STALLED });
         }).on(Events.CRASHED, async (data) => {
@@ -92,15 +146,33 @@ class JobProducer {
         });
     }
 
-    _checkMaxExceeded(jobId) {
-        const prefix = jobId.match(JOB_ID_PREFIX_REGEX);
-        if (prefix) {
-            const jobIdPrefix = prefix[0];
-            const job = queueRunner.queue.getQueue(q => q.maxExceeded).find(q => q.jobId.startsWith(jobIdPrefix));
-            if (job) {
-                log.info(`found and disable job with prefix ${jobIdPrefix} that marked as maxExceeded`, { component });
-                job.maxExceeded = false;
-                queueRunner.queue.updateQueueOrder();
+    /**
+     * This method executes if one of the following conditions are met:
+     * 1. active event.
+     * 2  completed active and there is a maxExceeded in queue.
+     * 3. new job enqueue and consumers are active.
+     */
+    async _dequeueJob() {
+        try {
+            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+            if (queue.length > 0) {
+                await this.createJob(queue[0]);
+            }
+        }
+        catch (error) {
+            log.throttle.error(error.message, { component }, error);
+        }
+    }
+
+    _checkMaxExceeded({ experiment, pipeline }) {
+        const job = queueRunner.queue
+            .getQueue(q => q.maxExceeded)
+            .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+        if (job) {
+            log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
+            job.maxExceeded = false;
+            if (this._isConsumerActive) {
+                this._dequeueJob();
             }
         }
     }
@@ -112,7 +184,8 @@ class JobProducer {
                 type: this._jobType,
                 data: {
                     jobId: pipeline.jobId,
-                    pipeline: pipeline.pipelineName
+                    pipeline: pipeline.pipelineName,
+                    experiment: pipeline.experimentName
                 }
             },
             queue: {

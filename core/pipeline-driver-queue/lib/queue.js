@@ -65,7 +65,7 @@ class Queue extends Events {
     }
 
     updateQueueOrder() {
-        this.queue = orderby(this.queue, ['maxExceeded', 'score'], ['asc', 'desc']);
+        this.queue = orderby(this.queue, 'score', 'desc');
     }
 
     dequeue(job) {
