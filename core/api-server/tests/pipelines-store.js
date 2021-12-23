@@ -404,6 +404,7 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('options');
             expect(response.body).to.have.property('priority');
             expect(response.body.options).to.have.property('ttl');
+            expect(response.body.options).to.not.have.property('activeTtl');
             expect(response.body.options).to.have.property('batchTolerance');
             expect(response.body.options).to.have.property('progressVerbosityLevel');
 
@@ -424,6 +425,11 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(response.body).to.deep.equal(pipeline);
+            const storedPipeline = await request({
+                uri: restPath + '/' + pipeline.name,
+                method: 'GET'
+            });
+            expect(storedPipeline.body).to.deep.equal(pipeline);
         });
     });
     describe('/store/pipelines PUT', () => {
