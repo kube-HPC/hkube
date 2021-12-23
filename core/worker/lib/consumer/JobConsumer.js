@@ -62,7 +62,7 @@ class JobConsumer extends EventEmitter {
                 job.done();
                 return;
             }
-            log.info(`execute job ${job.data.jobId} ${job.data.taskId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
+            log.info(`execute job ${job.data.jobId} ${job.data.taskId}`, { component });
             const watchState = await stateAdapter.watch({ jobId: job.data.jobId });
             if (watchState && this._isCompletedState({ status: watchState.status })) {
                 await this._stopJob(job, watchState.status);

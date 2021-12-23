@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
-const isEqual = require('lodash.isequal');
 const moment = require('moment');
+const isEqual = require('lodash.isequal');
 const Etcd = require('@hkube/etcd');
 const logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
@@ -164,21 +164,23 @@ class StateManager extends EventEmitter {
         return this._updateDiscovery();
     }
 
-    async setJobStatus(options, setTimeTook) {
+    calcTimeTook({ activeTime, startTime } = {}) {
+        const now = moment(Date.now());
+        const times = {};
+        if (activeTime) {
+            times.netTimeTook = now.diff(moment(activeTime), 'seconds', true);
+        }
+        if (startTime) {
+            times.grossTimeTook = now.diff(moment(startTime), 'seconds', true);
+        }
+        return times;
+    }
+
+    async setJobStatus(options) {
         await this._updateDiscovery();
         return this._etcd.jobs.status.update(options, (oldItem) => {
             if (oldItem.status !== DriverStates.STOPPED && oldItem.status !== DriverStates.PAUSED) {
-                const times = {};
-                if (setTimeTook) {
-                    const now = moment(Date.now());
-                    if (oldItem.startTime) {
-                        times.netTimeTook = now.diff(moment(oldItem.startTime), 'seconds', true);
-                    }
-                    if (oldItem.queueTime) {
-                        times.grossTimeTook = now.diff(moment(oldItem.queueTime), 'seconds', true);
-                    }
-                }
-                return { ...oldItem, ...options, ...times };
+                return { ...oldItem, ...options };
             }
             return null;
         }).catch(e => {
@@ -205,6 +207,19 @@ class StateManager extends EventEmitter {
 
     setExecution(options) {
         return this._etcd.executions.running.set(options);
+    }
+
+    updateRunningExecution(options, cb) {
+        return this._etcd.executions.running.update(options, cb);
+    }
+
+    updateActiveTime({ jobId, activeTime }) {
+        return this._stateManager.updateRunningExecution({ jobId }, oldItem => {
+            if (!oldItem.activeTime) {
+                return { ...oldItem, activeTime };
+            }
+            return null;
+        });
     }
 
     updateExecution(options, cb) {
