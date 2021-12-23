@@ -64,6 +64,8 @@ describe('TaskRunner', function () {
         expect(taskRunner._jobId).to.equal(jobId);
         expect(taskRunner._active).to.equal(true);
         expect(taskRunner.pipeline.name).to.equal(pipeline.name);
+        const status = await stateManager._etcd.jobs.status.get({ jobId });
+        expect(status.activeTime).to.exist;
     });
     it('should recover pipeline successfully', async function () {
     });
@@ -141,7 +143,8 @@ describe('TaskRunner', function () {
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node4.taskId, status: 'active' });
 
         await stateManager._etcd.jobs.status.set({ jobId, status: 'active' });
-        await stateManager.setExecution({ jobId, ...pipeline });
+        const activeTime = Date.now();
+        await stateManager.setExecution({ jobId, ...pipeline, activeTime });
         await graphStore.start(jobId, nodesMap);
         await taskRunner.start(job);
 
@@ -149,16 +152,21 @@ describe('TaskRunner', function () {
         expect(taskRunner._active).to.equal(true);
         expect(taskRunner._driverStatus).to.equal('active');
         expect(taskRunner._jobStatus).to.equal('active');
-
+        let runningPipeline = await stateManager.getExecution({ jobId });
+        expect(runningPipeline.activeTime).to.equal(activeTime);
+        expect(taskRunner.pipeline.activeTime).to.equal(activeTime);
         // simulate restart
         await taskRunner._onStop({})
-        expect(taskRunner._active).to.equal(false,'_onStop failed');
-        taskRunner=new TaskRunner(config)
+        expect(taskRunner._active).to.equal(false, '_onStop failed');
+        taskRunner = new TaskRunner(config)
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node4.taskId, status: 'succeed' });
         await taskRunner.start(job);
+        runningPipeline = await stateManager.getExecution({ jobId });
+        expect(runningPipeline.activeTime).to.equal(activeTime);
+        expect(taskRunner.pipeline.activeTime).to.equal(activeTime);
         await delay(5000);
         expect(taskRunner._active).to.equal(false);
         expect(taskRunner._driverStatus).to.equal('ready');
