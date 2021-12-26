@@ -11,7 +11,7 @@ config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.rest = {
     port: formatter.parseInt(process.env.REST_PORT, 7100),
-    prefix: 'api/v1/driver-queue',
+    prefix: 'api/v1/queue',
     poweredBy: 'HKube Pipeline Driver queue',
     bodySizeLimit: process.env.BODY_SIZE_LIMIT || '50mb'
 };
