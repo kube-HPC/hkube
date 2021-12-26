@@ -63,6 +63,11 @@ describe('TaskRunner', function () {
         expect(taskRunner._jobId).to.equal(jobId);
         expect(taskRunner._active).to.equal(true);
         expect(taskRunner.pipeline.name).to.equal(pipeline.name);
+        const statusFromEtcd = await stateManager._etcd.jobs.status.get({ jobId });
+        expect(statusFromEtcd.activeTime).to.exist;
+        const statusFromDb = await stateManager.getJobStatus({ jobId });
+        expect(statusFromDb.activeTime).to.exist;
+
     });
     it('should recover pipeline successfully', async function () {
     });
@@ -99,16 +104,19 @@ describe('TaskRunner', function () {
         nodesMap.setNode(node1);
         nodesMap.setNode(node2);
         const status = { status: 'active' };
+        const activeTime = Date.now();
         await stateManager.createJob({ jobId, pipeline, status });
+        await stateManager.updatePipeline({ jobId, activeTime });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
         const spy = sinon.spy(taskRunner, "_recoverPipeline");
         await graphStore.start(job.data.jobId, nodesMap);
         await taskRunner.start(job)
         expect(spy.calledOnce).to.equal(true);
+        expect(taskRunner.pipeline.activeTime).to.equal(activeTime);
     });
     it.skip('should recover succeed tasks', async function () {
-        const jobId = `jobid-recovery-${uuidv4()}`;
+        const jobId = `jobid-recovery-${createJobId()}`;
         const job = {
             data: { jobId },
             done: () => { }

@@ -2,9 +2,15 @@ type: object
 properties:
   ttl:
     type: integer
-    description: pipeline time to live in seconds
+    description: pipeline time to live in seconds (including pending and active states)
     minimum: 1
     default: 3600
+    example: 3600
+  activeTtl:
+    type: integer
+    description: pipeline active time to live in seconds (only active state)
+    nullable: true
+    minimum: 1
     example: 3600
   batchTolerance:
     type: integer

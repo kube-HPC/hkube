@@ -17,6 +17,8 @@ class StoreManager {
                 jobId: true,
                 startTime: 'pipeline.startTime',
                 ttl: 'pipeline.options.ttl',
+                activeTtl: 'pipeline.options.activeTtl',
+                activeTime: 'pipeline.activeTime',
                 nodes: 'pipeline.nodes',
             },
         });

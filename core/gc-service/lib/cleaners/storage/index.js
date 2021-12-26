@@ -34,7 +34,6 @@ class StorageCleaner extends BaseCleaner {
         const res = await cleaners.results.getJobsToDelete({ indices, maxAge: maxAgeResults });
         const temp = await cleaners.temp.getJobsToDelete({ indices, maxAge: maxAgeTemp });
         const builds = await cleaners.builds.getBuildsToDelete({ maxAge: maxAgeBuilds });
-
         const result = {
             results: res.jobsToDelete,
             temp: temp.jobsToDelete,
