@@ -1,6 +1,6 @@
 {
   "name": "gc-service",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "Hkube garbage collector",
   "main": "app.js",
   "scripts": {
