@@ -29,14 +29,12 @@ const heuristicBoilerPlate = (score, _heuristic) => ({
 });
 
 let queue = null;
-let consumer;
+const consumer = require('../lib/jobs/consumer');
 let _semaphore = null;
 
 describe('Test', () => {
     before(async () => {
-        require('../lib/jobs/producer')._updateState = function () { };
-        await bootstrap.init();
-        consumer = require('../lib/jobs/consumer');
+
     });
     beforeEach(() => {
         queue = new Queue();
@@ -122,6 +120,8 @@ describe('Test', () => {
     });
     describe('concurrent', () => {
         it('check concurrency limit', async () => {
+            queueRunner.preferredQueue.queue = [];
+            queueRunner.queue.queue = [];
             const totalJobs = 10;
             const half = totalJobs / 2;
             const keys = Array.from(Array(totalJobs).keys());
@@ -163,8 +163,9 @@ describe('Test', () => {
                 producerLib._isConsumerActive = true;
                 producerLib._producer.emit('job-completed', { options: { data: job } });
                 expect(spy.callCount).to.eql(++index);
-                await delay(100);
+                await delay(1);
             }
+            await delay(500);
             const exceededCount = spy.callCount;
             expect(nonExceededCount).to.eql(half);
             expect(exceededCount).to.eql(half);
