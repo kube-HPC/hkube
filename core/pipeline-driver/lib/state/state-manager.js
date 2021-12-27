@@ -190,7 +190,7 @@ class StateManager {
         return this._etcd.jobs.status.update(options, async (oldItem) => {
             if (this._isActiveStatus(oldItem.status)) {
                 const data = { ...oldItem, ...options };
-                db.updateStatus(data, true);
+                await db.updateStatus(data, true);
                 return data;
             }
             return null;
