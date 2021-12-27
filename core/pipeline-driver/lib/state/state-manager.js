@@ -208,7 +208,7 @@ class StateManager extends EventEmitter {
     getExecution(options) {
         return this._etcd.executions.running.get(options);
     }
-  
+
     updateRunningExecution(options, cb) {
         return this._etcd.executions.running.update(options, cb);
     }

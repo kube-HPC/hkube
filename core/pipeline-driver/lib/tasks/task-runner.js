@@ -276,7 +276,6 @@ class TaskRunner extends EventEmitter {
         this._error = error;
         const timeTook = this._stateManager.calcTimeTook(this.pipeline);
         await this._progressStatus({ status, error, nodeName, ...timeTook });
-      
         const errorResult = await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data: storageResults, error, status, nodeName });
         if (errorResult) {
             log.error(`unable to write results. ${errorResult}`, { component, jobId: this._jobId });
