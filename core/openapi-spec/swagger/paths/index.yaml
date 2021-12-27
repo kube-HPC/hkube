@@ -106,6 +106,12 @@
 /boards/optunas/:
   $ref: ./boards/optunaboard_list.yaml  
 
+# preferred
+/queue/preferred:
+  $ref: ./preferred/preferred.yaml
+/queue/preferred/deletes:
+  $ref: ./preferred/deletes.yaml
+
 # builds
 /builds/status/{buildId}:
   $ref: ./builds/status.yaml

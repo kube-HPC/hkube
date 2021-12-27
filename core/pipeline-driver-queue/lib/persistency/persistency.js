@@ -19,13 +19,12 @@ const LOG_TOPICS = {
 
 class Persistency {
     init(options) {
-        this._queueName = options.persistence.type;
         this._maxScoringSize = options.scoring.maxSize;
     }
 
-    async store(data) {
+    async store(data, queueName) {
         await snapshot.store({
-            key: this._queueName,
+            key: queueName,
             data,
             onStart: (...args) => this._onStartSnapshot(...args),
             onEnd: (...args) => this._onEndSnapshot(...args),
@@ -33,7 +32,7 @@ class Persistency {
         });
 
         await scoring.store({
-            key: this._queueName,
+            key: queueName,
             data,
             maxSize: this._maxScoringSize,
             onStart: (...args) => this._onStartScoring(...args),
@@ -42,9 +41,9 @@ class Persistency {
         });
     }
 
-    async get() {
+    async get(queueName) {
         return snapshot.get({
-            key: this._queueName,
+            key: queueName,
             onStart: (...args) => this._onStartGetSnapshot(...args),
             onEnd: (...args) => this._onEndGetSnapshot(...args),
             onError: (...args) => this._onErrorGetSnapshot(...args)

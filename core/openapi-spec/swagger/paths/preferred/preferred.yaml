@@ -1,0 +1,56 @@
+get:
+  tags:
+    - Preferred
+  summary: Get preferred
+  description: Get preferred
+  responses:
+    "200":
+      description: Get preferred
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/searchJobsResponse"
+    "400":
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+post:
+  tags:
+    - Preferred
+  summary: Add to preferred
+  description: Add to preferred
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/addToPreferredRequest"
+    required: true
+  responses:
+    "200":
+      description: start board response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/addToPreferredRequest"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+
+
