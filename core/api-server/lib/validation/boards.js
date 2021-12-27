@@ -5,7 +5,7 @@ class ApiValidator {
         this._validator = validator;
     }
 
-    validateCreateBoardReq(board) {
+    validateCreateTensorBoardReq(board) {
         const { taskId, jobId, nodeName, pipelineName } = board;
         if (taskId && !jobId) {
             throw new InvalidDataError('Must supply jobId');
@@ -15,6 +15,13 @@ class ApiValidator {
         }
         if (!jobId && !pipelineName) {
             throw new InvalidDataError('Must supply pipeLineName');
+        }
+    }
+
+    validateCreateOptunaBoardReq(board) {
+        const { jobId } = board;
+        if (!jobId) {
+            throw new InvalidDataError('Must supply jobId');
         }
     }
 }

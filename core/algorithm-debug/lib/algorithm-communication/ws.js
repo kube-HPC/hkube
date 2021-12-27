@@ -73,7 +73,7 @@ class WsWorkerCommunication extends EventEmitter {
         socket.on('message', (data) => {
             const payload = this._encoding.decode(data);
             log.info(`got message ${payload.command}`, { component });
-            this.emit(payload.command, payload.data);
+            this.emit(payload.command, payload.data || payload);
         });
         socket.on('close', (code) => {
             log.info('Debug connection closed');

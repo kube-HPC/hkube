@@ -35,6 +35,8 @@ kubernetesValueFrom:
 # boards
 createBoardRequest:
   $ref: ./boards/createBoardRequest.yaml
+createOptunaboardRequest:
+  $ref: ./boards/createOptunaboardRequest.yaml  
 createBoardResponse:
   $ref: ./boards/createBoardResponse.yaml
 getBoardResponse:
@@ -43,6 +45,14 @@ listBoardResponse:
   $ref: ./boards/listBoardResponse.yaml
 metrics:
   $ref: ./boards/metrics.yaml
+
+#preferred
+addToPreferredRequest:
+  $ref: ./preferred/addToPreferredRequest.yaml
+removeFromPreferredRequest:
+  $ref: ./preferred/removeFromPreferredRequest.yaml
+preferredQuery:
+  $ref: ./preferred/preferredQuery.yaml
 
 # builds
 buildId:
@@ -176,6 +186,17 @@ gateway:
 
 output:
   $ref: ./output/output.yaml
+
+hyperparamsTuner:
+  $ref: ./hyperparamsTuner/hyperparamsTuner.yaml  
+hyperparamsTunerName:
+  $ref: ./hyperparamsTuner/hyperparamsTunerName.yaml  
+hyperparamsTunerSpec:
+  $ref: ./hyperparamsTuner/hyperparamsTunerSpec.yaml      
+hyperParams:
+  $ref: ./hyperparamsTuner/hyperParam.yaml  
+sampler:
+  $ref: ./hyperparamsTuner/sampler.yaml
 
 # GC
 clean:

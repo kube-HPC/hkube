@@ -5,5 +5,6 @@ module.exports = {
     ALGORITHM_DEBUG: 'worker-debug',
     ALGORITHM_QUEUE: 'algorithm-queue',
     TENSORBOARD: 'tensorboard',
+    OPTUNABOARD: 'optunaboard',
     PIPELINE_DRIVER: 'pipeline-driver',
 };

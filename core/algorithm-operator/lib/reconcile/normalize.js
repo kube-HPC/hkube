@@ -111,6 +111,18 @@ const normalizeBoardDeployments = (deploymentsRaw) => {
     return deployments;
 };
 
+const normalizeOptunaboardDeployments = (deploymentsRaw) => {
+    if (deploymentsRaw == null) {
+        return [];
+    }
+    const deployments = deploymentsRaw.body.items.map(j => ({
+        name: j.metadata.name,
+        boardReference: j.metadata.labels['optunaboard-id'],
+        image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image'))
+    }));
+    return deployments;
+};
+
 const normalizeSecret = (secret) => {
     if (!secret || !secret.body) {
         return {};
@@ -185,5 +197,6 @@ module.exports = {
     normalizeDrivers,
     normalizeDriversRequests,
     normalizeDriversJobs,
-    normalizeDriversAmount
+    normalizeDriversAmount,
+    normalizeOptunaboardDeployments
 };

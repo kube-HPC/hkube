@@ -2,7 +2,7 @@ type: object
 properties:
   description:
     type: string
-    description: describe the outputformat
+    description: describe the output
   mem:
     type: string
     description: Memory allocated for output

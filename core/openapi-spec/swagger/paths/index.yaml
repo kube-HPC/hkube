@@ -99,6 +99,18 @@
   $ref: ./boards/tensorboard_single.yaml
 /boards/tensors/:
   $ref: ./boards/tensorboard_list.yaml
+/boards/optunas:
+  $ref: ./boards/optunaboard_create.yaml
+/boards/optunas/{id}:
+  $ref: ./boards/optunaboard_single.yaml
+/boards/optunas/:
+  $ref: ./boards/optunaboard_list.yaml  
+
+# preferred
+/queue/preferred:
+  $ref: ./preferred/preferred.yaml
+/queue/preferred/deletes:
+  $ref: ./preferred/deletes.yaml
 
 # builds
 /builds/status/{buildId}:
