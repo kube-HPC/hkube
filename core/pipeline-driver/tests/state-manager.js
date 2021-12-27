@@ -91,11 +91,12 @@ describe('StateManager', function () {
         const jobId = `jobid-${uuidv4()}`;
         const data = { status: 'completed' };
         await stateManager._etcd.jobs.status.set({ jobId, data });
-        await stateManager.setJobStatus({jobId, queueTime: Date.now()-1000, startTime: Date.now() });
+
         let response = await stateManager._etcd.jobs.status.get({ jobId });
         expect(response.data).to.deep.equal(data);
         expect(response.timeTook).to.not.exist
-        await stateManager.setJobStatus({jobId}, true)
+        const timeTook = stateManager.calcTimeTook({ startTime: Date.now() - 1000, activeTime: Date.now() });
+        await stateManager.setJobStatus({ jobId, ...timeTook });
         response = await stateManager._etcd.jobs.status.get({ jobId });
         expect(response.data).to.deep.equal(data);
         expect(response.netTimeTook).to.exist

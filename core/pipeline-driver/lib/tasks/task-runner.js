@@ -59,7 +59,7 @@ class TaskRunner extends EventEmitter {
         log.info(`pipeline ${data.status} ${this._jobId}. ${data.reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
         this._jobStatus = data.status;
         this._driverStatus = DriverStates.READY;
-        this.stop({ shouldStop: false });
+        return this.stop({ shouldStop: false });
     }
 
     _onPause(data) {
@@ -202,11 +202,20 @@ class TaskRunner extends EventEmitter {
         if (!pipeline) {
             throw new PipelineNotFound(this._jobId);
         }
-        await this._progressStatus({ status: DriverStates.ACTIVE });
-
+        const activeTime = Date.now();
+        await this._progressStatus({ status: DriverStates.ACTIVE, activeTime });
+        await this._stateManager.updateRunningExecution({ jobId: this._jobId }, oldItem => {
+            if (!oldItem.activeTime) {
+                return { ...oldItem, activeTime };
+            }
+            return null;
+        });
         this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);
 
         this.pipeline = pipeline;
+        if (!this.pipeline.activeTime) {
+            this.pipeline.activeTime = activeTime;
+        }
         this._nodes = new NodesMap(this.pipeline);
         this._nodes.on('node-ready', (node) => {
             this._runNode(node.nodeName, node.parentOutput, node.index);
@@ -265,13 +274,14 @@ class TaskRunner extends EventEmitter {
         this._jobStatus = status;
         this._driverStatus = DriverStates.READY;
         this._error = error;
+        const timeTook = this._stateManager.calcTimeTook(this.pipeline);
+        await this._progressStatus({ status, error, nodeName, ...timeTook });
+      
         const errorResult = await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data: storageResults, error, status, nodeName });
         if (errorResult) {
             log.error(`unable to write results. ${errorResult}`, { component, jobId: this._jobId });
             process.exit(1);
         }
-        await this._progressStatus({ status, error, nodeName });
-
         pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
         log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
     }
@@ -362,12 +372,12 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    async _progressStatus({ status, error, nodeName }) {
+    async _progressStatus({ status, error, nodeName, activeTime, netTimeTook, grossTimeTook }) {
         if (error) {
             await this._progressError({ status, error, nodeName });
         }
         else {
-            await this._progressInfo({ status });
+            await this._progressInfo({ status, activeTime, netTimeTook, grossTimeTook });
         }
     }
 
@@ -380,12 +390,12 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    async _progressInfo({ status }) {
+    async _progressInfo({ status, activeTime, netTimeTook, grossTimeTook }) {
         if (this._progress) {
-            await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status });
+            await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status, activeTime, netTimeTook, grossTimeTook });
         }
         else {
-            await this._stateManager.setJobStatus({ jobId: this._jobId, pipeline: this.pipeline.name, status, level: logger.Levels.INFO.name });
+            await this._stateManager.setJobStatus({ jobId: this._jobId, pipeline: this.pipeline.name, status, level: logger.Levels.INFO.name, activeTime, netTimeTook, grossTimeTook });
         }
     }
 

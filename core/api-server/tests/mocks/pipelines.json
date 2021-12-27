@@ -131,6 +131,7 @@
         "experimentName": "main",
         "options": {
             "ttl": 3600,
+            "activeTtl": 1000,
             "batchTolerance": 30,
             "progressVerbosityLevel": "debug"
         }
