@@ -202,7 +202,6 @@ class TaskRunner extends EventEmitter {
         if (!pipeline) {
             throw new PipelineNotFound(this._jobId);
         }
-        await this._stateManager.setActiveJob({ jobId: this._jobId, pipeline: pipeline.name, experiment: pipeline.experimentName });
         await this._progressStatus({ status: DriverStates.ACTIVE });
 
         this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);

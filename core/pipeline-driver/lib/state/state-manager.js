@@ -207,10 +207,6 @@ class StateManager extends EventEmitter {
         return this._etcd.executions.running.get(options);
     }
 
-    setActiveJob(options) {
-        return this._etcd.jobs.active.set(options);
-    }
-
     updateExecution(options, cb) {
         return this._etcd.executions.stored.update(options, cb);
     }

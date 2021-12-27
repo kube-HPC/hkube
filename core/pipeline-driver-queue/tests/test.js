@@ -14,6 +14,7 @@ const persistence = require('../lib/persistency/persistence');
 const setting = { prefix: 'pipeline-driver-queue' }
 const producer = new Producer({ setting });
 const Queue = require('../lib/queue');
+const producerLib = require('../lib/jobs/producer')
 
 const heuristic = score => job => ({ ...job, entranceTime: Date.now(), score, ...{ calculated: { latestScore: {} } } })
 const heuristicStub = score => job => ({ ...job })
@@ -134,6 +135,7 @@ describe('Test', () => {
         describe('queue-runner', () => {
             it('check-that-heuristics-sets-to-latestScore', async () => {
                 const stubJob = stubTemplate();
+                producerLib._isConsumerActive = false;
                 queueRunner.queue.enqueue(stubJob);
                 const q = queueRunner.queue.getQueue();
                 expect(q[0].score).to.be.above(0);

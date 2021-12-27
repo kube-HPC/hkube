@@ -1,7 +1,7 @@
 const groupBy = require('lodash.groupby');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses } = require('@hkube/consts');
+const { pipelineStatuses, pipelineTypes } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
@@ -67,36 +67,43 @@ class JobProducer {
         }
     }
 
-    // TODO
-    // 1. check if there are any jobs in queue with concurrency limit
-    // 2. get from db only the jobs that are in active state
-    // 3. get only stored
-    // 4. mark these jobs maxExceeded property as false
+    /**
+     *
+     * 1. check if there are any jobs in queue with concurrency limit
+     * 2. get from db only jobs that are from type stored and running
+     * 3. get stored pipelines list
+     * 4. check the concurrent amount against the running amount
+     * 5. mark the delta jobs maxExceeded property as false
+     *
+     */
     async _checkMissedConcurrencyJobs() {
         try {
             const queue = queueRunner.queue.getQueue(q => q.maxExceeded);
-            if (queue.length > 0) {
-                const groupQueue = groupBy(queue, 'pipelineName', 'experimentName');
-                const pipelinesNames = Object.keys(groupQueue);
-                const pipelines = await persistence.getStoredPipelines({ pipelinesNames });
-                const activeJobs = await persistence.getActiveJobs();
-                const groupJobs = groupBy(activeJobs, 'pipeline', 'experiment');
-                pipelines.forEach((p) => {
-                    const jobsByPipeline = groupJobs[p.name];
-                    const queueByPipeline = groupQueue[p.name];
-                    const totalRunning = jobsByPipeline?.length || 0;
-                    const required = p.options?.concurrentPipelines?.amount - totalRunning;
-                    if (required > 0) {
-                        const maxExceeded = queueByPipeline.slice(0, required);
-                        maxExceeded.forEach(p => {
-                            p.maxExceeded = false;
-                            if (this._isConsumerActive) {
-                                this._dequeueJob();
-                            }
-                        });
-                    }
-                });
+            if (queue.length === 0) {
+                return;
             }
+            const groupQueue = groupBy(queue, 'pipelineName', 'experimentName');
+            const pipelinesNames = Object.keys(groupQueue);
+            const storedPipelines = await persistence.getStoredPipelines({ pipelinesNames });
+            const pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.amount);
+            const activeJobs = await persistence.getActiveJobs();
+            const activePipelines = activeJobs.filter(r => r.types.includes(pipelineTypes.STORED));
+            const groupPipelines = groupBy(activePipelines, 'pipeline', 'experiment');
+            pipelines.forEach((p) => {
+                const jobsByPipeline = groupPipelines[p.name];
+                const queueByPipeline = groupQueue[p.name];
+                const totalRunning = (jobsByPipeline && jobsByPipeline.length) || 0;
+                const required = p.options.concurrentPipelines.amount - totalRunning;
+                if (required > 0) {
+                    const maxExceeded = queueByPipeline.slice(0, required);
+                    maxExceeded.forEach((m) => {
+                        m.maxExceeded = false;
+                        if (this._isConsumerActive) {
+                            this._dequeueJob();
+                        }
+                    });
+                }
+            });
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
@@ -104,7 +111,6 @@ class JobProducer {
         finally {
             setTimeout(this._checkMissedConcurrencyJobs, this._checkConcurrencyQueueInterval);
         }
-
     }
 
     async _updateState() {
