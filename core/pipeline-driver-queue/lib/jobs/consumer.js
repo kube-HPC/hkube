@@ -28,11 +28,11 @@ class JobConsumer {
         });
         persistence.on(`job-${pipelineStatuses.STOPPED}`, async (job) => {
             const { jobId, status } = job;
-            await this._stopJob(jobId, status);
+            this._stopJob(jobId, status);
         });
         persistence.on(`job-${pipelineStatuses.PAUSED}`, async (job) => {
             const { jobId, status } = job;
-            await this._stopJob(jobId, status);
+            this._stopJob(jobId, status);
         });
     }
 
@@ -40,7 +40,7 @@ class JobConsumer {
         const { jobId } = job.data;
         const pipeline = await persistence.getExecution({ jobId });
         if (!pipeline) {
-            throw new Error(`unable to find pipeline for job ${jobId}`);
+            return;
         }
         const jobStatus = await persistence.getJobStatus({ jobId });
         if (jobStatus.status === pipelineStatuses.STOPPED || jobStatus.status === pipelineStatuses.PAUSED) {

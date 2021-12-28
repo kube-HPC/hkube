@@ -69,7 +69,7 @@ class JobProducer {
 
     async _checkConcurrencyJobsInterval() {
         try {
-            this._checkConcurrencyJobs();
+            await this._checkConcurrencyJobs();
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
