@@ -64,7 +64,8 @@ class JobConsumer {
         log.info(`starting inactive timeout for driver ${this._formatSec()}`, { component });
         this._inactiveTimer = setTimeout(() => {
             log.info(`driver is inactive for more than ${this._formatSec()}`, { component });
-            if (this._taskRunner && !this._taskRunner._active) {
+            // we don't want to exit if we are active
+            if (!this._taskRunner._active) {
                 process.exit(0);
             }
         }, this._inactiveTimeoutMs);
