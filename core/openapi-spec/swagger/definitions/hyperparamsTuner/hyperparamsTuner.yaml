@@ -1,0 +1,16 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/hyperparamsTunerName"
+  description:
+    type: string
+    description: describe the gateway
+  mem:
+    type: string
+    description: Memory allocated for streaming gateway
+    format: algorithm-memory
+    default: 512Mi
+  cpu:
+    type: number
+    description: Cpu allocated for streaming gateway
+    default: 0.5

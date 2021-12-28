@@ -1,0 +1,21 @@
+type: object
+properties:
+  suggest:
+    type: string
+    enum:
+      - uniform
+      - loguniform
+      - int
+      - discrete_uniform
+      - categorical
+  low:
+    type: number 
+  hight: 
+      type: number
+  choices:
+    type: array
+  name:
+      type: string
+required:
+  - name
+  - suggest

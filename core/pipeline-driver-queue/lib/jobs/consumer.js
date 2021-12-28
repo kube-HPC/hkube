@@ -77,6 +77,7 @@ class JobConsumer {
 
     _stopJob(jobId, status) {
         log.info(`job ${status} ${jobId}`, { component });
+        queueRunner.preferredQueue.remove(jobId);
         queueRunner.queue.remove(jobId);
     }
 
@@ -93,6 +94,7 @@ class JobConsumer {
             priority: pipeline.priority,
             maxExceeded: pipeline.maxExceeded,
             entranceTime: Date.now(),
+            tags: pipeline.tags || [],
             calculated: {
                 latestScores: {}
             }

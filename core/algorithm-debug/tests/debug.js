@@ -9,8 +9,8 @@ let app;
 const { Encoding } = require('@hkube/encoding');
 const ws = require('../lib/algorithm-communication/ws');
 const jobs = require('./jobs');
-const { beforeEach } = require('mocha');
-
+let savedCallbacks = {}
+const callbacksToSave=['_handleResponse', '_sendError'];
 
 describe('Debug', () => {
     let combinedUrl;
@@ -27,7 +27,12 @@ describe('Debug', () => {
         ws.removeAllListeners();
         const sleep = d => new Promise(r => setTimeout(r, d));
         await sleep(2000)
+        callbacksToSave.forEach(c=>savedCallbacks[c]=app.getWrapper()[c]);
     });
+    afterEach(() => {
+        callbacksToSave.forEach(c=>app.getWrapper()[c]=savedCallbacks[c]);
+    });
+
     it('streaming stateless init start', async () => {
         socket = new WebSocket(combinedUrl, {});
         let resolveInit;
@@ -102,9 +107,7 @@ describe('Debug', () => {
             }
         })
         const wrapper = app.getWrapper();
-        const originalHanldeResponse = wrapper._handleResponse;
         wrapper._handleResponse = (algorithmData) => {
-            wrapper._handleResponse = originalHanldeResponse
             expect(algorithmData).to.eq('return value', 'wrong return value');
             resolveStartResult()
 
@@ -419,6 +422,50 @@ describe('Debug', () => {
         await promiseStartResult;
         wrapper._stop({ forceStop: true });
     });
+    
+    it('should handle algorithm error', async () => {
+        socket = new WebSocket(combinedUrl, {});
+        let resolveInit;
+        let resolveStart;
+        let resolveStartResult;
+        const promiseInit = new Promise((res, rej) => {
+            resolveInit = res;
+        });
+        const promiseStart = new Promise((res, rej) => {
+            resolveStart = res;
+        });
+        const promiseStartResult = new Promise((res, rej) => {
+            resolveStartResult = res;
+        });
+        socket.on('message', (data) => {
+            const decodedData = encoding.decode(data);
+            if (decodedData.command === 'initialize') {
+                resolveInit();
+            }
+            if (decodedData.command === 'start') {
+                resolveStart();
+            }
+        })
+        const wrapper = app.getWrapper();
+        let handlerResponse = null;
+        wrapper._sendError = (error) => {
+            handlerResponse = error;
+            resolveStartResult()
+
+        }
+        await wrapper._stop({});
+        ws.on('connection', async () => {
+            await wrapper._init(jobs.jobDataBatch);
+            wrapper._start(jobs.jobDataBatch);
+        });
+        await promiseInit;
+        await promiseStart;
+        socket.send(encoding.encode({ command: messages.outgoing.error, error: 'this failed' }));
+        await promiseStartResult;
+        expect(handlerResponse).to.eq('this failed');
+        wrapper._stop({ forceStop: true });
+    });
+
     it('connect twice', async () => {
         socket = new WebSocket(combinedUrl, {});
         const socket2 = new WebSocket(combinedUrl, {});

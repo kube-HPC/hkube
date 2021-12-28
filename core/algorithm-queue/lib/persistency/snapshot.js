@@ -17,7 +17,7 @@ class Snapshot {
         }
     }
 
-    async get({ key, onStart, onEnd, onError }) {
+    async get({ key, onStart, onEnd, onError, initial }) {
         let data;
         try {
             const start = now();
@@ -28,7 +28,8 @@ class Snapshot {
             onEnd({ key, timeTook });
         }
         catch (e) {
-            onError({ key, error: e.message });
+            const level = initial ? 'warning' : 'error';
+            onError({ key, error: e.message, level });
         }
         return data;
     }

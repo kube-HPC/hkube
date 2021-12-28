@@ -21,6 +21,7 @@ const modules = [
     require('./lib/service/gateway'),
     require('./lib/service/debug'),
     require('./lib/service/output'),
+    require('./lib/service/hyperparams-tuner'),
 ];
 
 class Bootstrap {
