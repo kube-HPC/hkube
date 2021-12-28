@@ -177,6 +177,18 @@ class TaskRunner extends EventEmitter {
         }
     }
 
+    async handleFailedJob(job) {
+        if (this._active) {
+            return;
+        }
+        this._jobId = job?.data?.jobId;
+        const error = job?.failedReason;
+        log.error(`Pipeline job failed. jobId: ${this._jobId}, error: ${error}`, { component, jobId: this._jobId });
+        await this._deleteTasks();
+        await this._progressStatus({ status: DriverStates.FAILED, error });
+        await this._cleanJob(error);
+    }
+
     async _updateDiscovery() {
         try {
             await this._stateManager.updateDiscovery();
@@ -235,6 +247,7 @@ class TaskRunner extends EventEmitter {
             this._recoverGraph(graph);
             await this._watchTasks();
             await this._recoverPipeline();
+            log.info(`finished recover process ${this._jobId}`, { component });
         }
         else {
             await this._watchTasks();
