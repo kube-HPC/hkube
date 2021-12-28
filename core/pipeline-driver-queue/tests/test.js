@@ -29,6 +29,7 @@ let queue = null;
 describe('Test', () => {
     before(async () => {
         await bootstrap.init();
+        await persistence.client._client.client.delete().all();
         consumer = require('../lib/jobs/consumer');
     });
     let _semaphore = null;
@@ -175,6 +176,35 @@ describe('Test', () => {
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0].data.jobId).to.equal(jobId);
 
+        });
+    });
+    describe('concurrency', () => {
+        it('should found and disable concurrent exceeded jobs', async () => {
+            const jobs = 10;
+            const pipelineName = 'pipeline-concurrent';
+            const experimentName = 'experiment-concurrent'
+            const pipeline = pipelines.find(p => p.name === pipelineName);
+            await persistence.client.pipelines.set(pipeline);
+            await persistence.client.jobs.active.set({ jobId: uuidv4(), pipeline: pipelineName, experiment: experimentName, status: 'active', types: ['stored'] });
+            queueRunner.queue.updateHeuristic({ run: heuristicStub() });
+
+            for (let i = 0; i < jobs; i++) {
+                const job = {
+                    jobId: uuidv4(),
+                    maxExceeded: i > 0,
+                    done: () => { },
+                    pipelineName,
+                    experimentName,
+                    priority: 3,
+                    entranceTime: Date.now(),
+                    calculated: {
+                        latestScores: {}
+                    }
+                };
+                queueRunner.queue.enqueue(job);
+            }
+            const result = await producerLib._checkConcurrencyJobs();
+            expect(result).to.eql(pipeline.options.concurrentPipelines.amount - 1);
         });
     });
     afterEach(() => {

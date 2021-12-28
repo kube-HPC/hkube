@@ -45,19 +45,20 @@ class JobConsumer {
         const jobStatus = await persistence.getJobStatus({ jobId });
         if (jobStatus.status === pipelineStatuses.STOPPED || jobStatus.status === pipelineStatuses.PAUSED) {
             log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
-            await this._stopJob(jobId, jobStatus.status);
+            this._stopJob(jobId, jobStatus.status);
+            job.done();
         }
         else {
-            await this._queueJob(pipeline, job);
+            this._queueJob(pipeline, job);
         }
     }
 
-    async _stopJob(jobId, status) {
+    _stopJob(jobId, status) {
         log.info(`job ${status} ${jobId}`, { component });
         queueRunner.queue.remove(jobId);
     }
 
-    async _queueJob(pipeline, job) {
+    _queueJob(pipeline, job) {
         const jobData = this._pipelineToQueueAdapter(pipeline, job);
         queueRunner.queue.enqueue(jobData);
     }

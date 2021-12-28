@@ -1,4 +1,4 @@
-aggregationMetricsFactory = require('../../lib/metrics/aggregation-metrics-factory');
+
 const { queueEvents } = require('../../lib/consts');
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
@@ -12,6 +12,7 @@ async function sleep(timeoutMs) {
 }
 
 async function init() {
+    aggregationMetricsFactory = require('../../lib/metrics/aggregation-metrics-factory');
     await aggregationMetricsFactory.init(main);
     await queueRunner.init(main);
 }
@@ -21,7 +22,7 @@ async function init() {
  */
 async function insertPopJobs(pipelineName, qSecDurationArr) {
     for (let i = 0; i < qSecDurationArr.length; i++) {
-        const tiq = qSecDurationArr[i]*1000 - 8;
+        const tiq = qSecDurationArr[i] * 1000 - 8;
         let job = stubTemplate();
         job.pipelineName = pipelineName;
         queueRunner.queue.emit(queueEvents.INSERT, job);
@@ -29,7 +30,7 @@ async function insertPopJobs(pipelineName, qSecDurationArr) {
         queueRunner.queue.emit(queueEvents.POP, job);
         log.info(`"ADDED" ${pipelineName} JOB to Q for ${tiq} ms...`);
         await sleep(60000 - tiq);
-    };    
+    };
 }
 
 async function check() {

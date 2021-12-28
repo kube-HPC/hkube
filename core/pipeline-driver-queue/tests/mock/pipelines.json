@@ -178,5 +178,25 @@
             "progressVerbosityLevel": "debug"
         },
         "priority": 5
+    },
+    {
+        "name": "pipeline-concurrent",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "flowInput"
+                ]
+            }
+        ],
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug",
+            "concurrentPipelines": {
+                "amount": 5
+            }
+        },
+        "priority": 1
     }
 ]

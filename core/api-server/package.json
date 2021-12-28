@@ -7,7 +7,7 @@
         "@hkube/config": "^2.0.7",
         "@hkube/consts": "^1.0.22",
         "@hkube/dag": "^2.0.0",
-        "@hkube/etcd": "^5.0.37-active-a",
+        "@hkube/etcd": "^5.0.38-active-a",
         "@hkube/healthchecks": "^1.0.1",
         "@hkube/logger": "^2.0.1",
         "@hkube/metrics": "^1.0.39",

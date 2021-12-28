@@ -204,6 +204,7 @@ class TaskRunner extends EventEmitter {
         }
         const activeTime = Date.now();
         await this._progressStatus({ status: DriverStates.ACTIVE, activeTime });
+        await this._stateManager.updateActiveJob({ jobId: this._jobId, pipeline: pipeline.name, types: pipeline.types, experiment: pipeline.experimentName, status: pipelineStatuses.ACTIVE });
         await this._stateManager.updateRunningExecution({ jobId: this._jobId }, oldItem => {
             if (!oldItem.activeTime) {
                 return { ...oldItem, activeTime };
