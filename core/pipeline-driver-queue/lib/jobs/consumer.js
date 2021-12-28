@@ -26,11 +26,11 @@ class JobConsumer {
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
-        persistence.on(`job-${pipelineStatuses.STOPPED}`, async (job) => {
+        persistence.on(`job-${pipelineStatuses.STOPPED}`, (job) => {
             const { jobId, status } = job;
             this._stopJob(jobId, status);
         });
-        persistence.on(`job-${pipelineStatuses.PAUSED}`, async (job) => {
+        persistence.on(`job-${pipelineStatuses.PAUSED}`, (job) => {
             const { jobId, status } = job;
             this._stopJob(jobId, status);
         });
