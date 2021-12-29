@@ -71,7 +71,7 @@ type Results {
     pipeline: String
     data: Data }
 
-  type LastRunResult { timestamp: Float status: String timeTook: Float }
+  type LastRunResult { timestamp: String status: String timeTook: Float }
 
 
 

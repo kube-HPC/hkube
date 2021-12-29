@@ -12,7 +12,6 @@ type NodeStatistics { metric: String
  extend type Query {
     nodeStatistics:[NodeStatistics]
  } 
-`
-
+`;
 
 module.exports = nodeStatisticTypeDefs;
