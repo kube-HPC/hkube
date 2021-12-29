@@ -178,14 +178,27 @@ class TaskRunner extends EventEmitter {
     }
 
     async handleFailedJob(job) {
-        if (job?.data?.jobId) {
+        if (!job?.data?.jobId) {
             return;
         }
         const { jobId } = job.data;
         const error = job.failedReason;
+        const status = DriverStates.FAILED;
+        if (error !== 'job stalled more than allowable limit') {
+            return;
+        }
         log.error(`Pipeline job failed. jobId: ${jobId}, error: ${error}`, { component, jobId });
-        await this._deleteTasks();
-        await this._progressStatus({ jobId, status: DriverStates.FAILED, error });
+        try {
+            await this._deleteTasks();
+            const pipeline = await this._stateManager.getExecution({ jobId });
+            const startTime = pipeline?.startTime || Date.now();
+            const pipelineName = pipeline?.name;
+            await this._stateManager.setJobResults({ jobId, error, status, startTime, pipeline: pipelineName });
+            await this._progressStatus({ jobId, status, error });
+        }
+        catch (e) {
+            log.error(e.message, { component, jobId }, e);
+        }
     }
 
     async _updateDiscovery() {
