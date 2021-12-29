@@ -178,8 +178,11 @@ class TaskRunner extends EventEmitter {
     }
 
     async handleFailedJob(job) {
-        const jobId = job?.data?.jobId;
-        const error = job?.failedReason;
+        if (job?.data?.jobId) {
+            return;
+        }
+        const { jobId } = job.data;
+        const error = job.failedReason;
         log.error(`Pipeline job failed. jobId: ${jobId}, error: ${error}`, { component, jobId });
         await this._deleteTasks();
         await this._progressStatus({ jobId, status: DriverStates.FAILED, error });
