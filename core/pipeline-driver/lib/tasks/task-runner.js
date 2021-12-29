@@ -178,15 +178,11 @@ class TaskRunner extends EventEmitter {
     }
 
     async handleFailedJob(job) {
-        if (this._active) {
-            return;
-        }
-        this._jobId = job?.data?.jobId;
+        const jobId = job?.data?.jobId;
         const error = job?.failedReason;
-        log.error(`Pipeline job failed. jobId: ${this._jobId}, error: ${error}`, { component, jobId: this._jobId });
+        log.error(`Pipeline job failed. jobId: ${jobId}, error: ${error}`, { component, jobId });
         await this._deleteTasks();
-        await this._progressStatus({ status: DriverStates.FAILED, error });
-        await this._cleanJob(error);
+        await this._progressStatus({ jobId, status: DriverStates.FAILED, error });
     }
 
     async _updateDiscovery() {
@@ -384,30 +380,30 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    async _progressStatus({ status, error, nodeName, activeTime, netTimeTook, grossTimeTook }) {
+    async _progressStatus({ jobId, status, error, nodeName, activeTime, netTimeTook, grossTimeTook }) {
         if (error) {
-            await this._progressError({ status, error, nodeName });
+            await this._progressError({ jobId, status, error, nodeName });
         }
         else {
-            await this._progressInfo({ status, activeTime, netTimeTook, grossTimeTook });
+            await this._progressInfo({ jobId, status, activeTime, netTimeTook, grossTimeTook });
         }
     }
 
-    async _progressError({ status, error, nodeName }) {
+    async _progressError({ jobId, status, error, nodeName }) {
         if (this._progress) {
-            await this._progress.error({ jobId: this._jobId, pipeline: this.pipeline.name, status, error, nodeName });
+            await this._progress.error({ jobId: jobId || this._jobId, pipeline: this.pipeline.name, status, error, nodeName });
         }
         else {
-            await this._stateManager.setJobStatus({ jobId: this._jobId, pipeline: this.pipeline.name, status, error, nodeName, level: logger.Levels.ERROR.name });
+            await this._stateManager.setJobStatus({ jobId: jobId || this._jobId, pipeline: this.pipeline.name, status, error, nodeName, level: logger.Levels.ERROR.name });
         }
     }
 
-    async _progressInfo({ status, activeTime, netTimeTook, grossTimeTook }) {
+    async _progressInfo({ jobId, status, activeTime, netTimeTook, grossTimeTook }) {
         if (this._progress) {
-            await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status, activeTime, netTimeTook, grossTimeTook });
+            await this._progress.info({ jobId: jobId || this._jobId, pipeline: this.pipeline.name, status, activeTime, netTimeTook, grossTimeTook });
         }
         else {
-            await this._stateManager.setJobStatus({ jobId: this._jobId, pipeline: this.pipeline.name, status, level: logger.Levels.INFO.name, activeTime, netTimeTook, grossTimeTook });
+            await this._stateManager.setJobStatus({ jobId: jobId || this._jobId, pipeline: this.pipeline.name, status, level: logger.Levels.INFO.name, activeTime, netTimeTook, grossTimeTook });
         }
     }
 
