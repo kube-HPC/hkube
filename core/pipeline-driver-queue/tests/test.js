@@ -120,7 +120,6 @@ describe('Test', () => {
     });
     describe('concurrent', () => {
         it('check concurrency limit', async () => {
-            queueRunner.preferredQueue.queue = [];
             queueRunner.queue.queue = [];
             const totalJobs = 10;
             const half = totalJobs / 2;
@@ -183,7 +182,6 @@ describe('Test', () => {
     });
     describe('persistency tests', () => {
         it('persistent load', async () => {
-            queueRunner.preferredQueue.queue = [];
             queueRunner.queue.queue = [];
             const jobs = generateArr(100);
             queueRunner.queue.queue = jobs;
@@ -198,6 +196,87 @@ describe('Test', () => {
             expect(jobs[0].jobId == pq[0].jobId && jobs[99].jobId == pq[99].jobId)
         });
     });
+
+
+    describe('managed tests', () => {
+        let jobs;
+        beforeEach(async () => {
+            jobs = [];
+            jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 1, priority: 1, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b', tags: ['a', 'b'], pipeline: 'p_a', entranceTime: 2, priority: 2, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 3, priority: 3, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_a', pipeline: 'p_b', entranceTime: 4, priority: 4, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_b', pipeline: 'p_b', entranceTime: 5, priority: 5, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_c', pipeline: 'p_b', entranceTime: 6, priority: 6, calculated: { latestScores: [] } });
+            await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
+        });
+        it('aggregation', async () => {
+            let result = await request({
+                url: `${restUrl}/managed/aggregation/pipeline`, method: 'GET'
+            });
+            expect(result.body.length).to.eql(2);
+        });
+        it('getting', async () => {
+            result = await request({
+                url: `${restUrl}/managed/`, method: 'POST'
+                , body: { pageSize: 2, fromJob: 'c' }
+            });
+            expect(result.body.returnList.length).to.eql(2);
+            expect(result.body.hasNext).to.eql(true);
+            expect(result.body.hasPrev).to.eql(true);
+            expect(result.body.returnList[0].jobId).to.eql('b_a');
+
+            result = await request({
+                url: `${restUrl}/managed/`, method: 'POST'
+                , body: { pageSize: 2, fromJob: 'b_b' }
+            });
+            expect(result.body.hasNext).to.eql(false);
+            expect(result.body.hasPrev).to.eql(true);
+            expect(result.body.returnList[0].jobId).to.eql('b_b');
+            expect(result.body.returnList.length).to.eql(2);
+            result = await request({
+                url: `${restUrl}/managed/`, method: 'POST'
+                , body: { pageSize: 2, toJob: 'c' }
+            });
+            expect(result.body.hasNext).to.eql(true);
+            expect(result.body.hasPrev).to.eql(false);
+            expect(result.body.returnList[0].jobId).to.eql('a');
+            expect(result.body.returnList.length).to.eql(2);
+        });
+        it('getting filters', async () => {
+            result = await request({
+                url: `${restUrl}/managed/`, method: 'POST'
+                , body: { pageSize: 6, filter: { pipeline: 'p_b' } }
+            });
+
+            expect(result.body.returnList.length).to.eql(3);
+            expect(result.body.hasNext).to.eql(false);
+            expect(result.body.hasPrev).to.eql(false);
+            expect(result.body.returnList[0].jobId).to.eql('b_a');
+
+            result = await request({
+                url: `${restUrl}/managed/`, method: 'POST'
+                , body: { pageSize: 6, filter: { tag: 'a' } }
+            });
+
+            expect(result.body.returnList.length).to.eql(1);
+            expect(result.body.hasNext).to.eql(false);
+            expect(result.body.hasPrev).to.eql(false);
+            expect(result.body.returnList[0].jobId).to.eql('b');
+        });
+        it.only('getting missing', async () => {
+            result = await request({
+                url: `${restUrl}/managed/`, method: 'POST'
+                , body: { pageSize: 2, fromJob: 'noneExisting' }
+            });
+            expect(result.body.returnList.length).to.eql(2);
+            expect(result.body.hasNext).to.eql(false);
+            expect(result.body.hasPrev).to.eql(true);
+            expect(result.body.returnList[0].jobId).to.eql('b_b');
+        });
+    });
+
+
     describe('preferred tests', () => {
         it('preferred order', async () => {
             const jobs = [];
@@ -225,7 +304,6 @@ describe('Test', () => {
                 jobs.push({ jobId: 'b', pipeline: 'p_a', tags: ['tag1'], entranceTime: 10, calculated: { latestScores: [] } });
                 jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
                 queueRunner.queue.queue = [];
-                queueRunner.preferredQueue.queue = [];
                 await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
                 let result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
@@ -262,7 +340,7 @@ describe('Test', () => {
                         "query": { tag: 'tag1', jobId: 'd' }
                     }
                 });
-                expect(result.body.error.message === 'Query must contain only one of jobId ,tag ,pipelineName');
+                expect(result.body.error.message === 'Query must contain only one of jobId ,tag ,pipeline');
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'GET'
                 });
@@ -303,5 +381,10 @@ describe('Test', () => {
     });
     afterEach(() => {
         queueRunner.queue.queue = [];
+        queueRunner.preferredQueue.queue = [];
+    });
+    beforeEach(() => {
+        queueRunner.queue.queue = [];
+        queueRunner.preferredQueue.queue = [];
     });
 });
