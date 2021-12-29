@@ -36,6 +36,27 @@ describe('TaskRunner', function () {
         expect(spy.calledOnce).to.equal(true);
         expect(call.args[0].error.message).to.equal(error);
     });
+    it('should stop pipeline if consumer error', async function () {
+        const jobId = `jobid-${uuidv4()}`;
+        const job = {
+            data: { jobId },
+            failedReason: 'consumer fail'
+        }
+        
+        const spy = sinon.spy(taskRunner, "_progressStatus");
+        const spy2 = sinon.spy(taskRunner._stateManager, "setJobStatus");
+        expect(taskRunner._jobId).to.not.exist;
+        await taskRunner.handleFailedJob(job)
+        const call = spy.getCalls()[0];
+        expect(spy.calledOnce).to.equal(true);
+        expect(call.args[0]).to.eql({ jobId, status: 'failed', error: job.failedReason });
+
+        const call2 = spy2.getCalls()[0];
+        expect(spy2.calledOnce).to.equal(true);
+        expect(call2.args[0]).to.eql({ jobId, status: 'failed', error: job.failedReason, level: 'error', nodeName: undefined, pipeline: undefined });
+        expect(taskRunner._jobId).to.not.exist;
+
+    });
     it('should start only one pipeline', async function () {
         const jobId = `jobid-${uuidv4()}`;
         const job = {
