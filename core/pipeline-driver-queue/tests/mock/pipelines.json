@@ -194,7 +194,8 @@
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug",
             "concurrentPipelines": {
-                "amount": 5
+                "amount": 5,
+                "rejectOnFailure": false
             }
         },
         "priority": 1

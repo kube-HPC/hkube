@@ -100,7 +100,7 @@ class JobProducer {
         const groupJobs = groupBy(activePipelines, 'pipeline', 'experiment');
         const pipelinesNames = Object.keys(groupQueue);
         const storedPipelines = await persistence.getStoredPipelines({ pipelinesNames });
-        const pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.amount);
+        const pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.rejectOnFailure === false);
         pipelines.forEach((p) => {
             const jobsByPipeline = groupJobs[p.name];
             const queueByPipeline = groupQueue[p.name];
