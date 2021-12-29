@@ -23,6 +23,7 @@ class Bootstrap {
             });
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
+                process.exit(1);
             });
             await monitor.check(main.redis);
             if (main.tracer) {

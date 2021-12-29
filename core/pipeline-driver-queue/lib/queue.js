@@ -18,6 +18,7 @@ class Queue extends Events {
         this.queue = [];
     }
 
+    // we don't want to recover from persistence, we want to recover jobs from bull
     async persistencyLoad() {
         if (!this.persistence) {
             return;
@@ -64,7 +65,7 @@ class Queue extends Events {
     }
 
     updateQueueOrder() {
-        this.queue = orderby(this.queue, ['maxExceeded', 'score'], ['asc', 'desc']);
+        this.queue = orderby(this.queue, 'score', 'desc');
     }
 
     dequeue(job) {

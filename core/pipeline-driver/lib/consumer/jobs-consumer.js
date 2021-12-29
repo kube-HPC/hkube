@@ -1,5 +1,5 @@
 const logger = require('@hkube/logger');
-const { Consumer } = require('@hkube/producer-consumer');
+const { Consumer, Events } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const commands = require('../consts/commands');
 const TaskRunner = require('../tasks/task-runner');
@@ -33,6 +33,9 @@ class JobConsumer {
         this._inactiveTimeoutMs = parseInt(option.timeouts.inactivePaused, 10);
         this._consumer = new Consumer(options);
         this._consumer.register(options);
+        this._consumer.on(Events.FAILED, (job) => {
+            this._taskRunner.handleFailedJob(job);
+        });
         this._consumer.on('job', (job) => {
             this._taskRunner.start(job);
         });
@@ -64,7 +67,10 @@ class JobConsumer {
         log.info(`starting inactive timeout for driver ${this._formatSec()}`, { component });
         this._inactiveTimer = setTimeout(() => {
             log.info(`driver is inactive for more than ${this._formatSec()}`, { component });
-            process.exit(0);
+            // we don't want to exit if we are active
+            if (!this._taskRunner._active) {
+                process.exit(0);
+            }
         }, this._inactiveTimeoutMs);
     }
 

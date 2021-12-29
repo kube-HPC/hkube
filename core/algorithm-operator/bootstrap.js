@@ -22,8 +22,10 @@ class Bootstrap {
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
             setFromConfig(main);
             await Promise.all(modules.map(m => m.init(main)));
-            await healthcheck.init({ port: main.healthchecks.port });
-            healthcheck.start(main.healthchecks.path, () => operator.checkHealth(main.healthchecks.maxDiff), 'health');
+            if (main.healthchecks.enabled) {
+                await healthcheck.init({ port: main.healthchecks.port });
+                healthcheck.start(main.healthchecks.path, () => operator.checkHealth(main.healthchecks.maxDiff), 'health');
+            }
         }
         catch (error) {
             this._onInitFailed(error);

@@ -36,6 +36,33 @@ describe('TaskRunner', function () {
         expect(spy.calledOnce).to.equal(true);
         expect(call.args[0].error.message).to.equal(error);
     });
+    it('should stop pipeline if consumer error', async function () {
+        const jobId = `jobid-${uuidv4()}`;
+        const job = {
+            data: { jobId },
+            failedReason: 'job stalled more than allowable limit'
+        }
+        await stateManager._etcd.jobs.status.set({ jobId });
+        const spy = sinon.spy(taskRunner, "_progressStatus");
+        expect(taskRunner._jobId).to.not.exist;
+        await taskRunner.handleFailedJob(job)
+        const call = spy.getCalls()[0];
+        expect(spy.calledOnce).to.equal(true);
+        expect(call.args[0]).to.eql({ jobId, status: 'failed', error: job.failedReason });
+        expect(taskRunner._jobId).to.not.exist;
+
+        const result = await stateManager._etcd.jobs.results.get({ jobId });
+        expect(result.status).to.equal('failed');
+        expect(result.error).to.equal(job.failedReason);
+
+        const statusResult = await stateManager.getJobStatus({ jobId });
+        expect(statusResult.status).to.equal('failed');
+        expect(statusResult.error).to.equal(job.failedReason);
+
+
+
+
+    });
     it('should start only one pipeline', async function () {
         const jobId = `jobid-${uuidv4()}`;
         const job = {

@@ -30,6 +30,10 @@ class Queue extends events {
         this.tempRemoveJobIDsQueue = [];
     }
 
+    async shutdown() {
+        await this.persistenceStore();
+    }
+
     async persistencyLoad() {
         log.info('try to recover data from persistent storage', { component: components.QUEUE });
         if (this.persistence) {

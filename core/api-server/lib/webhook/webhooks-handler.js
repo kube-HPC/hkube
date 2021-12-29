@@ -21,12 +21,12 @@ class WebhooksHandler {
     }
 
     _watch() {
-        stateManager.on('job-result-change', (response) => {
-            this._requestResults(response);
-            this._deleteRunningPipeline({ jobId: response.jobId });
+        stateManager.on('job-result-change', async (response) => {
+            await this._requestResults(response);
+            await this._deleteRunningPipeline({ jobId: response.jobId });
         });
-        stateManager.jobs.status.on('change', (response) => {
-            this._requestStatus(response);
+        stateManager.jobs.status.on('change', async (response) => {
+            await this._requestStatus(response);
         });
     }
 
@@ -66,8 +66,11 @@ class WebhooksHandler {
         }
     }
 
-    async _deleteRunningPipeline(options) {
-        await stateManager.executions.running.delete(options);
+    async _deleteRunningPipeline({ jobId }) {
+        await Promise.all([
+            stateManager.executions.running.delete({ jobId }),
+            stateManager.jobs.active.delete({ jobId })
+        ]);
     }
 
     _request(url, body, type, pipelineStatus, jobId) {

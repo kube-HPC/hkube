@@ -18,8 +18,17 @@ class Persistence extends EventEmitter {
         return this;
     }
 
+    async getStoredPipelines({ pipelinesNames }) {
+        const pipelines = await this.client.pipelines.list();
+        return pipelines.filter(p => pipelinesNames.includes(p.name));
+    }
+
+    getActiveJobs() {
+        return this.client.jobs.active.list();
+    }
+
     store(data) {
-        return this.client.pipelineDrivers.queue.set({ name: this.queueName, data });
+        return this.client.pipelineDrivers.queue.set({ name: this.queueName, data: data.map(d => d.score) });
     }
 
     get() {

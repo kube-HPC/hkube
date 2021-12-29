@@ -38,8 +38,8 @@ class StateManager extends EventEmitter {
 
     async _healthcheckInterval() {
         try {
-            const running = await this.executions.running.list({ keysOnly: true });
-            const jobIds = running.map(r => r.substring(r.lastIndexOf('/') + 1));
+            const running = await this.jobs.active.list();
+            const jobIds = running.map(r => r.jobId);
             const completedToDelete = [];
             for (const jobId of jobIds) {
                 const result = await this.jobs.results.get({ jobId });

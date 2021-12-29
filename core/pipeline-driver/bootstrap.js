@@ -28,6 +28,7 @@ class Bootstrap {
             });
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
+                process.exit(1);
             });
             monitor.check(main.redis);
             await metrics.init(main.metrics);
@@ -67,7 +68,7 @@ class Bootstrap {
             process.exit(0);
         });
         process.on('unhandledRejection', (error) => {
-            if (error.isBrokenCircuitError){
+            if (error.isBrokenCircuitError) {
                 log.warning(`ignored unhandledRejection: ${error.message}`, { component }, error);
                 return;
             }

@@ -1,4 +1,4 @@
-const regex = require('../consts/regex');
+const { pipelineTypes } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const { InvalidDataError } = require('../errors');
 
@@ -31,18 +31,17 @@ class ApiValidator {
         this._validator.validate(this._validator.definitions.pipeline, pipeline, false, { checkFlowInput: true, ...options });
     }
 
-    async validateConcurrentPipelines(pipelines, jobId) {
-        if (pipelines.options && pipelines.options.concurrentPipelines) {
-            const { amount, rejectOnFailure } = pipelines.options.concurrentPipelines;
-            const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
-            if (jobIdPrefix) {
-                const result = await stateManager.executions.running.list({ jobId: jobIdPrefix[0] });
-                if (result.length >= amount) {
-                    if (rejectOnFailure) {
-                        throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);
-                    }
-                    return true;
+    async validateConcurrentPipelines(pipeline) {
+        if (pipeline.options && pipeline.options.concurrentPipelines) {
+            const { amount, rejectOnFailure } = pipeline.options.concurrentPipelines;
+            const { name, experimentName } = pipeline;
+            const result = await stateManager.jobs.active.list();
+            const pipelines = result.filter(r => r.pipeline === name && r.experiment === experimentName && r.types.includes(pipelineTypes.STORED));
+            if (pipelines.length >= amount) {
+                if (rejectOnFailure) {
+                    throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);
                 }
+                return true;
             }
         }
         return false;

@@ -47,6 +47,10 @@ class QueueRunner {
         });
     }
 
+    shutdown() {
+        return this.queue?.shutdown();
+    }
+
     _taskRemoved(task) {
         aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(task, metricsTypes.HISTOGRAM_OPERATION.end);
         aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)(task, metricsTypes.GAUGE_OPERATION.decrease);
