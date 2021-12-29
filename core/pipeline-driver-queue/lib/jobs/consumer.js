@@ -70,7 +70,7 @@ class JobConsumer {
             pipelineName: pipeline.name,
             experimentName: pipeline.experimentName,
             priority: pipeline.priority,
-            entranceTime: Date.now(),
+            entranceTime: pipeline.startTime || Date.now(),
             calculated: {
                 latestScores: {}
             }
