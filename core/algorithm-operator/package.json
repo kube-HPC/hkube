@@ -19,7 +19,7 @@
     "@hkube/etcd": "^5.0.38",
     "@hkube/healthchecks": "^1.0.0",
     "@hkube/kubernetes-client": "^2.0.4",
-    "@hkube/logger": "^2.0.1",
+    "@hkube/logger": "^2.0.2",
     "decamelize": "^3.2.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isequalwith": "^4.4.0",
