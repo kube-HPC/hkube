@@ -10,6 +10,43 @@ class PreferredJobs {
         });
     }
 
+    getPreferredAggregatedByPipeline() {
+        let returnList = this.getPreferredJobsList();
+        returnList = this.getPreferredJobsList().reduce((rv, job) => {
+            // eslint-disable-next-line no-param-reassign
+            if (rv.length > 0) {
+                if (rv[rv.length - 1].pipeline === job.pipeline) {
+                    rv[rv.length - 1].jobs.push(job.jobId);
+                }
+                else {
+                    rv.push({ pipeline: job.pipeline, jobs: [job.jobId] });
+                    return rv;
+                }
+            }
+            else {
+                rv.push({ pipeline: job.pipeline, jobs: [job.jobId] });
+            }
+            return rv;
+        }, []);
+        return returnList;
+    }
+
+    getPreferredAggregatedByTags() {
+        let returnList = this.getPreferredJobsList();
+        returnList = this.getPreferredJobsList().reduce((rv, job) => {
+            // eslint-disable-next-line no-param-reassign
+            if (rv.length > 0) {
+                if (rv[rv.length - 1].tags.toString() === job.tags.toString()) {
+                    rv[rv.length - 1].jobs.push(job.jobId);
+                    return rv;
+                }
+            }
+            rv.push({ tags: job.tags, jobs: [job.jobId] });
+            return rv;
+        }, []);
+        return returnList;
+    }
+
     deletePreferredJobs(jobIds) {
         const deletedJobs = jobIds.map(jobId => {
             const deletedArr = queueRunner.preferredQueue.dequeue({ jobId });

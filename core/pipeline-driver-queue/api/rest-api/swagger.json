@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.6",
+    "version": "2.2.7",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -12705,6 +12705,338 @@
         }
       }
     },
+    "/queue/preferred/aggregation/pipeline": {
+      "get": {
+        "tags": [
+          "Preferred"
+        ],
+        "summary": "Get preferred",
+        "description": "Get preferred",
+        "responses": {
+          "200": {
+            "description": "Get preferred",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pipeline": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific pipeline",
+                      "minLength": 1,
+                      "format": "pipeline-name"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific tag",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
+                    },
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/queue/preferred/aggregation/tag": {
+      "get": {
+        "tags": [
+          "Preferred"
+        ],
+        "summary": "Get preferred",
+        "description": "Get preferred",
+        "responses": {
+          "200": {
+            "description": "Get preferred",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pipeline": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific pipeline",
+                      "minLength": 1,
+                      "format": "pipeline-name"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific tag",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
+                    },
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/queue/managed/aggregation/pipeline": {
+      "get": {
+        "tags": [
+          "Managed"
+        ],
+        "summary": "Get preferred",
+        "description": "Get preferred",
+        "responses": {
+          "200": {
+            "description": "Get preferred",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pipeline": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific pipeline",
+                      "minLength": 1,
+                      "format": "pipeline-name"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific tag",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
+                    },
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/queue/managed/aggregation/tag": {
+      "get": {
+        "tags": [
+          "Managed"
+        ],
+        "summary": "Get preferred",
+        "description": "Get preferred",
+        "responses": {
+          "200": {
+            "description": "Get preferred",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pipeline": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific pipeline",
+                      "minLength": 1,
+                      "format": "pipeline-name"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific tag",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
+                    },
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/builds/status/{buildId}": {
       "get": {
         "tags": [
@@ -18295,6 +18627,33 @@
             "description": "Unique identifier representing a specific pipeline",
             "minLength": 1,
             "format": "pipeline-name"
+          }
+        }
+      },
+      "jobsAggregationResponse": {
+        "type": "object",
+        "properties": {
+          "pipeline": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Unique identifier representing a specific tag",
+              "minLength": 1,
+              "maxLength": 32
+            }
+          },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Unique identifier representing pipeline execution"
+            }
           }
         }
       },

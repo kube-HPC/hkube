@@ -8,6 +8,14 @@ const routes = () => {
         const response = preferredService.getPreferredJobsList();
         res.json(response);
     });
+    router.get('/aggregation/pipeline/', (req, res) => {
+        const response = preferredService.getPreferredAggregatedByPipeline();
+        res.json(response);
+    });
+    router.get('/aggregation/tag/', (req, res) => {
+        const response = preferredService.getPreferredAggregatedByTags();
+        res.json(response);
+    });
     router.post('/deletes/', async (req, res) => {
         const { jobs } = req.body;
         const deleted = await preferredService.deletePreferredJobs(jobs);

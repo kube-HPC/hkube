@@ -111,6 +111,15 @@
   $ref: ./preferred/preferred.yaml
 /queue/preferred/deletes:
   $ref: ./preferred/deletes.yaml
+/queue/preferred/aggregation/pipeline:
+  $ref: ./aggregation/preferred.yaml
+/queue/preferred/aggregation/tag:
+  $ref: ./aggregation/preferred.yaml
+# managed
+/queue/managed/aggregation/pipeline:
+  $ref: ./aggregation/managed.yaml
+/queue/managed/aggregation/tag:
+  $ref: ./aggregation/managed.yaml
 
 # builds
 /builds/status/{buildId}:

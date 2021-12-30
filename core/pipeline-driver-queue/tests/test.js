@@ -264,7 +264,7 @@ describe('Test', () => {
             expect(result.body.hasPrev).to.eql(false);
             expect(result.body.returnList[0].jobId).to.eql('b');
         });
-        it.only('getting missing', async () => {
+        it('getting missing', async () => {
             result = await request({
                 url: `${restUrl}/managed/`, method: 'POST'
                 , body: { pageSize: 2, fromJob: 'noneExisting' }
@@ -294,6 +294,37 @@ describe('Test', () => {
             preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
             preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
             expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
+        });
+
+
+        it('preferred aggregation', async () => {
+            const jobs = [];
+            jobs.push({ jobId: 'a', pipeline: 'p_a', tags: ['a'], entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b', pipeline: 'p_b', tags: ['a'], entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'c', pipeline: 'p_a', tags: ['a'], entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_a', pipeline: 'p_a', tags: ['b'], entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_b', pipeline: 'p_b', tags: ['a', 'b'], entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_c', pipeline: 'p_b', tags: ['a'], entranceTime: 10, calculated: { latestScores: [] } });
+            await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
+            preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
+            preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
+            preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
+            preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'last' });
+            preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'last' });
+            preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
+            let result = await request({
+                url: `${restUrl}/preferred/aggregation/pipeline`, method: 'GET'
+            });
+            expect(result.body.length).eql(4);
+            expect(result.body[2].pipeline).eql('p_a');
+            expect(result.body[2].jobs.length).eql(2);
+
+            result = await request({
+                url: `${restUrl}/preferred/aggregation/tags`, method: 'GET'
+            });
+            expect(result.body.length).eql(4);
+            expect(result.body[2].tags.toString()).eql(['a', 'b'].toString());
+            expect(result.body[2].jobs.length).eql(1);
         });
 
         describe('preferred api', () => {
