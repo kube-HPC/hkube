@@ -43,6 +43,9 @@ class JobProducer {
                 this._dequeueJob();
             }
         });
+        queueRunner.queue.on(queueEvents.REMOVE, (job) => {
+            job.done && job.done();
+        });
     }
 
     async _checkQueue() {
@@ -53,7 +56,7 @@ class JobProducer {
                 if (pendingAmount === 0) {
                     // create job first time only, then rely on 3 events (active/completed/enqueue)
                     this._firstJobDequeue = true;
-                    await this.createJob(queue[0]);
+                    await this.createJob({ jobId: queue[0].jobId });
                 }
             }
         }
@@ -166,7 +169,7 @@ class JobProducer {
         try {
             const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
             if (queue.length > 0) {
-                await this.createJob(queue[0]);
+                await this.createJob({ jobId: queue[0].jobId });
             }
         }
         catch (error) {
@@ -215,12 +218,16 @@ class JobProducer {
     }
 
     // we only want to call done after finish with job
-    async createJob(job) {
-        const pipeline = queueRunner.queue.dequeue(job);
-        log.debug(`creating new job ${pipeline.jobId}, calculated score: ${pipeline.score}`, { component });
-        const jobData = this._pipelineToJob(pipeline);
+    async createJob({ jobId }) {
+        const job = queueRunner.queue.dequeue(jobId);
+        if (!job) {
+            log.error(`trying to create job ${jobId} which is not exists in queue`, { component });
+            return;
+        }
+        log.debug(`creating new job ${jobId}, calculated score: ${job.score}`, { component });
+        const jobData = this._pipelineToJob(job);
         await this._producer.createJob(jobData);
-        pipeline.done && pipeline.done();
+        job.done && job.done();
     }
 }
 

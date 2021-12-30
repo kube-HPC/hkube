@@ -27,12 +27,10 @@ class JobConsumer {
             this._handleJob(job);
         });
         persistence.on(`job-${pipelineStatuses.STOPPED}`, (job) => {
-            const { jobId, status } = job;
-            this._stopJob(jobId, status);
+            this._stopJob(job);
         });
         persistence.on(`job-${pipelineStatuses.PAUSED}`, (job) => {
-            const { jobId, status } = job;
-            this._stopJob(jobId, status);
+            this._stopJob(job);
         });
     }
 
@@ -45,31 +43,32 @@ class JobConsumer {
         const jobStatus = await persistence.getJobStatus({ jobId });
         if (jobStatus.status === pipelineStatuses.STOPPED || jobStatus.status === pipelineStatuses.PAUSED) {
             log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
-            this._stopJob(jobId, jobStatus.status);
+            this._stopJob({ jobId, status: jobStatus.status });
             job.done();
         }
         else {
-            this._queueJob(pipeline, job);
+            this._queueJob({ pipeline, jobId, job });
         }
     }
 
-    _stopJob(jobId, status) {
+    _stopJob({ jobId, status }) {
         log.info(`job ${status} ${jobId}`, { component });
         queueRunner.queue.remove(jobId);
     }
 
-    _queueJob(pipeline, job) {
-        const jobData = this._pipelineToQueueAdapter(pipeline, job);
+    _queueJob({ pipeline, jobId, job }) {
+        const jobData = this._pipelineToQueueAdapter({ pipeline, jobId, job });
         queueRunner.queue.enqueue(jobData);
     }
 
-    _pipelineToQueueAdapter(pipeline, job) {
+    _pipelineToQueueAdapter({ pipeline, jobId, job }) {
         return {
-            ...job.data,
+            jobId,
             done: () => job.done(),
             pipelineName: pipeline.name,
             experimentName: pipeline.experimentName,
             priority: pipeline.priority,
+            maxExceeded: pipeline.maxExceeded,
             entranceTime: pipeline.startTime || Date.now(),
             calculated: {
                 latestScores: {}
