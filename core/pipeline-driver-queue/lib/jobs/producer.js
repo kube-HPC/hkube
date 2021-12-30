@@ -113,7 +113,7 @@ class JobProducer {
                 const maxExceeded = queueByPipeline.slice(0, required);
                 maxExceeded.forEach((job) => {
                     canceledJobs += 1;
-                    this._cancelExceededJob({ source: 'interval', job, experiment: job.experimentName, pipeline: job.pipelineName });
+                    this._checkMaxExceeded({ experiment: job.experimentName, pipeline: job.pipelineName });
                 });
             }
         });
@@ -182,12 +182,12 @@ class JobProducer {
             .getQueue(q => q.maxExceeded)
             .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
         if (job) {
-            this._cancelExceededJob({ source: 'event', job, experiment, pipeline });
+            this._cancelExceededJob({ job, experiment, pipeline });
         }
     }
 
-    _cancelExceededJob({ source, job, experiment, pipeline }) {
-        log.info(`[${source}] found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
+    _cancelExceededJob({ job, experiment, pipeline }) {
+        log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
         job.maxExceeded = false;
         if (this._isConsumerActive) {
             this._dequeueJob();

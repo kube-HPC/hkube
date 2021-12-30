@@ -38,6 +38,7 @@ class JobConsumer {
         const { jobId } = job.data;
         const pipeline = await persistence.getExecution({ jobId });
         if (!pipeline) {
+            log.warning(`unable to find pipeline ${jobId}`, { component });
             return;
         }
         const jobStatus = await persistence.getJobStatus({ jobId });

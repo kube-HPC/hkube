@@ -31,8 +31,8 @@ class ApiValidator {
         this._validator.validate(this._validator.definitions.pipeline, pipeline, false, { checkFlowInput: true, ...options });
     }
 
-    async validateConcurrentPipelines(pipeline) {
-        if (pipeline.options && pipeline.options.concurrentPipelines) {
+    async validateConcurrentPipelines(pipeline, types) {
+        if (types.includes(pipelineTypes.STORED) && pipeline.options && pipeline.options.concurrentPipelines) {
             const { amount, rejectOnFailure } = pipeline.options.concurrentPipelines;
             const { name, experimentName } = pipeline;
             const result = await stateManager.jobs.active.list();
