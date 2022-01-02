@@ -84,7 +84,7 @@ class ExecutionService {
             pipeline = await this._buildPipelineOfPipelines(pipeline);
             await validator.experiments.validateExperimentExists(pipeline);
             const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
-            const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline);
+            const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline, types);
             types = this._addTypesByAlgorithms(algorithms, types);
 
             if (pipeline.flowInput && !flowInputMetadata) {
@@ -93,14 +93,14 @@ class ExecutionService {
                 flowInputMetadata = { metadata, storageInfo };
             }
             const lastRunResult = await this._getLastPipeline(jobId);
-            const pipelineObject = { ...pipeline, jobId, rootJobId, flowInputMetadata, startTime: Date.now(), lastRunResult, types };
+            const pipelineObject = { ...pipeline, jobId, rootJobId, flowInputMetadata, startTime: Date.now(), lastRunResult, types, maxExceeded };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await storageManager.hkubeExecutions.put({ jobId, data: pipelineObject }, tracer.startSpan.bind(tracer, { name: 'storage-put-executions', parent: span.context() }));
             await stateManager.executions.stored.set(pipelineObject);
             await stateManager.executions.running.set(pipelineObject);
             await stateManager.jobs.active.set({ jobId, pipeline: pipeline.name, types, experiment: pipeline.experimentName, status: pipelineStatuses.PENDING });
             await stateManager.jobs.status.set({ jobId, pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name });
-            await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
+            await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return jobId;
         }

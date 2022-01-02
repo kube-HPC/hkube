@@ -22,13 +22,13 @@ class QueueRunner {
             persistence
         });
 
-        this.queue.on(queueEvents.UPDATE_SCORE, job => aggregationMetricFactory.updateScoreMetrics(job));
         this.queue.on(queueEvents.INSERT, job => this._jobAdded(job));
         this.queue.on(queueEvents.POP, job => this._jobRemoved(job));
         this.queue.on(queueEvents.REMOVE, job => this._jobRemoved(job));
     }
 
     _jobAdded(job) {
+        aggregationMetricFactory.updateScoreMetrics(job);
         aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(job, metricsTypes.HISTOGRAM_OPERATION.start);
         aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)(job, metricsTypes.GAUGE_OPERATION.increase);
         aggregationMetricFactory.getMetric(metricsName.QUEUE_COUNTER)(job, metricsTypes.COUNTER_OPERATION.increase);

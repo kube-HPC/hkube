@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.3.37",
+    "version": "1.3.49",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -205,9 +205,16 @@
                     "properties": {
                       "ttl": {
                         "type": "integer",
-                        "description": "pipeline time to live in seconds",
+                        "description": "pipeline time to live in seconds (including pending and active states)",
                         "minimum": 1,
                         "default": 3600,
+                        "example": 3600
+                      },
+                      "activeTtl": {
+                        "type": "integer",
+                        "description": "pipeline active time to live in seconds (only active state)",
+                        "nullable": true,
+                        "minimum": 1,
                         "example": 3600
                       },
                       "batchTolerance": {
@@ -300,6 +307,9 @@
                   "rootJobId": {
                     "type": "string",
                     "description": "the root job id of the current tree"
+                  },
+                  "maxExceeded": {
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": false,
@@ -431,9 +441,16 @@
                     "properties": {
                       "ttl": {
                         "type": "integer",
-                        "description": "pipeline time to live in seconds",
+                        "description": "pipeline time to live in seconds (including pending and active states)",
                         "minimum": 1,
                         "default": 3600,
+                        "example": 3600
+                      },
+                      "activeTtl": {
+                        "type": "integer",
+                        "description": "pipeline active time to live in seconds (only active state)",
+                        "nullable": true,
+                        "minimum": 1,
                         "example": 3600
                       },
                       "batchTolerance": {
@@ -1275,9 +1292,16 @@
                       "properties": {
                         "ttl": {
                           "type": "integer",
-                          "description": "pipeline time to live in seconds",
+                          "description": "pipeline time to live in seconds (including pending and active states)",
                           "minimum": 1,
                           "default": 3600,
+                          "example": 3600
+                        },
+                        "activeTtl": {
+                          "type": "integer",
+                          "description": "pipeline active time to live in seconds (only active state)",
+                          "nullable": true,
+                          "minimum": 1,
                           "example": 3600
                         },
                         "batchTolerance": {
@@ -1370,6 +1394,9 @@
                     "rootJobId": {
                       "type": "string",
                       "description": "the root job id of the current tree"
+                    },
+                    "maxExceeded": {
+                      "type": "boolean"
                     }
                   },
                   "additionalProperties": false,
@@ -1580,9 +1607,16 @@
                       "properties": {
                         "ttl": {
                           "type": "integer",
-                          "description": "pipeline time to live in seconds",
+                          "description": "pipeline time to live in seconds (including pending and active states)",
                           "minimum": 1,
                           "default": 3600,
+                          "example": 3600
+                        },
+                        "activeTtl": {
+                          "type": "integer",
+                          "description": "pipeline active time to live in seconds (only active state)",
+                          "nullable": true,
+                          "minimum": 1,
                           "example": 3600
                         },
                         "batchTolerance": {
@@ -1675,6 +1709,9 @@
                     "rootJobId": {
                       "type": "string",
                       "description": "the root job id of the current tree"
+                    },
+                    "maxExceeded": {
+                      "type": "boolean"
                     }
                   },
                   "additionalProperties": false,
@@ -5167,9 +5204,16 @@
                       "properties": {
                         "ttl": {
                           "type": "integer",
-                          "description": "pipeline time to live in seconds",
+                          "description": "pipeline time to live in seconds (including pending and active states)",
                           "minimum": 1,
                           "default": 3600,
+                          "example": 3600
+                        },
+                        "activeTtl": {
+                          "type": "integer",
+                          "description": "pipeline active time to live in seconds (only active state)",
+                          "nullable": true,
+                          "minimum": 1,
                           "example": 3600
                         },
                         "batchTolerance": {
@@ -5262,6 +5306,9 @@
                     "rootJobId": {
                       "type": "string",
                       "description": "the root job id of the current tree"
+                    },
+                    "maxExceeded": {
+                      "type": "boolean"
                     }
                   },
                   "additionalProperties": false,
@@ -5575,9 +5622,16 @@
                         "properties": {
                           "ttl": {
                             "type": "integer",
-                            "description": "pipeline time to live in seconds",
+                            "description": "pipeline time to live in seconds (including pending and active states)",
                             "minimum": 1,
                             "default": 3600,
+                            "example": 3600
+                          },
+                          "activeTtl": {
+                            "type": "integer",
+                            "description": "pipeline active time to live in seconds (only active state)",
+                            "nullable": true,
+                            "minimum": 1,
                             "example": 3600
                           },
                           "batchTolerance": {
@@ -5670,6 +5724,9 @@
                       "rootJobId": {
                         "type": "string",
                         "description": "the root job id of the current tree"
+                      },
+                      "maxExceeded": {
+                        "type": "boolean"
                       }
                     },
                     "additionalProperties": false,
@@ -5839,9 +5896,16 @@
                     "properties": {
                       "ttl": {
                         "type": "integer",
-                        "description": "pipeline time to live in seconds",
+                        "description": "pipeline time to live in seconds (including pending and active states)",
                         "minimum": 1,
                         "default": 3600,
+                        "example": 3600
+                      },
+                      "activeTtl": {
+                        "type": "integer",
+                        "description": "pipeline active time to live in seconds (only active state)",
+                        "nullable": true,
+                        "minimum": 1,
                         "example": 3600
                       },
                       "batchTolerance": {
@@ -5934,6 +5998,9 @@
                   "rootJobId": {
                     "type": "string",
                     "description": "the root job id of the current tree"
+                  },
+                  "maxExceeded": {
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": false,
@@ -6079,9 +6146,16 @@
                       "properties": {
                         "ttl": {
                           "type": "integer",
-                          "description": "pipeline time to live in seconds",
+                          "description": "pipeline time to live in seconds (including pending and active states)",
                           "minimum": 1,
                           "default": 3600,
+                          "example": 3600
+                        },
+                        "activeTtl": {
+                          "type": "integer",
+                          "description": "pipeline active time to live in seconds (only active state)",
+                          "nullable": true,
+                          "minimum": 1,
                           "example": 3600
                         },
                         "batchTolerance": {
@@ -6174,6 +6248,9 @@
                     "rootJobId": {
                       "type": "string",
                       "description": "the root job id of the current tree"
+                    },
+                    "maxExceeded": {
+                      "type": "boolean"
                     }
                   },
                   "additionalProperties": false,
@@ -6380,9 +6457,16 @@
                     "properties": {
                       "ttl": {
                         "type": "integer",
-                        "description": "pipeline time to live in seconds",
+                        "description": "pipeline time to live in seconds (including pending and active states)",
                         "minimum": 1,
                         "default": 3600,
+                        "example": 3600
+                      },
+                      "activeTtl": {
+                        "type": "integer",
+                        "description": "pipeline active time to live in seconds (only active state)",
+                        "nullable": true,
+                        "minimum": 1,
                         "example": 3600
                       },
                       "batchTolerance": {
@@ -6475,6 +6559,9 @@
                   "rootJobId": {
                     "type": "string",
                     "description": "the root job id of the current tree"
+                  },
+                  "maxExceeded": {
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": false,
@@ -6620,9 +6707,16 @@
                       "properties": {
                         "ttl": {
                           "type": "integer",
-                          "description": "pipeline time to live in seconds",
+                          "description": "pipeline time to live in seconds (including pending and active states)",
                           "minimum": 1,
                           "default": 3600,
+                          "example": 3600
+                        },
+                        "activeTtl": {
+                          "type": "integer",
+                          "description": "pipeline active time to live in seconds (only active state)",
+                          "nullable": true,
+                          "minimum": 1,
                           "example": 3600
                         },
                         "batchTolerance": {
@@ -6715,6 +6809,9 @@
                     "rootJobId": {
                       "type": "string",
                       "description": "the root job id of the current tree"
+                    },
+                    "maxExceeded": {
+                      "type": "boolean"
                     }
                   },
                   "additionalProperties": false,
@@ -11613,9 +11710,16 @@
         "properties": {
           "ttl": {
             "type": "integer",
-            "description": "pipeline time to live in seconds",
+            "description": "pipeline time to live in seconds (including pending and active states)",
             "minimum": 1,
             "default": 3600,
+            "example": 3600
+          },
+          "activeTtl": {
+            "type": "integer",
+            "description": "pipeline active time to live in seconds (only active state)",
+            "nullable": true,
+            "minimum": 1,
             "example": 3600
           },
           "batchTolerance": {
@@ -11784,9 +11888,16 @@
             "properties": {
               "ttl": {
                 "type": "integer",
-                "description": "pipeline time to live in seconds",
+                "description": "pipeline time to live in seconds (including pending and active states)",
                 "minimum": 1,
                 "default": 3600,
+                "example": 3600
+              },
+              "activeTtl": {
+                "type": "integer",
+                "description": "pipeline active time to live in seconds (only active state)",
+                "nullable": true,
+                "minimum": 1,
                 "example": 3600
               },
               "batchTolerance": {
@@ -11879,6 +11990,9 @@
           "rootJobId": {
             "type": "string",
             "description": "the root job id of the current tree"
+          },
+          "maxExceeded": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false,
@@ -12097,9 +12211,16 @@
             "properties": {
               "ttl": {
                 "type": "integer",
-                "description": "pipeline time to live in seconds",
+                "description": "pipeline time to live in seconds (including pending and active states)",
                 "minimum": 1,
                 "default": 3600,
+                "example": 3600
+              },
+              "activeTtl": {
+                "type": "integer",
+                "description": "pipeline active time to live in seconds (only active state)",
+                "nullable": true,
+                "minimum": 1,
                 "example": 3600
               },
               "batchTolerance": {

@@ -33,6 +33,8 @@ properties:
   rootJobId:
     type: string
     description: the root job id of the current tree
+  maxExceeded:
+    type: boolean
 additionalProperties: false
 required:
   - name

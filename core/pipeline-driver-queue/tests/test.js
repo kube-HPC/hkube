@@ -92,7 +92,7 @@ describe('Test', () => {
                     queue.on(queueEvents.POP, () => {
                         _semaphore.callDone();
                     });
-                    const job = queue.dequeue(stubJob);
+                    const job = queue.dequeue(stubJob.jobId);
                     await _semaphore.done({ doneAmount: 1 });
                     const q = queue.getQueue();
                     expect(job.jobId).to.be.eql(stubJob.jobId);
@@ -108,7 +108,7 @@ describe('Test', () => {
                         _semaphore.callDone();
                     });
                     const jobToPop = queue.getQueue()[3];
-                    const job = queue.dequeue(jobToPop);
+                    const job = queue.dequeue(jobToPop.jobId);
                     await _semaphore.done({ doneAmount: 1 });
                     const q = queue.getQueue();
                     expect(job.jobId).to.be.eql(jobToPop.jobId);
