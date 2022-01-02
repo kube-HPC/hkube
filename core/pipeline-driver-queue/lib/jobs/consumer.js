@@ -63,6 +63,7 @@ class JobConsumer {
         const error = job.failedReason;
         const status = pipelineStatuses.FAILED;
         if (error !== 'job stalled more than allowable limit') {
+            log.warning(`Pipeline job failed. but with different error. jobId: ${jobId}, error: ${error}`, { component, jobId });
             return;
         }
         log.error(`Pipeline job failed. jobId: ${jobId}, error: ${error}`, { component, jobId });
