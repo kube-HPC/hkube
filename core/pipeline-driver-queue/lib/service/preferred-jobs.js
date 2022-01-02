@@ -11,8 +11,7 @@ class PreferredJobs {
     }
 
     getPreferredAggregatedByPipeline() {
-        let returnList = this.getPreferredJobsList();
-        returnList = this.getPreferredJobsList().reduce((rv, job) => {
+        const returnList = this.getPreferredJobsList().reduce((rv, job) => {
             // eslint-disable-next-line no-param-reassign
             if (rv.length > 0) {
                 if (rv[rv.length - 1].pipeline === job.pipeline) {
@@ -32,8 +31,7 @@ class PreferredJobs {
     }
 
     getPreferredAggregatedByTags() {
-        let returnList = this.getPreferredJobsList();
-        returnList = this.getPreferredJobsList().reduce((rv, job) => {
+        const returnList = this.getPreferredJobsList().reduce((rv, job) => {
             // eslint-disable-next-line no-param-reassign
             if (rv.length > 0) {
                 if (rv[rv.length - 1].tags.toString() === job.tags.toString()) {
