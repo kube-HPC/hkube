@@ -320,7 +320,7 @@ describe('Test', () => {
             expect(result.body[2].jobs.length).eql(2);
 
             result = await request({
-                url: `${restUrl}/preferred/aggregation/tags`, method: 'GET'
+                url: `${restUrl}/preferred/aggregation/tag`, method: 'GET'
             });
             expect(result.body.length).eql(4);
             expect(result.body[2].tags.toString()).eql(['a', 'b'].toString());
