@@ -147,6 +147,9 @@ class TaskRunner extends EventEmitter {
             result = await this._startPipeline(job);
         }
         catch (e) {
+            // We should distinguish between applicative and IO errors
+            // In case of applicative errors we want to report failure
+            // In case of IO errors we want to trigger retry
             log.error(e.message, { component, jobId: this._jobId }, e);
             const shouldStop = e.status === undefined;
             await this.stop({ error: e, shouldStop });
@@ -277,7 +280,7 @@ class TaskRunner extends EventEmitter {
         let data;
         if (err) {
             error = err.message;
-            const nodes = this._nodes._getNodesAsFlat();
+            const nodes = this._nodes?._getNodesAsFlat();
             nodes.forEach((n) => {
                 if (activeTaskStates.includes(n.status)) {
                     n.status = pipelineStatuses.STOPPED;
@@ -285,7 +288,7 @@ class TaskRunner extends EventEmitter {
             });
         }
         else {
-            data = this._nodes.pipelineResults();
+            data = this._nodes?.pipelineResults();
         }
 
         const { storageError, storageResults } = await this._stateManager.setJobResultsToStorage({ jobId: this._jobId, data });
