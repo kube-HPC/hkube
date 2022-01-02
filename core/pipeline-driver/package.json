@@ -12,7 +12,7 @@
     "@hkube/consts": "^1.0.24",
     "@hkube/dag": "^2.0.9",
     "@hkube/etcd": "^5.0.38-active-a",
-    "@hkube/logger": "^2.0.1",
+    "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.39",
     "@hkube/parsers": "^2.0.9",
     "@hkube/producer-consumer": "1.0.46-consumer-events-1",
