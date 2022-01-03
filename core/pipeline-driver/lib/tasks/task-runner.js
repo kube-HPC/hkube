@@ -3,6 +3,7 @@ const { parser } = require('@hkube/parsers');
 const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
+const { GRPCGenericError, EtcdError } = require('etcd3');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
 const producer = require('../producer/jobs-producer');
 const StateManager = require('../state/state-manager');
@@ -151,6 +152,10 @@ class TaskRunner extends EventEmitter {
             // In case of applicative errors we want to report failure
             // In case of IO errors we want to trigger retry
             log.error(e.message, { component, jobId: this._jobId }, e);
+
+            if (e instanceof GRPCGenericError || e instanceof EtcdError) {
+                process.exit(1);
+            }
             const shouldStop = e.status === undefined;
             await this.stop({ error: e, shouldStop });
         }
@@ -281,7 +286,7 @@ class TaskRunner extends EventEmitter {
         if (err) {
             error = err.message;
             const nodes = this._nodes?._getNodesAsFlat();
-            nodes.forEach((n) => {
+            nodes?.forEach((n) => {
                 if (activeTaskStates.includes(n.status)) {
                     n.status = pipelineStatuses.STOPPED;
                 }
