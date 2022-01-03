@@ -68,33 +68,26 @@ class Managed {
         });
     }
 
+    addToAggregation(propertyValue, groupedRecords) {
+        if (!groupedRecords[propertyValue]) {
+            // eslint-disable-next-line no-param-reassign
+            groupedRecords[propertyValue] = { name: propertyValue, count: 0 };
+        }
+        // eslint-disable-next-line no-param-reassign
+        groupedRecords[propertyValue].count += 1;
+        return groupedRecords;
+    }
+
     groupBy(propertyName) {
-        const groupByValue = {};
+        let groupByValue = {};
         const flatList = this._filteredFlatJobList();
         flatList.forEach((job) => {
             if (propertyName === 'pipeline') {
-                let aggregation = groupByValue[job.pipeline];
-                if (!aggregation) {
-                    aggregation = {};
-                    aggregation.name = job.pipeline;
-                    aggregation.count = 1;
-                    groupByValue[job.pipeline] = aggregation;
-                }
-                else {
-                    aggregation.count += 1;
-                }
+                groupByValue = this.addToAggregation(job.pipeline, groupByValue);
             }
             if (propertyName === 'tag') {
                 job.tags.forEach((tag) => {
-                    let aggregation = groupByValue[tag];
-                    if (!aggregation) {
-                        aggregation = {};
-                        aggregation.name = tag;
-                        aggregation.count = 1;
-                    }
-                    else {
-                        aggregation.count += 1;
-                    }
+                    groupByValue = this.addToAggregation(tag, groupByValue);
                 });
             }
         });
