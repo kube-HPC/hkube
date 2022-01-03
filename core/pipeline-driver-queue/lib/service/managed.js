@@ -79,19 +79,19 @@ class Managed {
     }
 
     groupBy(propertyName) {
-        let groupByValue = {};
+        let aggregationByValue = {};
         const flatList = this._filteredFlatJobList();
         flatList.forEach((job) => {
             if (propertyName === 'pipeline') {
-                groupByValue = this.addToAggregation(job.pipeline, groupByValue);
+                aggregationByValue = this.addToAggregation(job.pipeline, aggregationByValue);
             }
             if (propertyName === 'tag') {
                 job.tags.forEach((tag) => {
-                    groupByValue = this.addToAggregation(tag, groupByValue);
+                    aggregationByValue = this.addToAggregation(tag, aggregationByValue);
                 });
             }
         });
-        return Object.values(groupByValue);
+        return Object.values(aggregationByValue);
     }
 }
 module.exports = new Managed();
