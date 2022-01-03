@@ -2,7 +2,7 @@ const { queueEvents, metricsName, metricsTypes } = require('./consts');
 const Queue = require('./queue');
 const HeuristicRunner = require('./heuristic-runner');
 const heuristic = require('./heuristic');
-const Persistence = require('../lib/persistency/persistence');
+const Persistence = require('./persistency/persistence');
 const aggregationMetricFactory = require('./metrics/aggregation-metrics-factory');
 
 class QueueRunner {
