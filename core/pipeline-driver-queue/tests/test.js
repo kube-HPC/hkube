@@ -210,6 +210,9 @@ describe('Test', () => {
             const pipeline = pipelines.find(p => p.name === pipelineName);
             await persistence.client.pipelines.set(pipeline);
             await persistence.client.jobs.active.set({ jobId: uuidv4(), pipeline: pipelineName, experiment: experimentName, status: 'active', types: ['stored'] });
+            for (let i=0;i<150;i++) {
+                await persistence.client.jobs.active.set({ jobId: uuidv4(), pipeline: pipelineName, experiment: experimentName, status: 'pending', types: ['stored'] });
+            }
             queueRunner.queue.updateHeuristic({ run: heuristicStub() });
 
             for (let i = 0; i < jobs; i++) {

@@ -286,7 +286,7 @@ class ExecutionService {
     }
 
     async getActivePipelines({ status, raw } = {}) {
-        const active = await stateManager.jobs.active.list();
+        const active = await stateManager.getActiveJobs();
         const filtered = status ? active.filter(p => p.status === status) : active;
 
         return raw === 'true' ? filtered.map(f => (f.jobId))

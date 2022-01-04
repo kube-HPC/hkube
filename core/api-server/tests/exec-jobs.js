@@ -15,7 +15,7 @@ describe('Executions', () => {
             restPath = `${restUrl}/exec/jobs`;
         });
         beforeEach(async () => {
-            const list = await stateManager.jobs.active.list();
+            const list = await stateManager.getActiveJobs();
             for (const job of list) {
                 await stateManager.jobs.active.delete({jobId: job.jobId});
             }
@@ -65,14 +65,14 @@ describe('Executions', () => {
                 method: 'GET',
                 uri: `${restPath}`,
             };
-            for (let i=0;i<2;i++) {
+            for (let i=0;i<111;i++) {
                 await stateManager.jobs.active.set({jobId: `job_${i}`, status: 'active', type: 'stored'});
             }
-            for (let i=2;i<6;i++) {
+            for (let i=111;i<300;i++) {
                 await stateManager.jobs.active.set({jobId: `job_${i}`, status: 'pending', type: 'stored'});
             }
             const response = await request(options);
-            expect(response.body).to.have.length(6)
+            expect(response.body).to.have.length(300)
         });
     });
 });

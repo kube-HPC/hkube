@@ -24,7 +24,7 @@ class Persistence extends EventEmitter {
     }
 
     getActiveJobs() {
-        return this.client.jobs.active.list();
+        return this.client.jobs.active.list({ limit: Number.MAX_SAFE_INTEGER });
     }
 
     store(data) {
