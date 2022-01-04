@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver-queue",
-  "version": "1.3.11",
+  "version": "1.3.12",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -22,7 +22,7 @@
     "@hkube/etcd": "^5.0.38-active-a",
     "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.34",
-    "@hkube/producer-consumer": "^1.0.46",
+    "@hkube/producer-consumer": "1.0.46-consumer-events-1",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.12",
     "lodash.groupby": "^4.6.0",
@@ -35,11 +35,10 @@
     "await-done": "^1.0.10",
     "chai": "^4.2.0",
     "coveralls": "^3.0.3",
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.17.2",
-    "istanbul": "^1.1.0-alpha.1",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-chai-friendly": "^0.5.0",
+    "eslint-plugin-import": "^2.20.2",
     "mocha": "^6.1.4",
     "mockery": "^2.1.0",
     "sinon": "^7.3.2"

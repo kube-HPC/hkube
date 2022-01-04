@@ -178,6 +178,30 @@ describe('Test', () => {
 
         });
     });
+    describe('Consumer', () => {
+        it('should fail when consumer fail',async () => {
+            const jobId = `jobid-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                failedReason: 'job stalled more than allowable limit',
+            }
+            await persistence.setJobStatus({ jobId });
+            await persistence.client.executions.stored.set({ jobId, name: 'test-pipeline' });
+            const spy = sinon.spy(persistence, "setJobStatus");
+            await consumer._handleFailedJob(job)
+            const call = spy.getCalls()[0];
+            expect(spy.calledOnce).to.equal(true);
+            expect(call.args[0]).to.eql({ jobId, status: 'failed', error: job.failedReason, pipeline: 'test-pipeline' });
+
+            const result = await persistence.client.jobs.results.get({ jobId });
+            expect(result.status).to.equal('failed');
+            expect(result.error).to.equal(job.failedReason);
+
+            const statusResult = await persistence.getJobStatus({ jobId });
+            expect(statusResult.status).to.equal('failed');
+            expect(statusResult.error).to.equal(job.failedReason);
+        });
+    });
     describe('concurrency', () => {
         it('should found and disable concurrent exceeded jobs', async () => {
             const jobs = 10;

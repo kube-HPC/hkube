@@ -21,7 +21,7 @@ config.consumer = {
     prefix: 'pipeline-driver-queue',
     jobType: 'pipeline-job',
     concurrency: 10000,
-    maxStalledCount: 3
+    maxStalledCount: 100
 };
 
 config.producer = {

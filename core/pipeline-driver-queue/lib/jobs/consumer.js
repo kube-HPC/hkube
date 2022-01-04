@@ -1,4 +1,4 @@
-const { Consumer } = require('@hkube/producer-consumer');
+const { Consumer, Events } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -23,6 +23,9 @@ class JobConsumer {
             },
         });
         this._consumer.register({ job: { type: jobType, concurrency } });
+        this._consumer.on(Events.FAILED, (job) => {
+            this._handleFailedJob(job);
+        });
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
@@ -49,6 +52,30 @@ class JobConsumer {
         }
         else {
             this._queueJob({ pipeline, jobId, job });
+        }
+    }
+
+    async _handleFailedJob(job) {
+        if (!job?.data?.jobId) {
+            return;
+        }
+        const { jobId } = job.data;
+        const error = job.failedReason;
+        const status = pipelineStatuses.FAILED;
+        if (error !== 'job stalled more than allowable limit') {
+            log.warning(`Pipeline job failed. but with different error. jobId: ${jobId}, error: ${error}`, { component, jobId });
+            return;
+        }
+        log.error(`Pipeline job failed. jobId: ${jobId}, error: ${error}`, { component, jobId });
+        try {
+            const pipeline = await persistence.getExecution({ jobId });
+            const startTime = pipeline?.startTime || Date.now();
+            const pipelineName = pipeline?.name;
+            await persistence.setJobResults({ jobId, error, status, startTime, pipeline: pipelineName });
+            await persistence.setJobStatus({ jobId, status, error, pipeline: pipelineName });
+        }
+        catch (e) {
+            log.error(e.message, { component, jobId }, e);
         }
     }
 
