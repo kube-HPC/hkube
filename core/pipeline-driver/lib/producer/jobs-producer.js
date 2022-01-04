@@ -1,6 +1,9 @@
 const EventEmitter = require('events');
-const { Producer } = require('@hkube/producer-consumer');
+const { Producer, Events } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
+const Logger = require('@hkube/logger');
+const component = require('../consts/componentNames').JOBS_PRODUCER;
+let log;
 
 class JobProducer extends EventEmitter {
     constructor() {
@@ -9,6 +12,7 @@ class JobProducer extends EventEmitter {
     }
 
     async init(option) {
+        log = Logger.GetLogFromContainer();
         const options = option || {};
         this._producer = new Producer({
             setting: {
@@ -16,6 +20,30 @@ class JobProducer extends EventEmitter {
                 redis: options.redis,
                 ...options.jobs.producer
             }
+        });
+        this._producer.on(Events.WAITING, (data) => {
+            const jobId = data?.options?.data?.jobId;
+            const tasks = data?.options?.data?.tasks || [];
+            const taskIds = tasks.map(t => t.taskId).join(',');
+            log.info(`${Events.WAITING} ${jobId} ${taskIds}`, { component, jobId, status: Events.WAITING });
+        });
+        this._producer.on(Events.ACTIVE, async (data) => {
+            const jobId = data?.options?.data?.jobId;
+            const tasks = data?.options?.data?.tasks || [];
+            const taskIds = tasks.map(t => t.taskId).join(',');
+            log.info(`${Events.ACTIVE} ${jobId} ${taskIds}`, { component, jobId, status: Events.ACTIVE });
+        });
+        this._producer.on(Events.COMPLETED, (data) => {
+            const jobId = data?.options?.data?.jobId;
+            const tasks = data?.options?.data?.tasks || [];
+            const taskIds = tasks.map(t => t.taskId).join(',');
+            log.info(`${Events.COMPLETED} ${jobId} ${taskIds}`, { component, jobId, status: Events.COMPLETED });
+        });
+        this._producer.on(Events.FAILED, (data) => {
+            const jobId = data?.options?.data?.jobId;
+            const tasks = data?.options?.data?.tasks || [];
+            const taskIds = tasks.map(t => t.taskId).join(',');
+            log.info(`${Events.FAILED} ${jobId} ${taskIds} error: ${data?.error}`, { component, jobId, status: Events.FAILED });
         });
     }
 
