@@ -150,14 +150,7 @@ class StateManager extends EventEmitter {
     }
 
     async setJobResults(options) {
-        let error;
-        try {
-            await this._etcd.jobs.results.set(options);
-        }
-        catch (e) {
-            error = e.message;
-        }
-        return error;
+        await this._etcd.jobs.results.set(options);
     }
 
     async updateDiscovery() {
