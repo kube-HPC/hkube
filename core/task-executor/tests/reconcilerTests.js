@@ -1129,11 +1129,80 @@ describe('reconciler', () => {
             expect(res).to.exist;
             expect(res).to.eql({ [settings.name]: { idle, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
         });
+        it('should use reserved cpu for drivers', async () => {
+            const idle = drivers.length;
+            const { maxAmount } = settings
+            const requiredPods = 30;
+            const created = 1;
+            const entry = Object.entries(driverTemplates)[0];
+            const newTemplate = {
+                ...entry[1],
+                cpu: 9
+            };
+            const res = await driversReconciler.reconcileDrivers({
+                options,
+                drivers,
+                normResources,
+                settings,
+                driverTemplates: {
+                    [entry[0]]: newTemplate
+                },
+                driversRequests: [{
+                    name: settings.name,
+                    data: Array.from(Array(requiredPods).keys()).map(a => ({
+                        name: 'pipeline-driver',
+                    }))
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [settings.name]: { idle, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
+        });
         it('should create min amount of drivers not enough memory', async () => {
             const idle = drivers.length;
             const { maxAmount } = settings
             const required = 30;
             const created = 0;
+            const entry = Object.entries(driverTemplates)[0];
+            const newTemplate = {
+                ...entry[1],
+                mem: 50000
+            };
+
+            const res = await driversReconciler.reconcileDrivers({
+                options,
+                drivers,
+                normResources,
+                settings,
+                driverTemplates: {
+                    [entry[0]]: newTemplate
+                },
+                driversRequests: [{
+                    name: settings.name,
+                    data: Array.from(Array(required).keys()).map(a => ({
+                        name: 'pipeline-driver',
+                    }))
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [settings.name]: { idle, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
+        });
+        it('should use reserved memory for drivers', async () => {
+            const idle = drivers.length;
+            const { maxAmount } = settings
+            const required = 30;
+            const created = 1;
             const entry = Object.entries(driverTemplates)[0];
             const newTemplate = {
                 ...entry[1],

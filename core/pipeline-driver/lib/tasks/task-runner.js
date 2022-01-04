@@ -3,6 +3,7 @@ const { parser } = require('@hkube/parsers');
 const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
+const { GRPCGenericError, EtcdError } = require('etcd3');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
 const producer = require('../producer/jobs-producer');
 const StateManager = require('../state/state-manager');
@@ -147,7 +148,8 @@ class TaskRunner extends EventEmitter {
             result = await this._startPipeline(job);
         }
         catch (e) {
-            log.error(e.message, { component, jobId: this._jobId }, e);
+            log.error(`unable to start pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
+            await this._handleEtcdFailure(e);
             const shouldStop = e.status === undefined;
             await this.stop({ error: e, shouldStop });
         }
@@ -166,6 +168,7 @@ class TaskRunner extends EventEmitter {
         }
         catch (e) {
             log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
+            await this._handleEtcdFailure(e);
         }
         finally {
             if (shouldDeleteTasks) {
@@ -174,6 +177,16 @@ class TaskRunner extends EventEmitter {
             await this._unWatchJob();
             await this._cleanJob(error);
             await this._updateDiscovery();
+        }
+    }
+
+    // We should distinguish between applicative and IO errors
+    // In case of applicative errors we want to report failure
+    // In case of IO errors we want to trigger retry
+    async _handleEtcdFailure(e) {
+        if (e instanceof GRPCGenericError || e instanceof EtcdError) {
+            await this._stopGraph();
+            process.exit(1);
         }
     }
 
@@ -277,15 +290,15 @@ class TaskRunner extends EventEmitter {
         let data;
         if (err) {
             error = err.message;
-            const nodes = this._nodes._getNodesAsFlat();
-            nodes.forEach((n) => {
+            const nodes = this._nodes?._getNodesAsFlat();
+            nodes?.forEach((n) => {
                 if (activeTaskStates.includes(n.status)) {
                     n.status = pipelineStatuses.STOPPED;
                 }
             });
         }
         else {
-            data = this._nodes.pipelineResults();
+            data = this._nodes?.pipelineResults();
         }
 
         const { storageError, storageResults } = await this._stateManager.setJobResultsToStorage({ jobId: this._jobId, data });
@@ -302,11 +315,7 @@ class TaskRunner extends EventEmitter {
         this._error = error;
         const timeTook = this._stateManager.calcTimeTook(this.pipeline);
         await this._progressStatus({ status, error, nodeName, ...timeTook });
-        const errorResult = await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data: storageResults, error, status, nodeName });
-        if (errorResult) {
-            log.error(`unable to write results. ${errorResult}`, { component, jobId: this._jobId });
-            process.exit(1);
-        }
+        await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data: storageResults, error, status, nodeName });
         pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
         log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
     }
@@ -451,12 +460,16 @@ class TaskRunner extends EventEmitter {
     }
 
     async _cleanJob(error) {
-        await graphStore.stop();
+        await this._stopGraph();
         this._stateManager.unCheckUnScheduledAlgorithms();
         this._nodes = null;
         this._job && this._job.done(error);
         this._job = null;
         this._progress = null;
+    }
+
+    async _stopGraph() {
+        await graphStore.stop();
     }
 
     async _cleanState() {

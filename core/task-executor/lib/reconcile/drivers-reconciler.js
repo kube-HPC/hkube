@@ -61,7 +61,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
     }
 
     const stopPromises = stopDetails.map(r => _stopDriver(r));
-    const { created, skipped } = matchJobsToResources(createDetails, normResources);
+    const { created, skipped } = matchJobsToResources(createDetails, normResources, [], false);
     const createPromises = created.map(r => _createDriverJob(r, options));
     await Promise.all([...createPromises, ...stopPromises]);
 
