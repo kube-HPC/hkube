@@ -17,6 +17,8 @@
   $ref: ./exec/pipelines_jobId.yaml
 /exec/pipeline/list:
   $ref: ./exec/pipelines_list.yaml
+/exec/jobs:
+  $ref: ./exec/jobs.yaml
 /exec/status/{jobId}:
   $ref: ./exec/status.yaml
 /exec/results/{jobId}:
