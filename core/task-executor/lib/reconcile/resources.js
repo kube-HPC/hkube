@@ -105,7 +105,7 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule) 
     return warning;
 };
 
-const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
+const shouldAddJob = (jobDetails, availableResources, totalAdded, useResourcePressure = true) => {
     if (totalAdded >= MAX_JOBS_PER_TICK) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
@@ -113,7 +113,7 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     const requestedGpu = jobDetails.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
     const requestedMemory = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
     const nodesBySelector = availableResources.nodeList.filter(n => nodeSelectorFilter(n.labels, jobDetails.nodeSelector));
-    const nodesForSchedule = nodesBySelector.map(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
+    const nodesForSchedule = nodesBySelector.map(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory, useResourcePressure));
 
     const availableNode = nodesForSchedule.find(n => n.available);
     if (!availableNode) {
@@ -253,7 +253,7 @@ const pauseAccordingToResources = (stopDetails, availableResources, workers, res
     return { toStop };
 };
 
-const matchJobsToResources = (createDetails, availableResources, scheduledRequests = []) => {
+const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], useResourcePressure = true) => {
     const created = [];
     const skipped = [];
     const localDetails = clone(createDetails);
@@ -262,7 +262,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
     // loop over all the job types one by one and assign until it can't fit in any node
     const cb = (j) => {
         if (j.numberOfNewJobs > 0) {
-            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded);
+            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, useResourcePressure);
             if (shouldAdd) {
                 const toCreate = { ...j.jobDetails, createdTime: Date.now(), node };
                 created.push(toCreate);
