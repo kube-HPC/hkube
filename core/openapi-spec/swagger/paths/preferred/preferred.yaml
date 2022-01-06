@@ -3,6 +3,23 @@ get:
     - Preferred
   summary: Get preferred
   description: Get preferred
+  parameters:
+    - name: fromJob
+      in: query
+      description: from this job and on
+      schema:
+        type: string
+    - name: toJob
+      in: query
+      description: up to this job
+      schema:
+        type: string 
+    - name: pageSize
+      in: query
+      required: true
+      description: number of records in page
+      schema:
+        type: string   
   responses:
     "200":
       description: Get preferred

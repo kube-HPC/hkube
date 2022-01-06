@@ -3,8 +3,15 @@ const managedQueue = require('../../../lib/service/managed');
 
 const routes = () => {
     const router = RestServer.router();
-    router.post('/', (req, res) => {
-        const { pageSize, fromJob, toJob, filter } = req.body;
+    router.get('/', (req, res) => {
+        const { pageSize: pageSizeStr, fromJob, toJob, tag, pipelineName } = req.query;
+        const pageSize = parseInt(pageSizeStr, 10);
+        let filter;
+        if (tag || pipelineName) {
+            filter = {};
+            filter.pipelineName = pipelineName;
+            filter.tag = tag;
+        }
         const response = managedQueue.getFlatJobsList(pageSize, fromJob, toJob, filter);
         res.json(response);
     });
@@ -13,7 +20,7 @@ const routes = () => {
         res.json(response);
     });
     router.get('/aggregation/pipeline/', (req, res) => {
-        const response = managedQueue.groupBy('pipeline');
+        const response = managedQueue.groupBy('pipelineName');
         res.json(response);
     });
     return router;

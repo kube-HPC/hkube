@@ -5,7 +5,15 @@ const routes = () => {
     const router = RestServer.router();
 
     router.get('/', (req, res) => {
-        const response = preferredService.getPreferredJobsList();
+        const { pageSize: pageSizeStr, fromJob, toJob, tag, pipelineName } = req.query;
+        const pageSize = parseInt(pageSizeStr, 10);
+        let filter;
+        if (tag || pipelineName) {
+            filter = {};
+            filter.pipelineName = pipelineName;
+            filter.tag = tag;
+        }
+        const response = preferredService.getFlatJobsList(pageSize, fromJob, toJob, filter);
         res.json(response);
     });
     router.get('/aggregation/pipeline/', (req, res) => {

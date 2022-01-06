@@ -120,6 +120,8 @@
   $ref: ./aggregation/managed.yaml
 /queue/managed/aggregation/tag:
   $ref: ./aggregation/managed.yaml
+/queue/managed/:
+  $ref: ./managed/list.yaml  
 
 # builds
 /builds/status/{buildId}:
