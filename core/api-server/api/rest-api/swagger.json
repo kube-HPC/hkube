@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.3.49",
+    "version": "1.3.50",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -1736,6 +1736,82 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exec/jobs": {
+      "get": {
+        "tags": [
+          "Execution"
+        ],
+        "summary": "Get jobs (active and pending)",
+        "description": "Returns a list of all jobs (active and pending)",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "status of the jobs to return",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "pending"
+              ]
+            }
+          },
+          {
+            "name": "raw",
+            "in": "query",
+            "description": "if true returns just the jobId",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "jobs list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "jobId": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                      },
+                      "status": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
@@ -11704,6 +11780,18 @@
         "required": [
           "jobId"
         ]
+      },
+      "jobListItem": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
       },
       "options": {
         "type": "object",

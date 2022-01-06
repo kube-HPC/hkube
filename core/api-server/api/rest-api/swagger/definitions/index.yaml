@@ -48,6 +48,8 @@ jobId:
   $ref: ./jobId.yaml
 jobIdObject:
   $ref: ./jobIdObject.yaml
+jobListItem:
+  $ref: ./jobListItem.yaml
 options:
   $ref: ./options.yaml
 pipeline:

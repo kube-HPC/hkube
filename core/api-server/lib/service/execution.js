@@ -285,6 +285,14 @@ class ExecutionService {
         return stateManager.executions.running.list();
     }
 
+    async getActivePipelines({ status, raw } = {}) {
+        const active = await stateManager.getActiveJobs();
+        const filtered = status ? active.filter(p => p.status === status) : active;
+
+        return raw === 'true' ? filtered.map(f => (f.jobId))
+            : filtered.map(f => ({ jobId: f.jobId, status: f.status }));
+    }
+
     async stopJob(options) {
         validator.executions.validateStopPipeline(options);
         const jobStatus = await stateManager.jobs.status.get({ jobId: options.jobId });

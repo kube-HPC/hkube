@@ -35,7 +35,7 @@ class ApiValidator {
         if (types.includes(pipelineTypes.STORED) && pipeline.options && pipeline.options.concurrentPipelines) {
             const { amount, rejectOnFailure } = pipeline.options.concurrentPipelines;
             const { name, experimentName } = pipeline;
-            const result = await stateManager.jobs.active.list();
+            const result = await stateManager.getActiveJobs();
             const pipelines = result.filter(r => r.pipeline === name && r.experiment === experimentName && r.types.includes(pipelineTypes.STORED));
             if (pipelines.length >= amount) {
                 if (rejectOnFailure) {
