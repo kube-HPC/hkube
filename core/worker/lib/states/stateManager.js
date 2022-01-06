@@ -53,6 +53,14 @@ class StateManager extends EventEmitter {
                 onPendingTransition: (transition, from, to) => { // eslint-disable-line
                 },
                 onInvalidTransition: (transition, from, to) => {
+                    if (from === workerStates.exit) {
+                        log.warning(`ignoring invalid transition from exit to ${to}`, { component });
+                        return;
+                    }
+                    if (transition === 'done' && from === workerStates.results) {
+                        log.warning('ignoring invalid transition done from results', { component });
+                        return;
+                    }
                     if (!this._debugMode && !this._devMode) {
                         log.warning(`transition (${transition}) not allowed from that state: ${from} -> ${to}`, { component });
                         this.exit({ shouldCompleteJob: false });

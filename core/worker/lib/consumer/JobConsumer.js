@@ -235,6 +235,9 @@ class JobConsumer extends EventEmitter {
     }
 
     updateStatus(data = {}) {
+        if (!this._job) {
+            return Promise.resolve();
+        }
         return stateAdapter.updateTask({ ...this._getState(), ...data });
     }
 
