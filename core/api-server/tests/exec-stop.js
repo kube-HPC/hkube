@@ -1,5 +1,6 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
+const stateManager = require('../lib/state/state-manager');
 const { request } = require('./utils');
 let restUrl;
 
@@ -52,6 +53,23 @@ describe('Executions', () => {
             const response = await request(optionsStop);
             expect(response.body).to.have.property('message');
             expect(response.body.message).to.equal('OK');
+        });
+        it('should succeed to stop job without result', async () => {
+            const optionsStored = {
+                uri: restUrl + '/exec/stored',
+                body: { name: 'flow1' }
+            };
+            const stored = await request(optionsStored);
+            await stateManager.jobs.status.set({ jobId: stored.body.jobId, status: 'stopped' });
+            const optionsStop = {
+                uri: restPath,
+                body: { jobId: stored.body.jobId }
+            };
+            const response = await request(optionsStop);
+            expect(response.body).to.have.property('message');
+            expect(response.body.message).to.equal('OK');
+            const jobResult = await stateManager.jobs.results.get({ jobId: stored.body.jobId });
+            expect(jobResult).to.exist;
         });
     });
 });

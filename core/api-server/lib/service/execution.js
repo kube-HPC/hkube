@@ -295,15 +295,15 @@ class ExecutionService {
 
     async stopJob(options) {
         validator.executions.validateStopPipeline(options);
-        const jobStatus = await stateManager.jobs.status.get({ jobId: options.jobId });
-        if (!jobStatus) {
+        const { jobId } = options;
+        const jobResult = await stateManager.jobs.results.get({ jobId });
+        if (jobResult) {
+            throw new InvalidDataError(`unable to stop pipeline ${jobResult.pipeline} because its in ${jobResult.status} status`);
+        }
+        const pipeline = await stateManager.executions.stored.get({ jobId });
+        if (!pipeline) {
             throw new ResourceNotFoundError('jobId', options.jobId);
         }
-        if (!this.isActiveState(jobStatus.status)) {
-            throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
-        }
-        const { jobId } = options;
-        const pipeline = await stateManager.executions.stored.get({ jobId });
         await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.STOPPED, reason: options.reason, level: levels.INFO.name });
         await stateManager.jobs.results.set({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: pipelineStatuses.STOPPED });
     }
