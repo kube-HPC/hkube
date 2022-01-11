@@ -9,6 +9,7 @@ describe('Etcd', () => {
         cleaner = cleanerManager.getCleaner('etcd');
     });
     it('clean objects', async () => {
+        etcdMock.reset()
         const etcdSpy = sinon.spy(etcdMock, "deleteKey");
         await cleaner.clean();
         expect(etcdSpy.callCount).to.equal(3);

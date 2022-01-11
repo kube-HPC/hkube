@@ -79,6 +79,7 @@ class JobConsumer {
 
     _stopJob(jobId, status) {
         log.info(`job ${status} ${jobId}`, { component });
+        queueRunner.preferredQueue.remove(jobId);
         queueRunner.queue.remove(jobId);
     }
 

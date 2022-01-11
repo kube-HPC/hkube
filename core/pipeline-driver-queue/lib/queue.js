@@ -7,12 +7,13 @@ const { queueEvents, componentName } = require('./consts');
 const component = componentName.QUEUE;
 
 class Queue extends Events {
-    constructor({ scoreHeuristic, persistency } = {}) {
+    constructor({ scoreHeuristic, persistency, name } = {}) {
         super();
         this.scoreHeuristic = scoreHeuristic;
         this.queue = [];
         this._active = true;
         this._persistency = persistency;
+        this._name = name;
     }
 
     flush() {
@@ -26,7 +27,7 @@ class Queue extends Events {
         await this.persistencyStore({ data: this.queue, pendingAmount });
     }
 
-    async persistencyLoad() {
+    async persistencyLoad(staticOrder = false) {
         if (!this._persistency) {
             return;
         }
@@ -39,15 +40,19 @@ class Queue extends Events {
         }
     }
 
-    async persistenceStore(data) {
+    async persistenceStore() {
+        const data = this.getQueue();
         if (!this._persistency || !data) {
             return;
         }
+        let previous = 'FirstInLine';
         const mapData = data.map(q => {
             const { calculated, ...rest } = q;
-            return rest;
+            const result = { ...rest, next: previous };
+            previous = result.jobId;
+            return result;
         });
-        await this._persistency.store(mapData);
+        await this._persistency.store(mapData, this._name);
     }
 
     updateHeuristic(scoreHeuristic) {
@@ -79,9 +84,12 @@ class Queue extends Events {
     }
 
     dequeue(job) {
-        remove(this.queue, j => j.jobId === job.jobId);
-        this.emit(queueEvents.POP, job);
-        log.info(`job pop from queue, queue size: ${this.size}`, { component });
+        const removedJob = remove(this.queue, j => j.jobId === job.jobId);
+        if (removedJob.length > 0) {
+            this.emit(queueEvents.POP, job);
+            log.info(`job pop from queue, queue size: ${this.size}`, { component });
+        }
+        return removedJob;
     }
 
     remove(jobId) {

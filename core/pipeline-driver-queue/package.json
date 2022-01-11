@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver-queue",
-  "version": "2.2.4",
+  "version": "2.2.6",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -19,17 +19,23 @@
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "^1.0.44",
+    "@hkube/dag": "^2.2.1",
     "@hkube/db": "^2.0.1",
-    "@hkube/etcd": "^5.1.2",
+    "@hkube/etcd": "^5.1.6",
     "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
-    "@hkube/producer-consumer": "^1.0.48",
+    "@hkube/parsers": "^2.1.9",
+    "@hkube/producer-consumer": "^1.0.50",
     "@hkube/redis-utils": "^1.0.3",
+    "@hkube/stats": "^1.0.1",
+    "@hkube/storage-manager": "^2.0.34",
+    "async.queue": "^0.5.2",
+    "clone": "^2.1.2",
+    "flat": "^5.0.0",
     "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
-    "lodash.orderby": "^4.6.0",
-    "lodash.remove": "^4.7.0",
-    "performance-now": "^2.1.0"
+    "lodash.throttle": "^4.1.1",
+    "object-path": "^0.11.4"
   },
   "devDependencies": {
     "@hkube/uid": "^1.0.4",

@@ -11,13 +11,12 @@ const LOG_TOPICS = {
 
 class Persistency {
     init(options) {
-        this._queueName = options.persistence.type;
         this._maxScoringSize = options.scoring.maxSize;
     }
 
     async store(data) {
         await scoring.store({
-            key: this._queueName,
+            key: queueName,
             data,
             maxSize: this._maxScoringSize,
             onStart: (...args) => this._onStartScoring(...args),
