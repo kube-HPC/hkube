@@ -1,0 +1,8 @@
+type: object
+properties:
+  jobs:
+    type: array
+    items:
+      $ref: "#/components/schemas/jobId"
+required:
+  - jobs

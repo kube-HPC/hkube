@@ -46,6 +46,14 @@ listBoardResponse:
 metrics:
   $ref: ./boards/metrics.yaml
 
+#preferred
+addToPreferredRequest:
+  $ref: ./preferred/addToPreferredRequest.yaml
+removeFromPreferredRequest:
+  $ref: ./preferred/removeFromPreferredRequest.yaml
+preferredQuery:
+  $ref: ./preferred/preferredQuery.yaml
+
 # builds
 buildId:
   $ref: ./builds/buildId.yaml
