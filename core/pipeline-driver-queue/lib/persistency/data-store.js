@@ -28,7 +28,7 @@ class DataStore extends EventEmitter {
         return this._db.jobs.search({ pipelineStatus: status, fields: { jobId: true, pipeline: true } });
     }
 
-    getRunningJobs({ pipelines, status }) {
+    getRunningJobs({ status }) {
         return this._db.jobs.search({
             pipelineStatus: status,
             hasResult: false,

@@ -1,7 +1,7 @@
 const groupBy = require('lodash.groupby');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses } = require('@hkube/consts');
+const { pipelineStatuses, pipelineTypes } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;

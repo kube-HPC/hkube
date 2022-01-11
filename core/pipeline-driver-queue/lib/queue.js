@@ -27,7 +27,7 @@ class Queue extends Events {
         await this.persistencyStore({ data: this.queue, pendingAmount });
     }
 
-    async persistencyLoad(staticOrder = false) {
+    async persistencyLoad() {
         if (!this._persistency) {
             return;
         }
@@ -40,7 +40,55 @@ class Queue extends Events {
         }
     }
 
+    // TODO
+    async persistencyLoadXXX(staticOrder = false) {
+        if (!this._persistency) {
+            return;
+        }
+        const data = await this._persistency.get(this._name);
+        const orderedData = [];
+        let previous = 'FirstInLine';
+        data?.forEach(() => {
+            const item = data.find(job => job.next === previous);
+            previous = item.jobId;
+            orderedData.push(item);
+        });
+
+        if (orderedData.length > 0) {
+            orderedData.forEach(q => {
+                const item = {
+                    ...q,
+                    calculated: {
+                        latestScores: {}
+                    }
+                };
+                if (staticOrder) {
+                    this.queue.push(item);
+                }
+                else {
+                    this.enqueue(item);
+                }
+            });
+        }
+    }
+
     async persistenceStore() {
+        const data = this.getQueue();
+        if (!this._persistency || !data) {
+            return;
+        }
+        let previous = 'FirstInLine';
+        const mapData = data.map(q => {
+            const { calculated, ...rest } = q;
+            const result = { ...rest, next: previous };
+            previous = result.jobId;
+            return result;
+        });
+        await this._persistency.store(mapData, this._name);
+    }
+
+    // TODO
+    async persistenceStoreXXX() {
         const data = this.getQueue();
         if (!this._persistency || !data) {
             return;

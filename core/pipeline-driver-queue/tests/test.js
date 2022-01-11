@@ -28,7 +28,6 @@ let _semaphore = null;
 
 describe('Test', () => {
     before(async () => {
-        await bootstrap.init();
         consumer = require('../lib/jobs/consumer');
     });
     beforeEach(() => {

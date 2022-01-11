@@ -8,7 +8,7 @@
         "@hkube/consts": "^1.0.45",
         "@hkube/dag": "^2.2.1",
         "@hkube/db": "^2.0.1",
-        "@hkube/etcd": "^5.1.6",
+        "@hkube/etcd": "^5.1.7",
         "@hkube/logger": "^2.0.2",
         "@hkube/metrics": "^1.0.42",
         "@hkube/parsers": "^2.1.9",

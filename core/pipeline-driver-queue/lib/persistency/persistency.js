@@ -14,7 +14,7 @@ class Persistency {
         this._maxScoringSize = options.scoring.maxSize;
     }
 
-    async store(data) {
+    async store(data, queueName) {
         await scoring.store({
             key: queueName,
             data,
