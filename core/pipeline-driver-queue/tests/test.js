@@ -113,7 +113,7 @@ describe('Test', () => {
         });
     });
     describe('concurrent', () => {
-        it.only('check concurrency limit', async () => {
+        it.skip('check concurrency limit', async () => {
             const totalJobs = 10;
             const half = totalJobs / 2;
 

@@ -48,50 +48,51 @@ class JobProducer extends EventEmitter {
             else {
                 tasks.push({ taskId: options.node.taskId, status: options.node.status, input: options.node.input, storage: options.storage });
             }
-            const { algorithmName, nodeName } = options.node;
+            const jobData = {
+                nodeName: options.node.nodeName,
+                algorithmName: options.node.algorithmName,
+                metrics: options.node.metrics,
+                ttl: options.node.ttl,
+                retry: options.node.retry,
+                pipelineName: pipeline.name,
+                stateType: options.node.stateType,
+                priority: pipeline.priority,
+                kind: pipeline.kind,
+                parents: options.parents,
+                childs: options.childs,
+                parsedFlow: pipeline.streaming?.parsedFlow,
+                defaultFlow: pipeline.streaming?.defaultFlow,
+                spec: options.node.spec,
+                info: {
+                    extraData: options.node.extraData,
+                    savePaths: options.paths,
+                    lastRunResult: pipeline.lastRunResult,
+                    rootJobId: pipeline.rootJobId
+                }
+            };
             const jobOptions = {
                 type: options.node.algorithmName,
                 data: {
                     jobId,
                     tasks,
-                    nodeName,
-                    algorithmName,
-                    metrics: options.node.metrics,
-                    ttl: options.node.ttl,
-                    retry: options.node.retry,
-                    pipelineName: pipeline.name,
-                    stateType: options.node.stateType,
-                    priority: pipeline.priority,
-                    kind: pipeline.kind,
-                    parents: options.parents,
-                    childs: options.childs,
-                    parsedFlow: pipeline.streaming?.parsedFlow,
-                    defaultFlow: pipeline.streaming?.defaultFlow,
-                    spec: options.node.spec,
-                    info: {
-                        extraData: options.node.extraData,
-                        savePaths: options.paths,
-                        lastRunResult: pipeline.lastRunResult,
-                        rootJobId: pipeline.rootJobId
-                    }
+                    ...jobData
                 }
             };
             if (this._queueLogging.tasks) {
                 tasks.forEach(t => log.info(`task ${t.taskId} created`, { component, jobId, taskId: t.taskId, algorithmName: options.node.algorithmName }));
             }
             await this._createJob(jobOptions);
-            await this._createTasks({ jobId, tasks, algorithmName, nodeName });
+            await this._createTasks({ jobId, tasks, jobData });
         }
     }
 
-    async _createTasks({ jobId, tasks, algorithmName, nodeName }) {
+    async _createTasks({ jobId, tasks, jobData }) {
         const tasksList = tasks.map(t => {
             return {
                 jobId,
                 taskId: t.taskId,
                 status: t.status,
-                algorithmName,
-                nodeName,
+                ...jobData
             };
         });
         await stateManager.createTasks(tasksList);

@@ -7,6 +7,7 @@ const component = require('./consts/component-name').QUEUE;
 const queueEvents = require('./consts/queue-events');
 const JobProducer = require('./jobs/producer');
 const JobConsumer = require('./jobs/consumer');
+const taskAdapter = require('./tasks-adapter');
 
 class Queue extends events {
     constructor({ algorithmName, updateInterval, algorithmMinIdleTimeMS, scoreHeuristic, enrichmentRunner, persistence }) {
@@ -85,8 +86,9 @@ class Queue extends events {
     }
 
     async persistencyLoad() {
-        const queueItems = await this.persistence.getTasks();
-        this.addJobs(queueItems);
+        const tasks = await this.persistence.getTasks();
+        const queue = tasks.map(task => taskAdapter.adaptData({}, task, tasks.length));
+        this.addJobs(queue);
     }
 
     async persistencyStore({ data, pendingAmount }) {

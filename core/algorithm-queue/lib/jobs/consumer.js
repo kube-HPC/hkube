@@ -4,8 +4,8 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
 const { tracer } = require('@hkube/metrics');
 const db = require('../persistency/db');
-const { heuristicsName } = require('../consts/index');
 const { isCompletedState } = require('../utils/pipelineStatuses');
+const taskAdapter = require('../tasks-adapter');
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
 class JobConsumer extends EventEmitter {
@@ -97,7 +97,9 @@ class JobConsumer extends EventEmitter {
         }
     }
 
+    // TODO: Handle case of IO error
     async _handleJob(job) {
+        let error;
         try {
             const { jobId, nodeName, tasks } = job.data;
             const data = await db.getJob({ jobId });
@@ -116,43 +118,17 @@ class JobConsumer extends EventEmitter {
                 this.queueTasksBuilder(job);
             }
         }
-        catch (error) {
-            job.done(error);
+        catch (e) {
+            error = e.message;
         }
         finally {
-            job.done();
+            job.done(error);
         }
-    }
-
-    _adaptData(jobData, taskData, initialBatchLength) {
-        const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
-            acc[cur] = 0.00001;
-            return acc;
-        }, {});
-        const batchIndex = taskData.batchIndex || 0;
-        const entranceTime = Date.now();
-
-        return {
-            ...jobData,
-            ...taskData,
-            entranceTime,
-            attempts: 0,
-            initialBatchLength,
-            batchIndex,
-            calculated: {
-                latestScores,
-                //  score: '1-100',
-                entranceTime,
-                enrichment: {
-                    batchIndex: {}
-                }
-            },
-        };
     }
 
     queueTasksBuilder(job) {
         const { tasks, ...jobData } = job.data;
-        const taskList = tasks.map(task => this._adaptData(jobData, task, tasks.length));
+        const taskList = tasks.map(task => taskAdapter.adaptData(jobData, task, tasks.length));
         this.emit('jobs-add', taskList);
     }
 }

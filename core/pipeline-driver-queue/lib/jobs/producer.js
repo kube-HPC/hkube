@@ -16,6 +16,7 @@ class JobProducer {
         this._firstJobDequeue = false;
         this._checkQueue = this._checkQueue.bind(this);
         this._updateState = this._updateState.bind(this);
+        this._checkConcurrencyJobsInterval = this._checkConcurrencyJobsInterval.bind(this);
     }
 
     async init(options) {
@@ -35,7 +36,7 @@ class JobProducer {
 
         this._producerEventRegistry();
         this._checkQueue();
-        this._checkMissedConcurrencyJobs();
+        this._checkConcurrencyJobsInterval();
         this._updateState();
 
         queueRunner.queue.on(queueEvents.INSERT, () => {
@@ -45,34 +46,54 @@ class JobProducer {
         });
     }
 
-    // TODO
-    // 1. check if there are any jobs in queue with concurrency limit
-    // 2. get from db only the jobs that are in active state
-    // 3. get only stored
-    // 4. mark these jobs maxExceeded property as false
-    async _checkMissedConcurrencyJobs() {
-        let counter = 0;
-        const queue = queueRunner.queue.getQueue(q => q.maxExceeded);
-        if (queue.length > 0) {
-            const grouped = groupBy(queue, 'pipelineName', 'experimentName');
-            const pipelinesNames = Object.keys(grouped);
-            const pipelines = await dataStore.getStoredPipelines({ pipelinesNames });
-            const jobs = await dataStore.getRunningJobs({ pipelinesNames, status: pipelineStatuses.ACTIVE });
-            jobs.forEach(j => {
-                const totalRunning = 5;
-                const pipeline = pipelines.find();
-                const required = pipeline.options?.concurrentPipelines?.amount - totalRunning;
-                if (required > 0) {
-
-                }
-                const job = queue.find(q => q.experimentName === j.experiment && q.pipelineName === j.pipeline);
-                if (job) {
-                    job.maxExceeded = false;
-                    counter += 1;
-                }
-            });
+    async _checkConcurrencyJobsInterval() {
+        try {
+            await this._checkConcurrencyJobs();
         }
-        return counter;
+        catch (e) {
+            log.throttle.error(e.message, { component }, e);
+        }
+        finally {
+            setTimeout(this._checkConcurrencyJobsInterval, this._checkConcurrencyQueueInterval);
+        }
+    }
+
+    /**
+     * TODO
+     * 1. check if there are any jobs in queue with concurrency limit
+     * 2. get from db only jobs that are from type stored and active
+     * 3. get stored pipelines list
+     * 4. check the concurrent amount against the active amount
+     * 5. mark the delta jobs maxExceeded property as false
+     *
+     */
+    async _checkConcurrencyJobs() {
+        let canceledJobs = 0;
+        const queue = queueRunner.queue.getQueue(q => q.maxExceeded);
+        if (queue.length === 0) {
+            return canceledJobs;
+        }
+        const activeJobs = await persistence.getActiveJobs();
+        const activePipelines = activeJobs.filter(r => r.status === pipelineStatuses.ACTIVE && r.types.includes(pipelineTypes.STORED));
+        const groupQueue = groupBy(queue, 'pipelineName', 'experimentName');
+        const groupJobs = groupBy(activePipelines, 'pipeline', 'experiment');
+        const pipelinesNames = Object.keys(groupQueue);
+        const storedPipelines = await persistence.getStoredPipelines({ pipelinesNames });
+        const pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.rejectOnFailure === false);
+        pipelines.forEach((p) => {
+            const jobsByPipeline = groupJobs[p.name];
+            const queueByPipeline = groupQueue[p.name];
+            const totalRunning = (jobsByPipeline && jobsByPipeline.length) || 0;
+            const required = p.options.concurrentPipelines.amount - totalRunning;
+            if (required > 0) {
+                const maxExceeded = queueByPipeline.slice(0, required);
+                maxExceeded.forEach((job) => {
+                    canceledJobs += 1;
+                    this._checkMaxExceeded({ experiment: job.experimentName, pipeline: job.pipelineName });
+                });
+            }
+        });
+        return canceledJobs;
     }
 
     shutdown() {

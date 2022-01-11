@@ -19,7 +19,7 @@
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "^1.0.44",
-    "@hkube/db": "^1.0.46",
+    "@hkube/db": "^2.0.1",
     "@hkube/etcd": "^5.1.7",
     "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
