@@ -33,9 +33,12 @@ describe('Test', () => {
         consumer = require('../lib/jobs/consumer');
     });
     let _semaphore = null;
-    beforeEach(() => {
+    beforeEach(async () => {
         queue = new Queue();
         _semaphore = new semaphore();
+        queueRunner.queue.queue = [];
+        await persistence.client.jobs.active._client.delete('/jobs/active', { isPrefix: true });
+        producerLib._isConsumerActive=true;
     });
     describe('algorithm queue', () => {
         describe('queue-tests', () => {
@@ -179,7 +182,7 @@ describe('Test', () => {
         });
     });
     describe('Consumer', () => {
-        it('should fail when consumer fail',async () => {
+        it('should fail when consumer fail', async () => {
             const jobId = `jobid-${uuidv4()}`;
             const job = {
                 data: { jobId },
@@ -210,7 +213,7 @@ describe('Test', () => {
             const pipeline = pipelines.find(p => p.name === pipelineName);
             await persistence.client.pipelines.set(pipeline);
             await persistence.client.jobs.active.set({ jobId: uuidv4(), pipeline: pipelineName, experiment: experimentName, status: 'active', types: ['stored'] });
-            for (let i=0;i<150;i++) {
+            for (let i = 0; i < 150; i++) {
                 await persistence.client.jobs.active.set({ jobId: uuidv4(), pipeline: pipelineName, experiment: experimentName, status: 'pending', types: ['stored'] });
             }
             queueRunner.queue.updateHeuristic({ run: heuristicStub() });
@@ -230,11 +233,81 @@ describe('Test', () => {
                 };
                 queueRunner.queue.enqueue(job);
             }
-            const result = await producerLib._checkConcurrencyJobs();
-            expect(result).to.eql(pipeline.options.concurrentPipelines.amount - 1);
+            let result = await producerLib._checkConcurrencyJobs();
+            expect(producerLib._groupActiveJobs[pipelineName]).to.eql(1)
+            const expectedNewJobs = pipeline.options.concurrentPipelines.amount - 1;
+            expect(result).to.eql(expectedNewJobs);
+            queueRunner.queue.queue.slice(0, expectedNewJobs).forEach(job => {
+                expect(job.maxExceeded).to.be.false;
+                expect(job.updateRunning).to.eql(1);
+            });
+            queueRunner.queue.queue.slice(expectedNewJobs).forEach(job => {
+                expect(job.maxExceeded).to.be.true;
+                expect(job.updateRunning).to.not.exist;
+            });
+            await producerLib._dequeueJob();
+            expect(producerLib._groupActiveJobs[pipelineName]).to.eql(2)
+            await producerLib._dequeueJob();
+            expect(producerLib._groupActiveJobs[pipelineName]).to.eql(3)
+            await producerLib._dequeueJob();
+            await producerLib._dequeueJob();
+            await producerLib._dequeueJob();
+            expect(producerLib._groupActiveJobs[pipelineName]).to.eql(5)
+            // checking jobs will get updated values from etcd
+            result = await producerLib._checkConcurrencyJobs();
+            expect(producerLib._groupActiveJobs[pipelineName]).to.eql(1)
+        });
+
+        it('should not dequeue job if active is higher than concurrency', async () => {
+            const jobs = 10;
+            const pipelineName = 'pipeline-concurrent';
+            const experimentName = 'experiment-concurrent'
+            const pipeline = pipelines.find(p => p.name === pipelineName);
+            await persistence.client.pipelines.set(pipeline);
+            for (let i = 0; i < 5; i++) {
+                await persistence.client.jobs.active.set({ jobId: uuidv4(), pipeline: pipelineName, experiment: experimentName, status: 'active', types: ['stored'] });
+            }
+            for (let i = 0; i < 150; i++) {
+                await persistence.client.jobs.active.set({ jobId: uuidv4(), pipeline: pipelineName, experiment: experimentName, status: 'pending', types: ['stored'] });
+            }
+            queueRunner.queue.updateHeuristic({ run: heuristicStub() });
+
+            for (let i = 0; i < jobs; i++) {
+                const job = {
+                    jobId: uuidv4(),
+                    maxExceeded: i > 0,
+                    done: () => { },
+                    pipelineName,
+                    experimentName,
+                    priority: 3,
+                    entranceTime: Date.now(),
+                    calculated: {
+                        latestScores: {}
+                    }
+                };
+                queueRunner.queue.enqueue(job);
+            }
+            let result = await producerLib._checkConcurrencyJobs();
+            expect(producerLib._groupActiveJobs[pipelineName]).to.eql(5)
+            expect(result).to.eql(0);
+            expect(queueRunner.queue.size).to.eql(jobs-1);
+            await producerLib._checkMaxExceeded({ experiment: experimentName, pipeline: pipelineName });
+            expect(producerLib._groupActiveJobs[pipelineName]).to.eql(4)
+            await persistence.client.jobs.active._client.delete('/jobs/active', { isPrefix: true });
+            for (let i = 0; i < 3; i++) {
+                await persistence.client.jobs.active.set({ jobId: uuidv4(), pipeline: pipelineName, experiment: experimentName, status: 'active', types: ['stored'] });
+            }
+            result = await producerLib._checkConcurrencyJobs();
+            expect(result).to.eql(2);
+            await producerLib._dequeueJob();
+            await producerLib._dequeueJob();
+            await producerLib._dequeueJob();
+            expect(producerLib._groupActiveJobs[pipelineName]).to.eql(5)
+
         });
     });
-    afterEach(() => {
+    afterEach(async () => {
         queueRunner.queue.queue = [];
+        await persistence.client.jobs.active._client.delete('/jobs/active', { isPrefix: true });
     });
 });

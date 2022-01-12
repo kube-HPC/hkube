@@ -1,4 +1,5 @@
 const groupBy = require('lodash.groupby');
+const countBy = require('lodash.countby');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses, pipelineTypes } = require('@hkube/consts');
@@ -15,6 +16,8 @@ class JobProducer {
         this._checkQueue = this._checkQueue.bind(this);
         this._checkConcurrencyJobsInterval = this._checkConcurrencyJobsInterval.bind(this);
         this._updateState = this._updateState.bind(this);
+        this._groupActiveJobs = {};
+        this._pipelines = {};
     }
 
     async init(options) {
@@ -99,21 +102,21 @@ class JobProducer {
         }
         const activeJobs = await persistence.getActiveJobs();
         const activePipelines = activeJobs.filter(r => r.status === pipelineStatuses.ACTIVE && r.types.includes(pipelineTypes.STORED));
-        const groupQueue = groupBy(queue, 'pipelineName', 'experimentName');
-        const groupJobs = groupBy(activePipelines, 'pipeline', 'experiment');
+        const groupQueue = groupBy(queue, 'pipelineName');
+        this._groupActiveJobs = countBy(activePipelines, 'pipeline');
         const pipelinesNames = Object.keys(groupQueue);
         const storedPipelines = await persistence.getStoredPipelines({ pipelinesNames });
-        const pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.rejectOnFailure === false);
-        pipelines.forEach((p) => {
-            const jobsByPipeline = groupJobs[p.name];
+        this._pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.rejectOnFailure === false);
+        this._pipelines.forEach((p) => {
+            const jobsByPipeline = this._groupActiveJobs[p.name] || 0;
             const queueByPipeline = groupQueue[p.name];
-            const totalRunning = (jobsByPipeline && jobsByPipeline.length) || 0;
+            const totalRunning = jobsByPipeline;
             const required = p.options.concurrentPipelines.amount - totalRunning;
             if (required > 0) {
                 const maxExceeded = queueByPipeline.slice(0, required);
                 maxExceeded.forEach((job) => {
                     canceledJobs += 1;
-                    this._checkMaxExceeded({ experiment: job.experimentName, pipeline: job.pipelineName });
+                    this._checkMaxExceeded({ experiment: job.experimentName, pipeline: job.pipelineName }, true);
                 });
             }
         });
@@ -177,13 +180,34 @@ class JobProducer {
         }
     }
 
-    _checkMaxExceeded({ experiment, pipeline }) {
+    _checkMaxExceeded({ experiment, pipeline }, increment) {
         const job = queueRunner.queue
             .getQueue(q => q.maxExceeded)
             .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
         if (job) {
-            this._cancelExceededJob({ job, experiment, pipeline });
+            if (this._checkRunningJobs(job)) {
+                if (increment) {
+                    job.updateRunning = 1;
+                }
+                this._cancelExceededJob({ job, experiment, pipeline });
+            }
+            else {
+                this._updateActiveJobs(job);
+            }
         }
+    }
+
+    _checkRunningJobs(job) {
+        const active = this._groupActiveJobs[job.pipelineName];
+        if (!active) {
+            return true;
+        }
+        const max = this._pipelines.find(p => p.name === job.pipelineName).options.concurrentPipelines.amount;
+        if (active >= max) {
+            job.updateRunning = -1;
+            return false;
+        }
+        return true;
     }
 
     _cancelExceededJob({ job, experiment, pipeline }) {
@@ -224,10 +248,21 @@ class JobProducer {
             log.error(`trying to create job ${jobId} which is not exists in queue`, { component });
             return;
         }
+        this._updateActiveJobs(job);
+
         log.debug(`creating new job ${jobId}, calculated score: ${job.score}`, { component });
         const jobData = this._pipelineToJob(job);
         await this._producer.createJob(jobData);
         job.done && job.done();
+    }
+
+    _updateActiveJobs(job) {
+        if (job.updateRunning) {
+            if (this._groupActiveJobs[job.pipelineName] > 0) {
+                this._groupActiveJobs[job.pipelineName] += job.updateRunning;
+                delete job.updateRunning;
+            }
+        }
     }
 }
 
