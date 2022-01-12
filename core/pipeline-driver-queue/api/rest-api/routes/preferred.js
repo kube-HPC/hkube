@@ -7,13 +7,7 @@ const routes = () => {
     router.get('/', (req, res) => {
         const { pageSize: pageSizeStr, fromJob, toJob, tag, pipelineName } = req.query;
         const pageSize = parseInt(pageSizeStr, 10);
-        let filter;
-        if (tag || pipelineName) {
-            filter = {};
-            filter.pipelineName = pipelineName;
-            filter.tag = tag;
-        }
-        const response = preferredService.getFlatJobsList(pageSize, fromJob, toJob, filter);
+        const response = preferredService.getFlatJobsList(pageSize, fromJob, toJob, pipelineName, tag);
         res.json(response);
     });
     router.get('/aggregation/pipeline/', (req, res) => {

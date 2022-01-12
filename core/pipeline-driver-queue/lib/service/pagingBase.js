@@ -1,5 +1,11 @@
 class PagingBase {
-    getFlatJobsList(pageSize, fromJob, toJob, filter) {
+    getFlatJobsList(pageSize, fromJob, toJob, pipelineName, tag) {
+        let filter;
+        if (tag || pipelineName) {
+            filter = {};
+            filter.pipelineName = pipelineName;
+            filter.tag = tag;
+        }
         let hasNext = false;
         let hasPrev = false;
         let fromIndex = 0;
