@@ -179,7 +179,6 @@ describe('Preferred and Managed', () => {
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'GET'
                 });
-                console.log(result.body)
                 expect(result.body.returnList[0].jobId === 'a' && result.body.returnList[1].jobId === 'b' && result.body.returnList[2].jobId === 'c')
                 result = await request({
                     url: `${restUrl}/preferred/deletes`, method: 'POST', body: {
