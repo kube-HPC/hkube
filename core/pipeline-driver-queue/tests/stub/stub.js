@@ -9,7 +9,7 @@ const stubTemplate = ({
 } = {}) => (
     {
         jobId: `${uuid}`,
-        pipelineName: `${pipelineUuid}`,
+        pipeline: `${pipelineUuid}`,
         priority: priority,
         entranceTime: entranceTime,
         score,
@@ -22,7 +22,7 @@ const stubTemplate = ({
 
 const generateConsumedArray = (number = 100) => ({
     jobId: `jobId-${uuidv4()}`,
-    pipelineName: `pipelineName-${uuidv4()}`,
+    pipelineName: `pipeline-${uuidv4()}`,
     priority: Math.floor((Math.random() * 5))
 });
 
