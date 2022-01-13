@@ -54,7 +54,7 @@ describe('Concurrency', () => {
                 queueRunner.queue.enqueue(job);
             }
             let result = await producerLib._concurrencyHandler._checkConcurrencyJobs();
-            expect(producerLib._concurrencyHandler._groupActiveJobs[pipelineName]).to.eql(1)
+            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(1)
             const expectedNewJobs = pipeline.options.concurrentPipelines.amount - 1;
             expect(result).to.eql(expectedNewJobs);
             queueRunner.queue.queue.slice(0, expectedNewJobs).forEach(job => {
@@ -66,19 +66,19 @@ describe('Concurrency', () => {
                 expect(job.updateRunning).to.not.exist;
             });
             await producerLib._dequeueJobInternal();
-            expect(producerLib._concurrencyHandler._groupActiveJobs[pipelineName]).to.eql(2)
+            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(2)
             await producerLib._dequeueJobInternal();
-            expect(producerLib._concurrencyHandler._groupActiveJobs[pipelineName]).to.eql(3)
+            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(3)
             await producerLib._dequeueJobInternal();
             await producerLib._dequeueJobInternal();
             await producerLib._dequeueJobInternal();
-            expect(producerLib._concurrencyHandler._groupActiveJobs[pipelineName]).to.eql(5)
+            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(5)
             // checking jobs will get updated values from etcd
             result = await producerLib._concurrencyHandler._checkConcurrencyJobs();
-            expect(producerLib._concurrencyHandler._groupActiveJobs[pipelineName]).to.eql(1)
+            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(1)
         });
 
-        xit('should not dequeue job if active is higher than concurrency', async () => {
+        it('should not dequeue job if active is higher than concurrency', async () => {
             const jobs = 10;
             const pipelineName = 'pipeline-concurrent';
             const experimentName = 'experiment-concurrent'
@@ -107,11 +107,11 @@ describe('Concurrency', () => {
                 queueRunner.queue.enqueue(job);
             }
             let result = await producerLib._concurrencyHandler._checkConcurrencyJobs();
-            expect(producerLib._concurrencyHandler._groupActiveJobs[pipelineName]).to.eql(5)
+            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(5)
             expect(result).to.eql(0);
             expect(queueRunner.queue.size).to.eql(jobs-1);
             await producerLib._concurrencyHandler._checkMaxExceeded({ experiment: experimentName, pipeline: pipelineName });
-            expect(producerLib._concurrencyHandler._groupActiveJobs[pipelineName]).to.eql(4)
+            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(4)
             await persistence.client.jobs.active._client.delete('/jobs/active', { isPrefix: true });
             for (let i = 0; i < 3; i++) {
                 await persistence.client.jobs.active.set({ jobId: uuidv4(), pipeline: pipelineName, experiment: experimentName, status: 'active', types: ['stored'] });
@@ -121,7 +121,7 @@ describe('Concurrency', () => {
             await producerLib._dequeueJobInternal();
             await producerLib._dequeueJobInternal();
             await producerLib._dequeueJobInternal();
-            expect(producerLib._concurrencyHandler._groupActiveJobs[pipelineName]).to.eql(5)
+            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(5)
 
         });
     });

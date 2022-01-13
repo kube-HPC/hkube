@@ -9,8 +9,7 @@ const queueRunner = require('../queue-runner');
 
 class ConcurrencyHandler {
     constructor(producer, options) {
-        this._groupActiveJobs = {};
-        this._pipelines = [];
+        this._activeState = {};
         this._producer = producer;
         this._checkConcurrencyJobsInterval = this._checkConcurrencyJobsInterval.bind(this);
         this._checkConcurrencyQueueInterval = options.checkConcurrencyQueueInterval;
@@ -34,9 +33,9 @@ class ConcurrencyHandler {
 
     updateActiveJobs(job) {
         if (job.updateRunning) {
-            if (this._groupActiveJobs[job.pipelineName] > 0) {
-                this._groupActiveJobs[job.pipelineName] += job.updateRunning;
-                delete job.updateRunning;
+            if (this._activeState[job.pipelineName]?.count > 0) {
+                this._activeState[job.pipelineName].count += job.updateRunning;
+                job.updateRunning = 0;
             }
         }
     }
@@ -62,16 +61,24 @@ class ConcurrencyHandler {
         const activePipelines = activeJobs.filter(r => r.status === pipelineStatuses.ACTIVE && r.types.includes(pipelineTypes.STORED));
         const groupQueueMaxExceeded = groupBy(queueMaxExceeded, 'pipelineName');
         const groupQueueNotMaxExceeded = countBy(constNotMaxExceeded, 'pipelineName');
-        this._groupActiveJobs = countBy(activePipelines, 'pipeline');
+        const groupActiveJobs = countBy(activePipelines, 'pipeline');
         const pipelinesNames = Object.keys(groupQueueMaxExceeded);
         const storedPipelines = await persistence.getStoredPipelines({ pipelinesNames });
-        this._pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.rejectOnFailure === false);
-        this._pipelines.forEach((p) => {
-            const jobsByPipeline = this._groupActiveJobs[p.name] || 0;
+        const pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.rejectOnFailure === false);
+        Object.keys(groupActiveJobs).forEach(pipeline => {
+            this._activeState[pipeline] = {
+                name: pipeline,
+                count: groupActiveJobs[pipeline],
+                max: pipelines.find(p => p.name === pipeline)?.options.concurrentPipelines.amount || 0
+            };
+        });
+        pipelines.forEach((p) => {
+            const jobsByPipeline = this._activeState[p.name]?.count || 0;
+            const max = this._activeState[p.name]?.max || 0;
             const queueByPipeline = groupQueueMaxExceeded[p.name];
             const waitingJobs = groupQueueNotMaxExceeded[p.name] || 0;
             const totalRunning = jobsByPipeline + waitingJobs;
-            const required = p.options.concurrentPipelines.amount - totalRunning;
+            const required = max - totalRunning;
             if (required > 0) {
                 const maxExceeded = queueByPipeline.slice(0, required);
                 maxExceeded.forEach((job) => {
@@ -101,11 +108,14 @@ class ConcurrencyHandler {
     }
 
     _checkRunningJobs(job) {
-        const active = this._groupActiveJobs[job.pipelineName];
+        const active = this._activeState[job.pipelineName]?.count;
         if (!active) {
             return true;
         }
-        const max = this._pipelines.find(p => p.name === job.pipelineName).options.concurrentPipelines.amount;
+        const max = this._activeState[job.pipelineName]?.max;
+        if (!max) {
+            return true;
+        }
         if (active >= max) {
             job.updateRunning = -1;
             return false;
