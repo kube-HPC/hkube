@@ -54,6 +54,10 @@ removeFromPreferredRequest:
 preferredQuery:
   $ref: ./preferred/preferredQuery.yaml
 
+#jobsAggregation
+jobsAggregationResponse:
+  $ref: ./aggregation/jobsAggregationResponse.yaml
+
 # builds
 buildId:
   $ref: ./builds/buildId.yaml

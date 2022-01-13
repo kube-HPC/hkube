@@ -7,18 +7,11 @@ const { Producer } = require('@hkube/producer-consumer');
 const queueEvents = require('../lib/consts/queue-events');
 const { semaphore } = require('await-done');
 const { pipelines } = require('./mock/index');
-const bootstrap = require('../bootstrap');
 const queueRunner = require('../lib/queue-runner');
 const dataStore = require('../lib/persistency/data-store');
 const producerLib = require('../lib/jobs/producer');
 const setting = { prefix: 'pipeline-driver-queue' }
-const preferredService = require('../lib/service/preferred-jobs');
 const producer = new Producer({ setting });
-const configIt = require('@hkube/config');
-const { main: config } = configIt.load();
-const baseUrl = `http://localhost:${config.rest.port}`;
-const restUrl = `${baseUrl}/${config.rest.prefix}`;
-const { request } = require('./utils');
 const Queue = require('../lib/queue');
 const heuristic = score => job => ({ ...job, entranceTime: Date.now(), score, ...{ calculated: { latestScore: {} } } })
 const heuristicStub = score => job => ({ ...job })
@@ -120,7 +113,6 @@ describe('Test', () => {
     });
     describe('concurrent', () => {
         it('check concurrency limit', async () => {
-            queueRunner.preferredQueue.queue = [];
             queueRunner.queue.queue = [];
             const totalJobs = 10;
             const half = totalJobs / 2;
@@ -183,7 +175,6 @@ describe('Test', () => {
     });
     describe('persistency tests', () => {
         it('persistent load', async () => {
-            queueRunner.preferredQueue.queue = [];
             queueRunner.queue.queue = [];
             const jobs = generateArr(100);
             queueRunner.queue.queue = jobs;
@@ -198,91 +189,11 @@ describe('Test', () => {
             expect(jobs[0].jobId == pq[0].jobId && jobs[99].jobId == pq[99].jobId)
         });
     });
-    describe('preferred tests', () => {
-        it('preferred order', async () => {
-            const jobs = [];
-            jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_a', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_b', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_c', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
-            await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
-            preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
-            preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
-            expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
-        });
 
-        describe('preferred api', () => {
-
-            it('preferred api', async () => {
-                const jobs = [];
-                jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-                jobs.push({ jobId: 'b', pipeline: 'p_a', tags: ['tag1'], entranceTime: 10, calculated: { latestScores: [] } });
-                jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-                queueRunner.queue.queue = [];
-                queueRunner.preferredQueue.queue = [];
-                await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
-                let result = await request({
-                    url: `${restUrl}/preferred`, method: 'POST', body: {
-                        "jobs": ["b"],
-                        "position": "first"
-                    }
-                });
-                expect(result.body[0].jobId === 'b');
-                result = await request({
-                    url: `${restUrl}/preferred`, method: 'POST', body: {
-                        "jobs": ["b"],
-                        "position": "first"
-                    }
-                });
-                expect(result.body.error.message === 'None of the jobs exist in the general queue');
-                result = await request({
-                    url: `${restUrl}/preferred`, method: 'POST', body: {
-                        "jobs": ["a"],
-                        "position": "before",
-                        "query": { jobId: 'b' }
-                    }
-                });
-                result = await request({
-                    url: `${restUrl}/preferred`, method: 'POST', body: {
-                        "jobs": ["c"],
-                        "position": "after",
-                        "query": { tag: 'tag1' }
-                    }
-                });
-                result = await request({
-                    url: `${restUrl}/preferred`, method: 'POST', body: {
-                        "jobs": ["c"],
-                        "position": "after",
-                        "query": { tag: 'tag1', jobId: 'd' }
-                    }
-                });
-                expect(result.body.error.message === 'Query must contain only one of jobId ,tag ,pipelineName');
-                result = await request({
-                    url: `${restUrl}/preferred`, method: 'GET'
-                });
-                expect(result.body[0].jobId === 'a' && result.body[1].jobId === 'b' && result.body[2].jobId === 'c')
-                result = await request({
-                    url: `${restUrl}/preferred/deletes`, method: 'POST', body: {
-                        "jobs": ['c']
-                    }
-                });
-                expect(result.body[0].jobId === 'c')
-
-            });
-        });
-
-
-    });
     describe('job-consume', () => {
         it('should consume job with params', async () => {
             const jobId = uuidv4();
-            await dataStore._db.jobs.create({ jobId, pipeline: pipelines[0] });
+            await dataStore._db.jobs.create({ jobId, pipelineName: pipelines[0] });
             const options = {
                 job: {
                     type: 'pipeline-job',
@@ -300,8 +211,5 @@ describe('Test', () => {
             expect(call.args[0].data.jobId).to.equal(jobId);
 
         });
-    });
-    afterEach(() => {
-        queueRunner.queue.queue = [];
     });
 });

@@ -5,7 +5,17 @@ const routes = () => {
     const router = RestServer.router();
 
     router.get('/', (req, res) => {
-        const response = preferredService.getPreferredJobsList();
+        const { pageSize: pageSizeStr, fromJob, toJob, tag, pipelineName } = req.query;
+        const pageSize = parseInt(pageSizeStr, 10);
+        const response = preferredService.getFlatJobsList(pageSize, fromJob, toJob, pipelineName, tag);
+        res.json(response);
+    });
+    router.get('/aggregation/pipeline/', (req, res) => {
+        const response = preferredService.getPreferredAggregatedByPipeline();
+        res.json(response);
+    });
+    router.get('/aggregation/tag/', (req, res) => {
+        const response = preferredService.getPreferredAggregatedByTags();
         res.json(response);
     });
     router.post('/deletes/', async (req, res) => {
