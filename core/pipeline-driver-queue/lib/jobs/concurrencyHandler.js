@@ -31,12 +31,15 @@ class ConcurrencyHandler {
         }
     }
 
-    updateActiveJobs(job) {
-        if (job.updateRunning) {
-            if (this._activeState[job.pipelineName]?.count > 0) {
-                this._activeState[job.pipelineName].count += job.updateRunning;
-                job.updateRunning = 0;
-            }
+    incrementRunningJobs(pipelineName) {
+        if (this._activeState[pipelineName]?.count > 0) {
+            this._activeState[pipelineName].count += 1;
+        }
+    }
+
+    decrementRunningJobs(pipelineName) {
+        if (this._activeState[pipelineName]?.count > 0) {
+            this._activeState[pipelineName].count -= 1;
         }
     }
 
@@ -83,28 +86,27 @@ class ConcurrencyHandler {
                 const maxExceeded = queueByPipeline.slice(0, required);
                 maxExceeded.forEach((job) => {
                     canceledJobs += 1;
-                    this._checkMaxExceeded({ experiment: job.experimentName, pipeline: job.pipelineName }, true);
+                    if (this._checkMaxExceeded({ experiment: job.experimentName, pipeline: job.pipelineName })) {
+                        this.incrementRunningJobs(job.pipelineName);
+                    }
                 });
             }
         });
         return canceledJobs;
     }
 
-    _checkMaxExceeded({ experiment, pipeline }, increment) {
+    _checkMaxExceeded({ experiment, pipeline }) {
         const job = queueRunner.queue
             .getQueue(q => q.maxExceeded)
             .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
         if (job) {
             if (this._checkRunningJobs(job)) {
-                if (increment) {
-                    job.updateRunning = 1;
-                }
                 this._cancelExceededJob({ job, experiment, pipeline });
+                return true;
             }
-            else {
-                this.updateActiveJobs(job);
-            }
+            this.decrementRunningJobs(job.pipelineName);
         }
+        return false;
     }
 
     _checkRunningJobs(job) {
@@ -117,7 +119,6 @@ class ConcurrencyHandler {
             return true;
         }
         if (active >= max) {
-            job.updateRunning = -1;
             return false;
         }
         return true;

@@ -28,6 +28,7 @@ describe('Concurrency', () => {
     });
     describe('concurrency', () => {
         it('should found and disable concurrent exceeded jobs', async () => {
+
             const jobs = 10;
             const pipelineName = 'pipeline-concurrent';
             const experimentName = 'experiment-concurrent'
@@ -53,26 +54,18 @@ describe('Concurrency', () => {
                 };
                 queueRunner.queue.enqueue(job);
             }
+            const spy = sinon.spy(producerLib, "dequeueJob");
             let result = await producerLib._concurrencyHandler._checkConcurrencyJobs();
-            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(1)
+            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(5)
             const expectedNewJobs = pipeline.options.concurrentPipelines.amount - 1;
             expect(result).to.eql(expectedNewJobs);
             queueRunner.queue.queue.slice(0, expectedNewJobs).forEach(job => {
                 expect(job.maxExceeded).to.be.false;
-                expect(job.updateRunning).to.eql(1);
             });
             queueRunner.queue.queue.slice(expectedNewJobs).forEach(job => {
                 expect(job.maxExceeded).to.be.true;
-                expect(job.updateRunning).to.not.exist;
             });
-            await producerLib._dequeueJobInternal();
-            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(2)
-            await producerLib._dequeueJobInternal();
-            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(3)
-            await producerLib._dequeueJobInternal();
-            await producerLib._dequeueJobInternal();
-            await producerLib._dequeueJobInternal();
-            expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(5)
+            expect(spy.callCount).to.eql(4);
             // checking jobs will get updated values from etcd
             result = await producerLib._concurrencyHandler._checkConcurrencyJobs();
             expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(1)
