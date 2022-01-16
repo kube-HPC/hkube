@@ -20,33 +20,18 @@ class Producers {
         this._producer = new Producer({ setting });
     }
 
-    createJob({ jobData, tracing }) {
-        const job = this._createJobData(jobData);
+    createJob({ id, jobId, algorithmName, tracing }) {
+        const job = this._createJobData({ id, jobId, algorithmName });
         return this._producer.createJob({ job, tracing });
     }
 
-    _createJobData(options) {
+    _createJobData({ id, jobId, algorithmName }) {
         const jobOptions = {
-            type: options.algorithmName,
+            type: algorithmName,
             data: {
-                jobId: options.jobId,
-                tasks: options.tasks,
-                nodeName: options.nodeName,
-                algorithmName: options.algorithmName,
-                parentNodeName: options.parentNodeName,
-                pipelineName: options.pipelineName,
-                priority: options.priority,
-                metrics: options.metrics,
-                ttl: options.ttl,
-                retry: options.retry,
-                stateType: options.stateType,
-                kind: options.kind,
-                parents: options.parents,
-                childs: options.childs,
-                info: options.info,
-                isScaled: options.isScaled,
-                parsedFlow: options.parsedFlow,
-                defaultFlow: options.defaultFlow,
+                id,
+                jobId
+
             }
         };
         return jobOptions;

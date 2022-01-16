@@ -329,6 +329,11 @@ class StateManager {
         return this._db.jobs.fetchGraph({ jobId });
     }
 
+    // Tasks
+    async searchTasks({ query, cursor, pageNum, sort, limit, fields, exists }) {
+        return this._db.task.search({ query, cursor, pageNum, sort, limit, fields, exists });
+    }
+
     // TriggersTree
     async getTriggersTree({ jobId }) {
         return this._db.triggersTree.fetch({ jobId });

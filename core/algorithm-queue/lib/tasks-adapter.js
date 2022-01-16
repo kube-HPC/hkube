@@ -1,21 +1,24 @@
 const { heuristicsName } = require('./consts/index');
 
-const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
-    acc[cur] = 0.00001;
-    return acc;
-}, {});
-
 class TasksAdapter {
-    adaptData(jobData, taskData, initialBatchLength) {
-        const batchIndex = taskData.batchIndex || 0;
+    adaptData({ task, spanId, length }) {
+        const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
+            acc[cur] = 0.00001;
+            return acc;
+        }, {});
+
+        const batchIndex = task.batchIndex || 0;
         const entranceTime = Date.now();
 
         return {
-            ...jobData,
-            ...taskData,
+            jobId: task.jobId,
+            taskId: task.taskId,
+            status: task.status,
+            spanId,
+            priority: task.priority,
             entranceTime,
             attempts: 0,
-            initialBatchLength,
+            initialBatchLength: length,
             batchIndex,
             calculated: {
                 latestScores,

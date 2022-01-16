@@ -101,21 +101,20 @@ class JobConsumer extends EventEmitter {
     async _handleJob(job) {
         let error;
         try {
-            const { jobId, nodeName, tasks } = job.data;
-            const data = await db.getJob({ jobId });
+            const { id, jobId, spanId } = job.data;
+            const data = await db.getJobStatus({ jobId });
+            const tasks = await db.getTasksById({ id, jobId });
             log.info(`job arrived with ${data.status} state for jobId ${jobId} and ${tasks.length} tasks`, { component, jobId });
             if (this._queueLogging.tasks) {
                 tasks.forEach(t => log.info(`task ${t.taskId} enqueued. Status: ${t.status}`, { component, jobId, taskId: t.taskId }));
             }
-
-            const tasksIds = tasks.map(t => t.taskId);
-            await db.updateTasks({ jobId, nodeName, tasksIds, status: taskStatuses.QUEUED });
+            await db.updateTasks({ id, jobId, status: taskStatuses.QUEUED });
 
             if (isCompletedState({ status: data.status })) {
                 this._removeInvalidJob([{ jobId }]);
             }
             else {
-                this.queueTasksBuilder(job);
+                this.queueTasksBuilder({ tasks, spanId });
             }
         }
         catch (e) {
@@ -126,9 +125,8 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-    queueTasksBuilder(job) {
-        const { tasks, ...jobData } = job.data;
-        const taskList = tasks.map(task => taskAdapter.adaptData(jobData, task, tasks.length));
+    queueTasksBuilder({ tasks, spanId }) {
+        const taskList = tasks.map(task => taskAdapter.adaptData({ task, spanId, length: tasks.length }));
         this.emit('jobs-add', taskList);
     }
 }

@@ -138,12 +138,12 @@ class StateAdapter extends EventEmitter {
         await this._etcd.discovery.updateRegisteredData({ ...options, ...this._discoveryInfo });
     }
 
-    createTasks(tasks) {
-        return this._db.tasks.createMany(tasks);
+    getTask({ jobId, taskId }) {
+        return this._db.tasks.fetch({ jobId, taskId });
     }
 
-    getTask({ taskId }) {
-        return this._db.tasks.fetch({ taskId });
+    createTasks(tasks) {
+        return this._db.tasks.createMany(tasks);
     }
 
     deleteTask(taskId) {

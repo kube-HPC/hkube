@@ -20,16 +20,24 @@ class DBConnection extends EventEmitter {
         });
     }
 
-    async getJob({ jobId }) {
+    async getJobStatus({ jobId }) {
         return this._db.jobs.fetchStatus({ jobId });
+    }
+
+    getTask({ jobId, taskId }) {
+        return this._db.tasks.fetch({ jobId, taskId });
+    }
+
+    async getTasksById({ id, jobId }) {
+        return this._db.tasks.search({ id, jobId });
     }
 
     async getTasks({ algorithmName }) {
         return this._db.tasks.search({ algorithmName, status: taskStatuses.QUEUED });
     }
 
-    async updateTasks({ jobId, nodeName, tasksIds, status }) {
-        return this._db.tasks.updateTasksStatus({ jobId, nodeName, tasksIds, status });
+    async updateTasks({ id, status }) {
+        return this._db.tasks.updateTasksStatus({ id, status });
     }
 
     async updateTask({ jobId, taskId, status, error, retries }) {

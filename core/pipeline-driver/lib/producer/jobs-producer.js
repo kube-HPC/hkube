@@ -3,6 +3,7 @@ const { Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { nodeKind } = require('@hkube/consts');
 const logger = require('@hkube/logger');
+const { uid } = require('@hkube/uid');
 const stateManager = require('../state/state-manager');
 const log = logger.GetLogFromContainer();
 const component = require('../consts/componentNames').JOBS_PRODUCER;
@@ -48,7 +49,8 @@ class JobProducer extends EventEmitter {
             else {
                 tasks.push({ taskId: options.node.taskId, status: options.node.status, input: options.node.input, storage: options.storage });
             }
-            const jobData = {
+            const id = uid({ length: 8 });
+            const job = {
                 nodeName: options.node.nodeName,
                 algorithmName: options.node.algorithmName,
                 metrics: options.node.metrics,
@@ -73,26 +75,25 @@ class JobProducer extends EventEmitter {
             const jobOptions = {
                 type: options.node.algorithmName,
                 data: {
-                    jobId,
-                    tasks,
-                    ...jobData
+                    id,
+                    jobId
                 }
             };
             if (this._queueLogging.tasks) {
                 tasks.forEach(t => log.info(`task ${t.taskId} created`, { component, jobId, taskId: t.taskId, algorithmName: options.node.algorithmName }));
             }
+            await this._createTasks({ id, jobId, tasks, job });
             await this._createJob(jobOptions);
-            await this._createTasks({ jobId, tasks, jobData });
         }
     }
 
-    async _createTasks({ jobId, tasks, jobData }) {
-        const tasksList = tasks.map(t => {
+    async _createTasks({ id, jobId, tasks, job }) {
+        const tasksList = tasks.map(task => {
             return {
+                id,
                 jobId,
-                taskId: t.taskId,
-                status: t.status,
-                ...jobData
+                ...task,
+                ...job
             };
         });
         await stateManager.createTasks(tasksList);

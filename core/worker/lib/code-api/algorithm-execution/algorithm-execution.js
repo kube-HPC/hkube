@@ -1,6 +1,7 @@
 const Validator = require('ajv');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
+const { uid } = require('@hkube/uid');
 const { taskStatuses, retryPolicy } = require('@hkube/consts');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
 const stateAdapter = require('../../states/stateAdapter');
@@ -223,34 +224,37 @@ class AlgorithmExecution {
             };
             this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
+            const id = uid({ length: 8 });
             await stateAdapter.updateTask({
+                id,
                 jobId,
                 taskId,
                 execId,
                 parentNodeName: nodeName,
                 algorithmName,
                 nodeName: newNodeName,
-                status: taskStatuses.CREATING
+                status: taskStatuses.CREATING,
+                ...job
             });
-            await this._createJob(job, taskId);
+            await this._createJob({ id, jobId, taskId, algorithmName });
         }
         catch (e) {
             this._sendErrorToAlgorithm({ execId, error: e.message });
         }
     }
 
-    _createJob(jobData, taskId) {
+    _createJob({ id, jobId, taskId, algorithmName }) {
         const topSpan = tracer.topSpan(taskId);
         let tracing;
         if (topSpan) {
             tracing = {
                 parent: topSpan.context(),
                 tags: {
-                    jobId: jobData.jobId
+                    jobId
                 }
             };
         }
-        return producer.createJob({ jobData, tracing });
+        return producer.createJob({ id, jobId, algorithmName, tracing });
     }
 
     _startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName) {

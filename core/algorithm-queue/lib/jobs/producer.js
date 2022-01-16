@@ -6,6 +6,7 @@ const { tracer } = require('@hkube/metrics');
 const { Producer } = require('@hkube/producer-consumer');
 const component = require('../consts/component-name').JOBS_PRODUCER;
 const { isCompletedState } = require('../utils/pipelineStatuses');
+const taskAdapter = require('../tasks-adapter');
 const db = require('../persistency/db');
 const MAX_JOB_ATTEMPTS = 3;
 
@@ -96,8 +97,8 @@ class JobProducer {
             log.info(`${Events.FAILED} ${jobId}, ${taskId}`, { component, jobId, taskId, status: Events.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
-            const { jobId, taskId, nodeName, retry } = job.options;
-            const data = await db.getJob({ jobId });
+            const { jobId, taskId } = job.options;
+            const data = await db.getJobStatus({ jobId });
             log.info(`job ${jobId}, ${taskId}, stalled with ${data?.status} status`, { component });
             if (data) {
                 log.info(`job stalled with ${data.status} status`, { component });
@@ -108,55 +109,44 @@ class JobProducer {
             }
             let err;
             let status;
-            const maxAttempts = retry?.limit ?? MAX_JOB_ATTEMPTS;
-            const task = this._pipelineToQueueAdapter(job.options);
-            let { attempts } = task;
+            const task = await db.getTask({ jobId, taskId });
+            if (!task) {
+                log.error(`unable to find task ${taskId}`, { component });
+                return;
+            }
+            const maxAttempts = task.retry?.limit ?? MAX_JOB_ATTEMPTS;
+            const tasks = [taskAdapter.adaptData({ task, length: 1 })];
+            let retries = task.attempts;
 
-            if (attempts > maxAttempts) {
-                attempts = maxAttempts;
+            if (retries > maxAttempts) {
+                retries = maxAttempts;
                 err = 'CrashLoopBackOff';
                 status = taskStatuses.CRASHED;
             }
             else {
+                retries += 1;
                 err = 'StalledState';
                 status = taskStatuses.STALLED;
-                this._addQueue([task]);
+                this._addQueue(tasks);
             }
-            const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${maxAttempts}`;
-            log.warning(`${error} ${job.jobId} `, { component, jobId });
-            await db.updateTask({ jobId, taskId, status, error, retries: attempts });
+            const error = `node ${task.nodeName} is in ${err}, attempts: ${retries}/${maxAttempts}`;
+            log.warning(`${error} ${jobId} `, { component, jobId });
+            await db.updateTask({ jobId, taskId, status, error, retries });
         });
     }
 
-    // TODO: remove this calculated stuff....
-    _pipelineToQueueAdapter(taskData) {
-        return {
-            initialBatchLength: 1,
-            calculated: {
-                latestScores: {},
-                entranceTime: taskData.entranceTime,
-                enrichment: {
-                    batchIndex: {}
-                }
-            },
-            ...taskData,
-            attempts: taskData.attempts + 1
-        };
-    }
-
-    _taskToProducerJob(task) {
-        const { calculated, initialBatchLength, ...taskData } = task;
+    _taskToProducerJob({ jobId, taskId, spanId }) {
         return {
             job: {
-                id: `${task.taskId}-${uuidv4()}`,
-                type: task.algorithmName,
-                data: taskData
+                id: `${taskId}-${uuidv4()}`,
+                type: this._algorithmName,
+                data: { jobId, taskId }
             },
             tracing: {
-                parent: taskData.spanId,
+                parent: spanId,
                 tags: {
-                    jobId: task.jobId,
-                    taskId: task.taskId
+                    jobId,
+                    taskId
                 }
             }
         };
@@ -168,10 +158,12 @@ class JobProducer {
         }
         const task = this._tryPop();
         if (task) {
-            log.info(`pop new task with taskId: ${task.taskId} for ${task.jobId}, score: ${task.calculated.score}, Queue length: ${this._getQueue().length}`,
-                { component, jobId: task.jobId, taskId: task.taskId });
-            const job = this._taskToProducerJob(task);
-            await db.updateTask({ taskId: task.taskId, status: taskStatuses.DEQUEUED });
+            const { jobId, taskId, status, spanId } = task;
+            log.info(`pop new task with taskId: ${taskId} for ${jobId}, score: ${task.calculated.score}, Queue length: ${this._getQueue().length}`, { component, jobId, taskId });
+            const job = this._taskToProducerJob({ jobId, taskId, spanId });
+            if (status !== taskStatuses.PRESCHEDULE) {
+                await db.updateTask({ taskId, status: taskStatuses.DEQUEUED });
+            }
             return this._producer.createJob(job);
         }
         return null;

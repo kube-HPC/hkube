@@ -1,6 +1,7 @@
 const { parser } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const { sum, mean } = require('@hkube/stats');
+const { uid } = require('@hkube/uid');
 const { stateType, nodeKind, taskStatuses } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
 const { Statistics, Scaler, Metrics, TimeMarker } = require('../core');
@@ -311,11 +312,11 @@ class AutoScaler {
             tasks.push(task);
         }
         const { jobId } = this._options;
-        const { algorithmName, nodeName } = this._options.node;
+        const { algorithmName } = this._options.node;
+        const id = uid({ length: 8 });
         const job = {
             ...this._options.node,
             jobId,
-            tasks,
             isScaled: true,
             parsedFlow: this._options.pipeline.streaming?.parsedFlow,
             defaultFlow: this._options.pipeline.streaming?.defaultFlow,
@@ -329,12 +330,11 @@ class AutoScaler {
                 jobId,
                 taskId: t.taskId,
                 status: taskStatuses.CREATING,
-                algorithmName,
-                nodeName,
+                ...job
             };
         });
         await stateAdapter.createTasks(tasksList);
-        return producer.createJob({ jobData: job });
+        return producer.createJob({ id, jobId, algorithmName });
     }
 
     _scaleDown(scale) {

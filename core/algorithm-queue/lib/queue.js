@@ -87,7 +87,7 @@ class Queue extends events {
 
     async persistencyLoad() {
         const tasks = await this.persistence.getTasks();
-        const queue = tasks.map(task => taskAdapter.adaptData({}, task, tasks.length));
+        const queue = tasks.map(task => taskAdapter.adaptData({ task, spanId: task.spanId, length: tasks.length }));
         this.addJobs(queue);
     }
 

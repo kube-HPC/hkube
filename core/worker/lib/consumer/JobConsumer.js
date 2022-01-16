@@ -50,13 +50,22 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${this._options.jobConsumer.job.type}`, { component });
 
         this._consumer.on('job', async (job) => {
-            const { jobId, taskId, status } = job.data;
-            if (job.data.status === taskStatuses.PRESCHEDULE) {
-                log.info(`job ${jobId}, taskId ${taskId} is in ${status} mode, calling done...`, { component, jobId, taskId });
-                await stateAdapter.deleteTask(job.data.taskId);
+            const { jobId, taskId } = job.data;
+            const task = await stateAdapter.getTask({ jobId, taskId });
+            // TODO: NEED TO FAIL THE PIPELINE
+            if (!task) {
+                log.error(`unable to find task ${taskId}`, { component });
                 job.done();
                 return;
             }
+            if (task.status === taskStatuses.PRESCHEDULE) {
+                log.info(`job ${jobId}, taskId ${taskId} is in ${task.status} mode, calling done...`, { component, jobId, taskId });
+                await stateAdapter.deleteTask(taskId);
+                job.done();
+                return;
+            }
+
+            job.data = task; // just workaround for now, need huge refactor
 
             this._setJob(job);
             log.info(`execute job ${jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
