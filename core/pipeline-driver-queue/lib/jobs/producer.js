@@ -152,6 +152,7 @@ class JobProducer {
             log.error(`trying to create job ${jobId} which is not exists in queue`, { component });
             return;
         }
+        this._concurrencyHandler.updateActiveJobs(job);
 
         log.debug(`creating new job ${jobId}, calculated score: ${job.score}`, { component });
         const jobData = this._pipelineToJob(job);
