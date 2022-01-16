@@ -1,7 +1,8 @@
 const { uid: uuidv4 } = require('@hkube/uid');
-const stubTemplate = ({ score } = {}) => ({
+const stubTemplate = ({ score, preference } = {}) => ({
     jobId: `${uuidv4()}`,
     score: score || Math.floor((Math.random() * 100)),
+    preference,
     pipeline: {
         pipelineName: `pipeline-${uuidv4()}`,
         priority: Math.floor((Math.random() * 5))

@@ -331,7 +331,7 @@ class StateManager {
 
     // Tasks
     async searchTasks({ query, cursor, pageNum, sort, limit, fields, exists }) {
-        return this._db.task.search({ query, cursor, pageNum, sort, limit, fields, exists });
+        return this._db.tasks.search({ query, cursor, pageNum, sort, limit, fields, exists });
     }
 
     // TriggersTree
