@@ -2,7 +2,7 @@ ARG BASE_PRIVATE_REGISTRY=""
 FROM ${BASE_PRIVATE_REGISTRY}node:14.5.0 as install
 ADD ./package-lock.json ./package.json /hkube/algorithm-gateway/
 WORKDIR /hkube/algorithm-gateway
-RUN npm ci --production
+RUN npm install --production
 
 
 ARG BASE_PRIVATE_REGISTRY=""
