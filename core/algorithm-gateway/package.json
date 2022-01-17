@@ -1,6 +1,6 @@
 {
   "name": "algorithm-gateway",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "algorithm-gateway",
   "main": "app.js",
   "dependencies": {
