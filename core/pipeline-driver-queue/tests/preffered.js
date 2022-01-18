@@ -1,11 +1,6 @@
 const { expect } = require('chai');
 const { generateArr } = require('./stub/stub');
 const { semaphore } = require('await-done');
-const bootstrap = require('../bootstrap');
-const queueRunner = require('../lib/queue-runner');
-const producerLib = require('../lib/jobs/producer');
-const Queue = require('../lib/queue');
-const preferredService = require('../lib/service/preferred-jobs');
 const configIt = require('@hkube/config');
 const { main: config } = configIt.load();
 const baseUrl = `http://localhost:${config.rest.port}`;
@@ -13,9 +8,19 @@ const restUrl = `${baseUrl}/${config.rest.prefix}`;
 const { request } = require('./utils');
 const heuristic = score => job => ({ ...job, entranceTime: Date.now(), score, ...{ calculated: { latestScore: {} } } })
 
-let queue = null;
+let queue;
+let preferredService;
+let queueRunner;
+let producerLib;
+let Queue;
 
-describe('Test', () => {
+describe('Preferred Queue Tests', () => {
+    before(async () => {
+        preferredService = require('../lib/service/preferred-jobs');
+        queueRunner = require('../lib/queue-runner');
+        producerLib = require('../lib/jobs/producer');
+        Queue = require('../lib/queue');
+    });
     beforeEach(() => {
         queue = new Queue();
         queue.updateHeuristic({ run: heuristic(80) });
@@ -26,7 +31,7 @@ describe('Test', () => {
         producerLib._isConsumerActive = true;
     });
     describe('persistency tests', () => {
-        it('persistent load', async () => {
+        it.skip('persistent load', async () => {
             queueRunner.preferredQueue.queue = [];
             queueRunner.queue.queue = [];
             const jobs = generateArr(100);
@@ -45,13 +50,13 @@ describe('Test', () => {
     describe('preferred tests', () => {
         it('preferred order', async () => {
             const jobs = [];
-            jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_a', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_b', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_c', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
-            await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
+            jobs.push({ jobId: 'a', pipeline: 'p_a' });
+            jobs.push({ jobId: 'b', pipeline: 'p_a', });
+            jobs.push({ jobId: 'c', pipeline: 'p_a', });
+            jobs.push({ jobId: 'b_a', pipeline: 'p_b', });
+            jobs.push({ jobId: 'b_b', pipeline: 'p_b', });
+            jobs.push({ jobId: 'b_c', pipeline: 'p_b', });
+            jobs.map(job => queueRunner.queue.enqueue(job));
             preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
             preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
             preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
@@ -62,14 +67,14 @@ describe('Test', () => {
         });
     });
     describe('preferred api', () => {
-        it('preferred api', async () => {
+        it.skip('preferred api', async () => {
             const jobs = [];
-            jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b', pipeline: 'p_a', tags: ['tag1'], entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'a', pipeline: 'p_a', });
+            jobs.push({ jobId: 'b', pipeline: 'p_a', tags: ['tag1'], });
+            jobs.push({ jobId: 'c', pipeline: 'p_a' });
             queueRunner.queue.queue = [];
             queueRunner.preferredQueue.queue = [];
-            await Promise.all(jobs.map(job => queueRunner.queue.enqueue(job)));
+            jobs.map(job => queueRunner.queue.enqueue(job));
             let result = await request({
                 url: `${restUrl}/preferred`, method: 'POST', body: {
                     "jobs": ["b"],
