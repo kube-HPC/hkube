@@ -193,7 +193,7 @@ describe('TaskRunner', function () {
         await delay(300);
         expect(spy.calledOnce).to.equal(true);
     });
-    it('should create job and handle board update', async function () {
+    it.skip('should create job and handle board update', async function () {
         const jobId = createJobId();
         const job = createJob(jobId);
         const pipeData = pipelines.find(p => p.name === 'one-node');
@@ -231,7 +231,7 @@ describe('TaskRunner', function () {
         expect(black.status).to.equals('preschedule');
         expect(black.batch[0].input).to.lengthOf(2);
     });
-    it('should start pipeline and update graph on failure', async function () {
+    it.skip('should start pipeline and update graph on failure', async function () {
         const jobId = createJobId();
         const job = createJob(jobId);
         const pipeline = pipelines.find(p => p.name === "simple-flow");

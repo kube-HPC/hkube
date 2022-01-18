@@ -20,6 +20,7 @@
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/stats": "^1.0.1",
     "@hkube/storage-manager": "^2.0.34",
+    "@hkube/uid": "^1.0.4",
     "async.queue": "^0.5.2",
     "clone": "^2.1.2",
     "flat": "^5.0.0",
@@ -29,7 +30,6 @@
     "object-path": "^0.11.4"
   },
   "devDependencies": {
-    "@hkube/uid": "^1.0.4",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.11",
