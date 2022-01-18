@@ -4,7 +4,6 @@ RUN mkdir -p /hkube-logs
 COPY wrapper/ /hkube/algorithm-runner/
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./dockerfile/* /hkube/algorithm-runner/dockerfile/
-COPY ./packages/* /hkube/packages/
 COPY ./nodemon ./docker-entrypoint.sh /hkube/
 WORKDIR /hkube/algorithm-runner
 RUN export dependency_install_cmd=${dependency_install_cmd} && ./dockerfile/requirements.sh ${packagesRegistry} ${packagesToken} 

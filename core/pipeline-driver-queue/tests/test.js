@@ -229,7 +229,7 @@ describe('Main Queue Test', () => {
     describe('job-consume', () => {
         it('should consume job with params', async () => {
             const jobId = uuidv4();
-            await dataStore._db.jobs.create({ jobId, pipeline: pipelines[0] });
+            await dataStore._db.jobs.create({ jobId, pipelineName: pipelines[0] });
             const options = {
                 job: {
                     type: 'pipeline-job',
@@ -247,8 +247,5 @@ describe('Main Queue Test', () => {
             expect(call.args[0].data.jobId).to.equal(jobId);
 
         });
-    });
-    afterEach(() => {
-        queueRunner.queue.queue = [];
     });
 });
