@@ -42,6 +42,13 @@ const algorithmQueueTemplate = {
                                 containerPort: 3000
                             }
                         ],
+                        envFrom: [
+                            {
+                                configMapRef: {
+                                    name: 'mongodb-configmap'
+                                }
+                            }
+                        ],
                         env: [
                             {
                                 name: 'QUEUE_ID',

@@ -25,6 +25,13 @@ const jobTemplate = {
                     {
                         name: ALGORITHM_BUILDS,
                         image: `hkube/${ALGORITHM_BUILDS}`,
+                        envFrom: [
+                            {
+                                configMapRef: {
+                                    name: 'mongodb-configmap'
+                                }
+                            }
+                        ],
                         env: [
                             {
                                 name: 'NODE_ENV',

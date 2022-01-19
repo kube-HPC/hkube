@@ -28,6 +28,13 @@ const workerTemplate = {
                     {
                         name: 'worker',
                         image: 'hkube/worker:latest',
+                        envFrom: [
+                            {
+                                configMapRef: {
+                                    name: 'mongodb-configmap'
+                                }
+                            }
+                        ],
                         env: [
                             {
                                 name: 'NODE_ENV',

@@ -25,6 +25,13 @@ const template = {
                     {
                         name: 'pipeline-driver',
                         image: 'hkube/pipeline-driver',
+                        envFrom: [
+                            {
+                                configMapRef: {
+                                    name: 'mongodb-configmap'
+                                }
+                            }
+                        ],
                         env: [
                             {
                                 name: 'NODE_ENV',
