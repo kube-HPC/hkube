@@ -70,23 +70,25 @@ describe('consumer tests', () => {
     before(async () => {
         await fse.mkdirp(configuration.algoMetricsDir);
     });
-    afterEach(async function () {
-        spy && spy.restore();
-        await fse.emptyDirSync(configuration.algoMetricsDir);
+    beforeEach(async function () {
         await storageManager.delete({
             path: 'local-hkube-algo-metrics'
         });
     });
+    afterEach(async function () {
+        spy && spy.restore();
+        await fse.emptyDirSync(configuration.algoMetricsDir);
+    });
     it('if job already stopped return and finish job', async () => {
         const config = getConfig();
-        await stateAdapter.createJob({ jobId: config.jobId, status: { status: pipelineStatuses.STOPPED } });
+        const { jobId, taskId } = config;
+        await stateAdapter.createJob({ jobId, status: { status: pipelineStatuses.STOPPED } });
+        await stateAdapter.updateTask({ jobId, taskId, input: ['test-param', true, 12345], status: 'active' });
         spy = sinon.spy(consumer, '_stopJob');
         consumer._consumer.emit('job', {
             data: {
-                jobId: config.jobId,
-                taskId: config.taskId,
-                input: ['test-param', true, 12345],
-                pipelineName: pipelineStatuses.STOPPED
+                jobId,
+                taskId,
             }
         });
         await delay(1000);
@@ -94,45 +96,57 @@ describe('consumer tests', () => {
     });
     it('Check algo metrics are uploaded', async () => {
         const config = getConfig();
+        const { jobId, taskId } = config;
         await fse.writeFile(`${configuration.algoMetricsDir}/a.txt`, 'a text');
         await fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
         await fse.mkdirp(`${configuration.algoMetricsDir}/ss`);
         await fse.writeFile(`${configuration.algoMetricsDir}/ss/c.txt`, 'c text');
+
+        await stateAdapter.updateTask({
+            jobId,
+            taskId,
+            input: [],
+            pipelineName: 'pipeName',
+            nodeName: 'A',
+            metrics: {
+                tensorboard: true
+            },
+            status: taskStatuses.SUCCEED
+        });
+
         consumer._consumer.emit('job', {
             data: {
-                jobId: config.jobId,
-                taskId: config.taskId,
-                input: [],
-                pipelineName: 'pipeName',
-                nodeName: 'A',
-                metrics: {
-                    tensorboard: true
-                },
-                state: taskStatuses.SUCCEED
-            },
+                jobId,
+                taskId,
+            }
         });
+        await delay(1000);
         consumer.jobCurrentTime = new Date();
         await consumer.finishJob({ state: taskStatuses.SUCCEED, results: {} });
+        await delay(500);
         const uploadedFiles = await storageManager.list({ path: 'local-hkube-algo-metrics/pipeName/A/' });
         expect(uploadedFiles.length).to.eql(3);
-
     });
     it('Check algo metrics are not uploaded when tensoboard is false', async () => {
         const config = getConfig();
-        fse.writeFile(`${configuration.algoMetricsDir}/a.txt`, 'a text');
-        fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
+        const { jobId, taskId } = config;
+        await stateAdapter.updateTask({
+            jobId: config.jobId,
+            taskId: config.taskId,
+            input: [],
+            pipelineName: 'pipeName',
+            nodeName: 'A',
+            metrics: {
+                tensorboard: false
+            },
+            state: taskStatuses.SUCCEED
+        });
+
         consumer._consumer.emit('job', {
             data: {
-                jobId: config.jobId,
-                taskId: config.taskId,
-                input: [],
-                pipelineName: 'pipeName',
-                nodeName: 'A',
-                metrics: {
-                    tensorboard: false
-                },
-                state: taskStatuses.SUCCEED
-            },
+                jobId,
+                taskId,
+            }
         });
         consumer.jobCurrentTime = new Date();
         await consumer.finishJob({ state: taskStatuses.SUCCEED, results: {} });
@@ -285,5 +299,5 @@ describe('consumer tests', () => {
                 });
             });
         }));
-    }).timeout(5000)
+    });
 });

@@ -207,34 +207,29 @@ class AlgorithmExecution {
             log.info(`startAlgorithmExecution for ${algorithmName} with ${taskId}`, { component });
             this._executions.set(taskId, { taskId, execId, includeResult });
             const newInput = await this._setStorage({ input, storage, jobId, storageInput });
-            const tasks = [{ execId, taskId, input: newInput, storage, status: taskStatuses.CREATING }];
+
             const newNodeName = `${nodeName}:${algorithmName}`;
-            const job = {
-                ...jobData,
-                jobId,
-                tasks,
-                algorithmName,
-                nodeName: newNodeName,
-                parentNodeName: nodeName,
-                retry: NO_RETRY,
-                info: {
-                    ...jobData.info,
-                    extraData: undefined
-                }
-            };
             this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
             const id = uid({ length: 8 });
+
             await stateAdapter.updateTask({
+                ...jobData,
                 id,
                 jobId,
                 taskId,
                 execId,
+                input: newInput,
+                storage,
                 parentNodeName: nodeName,
                 algorithmName,
                 nodeName: newNodeName,
                 status: taskStatuses.CREATING,
-                ...job
+                retry: NO_RETRY,
+                info: {
+                    ...jobData.info,
+                    extraData: undefined
+                },
             });
             await this._createJob({ id, jobId, taskId, algorithmName });
         }

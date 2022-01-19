@@ -179,12 +179,11 @@ describe('AlgorithmExecutions', () => {
         await execAlgorithm._startAlgorithmExecution({ data });
 
         const args = spy.getCalls()[0].args[0];
-        expect(args.tasks[0]).to.have.property('execId');
-        expect(args.tasks[0]).to.have.property('input');
-        expect(args.tasks[0]).to.have.property('storage');
-        expect(args.tasks[0]).to.have.property('taskId');
-        expect(args.tasks[0].execId).equals(data.execId);
-        const { taskId } = args.tasks[0];
+        expect(args).to.have.property('id');
+        expect(args).to.have.property('jobId');
+        expect(args).to.have.property('taskId');
+        expect(args).to.have.property('algorithmName');
+        const taskId = args.taskId;
         const task = await stateAdapter.getTask({ taskId })
         expect(task.taskId).to.eql(taskId);
         expect(task.status).to.eql(taskStatuses.CREATING);

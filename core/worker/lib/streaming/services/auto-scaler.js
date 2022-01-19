@@ -306,34 +306,32 @@ class AutoScaler {
             ignoreParentResult: true
         };
         const result = parser.parse(parse);
-        for (let i = 0; i < replicas; i += 1) {
-            const taskId = producer.createTaskID();
-            const task = { taskId, input: result.input, storage: result.storage, batchIndex: i + 1 };
-            tasks.push(task);
-        }
+        const id = uid({ length: 8 });
         const { jobId } = this._options;
         const { algorithmName } = this._options.node;
-        const id = uid({ length: 8 });
-        const job = {
-            ...this._options.node,
-            jobId,
-            isScaled: true,
-            parsedFlow: this._options.pipeline.streaming?.parsedFlow,
-            defaultFlow: this._options.pipeline.streaming?.defaultFlow,
-            pipelineName: this._options.pipeline.name,
-            priority: this._options.pipeline.priority,
-            kind: this._options.pipeline.kind,
-            info: this._options.jobData.info,
-        };
-        const tasksList = tasks.map(t => {
-            return {
+
+        for (let i = 0; i < replicas; i += 1) {
+            const taskId = producer.createTaskID();
+            const task = {
+                ...this._options.node,
+                input: result.input,
+                storage: result.storage,
+                batchIndex: i + 1,
+                id,
                 jobId,
-                taskId: t.taskId,
+                taskId,
                 status: taskStatuses.CREATING,
-                ...job
+                isScaled: true,
+                parsedFlow: this._options.pipeline.streaming?.parsedFlow,
+                defaultFlow: this._options.pipeline.streaming?.defaultFlow,
+                pipelineName: this._options.pipeline.name,
+                priority: this._options.pipeline.priority,
+                kind: this._options.pipeline.kind,
+                info: this._options.jobData.info,
             };
-        });
-        await stateAdapter.createTasks(tasksList);
+            tasks.push(task);
+        }
+        await stateAdapter.createTasks(tasks);
         return producer.createJob({ id, jobId, algorithmName });
     }
 
