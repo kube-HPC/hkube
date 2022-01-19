@@ -22,12 +22,9 @@
     "@hkube/storage-manager": "^2.0.34",
     "@hkube/uid": "^1.0.4",
     "async.queue": "^0.5.2",
-    "clone": "^2.1.2",
-    "flat": "^5.0.0",
     "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
-    "lodash.throttle": "^4.1.1",
-    "object-path": "^0.11.4"
+    "lodash.throttle": "^4.1.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",

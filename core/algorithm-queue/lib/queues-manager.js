@@ -1,6 +1,7 @@
 const isEqual = require('lodash.isequal');
 const log = require('@hkube/logger').GetLogFromContainer();
 const etcd = require('./persistency/etcd');
+const db = require('./persistency/db');
 const queueRunner = require('./queue-runner');
 const component = require('./consts/component-name').JOBS_CONSUMER;
 
@@ -166,7 +167,7 @@ class QueuesManager {
     }
 
     _watch() {
-        etcd.on('job-change', (data) => {
+        db.on('job-change', (data) => {
             this._queues.forEach(q => {
                 q.removeInvalidJob(data);
             });
