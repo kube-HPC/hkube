@@ -139,11 +139,11 @@ describe('StateManager', function () {
         const promise = new Promise((res) => { resolve = res });
         const jobId = createJobId();
         const status = DriverStates.STOPPED;
+        await stateManager.createJob({ jobId, status: { status: 'pending' } });
         await stateManager.watchJob({ jobId }, (job) => {
             expect(job.status).to.equal(status);
             resolve();
         });
-        await stateManager.createJob({ jobId, status: { status: 'pending' } });
         await stateManager.setJobStatus({ jobId, status });
         await promise;
     });
