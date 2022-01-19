@@ -1,6 +1,6 @@
 const config = {};
 config.transport = {
-    console: false,
+    console: true,
     file: false,
     redis: false
 };

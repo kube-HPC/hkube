@@ -47,6 +47,8 @@ config.db = {
         host: process.env.MONGODB_SERVICE_HOST || 'localhost',
         port: formatter.parseInt(process.env.MONGODB_SERVICE_PORT, 27017),
         dbName: process.env.MONGODB_SERVICE_NAME || 'hkube',
+        connectionMethod: process.env.MONGODB_CONNECTION_METHOD || 'mongodb',
+        tls: formatter.parseBool(process.env.MONGODB_TLS, false),
         useUnifiedTopology: true,
     },
 };

@@ -81,6 +81,8 @@ config.db = {
         },
         host: process.env.MONGODB_SERVICE_HOST || 'localhost',
         port: parseInt(process.env.MONGODB_SERVICE_PORT, 27017),
+        connectionMethod: process.env.MONGODB_CONNECTION_METHOD || 'mongodb',
+        tls: parseBool(process.env.MONGODB_TLS, false),
         dbName: process.env.MONGODB_DB_NAME || 'hkube',
     }
 };
