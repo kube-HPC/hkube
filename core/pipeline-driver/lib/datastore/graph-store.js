@@ -1,6 +1,3 @@
-const clone = require('clone');
-const objectPath = require('object-path');
-const flatten = require('flat');
 const { taskStatuses } = require('@hkube/consts');
 
 class GraphStore {
@@ -53,30 +50,6 @@ class GraphStore {
             batchInfo: this._batchInfo(n.batch)
         };
         return node;
-    }
-
-    _parseInput(node) {
-        if (!node.input) {
-            return null;
-        }
-        const result = clone(node.input);
-        const flatObj = flatten(node.input);
-
-        Object.entries(flatObj).forEach(([k, v]) => {
-            if (typeof v === 'string' && v.startsWith('$$')) {
-                const key = v.substring(2);
-                const storage = node.storage[key];
-                let input;
-                if (Array.isArray(storage)) {
-                    input = { type: 'array', size: storage.flatMap(a => a.tasks).length };
-                }
-                else {
-                    input = storage?.storageInfo;
-                }
-                objectPath.set(result, k, input);
-            }
-        });
-        return result;
     }
 
     _batchInfo(batch) {
