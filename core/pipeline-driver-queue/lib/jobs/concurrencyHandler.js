@@ -65,11 +65,11 @@ class ConcurrencyHandler {
         const pipelinesNames = Object.keys(groupQueueMaxExceeded);
         const storedPipelines = await persistence.getStoredPipelines({ pipelinesNames });
         const pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.rejectOnFailure === false);
-        Object.keys(groupActiveJobs).forEach(pipeline => {
-            this._activeState[pipeline] = {
-                name: pipeline,
-                count: groupActiveJobs[pipeline],
-                max: pipelines.find(p => p.name === pipeline)?.options.concurrentPipelines.amount || 0
+        pipelines.forEach(pipeline => {
+            this._activeState[pipeline.name] = {
+                name: pipeline.name,
+                count: groupActiveJobs[pipeline.name] || 0,
+                max: pipelines.find(p => p.name === pipeline.name)?.options?.concurrentPipelines?.amount || 0
             };
         });
         pipelines.forEach((p) => {
