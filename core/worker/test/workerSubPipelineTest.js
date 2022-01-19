@@ -131,7 +131,6 @@ describe('worker SubPipeline test', () => {
         mockery.disable();
     });
     it('stopping algorithm should stop subPipeline', function (done) {
-        this.timeout(5000);
         const { adapter } = workerCommunication;
         const apiServerMock = require('./mocks/api-server-mock');
         const subPipelineHandler = require('../lib/code-api/subpipeline/subpipeline');

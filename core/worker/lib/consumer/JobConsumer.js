@@ -290,7 +290,9 @@ class JobConsumer extends EventEmitter {
                     ...storageResult,
                     result: this._result
                 };
-                this._job.error = error;
+                if (this._job) {
+                    this._job.error = error;
+                }
                 await this.updateStatus(resData);
                 log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
             }
