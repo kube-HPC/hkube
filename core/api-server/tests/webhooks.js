@@ -287,7 +287,9 @@ describe('Webhooks', () => {
                     uri: restUrl + '/exec/stored',
                     body: { name: 'webhookFlow1' }
                 };
-                await request(stored);
+                const res = await request(stored);
+                const { jobId } = res.body;
+                await stateManager.updateJobStatus({ jobId, status: 'active' });
             });
         });
         it('should succeed to store pipeline with webhooks', async () => {
@@ -334,12 +336,14 @@ describe('Webhooks', () => {
                 body: { name: 'webhookFlow2' }
             };
             const response = await request(options1);
+            const { jobId } = response.body;
+            await stateManager.updateJobStatus({ jobId, status: 'active' });
 
             await delay(1000);
 
             const options2 = {
                 method: 'GET',
-                uri: `${restUrl}/webhooks/status/${response.body.jobId} `
+                uri: `${restUrl}/webhooks/status/${jobId} `
             };
             const response2 = await request(options2);
 
