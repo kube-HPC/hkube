@@ -104,12 +104,17 @@ class JobConsumer extends EventEmitter {
             const { id, jobId, spanId } = job.data;
             const data = await db.getJobStatus({ jobId });
             const tasks = await db.getTasksById({ id, jobId });
+
             log.info(`job arrived with ${data.status} state for jobId ${jobId} and ${tasks.length} tasks`, { component, jobId });
+
             if (this._queueLogging.tasks) {
                 tasks.forEach(t => log.info(`task ${t.taskId} enqueued. Status: ${t.status}`, { component, jobId, taskId: t.taskId }));
             }
-            await db.updateTasks({ id, jobId, status: taskStatuses.QUEUED });
 
+            // we don't want to update preschedule task for worker to take action
+            if (tasks.length && tasks[0].status !== taskStatuses.PRESCHEDULE) {
+                await db.updateTasks({ id, jobId, status: taskStatuses.QUEUED });
+            }
             if (isCompletedState({ status: data.status })) {
                 this._removeInvalidJob([{ jobId }]);
             }

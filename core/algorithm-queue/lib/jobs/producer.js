@@ -161,6 +161,7 @@ class JobProducer {
             const { jobId, taskId, status, spanId } = task;
             log.info(`pop new task with taskId: ${taskId} for ${jobId}, score: ${task.calculated.score}, Queue length: ${this._getQueue().length}`, { component, jobId, taskId });
             const job = this._taskToProducerJob({ jobId, taskId, spanId });
+            // we don't want to update preschedule task for worker to take action
             if (status !== taskStatuses.PRESCHEDULE) {
                 await db.updateTask({ taskId, status: taskStatuses.DEQUEUED });
             }
