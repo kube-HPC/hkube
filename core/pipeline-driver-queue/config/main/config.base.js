@@ -15,6 +15,7 @@ config.rest = {
     poweredBy: 'HKube Pipeline Driver queue',
     bodySizeLimit: process.env.BODY_SIZE_LIMIT || '50mb'
 };
+
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
     port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
@@ -61,6 +62,7 @@ config.persistence = {
 
 config.checkQueueInterval = process.env.CHECK_QUEUE_INTERVAL || 500;
 config.updateStateInterval = process.env.UPDATE_STATE_INTERVAL || 5000;
+config.checkConcurrencyQueueInterval = process.env.CHECK_CONCURRENCY_INTERVAL || 5000;
 
 config.heuristicsWeights = {
     [heuristicsNames.PRIORITY]: 0.5,

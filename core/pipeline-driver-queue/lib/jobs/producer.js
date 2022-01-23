@@ -1,4 +1,3 @@
-const groupBy = require('lodash.groupby');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses, pipelineTypes } = require('@hkube/consts');
@@ -8,6 +7,7 @@ const component = componentName.JOBS_PRODUCER;
 const persistence = require('../persistency/persistency');
 const dataStore = require('../persistency/data-store');
 const queueRunner = require('../queue-runner');
+const concurrencyMap = require('./concurrency-map');
 
 class JobProducer {
     constructor() {
@@ -33,10 +33,11 @@ class JobProducer {
         this._redisQueue = this._producer._createQueue(this._jobType);
         this._checkQueueInterval = options.checkQueueInterval;
         this._updateStateInterval = options.updateStateInterval;
+        this._checkConcurrencyQueueInterval = options.checkConcurrencyQueueInterval;
 
         this._producerEventRegistry();
         this._checkQueue();
-        this._checkConcurrencyJobsInterval();
+        await this._checkConcurrencyJobsInterval();
         this._updateState();
 
         queueRunner.queue.on(queueEvents.INSERT, () => {
@@ -59,41 +60,19 @@ class JobProducer {
     }
 
     /**
-     * TODO
-     * 1. check if there are any jobs in queue with concurrency limit
-     * 2. get from db only jobs that are from type stored and active
-     * 3. get stored pipelines list
-     * 4. check the concurrent amount against the active amount
-     * 5. mark the delta jobs maxExceeded property as false
+     * 1. get jobs that are from: type stored, active and has concurrency
+     * 2. get stored pipelines list
+     * 3. build map of pipelineName: {count, max}
      *
      */
     async _checkConcurrencyJobs() {
-        let canceledJobs = 0;
-        const queue = queueRunner.queue.getQueue(q => q.maxExceeded);
-        if (queue.length === 0) {
-            return canceledJobs;
-        }
-        const activeJobs = await persistence.getActiveJobs();
-        const activePipelines = activeJobs.filter(r => r.status === pipelineStatuses.ACTIVE && r.types.includes(pipelineTypes.STORED));
-        const groupQueue = groupBy(queue, 'pipelineName', 'experimentName');
-        const groupJobs = groupBy(activePipelines, 'pipeline', 'experiment');
-        const pipelinesNames = Object.keys(groupQueue);
+        const activeJobs = await persistence.getConcurrentActiveJobs();
         const storedPipelines = await persistence.getStoredPipelines({ pipelinesNames });
-        const pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.rejectOnFailure === false);
-        pipelines.forEach((p) => {
-            const jobsByPipeline = groupJobs[p.name];
-            const queueByPipeline = groupQueue[p.name];
-            const totalRunning = (jobsByPipeline && jobsByPipeline.length) || 0;
-            const required = p.options.concurrentPipelines.amount - totalRunning;
-            if (required > 0) {
-                const maxExceeded = queueByPipeline.slice(0, required);
-                maxExceeded.forEach((job) => {
-                    canceledJobs += 1;
-                    this._checkMaxExceeded({ experiment: job.experimentName, pipeline: job.pipelineName });
-                });
-            }
+
+        storedPipelines.forEach((p) => {
+            const count = activeJobs.filter(a => a.name === p.name);
+            concurrencyMap.add(p.name, count, p.max);
         });
-        return canceledJobs;
     }
 
     shutdown() {
@@ -172,7 +151,6 @@ class JobProducer {
     async _dequeueJob() {
         try {
             const preferredQueue = queueRunner.preferredQueue.getQueue(q => !q.maxExceeded);
-
             if (preferredQueue.length > 0) {
                 await this.createJob(preferredQueue[0], queueRunner.preferredQueue);
             }

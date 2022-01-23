@@ -11,9 +11,9 @@ const gracefulShutdown = require('./lib/graceful-shutdown');
 const modules = [
     require('./lib/persistency/data-store'),
     require('./lib/metrics/aggregation-metrics-factory'),
+    require('./lib/jobs/producer'),
     require('./lib/queue-runner'),
     require('./lib/jobs/consumer'),
-    require('./lib/jobs/producer'),
     require('./api/rest-api/app-server')
 ];
 
