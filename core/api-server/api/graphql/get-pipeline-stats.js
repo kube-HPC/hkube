@@ -1,5 +1,4 @@
-
-//const db = require('./database-querier');
+// const db = require('./database-querier');
 let lastRun = [];
 let active = false;
 const INTERVAL = 100000;
@@ -9,7 +8,6 @@ const _getJobStatus = async () => {
         const jobs = await _db.jobs.getPipelinesStats({ limit: 1000 });
         lastRun = jobs;
     }
-
 };
 
 const getJobStatus = async () => {

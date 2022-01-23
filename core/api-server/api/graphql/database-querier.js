@@ -108,8 +108,8 @@ class DatabaseQuerier extends Events {
         });
         return { experimentName, jobs };
     }
-    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, cursor, pageNum, sort, limit = MAX_ITEMS }) {
 
+    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, cursor, pageNum, sort, limit = MAX_ITEMS }) {
         const jobs = await this._db.jobs.searchApi({
             query: {
                 experimentName,
@@ -147,8 +147,8 @@ class DatabaseQuerier extends Events {
     async _getDiscovery() {
         const discovery = Object.create(null);
         discovery.worker = await this._getDiscoveryType('worker');
-        discovery['taskExecutor'] = await this._getDiscoveryType('task-executor');
-        discovery['pipelineDriver'] = await this._getDiscoveryType('pipeline-driver');
+        discovery.taskExecutor = await this._getDiscoveryType('task-executor');
+        discovery.pipelineDriver = await this._getDiscoveryType('pipeline-driver');
         return discovery;
     }
 
