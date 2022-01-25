@@ -27,61 +27,46 @@ class Queue extends Events {
         await this.persistencyStore({ data: this.queue, pendingAmount });
     }
 
-    async persistencyLoad() {
+    async persistencyLoad(ordered) {
         if (!this._persistency) {
             return;
         }
-        const data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
-        if (data?.length > 0) {
-            log.info(`recovering ${data.length} jobs from db`, { component });
-            data.forEach(q => {
-                this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
+        if (!ordered) {
+            const data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED }).filter(job => {
+                return job.next === undefined;
             });
+            if (data?.length > 0) {
+                log.info(`recovering ${data.length} jobs from db`, { component });
+                data.forEach(q => {
+                    this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
+                });
+            }
         }
-    }
+        else {
+            const data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED }).filter(job => {
+                return job.next !== undefined;
+            });
+            const orderedData = [];
+            let previous = 'FirstInLine';
+            data?.forEach(() => {
+                const item = data.find(job => job.next === previous);
+                previous = item.jobId;
+                orderedData.push(item);
+            });
 
-    // TODO
-    async persistencyLoadXXX(staticOrder = false) {
-        const data = await this._persistency.get(this._name);
-        const orderedData = [];
-        let previous = 'FirstInLine';
-        data?.forEach(() => {
-            const item = data.find(job => job.next === previous);
-            previous = item.jobId;
-            orderedData.push(item);
-        });
-
-        if (orderedData.length > 0) {
-            orderedData.forEach(q => {
-                const item = {
-                    ...q,
-                    calculated: {
-                        latestScores: {}
-                    }
-                };
-                if (staticOrder) {
+            if (orderedData.length > 0) {
+                orderedData.forEach(q => {
+                    const item = {
+                        ...q,
+                        score: 1,
+                        calculated: {
+                            latestScores: {}
+                        }
+                    };
                     this.queue.push(item);
-                }
-                else {
-                    this.enqueue(item);
-                }
-            });
+                });
+            }
         }
-    }
-
-    async persistenceStore() {
-        const data = this.getQueue();
-        if (!this._persistency || !data) {
-            return;
-        }
-        let previous = 'FirstInLine';
-        const mapData = data.map(q => {
-            const { calculated, ...rest } = q;
-            const result = { ...rest, next: previous };
-            previous = result.jobId;
-            return result;
-        });
-        await this._persistency.store(mapData, this._name);
     }
 
     updateHeuristic(scoreHeuristic) {

@@ -125,8 +125,20 @@ class JobProducer {
 
     async _updateState() {
         try {
-            await queueRunner.queue.persistenceStore();
-            await queueRunner.preferredQueue.persistenceStore();
+            let data = queueRunner.queue.getQueue();
+            let managedData = data.map(q => {
+                const { calculated, ...rest } = q;
+                const result = { ...rest };
+                return result;
+            });
+            data = queueRunner.preferredQueue.getQueue();
+            const preferredData = data.map(q => {
+                const { calculated, ...rest } = q;
+                const result = { score: 1, ...rest };
+                return result;
+            });
+            managedData = managedData.concat(preferredData);
+            await this._persistency.store(managedData, 'pipeline-driver');
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);

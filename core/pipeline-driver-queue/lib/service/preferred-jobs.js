@@ -3,6 +3,7 @@ const queueRunner = require('../queue-runner');
 const validator = require('../validation');
 const InvalidDataError = require('../errors/InvalidDataError');
 const PagingBase = require('./pagingBase');
+const dataStore = require('../persistency/data-store');
 class PreferredJobs extends PagingBase {
     getPreferredJobsList() {
         return queueRunner.preferredQueue.queue.map(job => {
@@ -126,6 +127,14 @@ class PreferredJobs extends PagingBase {
             const dequeued = queueRunner.queue.dequeue({ jobId: id });
             if (dequeued.length > 0) {
                 allDequeued.push(dequeued[0]);
+                let prevJob = 'FistInLine';
+                if (index > 0) {
+                    prevJob = queueRunner.preferredQueue.queue[index - 1].jobId;
+                }
+                dataStore.setJobNext(dequeued[0].jobId, prevJob);
+                if (queueRunner.preferredQueue.queue.length > index) {
+                    dataStore.setJobNext(queueRunner.preferredQueue.queue[index].jobId, dequeued[0].jobId);
+                }
                 queueRunner.preferredQueue.queue.splice(index, 0, dequeued[0]);
             }
         });
