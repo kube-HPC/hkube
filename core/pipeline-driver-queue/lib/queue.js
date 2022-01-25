@@ -32,18 +32,20 @@ class Queue extends Events {
             return;
         }
         if (!ordered) {
-            const data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED }).filter(job => {
+            let data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
+            data = data.filter(job => {
                 return job.next === undefined;
             });
             if (data?.length > 0) {
                 log.info(`recovering ${data.length} jobs from db`, { component });
                 data.forEach(q => {
-                    this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
+                    this.enqueue({ jobId: q.jobId, pipeline: q.pipeline, tags: q.tags });
                 });
             }
         }
         else {
-            const data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED }).filter(job => {
+            let data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
+            data = data.filter(job => {
                 return job.next !== undefined;
             });
             const orderedData = [];
@@ -73,7 +75,7 @@ class Queue extends Events {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
     }
 
-    _pipelineToQueueAdapter({ jobId, score, pipeline }) {
+    _pipelineToQueueAdapter({ jobId, score, pipeline, tags }) {
         return {
             jobId,
             experimentName: pipeline.experimentName,
@@ -81,6 +83,7 @@ class Queue extends Events {
             priority: pipeline.priority,
             maxExceeded: pipeline.maxExceeded,
             entranceTime: Date.now(),
+            tags,
             score,
             calculated: {
                 latestScores: {}
@@ -88,8 +91,8 @@ class Queue extends Events {
         };
     }
 
-    enqueue({ jobId, score, pipeline }) {
-        const job = this._pipelineToQueueAdapter({ jobId, score, pipeline });
+    enqueue({ jobId, score, pipeline, tags }) {
+        const job = this._pipelineToQueueAdapter({ jobId, score, pipeline, tags });
         this.queue.push(job);
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
         this.queue = orderby(this.queue, 'score', 'desc');

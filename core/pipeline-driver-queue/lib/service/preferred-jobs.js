@@ -71,7 +71,9 @@ class PreferredJobs extends PagingBase {
         const deletedJobs = jobIds.map(jobId => {
             const deletedArr = queueRunner.preferredQueue.dequeue({ jobId });
             if (deletedArr.length > 0) {
-                queueRunner.queue.enqueue(deletedArr[0]);
+                const { pipelineName, experimentName, priority, maxExceeded, ...rest } = { ...deletedArr[0] };
+                const job = { pipeline: { name: pipelineName, experimentName, priority, maxExceeded }, ...rest };
+                queueRunner.queue.enqueue(job);
             }
             return deletedArr.length > 0 ? deletedArr[0] : null;
         }).filter(job => job !== null);
@@ -86,7 +88,7 @@ class PreferredJobs extends PagingBase {
             return job.pipelineName === pipelineName;
         }
         if (tag) {
-            return job.tags.includes(tag);
+            return job.tags?.includes(tag);
         }
         return false;
     }

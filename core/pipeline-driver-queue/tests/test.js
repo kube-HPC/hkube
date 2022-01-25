@@ -201,6 +201,7 @@ describe('Main Queue Test', () => {
     describe('queue-runner', () => {
         it('check-that-heuristics-sets-to-latestScore', async () => {
             const stubJob = stubTemplate();
+
             queueRunner.queue.enqueue(stubJob);
             const q = queueRunner.queue.getQueue();
             expect(q[0].score).to.be.above(0);

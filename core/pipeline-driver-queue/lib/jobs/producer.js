@@ -102,14 +102,25 @@ class JobProducer {
 
     async _checkQueue() {
         try {
-            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
-            if (queue.length > 0) {
-                const pendingAmount = await this._redisQueue.getWaitingCount();
+            const preferredQueue = queueRunner.preferredQueue.getQueue(q => !q.maxExceeded);
+            const pendingAmount = await this._redisQueue.getWaitingCount();
+            if (preferredQueue.length > 0) {
                 if (pendingAmount === 0) {
                     // create job first time only, then rely on 3 events (active/completed/enqueue)
                     this._firstJobDequeue = true;
                     log.info('firstJobDequeue', { component });
-                    await this.createJob(queue[0], queueRunner.queue);
+                    await this.createJob(preferredQueue[0], queueRunner.preferredQueue);
+                }
+                else {
+                    const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+                    if (queue.length > 0) {
+                        if (pendingAmount === 0) {
+                            // create job first time only, then rely on 3 events (active/completed/enqueue)
+                            this._firstJobDequeue = true;
+                            log.info('firstJobDequeue', { component });
+                            await this.createJob(queue[0], queueRunner.queue);
+                        }
+                    }
                 }
             }
         }
@@ -176,11 +187,11 @@ class JobProducer {
     }
 
     /**
-     * This method executes if one of the following conditions are met:
-     * 1. active event.
-     * 2  completed active and there is a maxExceeded in queue.
-     * 3. new job enqueue and consumers are active.
-     */
+             * This method executes if one of the following conditions are met:
+             * 1. active event.
+             * 2  completed active and there is a maxExceeded in queue.
+             * 3. new job enqueue and consumers are active.
+             */
     async _dequeueJob() {
         try {
             const preferredQueue = queueRunner.preferredQueue.getQueue(q => !q.maxExceeded);

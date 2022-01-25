@@ -53,7 +53,7 @@ class JobConsumer {
             const { jobId } = job.data;
             await dataStore.setJobStatus({ jobId, status: pipelineStatuses.QUEUED });
             const jobData = await dataStore.getJob({ jobId });
-            const { status, pipeline } = jobData || {};
+            const { status, pipeline, tags } = jobData || {};
             if (!pipeline) {
                 throw new Error(`unable to find pipeline for job ${jobId}`);
             }
@@ -65,7 +65,7 @@ class JobConsumer {
                 if (pipeline.maxExceeded) {
                     log.warning(`job "${jobId}" arrived with maxExceeded flag`, { component });
                 }
-                this._queueJob({ jobId, pipeline });
+                this._queueJob({ jobId, pipeline, tags });
             }
         }
         catch (e) {
@@ -83,8 +83,8 @@ class JobConsumer {
         queueRunner.queue.remove(jobId);
     }
 
-    _queueJob({ jobId, pipeline }) {
-        queueRunner.queue.enqueue({ jobId, pipeline });
+    _queueJob({ jobId, pipeline, tags }) {
+        queueRunner.queue.enqueue({ jobId, pipeline, tags });
     }
 }
 

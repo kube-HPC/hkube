@@ -11,7 +11,7 @@ class GracefulShutdown {
             await consumer.shutdown();
             await producer.shutdown();
             if (queueRunner.queue) {
-                await queueRunner.queue.persistenceStore();
+                // await queueRunner.queue.persistenceStore();
             }
             log.info('finish graceful shutdown', { component });
         }
