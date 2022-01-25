@@ -14,7 +14,7 @@ class ConcurrencyMap {
 
     checkMaxExceeded(pipeline) {
         if (pipeline.concurrency) {
-            const active = this._map[pipeline.name];
+            const active = this._map[pipeline.name] || 0;
             if (active < pipeline.concurrency.max) {
                 pipeline.concurrency.maxExceeded = false;  // eslint-disable-line
             }
