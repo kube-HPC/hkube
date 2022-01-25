@@ -3,6 +3,7 @@ const orderby = require('lodash.orderby');
 const remove = require('lodash.remove');
 const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
+const concurrencyMap = require('./jobs/concurrency-map');
 const { queueEvents, componentName } = require('./consts');
 const component = componentName.QUEUE;
 
@@ -35,6 +36,7 @@ class Queue extends Events {
         if (data?.length > 0) {
             log.info(`recovering ${data.length} jobs from db`, { component });
             data.forEach(q => {
+                concurrencyMap.checkMaxExceeded(q.pipeline);
                 this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
             });
         }
@@ -94,8 +96,9 @@ class Queue extends Events {
             experimentName: pipeline.experimentName,
             pipelineName: pipeline.name,
             priority: pipeline.priority,
-            maxExceeded: pipeline.maxExceeded,
+            concurrency: pipeline.concurrency,
             entranceTime: Date.now(),
+            tags: pipeline.tags || [],
             score,
             calculated: {
                 latestScores: {}
@@ -136,6 +139,14 @@ class Queue extends Events {
 
     getQueue(filter = () => true) {
         return this.queue.filter(filter);
+    }
+
+    getAvailableQueue() {
+        return this.queue.filter(q => !q.concurrency?.maxExceeded);
+    }
+
+    getMaxExceededQueue() {
+        return this.queue.filter(q => q.concurrency?.maxExceeded);
     }
 }
 

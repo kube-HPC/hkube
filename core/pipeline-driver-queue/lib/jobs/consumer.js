@@ -62,8 +62,9 @@ class JobConsumer {
             }
             else {
                 await dataStore.setJobStatus({ jobId, status: pipelineStatuses.QUEUED });
-                if (pipeline.maxExceeded) {
-                    log.warning(`job "${jobId}" arrived with maxExceeded flag`, { component });
+                if (pipeline.concurrency?.maxExceeded) {
+                    const { current, max } = pipeline.concurrency;
+                    log.warning(`job "${jobId}" arrived with maxExceeded flag, ${current}/${max}`, { component });
                 }
                 this._queueJob({ jobId, pipeline });
             }

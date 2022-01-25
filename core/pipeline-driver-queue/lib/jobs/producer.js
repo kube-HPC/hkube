@@ -1,6 +1,6 @@
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses, pipelineTypes } = require('@hkube/consts');
+const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
@@ -13,10 +13,7 @@ class JobProducer {
     constructor() {
         this._isActive = false;
         this._isConsumerActive = false;
-        this._firstJobDequeue = false;
-        this._checkQueue = this._checkQueue.bind(this);
         this._updateState = this._updateState.bind(this);
-        this._checkConcurrencyJobsInterval = this._checkConcurrencyJobsInterval.bind(this);
     }
 
     async init(options) {
@@ -31,75 +28,33 @@ class JobProducer {
         });
         this._isActive = true;
         this._redisQueue = this._producer._createQueue(this._jobType);
-        this._checkQueueInterval = options.checkQueueInterval;
         this._updateStateInterval = options.updateStateInterval;
-        this._checkConcurrencyQueueInterval = options.checkConcurrencyQueueInterval;
 
         this._producerEventRegistry();
-        this._checkQueue();
-        await this._checkConcurrencyJobsInterval();
-        this._updateState();
+        const pendingAmount = await this._redisQueue.getWaitingCount();
+        this._isConsumerActive = pendingAmount === 0;
+        await this._buildConcurrencyJobs();
 
         queueRunner.queue.on(queueEvents.INSERT, () => {
             if (this._isConsumerActive) {
                 this._dequeueJob();
             }
         });
-    }
-
-    async _checkConcurrencyJobsInterval() {
-        try {
-            await this._checkConcurrencyJobs();
-        }
-        catch (e) {
-            log.throttle.error(e.message, { component }, e);
-        }
-        finally {
-            setTimeout(this._checkConcurrencyJobsInterval, this._checkConcurrencyQueueInterval);
-        }
+        await queueRunner.queue.persistencyLoad();
+        await this._updateState();
     }
 
     /**
      * 1. get jobs that are from: type stored, active and has concurrency
-     * 2. get stored pipelines list
-     * 3. build map of pipelineName: {count, max}
-     *
+     * 2. build map of jobs <pipelineName, count>
      */
-    async _checkConcurrencyJobs() {
-        const activeJobs = await persistence.getConcurrentActiveJobs();
-        const storedPipelines = await persistence.getStoredPipelines({ pipelinesNames });
-
-        storedPipelines.forEach((p) => {
-            const count = activeJobs.filter(a => a.name === p.name);
-            concurrencyMap.add(p.name, count, p.max);
-        });
+    async _buildConcurrencyJobs() {
+        const activeJobs = await dataStore.getConcurrentActiveJobs();
+        concurrencyMap.buildActive(activeJobs);
     }
 
     shutdown() {
         this._isActive = false;
-    }
-
-    async _checkQueue() {
-        try {
-            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
-            if (queue.length > 0) {
-                const pendingAmount = await this._redisQueue.getWaitingCount();
-                if (pendingAmount === 0) {
-                    // create job first time only, then rely on 3 events (active/completed/enqueue)
-                    this._firstJobDequeue = true;
-                    log.info('firstJobDequeue', { component });
-                    await this.createJob(queue[0], queueRunner.queue);
-                }
-            }
-        }
-        catch (error) {
-            log.throttle.error(error.message, { component }, error);
-        }
-        finally {
-            if (!this._firstJobDequeue) {
-                setTimeout(this._checkQueue, this._checkQueueInterval);
-            }
-        }
     }
 
     async _updateState() {
@@ -150,12 +105,12 @@ class JobProducer {
      */
     async _dequeueJob() {
         try {
-            const preferredQueue = queueRunner.preferredQueue.getQueue(q => !q.maxExceeded);
+            const preferredQueue = queueRunner.preferredQueue.getAvailableQueue();
             if (preferredQueue.length > 0) {
                 await this.createJob(preferredQueue[0], queueRunner.preferredQueue);
             }
             else {
-                const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+                const queue = queueRunner.queue.getAvailableQueue();
                 if (queue.length > 0) {
                     await this.createJob(queue[0], queueRunner.queue);
                 }
@@ -168,16 +123,16 @@ class JobProducer {
 
     _checkMaxExceeded({ experiment, pipeline }) {
         let job = queueRunner.preferredQueue
-            .getQueue(q => q.maxExceeded)
-            .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+            .getMaxExceededQueue()
+            .find(q => q.experimentName === experiment && q.pipelineName === pipeline && q.concurrency);
         if (!job) {
             job = queueRunner.queue
-                .getQueue(q => q.maxExceeded)
-                .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+                .getMaxExceededQueue()
+                .find(q => q.experimentName === experiment && q.pipelineName === pipeline && q.concurrency);
         }
         if (job) {
             log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
-            job.maxExceeded = false;
+            job.concurrency.maxExceeded = false;
             if (this._isConsumerActive) {
                 this._dequeueJob();
             }
@@ -192,7 +147,8 @@ class JobProducer {
                 data: {
                     jobId: pipeline.jobId,
                     pipeline: pipeline.pipelineName,
-                    experiment: pipeline.experimentName
+                    experiment: pipeline.experimentName,
+                    concurrency: pipeline.concurrency
                 }
             },
             queue: {

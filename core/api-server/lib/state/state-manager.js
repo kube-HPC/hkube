@@ -304,7 +304,7 @@ class StateManager {
         return options;
     }
 
-    async searchJobs({ experimentName, pipelineName, pipelineType, algorithmName, hasResult, fields, sort, limit }) {
+    async searchJobs({ experimentName, pipelineName, pipelineType, algorithmName, hasResult, fields, exists, sort, limit }) {
         return this._db.jobs.search({
             experimentName,
             pipelineName,
@@ -312,6 +312,7 @@ class StateManager {
             algorithmName,
             hasResult,
             fields,
+            exists,
             sort,
             limit
         });
