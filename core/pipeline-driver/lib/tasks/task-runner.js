@@ -208,7 +208,7 @@ class TaskRunner {
         this._boards = new Boards({ types: pipeline.types, updateBoard: (task) => stateManager.updatePipeline(task) });
         pipelineMetrics.startMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, spanId: this._job.data && this._job.data.spanId });
 
-        if (jobStatus !== 'dequeued') {
+        if (![pipelineStatuses.DEQUEUED, pipelineStatuses.QUEUED].includes(jobStatus)) {
             log.info(`starting recovery process for job ${this._jobId} with status ${jobStatus}`, { component });
             const graph = await stateManager.getGraph({ jobId: this._jobId });
             if (!graph) {

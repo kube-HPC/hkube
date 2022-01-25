@@ -163,6 +163,7 @@ class JobProducer {
         };
     }
 
+    // TODO Handle case when status changed to dequeued and job didn’t sent to Redis
     async createJob(job, queue) {
         queue.dequeue(job);
         log.debug(`creating new job ${job.jobId}, calculated score: ${job.score}`, { component });

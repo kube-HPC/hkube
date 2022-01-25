@@ -42,16 +42,6 @@ class DataStore extends EventEmitter {
         });
     }
 
-    async getConcurrentStoredPipelines() {
-        return this._db.pipelines.search({
-            isConcurrencyReject: false,
-            fields: {
-                name: true,
-                amount: 'options.concurrentPipelines.amount',
-            }
-        });
-    }
-
     storeQueue(options) {
         return this._etcd.pipelineDrivers.queue.set(options);
     }
