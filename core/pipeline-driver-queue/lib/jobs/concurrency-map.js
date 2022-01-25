@@ -3,7 +3,7 @@ class ConcurrencyMap {
         this._map = {};
     }
 
-    buildActive(jobs) {
+    mapActiveJobs(jobs) {
         jobs.forEach((p) => {
             if (!this._map[p.name]) {
                 this._map[p.name] = 0;
@@ -12,11 +12,13 @@ class ConcurrencyMap {
         });
     }
 
-    checkMaxExceeded(pipeline) {
+    disableMaxExceeded(pipeline) {
         if (pipeline.concurrency) {
-            const active = this._map[pipeline.name] || 0;
+            let active = this._map[pipeline.name] || 0;
             if (active < pipeline.concurrency.max) {
-                pipeline.concurrency.maxExceeded = false;  // eslint-disable-line
+                active += 1;
+                pipeline.concurrency.maxExceeded = false; // eslint-disable-line
+                this._map[pipeline.name] = active;
             }
         }
     }

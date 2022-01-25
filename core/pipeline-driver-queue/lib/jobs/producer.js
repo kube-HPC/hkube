@@ -50,7 +50,7 @@ class JobProducer {
      */
     async _buildConcurrencyJobs() {
         const activeJobs = await dataStore.getConcurrentActiveJobs();
-        concurrencyMap.buildActive(activeJobs);
+        concurrencyMap.mapActiveJobs(activeJobs);
     }
 
     shutdown() {

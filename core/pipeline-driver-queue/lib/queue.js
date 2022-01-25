@@ -36,7 +36,7 @@ class Queue extends Events {
         if (data?.length > 0) {
             log.info(`recovering ${data.length} jobs from db`, { component });
             data.forEach(q => {
-                concurrencyMap.checkMaxExceeded(q.pipeline);
+                concurrencyMap.disableMaxExceeded(q.pipeline);
                 this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
             });
         }
