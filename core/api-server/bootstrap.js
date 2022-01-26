@@ -20,7 +20,8 @@ const modules = [
     require('./lib/service/storage'),
     require('./lib/service/gateway'),
     require('./lib/service/debug'),
-    require('./api/graphql/database-querier')
+    require('./api/graphql/database-querier'),
+    require('./api/task-logs/logs')
 ];
 
 class Bootstrap {

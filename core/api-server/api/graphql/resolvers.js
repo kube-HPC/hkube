@@ -1,7 +1,8 @@
+const { GraphQLScalarType } = require('graphql');
+const { withFilter } = require('graphql-subscriptions');
 const stateManager = require('../../lib/state/state-manager');
 const dbQueires = require('./database-querier');
-const { GraphQLScalarType } = require('graphql');
-const { withFilter } = require("graphql-subscriptions");
+const logsQueries = require('../task-logs/logs');
 class GraphqlResolvers {
     constructor() {
         this.ObjectScalarType = new GraphQLScalarType({
@@ -10,25 +11,22 @@ class GraphqlResolvers {
             parseValue: (value) => {
                 return typeof value === 'object' ? value
                     : typeof value === 'string' ? JSON.parse(value)
-                        : null
+                        : null;
             },
             serialize: (value) => {
                 return typeof value === 'object' ? value
                     : typeof value === 'string' ? JSON.parse(value)
-                        : null
+                        : null;
             },
             parseLiteral: (ast) => {
                 switch (ast.kind) {
-                    case Kind.STRING: return JSON.parse(ast.value)
-                    case Kind.OBJECT: throw new Error(`Not sure what to do with OBJECT for ObjectScalarType`)
-                    default: return null
+                    case Kind.STRING: return JSON.parse(ast.value);
+                    case Kind.OBJECT: throw new Error('Not sure what to do with OBJECT for ObjectScalarType');
+                    default: return null;
                 }
             }
-        })
-
+        });
     }
-
-
 
     async queryJobs(query) {
         const jobs = await dbQueires.getJobs(query || {});
@@ -40,31 +38,40 @@ class GraphqlResolvers {
     }
 
     async queryJob(jobId) {
-
-        const { result, ...job } = await stateManager.getJob(jobId);
+        const { result, ...job } = await stateManager.getJob({ jobId });
         return { ...job, key: job.jobId, results: result };
     }
+
     async queryAlgorithms() {
-        return await stateManager.getAlgorithms();
+        return stateManager.getAlgorithms();
     }
 
     async queryAlgorithmsByName(name) {
-        return await stateManager.getAlgorithm({ name });
+        return stateManager.getAlgorithm({ name });
     }
+
     async quesearchJobs(query) {
-        return await stateManager.getJobs().filter(job => {
+        return stateManager.getJobs().filter(job => {
             return job.name.includes(query) || job.pipeline.name.includes(query) || job.pipeline.experimentName.includes(query);
         });
     }
 
     async queryPipelines() {
-        return await dbQueires._getStoredPipelines()
+        return dbQueires._getStoredPipelines();
     }
+
     async queryPipelinesStats(pipelineName) {
-        return await dbQueires.getPipelinesStats();
+        return dbQueires.getPipelinesStats();
     }
+
     async queryAlgorithmBuilds(algorithmName) {
-        return await stateManager.getBuilds({ algorithmName });
+        return stateManager.getBuilds({ algorithmName });
+    }
+
+    async queryLogs(query) {
+        const { taskId, podName, source, nodeKind, logMode, pageNum, sort, limit } = query;
+        const logs = await logsQueries.getLogs({ taskId, podName, source, nodeKind, logMode, pageNum, sort, limit });
+        return logs;
     }
 
     async getDiscovery() {
@@ -75,7 +82,7 @@ class GraphqlResolvers {
     _getQueryResolvers() {
         return {
             jobsAggregated: async (parent, args, context, info) => {
-                const jobs = await this.queryJobs({ ...args })
+                const jobs = await this.queryJobs({ ...args });
                 return { jobs: jobs.jobs, cursor: jobs.cursor };
             },
             algorithms: () => this.queryAlgorithms(),
@@ -87,20 +94,21 @@ class GraphqlResolvers {
             },
             pipelines: () => this.queryPipelines(),
             algorithmBuilds: (parent, args, context, info) => {
-
-                return this.queryAlgorithmBuilds(args.algorithmName)
+                return this.queryAlgorithmBuilds(args.algorithmName);
             },
             pipelineStats: (parent, args, context, info) => {
-                return this.queryPipelinesStats()
+                return this.queryPipelinesStats();
             },
             job: (parent, args, context, info) => {
-                return this.queryJob(args.id)
+                return this.queryJob(args.id);
             },
             discovery: (parent, args, context, info) => {
-                return this.getDiscovery()
+                return this.getDiscovery();
+            },
+            logsByQuery: (parent, args, context, info) => {
+                return this.queryLogs({ ...args });
             }
-        }
-
+        };
     }
 
     _getMutationResolvers() {
@@ -111,7 +119,7 @@ class GraphqlResolvers {
         return {
             numberIncremented: {
                 subscribe: () => {
-                    return pubsub.asyncIterator(["NUMBER_INCREMENTED"])
+                    return pubsub.asyncIterator(['NUMBER_INCREMENTED']);
                 }
             },
             numberIncrementedOdd: {
@@ -120,31 +128,25 @@ class GraphqlResolvers {
                     (payload, variables) => {
                         // Only push an update if the comment is on
                         // the correct repository for this operation
-                        console.log(variables)
+                        console.log(variables);
                         return ((payload.numberIncrementedOdd % variables.number) === 0);
                     },
                 )
 
             }
 
-        }
+        };
     }
-    getResolvers() {
 
+    getResolvers() {
         return {
             Object: this.ObjectScalarType,
             Query: this._getQueryResolvers(),
             Subscription: this._getSubscriptionResolvers()
-        }
-
-
-
+        };
     }
 }
 module.exports = new GraphqlResolvers();
-
-
-
 
 // const resolvers = {
 //     Object: ObjectScalarType,

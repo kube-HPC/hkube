@@ -48,6 +48,24 @@ config.gatewayUrl = {
 
 config.addDefaultAlgorithms = process.env.ADD_DEFAULT_ALGORITHMS || true;
 
+config.elasticSearch = {
+    url: process.env.ELASTICSEARCH_SERVICE_URL || `http://elasticsearch-ingest.logging.svc.${config.clusterName}:9200`,
+    index: process.env.ELASTICSEARCH_LOGS_INDEX || 'logstash-*',
+    type: process.env.ELASTICSEARCH_LOGS_DOC_TYPE || '_doc'
+
+};
+
+config.kubernetes = {
+    isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
+    namespace: process.env.NAMESPACE || 'default',
+    version: '1.9'
+};
+
+config.logsView = {
+    format: process.env.LOGS_VIEW_FORMAT || 'json',
+    source: process.env.LOGS_VIEW_SOURCE || 'k8s'
+};
+
 config.swagger = {
     protocol: secured ? 'https' : 'http',
     host: process.env.BASE_URL_HOST || 'localhost',

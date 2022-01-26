@@ -11,7 +11,8 @@ const Components = {
     ALGORITHMS_SERVICE: 'Algorithm-Service',
     BUILDS_SERVICE: 'Builds-Service',
     GITHUB_WEBHOOK: 'Github-Webhook',
-    DB: 'DB'
+    DB: 'DB',
+    LOGS: 'logs'
 };
 
 module.exports = Components;
