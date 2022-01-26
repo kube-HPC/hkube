@@ -33,38 +33,39 @@ class Queue extends Events {
             return;
         }
         let data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
-      
-        if (!ordered) {
-          data = data.filter(job => job.next === undefined);
-          if (data?.length > 0) {
-            log.info(`recovering ${data.length} jobs from db`, { component });
-            data.forEach(q => {
-                concurrencyMap.checkConcurrencyLimit(q.pipeline);
-                this.enqueue({ jobId: q.jobId, pipeline: q.pipeline, tags: q.tags });
-            });
-        }
-        else {
-            data = data.filter(job => job.next !== undefined);
-            const orderedData = [];
-            let previous = 'FirstInLine';
-            data?.forEach(() => {
-                const item = data.find(job => job.next === previous);
-                previous = item.jobId;
-                orderedData.push(item);
-            });
 
-            if (orderedData.length > 0) {
-                orderedData.forEach(q => {
-                    const item = {
-                        ...q,
-                        score: 1,
-                        calculated: {
-                            latestScores: {}
-                        }
-                    };
-                    concurrencyMap.disableMaxExceeded(q.pipeline);
-                    this.queue.push(item);
+        if (!ordered) {
+            data = data.filter(job => job.next === undefined);
+            if (data?.length > 0) {
+                log.info(`recovering ${data.length} jobs from db`, { component });
+                data.forEach(q => {
+                    concurrencyMap.checkConcurrencyLimit(q.pipeline);
+                    this.enqueue({ jobId: q.jobId, pipeline: q.pipeline, tags: q.tags });
                 });
+            }
+            else {
+                data = data.filter(job => job.next !== undefined);
+                const orderedData = [];
+                let previous = 'FirstInLine';
+                data?.forEach(() => {
+                    const item = data.find(job => job.next === previous);
+                    previous = item.jobId;
+                    orderedData.push(item);
+                });
+
+                if (orderedData.length > 0) {
+                    orderedData.forEach(q => {
+                        const item = {
+                            ...q,
+                            score: 1,
+                            calculated: {
+                                latestScores: {}
+                            }
+                        };
+                        concurrencyMap.disableMaxExceeded(q.pipeline);
+                        this.queue.push(item);
+                    });
+                }
             }
         }
     }

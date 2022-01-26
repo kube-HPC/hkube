@@ -66,7 +66,7 @@ class JobProducer {
         this._isActive = false;
     }
 
-   async _updateState() {
+    async _updateState() {
         try {
             let data = queueRunner.queue.getQueue();
             let managedData = data.map(q => {
