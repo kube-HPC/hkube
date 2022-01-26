@@ -59,7 +59,7 @@ class DataStore extends EventEmitter {
         return this._db.jobs.updateStatus(options);
     }
 
-    setJobNext(jobId, next) {
+    async setJobNext(jobId, next) {
         return this._db.jobs.updateNext(jobId, next);
     }
 
