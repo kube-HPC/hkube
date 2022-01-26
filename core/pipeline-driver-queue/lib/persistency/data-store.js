@@ -26,7 +26,11 @@ class DataStore extends EventEmitter {
     }
 
     getJobs({ status }) {
-        return this._db.jobs.search({ pipelineStatus: status, fields: { jobId: true, pipeline: true } });
+        return this._db.jobs.search({
+            pipelineStatus: status,
+            sort: { 'pipeline.startTime': 'asc' },
+            fields: { jobId: true, pipeline: true }
+        });
     }
 
     getConcurrentActiveJobs() {
@@ -37,7 +41,6 @@ class DataStore extends EventEmitter {
             hasResult: false,
             fields: {
                 name: 'pipeline.name',
-                amount: 'pipeline.options.concurrentPipelines.amount',
             }
         });
     }

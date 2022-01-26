@@ -36,7 +36,7 @@ class Queue extends Events {
         if (data?.length > 0) {
             log.info(`recovering ${data.length} jobs from db`, { component });
             data.forEach(q => {
-                concurrencyMap.disableMaxExceeded(q.pipeline);
+                concurrencyMap.checkConcurrencyLimit(q.pipeline);
                 this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
             });
         }
@@ -142,11 +142,11 @@ class Queue extends Events {
     }
 
     getAvailableQueue() {
-        return this.queue.filter(q => !q.concurrency?.maxExceeded);
+        return this.queue.filter(q => !q.concurrency?.limit);
     }
 
-    getMaxExceededQueue() {
-        return this.queue.filter(q => q.concurrency?.maxExceeded);
+    getConcurrencyLimitQueue() {
+        return this.queue.filter(q => q.concurrency?.limit);
     }
 }
 

@@ -12,15 +12,20 @@ class ConcurrencyMap {
         });
     }
 
-    disableMaxExceeded(pipeline) {
-        if (pipeline.concurrency) {
-            let active = this._map[pipeline.name] || 0;
-            if (active < pipeline.concurrency.max) {
+    // disable concurrency limit while active is less than max limit
+    checkConcurrencyLimit(job) {
+        if (job.concurrency) {
+            let active = this._map[job.name] || 0;
+            if (active < job.concurrency.max) {
                 active += 1;
-                pipeline.concurrency.maxExceeded = false; // eslint-disable-line
-                this._map[pipeline.name] = active;
+                this.disableConcurrencyLimit(job);
+                this._map[job.name] = active;
             }
         }
+    }
+
+    disableConcurrencyLimit(job) {
+        job.concurrency.limit = false; // eslint-disable-line
     }
 }
 

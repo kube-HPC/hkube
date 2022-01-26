@@ -42,7 +42,7 @@ class ApiValidator {
     async validateConcurrentPipelines(pipeline, types) {
         let current;
         let max;
-        let maxExceeded;
+        let limit;
         if (types.includes(pipelineTypes.STORED) && pipeline.options?.concurrentPipelines) {
             const { experimentName, name: pipelineName } = pipeline;
             const { amount, rejectOnFailure } = pipeline.options.concurrentPipelines;
@@ -58,15 +58,15 @@ class ApiValidator {
                 if (rejectOnFailure) {
                     throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);
                 }
-                maxExceeded = true;
+                limit = true;
             }
             else {
-                maxExceeded = false;
+                limit = false;
             }
             current = result.length;
             max = amount;
         }
-        return { current, max, maxExceeded };
+        return { current, max, limit };
     }
 
     validateStopPipeline(pipeline) {

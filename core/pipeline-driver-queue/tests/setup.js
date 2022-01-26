@@ -11,6 +11,10 @@ before(async function () {
     await stateManager._etcd._client.client.delete().all();
     await stateManager._db.db.dropDatabase();
     await stateManager._db.init();
+
+    global.testParams = {
+        config
+    }
 });
 
 after(async () => {
