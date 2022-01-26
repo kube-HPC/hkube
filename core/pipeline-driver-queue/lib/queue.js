@@ -32,24 +32,19 @@ class Queue extends Events {
         if (!this._persistency) {
             return;
         }
+        let data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
+      
         if (!ordered) {
-            let data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
-            data = data.filter(job => {
-                  return job.next === undefined;
+          data = data.filter(job => job.next === undefined);
+          if (data?.length > 0) {
+            log.info(`recovering ${data.length} jobs from db`, { component });
+            data.forEach(q => {
+                concurrencyMap.checkConcurrencyLimit(q.pipeline);
+                this.enqueue({ jobId: q.jobId, pipeline: q.pipeline, tags: q.tags });
             });
-            if (data?.length > 0) {
-                log.info(`recovering ${data.length} jobs from db`, { component });
-                data.forEach(q => {
-                  concurrencyMap.disableMaxExceeded(q.pipeline);
-                  this.enqueue({ jobId: q.jobId, pipeline: q.pipeline, tags: q.tags });
-                });
-            }
         }
         else {
-            let data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
-            data = data.filter(job => {
-                return job.next !== undefined;
-            });
+            data = data.filter(job => job.next !== undefined);
             const orderedData = [];
             let previous = 'FirstInLine';
             data?.forEach(() => {
@@ -130,11 +125,11 @@ class Queue extends Events {
     }
 
     getAvailableQueue() {
-        return this.queue.filter(q => !q.concurrency?.maxExceeded);
+        return this.queue.filter(q => !q.concurrency?.limit);
     }
 
-    getMaxExceededQueue() {
-        return this.queue.filter(q => q.concurrency?.maxExceeded);
+    getConcurrencyLimitQueue() {
+        return this.queue.filter(q => q.concurrency?.limit);
     }
 }
 

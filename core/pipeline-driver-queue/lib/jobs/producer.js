@@ -27,12 +27,10 @@ class JobProducer {
             }
         });
         this._isActive = true;
-        this._redisQueue = this._producer._createQueue(this._jobType);
         this._updateStateInterval = options.updateStateInterval;
 
         this._producerEventRegistry();
-        const pendingAmount = await this._redisQueue.getWaitingCount();
-        this._isConsumerActive = pendingAmount === 0;
+        await this._updateIsConsumerActive();
         await this._buildConcurrencyJobs();
 
         queueRunner.queue.on(queueEvents.INSERT, () => {
@@ -42,6 +40,17 @@ class JobProducer {
         });
         await queueRunner.queue.persistencyLoad();
         await this._updateState();
+    }
+
+    async _updateIsConsumerActive() {
+        const pendingAmount = await this._getPendingAmount();
+        this._isConsumerActive = pendingAmount === 0;
+    }
+
+    async _getPendingAmount() {
+        const redisQueue = this._producer._createQueue(this._jobType);
+        const pendingAmount = await redisQueue.getWaitingCount();
+        return pendingAmount;
     }
 
     /**
@@ -94,10 +103,10 @@ class JobProducer {
             this._dequeueJob();
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.COMPLETED });
-            this._checkMaxExceeded(data.options.data);
+            this._checkConcurrencyLimit(data.options.data);
         }).on(Events.FAILED, (data) => {
             log.info(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: Events.FAILED });
-            this._checkMaxExceeded(data.options.data);
+            this._checkConcurrencyLimit(data.options.data);
         }).on(Events.STALLED, (data) => {
             log.warning(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.STALLED });
         }).on(Events.CRASHED, async (data) => {
@@ -110,11 +119,11 @@ class JobProducer {
     }
 
     /**
-             * This method executes if one of the following conditions are met:
-             * 1. active event.
-             * 2  completed active and there is a maxExceeded in queue.
-             * 3. new job enqueue and consumers are active.
-             */
+     * This method executes if one of the following conditions are met:
+     * 1. active event.
+     * 2  completed/failed job and there is a concurrency limit in queue.
+     * 3. new job enqueue and consumers are active.
+     */
     async _dequeueJob() {
         try {
             const preferredQueue = queueRunner.preferredQueue.getAvailableQueue();
@@ -133,18 +142,18 @@ class JobProducer {
         }
     }
 
-    _checkMaxExceeded({ experiment, pipeline }) {
+    _checkConcurrencyLimit({ experiment, pipeline }) {
         let job = queueRunner.preferredQueue
-            .getMaxExceededQueue()
+            .getConcurrencyLimitQueue()
             .find(q => q.experimentName === experiment && q.pipelineName === pipeline && q.concurrency);
         if (!job) {
             job = queueRunner.queue
-                .getMaxExceededQueue()
+                .getConcurrencyLimitQueue()
                 .find(q => q.experimentName === experiment && q.pipelineName === pipeline && q.concurrency);
         }
         if (job) {
-            log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
-            job.concurrency.maxExceeded = false;
+            log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked with concurrency limit`, { component });
+            concurrencyMap.disableConcurrencyLimit(job);
             if (this._isConsumerActive) {
                 this._dequeueJob();
             }
