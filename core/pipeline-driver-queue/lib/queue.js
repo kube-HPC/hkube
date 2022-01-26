@@ -55,15 +55,8 @@ class Queue extends Events {
 
                 if (orderedData.length > 0) {
                     orderedData.forEach(q => {
-                        const item = {
-                            ...q,
-                            score: 1,
-                            calculated: {
-                                latestScores: {}
-                            }
-                        };
-                        concurrencyMap.disableMaxExceeded(q.pipeline);
-                        this.queue.push(item);
+                        concurrencyMap.checkConcurrencyLimit(q.pipeline);
+                        this.enqueue({ jobId: q.jobId, score: 1, pipeline: q.pipeline, tags: q.tags }, false);
                     });
                 }
             }
@@ -90,12 +83,12 @@ class Queue extends Events {
         };
     }
 
-    enqueue({ jobId, score, pipeline, tags }) {
+    enqueue({ jobId, score, pipeline, tags }, emitEvent = true) {
         const job = this._pipelineToQueueAdapter({ jobId, score, pipeline, tags });
         this.queue.push(job);
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
         this.queue = orderby(this.queue, 'score', 'desc');
-        this.emit(queueEvents.INSERT, job);
+        emitEvent && this.emit(queueEvents.INSERT, job);
         log.info(`new job inserted to queue, queue size: ${this.size}`, { component });
     }
 
