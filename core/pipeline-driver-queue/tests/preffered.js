@@ -94,7 +94,7 @@ describe('Preferred Queue Tests', () => {
         it('preferred api', async () => {
             const jobs = [];
             jobs.push({ jobId: 'a', pipeline: 'p_a', });
-            jobs.push({ jobId: 'b', pipeline: { name: 'p_a' }, tags: ['tag1'], });
+            jobs.push({ jobId: 'b', pipeline: { name: 'p_a' , tags: ['tag1']}, });
             jobs.push({ jobId: 'c', pipeline: { name: 'p_a' } });
             queueRunner.queue.queue = [];
             queueRunner.preferredQueue.queue = [];

@@ -40,7 +40,7 @@ class Queue extends Events {
                 log.info(`recovering ${data.length} jobs from db`, { component });
                 data.forEach(q => {
                     concurrencyMap.checkConcurrencyLimit(q.pipeline);
-                    this.enqueue({ jobId: q.jobId, pipeline: q.pipeline, tags: q.tags });
+                    this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
                 });
             }
             else {
@@ -67,7 +67,7 @@ class Queue extends Events {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
     }
 
-    _pipelineToQueueAdapter({ jobId, score, pipeline, tags }) {
+    _pipelineToQueueAdapter({ jobId, score, pipeline }) {
         return {
             jobId,
             experimentName: pipeline.experimentName,
@@ -83,8 +83,8 @@ class Queue extends Events {
         };
     }
 
-    enqueue({ jobId, score, pipeline, tags }, { emitEvent = true, applyScore = true } = {}) {
-        const job = this._pipelineToQueueAdapter({ jobId, score, pipeline, tags });
+    enqueue({ jobId, score, pipeline }, { emitEvent = true, applyScore = true } = {}) {
+        const job = this._pipelineToQueueAdapter({ jobId, score, pipeline });
         this.queue.push(job);
         if (applyScore) {
             this.queue = this.queue.map(q => this.scoreHeuristic(q));

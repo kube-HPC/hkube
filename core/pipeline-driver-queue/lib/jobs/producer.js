@@ -39,6 +39,7 @@ class JobProducer {
             }
         });
         await queueRunner.queue.persistencyLoad();
+        await queueRunner.preferredQueue.persistencyLoad(true);
         await this._updateState();
     }
 
@@ -69,19 +70,14 @@ class JobProducer {
     async _updateState() {
         try {
             let data = queueRunner.queue.getQueue();
-            let managedData = data.map(q => {
-                const { calculated, ...rest } = q;
-                const result = { ...rest };
-                return result;
-            });
             data = queueRunner.preferredQueue.getQueue();
             const preferredData = data.map(q => {
                 const { calculated, ...rest } = q;
                 const result = { score: 1, ...rest };
                 return result;
             });
-            managedData = managedData.concat(preferredData);
-            await this._persistency.store(managedData, 'pipeline-driver');
+            data = data.concat(preferredData);
+            await this._persistency.store(data, 'pipeline-driver');
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);

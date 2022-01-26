@@ -52,7 +52,7 @@ class JobConsumer {
         try {
             const { jobId } = job.data;
             const jobData = await dataStore.getJob({ jobId });
-            const { status, pipeline, tags } = jobData || {};
+            const { status, pipeline } = jobData || {};
             if (!pipeline) {
                 throw new Error(`unable to find pipeline for job ${jobId}`);
             }
@@ -66,7 +66,7 @@ class JobConsumer {
                     const { current, max } = pipeline.concurrency;
                     log.warning(`job ${jobId} arrived with concurrency limit, ${current}/${max}`, { component });
                 }
-                this._queueJob({ jobId, pipeline, tags });
+                this._queueJob({ jobId, pipeline });
             }
         }
         catch (e) {

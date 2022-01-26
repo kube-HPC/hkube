@@ -16,12 +16,12 @@ describe.skip('Preferred and Managed', () => {
         let jobs;
         beforeEach(async () => {
             jobs = [];
-            jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 1, priority: 1 });
-            jobs.push({ jobId: 'b', tags: ['a', 'b'], pipeline: 'p_a', entranceTime: 2, priority: 2 });
+            jobs.push({ jobId: 'a', pipeline: { name: 'p_a' }, entranceTime: 1, priority: 1 });
+            jobs.push({ jobId: 'b', pipeline: { name: 'p_a', tags: ['a', 'b'], }, entranceTime: 2, priority: 2 });
             jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 3, priority: 3, });
-            jobs.push({ jobId: 'b_a', pipeline: 'p_b', entranceTime: 4, priority: 4, });
-            jobs.push({ jobId: 'b_b', pipeline: 'p_b', entranceTime: 5, priority: 5, });
-            jobs.push({ jobId: 'b_c', pipeline: 'p_b', entranceTime: 6, priority: 6 });
+            jobs.push({ jobId: 'b_a', pipeline: { name: 'p_b' }, entranceTime: 4, priority: 4, });
+            jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b' }, entranceTime: 5, priority: 5, });
+            jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b' }, entranceTime: 6, priority: 6 });
             jobs.map(job => queueRunner.queue.enqueue(job));
         });
         it('aggregation', async () => {
@@ -107,12 +107,12 @@ describe.skip('Preferred and Managed', () => {
 
         it('preferred aggregation', async () => {
             const jobs = [];
-            jobs.push({ jobId: 'a', pipeline: 'p_a', tags: ['a'], entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b', pipeline: 'p_b', tags: ['a'], entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'c', pipeline: 'p_a', tags: ['a'], entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_a', pipeline: 'p_a', tags: ['b'], entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_b', pipeline: 'p_b', tags: ['a', 'b'], entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_c', pipeline: 'p_b', tags: ['a'], entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'a', pipeline: { name: 'p_a', tags: ['a'] }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b', pipeline: { name: 'p_b', tags: ['a'] }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'c', pipeline: { name: 'p_a', tags: ['a'] }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_a', pipeline: { name: 'p_a', tags: ['b'] }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b', tags: ['a', 'b'] }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b', tags: ['a'] }, entranceTime: 10, calculated: { latestScores: [] } });
             jobs.map(job => queueRunner.queue.enqueue(job));
             preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
             preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
