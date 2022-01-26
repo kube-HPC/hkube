@@ -95,7 +95,7 @@ class ExecutionService {
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: extendedPipeline.name }, parent: parentSpan });
         try {
             validator.pipelines.validatePipelineNodes(extendedPipeline);
-            const maxExceeded = await validator.executions.validateConcurrentPipelines(extendedPipeline);
+            const concurrency = await validator.executions.validateConcurrentPipelines(extendedPipeline, types);
             extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(extendedPipeline);
             extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline, debugNode);
             extendedPipeline = await pipelineCreator.updateOutput(extendedPipeline, jobId);
@@ -121,7 +121,7 @@ class ExecutionService {
             extendedPipeline.flowInput = null;
             extendedPipeline.flowInputMetadata = pipeFlowInputMetadata;
             const lastRunResult = await this._getLastPipeline(extendedPipeline);
-            const pipelineObject = { ...extendedPipeline, maxExceeded, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
+            const pipelineObject = { ...extendedPipeline, concurrency, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
             const statusObject = { timestamp: Date.now(), pipeline: extendedPipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             const graph = pipelineCreator.createGraph({ jobId, pipeline: extendedPipeline, shouldValidateNodes });
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));

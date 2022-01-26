@@ -3,6 +3,7 @@ const orderby = require('lodash.orderby');
 const remove = require('lodash.remove');
 const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
+const concurrencyMap = require('./jobs/concurrency-map');
 const { queueEvents, componentName } = require('./consts');
 const component = componentName.QUEUE;
 
@@ -34,12 +35,13 @@ class Queue extends Events {
         if (!ordered) {
             let data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
             data = data.filter(job => {
-                return job.next === undefined;
+                  return job.next === undefined;
             });
             if (data?.length > 0) {
                 log.info(`recovering ${data.length} jobs from db`, { component });
                 data.forEach(q => {
-                    this.enqueue({ jobId: q.jobId, pipeline: q.pipeline, tags: q.tags });
+                  concurrencyMap.disableMaxExceeded(q.pipeline);
+                  this.enqueue({ jobId: q.jobId, pipeline: q.pipeline, tags: q.tags });
                 });
             }
         }
@@ -65,6 +67,7 @@ class Queue extends Events {
                             latestScores: {}
                         }
                     };
+                    concurrencyMap.disableMaxExceeded(q.pipeline);
                     this.queue.push(item);
                 });
             }
@@ -81,9 +84,9 @@ class Queue extends Events {
             experimentName: pipeline.experimentName,
             pipelineName: pipeline.name,
             priority: pipeline.priority,
-            maxExceeded: pipeline.maxExceeded,
+            concurrency: pipeline.concurrency,
             entranceTime: Date.now(),
-            tags,
+            tags: pipeline.tags || [],
             score,
             calculated: {
                 latestScores: {}
@@ -124,6 +127,14 @@ class Queue extends Events {
 
     getQueue(filter = () => true) {
         return this.queue.filter(filter);
+    }
+
+    getAvailableQueue() {
+        return this.queue.filter(q => !q.concurrency?.maxExceeded);
+    }
+
+    getMaxExceededQueue() {
+        return this.queue.filter(q => q.concurrency?.maxExceeded);
     }
 }
 

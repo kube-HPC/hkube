@@ -51,26 +51,27 @@ class JobConsumer {
         let error;
         try {
             const { jobId } = job.data;
-            await dataStore.setJobStatus({ jobId, status: pipelineStatuses.QUEUED });
             const jobData = await dataStore.getJob({ jobId });
             const { status, pipeline, tags } = jobData || {};
             if (!pipeline) {
                 throw new Error(`unable to find pipeline for job ${jobId}`);
             }
             if (status.status === pipelineStatuses.STOPPED || status.status === pipelineStatuses.PAUSED) {
-                log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
+                log.warning(`job arrived with state ${status.status} therefore will not added to queue ${jobId}`, { component });
                 this._stopJob(jobId, status.status);
             }
             else {
-                if (pipeline.maxExceeded) {
-                    log.warning(`job "${jobId}" arrived with maxExceeded flag`, { component });
+                await dataStore.setJobStatus({ jobId, status: pipelineStatuses.QUEUED });
+                if (pipeline.concurrency?.maxExceeded) {
+                    const { current, max } = pipeline.concurrency;
+                    log.warning(`job "${jobId}" arrived with maxExceeded flag, ${current}/${max}`, { component });
                 }
                 this._queueJob({ jobId, pipeline, tags });
             }
         }
         catch (e) {
             error = e.message;
-            log.error(e.message, { component }, e);
+            log.error(error, { component }, e);
         }
         finally {
             job.done(error);

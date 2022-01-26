@@ -23,8 +23,16 @@ class JobProducer {
             log.info(`${Events.ACTIVE} ${event.options.data.jobId}`, { component, jobId: event.options.data.jobId, status: Events.ACTIVE });
         }).on(Events.COMPLETED, (event) => {
             log.info(`${Events.COMPLETED} ${event.options.data.jobId}`, { component, jobId: event.options.data.jobId, status: Events.COMPLETED });
-        }).on(Events.FAILED, (event) => {
-            log.error(`${Events.FAILED} ${event.options.data.jobId}, ${event.error}`, { component, jobId: event.options.data.jobId, status: Events.FAILED });
+        }).on(Events.FAILED, async (event) => {
+            const { jobId } = event.options.data;
+            const { error } = event;
+            const status = pipelineStatuses.FAILED;
+            log.error(`${Events.FAILED} ${jobId}, ${error}`, { component, jobId, status: Events.FAILED });
+            const jobStatus = await stateManager.getStatus({ jobId: options.jobId });
+            if (jobStatus) {
+                await stateManager.updateJobStatus({ jobId, status, error, level: levels.ERROR.name });
+                await stateManager.updateJobResult({ jobId, status, error });
+            }
         }).on(Events.STALLED, (event) => {
             log.error(`${Events.STALLED} ${event.options.data.jobId}, ${event.error}`, { component, jobId: event.options.data.jobId, status: Events.STALLED });
         }).on(Events.CRASHED, async (data) => {

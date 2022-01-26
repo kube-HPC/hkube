@@ -28,6 +28,7 @@ class JobProducer extends EventEmitter {
     }
 
     async createJob({ jobId, pipeline, options, batch }) {
+        // TODO: Need to migrate tasks from ETCD to DB
         if (options.node.kind === nodeKind.DataSource) {
             const jobOptions = {
                 prefix: this._options.producerDataSources.prefix,

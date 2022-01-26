@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const Client = require('@hkube/etcd');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
+const { pipelineTypes, pipelineStatuses } = require('@hkube/consts');
 const component = require('../consts/component-name').DB;
 
 class DataStore extends EventEmitter {
@@ -28,16 +29,17 @@ class DataStore extends EventEmitter {
         return this._db.jobs.search({ pipelineStatus: status, fields: { jobId: true, pipeline: true } });
     }
 
-    getRunningJobs({ status }) {
+    getConcurrentActiveJobs() {
         return this._db.jobs.search({
-            pipelineStatus: status,
+            pipelineType: pipelineTypes.STORED,
+            pipelineStatus: pipelineStatuses.ACTIVE,
+            isConcurrencyReject: false,
             hasResult: false,
-            field: { jobId: true, pipeline: true, experiment: true },
+            fields: {
+                name: 'pipeline.name',
+                amount: 'pipeline.options.concurrentPipelines.amount',
+            }
         });
-    }
-
-    async getStoredPipelines({ pipelinesNames } = {}) {
-        return this._db.pipelines.search({ pipelinesNames });
     }
 
     storeQueue(options) {

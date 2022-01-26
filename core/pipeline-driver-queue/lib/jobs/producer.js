@@ -1,22 +1,19 @@
-const groupBy = require('lodash.groupby');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses, pipelineTypes } = require('@hkube/consts');
+const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
 const persistence = require('../persistency/persistency');
 const dataStore = require('../persistency/data-store');
 const queueRunner = require('../queue-runner');
+const concurrencyMap = require('./concurrency-map');
 
 class JobProducer {
     constructor() {
         this._isActive = false;
         this._isConsumerActive = false;
-        this._firstJobDequeue = false;
-        this._checkQueue = this._checkQueue.bind(this);
         this._updateState = this._updateState.bind(this);
-        this._checkConcurrencyJobsInterval = this._checkConcurrencyJobsInterval.bind(this);
     }
 
     async init(options) {
@@ -31,110 +28,36 @@ class JobProducer {
         });
         this._isActive = true;
         this._redisQueue = this._producer._createQueue(this._jobType);
-        this._checkQueueInterval = options.checkQueueInterval;
         this._updateStateInterval = options.updateStateInterval;
 
         this._producerEventRegistry();
-        this._checkQueue();
-        this._checkConcurrencyJobsInterval();
-        this._updateState();
+        const pendingAmount = await this._redisQueue.getWaitingCount();
+        this._isConsumerActive = pendingAmount === 0;
+        await this._buildConcurrencyJobs();
 
         queueRunner.queue.on(queueEvents.INSERT, () => {
             if (this._isConsumerActive) {
                 this._dequeueJob();
             }
         });
-    }
-
-    async _checkConcurrencyJobsInterval() {
-        try {
-            await this._checkConcurrencyJobs();
-        }
-        catch (e) {
-            log.throttle.error(e.message, { component }, e);
-        }
-        finally {
-            setTimeout(this._checkConcurrencyJobsInterval, this._checkConcurrencyQueueInterval);
-        }
+        await queueRunner.queue.persistencyLoad();
+        await this._updateState();
     }
 
     /**
-     * TODO
-     * 1. check if there are any jobs in queue with concurrency limit
-     * 2. get from db only jobs that are from type stored and active
-     * 3. get stored pipelines list
-     * 4. check the concurrent amount against the active amount
-     * 5. mark the delta jobs maxExceeded property as false
-     *
+     * 1. get jobs that are from: type stored, active and has concurrency
+     * 2. build map of jobs <pipelineName, count>
      */
-    async _checkConcurrencyJobs() {
-        let canceledJobs = 0;
-        const queue = queueRunner.queue.getQueue(q => q.maxExceeded);
-        if (queue.length === 0) {
-            return canceledJobs;
-        }
-        const activeJobs = await persistence.getActiveJobs();
-        const activePipelines = activeJobs.filter(r => r.status === pipelineStatuses.ACTIVE && r.types.includes(pipelineTypes.STORED));
-        const groupQueue = groupBy(queue, 'pipelineName', 'experimentName');
-        const groupJobs = groupBy(activePipelines, 'pipeline', 'experiment');
-        const pipelinesNames = Object.keys(groupQueue);
-        const storedPipelines = await persistence.getStoredPipelines({ pipelinesNames });
-        const pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.rejectOnFailure === false);
-        pipelines.forEach((p) => {
-            const jobsByPipeline = groupJobs[p.name];
-            const queueByPipeline = groupQueue[p.name];
-            const totalRunning = (jobsByPipeline && jobsByPipeline.length) || 0;
-            const required = p.options.concurrentPipelines.amount - totalRunning;
-            if (required > 0) {
-                const maxExceeded = queueByPipeline.slice(0, required);
-                maxExceeded.forEach((job) => {
-                    canceledJobs += 1;
-                    this._checkMaxExceeded({ experiment: job.experimentName, pipeline: job.pipelineName });
-                });
-            }
-        });
-        return canceledJobs;
+    async _buildConcurrencyJobs() {
+        const activeJobs = await dataStore.getConcurrentActiveJobs();
+        concurrencyMap.mapActiveJobs(activeJobs);
     }
 
     shutdown() {
         this._isActive = false;
     }
 
-    async _checkQueue() {
-        try {
-            const preferredQueue = queueRunner.preferredQueue.getQueue(q => !q.maxExceeded);
-            const pendingAmount = await this._redisQueue.getWaitingCount();
-            if (preferredQueue.length > 0) {
-                if (pendingAmount === 0) {
-                    // create job first time only, then rely on 3 events (active/completed/enqueue)
-                    this._firstJobDequeue = true;
-                    log.info('firstJobDequeue', { component });
-                    await this.createJob(preferredQueue[0], queueRunner.preferredQueue);
-                }
-                else {
-                    const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
-                    if (queue.length > 0) {
-                        if (pendingAmount === 0) {
-                            // create job first time only, then rely on 3 events (active/completed/enqueue)
-                            this._firstJobDequeue = true;
-                            log.info('firstJobDequeue', { component });
-                            await this.createJob(queue[0], queueRunner.queue);
-                        }
-                    }
-                }
-            }
-        }
-        catch (error) {
-            log.throttle.error(error.message, { component }, error);
-        }
-        finally {
-            if (!this._firstJobDequeue) {
-                setTimeout(this._checkQueue, this._checkQueueInterval);
-            }
-        }
-    }
-
-    async _updateState() {
+   async _updateState() {
         try {
             let data = queueRunner.queue.getQueue();
             let managedData = data.map(q => {
@@ -194,13 +117,12 @@ class JobProducer {
              */
     async _dequeueJob() {
         try {
-            const preferredQueue = queueRunner.preferredQueue.getQueue(q => !q.maxExceeded);
-
+            const preferredQueue = queueRunner.preferredQueue.getAvailableQueue();
             if (preferredQueue.length > 0) {
                 await this.createJob(preferredQueue[0], queueRunner.preferredQueue);
             }
             else {
-                const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+                const queue = queueRunner.queue.getAvailableQueue();
                 if (queue.length > 0) {
                     await this.createJob(queue[0], queueRunner.queue);
                 }
@@ -213,16 +135,16 @@ class JobProducer {
 
     _checkMaxExceeded({ experiment, pipeline }) {
         let job = queueRunner.preferredQueue
-            .getQueue(q => q.maxExceeded)
-            .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+            .getMaxExceededQueue()
+            .find(q => q.experimentName === experiment && q.pipelineName === pipeline && q.concurrency);
         if (!job) {
             job = queueRunner.queue
-                .getQueue(q => q.maxExceeded)
-                .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+                .getMaxExceededQueue()
+                .find(q => q.experimentName === experiment && q.pipelineName === pipeline && q.concurrency);
         }
         if (job) {
             log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
-            job.maxExceeded = false;
+            job.concurrency.maxExceeded = false;
             if (this._isConsumerActive) {
                 this._dequeueJob();
             }
@@ -237,7 +159,8 @@ class JobProducer {
                 data: {
                     jobId: pipeline.jobId,
                     pipeline: pipeline.pipelineName,
-                    experiment: pipeline.experimentName
+                    experiment: pipeline.experimentName,
+                    concurrency: pipeline.concurrency
                 }
             },
             queue: {
@@ -252,6 +175,7 @@ class JobProducer {
         };
     }
 
+    // TODO Handle case when status changed to dequeued and job didn’t sent to Redis
     async createJob(job, queue) {
         queue.dequeue(job);
         log.debug(`creating new job ${job.jobId}, calculated score: ${job.score}`, { component });
