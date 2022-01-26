@@ -56,7 +56,7 @@ class Queue extends Events {
                 if (orderedData.length > 0) {
                     orderedData.forEach(q => {
                         concurrencyMap.checkConcurrencyLimit(q.pipeline);
-                        this.enqueue({ jobId: q.jobId, score: 1, pipeline: q.pipeline, tags: q.tags }, false);
+                        this.enqueue({ jobId: q.jobId, score: 1, pipeline: q.pipeline, tags: q.tags }, { emitEvent: false, applyScore: false });
                     });
                 }
             }
@@ -83,12 +83,16 @@ class Queue extends Events {
         };
     }
 
-    enqueue({ jobId, score, pipeline, tags }, emitEvent = true) {
+    enqueue({ jobId, score, pipeline, tags }, { emitEvent = true, applyScore = true } = {}) {
         const job = this._pipelineToQueueAdapter({ jobId, score, pipeline, tags });
         this.queue.push(job);
-        this.queue = this.queue.map(q => this.scoreHeuristic(q));
-        this.queue = orderby(this.queue, 'score', 'desc');
-        emitEvent && this.emit(queueEvents.INSERT, job);
+        if (applyScore) {
+            this.queue = this.queue.map(q => this.scoreHeuristic(q));
+            this.queue = orderby(this.queue, 'score', 'desc');
+        }
+        if (emitEvent) {
+            this.emit(queueEvents.INSERT, job);
+        }
         log.info(`new job inserted to queue, queue size: ${this.size}`, { component });
     }
 
