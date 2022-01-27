@@ -85,7 +85,8 @@ class JobConsumer {
     }
 
     _queueJob({ jobId, pipeline }) {
-        queueRunner.queue.enqueue({ jobId, pipeline });
+        const job = queueRunner.queue.pipelineToQueueAdapter({ jobId, pipeline });
+        queueRunner.queue.enqueue(job);
     }
 }
 

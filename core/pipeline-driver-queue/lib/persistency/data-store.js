@@ -29,7 +29,7 @@ class DataStore extends EventEmitter {
         return this._db.jobs.search({
             pipelineStatus: status,
             sort: { 'pipeline.startTime': 'asc' },
-            fields: { jobId: true, pipeline: true }
+            fields: { jobId: true, pipeline: true, next: true }
         });
     }
 
@@ -57,6 +57,10 @@ class DataStore extends EventEmitter {
 
     setJobStatus(options) {
         return this._db.jobs.updateStatus(options);
+    }
+
+    async setJobNext(jobId, next) {
+        return this._db.jobs.updateNext(jobId, next);
     }
 
     setJobResults(options) {

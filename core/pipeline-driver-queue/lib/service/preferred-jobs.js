@@ -3,6 +3,7 @@ const queueRunner = require('../queue-runner');
 const validator = require('../validation');
 const InvalidDataError = require('../errors/InvalidDataError');
 const PagingBase = require('./pagingBase');
+const dataStore = require('../persistency/data-store');
 class PreferredJobs extends PagingBase {
     getPreferredJobsList() {
         return queueRunner.preferredQueue.queue.map(job => {
@@ -70,7 +71,8 @@ class PreferredJobs extends PagingBase {
         const deletedJobs = jobIds.map(jobId => {
             const deletedArr = queueRunner.preferredQueue.dequeue({ jobId });
             if (deletedArr.length > 0) {
-                queueRunner.queue.enqueue(deletedArr[0]);
+                const job = deletedArr[0];
+                queueRunner.queue.enqueue(job);
             }
             return deletedArr.length > 0 ? deletedArr[0] : null;
         }).filter(job => job !== null);
@@ -85,7 +87,7 @@ class PreferredJobs extends PagingBase {
             return job.pipelineName === pipelineName;
         }
         if (tag) {
-            return job.tags.includes(tag);
+            return job.tags?.includes(tag);
         }
         return false;
     }
@@ -116,19 +118,28 @@ class PreferredJobs extends PagingBase {
         return index;
     }
 
-    addPreferredJobs(addedJobs) {
+    async addPreferredJobs(addedJobs) {
         validator.preference.validatePreferenceRequest(addedJobs);
         const { jobs, position, query } = addedJobs;
         const { tag, pipelineName, jobId } = query || {};
         const index = this.getIndex(position, tag, pipelineName, jobId);
         const allDequeued = [];
-        jobs.reverse().forEach(id => {
+        await Promise.all(jobs.reverse().map(async id => {
             const dequeued = queueRunner.queue.dequeue({ jobId: id });
             if (dequeued.length > 0) {
                 allDequeued.push(dequeued[0]);
-                queueRunner.preferredQueue.queue.splice(index, 0, dequeued[0]);
+                let prevJob = 'FirstInLine';
+                if (index > 0) {
+                    prevJob = queueRunner.preferredQueue.queue[index - 1].jobId;
+                }
+                await dataStore.setJobNext(dequeued[0].jobId, prevJob);
+                if (queueRunner.preferredQueue.queue.length > index) {
+                    await dataStore.setJobNext(queueRunner.preferredQueue.queue[index].jobId, dequeued[0].jobId);
+                }
+                queueRunner.preferredQueue.queue.splice(index, 0, { ...dequeued[0], score: 1 });
             }
-        });
+            return id;
+        }));
         if (allDequeued.length === 0) {
             throw new InvalidDataError('None of the jobs exist in the general queue');
         }

@@ -5,6 +5,8 @@ let config;
 before(async function () {
     this.timeout(15000);
     const bootstrap = require('../bootstrap');
+    producer = require('../lib/jobs/producer');
+    producer._firstJobDequeue = true;
     config = await bootstrap.init();
     const redis = Factory.getClient(config.redis);
     await redis.flushall();

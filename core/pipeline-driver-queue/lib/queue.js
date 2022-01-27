@@ -1,7 +1,6 @@
 const Events = require('events');
 const orderby = require('lodash.orderby');
 const remove = require('lodash.remove');
-const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const concurrencyMap = require('./jobs/concurrency-map');
 const { queueEvents, componentName } = require('./consts');
@@ -28,69 +27,53 @@ class Queue extends Events {
         await this.persistencyStore({ data: this.queue, pendingAmount });
     }
 
-    async persistencyLoad() {
-        if (!this._persistency) {
-            return;
+    persistencyLoad(jobs, ordered) {
+        if (ordered) {
+            this._persistencyLoadOrdered(jobs);
         }
-        const data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
+        else {
+            this._persistencyLoad(jobs);
+        }
+    }
+
+    _persistencyLoad(jobs) {
+        const data = jobs.filter(job => job.next === undefined);
         if (data?.length > 0) {
             log.info(`recovering ${data.length} jobs from db`, { component });
             data.forEach(q => {
                 concurrencyMap.checkConcurrencyLimit(q.pipeline);
-                this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
+                const job = this.pipelineToQueueAdapter({ jobId: q.jobId, pipeline: q.pipeline });
+                this.enqueue(job);
             });
         }
     }
 
-    // TODO
-    async persistencyLoadXXX(staticOrder = false) {
-        const data = await this._persistency.get(this._name);
+    _persistencyLoadOrdered(jobs) {
+        const data = jobs.filter(job => job.next !== undefined);
         const orderedData = [];
         let previous = 'FirstInLine';
         data?.forEach(() => {
             const item = data.find(job => job.next === previous);
-            previous = item.jobId;
-            orderedData.push(item);
+            if (item) {
+                previous = item.jobId;
+                orderedData.push(item);
+            }
         });
 
         if (orderedData.length > 0) {
             orderedData.forEach(q => {
-                const item = {
-                    ...q,
-                    calculated: {
-                        latestScores: {}
-                    }
-                };
-                if (staticOrder) {
-                    this.queue.push(item);
-                }
-                else {
-                    this.enqueue(item);
-                }
+                concurrencyMap.checkConcurrencyLimit(q.pipeline);
+                const job = this.pipelineToQueueAdapter({ jobId: q.jobId, score: 1, pipeline: q.pipeline });
+                this.enqueue(job, { emitEvent: false, applyScore: false });
             });
         }
-    }
-
-    async persistenceStore() {
-        const data = this.getQueue();
-        if (!this._persistency || !data) {
-            return;
-        }
-        let previous = 'FirstInLine';
-        const mapData = data.map(q => {
-            const { calculated, ...rest } = q;
-            const result = { ...rest, next: previous };
-            previous = result.jobId;
-            return result;
-        });
-        await this._persistency.store(mapData, this._name);
     }
 
     updateHeuristic(scoreHeuristic) {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
     }
 
-    _pipelineToQueueAdapter({ jobId, score, pipeline }) {
+    pipelineToQueueAdapter({ jobId, score, pipeline }) {
         return {
             jobId,
             experimentName: pipeline.experimentName,
@@ -106,12 +89,15 @@ class Queue extends Events {
         };
     }
 
-    enqueue({ jobId, score, pipeline }) {
-        const job = this._pipelineToQueueAdapter({ jobId, score, pipeline });
+    enqueue(job, { emitEvent = true, applyScore = true } = {}) {
         this.queue.push(job);
-        this.queue = this.queue.map(q => this.scoreHeuristic(q));
-        this.queue = orderby(this.queue, 'score', 'desc');
-        this.emit(queueEvents.INSERT, job);
+        if (applyScore) {
+            this.queue = this.queue.map(q => this.scoreHeuristic(q));
+            this.queue = orderby(this.queue, 'score', 'desc');
+        }
+        if (emitEvent) {
+            this.emit(queueEvents.INSERT, job);
+        }
         log.info(`new job inserted to queue, queue size: ${this.size}`, { component });
     }
 

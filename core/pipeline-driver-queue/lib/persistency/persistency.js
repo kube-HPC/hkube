@@ -1,6 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const scoring = require('./scoring');
-const dataStore = require('./data-store');
 const component = require('../consts/component-name').PERSISTENCY;
 
 const LOG_TOPICS = {
@@ -12,21 +11,18 @@ const LOG_TOPICS = {
 class Persistency {
     init(options) {
         this._maxScoringSize = options.scoring.maxSize;
+        this._storeType = options.persistence.type;
     }
 
-    async store(data, queueName) {
+    async store(data) {
         await scoring.store({
-            key: queueName,
+            key: this._storeType,
             data,
             maxSize: this._maxScoringSize,
             onStart: (...args) => this._onStartScoring(...args),
             onEnd: (...args) => this._onEndScoring(...args),
             onError: (...args) => this._onErrorScoring(...args)
         });
-    }
-
-    getJobs({ status }) {
-        return dataStore.getJobs({ status });
     }
 
     _onStartScoring({ key, length }) {
