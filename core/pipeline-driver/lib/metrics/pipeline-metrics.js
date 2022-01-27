@@ -10,11 +10,15 @@ class PipelineMetrics {
             buckets: utils.arithmatcSequence(30, 0, 2)
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
-
-        metrics.addGaugeMeasure({
-            name: metricsNames.pipelines_progress,
-            description: 'pipelines progress',
-            labels: ['pipeline_name', 'jobId', 'status'],
+        metrics.addCounterMeasure({
+            name: metricsNames.pipeline_started,
+            description: 'Number of times the pipeline has started',
+            labels: ['pipeline_name'],
+        });
+        metrics.addCounterMeasure({
+            name: metricsNames.pipeline_ended,
+            description: 'Number of times the pipeline has ended',
+            labels: ['pipeline_name', 'status'],
         });
     }
 
@@ -23,6 +27,11 @@ class PipelineMetrics {
         if (!jobId || !pipeline) {
             return;
         }
+        metrics.get(metricsNames.pipeline_started).inc({
+            labelValues: {
+                pipeline_name: pipeline,
+            }
+        });
         metrics.get(metricsNames.pipelines_net).start({
             id: jobId,
             labelValues: {
@@ -41,6 +50,12 @@ class PipelineMetrics {
         if (!jobId || !pipeline) {
             return;
         }
+        metrics.get(metricsNames.pipeline_ended).inc({
+            labelValues: {
+                pipeline_name: pipeline,
+                status
+            }
+        });
         metrics.get(metricsNames.pipelines_net).end({
             id: jobId,
             labelValues: {
@@ -49,25 +64,11 @@ class PipelineMetrics {
             }
         });
 
-        this.setProgressMetric(options);
-
         const topSpan = tracer.topSpan(jobId);
         if (topSpan) {
             topSpan.addTag({ status });
             topSpan.finish();
         }
-    }
-
-    setProgressMetric(options) {
-        const { jobId, pipeline, progress, status } = options;
-        metrics.get(metricsNames.pipelines_progress).set({
-            value: progress,
-            labelValues: {
-                status,
-                jobId,
-                pipeline_name: pipeline
-            }
-        });
     }
 }
 

@@ -165,6 +165,9 @@ class TaskRunner extends EventEmitter {
             if (shouldStop) {
                 await this._stopPipeline(error, nodeName);
             }
+            else if (this._jobStatus === pipelineStatuses.STOPPED) {
+                pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, status: pipelineStatuses.STOPPED });
+            }
         }
         catch (e) {
             log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
@@ -727,7 +730,6 @@ class TaskRunner extends EventEmitter {
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
         this._boards.update(task);
-        pipelineMetrics.setProgressMetric({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status: taskStatuses.ACTIVE });
     }
 
     _updateTaskState(taskId, task) {

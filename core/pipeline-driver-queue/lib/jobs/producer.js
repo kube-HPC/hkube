@@ -17,6 +17,8 @@ class JobProducer {
     async init(options) {
         const { jobType, ...producer } = options.producer;
         this._jobType = jobType;
+        this._prefix = options.producer.prefix;
+        this.redisPrefix = `${this._prefix}:${this._jobType}`;
         this._producer = new Producer({
             setting: {
                 tracer,
@@ -89,10 +91,10 @@ class JobProducer {
             this._dequeueJobInternal();
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.COMPLETED });
-            this._concurrencyHandler._checkMaxExceeded(data.options.data);
+            this._concurrencyHandler._checkMaxExceeded({ pipelineName: data.options.data.pipeline, experimentName: data.options.data.experiment });
         }).on(Events.FAILED, (data) => {
             log.info(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: Events.FAILED });
-            this._concurrencyHandler._checkMaxExceeded(data.options.data);
+            this._concurrencyHandler._checkMaxExceeded({ pipelineName: data.options.data.pipeline, experimentName: data.options.data.experiment });
         }).on(Events.STALLED, (data) => {
             log.warning(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.STALLED });
         });
@@ -104,11 +106,16 @@ class JobProducer {
      * 2  completed active and there is a maxExceeded in queue.
      * 3. new job enqueue and consumers are active.
      */
-    async _dequeueJobInternal() {
+    async _dequeueJobInternal(jobId) {
         try {
-            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
-            if (queue.length > 0) {
-                await this.createJob({ jobId: queue[0].jobId });
+            if (jobId) {
+                await this.createJob({ jobId });
+            }
+            else {
+                const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+                if (queue.length > 0) {
+                    await this.createJob({ jobId: queue[0].jobId });
+                }
             }
         }
         catch (error) {
@@ -139,10 +146,14 @@ class JobProducer {
         };
     }
 
-    async dequeueJob() {
+    async dequeueJob(jobId) {
         if (this._isConsumerActive) {
-            this._dequeueJobInternal();
+            await this._dequeueJobInternal(jobId);
         }
+    }
+
+    getWaitingCount() {
+        return this._redisQueue.getWaitingCount();
     }
 
     // we only want to call done after finish with job
@@ -154,7 +165,7 @@ class JobProducer {
         }
         this._concurrencyHandler.updateActiveJobs(job);
 
-        log.debug(`creating new job ${jobId}, calculated score: ${job.score}`, { component });
+        log.info(`creating new job ${jobId}`, { component });
         const jobData = this._pipelineToJob(job);
         await this._producer.createJob(jobData);
         job.done && job.done();

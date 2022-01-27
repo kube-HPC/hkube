@@ -67,7 +67,7 @@ class Queue extends Events {
         const job = this._remove({ jobId });
         if (job) {
             this.emit(queueEvents.POP, job);
-            log.info(`job pop from queue, queue size: ${this.size}`, { component });
+            log.info(`job ${jobId} pop from queue, queue size: ${this.size}`, { component });
         }
         return job;
     }
@@ -76,7 +76,7 @@ class Queue extends Events {
         const job = this._remove({ jobId });
         if (job) {
             this.emit(queueEvents.REMOVE, job);
-            log.info(`job removed from queue, queue size: ${this.size}`, { component });
+            log.info(`job ${jobId} removed from queue, queue size: ${this.size}`, { component });
         }
         return job;
     }
