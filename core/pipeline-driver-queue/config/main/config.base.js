@@ -8,6 +8,7 @@ config.serviceName = packageJson.name;
 const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
+config.updateStateInterval = process.env.UPDATE_STATE_INTERVAL || 5000;
 
 config.rest = {
     port: formatter.parseInt(process.env.REST_PORT, 7100),
@@ -43,7 +44,6 @@ config.db = {
     }
 };
 
-
 config.consumer = {
     prefix: 'pipeline-driver-queue',
     jobType: 'pipeline-job',
@@ -59,10 +59,6 @@ config.producer = {
 config.persistence = {
     type: 'pipeline-driver'
 };
-
-config.checkQueueInterval = process.env.CHECK_QUEUE_INTERVAL || 500;
-config.updateStateInterval = process.env.UPDATE_STATE_INTERVAL || 5000;
-config.checkConcurrencyQueueInterval = process.env.CHECK_CONCURRENCY_INTERVAL || 5000;
 
 config.heuristicsWeights = {
     [heuristicsNames.PRIORITY]: 0.5,
