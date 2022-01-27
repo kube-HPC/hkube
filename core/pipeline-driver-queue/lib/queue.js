@@ -1,7 +1,6 @@
 const Events = require('events');
 const orderby = require('lodash.orderby');
 const remove = require('lodash.remove');
-const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const concurrencyMap = require('./jobs/concurrency-map');
 const { queueEvents, componentName } = require('./consts');
@@ -28,38 +27,43 @@ class Queue extends Events {
         await this.persistencyStore({ data: this.queue, pendingAmount });
     }
 
-    async persistencyLoad(ordered) {
-        if (!this._persistency) {
-            return;
+    persistencyLoad(jobs, ordered) {
+        if (ordered) {
+            this._persistencyLoadOrdered(jobs);
         }
-        let data = await this._persistency.getJobs({ status: pipelineStatuses.QUEUED });
+        else {
+            this._persistencyLoad(jobs);
+        }
+    }
 
-        if (!ordered) {
-            data = data.filter(job => job.next === undefined);
-            if (data?.length > 0) {
-                log.info(`recovering ${data.length} jobs from db`, { component });
-                data.forEach(q => {
-                    concurrencyMap.checkConcurrencyLimit(q.pipeline);
-                    this.enqueue({ jobId: q.jobId, pipeline: q.pipeline });
-                });
-            }
-            else {
-                data = data.filter(job => job.next !== undefined);
-                const orderedData = [];
-                let previous = 'FirstInLine';
-                data?.forEach(() => {
-                    const item = data.find(job => job.next === previous);
-                    previous = item.jobId;
-                    orderedData.push(item);
-                });
+    _persistencyLoad(jobs) {
+        const data = jobs.filter(job => job.next === undefined);
+        if (data?.length > 0) {
+            log.info(`recovering ${data.length} jobs from db`, { component });
+            data.forEach(q => {
+                concurrencyMap.checkConcurrencyLimit(q.pipeline);
+                const job = this.pipelineToQueueAdapter({ jobId: q.jobId, pipeline: q.pipeline });
+                this.enqueue(job);
+            });
+        }
+    }
 
-                if (orderedData.length > 0) {
-                    orderedData.forEach(q => {
-                        concurrencyMap.checkConcurrencyLimit(q.pipeline);
-                        this.enqueue({ jobId: q.jobId, score: 1, pipeline: q.pipeline, tags: q.tags }, { emitEvent: false, applyScore: false });
-                    });
-                }
-            }
+    _persistencyLoadOrdered(jobs) {
+        const data = jobs.filter(job => job.next !== undefined);
+        const orderedData = [];
+        let previous = 'FirstInLine';
+        data?.forEach(() => {
+            const item = data.find(job => job.next === previous);
+            previous = item.jobId;
+            orderedData.push(item);
+        });
+
+        if (orderedData.length > 0) {
+            orderedData.forEach(q => {
+                concurrencyMap.checkConcurrencyLimit(q.pipeline);
+                const job = this.pipelineToQueueAdapter({ jobId: q.jobId, score: 1, pipeline: q.pipeline });
+                this.enqueue(job, { emitEvent: false, applyScore: false });
+            });
         }
     }
 
@@ -67,7 +71,7 @@ class Queue extends Events {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
     }
 
-    _pipelineToQueueAdapter({ jobId, score, pipeline }) {
+    pipelineToQueueAdapter({ jobId, score, pipeline }) {
         return {
             jobId,
             experimentName: pipeline.experimentName,
@@ -83,8 +87,7 @@ class Queue extends Events {
         };
     }
 
-    enqueue({ jobId, score, pipeline }, { emitEvent = true, applyScore = true } = {}) {
-        const job = this._pipelineToQueueAdapter({ jobId, score, pipeline });
+    enqueue(job, { emitEvent = true, applyScore = true } = {}) {
         this.queue.push(job);
         if (applyScore) {
             this.queue = this.queue.map(q => this.scoreHeuristic(q));

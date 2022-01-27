@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { generateArr } = require('./stub/stub');
+const { generateArr, stubTemplate } = require('./stub/stub');
 const { semaphore } = require('await-done');
 const configIt = require('@hkube/config');
 const { main: config } = configIt.load();
@@ -15,7 +15,6 @@ let preferredService;
 let queueRunner;
 let producerLib;
 let Queue;
-let producer;
 
 describe('Preferred Queue Tests', () => {
     before(async () => {
@@ -38,12 +37,12 @@ describe('Preferred Queue Tests', () => {
     describe('preferred persistency tests', () => {
         it('persistent load', async () => {
             const jobs = [];
-            jobs.push({ jobId: 'a', pipeline: { name: 'p_a' } });
-            jobs.push({ jobId: 'b', pipeline: { name: 'p_a' }, });
-            jobs.push({ jobId: 'c', pipeline: { name: 'p_a' }, });
-            jobs.push({ jobId: 'b_a', pipeline: { name: 'p_b' }, });
-            jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b' }, });
-            jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b' }, });
+            jobs.push({ jobId: 'a', pipelineName: 'p_a' });
+            jobs.push({ jobId: 'b', pipelineName: 'p_a' });
+            jobs.push({ jobId: 'c', pipelineName: 'p_a' });
+            jobs.push({ jobId: 'b_a', pipelineName: 'p_b' });
+            jobs.push({ jobId: 'b_b', pipelineName: 'p_b' });
+            jobs.push({ jobId: 'b_c', pipelineName: 'p_b' });
             const pipeline = {
                 name: 'test',
                 experimentName: 'test',
@@ -54,6 +53,7 @@ describe('Preferred Queue Tests', () => {
             const count = 50;
             await Promise.all(jobs.map((job) => dataStore.createJob({ jobId: job.jobId, pipeline, status })));
             await queueRunner.queue.persistencyLoad();
+            // TODO: these functions should have await
             preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'first' });
             preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
             preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
@@ -72,15 +72,16 @@ describe('Preferred Queue Tests', () => {
     });
 
     describe('preferred tests', () => {
-        it('preferred order', async () => {
+        it.only('preferred order', async () => {
             const jobs = [];
-            jobs.push({ jobId: 'a', pipeline: { name: 'p_a' } });
-            jobs.push({ jobId: 'b', pipeline: { name: 'p_a' }, });
-            jobs.push({ jobId: 'c', pipeline: { name: 'p_a' }, });
-            jobs.push({ jobId: 'b_a', pipeline: { name: 'p_b' }, });
-            jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b' }, });
-            jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b' }, });
-            jobs.map(job => queueRunner.queue.enqueue(job));
+            jobs.push({ jobId: 'a', pipelineName: 'p_a' });
+            jobs.push({ jobId: 'b', pipelineName: 'p_a' });
+            jobs.push({ jobId: 'c', pipelineName: 'p_a' });
+            jobs.push({ jobId: 'b_a', pipelineName: 'p_b' });
+            jobs.push({ jobId: 'b_b', pipelineName: 'p_b' });
+            jobs.push({ jobId: 'b_c', pipelineName: 'p_b' });
+            jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
+            // TODO: these functions should have await
             preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
             preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
             preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
@@ -93,12 +94,12 @@ describe('Preferred Queue Tests', () => {
     describe('preferred api', () => {
         it('preferred api', async () => {
             const jobs = [];
-            jobs.push({ jobId: 'a', pipeline: 'p_a', });
-            jobs.push({ jobId: 'b', pipeline: { name: 'p_a' , tags: ['tag1']}, });
-            jobs.push({ jobId: 'c', pipeline: { name: 'p_a' } });
+            jobs.push({ jobId: 'a', pipeline: 'p_a' });
+            jobs.push({ jobId: 'b', pipelineName: 'p_a', tags: ['tag1'] });
+            jobs.push({ jobId: 'c', pipelineName: 'p_a' });
             queueRunner.queue.queue = [];
             queueRunner.preferredQueue.queue = [];
-            jobs.map(job => queueRunner.queue.enqueue(job));
+            jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
             let result = await request({
                 url: `${restUrl}/preferred`, method: 'POST', body: {
                     "jobs": ["b"],

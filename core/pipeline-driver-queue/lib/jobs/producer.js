@@ -38,8 +38,9 @@ class JobProducer {
                 this._dequeueJob();
             }
         });
-        await queueRunner.queue.persistencyLoad();
-        await queueRunner.preferredQueue.persistencyLoad(true);
+        const jobs = await dataStore.getJobs({ status: pipelineStatuses.QUEUED });
+        queueRunner.queue.persistencyLoad(jobs);
+        queueRunner.preferredQueue.persistencyLoad(jobs, true);
         await this._updateState();
     }
 
@@ -72,7 +73,7 @@ class JobProducer {
             let data = queueRunner.queue.getQueue();
             const prefData = queueRunner.preferredQueue.getQueue();
             data = data.concat(prefData);
-            await this._persistency.store(data, 'pipeline-driver');
+            await persistence.store(data);
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);

@@ -84,8 +84,9 @@ class JobConsumer {
         queueRunner.queue.remove(jobId);
     }
 
-    _queueJob({ jobId, pipeline, tags }) {
-        queueRunner.queue.enqueue({ jobId, pipeline, tags });
+    _queueJob({ jobId, pipeline }) {
+        const job = queueRunner.queue.pipelineToQueueAdapter({ jobId, pipeline });
+        queueRunner.queue.enqueue(job);
     }
 }
 
