@@ -7,24 +7,14 @@ const { queueEvents, componentName } = require('./consts');
 const component = componentName.QUEUE;
 
 class Queue extends Events {
-    constructor({ scoreHeuristic, persistency, name } = {}) {
+    constructor({ scoreHeuristic } = {}) {
         super();
         this.scoreHeuristic = scoreHeuristic;
         this.queue = [];
-        this._active = true;
-        this._persistency = persistency;
-        this._name = name;
     }
 
     flush() {
         this.queue = [];
-    }
-
-    async shutdown() {
-        this._active = false;
-        await this.pause();
-        const pendingAmount = await this._producer.getWaitingCount();
-        await this.persistencyStore({ data: this.queue, pendingAmount });
     }
 
     persistencyLoad(jobs, ordered) {

@@ -2,7 +2,6 @@ const { queueEvents, metricsName, metricsTypes } = require('./consts');
 const Queue = require('./queue');
 const HeuristicRunner = require('./heuristic-runner');
 const heuristic = require('./heuristic');
-const persistency = require('./persistency/persistency');
 const aggregationMetricFactory = require('./metrics/aggregation-metrics-factory');
 
 class QueueRunner {
@@ -16,16 +15,11 @@ class QueueRunner {
         this.config = config;
         this.heuristicRunner.init(this.config.heuristicsWeights);
         Object.values(heuristic).map(v => this.heuristicRunner.addHeuristicToQueue(v));
-        persistency.init(this.config);
         this.queue = new Queue({
-            scoreHeuristic: (...args) => this.heuristicRunner.run(...args),
-            persistency,
-            name: 'main'
+            scoreHeuristic: (...args) => this.heuristicRunner.run(...args)
         });
         this.preferredQueue = new Queue({
-            scoreHeuristic: job => job,
-            persistency,
-            name: 'preferred'
+            scoreHeuristic: job => job
         });
         this.queue.on(queueEvents.INSERT, job => this._jobAdded(job));
         this.queue.on(queueEvents.POP, job => this._jobRemoved(job));

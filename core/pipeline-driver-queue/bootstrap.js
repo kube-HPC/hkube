@@ -9,6 +9,7 @@ const gracefulShutdown = require('./lib/graceful-shutdown');
 
 
 const modules = [
+    require('./lib/persistency/persistency'),
     require('./lib/persistency/data-store'),
     require('./lib/metrics/aggregation-metrics-factory'),
     require('./lib/queue-runner'),
