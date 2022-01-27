@@ -124,10 +124,10 @@ class PreferredJobs extends PagingBase {
         const { tag, pipelineName, jobId } = query || {};
         const index = this.getIndex(position, tag, pipelineName, jobId);
         const allDequeued = [];
-        Promise.all(jobs.reverse().map(async id => {
+        await Promise.all(jobs.reverse().map(async id => {
             const dequeued = queueRunner.queue.dequeue({ jobId: id });
             if (dequeued.length > 0) {
-                allDequeued.push({ score: 1, ...dequeued[0] });
+                allDequeued.push(dequeued[0]);
                 let prevJob = 'FistInLine';
                 if (index > 0) {
                     prevJob = queueRunner.preferredQueue.queue[index - 1].jobId;
@@ -136,7 +136,7 @@ class PreferredJobs extends PagingBase {
                 if (queueRunner.preferredQueue.queue.length > index) {
                     await dataStore.setJobNext(queueRunner.preferredQueue.queue[index].jobId, dequeued[0].jobId);
                 }
-                queueRunner.preferredQueue.queue.splice(index, 0, dequeued[0]);
+                queueRunner.preferredQueue.queue.splice(index, 0, { ...dequeued[0], score: 1 });
             }
             return id;
         }));
