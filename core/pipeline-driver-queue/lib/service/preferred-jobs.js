@@ -124,7 +124,7 @@ class PreferredJobs extends PagingBase {
         const { tag, pipelineName, jobId } = query || {};
         const index = this.getIndex(position, tag, pipelineName, jobId);
         const allDequeued = [];
-        Promise.all(jobs.reverse().map(async id => {
+        await Promise.all(jobs.reverse().map(async id => {
             const dequeued = queueRunner.queue.dequeue({ jobId: id });
             if (dequeued.length > 0) {
                 allDequeued.push({ score: 1, ...dequeued[0] });

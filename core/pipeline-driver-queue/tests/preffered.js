@@ -72,7 +72,7 @@ describe('Preferred Queue Tests', () => {
     });
 
     describe('preferred tests', () => {
-        it.only('preferred order', async () => {
+        it('preferred order', async () => {
             const jobs = [];
             jobs.push({ jobId: 'a', pipelineName: 'p_a' });
             jobs.push({ jobId: 'b', pipelineName: 'p_a' });
@@ -82,12 +82,12 @@ describe('Preferred Queue Tests', () => {
             jobs.push({ jobId: 'b_c', pipelineName: 'p_b' });
             jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
             // TODO: these functions should have await
-            preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
-            preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
+            await preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
             expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
         });
     });
