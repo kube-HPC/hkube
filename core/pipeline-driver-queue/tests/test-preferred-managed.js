@@ -6,15 +6,25 @@ const baseUrl = `http://localhost:${config.rest.port}`;
 const restUrl = `${baseUrl}/${config.rest.prefix}`;
 const { request } = require('./utils');
 let preferredService, queueRunner;
+const dataStore = require('../lib/persistency/data-store');
+const { pipelineStatuses } = require('@hkube/consts');
+let producerLib;
 
 describe('Preferred and Managed', () => {
     before(() => {
         queueRunner = require('../lib/queue-runner');
         preferredService = require('../lib/service/preferred-jobs');
+        producerLib = require('../lib/jobs/producer');
     });
-    beforeEach(() => {
+    beforeEach(async () => {
         queueRunner.queue.queue = [];
         queueRunner.preferredQueue.queue = [];
+        producerLib._isConsumerActive = false;
+    });
+    afterEach(async () => {
+        queueRunner.preferredQueue.queue = [];
+        queueRunner.queue.queue = [];
+        producerLib._isConsumerActive = true;
     });
     describe('managed tests', () => {
         let jobs;
@@ -22,11 +32,11 @@ describe('Preferred and Managed', () => {
             jobs = [];
             jobs.push({ jobId: 'a', pipeline: { name: 'p_a' }, entranceTime: 1, priority: 1 });
             jobs.push({ jobId: 'b', pipeline: { name: 'p_a', tags: ['a', 'b'], }, entranceTime: 2, priority: 2 });
-            jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 3, priority: 3, });
+            jobs.push({ jobId: 'c', pipeline: { name: 'p_a' }, entranceTime: 3, priority: 3, });
             jobs.push({ jobId: 'b_a', pipeline: { name: 'p_b' }, entranceTime: 4, priority: 4, });
             jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b' }, entranceTime: 5, priority: 5, });
             jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b' }, entranceTime: 6, priority: 6 });
-            jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
+            await Promise.all(jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job))));
         });
         it('aggregation', async () => {
             let result = await request({
@@ -90,12 +100,12 @@ describe('Preferred and Managed', () => {
     describe('preferred tests', () => {
         it('preferred order', async () => {
             const jobs = [];
-            jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_a', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_b', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_c', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'a', pipeline: { name: 'p_a' }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b', pipeline: { name: 'p_a' }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'c', pipeline: { name: 'p_a' }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_a', pipeline: { name: 'p_b' }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b' }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b' }, entranceTime: 10, calculated: { latestScores: [] } });
             jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
             await preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
             await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
@@ -113,7 +123,13 @@ describe('Preferred and Managed', () => {
             jobs.push({ jobId: 'b_a', pipeline: { name: 'p_a', tags: ['b'] }, entranceTime: 10, calculated: { latestScores: [] } });
             jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b', tags: ['a', 'b'] }, entranceTime: 10, calculated: { latestScores: [] } });
             jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b', tags: ['a'] }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
+            const status = {
+                status: 'queued'
+            };
+            await Promise.all(jobs.map((job) => dataStore.createJob({ jobId: job.jobId, pipeline: job.pipeline, status })));
+            const loadedJobs = await dataStore.getJobs({ status: pipelineStatuses.QUEUED });
+            await queueRunner.queue.persistencyLoad(loadedJobs);
+            await queueRunner.preferredQueue.persistencyLoad(loadedJobs, true)
             await preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
             await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
             await preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
@@ -137,9 +153,9 @@ describe('Preferred and Managed', () => {
         describe('preferred api', () => {
             it('preferred api', async () => {
                 const jobs = [];
-                jobs.push({ jobId: 'a', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
-                jobs.push({ jobId: 'b', pipeline: 'p_a', tags: ['tag1'], entranceTime: 10, calculated: { latestScores: [] } });
-                jobs.push({ jobId: 'c', pipeline: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
+                jobs.push({ jobId: 'a', pipeline: { name: 'p_a' }, entranceTime: 10, calculated: { latestScores: [] } });
+                jobs.push({ jobId: 'b', pipeline: { name: 'p_a' }, tags: ['tag1'], entranceTime: 10, calculated: { latestScores: [] } });
+                jobs.push({ jobId: 'c', pipeline: { name: 'p_a' }, entranceTime: 10, calculated: { latestScores: [] } });
                 queueRunner.queue.queue = [];
                 jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
                 let result = await request({
