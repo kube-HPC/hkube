@@ -128,7 +128,7 @@ class PreferredJobs extends PagingBase {
             const dequeued = queueRunner.queue.dequeue({ jobId: id });
             if (dequeued.length > 0) {
                 allDequeued.push(dequeued[0]);
-                let prevJob = 'FistInLine';
+                let prevJob = 'FirstInLine';
                 if (index > 0) {
                     prevJob = queueRunner.preferredQueue.queue[index - 1].jobId;
                 }

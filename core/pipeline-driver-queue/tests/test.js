@@ -9,6 +9,7 @@ const { semaphore } = require('await-done');
 const pipelines = require('./stub/pipelines.json');
 const dataStore = require('../lib/persistency/data-store');
 const setting = { prefix: 'pipeline-driver-queue' }
+const { pipelineStatuses } = require('@hkube/consts');
 const producer = new Producer({ setting });
 const heuristic = score => job => ({ ...job, entranceTime: Date.now(), score, ...{ calculated: { latestScore: {} } } })
 const heuristicStub = score => job => ({ ...job })
@@ -137,7 +138,8 @@ describe('Main Queue Test', () => {
             const count = 50;
             const keys = Array.from(Array(count).keys());
             await Promise.all(keys.map(() => dataStore.createJob({ jobId, pipeline, status })));
-            await queueRunner.queue.persistencyLoad();
+            let loadedJobs = await dataStore.getJobs({ status: pipelineStatuses.QUEUED });
+            await queueRunner.queue.persistencyLoad(loadedJobs);
             const queue = queueRunner.queue.getQueue();
             expect(queue.length).to.be.gte(count);
         });

@@ -54,8 +54,10 @@ class Queue extends Events {
         let previous = 'FirstInLine';
         data?.forEach(() => {
             const item = data.find(job => job.next === previous);
-            previous = item.jobId;
-            orderedData.push(item);
+            if (item) {
+                previous = item.jobId;
+                orderedData.push(item);
+            }
         });
 
         if (orderedData.length > 0) {

@@ -7,6 +7,7 @@ const baseUrl = `http://localhost:${config.rest.port}`;
 const restUrl = `${baseUrl}/${config.rest.prefix}`;
 const { request } = require('./utils');
 const dataStore = require('../lib/persistency/data-store');
+const { pipelineStatuses } = require('@hkube/consts');
 
 const heuristic = score => job => ({ ...job, entranceTime: Date.now(), score, ...{ calculated: { latestScore: {} } } })
 
@@ -50,17 +51,17 @@ describe('Preferred Queue Tests', () => {
             const status = {
                 status: 'queued'
             };
-            const count = 50;
             await Promise.all(jobs.map((job) => dataStore.createJob({ jobId: job.jobId, pipeline, status })));
-            await queueRunner.queue.persistencyLoad();
-            // TODO: these functions should have await
-            preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
+            let loadedJobs = await dataStore.getJobs({ status: pipelineStatuses.QUEUED });
+            await queueRunner.queue.persistencyLoad(loadedJobs);
+            await preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
             queueRunner.queue.queue = [];
             queueRunner.preferredQueue.queue = [];
-            await queueRunner.queue.persistencyLoad();
-            await queueRunner.preferredQueue.persistencyLoad()
+            loadedJobs = await dataStore.getJobs({ status: pipelineStatuses.QUEUED });
+            await queueRunner.queue.persistencyLoad(loadedJobs);
+            await queueRunner.preferredQueue.persistencyLoad(loadedJobs, true)
             let queue = queueRunner.queue.getQueue();
             expect(queue.length).to.be.gte(3);
             queue = queueRunner.preferredQueue.getQueue();
@@ -81,13 +82,12 @@ describe('Preferred Queue Tests', () => {
             jobs.push({ jobId: 'b_b', pipelineName: 'p_b' });
             jobs.push({ jobId: 'b_c', pipelineName: 'p_b' });
             jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
-            // TODO: these functions should have await
-            preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
-            preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
+            await preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
             expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
         });
     });

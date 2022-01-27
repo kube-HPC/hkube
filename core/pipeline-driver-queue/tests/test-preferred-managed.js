@@ -97,13 +97,12 @@ describe.skip('Preferred and Managed', () => {
             jobs.push({ jobId: 'b_b', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
             jobs.push({ jobId: 'b_c', pipeline: 'p_b', entranceTime: 10, calculated: { latestScores: [] } });
             jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
-            // TODO: these functions should have await
-            preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipelineName: 'p_a' } });
-            preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipelineName: 'p_b' } });
+            await preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipelineName: 'p_a' } });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipelineName: 'p_b' } });
             expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
         });
         it('preferred aggregation', async () => {
@@ -115,13 +114,12 @@ describe.skip('Preferred and Managed', () => {
             jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b', tags: ['a', 'b'] }, entranceTime: 10, calculated: { latestScores: [] } });
             jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b', tags: ['a'] }, entranceTime: 10, calculated: { latestScores: [] } });
             jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
-            // TODO: these functions should have await
-            preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
-            preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'last' });
-            preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
+            await preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'last' });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
             let result = await request({
                 url: `${restUrl}/preferred/aggregation/pipeline`, method: 'GET'
             });
