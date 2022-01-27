@@ -75,7 +75,7 @@ describe('concurrency', () => {
                 }
             };
             await dataStore._db.jobs.create(job);
-            queueRunner.queue.enqueue(job);
+            queueRunner.queue.enqueue(queueRunner.queue.pipelineToQueueAdapter(job));
         }
         expect(queueRunner.queue.size).to.eql(10);
         await producerLib.init(config);

@@ -7,7 +7,7 @@ const restUrl = `${baseUrl}/${config.rest.prefix}`;
 const { request } = require('./utils');
 let preferredService, queueRunner;
 
-describe.skip('Preferred and Managed', () => {
+describe('Preferred and Managed', () => {
     before(() => {
         queueRunner = require('../lib/queue-runner');
         preferredService = require('../lib/service/preferred-jobs');
