@@ -1,7 +1,6 @@
 const groupBy = require('lodash.groupby');
 const countBy = require('lodash.countby');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { pipelineStatuses, pipelineTypes } = require('@hkube/consts');
 const { componentName } = require('../consts');
 const component = componentName.CONCURRENCY;
 const persistence = require('../persistency/persistence');
@@ -9,6 +8,7 @@ const queueRunner = require('../queue-runner');
 
 class ConcurrencyHandler {
     constructor(producer, options) {
+        this._regex = /pipeline-driver:pipeline-job:([^:]+)(?::cron|):([^:]+):([^:]+)$/;
         this._activeState = {};
         this._producer = producer;
         this._checkConcurrencyJobsInterval = this._checkConcurrencyJobsInterval.bind(this);
@@ -33,11 +33,35 @@ class ConcurrencyHandler {
 
     updateActiveJobs(job) {
         if (job.updateRunning) {
-            if (this._activeState[job.pipelineName]?.count > 0) {
-                this._activeState[job.pipelineName].count += job.updateRunning;
-                job.updateRunning = 0;
+            if (!this._activeState[job.pipelineName]) {
+                this._activeState[job.pipelineName] = {};
             }
+            this._activeState[job.pipelineName].count += job.updateRunning;
+            log.info(`updating active jobs for ${job.pipelineName}: ${job.updateRunning}. now ${this._activeState[job.pipelineName].count}`, { component });
+            job.updateRunning = 0;
         }
+    }
+
+    async getJobCountsFromRedis() {
+        const redisClient = this._producer._redisQueue.client;
+        const pipelineKeys = await redisClient.keys(`${this._producer.redisPrefix}:*`);
+        const jobs = pipelineKeys.map(key => {
+            const matches = key.match(this._regex);
+            if (!matches?.length) {
+                return null;
+            }
+            const job = {
+                experiment: matches[1],
+                pipeline: matches[2],
+                jobId: matches[3]
+            };
+            if (pipelineKeys.includes(`${this._producer.redisPrefix}:${job.experiment}:${job.pipeline}:${job.jobId}:lock`)) {
+                job.active = true;
+            }
+            return job;
+        }).filter(job => !!job);
+        const jobCounts = countBy(jobs, 'pipeline');
+        return jobCounts;
     }
 
     /**
@@ -56,12 +80,9 @@ class ConcurrencyHandler {
         if (queueMaxExceeded.length === 0) {
             return canceledJobs;
         }
-        const constNotMaxExceeded = queue.filter(q => !q.maxExceeded);
-        const activeJobs = await persistence.getActiveJobs();
-        const activePipelines = activeJobs.filter(r => r.status === pipelineStatuses.ACTIVE && r.types.includes(pipelineTypes.STORED));
+        const activeJobs = await this.getJobCountsFromRedis();
         const groupQueueMaxExceeded = groupBy(queueMaxExceeded, 'pipelineName');
-        const groupQueueNotMaxExceeded = countBy(constNotMaxExceeded, 'pipelineName');
-        const groupActiveJobs = countBy(activePipelines, 'pipeline');
+        const groupActiveJobs = activeJobs;
         const pipelinesNames = Object.keys(groupQueueMaxExceeded);
         const storedPipelines = await persistence.getStoredPipelines({ pipelinesNames });
         const pipelines = storedPipelines.filter(p => p.options && p.options.concurrentPipelines.rejectOnFailure === false);
@@ -76,30 +97,40 @@ class ConcurrencyHandler {
             const jobsByPipeline = this._activeState[p.name]?.count || 0;
             const max = this._activeState[p.name]?.max || 0;
             const queueByPipeline = groupQueueMaxExceeded[p.name];
-            const waitingJobs = groupQueueNotMaxExceeded[p.name] || 0;
-            const totalRunning = jobsByPipeline + waitingJobs;
-            const required = max - totalRunning;
+            const required = max - jobsByPipeline;
+            log.info(`${p.name} has ${jobsByPipeline} active jobs and ${queueByPipeline.length} maxExceeded jobs. max ${max}`, { component });
             if (required > 0) {
-                const maxExceeded = queueByPipeline.slice(0, required);
+                log.info(`need to add ${required} for ${p.name}. active: ${jobsByPipeline}, max: ${max}`, { component });
+                const maxExceeded = queueByPipeline.slice(0, 1);
                 maxExceeded.forEach((job) => {
                     canceledJobs += 1;
-                    this._checkMaxExceeded({ experiment: job.experimentName, pipeline: job.pipelineName }, true);
+                    this._checkMaxExceeded(job, true);
                 });
             }
         });
         return canceledJobs;
     }
 
-    _checkMaxExceeded({ experiment, pipeline }, increment) {
+    _getWaitingCount() {
+        return this._producer.getWaitingCount();
+    }
+
+    _checkMaxExceeded({ experimentName, pipelineName }, increment) {
         const job = queueRunner.queue
             .getQueue(q => q.maxExceeded)
-            .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+            .find(q => q.experimentName === experimentName && q.pipelineName === pipelineName);
+        this.cancelMaxExceededIfNeeded(job, increment);
+    }
+
+    cancelMaxExceededIfNeeded(job, increment) {
         if (job) {
             if (this._checkRunningJobs(job)) {
                 if (increment) {
                     job.updateRunning = 1;
                 }
-                this._cancelExceededJob({ job, experiment, pipeline });
+                log.info(`removing maxExceeded for ${job.pipelineName} from ${increment ? 'interval' : 'event'}`, { component });
+
+                this._cancelExceededJob({ job });
             }
             else {
                 this.updateActiveJobs(job);
@@ -116,17 +147,23 @@ class ConcurrencyHandler {
         if (!max) {
             return true;
         }
-        if (active >= max) {
+        const queueNotMaxExceeded = queueRunner.queue.getQueue(q => !q.maxExceeded);
+        const groupQueueNotMaxExceeded = countBy(queueNotMaxExceeded, 'pipelineName');
+        const waitingJobs = groupQueueNotMaxExceeded[job.pipelineName] || 0;
+        const totalJobs = active + waitingJobs;
+        if (totalJobs > max) {
             job.updateRunning = -1;
+            log.info(`not adding job ${job.pipelineName}. max ${max}, active ${active}, totalJobs ${totalJobs}`, { component });
             return false;
         }
         return true;
     }
 
-    _cancelExceededJob({ job, experiment, pipeline }) {
-        log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
-        job.maxExceeded = false;
-        this._producer.dequeueJob();
+    _cancelExceededJob({ job }) {
+        log.info(`cancel maxExceeded for ${job.jobId}`, { component });
+        // NOT removing maxExceeded, but rather trying to dequeue the job
+        // job.maxExceeded = false;
+        this._producer.dequeueJob(job.jobId);
     }
 }
 module.exports = ConcurrencyHandler;

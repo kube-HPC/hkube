@@ -14,14 +14,6 @@ const producer = new Producer({ setting });
 const Queue = require('../lib/queue');
 const producerLib = require('../lib/jobs/producer')
 
-const heuristic = score => job => ({ ...job, entranceTime: Date.now(), score, ...{ calculated: { latestScore: {} } } })
-const heuristicStub = score => job => ({ ...job })
-const heuristicBoilerPlate = (score, _heuristic) => ({
-    run(job) {
-        return _heuristic(score)(job);
-    }
-});
-
 let queue = null;
 let consumer;
 
