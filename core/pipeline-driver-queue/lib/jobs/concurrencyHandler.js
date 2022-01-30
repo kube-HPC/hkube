@@ -8,7 +8,7 @@ const queueRunner = require('../queue-runner');
 
 class ConcurrencyHandler {
     constructor(producer, options) {
-        this._regex = /pipeline-driver:pipeline-job:([^:]+):([^:]+):([^:]+)$/;
+        this._regex = /pipeline-driver:pipeline-job:([^:]+)(?::cron|):([^:]+):([^:]+)$/;
         this._activeState = {};
         this._producer = producer;
         this._checkConcurrencyJobsInterval = this._checkConcurrencyJobsInterval.bind(this);
