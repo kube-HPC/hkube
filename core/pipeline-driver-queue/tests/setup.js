@@ -1,8 +1,7 @@
 const stateManager = require('../lib/persistency/data-store');
 const { Factory } = require('@hkube/redis-utils');
-const dataStore = require('../lib/persistency/data-store');
 let config;
-
+let queueRunner;
 before(async function () {
     this.timeout(15000);
     const bootstrap = require('../bootstrap');
@@ -13,13 +12,15 @@ before(async function () {
     await stateManager._etcd._client.client.delete().all();
     await stateManager._db.db.dropDatabase();
     await stateManager._db.init();
-
+    queueRunner = require('../lib/queue-runner');
     global.testParams = {
         config
     }
 });
 beforeEach(async () => {
-    await dataStore._db.jobs.deleteMany({}, { allowNotFound: true });
+    await stateManager._db.jobs.deleteMany({}, { allowNotFound: true });
+    queueRunner.queue.queue = [];
+    queueRunner.preferredQueue.queue = [];
 });
 after(async () => {
     const redis = Factory.getClient(config.redis);

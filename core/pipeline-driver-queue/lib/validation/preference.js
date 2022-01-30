@@ -20,7 +20,7 @@ class Preference {
             }
             const numberOfFields = Object.keys(query).filter(key => query[key] !== undefined).length;
             if (numberOfFields > 1) {
-                throw new InvalidDataError('Query must contain only one of jobId ,tag ,pipeline');
+                throw new InvalidDataError('Query must contain only one of jobId ,tag ,pipelineName');
             }
             if (numberOfFields === 0) {
                 throw new InvalidDataError('Query must contain one of jobId ,tag ,pipeline');

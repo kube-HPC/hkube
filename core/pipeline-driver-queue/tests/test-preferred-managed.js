@@ -16,26 +16,23 @@ describe('Preferred and Managed', () => {
         preferredService = require('../lib/service/preferred-jobs');
         producerLib = require('../lib/jobs/producer');
     });
-    beforeEach(async () => {
-        queueRunner.queue.queue = [];
-        queueRunner.preferredQueue.queue = [];
+    beforeEach(() => {
         producerLib._isConsumerActive = false;
     });
     afterEach(async () => {
-        queueRunner.preferredQueue.queue = [];
-        queueRunner.queue.queue = [];
+
         producerLib._isConsumerActive = true;
     });
     describe('managed tests', () => {
         let jobs;
         beforeEach(async () => {
             jobs = [];
-            jobs.push({ jobId: 'a', pipeline: { name: 'p_a' }, entranceTime: 1, priority: 1 });
-            jobs.push({ jobId: 'b', pipeline: { name: 'p_a', tags: ['a', 'b'], }, entranceTime: 2, priority: 2 });
-            jobs.push({ jobId: 'c', pipeline: { name: 'p_a' }, entranceTime: 3, priority: 3, });
-            jobs.push({ jobId: 'b_a', pipeline: { name: 'p_b' }, entranceTime: 4, priority: 4, });
-            jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b' }, entranceTime: 5, priority: 5, });
-            jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b' }, entranceTime: 6, priority: 6 });
+            jobs.push({ jobId: 'a', pipelineName: 'p_a', entranceTime: 1, priority: 1 });
+            jobs.push({ jobId: 'b', pipelineName: 'p_a', tags: ['a', 'b'], entranceTime: 2, priority: 2 });
+            jobs.push({ jobId: 'c', pipelineName: 'p_a', entranceTime: 3, priority: 3, });
+            jobs.push({ jobId: 'b_a', pipelineName: 'p_b', entranceTime: 4, priority: 4, });
+            jobs.push({ jobId: 'b_b', pipelineName: 'p_b', entranceTime: 5, priority: 5, });
+            jobs.push({ jobId: 'b_c', pipelineName: 'p_b', entranceTime: 6, priority: 6 });
             await Promise.all(jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job))));
         });
         it('aggregation', async () => {
@@ -100,12 +97,12 @@ describe('Preferred and Managed', () => {
     describe('preferred tests', () => {
         it('preferred order', async () => {
             const jobs = [];
-            jobs.push({ jobId: 'a', pipeline: { name: 'p_a' }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b', pipeline: { name: 'p_a' }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'c', pipeline: { name: 'p_a' }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_a', pipeline: { name: 'p_b' }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b' }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b' }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'a', pipelineName: 'p_a', entranceTime: 10 });
+            jobs.push({ jobId: 'b', pipelineName: 'p_a', entranceTime: 10 });
+            jobs.push({ jobId: 'c', pipelineName: 'p_a', entranceTime: 10 });
+            jobs.push({ jobId: 'b_a', pipelineName: 'p_b', entranceTime: 10 });
+            jobs.push({ jobId: 'b_b', pipelineName: 'p_b', entranceTime: 10 });
+            jobs.push({ jobId: 'b_c', pipelineName: 'p_b', entranceTime: 10 });
             jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
             await preferredService.addPreferredJobs({ 'jobs': ['b'], position: 'first' });
             await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
@@ -113,16 +110,16 @@ describe('Preferred and Managed', () => {
             await preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
             await preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipelineName: 'p_a' } });
             await preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipelineName: 'p_b' } });
-            expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
+            expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId)).to.eql(true);
         });
         it('preferred aggregation', async () => {
             const jobs = [];
-            jobs.push({ jobId: 'a', pipeline: { name: 'p_a', tags: ['a'] }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b', pipeline: { name: 'p_b', tags: ['a'] }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'c', pipeline: { name: 'p_a', tags: ['a'] }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_a', pipeline: { name: 'p_a', tags: ['b'] }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b', tags: ['a', 'b'] }, entranceTime: 10, calculated: { latestScores: [] } });
-            jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b', tags: ['a'] }, entranceTime: 10, calculated: { latestScores: [] } });
+            jobs.push({ jobId: 'a', pipeline: { name: 'p_a', tags: ['a'] }, entranceTime: 10 });
+            jobs.push({ jobId: 'b', pipeline: { name: 'p_b', tags: ['a'] }, entranceTime: 10 });
+            jobs.push({ jobId: 'c', pipeline: { name: 'p_a', tags: ['a'] }, entranceTime: 10 });
+            jobs.push({ jobId: 'b_a', pipeline: { name: 'p_a', tags: ['b'] }, entranceTime: 10 });
+            jobs.push({ jobId: 'b_b', pipeline: { name: 'p_b', tags: ['a', 'b'] }, entranceTime: 10 });
+            jobs.push({ jobId: 'b_c', pipeline: { name: 'p_b', tags: ['a'] }, entranceTime: 10 });
             const status = {
                 status: 'queued'
             };
@@ -153,9 +150,9 @@ describe('Preferred and Managed', () => {
         describe('preferred api', () => {
             it('preferred api', async () => {
                 const jobs = [];
-                jobs.push({ jobId: 'a', pipeline: { name: 'p_a' }, entranceTime: 10, calculated: { latestScores: [] } });
-                jobs.push({ jobId: 'b', pipeline: { name: 'p_a' }, tags: ['tag1'], entranceTime: 10, calculated: { latestScores: [] } });
-                jobs.push({ jobId: 'c', pipeline: { name: 'p_a' }, entranceTime: 10, calculated: { latestScores: [] } });
+                jobs.push({ jobId: 'a', pipeline: { name: 'p_a' }, entranceTime: 10 });
+                jobs.push({ jobId: 'b', pipeline: { name: 'p_a' }, tags: ['tag1'], entranceTime: 10 });
+                jobs.push({ jobId: 'c', pipeline: { name: 'p_a' }, entranceTime: 10 });
                 queueRunner.queue.queue = [];
                 jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job)));
                 let result = await request({
@@ -164,14 +161,14 @@ describe('Preferred and Managed', () => {
                         "position": "first"
                     }
                 });
-                expect(result.body[0].jobId === 'b');
+                expect(result.body[0].jobId === 'b').to.eql(true);
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
                         "jobs": ["b"],
                         "position": "first"
                     }
                 });
-                expect(result.body.error.message === 'None of the jobs exist in the general queue');
+                expect(result.body.error.message).to.eql('None of the jobs exist in the general queue');
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
                         "jobs": ["a"],
@@ -193,23 +190,19 @@ describe('Preferred and Managed', () => {
                         "query": { tag: 'tag1', jobId: 'd' }
                     }
                 });
-                expect(result.body.error.message === 'Query must contain only one of jobId ,tag ,pipeline');
+                expect(result.body.error.message).to.eql('Query must contain only one of jobId ,tag ,pipelineName');
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'GET'
                 });
-                expect(result.body.returnList[0].jobId === 'a' && result.body.returnList[1].jobId === 'b' && result.body.returnList[2].jobId === 'c')
+                expect(result.body.returnList[0].jobId === 'a' && result.body.returnList[1].jobId === 'b' && result.body.returnList[2].jobId === 'c').to.eql(true)
                 result = await request({
                     url: `${restUrl}/preferred/deletes`, method: 'POST', body: {
                         "jobs": ['c']
                     }
                 });
-                expect(result.body[0].jobId === 'c')
+                expect(result.body[0].jobId).to.eql('c')
 
             });
         });
-    });
-    afterEach(() => {
-        queueRunner.queue.queue = [];
-        queueRunner.preferredQueue.queue = [];
     });
 });

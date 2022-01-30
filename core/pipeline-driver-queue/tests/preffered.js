@@ -31,8 +31,6 @@ describe('Preferred Queue Tests', () => {
         _semaphore = new semaphore();
     });
     afterEach(() => {
-        queueRunner.preferredQueue.queue = [];
-        queueRunner.queue.queue = [];
         producerLib._isConsumerActive = true;
     });
     describe('preferred persistency tests', () => {
@@ -66,9 +64,9 @@ describe('Preferred Queue Tests', () => {
             expect(queue.length).to.be.gte(3);
             queue = queueRunner.preferredQueue.getQueue();
             expect(queue.length).to.be.gte(3);
-            expect(queueRunner.preferredQueue.queue[0].jobId == 'a');
-            expect(queueRunner.preferredQueue.queue[0].jobId == 'b');
-            expect(queueRunner.preferredQueue.queue[0].jobId == 'c');
+            expect(queueRunner.preferredQueue.queue[0].jobId).to.eql('a');
+            expect(queueRunner.preferredQueue.queue[1].jobId).to.eql('b');
+            expect(queueRunner.preferredQueue.queue[2].jobId).to.eql('c');
         });
     });
 
@@ -86,9 +84,9 @@ describe('Preferred Queue Tests', () => {
             await preferredService.addPreferredJobs({ 'jobs': ['a'], position: 'first' });
             await preferredService.addPreferredJobs({ 'jobs': ['c'], position: 'last' });
             await preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
-            await preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipeline: 'p_a' } });
-            await preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipeline: 'p_b' } });
-            expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
+            await preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipelineName: 'p_a' } });
+            await preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipelineName: 'p_b' } });
+            expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId)).to.eql(true);
         });
     });
     describe('preferred api', () => {
@@ -106,14 +104,14 @@ describe('Preferred Queue Tests', () => {
                     "position": "first"
                 }
             });
-            expect(result.body[0].jobId === 'b');
+            expect(result.body[0].jobId === 'b').to.eql(true);
             result = await request({
                 url: `${restUrl}/preferred`, method: 'POST', body: {
                     "jobs": ["b"],
                     "position": "first"
                 }
             });
-            expect(result.body.error.message === 'None of the jobs exist in the general queue');
+            expect(result.body.error.message).to.eql('None of the jobs exist in the general queue');
             result = await request({
                 url: `${restUrl}/preferred`, method: 'POST', body: {
                     "jobs": ["a"],
@@ -135,7 +133,7 @@ describe('Preferred Queue Tests', () => {
                     "query": { tag: 'tag1', jobId: 'd' }
                 }
             });
-            expect(result.body.error.message === 'Query must contain only one of jobId ,tag ,pipelineName');
+            expect(result.body.error.message === ' ,pipelineName');
             result = await request({
                 url: `${restUrl}/preferred`, method: 'GET'
             });
@@ -145,7 +143,7 @@ describe('Preferred Queue Tests', () => {
                     "jobs": ['c']
                 }
             });
-            expect(result.body[0].jobId === 'c')
+            expect(result.body[0].jobId).to.eql('c')
         });
     });
 });
