@@ -65,6 +65,14 @@ describe('Preferred and Managed', () => {
             expect(result.body.hasPrev).to.eql(false);
             expect(result.body.returnList[0].jobId).to.eql('a');
             expect(result.body.returnList.length).to.eql(2);
+            result = await request({
+                url: `${restUrl}/managed/?pageSize=10&pipelineName=p_a`, method: 'GET'
+
+            });
+            expect(result.body.hasNext).to.eql(false);
+            expect(result.body.hasPrev).to.eql(false);
+            expect(result.body.returnList.length).to.eql(3);
+            expect(result.body.returnList.map((job) => job.jobId)).to.include('a');
         });
         it('getting filters', async () => {
             result = await request({
