@@ -1,0 +1,73 @@
+get:
+  tags:
+    - Preferred
+  summary: Get preferred
+  description: Get preferred
+  parameters:
+    - name: fromJob
+      in: query
+      description: from this job and on
+      schema:
+        type: string
+    - name: toJob
+      in: query
+      description: up to this job
+      schema:
+        type: string 
+    - name: pageSize
+      in: query
+      required: true
+      description: number of records in page
+      schema:
+        type: string   
+  responses:
+    "200":
+      description: Get preferred
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/searchJobsResponse"
+    "400":
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+post:
+  tags:
+    - Preferred
+  summary: Add to preferred
+  description: Add to preferred
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/addToPreferredRequest"
+    required: true
+  responses:
+    "200":
+      description: start board response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/addToPreferredRequest"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+
+

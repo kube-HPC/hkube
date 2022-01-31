@@ -1,5 +1,6 @@
 class StateManager {
     async init() {
+        this.deleteInvoked = false
     }
 
     getAlgorithmRequests() {
@@ -7,6 +8,9 @@ class StateManager {
     }
 
     getKeys(path) {
+        if (this.deleteInvoked) {
+            return []
+        }
         switch (path) {
             case "/webhooks":
                 const webhooks = require('./webhooks.json');
@@ -23,6 +27,10 @@ class StateManager {
     }
 
     deleteKey() {
+        this.deleteInvoked = true
+    }
+    reset() {
+        this.deleteInvoked = false
     }
 }
 
