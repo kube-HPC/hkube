@@ -1,3 +1,4 @@
+const {promisify} = require('util');
 const chai = require('chai');
 const path = require('path');
 const chaiAsPromised = require('chai-as-promised');
@@ -8,7 +9,7 @@ const { expect } = chai;
 chai.use(chaiAsPromised);
 const adapters = ['s3', 'fs'];
 let config, settings, cleaner, cleanerManager;
-
+const delay = promisify(setTimeout);
 const streamToBuffer = (stream) => {
     return new Promise((resolve) => {
         const _buf = [];
@@ -72,6 +73,7 @@ describe('Storage', () => {
                     const file = `${process.cwd()}/tests/storage/mocks/alg.tar.gz`;
                     await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file) });
                 }
+                await delay(300);
                 await cleaner.clean({ maxAge });
 
                 for (let i = 0; i < size; i++) {
