@@ -36,17 +36,13 @@ class PreferredJobs extends PagingBase {
         const returnList = this.getPreferredJobsList().reduce((rv, job) => {
             // eslint-disable-next-line no-param-reassign
             if (rv.length > 0) {
-                if (rv[rv.length - 1].pipelineName === job.pipelineName) {
-                    rv[rv.length - 1].jobs.push(job.jobId);
-                }
-                else {
-                    rv.push({ pipelineName: job.pipelineName, jobs: [job.jobId] });
+                if (rv[rv.length - 1].name === job.pipelineName) {
+                    // eslint-disable-next-line no-param-reassign
+                    rv[rv.length - 1].count += 1;
                     return rv;
                 }
             }
-            else {
-                rv.push({ pipelineName: job.pipelineName, jobs: [job.jobId] });
-            }
+            rv.push({ name: job.pipelineName, count: 1, fromJob: job.jobId });
             return rv;
         }, []);
         return returnList;
@@ -56,12 +52,13 @@ class PreferredJobs extends PagingBase {
         const returnList = this.getPreferredJobsList().reduce((rv, job) => {
             // eslint-disable-next-line no-param-reassign
             if (rv.length > 0) {
-                if (rv[rv.length - 1].tags.toString() === job.tags.toString()) {
-                    rv[rv.length - 1].jobs.push(job.jobId);
+                if (rv[rv.length - 1].name === job.tags.toString()) {
+                    // eslint-disable-next-line no-param-reassign
+                    rv[rv.length - 1].count += 1;
                     return rv;
                 }
             }
-            rv.push({ tags: job.tags, jobs: [job.jobId] });
+            rv.push({ name: job.tags.toString(), count: 1, fromJob: job.jobId });
             return rv;
         }, []);
         return returnList;

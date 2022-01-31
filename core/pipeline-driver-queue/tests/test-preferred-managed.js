@@ -145,15 +145,15 @@ describe('Preferred and Managed', () => {
                 url: `${restUrl}/preferred/aggregation/pipeline`, method: 'GET'
             });
             expect(result.body.length).eql(4);
-            expect(result.body[2].pipelineName).eql('p_a');
-            expect(result.body[2].jobs.length).eql(2);
+            expect(result.body[2].name).eql('p_a');
+            expect(result.body[2].count).eql(2);
 
             result = await request({
                 url: `${restUrl}/preferred/aggregation/tag`, method: 'GET'
             });
             expect(result.body.length).eql(4);
-            expect(result.body[2].tags.toString()).eql(['a', 'b'].toString());
-            expect(result.body[2].jobs.length).eql(1);
+            expect(result.body[2].name).eql(['a', 'b'].toString());
+            expect(result.body[2].count).eql(1);
         });
         describe('preferred api', () => {
             it('preferred api', async () => {
