@@ -20,7 +20,7 @@ config.etcd = {
 config.consumer = {
     prefix: 'pipeline-driver-queue',
     jobType: 'pipeline-job',
-    concurrency: 30000,
+    concurrency: 15000,
     incomingJobQueueConcurrency: 50,
     maxStalledCount: 100
 };
