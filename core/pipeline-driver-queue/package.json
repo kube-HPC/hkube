@@ -25,6 +25,7 @@
     "@hkube/producer-consumer": "1.0.46-consumer-events-1",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.12",
+    "async": "^3.2.3",
     "lodash.countby": "^4.6.0",
     "lodash.groupby": "^4.6.0",
     "lodash.orderby": "^4.6.0",
