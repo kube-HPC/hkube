@@ -1,3 +1,4 @@
+const asyncQueue = require('async/queue');
 const { Consumer, Events } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
@@ -13,7 +14,7 @@ class JobConsumer {
     }
 
     async init(options) {
-        const { prefix, jobType, concurrency, maxStalledCount } = options.consumer;
+        const { prefix, jobType, concurrency, maxStalledCount, incomingJobQueueConcurrency } = options.consumer;
         this._consumer = new Consumer({
             setting: {
                 redis: options.redis,
@@ -22,12 +23,19 @@ class JobConsumer {
                 settings: { maxStalledCount }
             },
         });
+        this._incomingJobQueue = asyncQueue(async (job) => {
+            const ret = await this._handleJob(job);
+            return ret;
+        }, incomingJobQueueConcurrency);
+        this._incomingJobQueue.error((err) => {
+            log.error(`error in incoming job queue ${err.message}`, { component }, err);
+        });
         this._consumer.register({ job: { type: jobType, concurrency } });
         this._consumer.on(Events.FAILED, (job) => {
             this._handleFailedJob(job);
         });
         this._consumer.on('job', (job) => {
-            this._handleJob(job);
+            this._incomingJobQueue.push(job);
         });
         persistence.on(`job-${pipelineStatuses.STOPPED}`, (job) => {
             this._stopJob(job);
