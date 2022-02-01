@@ -40,14 +40,14 @@ describe('Preferred and Managed', () => {
         });
         it('getting', async () => {
             result = await request({
-                url: `${restUrl}/managed/?pageSize=2&fromJob=c`, method: 'GET'
+                url: `${restUrl}/managed/?pageSize=2&firstJobId=c`, method: 'GET'
             });
             expect(result.body.returnList.length).to.eql(2);
             expect(result.body.hasNext).to.eql(true);
             expect(result.body.hasPrev).to.eql(true);
-            expect(result.body.returnList[0].jobId).to.eql('b_a');
+            expect(result.body.returnList[1].jobId).to.eql('b_a');
             result = await request({
-                url: `${restUrl}/managed/?pageSize=2&fromJob=b_b`, method: 'GET'
+                url: `${restUrl}/managed/?pageSize=2&firstJobId=b_b`, method: 'GET'
 
             });
             expect(result.body.hasNext).to.eql(false);
@@ -55,12 +55,12 @@ describe('Preferred and Managed', () => {
             expect(result.body.returnList[0].jobId).to.eql('b_b');
             expect(result.body.returnList.length).to.eql(2);
             result = await request({
-                url: `${restUrl}/managed/?pageSize=2&toJob=c`, method: 'GET'
+                url: `${restUrl}/managed/?pageSize=2&lastJobId=c`, method: 'GET'
 
             });
             expect(result.body.hasNext).to.eql(true);
-            expect(result.body.hasPrev).to.eql(false);
-            expect(result.body.returnList[0].jobId).to.eql('a');
+            expect(result.body.hasPrev).to.eql(true);
+            expect(result.body.returnList[0].jobId).to.eql('b');
             expect(result.body.returnList.length).to.eql(2);
             result = await request({
                 url: `${restUrl}/managed/?pageSize=10&pipelineName=p_a`, method: 'GET'
@@ -91,12 +91,12 @@ describe('Preferred and Managed', () => {
         });
         it('getting missing', async () => {
             result = await request({
-                url: `${restUrl}/managed/?pageSize=2&fromJob=noneExisting`, method: 'GET'
+                url: `${restUrl}/managed/?pageSize=2&firstJobId=noneExisting`, method: 'GET'
             });
             expect(result.body.returnList.length).to.eql(2);
-            expect(result.body.hasNext).to.eql(false);
-            expect(result.body.hasPrev).to.eql(true);
-            expect(result.body.returnList[0].jobId).to.eql('b_b');
+            expect(result.body.hasPrev).to.eql(false);
+            expect(result.body.hasNext).to.eql(true);
+            expect(result.body.returnList[0].jobId).to.eql('a');
         });
     });
     describe('preferred tests', () => {

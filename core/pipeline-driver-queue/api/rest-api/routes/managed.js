@@ -4,9 +4,9 @@ const managedQueue = require('../../../lib/service/managed');
 const routes = () => {
     const router = RestServer.router();
     router.get('/', (req, res) => {
-        const { pageSize: pageSizeStr, fromJob, toJob, tag, pipelineName } = req.query;
+        const { pageSize: pageSizeStr, firstJobId, lastJobId, tag, pipelineName } = req.query;
         const pageSize = parseInt(pageSizeStr, 10);
-        const response = managedQueue.getFlatJobsList(pageSize, fromJob, toJob, pipelineName, tag);
+        const response = managedQueue.getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag);
         res.json(response);
     });
     router.get('/aggregation/tag/', (req, res) => {
