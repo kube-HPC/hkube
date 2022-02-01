@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
+const moment = require('moment');
 const Etcd = require('@hkube/etcd');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { tracer } = require('@hkube/metrics');
@@ -186,16 +187,28 @@ class StateManager {
     }
 
     async setJobStatus(options) {
-        return this._etcd.jobs.status.update(options, (oldItem) => {
+        return this._etcd.jobs.status.update(options, async (oldItem) => {
             if (this._isActiveStatus(oldItem.status)) {
                 const data = { ...oldItem, ...options };
-                db.updateStatus(data, true);
+                await db.updateStatus(data, true);
                 return data;
             }
             return null;
         }).catch(e => {
             log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
         });
+    }
+
+    calcTimeTook({ activeTime, startTime } = {}) {
+        const now = moment(Date.now());
+        const times = {};
+        if (activeTime) {
+            times.netTimeTook = now.diff(moment(activeTime), 'seconds', true);
+        }
+        if (startTime) {
+            times.grossTimeTook = now.diff(moment(startTime), 'seconds', true);
+        }
+        return times;
     }
 
     _isActiveStatus(status) {
