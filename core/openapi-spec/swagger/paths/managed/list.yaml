@@ -9,7 +9,7 @@ get:
       description: from this job and on
       schema:
         type: string
-    - name: toJob
+    - name: lastJobId
       in: query
       description: up to this job
       schema:
