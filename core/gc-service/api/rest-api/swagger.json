@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.7",
+    "version": "2.2.8",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -12417,6 +12417,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "pipelineName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "filter by pipeline"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "filter by tag"
           }
         ],
         "responses": {
@@ -13096,6 +13112,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "pipelineName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "filter by pipeline"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "filter by tag"
           }
         ],
         "responses": {

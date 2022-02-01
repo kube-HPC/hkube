@@ -19,7 +19,17 @@ get:
       required: true
       description: number of records in page
       schema:
-        type: string   
+        type: string
+    - name: pipelineName
+      in: query
+      schema:
+        type: string         
+      description: filter by pipeline       
+    - name: tag
+      in: query 
+      schema:
+        type: string        
+      description: filter by tag                  
   responses:
     "200":
       description: Get preferred

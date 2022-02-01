@@ -1,13 +1,25 @@
 const { expect } = require('chai');
-const queueRunner = require('../lib/queue-runner');
-const preferredService = require('../lib/service/preferred-jobs');
 const configIt = require('@hkube/config');
 const { main: config } = configIt.load();
 const baseUrl = `http://localhost:${config.rest.port}`;
 const restUrl = `${baseUrl}/${config.rest.prefix}`;
 const { request } = require('./utils');
+let preferredService, queueRunner;
+let producerLib;
 
-describe('Preferred and Managed', () => {
+describe.only('Preferred and Managed', () => {
+    before(() => {
+        queueRunner = require('../lib/queue-runner');
+        preferredService = require('../lib/service/preferred-jobs');
+        producerLib = require('../lib/jobs/producer');
+    });
+    beforeEach(() => {
+        producerLib._isConsumerActive = false;
+    });
+    afterEach(async () => {
+
+        producerLib._isConsumerActive = true;
+    });
     describe('managed tests', () => {
         let jobs;
         beforeEach(async () => {
@@ -50,6 +62,14 @@ describe('Preferred and Managed', () => {
             expect(result.body.hasPrev).to.eql(false);
             expect(result.body.returnList[0].jobId).to.eql('a');
             expect(result.body.returnList.length).to.eql(2);
+            result = await request({
+                url: `${restUrl}/managed/?pageSize=10&pipelineName=p_a`, method: 'GET'
+
+            });
+            expect(result.body.hasNext).to.eql(false);
+            expect(result.body.hasPrev).to.eql(false);
+            expect(result.body.returnList.length).to.eql(3);
+            expect(result.body.returnList.map((job) => job.jobId)).to.include('a');
         });
         it('getting filters', async () => {
             result = await request({
@@ -79,8 +99,6 @@ describe('Preferred and Managed', () => {
             expect(result.body.returnList[0].jobId).to.eql('b_b');
         });
     });
-
-
     describe('preferred tests', () => {
         it('preferred order', async () => {
             const jobs = [];
@@ -97,10 +115,8 @@ describe('Preferred and Managed', () => {
             preferredService.addPreferredJobs({ 'jobs': ['b_c'], position: 'last' });
             preferredService.addPreferredJobs({ 'jobs': ['b_b'], position: 'after', query: { pipelineName: 'p_a' } });
             preferredService.addPreferredJobs({ 'jobs': ['b_a'], position: 'before', query: { pipelineName: 'p_b' } });
-            expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId));
+            expect(queueRunner.preferredQueue.queue.every((val, index) => val.jobId === jobs[index].jobId)).to.eql(true);
         });
-
-
         it('preferred aggregation', async () => {
             const jobs = [];
             jobs.push({ jobId: 'a', pipelineName: 'p_a', tags: ['a'], entranceTime: 10, calculated: { latestScores: [] } });
@@ -120,19 +136,17 @@ describe('Preferred and Managed', () => {
                 url: `${restUrl}/preferred/aggregation/pipeline`, method: 'GET'
             });
             expect(result.body.length).eql(4);
-            expect(result.body[2].pipelineName).eql('p_a');
-            expect(result.body[2].jobs.length).eql(2);
+            expect(result.body[2].name).eql('p_a');
+            expect(result.body[2].count).eql(2);
 
             result = await request({
                 url: `${restUrl}/preferred/aggregation/tag`, method: 'GET'
             });
             expect(result.body.length).eql(4);
-            expect(result.body[2].tags.toString()).eql(['a', 'b'].toString());
-            expect(result.body[2].jobs.length).eql(1);
+            expect(result.body[2].name).eql(['a', 'b'].toString());
+            expect(result.body[2].count).eql(1);
         });
-
         describe('preferred api', () => {
-
             it('preferred api', async () => {
                 const jobs = [];
                 jobs.push({ jobId: 'a', pipelineName: 'p_a', entranceTime: 10, calculated: { latestScores: [] } });
@@ -146,14 +160,14 @@ describe('Preferred and Managed', () => {
                         "position": "first"
                     }
                 });
-                expect(result.body[0].jobId === 'b');
+                expect(result.body[0].jobId === 'b').to.eql(true);
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
                         "jobs": ["b"],
                         "position": "first"
                     }
                 });
-                expect(result.body.error.message === 'None of the jobs exist in the general queue');
+                expect(result.body.error.message).to.eql('None of the jobs exist in the general queue');
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'POST', body: {
                         "jobs": ["a"],
@@ -175,27 +189,19 @@ describe('Preferred and Managed', () => {
                         "query": { tag: 'tag1', jobId: 'd' }
                     }
                 });
-                expect(result.body.error.message === 'Query must contain only one of jobId ,tag ,pipeline');
+                expect(result.body.error.message).to.eql('Query must contain only one of jobId ,tag ,pipeline');
                 result = await request({
                     url: `${restUrl}/preferred`, method: 'GET'
                 });
-                expect(result.body.returnList[0].jobId === 'a' && result.body.returnList[1].jobId === 'b' && result.body.returnList[2].jobId === 'c')
+                expect(result.body.returnList[0].jobId === 'a' && result.body.returnList[1].jobId === 'b' && result.body.returnList[2].jobId === 'c').to.eql(true)
                 result = await request({
                     url: `${restUrl}/preferred/deletes`, method: 'POST', body: {
                         "jobs": ['c']
                     }
                 });
-                expect(result.body[0].jobId === 'c')
+                expect(result.body[0].jobId).to.eql('c')
 
             });
         });
-    });
-    afterEach(() => {
-        queueRunner.queue.queue = [];
-        queueRunner.preferredQueue.queue = [];
-    });
-    beforeEach(() => {
-        queueRunner.queue.queue = [];
-        queueRunner.preferredQueue.queue = [];
     });
 });
