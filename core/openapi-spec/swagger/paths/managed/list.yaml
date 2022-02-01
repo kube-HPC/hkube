@@ -4,7 +4,7 @@ get:
   summary: Get Managed
   description: Get managed
   parameters:
-    - name: fromJob
+    - name: firstJobId
       in: query
       description: from this job and on
       schema:
