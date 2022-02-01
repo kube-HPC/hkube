@@ -28,8 +28,8 @@ get:
     - name: tag
       in: query 
       schema:
-        type: string        
-      description: filter by tag            
+        type: string
+      description: filter by tag
                               
   responses:
     "200":

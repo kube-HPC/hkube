@@ -7,7 +7,7 @@ const { request } = require('./utils');
 let preferredService, queueRunner;
 let producerLib;
 
-describe.only('Preferred and Managed', () => {
+describe('Preferred and Managed', () => {
     before(() => {
         queueRunner = require('../lib/queue-runner');
         preferredService = require('../lib/service/preferred-jobs');

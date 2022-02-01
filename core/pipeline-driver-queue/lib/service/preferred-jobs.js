@@ -115,20 +115,20 @@ class PreferredJobs extends PagingBase {
         return index;
     }
 
-    async addPreferredJobs(addedJobs) {
+    addPreferredJobs(addedJobs) {
         validator.preference.validatePreferenceRequest(addedJobs);
         const { jobs, position, query } = addedJobs;
         const { tag, pipelineName, jobId } = query || {};
         const index = this.getIndex(position, tag, pipelineName, jobId);
         const allDequeued = [];
-        await Promise.all(jobs.reverse().map(async id => {
+        jobs.reverse().map(async id => {
             const dequeued = queueRunner.queue.dequeue({ jobId: id });
             if (dequeued.length > 0) {
                 allDequeued.push(dequeued[0]);
                 queueRunner.preferredQueue.queue.splice(index, 0, { ...dequeued[0], score: 1 });
             }
             return id;
-        }));
+        });
         if (allDequeued.length === 0) {
             throw new InvalidDataError('None of the jobs exist in the general queue');
         }
