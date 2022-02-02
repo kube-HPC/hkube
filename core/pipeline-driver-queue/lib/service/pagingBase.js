@@ -26,14 +26,11 @@ class PagingBase {
                 const lastInSegmentIndex = returnList.findIndex((job) => {
                     return job.jobId === lastJobId;
                 });
-                if (lastInSegmentIndex < 0) {
+                if (lastInSegmentIndex < 0 || lastInSegmentIndex - pageSize < 0) {
                     firstInSegmentIndex = 0;
                 }
-                else if (lastInSegmentIndex - pageSize >= 0) {
-                    firstInSegmentIndex = lastInSegmentIndex - pageSize + 1;
-                }
                 else {
-                    firstInSegmentIndex = returnList.length - pageSize;
+                    firstInSegmentIndex = lastInSegmentIndex - pageSize + 1;
                 }
             }
             else {
