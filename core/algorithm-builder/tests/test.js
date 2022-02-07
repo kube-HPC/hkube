@@ -49,6 +49,7 @@ describe('Test', function () {
             expect(build.progress).to.equal(100);
         });
         it('nodejs: build', async function () {
+            this.timeout(20000)
             const env = 'nodejs';
             const buildId = uuid();
             await runBuild({ buildId, env });

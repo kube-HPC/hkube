@@ -21,5 +21,13 @@ module.exports = {
             }
         }
         return defaultValue;
+    },
+    tryParseJson(value, defaultValue) {
+        try {
+            return JSON.parse(value);
+        }
+        catch (error) {
+            return defaultValue;
+        }
     }
 };
