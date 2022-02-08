@@ -33,14 +33,11 @@ const jobTemplate = {
                             }
                         ],
                         env: [
-
                             {
                                 configMapRef: {
                                     name: 'algorithm-builder-configmap'
                                 }
-                            }
-                        ],
-                        env: [
+                            },
                             {
                                 name: 'POD_ID',
                                 valueFrom: {
