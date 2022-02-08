@@ -7,7 +7,8 @@ const expect = chai.expect;
 const { pipelineStatuses } = require('@hkube/consts');
 const pipelines = require('./mocks/pipelines');
 const DriverStates = require('../lib/state/DriverStates');
-const { createJobId } = require('./utils');
+const { createJobId, delay } = require('./utils');
+
 let stateManager;
 
 describe('StateManager', function () {
@@ -88,24 +89,37 @@ describe('StateManager', function () {
         const res = await storageManager.get(jobResult.data.storageInfo);
         expect(data).to.deep.equal(res[0].result);
     });
+    it('setJobStatus should set timeTook', async function () {
+        const jobId = createJobId();
+        const data = { status: 'completed' };
+        await stateManager.createJob({ jobId, status: data });
+
+        let response = await db._db.jobs.fetch({ jobId });
+        expect(response.status).to.deep.equal(data);
+        expect(response.status.timeTook).to.not.exist
+        const timeTook = stateManager.calcTimeTook({ startTime: Date.now() - 1000, activeTime: Date.now() });
+        await stateManager.setJobStatus({ jobId, ...timeTook });
+        response = await db._db.jobs.fetch({ jobId });
+        expect(response.status).to.deep.include(data);
+        expect(response.status.netTimeTook).to.exist
+        expect(response.status.grossTimeTook).to.exist
+        response = await stateManager._etcd.jobs.status.get({ jobId });
+        expect(response).to.deep.include(data);
+        expect(response.netTimeTook).to.exist
+        expect(response.grossTimeTook).to.exist
+    });
     it('should update state correctly', async function () {
-        let resolve;
-        const promise = new Promise((res) => { resolve = res });
         const jobId = createJobId();
         const statusActive = { jobId, status: pipelineStatuses.ACTIVE };
         const statusStopped = { jobId, status: pipelineStatuses.STOPPED };
         await stateManager.createJob({ jobId, status: { status: statusActive.status } });
 
-        const interval = setInterval(async () => {
+        for (let i = 0; i < 20; i++) {
+            await delay(10);
             await stateManager.setJobStatus(statusActive);
-        }, 10);
-        setTimeout(async () => {
-            clearInterval(interval);
-            await stateManager.setJobStatus(statusStopped);
-            resolve();
-        }, 200);
-
-        await promise;
+        }
+        await db.updateStatus(statusStopped);
+        await stateManager.setJobStatus(statusStopped);
         const res = await stateManager.fetchStatus({ jobId });
         expect(res.status).to.eql(statusStopped.status);
     });

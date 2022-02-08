@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
+const moment = require('moment');
 const Etcd = require('@hkube/etcd');
 const dbConnect = require('@hkube/db');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -201,8 +202,24 @@ class StateManager {
         }
     }
 
+
     getJob({ jobId }) {
         return this._db.jobs.fetch({ jobId, fields: { status: true, pipeline: true } });
+    }
+    calcTimeTook({ activeTime, startTime } = {}) {
+        const now = moment(Date.now());
+        const times = {};
+        if (activeTime) {
+            times.netTimeTook = now.diff(moment(activeTime), 'seconds', true);
+        }
+        if (startTime) {
+            times.grossTimeTook = now.diff(moment(startTime), 'seconds', true);
+        }
+        return times;
+    }
+
+    _isActiveStatus(status) {
+        return status !== DriverStates.STOPPED && status !== DriverStates.PAUSED;
     }
 
     watchJob({ jobId }, cb) {

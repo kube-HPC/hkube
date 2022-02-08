@@ -1,5 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
-const { parseBool, parseInt } = require(process.cwd() + '/lib/utils/formatters');
+const { parseBool, parseInt, tryParseJson } = require(process.cwd() + '/lib/utils/formatters');
 const config = {};
 config.serviceName = packageJson.name;
 
@@ -11,7 +11,9 @@ config.buildId = process.env.BUILD_ID;
 config.testMode = process.env.TEST_MODE === 'True';
 config.testModeEnv = process.env.TEST_MODE_ENV || 'nodejs';
 config.buildMode = process.env.BUILD_MODE || 'kaniko'
-
+config.openshift = {
+    buildConfigResources: tryParseJson(process.env.BUILDCONFIG_RESOURCES, { requests: { memory: "256Mi", cpu: "500m" }, limits: { memory: "512Mi", cpu: "800m" } })
+}
 config.docker = {
     pull: {
         registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io',

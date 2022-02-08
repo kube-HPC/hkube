@@ -61,6 +61,11 @@ describe('TaskRunner', function () {
         expect(taskRunner._jobId).to.equal(jobId);
         expect(taskRunner._active).to.equal(true);
         expect(taskRunner.pipeline.name).to.equal(pipeline.name);
+        const statusFromEtcd = await stateManager._etcd.jobs.status.get({ jobId });
+        expect(statusFromEtcd.activeTime).to.exist;
+        const statusFromDb = await stateManager.getJobStatus({ jobId });
+        expect(statusFromDb.activeTime).to.exist;
+
     });
     it('should throw when check batch tolerance', async function () {
         const jobId = createJobId();
@@ -89,16 +94,19 @@ describe('TaskRunner', function () {
         nodesMap.setNode(node1);
         nodesMap.setNode(node2);
         const status = { status: 'active' };
+        const activeTime = Date.now();
         const json = nodesMap.getJSONGraph();
         const graph = graphStore.formatGraph(json);
 
         await stateManager.createJob({ jobId, pipeline, status, graph });
+        await stateManager.updatePipeline({ jobId, activeTime });
         await stateManager.updateTask({ jobId, taskId: node1.taskId, nodeName: node1.nodeName, status: 'succeed' });
         await stateManager.updateTask({ jobId, taskId: node2.taskId, nodeName: node2.nodeName, status: 'succeed' });
         const spy = sinon.spy(taskRunner, "_recoverPipeline");
         await taskRunner.start(job);
         expect(spy.calledOnce).to.eql(true);
         expect(taskRunner.currentProgress).to.eql(100);
+        expect(taskRunner.pipeline.activeTime).to.equal(activeTime);
     });
     it('should recover existing pipeline with 50% progress', async function () {
         const jobId = createJobId();

@@ -68,7 +68,7 @@ class JobConsumer extends EventEmitter {
             job.data = task; // just workaround for now, need huge refactor
 
             this._setJob(job);
-            log.info(`execute job ${jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
+            log.info(`execute job ${job.data.jobId}`, { component });
             const jobStat = await stateAdapter.getJobStatus({ jobId });
 
             if (this._isCompletedState({ status: jobStat?.status })) {

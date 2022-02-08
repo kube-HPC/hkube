@@ -33,10 +33,14 @@ const jobTemplate = {
                             }
                         ],
                         env: [
+
                             {
-                                name: 'NODE_ENV',
-                                value: 'production'
-                            },
+                                configMapRef: {
+                                    name: 'algorithm-builder-configmap'
+                                }
+                            }
+                        ],
+                        env: [
                             {
                                 name: 'POD_ID',
                                 valueFrom: {
@@ -54,46 +58,10 @@ const jobTemplate = {
                                 }
                             },
                             {
-                                name: 'DEFAULT_STORAGE',
-                                valueFrom: {
-                                    configMapKeyRef: {
-                                        name: 'algorithm-operator-configmap',
-                                        key: 'DEFAULT_STORAGE'
-                                    }
-                                }
-                            },
-                            {
                                 name: 'NAMESPACE',
                                 valueFrom: {
                                     fieldRef: {
                                         fieldPath: 'metadata.namespace'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'CLUSTER_NAME',
-                                valueFrom: {
-                                    configMapKeyRef: {
-                                        name: 'algorithm-operator-configmap',
-                                        key: 'CLUSTER_NAME'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'NODE_WRAPPER_VERSION',
-                                valueFrom: {
-                                    configMapKeyRef: {
-                                        name: 'algorithm-operator-configmap',
-                                        key: 'NODE_WRAPPER_VERSION'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'PYTHON_WRAPPER_VERSION',
-                                valueFrom: {
-                                    configMapKeyRef: {
-                                        name: 'algorithm-operator-configmap',
-                                        key: 'PYTHON_WRAPPER_VERSION'
                                     }
                                 }
                             },

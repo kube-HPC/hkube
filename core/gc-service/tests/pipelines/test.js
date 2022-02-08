@@ -16,7 +16,8 @@ describe('Pipelines', () => {
   });
   it('should clean only expired pipelines', async () => {
     const spyStop = sinon.spy(apiServer, "stop");
-    await cleaner.clean();
-    expect(spyStop.callCount).to.be.greaterThan(1);
+    const cleanRes = await cleaner.clean();
+    expect(cleanRes.count).to.equal(3);
+    expect(spyStop.callCount).to.equal(3)
   });
 });

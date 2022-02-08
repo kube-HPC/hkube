@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "2.2.4",
+  "version": "2.2.6",
   "description": "pipeline execution based on DAG",
   "main": "app.js",
   "directories": {
@@ -24,7 +24,8 @@
     "async.queue": "^0.5.2",
     "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
-    "lodash.throttle": "^4.1.1"
+    "lodash.throttle": "^4.1.1",
+    "moment": "^2.29.1",
   },
   "devDependencies": {
     "chai": "^4.2.0",
