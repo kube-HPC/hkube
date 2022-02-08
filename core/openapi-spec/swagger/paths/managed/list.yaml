@@ -4,12 +4,12 @@ get:
   summary: Get Managed
   description: Get managed
   parameters:
-    - name: fromJob
+    - name: firstJobId
       in: query
       description: from this job and on
       schema:
         type: string
-    - name: toJob
+    - name: lastJobId
       in: query
       description: up to this job
       schema:
@@ -20,6 +20,16 @@ get:
       required: true
       schema:
         type: string
+    - name: pipelineName
+      in: query
+      schema:
+        type: string         
+      description: filter by pipeline       
+    - name: tag
+      in: query 
+      schema:
+        type: string
+      description: filter by tag
                               
   responses:
     "200":

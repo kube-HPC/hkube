@@ -4,12 +4,12 @@ get:
   summary: Get preferred
   description: Get preferred
   parameters:
-    - name: fromJob
+    - name: firstJobId
       in: query
       description: from this job and on
       schema:
         type: string
-    - name: toJob
+    - name: lastJobId
       in: query
       description: up to this job
       schema:
@@ -19,7 +19,17 @@ get:
       required: true
       description: number of records in page
       schema:
-        type: string   
+        type: string  
+    - name: pipelineName
+      in: query
+      schema:
+        type: string         
+      description: filter by pipeline       
+    - name: tag
+      in: query 
+      schema:
+        type: string        
+      description: filter by tag             
   responses:
     "200":
       description: Get preferred

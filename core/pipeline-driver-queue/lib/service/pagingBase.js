@@ -1,5 +1,5 @@
 class PagingBase {
-    getFlatJobsList(pageSize, fromJob, toJob, pipelineName, tag) {
+    getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag) {
         let filter;
         if (tag || pipelineName) {
             filter = {};
@@ -8,47 +8,41 @@ class PagingBase {
         }
         let hasNext = false;
         let hasPrev = false;
-        let fromIndex = 0;
+        let firstInSegmentIndex = 0;
         let returnList = this._filteredFlatJobList(filter);
         if (returnList.length > pageSize) {
-            if (fromJob) {
-                fromIndex = returnList.findIndex((job) => {
-                    return job.jobId === fromJob;
+            if (firstJobId) {
+                firstInSegmentIndex = returnList.findIndex((job) => {
+                    return job.jobId === firstJobId;
                 });
-                if (fromIndex < 0) {
-                    fromIndex = returnList.length - pageSize;
+                if (firstInSegmentIndex < 0) {
+                    firstInSegmentIndex = 0;
                 }
-                else if ((fromIndex + pageSize) < returnList.length) {
-                    fromIndex += 1;
-                }
-                else {
-                    fromIndex = returnList.length - pageSize;
+                else if ((firstInSegmentIndex + pageSize) >= returnList.length) {
+                    firstInSegmentIndex = returnList.length - pageSize;
                 }
             }
-            else if (toJob) {
-                const toIndex = returnList.findIndex((job) => {
-                    return job.jobId === toJob;
+            else if (lastJobId) {
+                const lastInSegmentIndex = returnList.findIndex((job) => {
+                    return job.jobId === lastJobId;
                 });
-                if (toIndex < 0) {
-                    fromIndex = returnList.length - pageSize;
-                }
-                else if (toIndex - pageSize > 0) {
-                    fromIndex = toIndex - pageSize;
+                if (lastInSegmentIndex < 0 || lastInSegmentIndex - pageSize < 0) {
+                    firstInSegmentIndex = 0;
                 }
                 else {
-                    fromIndex = 0;
+                    firstInSegmentIndex = lastInSegmentIndex - pageSize + 1;
                 }
             }
             else {
-                fromIndex = 0;
+                firstInSegmentIndex = 0;
             }
-            if (fromIndex !== 0) {
+            if (firstInSegmentIndex !== 0) {
                 hasPrev = true;
             }
-            if ((fromIndex + pageSize) < returnList.length) {
+            if ((firstInSegmentIndex + pageSize) < returnList.length) {
                 hasNext = true;
             }
-            returnList = returnList.slice(fromIndex, pageSize + fromIndex);
+            returnList = returnList.slice(firstInSegmentIndex, pageSize + firstInSegmentIndex);
         }
         return { hasNext, hasPrev, returnList };
     }
