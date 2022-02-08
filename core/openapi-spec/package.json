@@ -1,6 +1,6 @@
 {
     "name": "openapi-spec",
-    "version": "2.2.9",
+    "version": "2.2.10",
     "description": "Hkube openapi-spec",
     "main": "app.js",
     "dependencies": {
