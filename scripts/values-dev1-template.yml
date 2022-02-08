@@ -8,7 +8,7 @@ global:
          capacity: '50Gi'
          storage_class: '-'
          nfs_root: '/nfs/storageclass/dev1'
-         nfs_server: '172.20.46.223'
+         nfs_server: '172.20.45.142'
       dev_pvc: 
         name: hkube-dev-sources
         capacity: 10Gi

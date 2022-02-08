@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.8",
+    "version": "2.2.9",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -12394,7 +12394,7 @@
         "description": "Get preferred",
         "parameters": [
           {
-            "name": "fromJob",
+            "name": "firstJobId",
             "in": "query",
             "description": "from this job and on",
             "schema": {
@@ -12402,7 +12402,7 @@
             }
           },
           {
-            "name": "toJob",
+            "name": "lastJobId",
             "in": "query",
             "description": "up to this job",
             "schema": {
@@ -13089,7 +13089,7 @@
         "description": "Get managed",
         "parameters": [
           {
-            "name": "fromJob",
+            "name": "firstJobId",
             "in": "query",
             "description": "from this job and on",
             "schema": {
@@ -13097,7 +13097,7 @@
             }
           },
           {
-            "name": "toJob",
+            "name": "lastJobId",
             "in": "query",
             "description": "up to this job",
             "schema": {

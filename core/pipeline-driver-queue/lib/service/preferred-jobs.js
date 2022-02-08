@@ -39,10 +39,12 @@ class PreferredJobs extends PagingBase {
                 if (rv[rv.length - 1].name === job.pipelineName) {
                     // eslint-disable-next-line no-param-reassign
                     rv[rv.length - 1].count += 1;
+                    // eslint-disable-next-line no-param-reassign
+                    rv[rv.length - 1].lastJob = job.jobId;
                     return rv;
                 }
             }
-            rv.push({ name: job.pipelineName, count: 1, fromJob: job.jobId });
+            rv.push({ name: job.pipelineName, count: 1, lastJob: job.jobId });
             return rv;
         }, []);
         return returnList;
@@ -55,10 +57,12 @@ class PreferredJobs extends PagingBase {
                 if (rv[rv.length - 1].name === job.tags.toString()) {
                     // eslint-disable-next-line no-param-reassign
                     rv[rv.length - 1].count += 1;
+                    // eslint-disable-next-line no-param-reassign
+                    rv[rv.length - 1].lastJob = job.jobId;
                     return rv;
                 }
             }
-            rv.push({ name: job.tags.toString(), count: 1, fromJob: job.jobId });
+            rv.push({ name: job.tags.toString(), count: 1, lastJob: job.jobId });
             return rv;
         }, []);
         return returnList;

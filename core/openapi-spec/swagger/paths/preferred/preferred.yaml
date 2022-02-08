@@ -4,12 +4,12 @@ get:
   summary: Get preferred
   description: Get preferred
   parameters:
-    - name: fromJob
+    - name: firstJobId
       in: query
       description: from this job and on
       schema:
         type: string
-    - name: toJob
+    - name: lastJobId
       in: query
       description: up to this job
       schema:
