@@ -1,0 +1,14 @@
+type: object
+properties:
+  pipeline:
+    $ref: "#/components/schemas/pipelineName"
+  tags:
+    type: array
+    items:
+      $ref: "#/components/schemas/tag"
+  jobs:
+    type: array
+    items:
+      $ref: "#/components/schemas/jobId"
+
+  

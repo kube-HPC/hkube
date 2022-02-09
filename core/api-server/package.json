@@ -1,13 +1,13 @@
 {
     "name": "api-server",
-    "version": "2.2.9",
+    "version": "2.2.14",
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
         "@hkube/config": "^2.0.11",
         "@hkube/consts": "^1.0.43",
         "@hkube/dag": "^2.1.25",
-        "@hkube/db": "^1.0.46",
+        "@hkube/db": "^1.0.47",
         "@hkube/etcd": "^5.1.6",
         "@hkube/logger": "^2.0.2",
         "@hkube/metrics": "^1.0.42",

@@ -6,5 +6,6 @@ module.exports = {
     ALGORITHM_QUEUE: 'algorithm-queue',
     TENSORBOARD: 'tensorboard',
     DEVENV: 'devenv',
+    OPTUNABOARD: 'optunaboard',
     PIPELINE_DRIVER: 'pipeline-driver',
 };

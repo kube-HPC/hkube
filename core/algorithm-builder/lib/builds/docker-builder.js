@@ -324,7 +324,7 @@ const _createKanikoConfigs = async (envs, tmpFolder, docker) => {
     _envsHelper(envs, 'SKIP_TLS_VERIFY', docker.push.skip_tls_verify);
 }
 
-const _createOpenshiftConfigs = async (envs, tmpFolder, docker, buildId, algorithmImage) => {
+const _createOpenshiftConfigs = async (envs, tmpFolder, docker, buildId, algorithmImage, resources) => {
     _envsHelper(envs, 'TMP_FOLDER', tmpFolder);
     const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
     const hasDockerCreds = Object.keys(dockerCreds.auths).length > 0;
@@ -368,7 +368,8 @@ const _createOpenshiftConfigs = async (envs, tmpFolder, docker, buildId, algorit
                     } : null
                 },
                 type: 'Docker'
-            }
+            },
+            resources
         }
     };
     const buildConfYaml = jsyaml.dump(buildConf);
@@ -382,7 +383,7 @@ const _overrideVersion = async (env, buildPath, version) => {
     }
 }
 
-const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId, dependencyInstallCmd }) => {
+const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId, dependencyInstallCmd, resources }) => {
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${imageTag}`;
     const packages = packagesRepo[env];
@@ -404,7 +405,7 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imag
         await _createKanikoConfigs(envs, tmpFolder, docker);
     }
     else if (buildMode === OPENSHIFT) {
-        await _createOpenshiftConfigs(envs, tmpFolder, docker, buildId, algorithmImage);
+        await _createOpenshiftConfigs(envs, tmpFolder, docker, buildId, algorithmImage, resources);
     }
     let updating = false
     const resultUpdater = async (result) => {
@@ -496,7 +497,21 @@ const runBuild = async (options) => {
         }
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
-        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo, buildId, dependencyInstallCmd });
+        result = await buildAlgorithmImage({
+            buildMode,
+            env,
+            docker,
+            algorithmName,
+            imageTag,
+            buildPath,
+            rmi: 'True',
+            baseImage,
+            tmpFolder,
+            packagesRepo,
+            buildId,
+            dependencyInstallCmd,
+            resources: options.openshift.buildConfigResources
+        });
     }
     catch (e) {
         error = e.message;

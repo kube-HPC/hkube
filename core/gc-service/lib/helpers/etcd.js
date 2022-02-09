@@ -8,7 +8,7 @@ class StateManager {
     }
 
     async getKeys(path) {
-        const ret = await this._etcd._client.getByQuery(path, { limit: 10000, sort: 'asc' });
+        const ret = await this._etcd._client.getByQuery(path, { limit: 100, sort: 'asc' });
         return ret;
     }
 

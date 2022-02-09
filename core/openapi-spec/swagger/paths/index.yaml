@@ -99,6 +99,29 @@
   $ref: ./boards/tensorboard_single.yaml
 /boards/tensors/:
   $ref: ./boards/tensorboard_list.yaml
+/boards/optunas:
+  $ref: ./boards/optunaboard_create.yaml
+/boards/optunas/{id}:
+  $ref: ./boards/optunaboard_single.yaml
+/boards/optunas/:
+  $ref: ./boards/optunaboard_list.yaml  
+
+# preferred
+/queue/preferred:
+  $ref: ./preferred/preferred.yaml
+/queue/preferred/deletes:
+  $ref: ./preferred/deletes.yaml
+/queue/preferred/aggregation/pipeline:
+  $ref: ./aggregation/preferred.yaml
+/queue/preferred/aggregation/tag:
+  $ref: ./aggregation/preferred.yaml
+# managed
+/queue/managed/aggregation/pipeline:
+  $ref: ./aggregation/managed.yaml
+/queue/managed/aggregation/tag:
+  $ref: ./aggregation/managed.yaml
+/queue/managed/:
+  $ref: ./managed/list.yaml  
 
 # Development Environments
 /devenv:

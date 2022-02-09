@@ -55,7 +55,7 @@ class JobProducer {
                     // create job first time only, then rely on 3 events (active/completed/enqueue)
                     this._firstJobDequeue = true;
                     log.info('firstJobDequeue', { component });
-                    await this.createJob(queue[0]);
+                    await this.createJob(queue[0], queueRunner.queue);
                 }
             }
         }
@@ -71,8 +71,8 @@ class JobProducer {
 
     async _updateState() {
         try {
-            const queue = queueRunner.queue.getQueue();
-            await queueRunner.queue.persistenceStore(queue);
+            await queueRunner.queue.persistenceStore();
+            await queueRunner.preferredQueue.persistenceStore();
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);
@@ -118,9 +118,16 @@ class JobProducer {
      */
     async _dequeueJob() {
         try {
-            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
-            if (queue.length > 0) {
-                await this.createJob(queue[0]);
+            const preferredQueue = queueRunner.preferredQueue.getQueue(q => !q.maxExceeded);
+
+            if (preferredQueue.length > 0) {
+                await this.createJob(preferredQueue[0], queueRunner.preferredQueue);
+            }
+            else {
+                const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+                if (queue.length > 0) {
+                    await this.createJob(queue[0], queueRunner.queue);
+                }
             }
         }
         catch (error) {
@@ -129,9 +136,14 @@ class JobProducer {
     }
 
     _checkMaxExceeded({ experiment, pipeline }) {
-        const job = queueRunner.queue
+        let job = queueRunner.preferredQueue
             .getQueue(q => q.maxExceeded)
             .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+        if (!job) {
+            job = queueRunner.queue
+                .getQueue(q => q.maxExceeded)
+                .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
+        }
         if (job) {
             log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
             job.maxExceeded = false;
@@ -164,8 +176,8 @@ class JobProducer {
         };
     }
 
-    async createJob(job) {
-        queueRunner.queue.dequeue(job);
+    async createJob(job, queue) {
+        queue.dequeue(job);
         log.debug(`creating new job ${job.jobId}, calculated score: ${job.score}`, { component });
         const jobData = this._pipelineToJob(job);
         await this._producer.createJob(jobData);

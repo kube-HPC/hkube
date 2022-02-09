@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "2.2.3",
+  "version": "2.2.6",
   "description": "pipeline execution based on DAG",
   "main": "app.js",
   "directories": {
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/consts": "^1.0.36",
+    "@hkube/consts": "^1.0.38",
     "@hkube/dag": "^2.1.21",
     "@hkube/db": "^1.0.43",
     "@hkube/etcd": "^5.1.6",
@@ -26,6 +26,7 @@
     "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
     "lodash.throttle": "^4.1.1",
+    "moment": "^2.29.1",
     "object-path": "^0.11.4"
   },
   "devDependencies": {

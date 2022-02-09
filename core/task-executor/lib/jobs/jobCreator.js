@@ -11,7 +11,7 @@ const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
-const { workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
+const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
 
@@ -205,6 +205,32 @@ const applyDataSourcesVolumes = (inputSpec, clusterOptions) => {
     return spec;
 };
 
+const applyDatascienceMetricsVolumes = (inputSpec, dashboardEnabled) => {
+    let spec = clonedeep(inputSpec);
+    // if (!clusterOptions.dataSourcesEnabled) {
+    //     return spec;
+    // }
+    spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
+        name: 'datasciencemetrics-storage',
+        mountPath: '/hkube/datasciencemetrics-storage'
+    });
+    if (dashboardEnabled) {
+        spec = applyVolumes(spec, {
+            name: 'datasciencemetrics-storage',
+            persistentVolumeClaim: {
+                claimName: 'hkube-datasciencemetrics'
+            }
+        });
+    }
+    else {
+        spec = applyVolumes(spec, {
+            name: 'datasciencemetrics-storage',
+            emptyDir: {}
+        });
+    }
+    return spec;
+};
+
 const applyCacheParamsToContainer = (inputSpec, reservedMemory) => {
     let spec = clonedeep(inputSpec);
     const envOptions = {};
@@ -369,7 +395,10 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     if (kind === nodeKind.Gateway) {
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, gatewayEnv);
     }
-
+    if (kind === nodeKind.HyperparamsTuner) {
+        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, hyperparamsTunerEnv);
+        spec = applyDatascienceMetricsVolumes(spec, clusterOptions?.optunaDashboardEnabled);
+    }
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
     spec = applySidecars(spec, clusterOptions);

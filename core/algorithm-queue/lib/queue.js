@@ -40,7 +40,7 @@ class Queue extends events {
         this._consumer.on('jobs-remove', (jobs) => {
             this.removeJobs(jobs);
         });
-        await this.persistencyLoad();
+        await this.persistencyLoad(true);
         this._queueInterval();
     }
 
@@ -83,8 +83,8 @@ class Queue extends events {
         return this._consumer?.removeInvalidTasks(data);
     }
 
-    async persistencyLoad() {
-        const queueItems = await this.persistence.get();
+    async persistencyLoad(initial) {
+        const queueItems = await this.persistence.get(initial);
         this.addJobs(queueItems);
     }
 

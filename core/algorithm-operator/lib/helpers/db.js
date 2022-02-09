@@ -64,6 +64,18 @@ class DB extends EventEmitter {
     deleteDevenv({ name }) {
         return this._db.devenvs.delete({ name });
     }
+
+    async getOptunaboards(status) {
+        return this._db.optunaboards.search({ status });
+    }
+
+    async updateOptunaboard(options) {
+        await this._db.optunaboards.update(options);
+    }
+
+    async deleteOptunaboard(options) {
+        await this._db.optunaboards.delete(options);
+    }
 }
 
 module.exports = new DB();

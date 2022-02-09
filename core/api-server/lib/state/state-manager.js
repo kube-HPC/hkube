@@ -416,6 +416,27 @@ class StateManager {
         return this._db.devenvs.update({ name, status: devenvStatuses.PENDING });
     }
 
+    // Tensorboards
+    async getOptunaboard({ id }) {
+        return this._db.optunaboards.fetch({ id });
+    }
+
+    async getOptunaboards() {
+        return this._db.optunaboards.fetchAll();
+    }
+
+    async deleteOptunaboard({ id }) {
+        return this._db.optunaboards.delete({ id });
+    }
+
+    async createOptunaboard(board) {
+        return this._db.optunaboards.create(board);
+    }
+
+    async updateOptunaboard(board) {
+        return this._db.optunaboards.update(board);
+    }
+
     async cleanJob({ jobId }) {
         await Promise.all([
             this._etcd.jobs.results.delete({ jobId }),

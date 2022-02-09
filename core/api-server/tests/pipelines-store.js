@@ -392,6 +392,26 @@ describe('Store/Pipelines', () => {
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('debugOverride node not in nodes list');
         });
+        it('should succeed to store pipeline', async () => {
+            const pipeline = clone(pipelines[2]);
+            pipeline.name = uuid();
+            pipeline.description = 'my description';
+            pipeline.tags = ['bla', 'hot'];
+            const options = {
+                uri: restPath,
+                body: pipeline
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.eql(pipeline);
+            const storedPipeline = await request({
+                uri: restPath + '/' + pipeline.name,
+                method: 'GET'
+            });
+            const actual = storedPipeline.body;
+            delete actual.modified;
+            expect(actual).to.eql(pipeline);
+        });
         it('should succeed to store pipeline and add defaults', async () => {
             const name = uuid();
             const options = {
@@ -414,6 +434,7 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('options');
             expect(response.body).to.have.property('priority');
             expect(response.body.options).to.have.property('ttl');
+            expect(response.body.options).to.not.have.property('activeTtl');
             expect(response.body.options).to.have.property('batchTolerance');
             expect(response.body.options).to.have.property('progressVerbosityLevel');
 
