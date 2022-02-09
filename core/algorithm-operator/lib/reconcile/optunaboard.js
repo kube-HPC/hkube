@@ -1,4 +1,4 @@
-const rp = require('request-promise');
+const axios = require('axios').default;
 const log = require('@hkube/logger').GetLogFromContainer();
 const { boardStatuses } = require('@hkube/consts');
 const db = require('../helpers/db');
@@ -35,9 +35,9 @@ const updateOptunaboards = async () => {
     await Promise.all(creating.map(async (board) => {
         const url = `http://board-service-${board.boardReference}.${kubernetes.namespace}.svc`;
         try {
-            const result = await rp({ uri: url, resolveWithFullResponse: true });
+            const result = await axios.get(url);
             await db.updateOptunaboard({ ...board, status: boardStatuses.RUNNING, timestamp: Date.now() });
-            return { code: result.statusCode };
+            return { code: result.status };
         }
         catch (error) {
             log.debug(`${url} ${error.message}`);

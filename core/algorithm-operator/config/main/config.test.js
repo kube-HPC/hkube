@@ -11,5 +11,10 @@ config.algorithmQueueBalancer = {
 
 config.devenvs = {
     enable: true
-}
+};
+
+config.healthchecks = {
+    port: process.env.HEALTHCHECK_PORT || '5656',
+};
+
 module.exports = config;
