@@ -12510,7 +12510,7 @@
             "schema": {
               "type": "boolean"
             },
-            "description": "filter by tag"
+            "description": "Should get the jobs from the end of the list"
           }
         ],
         "responses": {
@@ -13213,7 +13213,7 @@
             "schema": {
               "type": "boolean"
             },
-            "description": "filter by tag"
+            "description": "Should get the jobs from the end of the list"
           }
         ],
         "responses": {
