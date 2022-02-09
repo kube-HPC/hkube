@@ -1,16 +1,25 @@
 class PagingBase {
-    getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag) {
+    getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag, lastJobs = false) {
         let filter;
         if (tag || pipelineName) {
             filter = {};
             filter.pipelineName = pipelineName;
             filter.tag = tag;
         }
-        let hasNext = false;
-        let hasPrev = false;
+        let nextCount = 0;
+        let prevCount = 0;
         let firstInSegmentIndex = 0;
         let returnList = this._filteredFlatJobList(filter);
-        if (returnList.length > pageSize) {
+        if (lastJobs) {
+            const lastInSegmentIndex = returnList.length - 1;
+            if (lastInSegmentIndex < 0 || lastInSegmentIndex - pageSize < 0) {
+                firstInSegmentIndex = 0;
+            }
+            else {
+                firstInSegmentIndex = lastInSegmentIndex - pageSize + 1;
+            }
+        }
+        else if (returnList.length > pageSize) {
             if (firstJobId) {
                 firstInSegmentIndex = returnList.findIndex((job) => {
                     return job.jobId === firstJobId;
@@ -36,15 +45,15 @@ class PagingBase {
             else {
                 firstInSegmentIndex = 0;
             }
-            if (firstInSegmentIndex !== 0) {
-                hasPrev = true;
-            }
-            if ((firstInSegmentIndex + pageSize) < returnList.length) {
-                hasNext = true;
-            }
-            returnList = returnList.slice(firstInSegmentIndex, pageSize + firstInSegmentIndex);
         }
-        return { hasNext, hasPrev, returnList };
+        if (firstInSegmentIndex !== 0) {
+            prevCount = firstInSegmentIndex;
+        }
+        if ((firstInSegmentIndex + pageSize) < returnList.length) {
+            nextCount = returnList.length - (firstInSegmentIndex + pageSize);
+        }
+        returnList = returnList.slice(firstInSegmentIndex, pageSize + firstInSegmentIndex);
+        return { nextCount, prevCount, returnList };
     }
 }
 module.exports = PagingBase;

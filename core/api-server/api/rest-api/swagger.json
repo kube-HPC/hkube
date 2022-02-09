@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.9",
+    "version": "2.2.10",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -12503,6 +12503,14 @@
               "type": "string"
             },
             "description": "filter by tag"
+          },
+          {
+            "name": "lastJobs",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "filter by tag"
           }
         ],
         "responses": {
@@ -13196,6 +13204,14 @@
             "in": "query",
             "schema": {
               "type": "string"
+            },
+            "description": "filter by tag"
+          },
+          {
+            "name": "lastJobs",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             },
             "description": "filter by tag"
           }
