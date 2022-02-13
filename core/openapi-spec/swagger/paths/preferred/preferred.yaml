@@ -29,7 +29,12 @@ get:
       in: query 
       schema:
         type: string        
-      description: filter by tag             
+      description: filter by tag  
+    - name: lastJobs
+      in: query 
+      schema:
+        type: boolean
+      description: Should get the jobs from the end of the list                  
   responses:
     "200":
       description: Get preferred

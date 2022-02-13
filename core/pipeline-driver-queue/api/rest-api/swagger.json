@@ -12503,6 +12503,14 @@
               "type": "string"
             },
             "description": "filter by tag"
+          },
+          {
+            "name": "lastJobs",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Should get the jobs from the end of the list"
           }
         ],
         "responses": {
@@ -13198,6 +13206,14 @@
               "type": "string"
             },
             "description": "filter by tag"
+          },
+          {
+            "name": "lastJobs",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Should get the jobs from the end of the list"
           }
         ],
         "responses": {

@@ -1,6 +1,6 @@
 {
   "name": "algorithm-operator",
-  "version": "2.2.5",
+  "version": "2.2.6",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -16,7 +16,7 @@
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "^1.0.43",
-    "@hkube/db": "^1.0.46",
+    "@hkube/db": "^1.0.47",
     "@hkube/etcd": "^5.1.6",
     "@hkube/healthchecks": "^1.0.2",
     "@hkube/kubernetes-client": "^2.0.6",
