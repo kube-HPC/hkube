@@ -75,6 +75,7 @@ config.s3 = {
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
     endpoint: process.env.S3_ENDPOINT_URL || 'http://localhost:9000',
     bucketName: `${config.clusterName}-${storageManager.STORAGE_PREFIX.STORAGE_PREFIX.HKUBE_DATASOURCE}`,
+    verifySsl: formatter.parseBool(process.env.S3_VERIFY_SSL, false),
 };
 
 config.git = {
