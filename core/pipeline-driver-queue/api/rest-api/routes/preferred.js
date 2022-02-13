@@ -5,9 +5,9 @@ const routes = () => {
     const router = RestServer.router();
 
     router.get('/', (req, res) => {
-        const { pageSize: pageSizeStr, firstJobId, lastJobId, tag, pipelineName } = req.query;
+        const { pageSize: pageSizeStr, firstJobId, lastJobId, tag, pipelineName, lastJobs } = req.query;
         const pageSize = parseInt(pageSizeStr, 10);
-        const response = preferredService.getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag);
+        const response = preferredService.getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag, lastJobs);
         res.json(response);
     });
     router.get('/aggregation/pipeline/', (req, res) => {

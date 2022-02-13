@@ -46,31 +46,31 @@ describe('Preferred and Managed', () => {
                 url: `${restUrl}/managed/?pageSize=2&firstJobId=c`, method: 'GET'
             });
             expect(result.body.returnList.length).to.eql(2);
-            expect(result.body.hasNext).to.eql(true);
-            expect(result.body.hasPrev).to.eql(true);
+            expect(result.body.nextCount).to.eql(2);
+            expect(result.body.prevCount).to.eql(2);
             expect(result.body.returnList[1].jobId).to.eql('b_a');
             result = await request({
                 url: `${restUrl}/managed/?pageSize=2&firstJobId=b_b`, method: 'GET'
 
             });
-            expect(result.body.hasNext).to.eql(false);
-            expect(result.body.hasPrev).to.eql(true);
+            expect(result.body.nextCount).to.eql(0);
+            expect(result.body.prevCount).to.eql(4);
             expect(result.body.returnList[0].jobId).to.eql('b_b');
             expect(result.body.returnList.length).to.eql(2);
             result = await request({
                 url: `${restUrl}/managed/?pageSize=2&lastJobId=c`, method: 'GET'
 
             });
-            expect(result.body.hasNext).to.eql(true);
-            expect(result.body.hasPrev).to.eql(true);
+            expect(result.body.nextCount).to.eql(3);
+            expect(result.body.prevCount).to.eql(1);
             expect(result.body.returnList[0].jobId).to.eql('b');
             expect(result.body.returnList.length).to.eql(2);
             result = await request({
                 url: `${restUrl}/managed/?pageSize=10&pipelineName=p_a`, method: 'GET'
 
             });
-            expect(result.body.hasNext).to.eql(false);
-            expect(result.body.hasPrev).to.eql(false);
+            expect(result.body.nextCount).to.eql(0);
+            expect(result.body.prevCount).to.eql(0);
             expect(result.body.returnList.length).to.eql(3);
             expect(result.body.returnList.map((job) => job.jobId)).to.include('a');
         });
@@ -79,8 +79,8 @@ describe('Preferred and Managed', () => {
                 url: `${restUrl}/managed/?pageSize=6&pipelineName=p_b`, method: 'GET'
             });
             expect(result.body.returnList.length).to.eql(3);
-            expect(result.body.hasNext).to.eql(false);
-            expect(result.body.hasPrev).to.eql(false);
+            expect(result.body.nextCount).to.eql(0);
+            expect(result.body.prevCount).to.eql(0);
             expect(result.body.returnList[0].jobId).to.eql('b_a');
 
             result = await request({
@@ -88,17 +88,25 @@ describe('Preferred and Managed', () => {
             });
 
             expect(result.body.returnList.length).to.eql(1);
-            expect(result.body.hasNext).to.eql(false);
-            expect(result.body.hasPrev).to.eql(false);
+            expect(result.body.nextCount).to.eql(0);
+            expect(result.body.prevCount).to.eql(0);
             expect(result.body.returnList[0].jobId).to.eql('b');
+            result = await request({
+                url: `${restUrl}/managed/?pageSize=2&lastJobs=true`, method: 'GET'
+            });
+
+            expect(result.body.returnList.length).to.eql(2);
+            expect(result.body.nextCount).to.eql(0);
+            expect(result.body.prevCount).to.eql(4);
+            expect(result.body.returnList[0].jobId).to.eql('b_b');
         });
         it('getting missing', async () => {
             result = await request({
                 url: `${restUrl}/managed/?pageSize=2&firstJobId=noneExisting`, method: 'GET'
             });
             expect(result.body.returnList.length).to.eql(2);
-            expect(result.body.hasPrev).to.eql(false);
-            expect(result.body.hasNext).to.eql(true);
+            expect(result.body.nextCount).to.eql(4);
+            expect(result.body.prevCount).to.eql(0);
             expect(result.body.returnList[0].jobId).to.eql('a');
         });
     });
@@ -200,7 +208,7 @@ describe('Preferred and Managed', () => {
                 });
                 expect(result.body.error.message).to.eql('Query must contain only one of jobId ,tag ,pipelineName');
                 result = await request({
-                    url: `${restUrl}/preferred`, method: 'GET'
+                    url: `${restUrl}/preferred?pageSize=3`, method: 'GET'
                 });
                 expect(result.body.returnList[0].jobId === 'a' && result.body.returnList[1].jobId === 'b' && result.body.returnList[2].jobId === 'c').to.eql(true)
                 result = await request({
