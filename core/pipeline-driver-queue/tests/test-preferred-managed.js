@@ -27,12 +27,12 @@ describe('Preferred and Managed', () => {
         let jobs;
         beforeEach(async () => {
             jobs = [];
-            jobs.push({ jobId: 'a', pipelineName: 'p_a', entranceTime: 1, priority: 1 });
+            jobs.push({ jobId: 'a', pipelineName: 'p_a',tags: ['b'], entranceTime: 1, priority: 1 });
             jobs.push({ jobId: 'b', pipelineName: 'p_a', tags: ['a', 'b'], entranceTime: 2, priority: 2 });
             jobs.push({ jobId: 'c', pipelineName: 'p_a', entranceTime: 3, priority: 3, });
             jobs.push({ jobId: 'b_a', pipelineName: 'p_b', entranceTime: 4, priority: 4, });
-            jobs.push({ jobId: 'b_b', pipelineName: 'p_b', entranceTime: 5, priority: 5, });
-            jobs.push({ jobId: 'b_c', pipelineName: 'p_b', entranceTime: 6, priority: 6 });
+            jobs.push({ jobId: 'b_b', pipelineName: 'p_b',tags: ['a'], entranceTime: 5, priority: 5, });
+            jobs.push({ jobId: 'b_c', pipelineName: 'p_b', tags: ['a'], entranceTime: 6, priority: 6 });
             await Promise.all(jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job))));
         });
         it('aggregation', async () => {
@@ -40,6 +40,12 @@ describe('Preferred and Managed', () => {
                 url: `${restUrl}/managed/aggregation/pipeline`, method: 'GET'
             });
             expect(result.body.length).to.eql(2);
+        });
+        it('aggregation', async () => {
+            let result = await request({
+                url: `${restUrl}/managed/aggregation/tag`, method: 'GET'
+            });
+            expect(result.body.length).to.eql(3);
         });
         it('getting', async () => {
             result = await request({
@@ -87,7 +93,7 @@ describe('Preferred and Managed', () => {
                 url: `${restUrl}/managed/?pageSize=6&tag=a`, method: 'GET'
             });
 
-            expect(result.body.returnList.length).to.eql(1);
+            expect(result.body.returnList.length).to.eql(3);
             expect(result.body.nextCount).to.eql(0);
             expect(result.body.prevCount).to.eql(0);
             expect(result.body.returnList[0].jobId).to.eql('b');
