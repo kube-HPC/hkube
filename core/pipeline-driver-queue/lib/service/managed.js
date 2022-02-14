@@ -40,7 +40,7 @@ class Managed extends PagingBase {
                 aggregationByValue = this.addToAggregation(job.pipelineName, aggregationByValue);
             }
             if (propertyName === 'tag') {
-                if (job.tags?.length > 1) {
+                if (job.tags?.length >= 1) {
                     job.tags.forEach((tag) => {
                         aggregationByValue = this.addToAggregation(tag, aggregationByValue);
                     });
