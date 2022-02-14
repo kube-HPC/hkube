@@ -40,9 +40,14 @@ class Managed extends PagingBase {
                 aggregationByValue = this.addToAggregation(job.pipelineName, aggregationByValue);
             }
             if (propertyName === 'tag') {
-                job.tags.forEach((tag) => {
-                    aggregationByValue = this.addToAggregation(tag, aggregationByValue);
-                });
+                if (job.tags?.length > 1) {
+                    job.tags.forEach((tag) => {
+                        aggregationByValue = this.addToAggregation(tag, aggregationByValue);
+                    });
+                }
+                else {
+                    aggregationByValue = this.addToAggregation('', aggregationByValue);
+                }
             }
         });
         return Object.values(aggregationByValue);
