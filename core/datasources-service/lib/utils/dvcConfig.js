@@ -1,5 +1,5 @@
 const S3Config = (
-    { endpoint, bucketName },
+    { endpoint, bucketName, verifySsl },
     { accessKeyId, secretAccessKey }
 ) => repositoryName => `
 ['remote "storage"']
@@ -8,6 +8,7 @@ const S3Config = (
     access_key_id = ${accessKeyId}
     secret_access_key = ${secretAccessKey}
     use_ssl = ${!!new URL(endpoint).protocol.match('https')}
+    ssl_verify = ${!!verifySsl}
 [core]
     remote = storage
 `;
