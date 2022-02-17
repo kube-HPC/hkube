@@ -60,6 +60,11 @@ const routes = (options) => {
         const response = await Execution.getRunningPipelines();
         res.json(response);
     });
+    router.all('/jobs', methods(['GET']), async (req, res,) => {
+        const { status, raw } = req.query;
+        const response = await Execution.getActivePipelines({ status, raw });
+        res.json(response);
+    });
     router.all('/status/:jobId?', methods(['GET']), async (req, res) => {
         const { jobId } = req.params;
         const response = await Execution.getJobStatus({ jobId });

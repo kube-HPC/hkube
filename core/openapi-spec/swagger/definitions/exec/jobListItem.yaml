@@ -1,0 +1,6 @@
+type: object
+properties:
+  jobId:
+    $ref: "#/components/schemas/jobId"
+  status:
+    type: string
