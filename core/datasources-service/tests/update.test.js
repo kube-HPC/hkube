@@ -136,7 +136,7 @@ describe('/datasource/:name POST', () => {
         expect(updatedFile).to.exist;
         expect(updatedFile.path).to.equal('/a-new-directory');
     });
-    it.skip('should move multiple files and their meta', async () => {
+    it('should move multiple files and their meta', async () => {
         const name = uuid();
         const { body: dataSource } = await uploadGrouped(name);
         const [dirA, dirB] = splitArr(dataSource.files);
