@@ -255,6 +255,33 @@ module.exports = [
         "startTime": 1532506623299
     },
     {
+        "name": "output4",
+        "nodes": [
+            {
+                "nodeName": "output-4",
+                "algorithmName": "output-4",
+                "input": []
+            }
+        ],
+        "flowInput": {
+            "metadata": {},
+            "storageInfo": {
+                "Key": "key1",
+                "Bucket": "hkube"
+            }
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        },
+        "webhooks": {
+            "progress": "http://localhost:3003/webhook/progress",
+            "result": "http://localhost:3003/webhook/result"
+        },
+        "priority": 3,
+        "startTime": 1532506623299
+    },
+    {
         "name": "gt-alg4",
         "nodes": [
             {

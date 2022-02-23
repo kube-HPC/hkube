@@ -28,13 +28,13 @@ class WebhooksHandler {
     }
 
     _watch() {
-        stateManager.onJobResult((response) => {
+        stateManager.onJobResult(async (response) => {
             this._requestResults(response);
             const { jobId } = response;
             gatewayService.deleteGateways({ jobId });
-            outputService.deleteOutputs({ jobId });
             hyperparamsTunerService.deleteHyperparamsTuners({ jobId });
             debugService.updateLastUsed({ jobId });
+            outputService.updateLastUsed({ jobId });
         });
         stateManager.onJobStatus((response) => {
             this._requestStatus(response);
