@@ -161,8 +161,8 @@ class TaskRunner {
                 await this._deleteTasks();
             }
             await this._unWatchJob();
-            await this._cleanJob(error);
             await this._deleteStreamingStats();
+            await this._cleanJob(error);
         }
     }
 

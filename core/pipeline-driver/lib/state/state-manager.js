@@ -6,6 +6,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
+const { GRPCGenericError, EtcdError } = require('@hkube/etcd/node_modules/etcd3');
 const commands = require('../consts/commands');
 const db = require('./db');
 const DriverStates = require('./DriverStates');
@@ -83,6 +84,7 @@ class StateManager {
             }
             catch (e) {
                 log.throttle.error(e.message, { component });
+                this._exitOnEtcdProblem(e);
             }
             finally {
                 this._working = false;
@@ -113,7 +115,13 @@ class StateManager {
         const currentDiscovery = this._defaultDiscovery(discovery);
         if (!isEqual(this._lastDiscovery, currentDiscovery)) {
             this._lastDiscovery = currentDiscovery;
-            await this._etcd.discovery.updateRegisteredData(currentDiscovery);
+            try {
+                await this._etcd.discovery.updateRegisteredData(currentDiscovery);
+            }
+            catch (e) {
+                this._exitOnEtcdProblem(e);
+                throw e;
+            }
         }
     }
 
@@ -174,6 +182,13 @@ class StateManager {
         data.forEach(d => Object.keys(d).forEach(k => d[k] === undefined && delete d[k]));
     }
 
+    _exitOnEtcdProblem(e) {
+        if (e instanceof GRPCGenericError || e instanceof EtcdError) {
+            log.error(`ETCD unreachable ${e}`);
+            process.exit(1);
+        }
+    }
+
     async setJobResults(options) {
         let error;
         try {
@@ -181,6 +196,7 @@ class StateManager {
             await db.updateResult(options);
         }
         catch (e) {
+            this._exitOnEtcdProblem(e);
             error = e.message;
         }
         return error;
@@ -196,6 +212,7 @@ class StateManager {
             return null;
         }).catch(e => {
             log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
+            this._exitOnEtcdProblem(e);
         });
     }
 
@@ -237,36 +254,84 @@ class StateManager {
     }
 
     watchTasks(options) {
-        return this._etcd.jobs.tasks.watch(options);
+        try {
+            return this._etcd.jobs.tasks.watch(options);
+        }
+        catch (e) {
+            this._exitOnEtcdProblem(e);
+            throw e;
+        }
     }
 
     unWatchTasks(options) {
-        return this._etcd.jobs.tasks.unwatch(options);
+        try {
+            return this._etcd.jobs.tasks.unwatch(options);
+        }
+        catch (e) {
+            this._exitOnEtcdProblem(e);
+            throw e;
+        }
     }
 
     deleteTasksList(options) {
-        return this._etcd.jobs.tasks.delete(options, { isPrefix: true });
+        try {
+            return this._etcd.jobs.tasks.delete(options, { isPrefix: true });
+        }
+        catch (e) {
+            this._exitOnEtcdProblem(e);
+            throw e;
+        }
     }
 
     deleteStreamingStats(options) {
-        return this._etcd.streaming.statistics.delete(options, { isPrefix: true });
+        try {
+            return this._etcd.streaming.statistics.delete(options, { isPrefix: true });
+        }
+        catch (e) {
+            this._exitOnEtcdProblem(e);
+            throw e;
+        }
     }
 
     watchJobStatus(options) {
-        return this._etcd.jobs.status.watch(options);
+        try {
+            return this._etcd.jobs.status.watch(options);
+        }
+        catch (e) {
+            this._exitOnEtcdProblem(e);
+            throw e;
+        }
     }
 
     unWatchJobStatus(options) {
-        return this._etcd.jobs.status.unwatch(options);
+        try {
+            return this._etcd.jobs.status.unwatch(options);
+        }
+        catch (e) {
+            this._exitOnEtcdProblem(e);
+            throw e;
+        }
     }
 
     _watchDrivers() {
-        return this._etcd.drivers.watch({ driverId: this._driverId });
+        try {
+            return this._etcd.drivers.watch({ driverId: this._driverId });
+        }
+        catch (e) {
+            this._exitOnEtcdProblem(e);
+            throw e;
+        }
     }
 
     async createJob({ jobId, pipeline, status }) {
         await db.createJob({ jobId, pipeline, status });
-        await this._etcd.jobs.status.set({ jobId, ...status });
+        try {
+            await this._etcd.jobs.status.set({ jobId, ...status });
+        }
+        catch (e) {
+            this._exitOnEtcdProblem(e);
+            throw e;
+        }
     }
 }
 

@@ -1,5 +1,7 @@
+const { MongoError } = require('mongodb/lib/core/error');
 const dbConnect = require('@hkube/db');
 const log = require('@hkube/logger').GetLogFromContainer();
+
 const component = require('../consts/componentNames').STATE_MANAGER;
 
 class DB {
@@ -10,28 +12,70 @@ class DB {
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
 
-    updateResult(options) {
-        return this._db.jobs.updateResult(options);
+    _exitOnConnectionError(error) {
+        if (error instanceof MongoError) {
+            log.error('db unreachable');
+            process.exit(1);
+        }
+        return error;
     }
 
-    updateStatus(options, updateOnlyActive) {
-        return this._db.jobs.updateStatus(options, updateOnlyActive);
+    async updateResult(options) {
+        try {
+            return await this._db.jobs.updateResult(options);
+        }
+        catch (error) {
+            throw this._exitOnConnectionError(error);
+        }
     }
 
-    fetchStatus(options) {
-        return this._db.jobs.fetchStatus(options);
+    async updateStatus(options, updateOnlyActive) {
+        try {
+            return await this._db.jobs.updateStatus(options, updateOnlyActive);
+        }
+        catch (error) {
+            throw this._exitOnConnectionError(error);
+        }
     }
 
-    fetchPipeline(options) {
-        return this._db.jobs.fetchPipeline(options);
+    async fetchStatus(options) {
+        try {
+            return await this._db.jobs.fetchStatus(options);
+        }
+        catch (error) {
+            throw this._exitOnConnectionError(error);
+        }
     }
 
-    updatePipeline(options) {
-        return this._db.jobs.updatePipeline(options);
+    async fetchPipeline(options) {
+        try {
+            return await this._db.jobs.fetchPipeline(options);
+        }
+        catch (error) {
+            throw this._exitOnConnectionError(error);
+        }
+    }
+
+    async updatePipeline(options) {
+        try {
+            return await this._db.jobs.updatePipeline(options);
+        }
+        catch (error) {
+            if (error?.name === 'MongoServerSelectionError') {
+                log.error('db unreachable');
+                process.exit(1);
+            }
+            throw error;
+        }
     }
 
     async createJob({ jobId, pipeline, status }) {
-        await this._db.jobs.create({ jobId, pipeline, status });
+        try {
+            await this._db.jobs.create({ jobId, pipeline, status });
+        }
+        catch (error) {
+            throw this._exitOnConnectionError(error);
+        }
     }
 }
 
