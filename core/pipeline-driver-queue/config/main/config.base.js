@@ -44,7 +44,9 @@ config.db = {
 config.consumer = {
     prefix: 'pipeline-driver-queue',
     jobType: 'pipeline-job',
-    concurrency: 10000
+    concurrency: 15000,
+    incomingJobQueueConcurrency: 50,
+    maxStalledCount: 100
 };
 
 config.producer = {
@@ -58,6 +60,7 @@ config.persistence = {
 };
 
 config.checkQueueInterval = process.env.CHECK_QUEUE_INTERVAL || 500;
+config.checkConcurrencyQueueInterval = process.env.CHECK_CONCURRENCY_QUEUE_INTERVAL || 5000;
 config.updateStateInterval = process.env.UPDATE_STATE_INTERVAL || 5000;
 
 config.heuristicsWeights = {
