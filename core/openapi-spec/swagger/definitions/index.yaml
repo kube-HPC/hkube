@@ -75,6 +75,8 @@ jobId:
   $ref: ./common/jobId.yaml
 jobIdObject:
   $ref: ./common/jobIdObject.yaml
+jobListItem:
+  $ref: ./exec/jobListItem.yaml
 tag:
   $ref: ./common/tag.yaml
 queryList:
