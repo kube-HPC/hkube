@@ -1,7 +1,5 @@
-const { MongoError } = require('mongodb/lib/core/error');
 const dbConnect = require('@hkube/db');
 const log = require('@hkube/logger').GetLogFromContainer();
-
 const component = require('../consts/componentNames').STATE_MANAGER;
 
 class DB {
@@ -9,73 +7,76 @@ class DB {
         const { provider, ...config } = options.db;
         this._db = dbConnect(config, provider);
         await this._db.init();
+        this._wrapJobsService();
+        this._exitOnDBProblemBinded = this._exitOnDBProblem.bind(this);
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
     }
 
-    _exitOnConnectionError(error) {
-        if (error instanceof MongoError) {
-            log.error('db unreachable');
+    _exitOnDBProblem(error) {
+        if (this._db.isFatal(error)) {
+            log.error(`db unreachable + ${error}`, { component });
             process.exit(1);
         }
         return error;
     }
 
     async updateResult(options) {
-        try {
-            return await this._db.jobs.updateResult(options);
-        }
-        catch (error) {
-            throw this._exitOnConnectionError(error);
-        }
+        return this._db.jobs.updateResult(options);
     }
 
-    async updateStatus(options, updateOnlyActive) {
-        try {
-            return await this._db.jobs.updateStatus(options, updateOnlyActive);
-        }
-        catch (error) {
-            throw this._exitOnConnectionError(error);
-        }
+    updateStatus(options, updateOnlyActive) {
+        return this._db.jobs.updateStatus(options, updateOnlyActive);
     }
 
-    async fetchStatus(options) {
-        try {
-            return await this._db.jobs.fetchStatus(options);
-        }
-        catch (error) {
-            throw this._exitOnConnectionError(error);
-        }
+    fetchStatus(options) {
+        return this._db.jobs.fetchStatus(options);
     }
 
-    async fetchPipeline(options) {
-        try {
-            return await this._db.jobs.fetchPipeline(options);
-        }
-        catch (error) {
-            throw this._exitOnConnectionError(error);
-        }
+    fetchPipeline(options) {
+        return this._db.jobs.fetchPipeline(options);
     }
 
-    async updatePipeline(options) {
-        try {
-            return await this._db.jobs.updatePipeline(options);
-        }
-        catch (error) {
-            if (error?.name === 'MongoServerSelectionError') {
-                log.error('db unreachable');
-                process.exit(1);
-            }
-            throw error;
-        }
+    updatePipeline(options) {
+        return this._db.jobs.updatePipeline(options);
     }
 
     async createJob({ jobId, pipeline, status }) {
-        try {
-            await this._db.jobs.create({ jobId, pipeline, status });
+        await this._db.jobs.create({ jobId, pipeline, status });
+    }
+
+    _wrapJobsService() {
+        Object.getOwnPropertyNames(Object.getPrototypeOf(this._db.jobs)).forEach(propertyName => {
+            if (typeof this._db.jobs[propertyName] === 'function') {
+                this._db.jobs[propertyName] = this._wrapperForDBProblem(this._db.jobs[propertyName]);
+            }
+        });
+    }
+
+    _wrapperForDBProblem(fn) {
+        // eslint-disable-next-line func-names
+        const bfn = fn.bind(this._db.jobs);
+        if (bfn.constructor.name === 'AsyncFunction') {
+            return async (...args) => {
+                try {
+                    const result = await bfn(...args);
+                    return result;
+                }
+                catch (ex) {
+                    this._exitOnDBProblemBinded(ex);
+                    throw ex;
+                }
+            };
         }
-        catch (error) {
-            throw this._exitOnConnectionError(error);
-        }
+        return (...args) => {
+            try {
+                const result = bfn(...args);
+                return result;
+            }
+            catch (ex) {
+                this._exitOnDBProblemBinded(ex);
+                throw ex;
+            }
+        };
     }
 }
 

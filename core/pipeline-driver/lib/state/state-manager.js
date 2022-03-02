@@ -2,21 +2,24 @@ const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const moment = require('moment');
 const Etcd = require('@hkube/etcd');
+const Service = require('@hkube/etcd/lib/core/service');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
-const { GRPCGenericError, EtcdError } = require('@hkube/etcd/node_modules/etcd3');
 const commands = require('../consts/commands');
 const db = require('./db');
 const DriverStates = require('./DriverStates');
 const component = require('../consts/componentNames').STATE_MANAGER;
+const GraphStore = require('../datastore/graph-store');
 const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED, DriverStates.PAUSED];
 
 class StateManager {
     init(options) {
+        this._exitOnEtcdProblemBinded = this._exitOnEtcdProblem.bind(this);
         this._emitter = new EventEmitter();
         this._etcd = new Etcd(options.etcd);
+        this._wrapEtcd();
         this._podName = options.kubernetes.podName;
         this._lastDiscovery = null;
         this._driverId = this._etcd.discovery._instanceId;
@@ -24,6 +27,50 @@ class StateManager {
         this._unScheduledAlgorithmsInterval = options.unScheduledAlgorithms.interval;
         this._subscribe();
         this._watchDrivers();
+        this._graphStore = new GraphStore();
+    }
+
+    _wrapperForEtcdProblem(service, propertyName) {
+        // eslint-disable-next-line func-names
+        const fn = service[propertyName].bind(service);
+        if (service[propertyName].constructor.name === 'AsyncFunction') {
+            return async (...args) => {
+                try {
+                    const result = await fn(...args);
+                    return result;
+                }
+                catch (ex) {
+                    this._exitOnEtcdProblemBinded(ex);
+                    throw ex;
+                }
+            };
+        }
+        return (...args) => {
+            try {
+                const result = fn(...args);
+                return result;
+            }
+            catch (ex) {
+                this._exitOnEtcdProblemBinded(ex);
+                throw ex;
+            }
+        };
+    }
+
+    _wrapEtcd() {
+        const services = [this._etcd.discovery, this._etcd.jobs.results, this._etcd.jobs.status, this._etcd.jobs.tasks, this._etcd.drivers, this._etcd.streaming.statistics];
+
+        const inheritedPropertyNames = Object.getOwnPropertyNames(Service.prototype);
+        services.forEach(service => {
+            const propertyNames = Object.getOwnPropertyNames(Object.getPrototypeOf(service));
+            const joinedPropertyList = inheritedPropertyNames.concat(propertyNames);
+            const uniquePropertyList = joinedPropertyList.filter((item, pos) => joinedPropertyList.indexOf(item) === pos);
+            uniquePropertyList.forEach(propertyName => {
+                if (typeof service[propertyName] === 'function') {
+                    service[propertyName] = this._wrapperForEtcdProblem(service, propertyName);
+                }
+            });
+        });
     }
 
     _subscribe() {
@@ -84,7 +131,6 @@ class StateManager {
             }
             catch (e) {
                 log.throttle.error(e.message, { component });
-                this._exitOnEtcdProblem(e);
             }
             finally {
                 this._working = false;
@@ -115,13 +161,7 @@ class StateManager {
         const currentDiscovery = this._defaultDiscovery(discovery);
         if (!isEqual(this._lastDiscovery, currentDiscovery)) {
             this._lastDiscovery = currentDiscovery;
-            try {
-                await this._etcd.discovery.updateRegisteredData(currentDiscovery);
-            }
-            catch (e) {
-                this._exitOnEtcdProblem(e);
-                throw e;
-            }
+            await this._etcd.discovery.updateRegisteredData(currentDiscovery);
         }
     }
 
@@ -182,9 +222,10 @@ class StateManager {
         data.forEach(d => Object.keys(d).forEach(k => d[k] === undefined && delete d[k]));
     }
 
-    _exitOnEtcdProblem(e) {
-        if (e instanceof GRPCGenericError || e instanceof EtcdError) {
-            log.error(`ETCD unreachable ${e}`);
+    async _exitOnEtcdProblem(e) {
+        if (this._etcd.isFatal(e)) {
+            log.error(`ETCD unreachable ${e}`, { component });
+            await this._graphStore.stop();
             process.exit(1);
         }
     }
@@ -196,7 +237,6 @@ class StateManager {
             await db.updateResult(options);
         }
         catch (e) {
-            this._exitOnEtcdProblem(e);
             error = e.message;
         }
         return error;
@@ -212,7 +252,6 @@ class StateManager {
             return null;
         }).catch(e => {
             log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
-            this._exitOnEtcdProblem(e);
         });
     }
 
@@ -254,84 +293,36 @@ class StateManager {
     }
 
     watchTasks(options) {
-        try {
-            return this._etcd.jobs.tasks.watch(options);
-        }
-        catch (e) {
-            this._exitOnEtcdProblem(e);
-            throw e;
-        }
+        return this._etcd.jobs.tasks.watch(options);
     }
 
     unWatchTasks(options) {
-        try {
-            return this._etcd.jobs.tasks.unwatch(options);
-        }
-        catch (e) {
-            this._exitOnEtcdProblem(e);
-            throw e;
-        }
+        return this._etcd.jobs.tasks.unwatch(options);
     }
 
     deleteTasksList(options) {
-        try {
-            return this._etcd.jobs.tasks.delete(options, { isPrefix: true });
-        }
-        catch (e) {
-            this._exitOnEtcdProblem(e);
-            throw e;
-        }
+        return this._etcd.jobs.tasks.delete(options, { isPrefix: true });
     }
 
     deleteStreamingStats(options) {
-        try {
-            return this._etcd.streaming.statistics.delete(options, { isPrefix: true });
-        }
-        catch (e) {
-            this._exitOnEtcdProblem(e);
-            throw e;
-        }
+        return this._etcd.streaming.statistics.delete(options, { isPrefix: true });
     }
 
     watchJobStatus(options) {
-        try {
-            return this._etcd.jobs.status.watch(options);
-        }
-        catch (e) {
-            this._exitOnEtcdProblem(e);
-            throw e;
-        }
+        return this._etcd.jobs.status.watch(options);
     }
 
     unWatchJobStatus(options) {
-        try {
-            return this._etcd.jobs.status.unwatch(options);
-        }
-        catch (e) {
-            this._exitOnEtcdProblem(e);
-            throw e;
-        }
+        return this._etcd.jobs.status.unwatch(options);
     }
 
     _watchDrivers() {
-        try {
-            return this._etcd.drivers.watch({ driverId: this._driverId });
-        }
-        catch (e) {
-            this._exitOnEtcdProblem(e);
-            throw e;
-        }
+        return this._etcd.drivers.watch({ driverId: this._driverId });
     }
 
     async createJob({ jobId, pipeline, status }) {
         await db.createJob({ jobId, pipeline, status });
-        try {
-            await this._etcd.jobs.status.set({ jobId, ...status });
-        }
-        catch (e) {
-            this._exitOnEtcdProblem(e);
-            throw e;
-        }
+        await this._etcd.jobs.status.set({ jobId, ...status });
     }
 }
 
