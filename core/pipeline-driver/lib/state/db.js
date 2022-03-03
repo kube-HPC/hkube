@@ -14,7 +14,7 @@ class DB {
 
     _exitOnDBProblem(error) {
         if (this._db.isFatal(error)) {
-            log.error(`db unreachable + ${error}`, { component });
+            log.error(`db problem + ${error}`, { component }, error);
             process.exit(1);
         }
         return error;
@@ -24,19 +24,19 @@ class DB {
         return this._db.jobs.updateResult(options);
     }
 
-    updateStatus(options, updateOnlyActive) {
+    async updateStatus(options, updateOnlyActive) {
         return this._db.jobs.updateStatus(options, updateOnlyActive);
     }
 
-    fetchStatus(options) {
+    async fetchStatus(options) {
         return this._db.jobs.fetchStatus(options);
     }
 
-    fetchPipeline(options) {
+    async fetchPipeline(options) {
         return this._db.jobs.fetchPipeline(options);
     }
 
-    updatePipeline(options) {
+    async updatePipeline(options) {
         return this._db.jobs.updatePipeline(options);
     }
 
@@ -45,16 +45,16 @@ class DB {
     }
 
     _wrapJobsService() {
-        Object.getOwnPropertyNames(Object.getPrototypeOf(this._db.jobs)).forEach(propertyName => {
+        ['updateResult', 'updateStatus', 'fetchStatus', 'fetchPipeline', 'updatePipeline', 'createJob'].forEach(propertyName => {
             if (typeof this._db.jobs[propertyName] === 'function') {
-                this._db.jobs[propertyName] = this._wrapperForDBProblem(this._db.jobs[propertyName]);
+                this[propertyName] = this._wrapperForDBProblem(this[propertyName]);
             }
         });
     }
 
     _wrapperForDBProblem(fn) {
         // eslint-disable-next-line func-names
-        const bfn = fn.bind(this._db.jobs);
+        const bfn = fn.bind(this);
         if (bfn.constructor.name === 'AsyncFunction') {
             return async (...args) => {
                 try {

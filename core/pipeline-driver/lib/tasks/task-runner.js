@@ -33,6 +33,10 @@ class TaskRunner {
         this._schedulingWarningTimeoutMs = options.unScheduledAlgorithms.warningTimeoutMs;
     }
 
+    getGraphStore() {
+        return this._graphStore;
+    }
+
     async onStop(data) {
         log.info(`pipeline ${data.status} ${this._jobId}. ${data.reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
         await this.stop({ shouldStop: false });
@@ -127,6 +131,7 @@ class TaskRunner {
     }
 
     async start(job) {
+        stateManager.setCurrentTask(this);
         let result = null;
         try {
             this._active = true;

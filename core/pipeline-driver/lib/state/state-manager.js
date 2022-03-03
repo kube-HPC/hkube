@@ -2,7 +2,6 @@ const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const moment = require('moment');
 const Etcd = require('@hkube/etcd');
-const Service = require('@hkube/etcd/lib/core/service');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
@@ -11,7 +10,6 @@ const commands = require('../consts/commands');
 const db = require('./db');
 const DriverStates = require('./DriverStates');
 const component = require('../consts/componentNames').STATE_MANAGER;
-const GraphStore = require('../datastore/graph-store');
 const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED, DriverStates.PAUSED];
 
 class StateManager {
@@ -27,16 +25,20 @@ class StateManager {
         this._unScheduledAlgorithmsInterval = options.unScheduledAlgorithms.interval;
         this._subscribe();
         this._watchDrivers();
-        this._graphStore = new GraphStore();
+        this._currentTask = undefined;
     }
 
-    _wrapperForEtcdProblem(service, propertyName) {
+    setCurrentTask(task) {
+        this._currentTask = task;
+    }
+
+    _wrapperForEtcdProblem(fn) {
         // eslint-disable-next-line func-names
-        const fn = service[propertyName].bind(service);
-        if (service[propertyName].constructor.name === 'AsyncFunction') {
+        const fnb = fn.bind(this);
+        if (fn.constructor.name === 'AsyncFunction') {
             return async (...args) => {
                 try {
-                    const result = await fn(...args);
+                    const result = await fnb(...args);
                     return result;
                 }
                 catch (ex) {
@@ -47,7 +49,7 @@ class StateManager {
         }
         return (...args) => {
             try {
-                const result = fn(...args);
+                const result = fnb(...args);
                 return result;
             }
             catch (ex) {
@@ -58,18 +60,11 @@ class StateManager {
     }
 
     _wrapEtcd() {
-        const services = [this._etcd.discovery, this._etcd.jobs.results, this._etcd.jobs.status, this._etcd.jobs.tasks, this._etcd.drivers, this._etcd.streaming.statistics];
-
-        const inheritedPropertyNames = Object.getOwnPropertyNames(Service.prototype);
-        services.forEach(service => {
-            const propertyNames = Object.getOwnPropertyNames(Object.getPrototypeOf(service));
-            const joinedPropertyList = inheritedPropertyNames.concat(propertyNames);
-            const uniquePropertyList = joinedPropertyList.filter((item, pos) => joinedPropertyList.indexOf(item) === pos);
-            uniquePropertyList.forEach(propertyName => {
-                if (typeof service[propertyName] === 'function') {
-                    service[propertyName] = this._wrapperForEtcdProblem(service, propertyName);
-                }
-            });
+        const wrappedFns = ['updateDiscovery', 'tasksList', 'watchTasks', 'unWatchTasks', 'deleteTasksList', 'deleteStreamingStats', 'watchJobStatus', 'unWatchJobStatus', 'watchDrivers', 'createJob'];
+        wrappedFns.forEach(propertyName => {
+            if (typeof this[propertyName] === 'function') {
+                this[propertyName] = this._wrapperForEtcdProblem(this[propertyName]);
+            }
         });
     }
 
@@ -131,6 +126,7 @@ class StateManager {
             }
             catch (e) {
                 log.throttle.error(e.message, { component });
+                this._exitOnEtcdProblem(e);
             }
             finally {
                 this._working = false;
@@ -211,6 +207,7 @@ class StateManager {
         }
         catch (e) {
             storageError = e.message;
+            this._exitOnEtcdProblem(e);
         }
         finally {
             span && span.finish(storageError);
@@ -224,8 +221,8 @@ class StateManager {
 
     async _exitOnEtcdProblem(e) {
         if (this._etcd.isFatal(e)) {
-            log.error(`ETCD unreachable ${e}`, { component });
-            await this._graphStore.stop();
+            log.error(`ETCD problem ${e.message}`, { component }, e);
+            await this._currentTask?.getGraphStore()?.stop();
             process.exit(1);
         }
     }
@@ -238,6 +235,7 @@ class StateManager {
         }
         catch (e) {
             error = e.message;
+            this._exitOnEtcdProblem(e);
         }
         return error;
     }
@@ -252,6 +250,7 @@ class StateManager {
             return null;
         }).catch(e => {
             log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
+            this._exitOnEtcdProblem(e);
         });
     }
 
@@ -292,31 +291,31 @@ class StateManager {
         return db.updatePipeline(options);
     }
 
-    watchTasks(options) {
+    async watchTasks(options) {
         return this._etcd.jobs.tasks.watch(options);
     }
 
-    unWatchTasks(options) {
+    async unWatchTasks(options) {
         return this._etcd.jobs.tasks.unwatch(options);
     }
 
-    deleteTasksList(options) {
+    async deleteTasksList(options) {
         return this._etcd.jobs.tasks.delete(options, { isPrefix: true });
     }
 
-    deleteStreamingStats(options) {
+    async deleteStreamingStats(options) {
         return this._etcd.streaming.statistics.delete(options, { isPrefix: true });
     }
 
-    watchJobStatus(options) {
+    async watchJobStatus(options) {
         return this._etcd.jobs.status.watch(options);
     }
 
-    unWatchJobStatus(options) {
+    async unWatchJobStatus(options) {
         return this._etcd.jobs.status.unwatch(options);
     }
 
-    _watchDrivers() {
+    async _watchDrivers() {
         return this._etcd.drivers.watch({ driverId: this._driverId });
     }
 
