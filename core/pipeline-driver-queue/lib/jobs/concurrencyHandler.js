@@ -9,7 +9,6 @@ const queueRunner = require('../queue-runner');
 
 class ConcurrencyHandler {
     constructor(producer, options) {
-        this._regex = /pipeline-driver:pipeline-job:([^:]+)(?::cron|):([^:]+):([^:]+)$/;
         this._activeState = {};
         this._producer = producer;
         this._checkConcurrencyJobsInterval = this._checkConcurrencyJobsInterval.bind(this);
@@ -20,10 +19,24 @@ class ConcurrencyHandler {
         this._checkConcurrencyJobsInterval();
     }
 
+    _queueHasEligibleJobs(queue) {
+        return queue.getQueue(q => !q.maxExceeded).length > 0;
+    }
+
+    async _checkConcurrencyJobsInternal() {
+        let totalCanceledJobs = 0;
+        for (const queue of queueRunner.queues) {
+            totalCanceledJobs += await this._checkConcurrencyJobs(queue);
+            if (totalCanceledJobs > 0 || this._queueHasEligibleJobs(queue)) {
+                break;
+            }
+        }
+        return totalCanceledJobs;
+    }
+
     async _checkConcurrencyJobsInterval() {
         try {
-            await this._checkConcurrencyJobs(queueRunner.queue);
-            await this._checkConcurrencyJobs(queueRunner.preferredQueue);
+            await this._checkConcurrencyJobsInternal();
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
