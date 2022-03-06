@@ -131,7 +131,6 @@ class TaskRunner {
     }
 
     async start(job) {
-        stateManager.setCurrentTask(this);
         let result = null;
         try {
             this._active = true;

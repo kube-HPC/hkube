@@ -152,6 +152,10 @@ class JobConsumer {
             log.error(`Failed to pause consumer. Error:${err.message}`, { component });
         }
     }
+
+    async getTaskRunner() {
+        return this._drivers;
+    }
 }
 
 module.exports = new JobConsumer();

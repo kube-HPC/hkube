@@ -25,11 +25,8 @@ class StateManager {
         this._unScheduledAlgorithmsInterval = options.unScheduledAlgorithms.interval;
         this._subscribe();
         this._watchDrivers();
-        this._currentTask = undefined;
-    }
-
-    setCurrentTask(task) {
-        this._currentTask = task;
+        // eslint-disable-next-line global-require
+        this.jobConsumer = require('../consumer/jobs-consumer');
     }
 
     _wrapperForEtcdProblem(fn) {
@@ -222,7 +219,10 @@ class StateManager {
     async _exitOnEtcdProblem(e) {
         if (this._etcd.isFatal(e)) {
             log.error(`ETCD problem ${e.message}`, { component }, e);
-            await this._currentTask?.getGraphStore()?.stop();
+            const taskRunners = this.jobConsumer.getTaskRunner();
+            await Promise.all(Object.values(taskRunners).map((taskRunner) => {
+                return taskRunner.getGraphStore()?.stop();
+            }));
             process.exit(1);
         }
     }
