@@ -4,6 +4,8 @@ const nock = require('nock');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../lib/state/state-manager');
 const { delay, request } = require('./utils');
+const { workerStub } = require('./mocks');
+
 let restUrl;
 
 describe('Webhooks', () => {
@@ -259,6 +261,43 @@ describe('Webhooks', () => {
             expect(response2.body).to.have.property('url');
             expect(response2.body).to.have.property('pipelineStatus');
             expect(response2.body).to.have.property('responseStatus');
+        });
+        it('should succeed to send webhook when watch fails', async () => {
+            let options = {
+                uri: restUrl + '/exec/stored',
+                body: { name: 'webhookFlow2' }
+            };
+            const response = await request(options);
+            jobId = response.body.jobId;
+
+            const results = {
+                jobId,
+                level: 'info',
+                data: [{ res1: 400 }, { res2: 500 }]
+            }
+            try {
+                await stateManager._etcd.jobs.results.unwatch();
+                results.data.storageInfo = await storageManager.hkubeResults.put({ jobId, data: results.data });
+                await stateManager.updateJobStatus({...results, status: 'active'}); // simulate still active job
+                await stateManager.updateJobResult({...results, status: 'completed'});
+                await delay(9000);
+
+                options = {
+                    method: 'GET',
+                    uri: `${restUrl}/webhooks/results/${jobId}`
+                };
+                const response2 = await request(options);
+
+                expect(response2.body).to.have.property('httpResponse');
+                expect(response2.body.httpResponse).to.have.property('statusCode');
+                expect(response2.body.httpResponse).to.have.property('statusMessage');
+                expect(response2.body).to.have.property('jobId');
+                expect(response2.body).to.have.property('url');
+                expect(response2.body).to.have.property('pipelineStatus');
+                expect(response2.body).to.have.property('responseStatus');
+            } finally {
+                await stateManager._etcd.jobs.results.watch();
+            }
         });
     });
     describe('Progress', () => {

@@ -28,7 +28,7 @@ class WebhooksHandler {
     }
 
     _watch() {
-        stateManager.onJobResult(async (response) => {
+        stateManager.on('job-result-change', async (response) => {
             this._requestResults(response);
             const { jobId } = response;
             gatewayService.deleteGateways({ jobId });
@@ -56,9 +56,6 @@ class WebhooksHandler {
                 await stateManager.updateStatusWebhook({ jobId, ...result });
             }
         }
-        if (this.isCompletedState(payload.status)) {
-            await stateManager.releaseJobStatusLock({ jobId });
-        }
     }
 
     // TODO: DELETE JOB FROM ETCD
@@ -81,8 +78,8 @@ class WebhooksHandler {
             }
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
             await stateManager.updateResultWebhook({ jobId, ...result });
+            await stateManager.updateJobStatus({ jobId, status: result.status });
         }
-        await stateManager.releaseJobResultLock({ jobId });
     }
 
     async _fillMissing(element) {

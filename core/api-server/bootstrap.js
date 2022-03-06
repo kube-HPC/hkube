@@ -1,6 +1,7 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { tracer, metrics } = require('@hkube/metrics');
+const { rest: healthcheck } = require('@hkube/healthchecks');
 const storageManager = require('@hkube/storage-manager');
 const monitor = require('@hkube/redis-utils').Monitor;
 const component = require('./lib/consts/componentNames').MAIN;
@@ -43,6 +44,10 @@ class Bootstrap {
             }
             for (const m of modules) {
                 await m.init(config);
+            }
+            if (config.healthchecks.enabled) {
+                await healthcheck.init({ port: config.healthchecks.port });
+                healthcheck.start(config.healthchecks.path, () => stateManager.checkHealth(config.healthchecks.maxFailed), 'health');
             }
         }
         catch (error) {

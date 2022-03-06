@@ -36,6 +36,15 @@ config.dataSourceService = {
     prefix: 'api/v1'
 };
 
+config.healthchecks = {
+    checkInterval: process.env.HEALTHCHECK_CHECK_INTERVAL || 5000,
+    minAge: process.env.HEALTHCHECK_MIN_JOB_AGE || 10000,
+    maxFailed: process.env.HEALTHCHECK_MIX_FAILED || 3,
+    path: process.env.HEALTHCHECK_PATH || '/healthz',
+    port: process.env.HEALTHCHECK_PORT || '5000',
+    enabled: formatter.parseBool(process.env.HEALTHCHECK_ENABLE, true)
+}
+
 config.ingressPrefix = process.env.INGRESS_PREFIX || '';
 
 config.debugUrl = {

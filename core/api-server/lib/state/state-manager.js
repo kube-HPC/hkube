@@ -1,14 +1,24 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
+const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
+let log;
 const { buildStatuses, pipelineStatuses } = require('@hkube/consts');
 const component = require('../consts/componentNames').DB;
 
-class StateManager {
+class StateManager extends EventEmitter {
+    constructor() {
+        super();
+        this._failedHealthcheckCount = 0;
+    }
+
     async init(options) {
-        const log = Logger.GetLogFromContainer();
+        log = Logger.GetLogFromContainer();
+        this._options = options;
         this._etcd = new Etcd(options.etcd);
         await this._watch();
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
@@ -18,12 +28,57 @@ class StateManager {
         this._db = dbConnect(config, provider);
         await this._db.init({ createIndices: true });
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
+        this._healthcheck();
+    }
+
+    checkHealth(maxFailed) {
+        return this._failedHealthcheckCount < maxFailed;
+    }
+
+    _healthcheck() {
+        if (this._options.healthchecks.checkInterval) {
+            setTimeout(() => {
+                this._healthcheckInterval();
+            }, this._options.healthchecks.checkInterval);
+        }
+    }
+
+    async _healthcheckInterval() {
+        try {
+            const running = await this.getRunningJobs();
+            const jobIds = running.map(r => r.jobId);
+            const completedToDelete = [];
+            for (const jobId of jobIds) {
+                const result = await this.getJobResultClean({ jobId });
+                if (result) {
+                    const age = Date.now() - new Date(result.timestamp);
+                    if (age > this._options.healthchecks.minAge) {
+                        completedToDelete.push(result);
+                    }
+                }
+            }
+            if (completedToDelete.length) {
+                log.info(`found ${completedToDelete.length} completed jobs`, { component });
+                this._failedHealthcheckCount += 1;
+            }
+            for (const result of completedToDelete) {
+                this.emit('job-result-change', result);
+            }
+        }
+        catch (error) {
+            log.throttle.warning(`Failed to run healthchecks: ${error.message}`, { component });
+        }
+        this._healthcheck();
     }
 
     async _watch() {
-        await this._etcd.algorithms.builds.singleWatch();
-        await this._etcd.jobs.results.singleWatch();
-        await this._etcd.jobs.status.singleWatch();
+        await this._etcd.algorithms.builds.watch();
+        await this._etcd.jobs.results.watch();
+        await this._etcd.jobs.status.watch();
+        this._etcd.jobs.results.on('change', result => {
+            this.emit('job-result-change', result);
+            this._failedHealthcheckCount = 0;
+        });
     }
 
     async setPipelineDriversSettings(data) {
@@ -245,24 +300,10 @@ class StateManager {
         return this._db.jobs.createMany(list);
     }
 
-    onJobResult(func) {
-        this._etcd.jobs.results.on('change', (response) => {
-            func(response);
-        });
-    }
-
     onJobStatus(func) {
         this._etcd.jobs.status.on('change', (response) => {
             func(response);
         });
-    }
-
-    releaseJobResultLock({ jobId }) {
-        return this._etcd.jobs.results.releaseChangeLock({ jobId });
-    }
-
-    releaseJobStatusLock({ jobId }) {
-        return this._etcd.jobs.status.releaseChangeLock({ jobId });
     }
 
     async createJob({ jobId, userPipeline, pipeline, status }) {
