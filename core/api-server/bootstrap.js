@@ -3,13 +3,14 @@ const Logger = require('@hkube/logger');
 const { tracer, metrics } = require('@hkube/metrics');
 const { rest: healthcheck } = require('@hkube/healthchecks');
 const storageManager = require('@hkube/storage-manager');
+const stateManager = require('./lib/state/state-manager');
 const monitor = require('@hkube/redis-utils').Monitor;
 const component = require('./lib/consts/componentNames').MAIN;
 const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 
 const modules = [
-    require('./lib/state/state-manager'),
+    stateManager,
     require('./api/rest-api/app-server'),
     require('./lib/producer/jobs-producer'),
     require('./lib/examples/pipelines-updater'),
