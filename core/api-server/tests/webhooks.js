@@ -280,7 +280,7 @@ describe('Webhooks', () => {
                 results.data.storageInfo = await storageManager.hkubeResults.put({ jobId, data: results.data });
                 await stateManager.updateJobStatus({...results, status: 'active'}); // simulate still active job
                 await stateManager.updateJobResult({...results, status: 'completed'});
-                await delay(9000);
+                await delay(4000);
 
                 options = {
                     method: 'GET',
@@ -295,6 +295,8 @@ describe('Webhooks', () => {
                 expect(response2.body).to.have.property('url');
                 expect(response2.body).to.have.property('pipelineStatus');
                 expect(response2.body).to.have.property('responseStatus');
+                const status = await stateManager.getStatus({jobId});
+                expect(status.status).to.eql('completed');
             } finally {
                 await stateManager._etcd.jobs.results.watch();
             }

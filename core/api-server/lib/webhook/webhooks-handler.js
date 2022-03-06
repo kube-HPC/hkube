@@ -28,8 +28,8 @@ class WebhooksHandler {
     }
 
     _watch() {
-        stateManager.on('job-result-change', async (response) => {
-            this._requestResults(response);
+        stateManager.on('job-result-change', async (response, updateStatus) => {
+            this._requestResults(response, updateStatus);
             const { jobId } = response;
             gatewayService.deleteGateways({ jobId });
             hyperparamsTunerService.deleteHyperparamsTuners({ jobId });
@@ -59,8 +59,8 @@ class WebhooksHandler {
     }
 
     // TODO: DELETE JOB FROM ETCD
-    async _requestResults(payload) {
-        const { jobId } = payload;
+    async _requestResults(payload, updateStatus) {
+        const { jobId, status } = payload;
         const pipeline = await stateManager.getJobPipeline({ jobId });
 
         const time = Date.now() - pipeline.startTime;
@@ -71,6 +71,9 @@ class WebhooksHandler {
                 status: payload.status
             }
         });
+        if (updateStatus) {
+            await stateManager.updateJobStatus({ jobId, status });
+        }
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await stateManager.getResultFromStorage(payload);
             if (payloadData?.data) {
@@ -78,7 +81,6 @@ class WebhooksHandler {
             }
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
             await stateManager.updateResultWebhook({ jobId, ...result });
-            await stateManager.updateJobStatus({ jobId, status: result.status });
         }
     }
 

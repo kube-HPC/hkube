@@ -62,7 +62,7 @@ class StateManager extends EventEmitter {
                 this._failedHealthcheckCount += 1;
             }
             for (const result of completedToDelete) {
-                this.emit('job-result-change', result);
+                this.emit('job-result-change', result, true);
             }
         }
         catch (error) {
