@@ -38,6 +38,13 @@ config.cleanerSettings = {
             maxAge: formatter.parseFloat(process.env.DEBUG_MAX_AGE, 10)
         }
     },
+    output: {
+        cron: process.env.OUTPUT_CRON || '*/2 * * * *',
+        enabled: formatter.parseBool(process.env.OUTPUT_ENABLED, true),
+        settings: {
+            maxAge: formatter.parseFloat(process.env.OUTPUT_MAX_AGE, 10)
+        }
+    },
     etcd: {
         cron: process.env.ETCD_CRON || '0 1 * * *',
         enabled: formatter.parseBool(process.env.ETCD_ENABLED, true),
