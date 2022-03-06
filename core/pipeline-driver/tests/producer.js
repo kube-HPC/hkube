@@ -146,7 +146,7 @@ describe('Producer', function () {
             driver.handleTaskEvent({ jobId, taskId: node.taskId, status });
         });
     });
-    describe.only('CreateJobErrors', function () {
+    describe('CreateJobErrors', function () {
         it('should create job and handle stalled error', async function () {
             const jobId = createJobId();
             const job = {
