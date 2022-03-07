@@ -117,17 +117,20 @@ describe('Concurrency', () => {
             preferredService.addPreferredJobs({ 'jobs': queueRunner.queue.getQueue().slice(0,5).map(j=>j.jobId), position: 'first' });
 
             let result = await producerLib._concurrencyHandler._checkConcurrencyJobsInternal();
+            expect(queueRunner.preferredQueue.getQueue()).to.have.lengthOf(5);
             expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(1, '1111')
             expect(result).to.eql(1);
             await delay(300);
             producerLib._isConsumerActive = true;
             result = await producerLib._concurrencyHandler._checkConcurrencyJobsInternal();
             expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(2, '2222')
+            expect(queueRunner.preferredQueue.getQueue()).to.have.lengthOf(4);
             await delay(300);
             producerLib._isConsumerActive = true;
             redisJobCount = 2
             result = await producerLib._concurrencyHandler._checkConcurrencyJobsInternal();
             expect(producerLib._concurrencyHandler._activeState[pipelineName].count).to.eql(3, '3333')
+            expect(queueRunner.preferredQueue.getQueue()).to.have.lengthOf(3);
             await producerLib._dequeueJobInternal();
             await producerLib._dequeueJobInternal();
             await producerLib._dequeueJobInternal();
