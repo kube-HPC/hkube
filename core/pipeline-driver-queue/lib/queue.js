@@ -1,8 +1,13 @@
+/* eslint-disable no-plusplus */
+/* eslint-disable no-await-in-loop */
 const Events = require('events');
 const orderby = require('lodash.orderby');
 const remove = require('lodash.remove');
+const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { queueEvents, componentName } = require('./consts');
+const dataStore = require('./persistency/data-store');
+
 const component = componentName.QUEUE;
 
 class Queue extends Events {
@@ -38,9 +43,28 @@ class Queue extends Events {
             previous = item.jobId;
             orderedData.push(item);
         });
-
-        if (orderedData.length > 0) {
-            orderedData.forEach(q => {
+        const filteredData = [];
+        for (let i = 0; i < orderedData.length; i++) {
+            const item = orderedData[i];
+            const { jobId } = item;
+            const jobData = await dataStore.getJob({ jobId });
+            const { status, pipeline } = jobData || {};
+            let skip = false;
+            if (!pipeline) {
+                log.warning(`unable to find pipeline for job ${jobId} loaded from persistency`, { component, jobId });
+                skip = true;
+            }
+            if (status && (status.status === pipelineStatuses.STOPPED || status.status === pipelineStatuses.PAUSED)) {
+                log.warning(`job ${jobId} loaded from persistency with state stop therefore will not added to queue`, { component, jobId });
+                skip = true;
+            }
+            if (!skip) {
+                item.next = i === 0 ? 'FirstInLine' : orderedData[i - 1].jobId;
+                filteredData.push(item);
+            }
+        }
+        if (filteredData.length > 0) {
+            filteredData.forEach(q => {
                 const item = {
                     ...q,
                     calculated: {

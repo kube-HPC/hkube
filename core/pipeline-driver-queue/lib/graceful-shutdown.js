@@ -10,8 +10,10 @@ class GracefulShutdown {
             log.info('starting graceful shutdown', { component });
             await consumer.shutdown();
             await producer.shutdown();
-            if (queueRunner.queue) {
-                await queueRunner.queue.persistenceStore();
+            for (const queue of [queueRunner.queue, queueRunner.preferredQueue]) {
+                if (queue) {
+                    await queue.persistenceStore();
+                }
             }
             log.info('finish graceful shutdown', { component });
         }

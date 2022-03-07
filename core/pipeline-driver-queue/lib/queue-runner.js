@@ -8,8 +8,10 @@ const aggregationMetricFactory = require('./metrics/aggregation-metrics-factory'
 class QueueRunner {
     constructor() {
         this.queue = null;
+        this.preferredQueue = null;
         this.config = null;
         this.heuristicRunner = new HeuristicRunner();
+        this.queues = [];
     }
 
     async init(config) {
@@ -27,11 +29,23 @@ class QueueRunner {
             persistency,
             name: 'preferred'
         });
+        this.queues = [this.preferredQueue, this.queue];
         this.queue.on(queueEvents.INSERT, job => this._jobAdded(job));
         this.queue.on(queueEvents.POP, job => this._jobRemoved(job));
         this.queue.on(queueEvents.REMOVE, job => this._jobRemoved(job));
-        await this.queue.persistencyLoad();
-        await this.preferredQueue.persistencyLoad(true);
+        for (const queue of this.queues) {
+            await queue.persistencyLoad();
+        }
+    }
+
+    findJobByJobId(jobId) {
+        for (const queue of this.queues) {
+            const job = queue.getQueue().find(j => j.jobId === jobId);
+            if (job) {
+                return { job, queue };
+            }
+        }
+        return null;
     }
 
     _jobAdded(job) {

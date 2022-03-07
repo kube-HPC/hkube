@@ -40,6 +40,11 @@ class DataStore extends EventEmitter {
         await this._etcd.jobs.results.set(options);
         await this._db.jobs.updateResult(options);
     }
+
+    async getStoredPipelines({ pipelinesNames }) {
+        const pipelines = await this._db.pipelines.fetchAll();
+        return pipelines.filter(p => pipelinesNames.includes(p.name));
+    }
 }
 
 module.exports = new DataStore();
