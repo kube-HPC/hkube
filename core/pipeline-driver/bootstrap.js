@@ -52,6 +52,7 @@ class Bootstrap {
 
     _handleErrors() {
         process.on('exit', (code) => {
+
             log.info(`exit code ${code}`, { component });
         });
         process.on('SIGINT', () => {

@@ -6,7 +6,8 @@ const Components = {
     REDIS_PERSISTENT: 'Redis-Persistent',
     GRAPH_STORE: 'Graph-Store',
     STATE_MANAGER: 'State-Manager',
-    METRICS: 'Metrics'
+    METRICS: 'Metrics',
+    DB: 'DB'
 };
 
 module.exports = Components;

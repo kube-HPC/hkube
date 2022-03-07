@@ -14,8 +14,10 @@ const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverState
 
 class StateManager {
     init(options) {
+        this._exitOnEtcdProblemBinded = this._exitOnEtcdProblem.bind(this);
         this._emitter = new EventEmitter();
         this._etcd = new Etcd(options.etcd);
+        this._wrapEtcd();
         this._podName = options.kubernetes.podName;
         this._lastDiscovery = null;
         this._driverId = this._etcd.discovery._instanceId;
@@ -23,6 +25,46 @@ class StateManager {
         this._unScheduledAlgorithmsInterval = options.unScheduledAlgorithms.interval;
         this._subscribe();
         this._watchDrivers();
+    }
+
+    setJobConsumer(jobConsumer) {
+        this.jobConsumer = jobConsumer;
+    }
+
+    _wrapperForEtcdProblem(fn) {
+        // eslint-disable-next-line func-names
+        const fnb = fn.bind(this);
+        if (fn.constructor.name === 'AsyncFunction') {
+            return async (...args) => {
+                try {
+                    const result = await fnb(...args);
+                    return result;
+                }
+                catch (ex) {
+                    this._exitOnEtcdProblemBinded(ex);
+                    throw ex;
+                }
+            };
+        }
+        return (...args) => {
+            try {
+                const result = fnb(...args);
+                return result;
+            }
+            catch (ex) {
+                this._exitOnEtcdProblemBinded(ex);
+                throw ex;
+            }
+        };
+    }
+
+    _wrapEtcd() {
+        const wrappedFns = ['updateDiscovery', 'tasksList', 'watchTasks', 'unWatchTasks', 'deleteTasksList', 'deleteStreamingStats', 'watchJobStatus', 'unWatchJobStatus', 'watchDrivers', 'createJob'];
+        wrappedFns.forEach(propertyName => {
+            if (typeof this[propertyName] === 'function') {
+                this[propertyName] = this._wrapperForEtcdProblem(this[propertyName]);
+            }
+        });
     }
 
     _subscribe() {
@@ -83,6 +125,7 @@ class StateManager {
             }
             catch (e) {
                 log.throttle.error(e.message, { component });
+                this._exitOnEtcdProblem(e);
             }
             finally {
                 this._working = false;
@@ -163,6 +206,7 @@ class StateManager {
         }
         catch (e) {
             storageError = e.message;
+            this._exitOnEtcdProblem(e);
         }
         finally {
             span && span.finish(storageError);
@@ -174,6 +218,17 @@ class StateManager {
         data.forEach(d => Object.keys(d).forEach(k => d[k] === undefined && delete d[k]));
     }
 
+    async _exitOnEtcdProblem(e) {
+        if (this._etcd.isFatal(e)) {
+            log.error(`ETCD problem ${e.message}`, { component }, e);
+            const taskRunners = this.jobConsumer.getTaskRunners();
+            await Promise.all(Array.from(taskRunners.values()).map((taskRunner) => {
+                return taskRunner.getGraphStore()?.stop();
+            }));
+            process.exit(1);
+        }
+    }
+
     async setJobResults(options) {
         let error;
         try {
@@ -182,6 +237,7 @@ class StateManager {
         }
         catch (e) {
             error = e.message;
+            this._exitOnEtcdProblem(e);
         }
         return error;
     }
@@ -196,6 +252,7 @@ class StateManager {
             return null;
         }).catch(e => {
             log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
+            this._exitOnEtcdProblem(e);
         });
     }
 
@@ -236,31 +293,31 @@ class StateManager {
         return db.updatePipeline(options);
     }
 
-    watchTasks(options) {
+    async watchTasks(options) {
         return this._etcd.jobs.tasks.watch(options);
     }
 
-    unWatchTasks(options) {
+    async unWatchTasks(options) {
         return this._etcd.jobs.tasks.unwatch(options);
     }
 
-    deleteTasksList(options) {
+    async deleteTasksList(options) {
         return this._etcd.jobs.tasks.delete(options, { isPrefix: true });
     }
 
-    deleteStreamingStats(options) {
+    async deleteStreamingStats(options) {
         return this._etcd.streaming.statistics.delete(options, { isPrefix: true });
     }
 
-    watchJobStatus(options) {
+    async watchJobStatus(options) {
         return this._etcd.jobs.status.watch(options);
     }
 
-    unWatchJobStatus(options) {
+    async unWatchJobStatus(options) {
         return this._etcd.jobs.status.unwatch(options);
     }
 
-    _watchDrivers() {
+    async _watchDrivers() {
         return this._etcd.drivers.watch({ driverId: this._driverId });
     }
 
