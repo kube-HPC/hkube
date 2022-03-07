@@ -124,7 +124,7 @@ class ExecutionService {
             const pipelineObject = { ...extendedPipeline, maxExceeded, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
             const statusObject = { timestamp: Date.now(), pipeline: extendedPipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
-            await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
+            await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject, completion: false });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return { jobId, gateways: extendedPipeline.streaming?.gateways };

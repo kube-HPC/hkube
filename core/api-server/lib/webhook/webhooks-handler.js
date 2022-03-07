@@ -28,17 +28,25 @@ class WebhooksHandler {
     }
 
     _watch() {
-        stateManager.on('job-result-change', async (response, updateStatus) => {
-            this._requestResults(response, updateStatus);
+        stateManager.on('job-result-change', async (response) => {
+            await this._requestResults(response);
             const { jobId } = response;
-            gatewayService.deleteGateways({ jobId });
-            hyperparamsTunerService.deleteHyperparamsTuners({ jobId });
-            debugService.updateLastUsed({ jobId });
-            outputService.updateLastUsed({ jobId });
+            await Promise.allSettled([
+                gatewayService.deleteGateways({ jobId }),
+                hyperparamsTunerService.deleteHyperparamsTuners({ jobId }),
+                debugService.updateLastUsed({ jobId }),
+                outputService.updateLastUsed({ jobId }),
+            ]);
+            await this._completeJob(response);
         });
         stateManager.onJobStatus((response) => {
             this._requestStatus(response);
         });
+    }
+
+    async _completeJob(payload) {
+        const { jobId } = payload;
+        return stateManager.updateJobCompletion({ jobId, completion: true });
     }
 
     async _requestStatus(payload) {
@@ -59,8 +67,8 @@ class WebhooksHandler {
     }
 
     // TODO: DELETE JOB FROM ETCD
-    async _requestResults(payload, updateStatus) {
-        const { jobId, status } = payload;
+    async _requestResults(payload) {
+        const { jobId } = payload;
         const pipeline = await stateManager.getJobPipeline({ jobId });
 
         const time = Date.now() - pipeline.startTime;
@@ -71,12 +79,10 @@ class WebhooksHandler {
                 status: payload.status
             }
         });
-        if (updateStatus) {
-            await stateManager.updateJobStatus({ jobId, status });
-        }
+
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await stateManager.getResultFromStorage(payload);
-            if (payloadData?.data) {
+            if (payloadData?.data && Array.isArray(payloadData.data)) {
                 await Promise.all(payloadData.data.map(p => this._fillMissing(p)));
             }
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);

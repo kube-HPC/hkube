@@ -45,15 +45,13 @@ class StateManager extends EventEmitter {
 
     async _healthcheckInterval() {
         try {
-            const running = await this.getRunningJobs();
-            const jobIds = running.map(r => r.jobId);
+            const running = await this.getNotCompletedJobs();
             const completedToDelete = [];
-            for (const jobId of jobIds) {
-                const result = await this.getJobResultClean({ jobId });
+            for (const { jobId, result } of running) {
                 if (result) {
                     const age = Date.now() - new Date(result.timestamp);
                     if (age > this._options.healthchecks.minAge) {
-                        completedToDelete.push(result);
+                        completedToDelete.push({ jobId, ...result });
                     }
                 }
             }
@@ -62,7 +60,7 @@ class StateManager extends EventEmitter {
                 this._failedHealthcheckCount += 1;
             }
             for (const result of completedToDelete) {
-                this.emit('job-result-change', result, true);
+                this.emit('job-result-change', result);
             }
         }
         catch (error) {
@@ -306,8 +304,8 @@ class StateManager extends EventEmitter {
         });
     }
 
-    async createJob({ jobId, userPipeline, pipeline, status }) {
-        await this._db.jobs.create({ jobId, userPipeline, pipeline, status });
+    async createJob({ jobId, userPipeline, pipeline, status, completion }) {
+        await this._db.jobs.create({ jobId, userPipeline, pipeline, status, completion });
         await this._etcd.jobs.status.set({ jobId, ...status });
     }
 
@@ -318,6 +316,20 @@ class StateManager extends EventEmitter {
     async getRunningJobs({ status } = {}) {
         const statuses = status ? [status] : [pipelineStatuses.ACTIVE, pipelineStatuses.PENDING];
         return this._db.jobs.search({ pipelineStatus: { $in: statuses }, fields: { jobId: true, status: 'status.status' } });
+    }
+
+    async getNotCompletedJobs() {
+        return this._db.jobs.fetchAll({
+            query: {
+                completion: false,
+                result: { $exists: true }
+            },
+            fields: {
+                jobId: true,
+                result: true
+            },
+            excludeId: true
+        });
     }
 
     async getStatus(status) {
@@ -465,6 +477,10 @@ class StateManager extends EventEmitter {
 
     async getSystemResources() {
         return this._etcd.discovery.list({ serviceName: 'task-executor' });
+    }
+
+    async updateJobCompletion({ jobId, completion }) {
+        return this._db.jobs.patch({ query: { jobId }, data: { completion } });
     }
 }
 
