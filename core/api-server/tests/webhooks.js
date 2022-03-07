@@ -328,6 +328,29 @@ describe('Webhooks', () => {
             }
 
         });
+        it('should return handle completion without webhook', async () => {
+            let options = {
+                uri: restUrl + '/exec/stored',
+                body: { name: 'flow1' }
+            };
+            try {
+                const response = await request(options);
+                jobId = response.body.jobId;
+                const res = await stateManager.getNotCompletedJobs();
+                await stateManager._etcd.jobs.results.unwatch();
+                expect(res).to.be.empty;
+                const data = [{ res1: 400 }, { res2: 500 }];
+                await workerStub.done({ jobId, data });
+                const res2 = await stateManager.getNotCompletedJobs();
+                expect(res2[0].jobId).to.eql(jobId);
+                await delay(4000);
+                const res3 = await stateManager.getNotCompletedJobs();
+                expect(res3).to.be.empty;
+            } finally {
+                await stateManager._etcd.jobs.results.watch();
+            }
+
+        });
     })
     describe('Progress', () => {
         it('should succeed to send webhook progress', async () => {
