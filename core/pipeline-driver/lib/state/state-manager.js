@@ -222,7 +222,7 @@ class StateManager {
         if (this._etcd.isFatal(e)) {
             log.error(`ETCD problem ${e.message}`, { component }, e);
             const taskRunners = this.jobConsumer.getTaskRunners();
-            await Promise.all(Object.values(taskRunners).map((taskRunner) => {
+            await Promise.all(Array.from(taskRunners.values()).map((taskRunner) => {
                 return taskRunner.getGraphStore()?.stop();
             }));
             process.exit(1);

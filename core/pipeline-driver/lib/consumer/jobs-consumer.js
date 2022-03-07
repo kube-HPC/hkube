@@ -154,7 +154,7 @@ class JobConsumer {
         }
     }
 
-    async getTaskRunners() {
+    getTaskRunners() {
         return this._drivers;
     }
 }
