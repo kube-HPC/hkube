@@ -11,6 +11,7 @@ class JobConsumer {
         this._maxJobs = 0;
         this._consumerPaused = false;
         this._drivers = new Map();
+        stateManager.setJobConsumer(this);
     }
 
     init(options) {
@@ -153,7 +154,7 @@ class JobConsumer {
         }
     }
 
-    async getTaskRunner() {
+    async getTaskRunners() {
         return this._drivers;
     }
 }

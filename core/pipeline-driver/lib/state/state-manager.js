@@ -25,8 +25,10 @@ class StateManager {
         this._unScheduledAlgorithmsInterval = options.unScheduledAlgorithms.interval;
         this._subscribe();
         this._watchDrivers();
-        // eslint-disable-next-line global-require
-        this.jobConsumer = require('../consumer/jobs-consumer');
+    }
+
+    setJobConsumer(jobConsumer) {
+        this.jobConsumer = jobConsumer;
     }
 
     _wrapperForEtcdProblem(fn) {
@@ -219,7 +221,7 @@ class StateManager {
     async _exitOnEtcdProblem(e) {
         if (this._etcd.isFatal(e)) {
             log.error(`ETCD problem ${e.message}`, { component }, e);
-            const taskRunners = this.jobConsumer.getTaskRunner();
+            const taskRunners = this.jobConsumer.getTaskRunners();
             await Promise.all(Object.values(taskRunners).map((taskRunner) => {
                 return taskRunner.getGraphStore()?.stop();
             }));
