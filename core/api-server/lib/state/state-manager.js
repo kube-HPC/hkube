@@ -3,7 +3,7 @@ const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
-const { buildStatuses } = require('@hkube/consts');
+const { buildStatuses, pipelineStatuses } = require('@hkube/consts');
 const component = require('../consts/componentNames').DB;
 
 class StateManager {
@@ -258,6 +258,11 @@ class StateManager {
 
     async getJob({ jobId, fields }) {
         return this._db.jobs.fetch({ jobId, fields });
+    }
+
+    async getRunningJobs({ status } = {}) {
+        const statuses = status ? [status] : [pipelineStatuses.ACTIVE, pipelineStatuses.PENDING];
+        return this._db.jobs.search({ pipelineStatus: { $in: statuses }, fields: { jobId: true, status: 'status.status' } });
     }
 
     async getStatus(status) {

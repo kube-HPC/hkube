@@ -1,6 +1,6 @@
 {
   "name": "gc-service",
-  "version": "2.2.9",
+  "version": "2.3.0",
   "description": "Hkube garbage collector",
   "main": "app.js",
   "scripts": {
@@ -21,7 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/consts": "^1.0.35",
+    "@hkube/consts": "^1.0.39",
     "@hkube/db": "^2.0.2",
     "@hkube/etcd": "^5.1.6",
     "@hkube/healthchecks": "^1.0.2",

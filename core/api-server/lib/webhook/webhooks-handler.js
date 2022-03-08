@@ -27,14 +27,14 @@ class WebhooksHandler {
         await this._watch();
     }
 
-    async _watch() {
-        await stateManager.onJobResult(async (response) => {
-            await this._requestResults(response);
+    _watch() {
+        stateManager.onJobResult(async (response) => {
+            this._requestResults(response);
             const { jobId } = response;
             gatewayService.deleteGateways({ jobId });
-            outputService.deleteOutputs({ jobId });
             hyperparamsTunerService.deleteHyperparamsTuners({ jobId });
             debugService.updateLastUsed({ jobId });
+            outputService.updateLastUsed({ jobId });
         });
         await stateManager.onJobStatus(async (response) => {
             await this._requestStatus(response);

@@ -1,4 +1,5 @@
 const { nodeKind, buildTypes } = require('@hkube/consts');
+const log = require('@hkube/logger').GetLogFromContanier();
 const validator = require('../validation/api-validator');
 const { InvalidDataError } = require('../errors');
 const stateManager = require('../state/state-manager');
@@ -21,13 +22,15 @@ class Output extends AlgorithmBase {
         const algorithmName = `${pipelineName}-${nodeKind.Output}`;
         const output = await stateManager.getAlgorithm({ name: algorithmName });
         if (output) {
-            throw new InvalidDataError(`output ${algorithmName} already exists`);
+            if (output.kind !== nodeKind.Output) {
+                throw new InvalidDataError(`output ${algorithmName} already exists`);
+            }
+            return { algorithmName };
         }
         const algorithm = {
             name: algorithmName,
             mem,
             description,
-            jobId,
             kind: nodeKind.Output,
             algorithmImage: 'hkube/algorithm-output',
             type: buildTypes.IMAGE,
@@ -39,6 +42,28 @@ class Output extends AlgorithmBase {
         validator.outputs.validateOutput(algorithm);
         await stateManager.updateAlgorithm(algorithm);
         return { algorithmName };
+    }
+
+    async updateLastUsed({ pipeline, jobId }) {
+        try {
+            if (!pipeline) {
+                // eslint-disable-next-line no-param-reassign
+                pipeline = await stateManager.getJobPipeline({ jobId });
+            }
+            if (!pipeline.nodes) {
+                return;
+            }
+            const outputNode = pipeline.nodes.find(n => n.kind === nodeKind.Output);
+            if (!outputNode) {
+                return;
+            }
+            const { algorithmName } = outputNode;
+            const algorithm = await stateManager.getAlgorithm({ name: algorithmName });
+            await stateManager.updateAlgorithm({ ...algorithm });
+        }
+        catch (error) {
+            log.warning(`failed to update last used for output ${error.message}`);
+        }
     }
 
     async deleteOutputs({ pipeline, jobId }) {

@@ -13,8 +13,10 @@ const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverState
 
 class StateManager {
     async init(options) {
+        this._exitOnEtcdProblemBinded = this._exitOnEtcdProblem.bind(this);
         this._emitter = new EventEmitter();
         this._etcd = new Etcd(options.etcd);
+        this._wrapEtcd();
         this._podName = options.kubernetes.podName;
         this._lastDiscovery = null;
         this._driverId = this._etcd.discovery._instanceId;
@@ -26,6 +28,81 @@ class StateManager {
         this._db = dbConnect(config, provider);
         await this._db.init();
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
+    }
+
+    setJobConsumer(jobConsumer) {
+        this.jobConsumer = jobConsumer;
+    }
+
+    _wrapperForEtcdProblem(fn) {
+        // eslint-disable-next-line func-names
+        const fnb = fn.bind(this);
+        if (fn.constructor.name === 'AsyncFunction') {
+            return async (...args) => {
+                try {
+                    const result = await fnb(...args);
+                    return result;
+                }
+                catch (ex) {
+                    this._exitOnEtcdProblemBinded(ex);
+                    throw ex;
+                }
+            };
+        }
+        return (...args) => {
+            try {
+                const result = fnb(...args);
+                return result;
+            }
+            catch (ex) {
+                this._exitOnEtcdProblemBinded(ex);
+                throw ex;
+            }
+        };
+    }
+
+    _wrapEtcd() {
+        const wrappedFns = ['updateDiscovery', 'tasksList', 'watchTasks', 'unWatchTasks', 'deleteTasksList', 'deleteStreamingStats', 'watchJobStatus', 'unWatchJobStatus', 'watchDrivers', 'createJob'];
+        wrappedFns.forEach(propertyName => {
+            if (typeof this[propertyName] === 'function') {
+                this[propertyName] = this._wrapperForEtcdProblem(this[propertyName]);
+            }
+        });
+    }
+
+    _wrapJobsService() {
+        ['updateResult', 'updateStatus', 'fetchStatus', 'fetchResult', 'updatePipeline', 'createJob'].forEach(propertyName => {
+            if (typeof this._db.jobs[propertyName] === 'function') {
+                this[propertyName] = this._wrapperForDBProblem(this[propertyName]);
+            }
+        });
+    }
+
+    _wrapperForDBProblem(fn) {
+        // eslint-disable-next-line func-names
+        const bfn = fn.bind(this);
+        if (bfn.constructor.name === 'AsyncFunction') {
+            return async (...args) => {
+                try {
+                    const result = await bfn(...args);
+                    return result;
+                }
+                catch (ex) {
+                    this._exitOnDBProblemBinded(ex);
+                    throw ex;
+                }
+            };
+        }
+        return (...args) => {
+            try {
+                const result = bfn(...args);
+                return result;
+            }
+            catch (ex) {
+                this._exitOnDBProblemBinded(ex);
+                throw ex;
+            }
+        };
     }
 
     // Discovery
@@ -63,6 +140,7 @@ class StateManager {
             }
             catch (e) {
                 log.throttle.error(e.message, { component });
+                this._exitOnEtcdProblem(e);
             }
             finally {
                 this._working = false;
@@ -138,6 +216,7 @@ class StateManager {
         }
         catch (e) {
             storageError = e.message;
+            this._exitOnEtcdProblem(e);
         }
         finally {
             span && span.finish(storageError);
@@ -182,6 +261,25 @@ class StateManager {
         return CompletedState.includes(status);
     }
 
+    async _exitOnEtcdProblem(e) {
+        if (this._etcd.isFatal(e)) {
+            log.error(`ETCD problem ${e.message}`, { component }, e);
+            const taskRunners = this.jobConsumer.getTaskRunners();
+            await Promise.all(Array.from(taskRunners.values()).map((taskRunner) => {
+                return taskRunner.getGraphStore()?.stop();
+            }));
+            process.exit(1);
+        }
+    }
+
+    _exitOnDBProblem(error) {
+        if (this._db.isFatal(error)) {
+            log.error(`db problem + ${error}`, { component }, error);
+            process.exit(1);
+        }
+        return error;
+    }
+
     async setJobResults(options) {
         let error;
         try {
@@ -189,6 +287,7 @@ class StateManager {
         }
         catch (e) {
             error = e.message;
+            this._exitOnEtcdProblem(e);
         }
         return error;
     }
@@ -199,6 +298,7 @@ class StateManager {
         }
         catch (e) {
             log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
+            this._exitOnEtcdProblem(e);
         }
     }
 

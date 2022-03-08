@@ -1,0 +1,36 @@
+get:
+  tags:
+    - Execution
+  summary: Get jobs (active and pending)
+  description: Returns a list of all jobs (active and pending)
+  parameters:
+    - name: status
+      in: query
+      description: status of the jobs to return
+      required: false
+      schema:
+        type: string
+        enum:
+          - active
+          - pending
+    - name: raw
+      in: query
+      description: if true returns just the jobId
+      required: false
+      schema:
+        type: boolean
+  responses:
+    "200":
+      description: jobs list
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/jobListItem"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
