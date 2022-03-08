@@ -50,7 +50,8 @@ class TaskRunner {
     getStatus() {
         return {
             jobId: this._jobId,
-            active: this._active
+            active: this._active,
+            pipelineName: this.pipeline.name
         };
     }
 
