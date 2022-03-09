@@ -36,7 +36,7 @@ class WebhooksHandler {
             debugService.updateLastUsed({ jobId });
             outputService.updateLastUsed({ jobId });
         });
-        await stateManager.onJobStatus(async (response) => {
+        stateManager.onJobStatus(async (response) => {
             await this._requestStatus(response);
         });
     }
