@@ -105,14 +105,14 @@ class Queue extends Events {
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
         this.queue = orderby(this.queue, 'score', 'desc');
         this.emit(queueEvents.INSERT, job);
-        log.info(`new job inserted to queue, queue size: ${this.size}`, { component });
+        log.info(`new job inserted to queue ${this._name}, queue size: ${this.size}`, { component });
     }
 
     dequeue(job) {
         const removedJob = remove(this.queue, j => j.jobId === job.jobId);
         if (removedJob.length > 0) {
             this.emit(queueEvents.POP, job);
-            log.info(`job pop from queue, queue size: ${this.size}`, { component });
+            log.info(`job pop from queue ${this._name}, queue size: ${this.size}`, { component });
         }
         return removedJob;
     }
@@ -121,7 +121,7 @@ class Queue extends Events {
         const jobs = remove(this.queue, job => job.jobId === jobId);
         if (jobs.length > 0) {
             this.emit(queueEvents.REMOVE, jobs[0]);
-            log.info(`job removed from queue, queue size: ${this.size}`, { component });
+            log.info(`job removed from queue ${this._name}, queue size: ${this.size}`, { component });
         }
         return jobs;
     }

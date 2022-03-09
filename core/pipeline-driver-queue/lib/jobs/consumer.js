@@ -104,13 +104,17 @@ class JobConsumer {
 
     _stopJob(jobId, status) {
         log.info(`job ${status} ${jobId}`, { component });
-        queueRunner.preferredQueue.remove(jobId);
-        queueRunner.queue.remove(jobId);
+        const { job, queue } = queueRunner.findJobByJobId(jobId);
+        if (job) {
+            queue.remove(jobId);
+        }
+        queueRunner.jobRemovedFromQueue(job);
     }
 
     _queueJob({ jobId, pipeline, job }) {
         const jobData = this._pipelineToQueueAdapter({ jobId, pipeline, job });
         queueRunner.queue.enqueue(jobData);
+        queueRunner.jobAddedToQueue(jobData);
     }
 
     _pipelineToQueueAdapter({ jobId, pipeline, job }) {

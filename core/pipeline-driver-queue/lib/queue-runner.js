@@ -1,4 +1,4 @@
-const { queueEvents, metricsName, metricsTypes } = require('./consts');
+const { metricsName, metricsTypes } = require('./consts');
 const Queue = require('./queue');
 const HeuristicRunner = require('./heuristic-runner');
 const heuristic = require('./heuristic');
@@ -30,12 +30,17 @@ class QueueRunner {
             name: 'preferred'
         });
         this.queues = [this.preferredQueue, this.queue];
-        this.queue.on(queueEvents.INSERT, job => this._jobAdded(job));
-        this.queue.on(queueEvents.POP, job => this._jobRemoved(job));
-        this.queue.on(queueEvents.REMOVE, job => this._jobRemoved(job));
         for (const queue of this.queues) {
             await queue.persistencyLoad();
         }
+    }
+
+    jobAddedToQueue(job) {
+        this._jobAdded(job);
+    }
+
+    jobRemovedFromQueue(job) {
+        this._jobRemoved(job);
     }
 
     findJobByJobId(jobId) {
@@ -45,19 +50,18 @@ class QueueRunner {
                 return { job, queue };
             }
         }
-        return null;
+        return { job: null, queue: null };
     }
 
     _jobAdded(job) {
-        // aggregationMetricFactory.updateScoreMetrics(job);
         aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(job, metricsTypes.HISTOGRAM_OPERATION.start);
         aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)(job, metricsTypes.GAUGE_OPERATION.increase);
         aggregationMetricFactory.getMetric(metricsName.QUEUE_COUNTER)(job, metricsTypes.COUNTER_OPERATION.increase);
     }
 
     _jobRemoved(job) {
-        aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(job, metricsTypes.HISTOGRAM_OPERATION.end);
         aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)(job, metricsTypes.GAUGE_OPERATION.decrease);
+        aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(job, metricsTypes.HISTOGRAM_OPERATION.end);
     }
 }
 
