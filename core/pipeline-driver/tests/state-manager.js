@@ -94,19 +94,15 @@ describe('StateManager', function () {
         const data = { status: 'completed' };
         await stateManager.createJob({ jobId, status: data });
 
-        let response = await db._db.jobs.fetch({ jobId });
+        let response = await stateManager.getJob({ jobId });
         expect(response.status).to.deep.equal(data);
         expect(response.status.timeTook).to.not.exist
         const timeTook = stateManager.calcTimeTook({ startTime: Date.now() - 1000, activeTime: Date.now() });
         await stateManager.setJobStatus({ jobId, ...timeTook });
-        response = await db._db.jobs.fetch({ jobId });
+        response = await stateManager.getJob({ jobId });
         expect(response.status).to.deep.include(data);
         expect(response.status.netTimeTook).to.exist
         expect(response.status.grossTimeTook).to.exist
-        response = await stateManager._etcd.jobs.status.get({ jobId });
-        expect(response).to.deep.include(data);
-        expect(response.netTimeTook).to.exist
-        expect(response.grossTimeTook).to.exist
     });
     it('should update state correctly', async function () {
         const jobId = createJobId();
