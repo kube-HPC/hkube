@@ -133,9 +133,10 @@ describe('Preferred Queue Tests', () => {
                     "query": { tag: 'tag1', jobId: 'd' }
                 }
             });
-            expect(result.body.error.message === ' ,pipelineName');
+            expect(result.body.error.message).to.eql('Query must contain only one of jobId ,tag ,pipelineName'
+            );
             result = await request({
-                url: `${restUrl}/preferred`, method: 'GET'
+                url: `${restUrl}/preferred?pageSize=10`, method: 'GET'
             });
             expect(result.body.returnList[0].jobId === 'a' && result.body.returnList[1].jobId === 'b' && result.body.returnList[2].jobId === 'c')
             result = await request({
