@@ -61,10 +61,8 @@ describe('TaskRunner', function () {
         expect(taskRunner._jobId).to.equal(jobId);
         expect(taskRunner._active).to.equal(true);
         expect(taskRunner.pipeline.name).to.equal(pipeline.name);
-        const statusFromEtcd = await stateManager._etcd.jobs.status.get({ jobId });
-        expect(statusFromEtcd.activeTime).to.exist;
-        const statusFromDb = await stateManager.getJobStatus({ jobId });
-        expect(statusFromDb.activeTime).to.exist;
+        const statusFromDb = await stateManager.getJob({ jobId });
+        expect(statusFromDb.status.activeTime).to.exist;
 
     });
     it('should throw when check batch tolerance', async function () {

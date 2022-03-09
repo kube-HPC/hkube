@@ -114,7 +114,6 @@ describe('StateManager', function () {
             await delay(10);
             await stateManager.setJobStatus(statusActive);
         }
-        await db.updateStatus(statusStopped);
         await stateManager.setJobStatus(statusStopped);
         const res = await stateManager.fetchStatus({ jobId });
         expect(res.status).to.eql(statusStopped.status);
