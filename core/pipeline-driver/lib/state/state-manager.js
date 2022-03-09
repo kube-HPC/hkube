@@ -302,10 +302,10 @@ class StateManager {
         }
     }
 
-
     getJob({ jobId }) {
         return this._db.jobs.fetch({ jobId, fields: { status: true, pipeline: true } });
     }
+
     calcTimeTook({ activeTime, startTime } = {}) {
         const now = moment(Date.now());
         const times = {};

@@ -36,7 +36,7 @@ class TaskRunner {
     getGraphStore() {
         return this._graphStore;
     }
-    
+
     async onStop(job) {
         log.info(`pipeline ${job.status} ${this._jobId}. ${job.reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
         await this.stop({ shouldStop: false });
@@ -357,8 +357,7 @@ class TaskRunner {
         }
     }
 
-   async _progressStatus({ status, error, nodeName, activeTime, netTimeTook, grossTimeTook }) {
-
+    async _progressStatus({ status, error, nodeName, activeTime, netTimeTook, grossTimeTook }) {
         if (error) {
             await this._progressError({ status, error, nodeName });
         }

@@ -12,7 +12,6 @@ const modules = [
     require('./lib/state/state-manager'),
     require('./lib/producer/jobs-producer'),
     require('./lib/metrics/pipeline-metrics'),
-    require('./lib/datastore/graph-store'),
     require('./lib/consumer/jobs-consumer')
 ];
 
