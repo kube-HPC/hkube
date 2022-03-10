@@ -47,6 +47,7 @@ class Queue extends Events {
         for (let i = 0; i < orderedData.length; i++) {
             const item = orderedData[i];
             const { jobId } = item;
+            log.info(`getting recovery info for job ${jobId} loaded from persistency`, { component, jobId });
             const jobData = await dataStore.getJob({ jobId });
             const { status, pipeline } = jobData || {};
             let skip = false;
@@ -75,9 +76,11 @@ class Queue extends Events {
                     this.queue.push(item);
                 }
                 else {
-                    this.enqueue(item);
+                    this.enqueue(item, true);
                 }
             });
+            log.info(`calculating heuristics for queue ${this._name} loaded from persistency`, { component });
+            this._calculateHeuristic();
         }
     }
 
@@ -100,10 +103,16 @@ class Queue extends Events {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
     }
 
-    enqueue(job) {
-        this.queue.push(job);
+    _calculateHeuristic() {
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
         this.queue = orderby(this.queue, 'score', 'desc');
+    }
+
+    enqueue(job, skipHeuristic = false) {
+        this.queue.push(job);
+        if (!skipHeuristic) {
+            this._calculateHeuristic();
+        }
         this.emit(queueEvents.INSERT, job);
         log.info(`new job inserted to queue ${this._name}, queue size: ${this.size}`, { component });
     }
