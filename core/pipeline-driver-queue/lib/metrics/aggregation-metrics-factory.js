@@ -177,14 +177,17 @@ class AggregationMetricsFactory {
      * @param {string} metricOperation
      */
     _gauge(metric, job, metricOperation) {
-        const { pipelineName } = job;
+        const { pipelineName, value = 0 } = job;
         const metricData = {
             id: job.jobId,
             labelValues: {
                 pipeline_name: pipelineName
             }
         };
-        if (metricOperation === metricsTypes.GAUGE_OPERATION.increase) {
+        if (metricOperation === metricsTypes.GAUGE_OPERATION.set) {
+            metric.set({ ...metricData, value });
+        }
+        else if (metricOperation === metricsTypes.GAUGE_OPERATION.increase) {
             metric.inc(metricData);
         }
         else if (metricOperation === metricsTypes.GAUGE_OPERATION.decrease) {

@@ -1,5 +1,5 @@
 const asyncQueue = require('async/queue');
-const { Consumer } = require('@hkube/producer-consumer');
+const { Consumer, Events } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -36,6 +36,9 @@ class JobConsumer {
                 type: options.consumer.jobType,
                 concurrency
             }
+        });
+        this._consumer.on(Events.FAILED, (job) => {
+            this._handleFailedJob(job);
         });
         this._consumer.on('job', (job) => {
             this._incomingJobQueue.push(job);
@@ -104,13 +107,17 @@ class JobConsumer {
 
     _stopJob(jobId, status) {
         log.info(`job ${status} ${jobId}`, { component });
-        queueRunner.preferredQueue.remove(jobId);
-        queueRunner.queue.remove(jobId);
+        const { job, queue } = queueRunner.findJobByJobId(jobId);
+        if (job) {
+            queue.remove(jobId);
+        }
+        queueRunner.jobRemovedFromQueue(job);
     }
 
     _queueJob({ jobId, pipeline, job }) {
         const jobData = this._pipelineToQueueAdapter({ jobId, pipeline, job });
         queueRunner.queue.enqueue(jobData);
+        queueRunner.jobAddedToQueue(jobData);
     }
 
     _pipelineToQueueAdapter({ jobId, pipeline, job }) {

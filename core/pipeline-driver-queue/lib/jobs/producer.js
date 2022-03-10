@@ -51,14 +51,17 @@ class JobProducer {
 
     async _checkQueue() {
         try {
-            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
-            if (queue.length > 0) {
-                const pendingAmount = await this._redisQueue.getWaitingCount();
-                if (pendingAmount === 0) {
-                    // create job first time only, then rely on 3 events (active/completed/enqueue)
-                    this._firstJobDequeue = true;
-                    log.info('firstJobDequeue', { component });
-                    await this.createJob(queue[0], queueRunner.queue);
+            for (const queue of queueRunner.queues) {
+                const queueAvailable = queue.getQueue(q => !q.maxExceeded);
+                if (queueAvailable.length > 0) {
+                    const pendingAmount = await this._redisQueue.getWaitingCount();
+                    if (pendingAmount === 0) {
+                        // create job first time only, then rely on 3 events (active/completed/enqueue)
+                        this._firstJobDequeue = true;
+                        log.info('firstJobDequeue', { component });
+                        await this.createJob(queueAvailable[0], queue);
+                        return;
+                    }
                 }
             }
         }
@@ -74,8 +77,9 @@ class JobProducer {
 
     async _updateState() {
         try {
-            await queueRunner.queue.persistenceStore();
-            await queueRunner.preferredQueue.persistenceStore();
+            for (const queue of queueRunner.queues) {
+                await queue.persistenceStore();
+            }
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);
@@ -169,6 +173,7 @@ class JobProducer {
         log.info(`creating new job ${job.jobId}`, { component, jobId: job.jobId });
         this._concurrencyHandler.updateActiveJobs(job);
         const jobData = this._pipelineToJob(job);
+        queueRunner.jobRemovedFromQueue(job);
         await this._producer.createJob(jobData);
     }
 }
