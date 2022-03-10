@@ -54,13 +54,15 @@ class QueueRunner {
     }
 
     _jobAdded(job) {
+        const count = this.queues.reduce((acc, queue) => acc + queue.getQueue().length, 0);
+        aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)({ jobId: job.jobId, pipelineName: job.pipelineName, value: count }, metricsTypes.GAUGE_OPERATION.set);
         aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(job, metricsTypes.HISTOGRAM_OPERATION.start);
-        aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)(job, metricsTypes.GAUGE_OPERATION.increase);
         aggregationMetricFactory.getMetric(metricsName.QUEUE_COUNTER)(job, metricsTypes.COUNTER_OPERATION.increase);
     }
 
     _jobRemoved(job) {
-        aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)(job, metricsTypes.GAUGE_OPERATION.decrease);
+        const count = this.queues.reduce((acc, queue) => acc + queue.getQueue().length, 0);
+        aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)({ jobId: job.jobId, pipelineName: job.pipelineName, value: count }, metricsTypes.GAUGE_OPERATION.set);
         aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(job, metricsTypes.HISTOGRAM_OPERATION.end);
     }
 }
