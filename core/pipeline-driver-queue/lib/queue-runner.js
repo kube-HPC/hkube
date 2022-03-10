@@ -57,7 +57,7 @@ class QueueRunner {
         if (!job) {
             return;
         }
-        const count = this.queues.reduce((acc, queue) => acc + queue.getQueue().length, 0);
+        const count = this.queues.reduce((acc, queue) => acc + queue.getQueue(j => j.pipelineName === job.pipelineName).length, 0);
         aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)({ pipelineName: job.pipelineName, value: count }, metricsTypes.GAUGE_OPERATION.set);
         aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(job, metricsTypes.HISTOGRAM_OPERATION.start);
         aggregationMetricFactory.getMetric(metricsName.QUEUE_COUNTER)(job, metricsTypes.COUNTER_OPERATION.increase);
@@ -67,7 +67,7 @@ class QueueRunner {
         if (!job) {
             return;
         }
-        const count = this.queues.reduce((acc, queue) => acc + queue.getQueue().length, 0);
+        const count = this.queues.reduce((acc, queue) => acc + queue.getQueue(j => j.pipelineName === job.pipelineName).length, 0);
         aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)({ pipelineName: job.pipelineName, value: count }, metricsTypes.GAUGE_OPERATION.set);
         aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(job, metricsTypes.HISTOGRAM_OPERATION.end);
     }
