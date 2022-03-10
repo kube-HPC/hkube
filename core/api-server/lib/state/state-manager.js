@@ -22,7 +22,6 @@ class StateManager {
 
     async _watchBuilds() {
         await this._etcd.algorithms.builds.singleWatch();
-
     }
 
     async setPipelineDriversSettings(data) {
