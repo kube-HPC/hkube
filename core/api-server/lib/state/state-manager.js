@@ -47,11 +47,11 @@ class StateManager extends EventEmitter {
         try {
             const running = await this.getNotCompletedJobs();
             const completedToDelete = [];
-            for (const { jobId, result } of running) {
+            for (const { jobId, result, status: reportedStatus } of running) {
                 if (result) {
                     const age = Date.now() - new Date(result.timestamp);
                     if (age > this._options.healthchecks.minAge) {
-                        completedToDelete.push({ jobId, ...result });
+                        completedToDelete.push({ jobId, ...result, reportedStatus: reportedStatus?.status });
                     }
                 }
             }
@@ -326,7 +326,8 @@ class StateManager extends EventEmitter {
             },
             fields: {
                 jobId: true,
-                result: true
+                result: true,
+                'status.status': true
             },
             excludeId: true
         });
