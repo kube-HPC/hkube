@@ -66,7 +66,7 @@ class JobConsumer extends EventEmitter {
             }
 
             job.data = task; // just workaround for now, need huge refactor
-
+            stateManager.setJob(job);
             this._setJob(job);
             log.info(`execute job ${job.data.jobId}`, { component });
             const jobStat = await stateAdapter.getJobStatus({ jobId });
@@ -94,7 +94,6 @@ class JobConsumer extends EventEmitter {
                 startTime: Date.now()
             });
 
-            stateManager.setJob(job);
             this._handleJob(job);
         });
 

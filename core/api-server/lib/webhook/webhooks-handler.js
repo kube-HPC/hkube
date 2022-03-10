@@ -31,10 +31,14 @@ class WebhooksHandler {
         stateManager.onJobResult(async (response) => {
             this._requestResults(response);
             const { jobId } = response;
-            gatewayService.deleteGateways({ jobId });
-            hyperparamsTunerService.deleteHyperparamsTuners({ jobId });
-            debugService.updateLastUsed({ jobId });
-            outputService.updateLastUsed({ jobId });
+            await Promise.allSettled([
+                gatewayService.deleteGateways({ jobId }),
+                hyperparamsTunerService.deleteHyperparamsTuners({ jobId }),
+                debugService.updateLastUsed({ jobId }),
+                outputService.updateLastUsed({ jobId }),
+            ]);
+            await this._validateJobStatus(response);
+            await this._completeJob(response);
         });
         stateManager.onJobStatus(async (response) => {
             await this._requestStatus(response);
@@ -58,8 +62,10 @@ class WebhooksHandler {
         }
     }
 
-    async _requestResults(payload) {
-        const { jobId } = payload;
+    // TODO: DELETE JOB FROM ETCD
+    async _requestResults(data) {
+        const { jobId } = data;
+        const { reportedStatus, ...payload } = data;
         const pipeline = await stateManager.getJobPipeline({ jobId });
 
         const time = Date.now() - pipeline.startTime;
