@@ -37,11 +37,25 @@ class WebhooksHandler {
                 debugService.updateLastUsed({ jobId }),
                 outputService.updateLastUsed({ jobId }),
             ]);
+            await this._validateJobStatus(response);
             await this._completeJob(response);
         });
         stateManager.onJobStatus((response) => {
             this._requestStatus(response);
         });
+    }
+
+    async _validateJobStatus(payload) {
+        try {
+            const { jobId, reportedStatus, status } = payload;
+            if (status && reportedStatus && status !== reportedStatus) {
+                log.warning(`reported status ${reportedStatus} does not match result status ${status}`, { component, jobId });
+                await stateManager.updateJobStatus({ jobId, status });
+            }
+        }
+        catch (error) {
+            log.warning(`failed to validate job status ${error.message}`, { component, jobId: payload.jobId });
+        }
     }
 
     async _completeJob(payload) {
@@ -67,8 +81,9 @@ class WebhooksHandler {
     }
 
     // TODO: DELETE JOB FROM ETCD
-    async _requestResults(payload) {
-        const { jobId } = payload;
+    async _requestResults(data) {
+        const { jobId } = data;
+        const { reportedStatus, ...payload } = data;
         const pipeline = await stateManager.getJobPipeline({ jobId });
 
         const time = Date.now() - pipeline.startTime;
