@@ -185,7 +185,7 @@ class AggregationMetricsFactory {
             }
         };
         if (metricOperation === metricsTypes.GAUGE_OPERATION.set) {
-            metric.set({ metricData, value });
+            metric.set({ ...metricData, value });
         }
         else if (metricOperation === metricsTypes.GAUGE_OPERATION.increase) {
             metric.inc(metricData);
