@@ -56,6 +56,7 @@ class JobConsumer extends EventEmitter {
                 job.done();
                 return;
             }
+            stateManager.setJob(job);
             this._setJob(job);
             log.info(`execute job ${job.data.jobId}`, { component });
             const watchState = await stateAdapter.watch({ jobId: job.data.jobId });
@@ -80,7 +81,6 @@ class JobConsumer extends EventEmitter {
                 startTime: Date.now()
             });
 
-            stateManager.setJob(job);
             this._handleJob(job);
         });
 
