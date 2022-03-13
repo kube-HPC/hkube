@@ -28,8 +28,8 @@ class WebhooksHandler {
     }
 
     _watch() {
-        stateManager.onJobResult(async (response) => {
-            this._requestResults(response);
+        stateManager.on('job-result-change', async (response) => {
+            await this._requestResults(response);
             const { jobId } = response;
             await Promise.allSettled([
                 gatewayService.deleteGateways({ jobId }),
@@ -40,9 +40,38 @@ class WebhooksHandler {
             await this._validateJobStatus(response);
             await this._completeJob(response);
         });
+        stateManager.onJobResult(async (response) => {
+            this._requestResults(response);
+            const { jobId } = response;
+            await Promise.allSettled([
+                gatewayService.deleteGateways({ jobId }),
+                hyperparamsTunerService.deleteHyperparamsTuners({ jobId }),
+                debugService.updateLastUsed({ jobId }),
+                outputService.updateLastUsed({ jobId }),
+            ]);
+            await this._validateJobStatus(response);
+        });
         stateManager.onJobStatus(async (response) => {
             await this._requestStatus(response);
         });
+    }
+
+    async _completeJob(payload) {
+        const { jobId } = payload;
+        return stateManager.updateJobCompletion({ jobId, completion: true });
+    }
+
+    async _validateJobStatus(payload) {
+        try {
+            const { jobId, reportedStatus, status } = payload;
+            if (status && reportedStatus && status !== reportedStatus) {
+                log.warning(`reported status ${reportedStatus} does not match result status ${status}`, { component, jobId });
+                await stateManager.updateJobStatus({ jobId, status });
+            }
+        }
+        catch (error) {
+            log.warning(`failed to validate job status ${error.message}`, { component, jobId: payload.jobId });
+        }
     }
 
     async _requestStatus(payload) {

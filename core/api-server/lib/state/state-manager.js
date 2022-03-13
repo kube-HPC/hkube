@@ -1,14 +1,22 @@
-const Etcd = require('@hkube/etcd');
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
+const EventEmitter = require('events'); const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 const { buildStatuses, pipelineStatuses } = require('@hkube/consts');
 const component = require('../consts/componentNames').DB;
+let log;
+class StateManager extends EventEmitter {
+    constructor() {
+        super();
+        this._failedHealthcheckCount = 0;
+    }
 
-class StateManager {
     async init(options) {
-        const log = Logger.GetLogFromContainer();
+        log = Logger.GetLogFromContainer();
+        this._options = options;
         this._etcd = new Etcd(options.etcd);
         await this._watchBuilds();
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
@@ -18,6 +26,45 @@ class StateManager {
         this._db = dbConnect(config, provider);
         await this._db.init({ createIndices: true });
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
+        this._healthcheck(options);
+    }
+
+    checkHealth(maxFailed) {
+        return this._failedHealthcheckCount < maxFailed;
+    }
+
+    _healthcheck() {
+        if (this._options.healthchecks.checkInterval) {
+            setTimeout(() => {
+                this._healthcheckInterval();
+            }, this._options.healthchecks.checkInterval);
+        }
+    }
+
+    async _healthcheckInterval() {
+        try {
+            const running = await this.getNotCompletedJobs();
+            const completedToDelete = [];
+            for (const { jobId, result, status: reportedStatus } of running) {
+                if (result) {
+                    const age = Date.now() - new Date(result.timestamp);
+                    if (age > this._options.healthchecks.minAge) {
+                        completedToDelete.push({ jobId, ...result, reportedStatus: reportedStatus?.status });
+                    }
+                }
+            }
+            if (completedToDelete.length) {
+                log.info(`found ${completedToDelete.length} completed jobs`, { component });
+                this._failedHealthcheckCount += 1;
+            }
+            for (const result of completedToDelete) {
+                this.emit('job-result-change', result);
+            }
+        }
+        catch (error) {
+            log.throttle.warning(`Failed to run healthchecks: ${error.message}`, { component });
+        }
+        this._healthcheck();
     }
 
     async _watchBuilds() {
@@ -252,8 +299,8 @@ class StateManager {
         await this._db.jobs.watchStatus({}, cb);
     }
 
-    async createJob({ jobId, graph, userPipeline, pipeline, status }) {
-        await this._db.jobs.create({ jobId, graph, userPipeline, pipeline, status });
+    async createJob({ jobId, graph, userPipeline, pipeline, status, completion }) {
+        await this._db.jobs.create({ jobId, graph, userPipeline, pipeline, status, completion });
     }
 
     async getJob({ jobId, fields }) {
@@ -263,6 +310,21 @@ class StateManager {
     async getRunningJobs({ status } = {}) {
         const statuses = status ? [status] : [pipelineStatuses.ACTIVE, pipelineStatuses.PENDING];
         return this._db.jobs.search({ pipelineStatus: { $in: statuses }, fields: { jobId: true, status: 'status.status' } });
+    }
+
+    async getNotCompletedJobs() {
+        return this._db.jobs.fetchAll({
+            query: {
+                completion: false,
+                result: { $exists: true }
+            },
+            fields: {
+                jobId: true,
+                result: true,
+                'status.status': true
+            },
+            excludeId: true
+        });
     }
 
     async getStatus(status) {
@@ -420,6 +482,10 @@ class StateManager {
 
     async getSystemResources() {
         return this._etcd.discovery.list({ serviceName: 'task-executor' });
+    }
+
+    async updateJobCompletion({ jobId, completion }) {
+        return this._db.jobs.patch({ query: { jobId }, data: { completion } });
     }
 }
 

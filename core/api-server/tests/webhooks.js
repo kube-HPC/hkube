@@ -4,6 +4,7 @@ const nock = require('nock');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../lib/state/state-manager');
 const { delay, request } = require('./utils');
+const { workerStub } = require('./mocks');
 let restUrl;
 
 describe('Webhooks', () => {
@@ -262,6 +263,10 @@ describe('Webhooks', () => {
         });
     });
     describe('Completion', () => {
+        beforeEach(async () => {
+            await stateManager._db.jobs.deleteMany({}, { allowNotFound: true });
+
+        });
         it('should return not completed jobs with result', async () => {
             let options = {
                 uri: restUrl + '/exec/stored',
@@ -271,7 +276,7 @@ describe('Webhooks', () => {
                 const response = await request(options);
                 jobId = response.body.jobId;
                 const res = await stateManager.getNotCompletedJobs();
-                await stateManager._etcd.jobs.results.unwatch();
+                // await stateManager._etcd.jobs.results.unwatch({ jobId });
                 expect(res).to.be.empty;
                 const data = [{ res1: 400 }, { res2: 500 }];
                 await workerStub.done({ jobId, data });
@@ -290,22 +295,19 @@ describe('Webhooks', () => {
                 uri: restUrl + '/exec/stored',
                 body: { name: 'flow1' }
             };
-            try {
-                const response = await request(options);
-                jobId = response.body.jobId;
-                const res = await stateManager.getNotCompletedJobs();
-                await stateManager._etcd.jobs.results.unwatch();
-                expect(res).to.be.empty;
-                const data = [{ res1: 400 }, { res2: 500 }];
-                await workerStub.done({ jobId, data });
-                const res2 = await stateManager.getNotCompletedJobs();
-                expect(res2[0].jobId).to.eql(jobId);
-                await delay(4000);
-                const res3 = await stateManager.getNotCompletedJobs();
-                expect(res3).to.be.empty;
-            } finally {
-                await stateManager._etcd.jobs.results.watch();
-            }
+
+            const response = await request(options);
+            jobId = response.body.jobId;
+            const res = await stateManager.getNotCompletedJobs();
+            // await stateManager._etcd.jobs.results.unwatch();
+            expect(res).to.be.empty;
+            const data = [{ res1: 400 }, { res2: 500 }];
+            await workerStub.done({ jobId, data });
+            const res2 = await stateManager.getNotCompletedJobs();
+            expect(res2[0].jobId).to.eql(jobId);
+            await delay(4000);
+            const res3 = await stateManager.getNotCompletedJobs();
+            expect(res3).to.be.empty;
 
         });
         it('should fix status when handling completion if result status is different than status', async () => {
@@ -313,36 +315,30 @@ describe('Webhooks', () => {
                 uri: restUrl + '/exec/stored',
                 body: { name: 'flow1' }
             };
-            try {
-                const response = await request(options);
-                jobId = response.body.jobId;
-                const res = await stateManager.getNotCompletedJobs();
-                await stateManager._etcd.jobs.results.unwatch();
-                expect(res).to.be.empty;
-                const data = [{ res1: 400 }, { res2: 500 }];
-                // await workerStub.done({ jobId, data });
-                const results = {
-                    jobId,
-                    level: 'info',
-                    data: [{ res1: 400 }, { res2: 500 }]
-                }
-                results.data.storageInfo = await storageManager.hkubeResults.put({ jobId, data: results.data });
-                await stateManager.updateJobStatus({ ...results, status: 'active' }); // simulate still active job
-                await stateManager.updateJobResult({ ...results, status: 'completed' });
-                const res2 = await stateManager.getNotCompletedJobs();
-                const status = await stateManager.getStatus({ jobId });
-                expect(status.status).to.eql('active');
-                expect(res2[0].jobId).to.eql(jobId);
-                await delay(4000);
-                const res3 = await stateManager.getNotCompletedJobs();
-                expect(res3).to.be.empty;
-                const status2 = await stateManager.getStatus({ jobId });
-                expect(status2.status).to.eql('completed');
-
-            } finally {
-                await stateManager._etcd.jobs.results.watch();
+            const response = await request(options);
+            jobId = response.body.jobId;
+            const res = await stateManager.getNotCompletedJobs();
+            // await stateManager._etcd.jobs.results.unwatch();
+            expect(res).to.be.empty;
+            const data = [{ res1: 400 }, { res2: 500 }];
+            await workerStub.done({ jobId, data });
+            const results = {
+                jobId,
+                level: 'info',
+                data: [{ res1: 400 }, { res2: 500 }]
             }
-
+            results.data.storageInfo = await storageManager.hkubeResults.put({ jobId, data: results.data });
+            await stateManager.updateJobStatus({ ...results, status: 'active' }); // simulate still active job
+            await stateManager.updateJobResult({ ...results, status: 'completed' });
+            const res2 = await stateManager.getNotCompletedJobs();
+            const status = await stateManager.getStatus({ jobId });
+            expect(status.status).to.eql('active');
+            expect(res2[0].jobId).to.eql(jobId);
+            await delay(4000);
+            const res3 = await stateManager.getNotCompletedJobs();
+            expect(res3).to.be.empty;
+            const status2 = await stateManager.getStatus({ jobId });
+            expect(status2.status).to.eql('completed');
         });
     })
     describe('Progress', () => {
