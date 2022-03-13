@@ -1,0 +1,6271 @@
+[{
+    "jobId": "opmeoz7yt5ee",
+    "userPipeline": {
+      "modified": 1646910344689,
+      "name": "t2",
+      "kind": "batch",
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@flowInput.files.link"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@green",
+            "#[0...10]"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "input": [
+            "@yellow"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        }
+      ],
+      "options": {
+        "batchTolerance": 100,
+        "concurrentPipelines": {
+          "amount": 10,
+          "rejectOnFailure": false
+        },
+        "ttl": 36000,
+        "activeTtl": 600,
+        "progressVerbosityLevel": "debug"
+      },
+      "priority": 3,
+      "tags": [
+        "t2"
+      ],
+      "experimentName": "main",
+      "flowInput": null,
+      "flowInputMetadata": {
+        "metadata": {
+          "flowInput.files.link": {
+            "type": "string"
+          }
+        },
+        "storageInfo": {
+          "path": "dev1-spot-hkube/opmeoz7yt5ee/opmeoz7yt5ee"
+        }
+      }
+    },
+    "pipeline": {
+      "modified": 1646910344689,
+      "name": "t2",
+      "kind": "batch",
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@flowInput.files.link"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@green",
+            "#[0...10]"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "input": [
+            "@yellow"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        }
+      ],
+      "options": {
+        "batchTolerance": 100,
+        "concurrentPipelines": {
+          "amount": 10,
+          "rejectOnFailure": false
+        },
+        "ttl": 36000,
+        "activeTtl": 600,
+        "progressVerbosityLevel": "debug"
+      },
+      "priority": 3,
+      "tags": [
+        "t2"
+      ],
+      "experimentName": "main",
+      "flowInput": null,
+      "flowInputMetadata": {
+        "metadata": {
+          "flowInput.files.link": {
+            "type": "string"
+          }
+        },
+        "storageInfo": {
+          "path": "dev1-spot-hkube/opmeoz7yt5ee/opmeoz7yt5ee"
+        }
+      },
+      "maxExceeded": true,
+      "startTime": 1647157379513,
+      "lastRunResult": {
+        "timestamp": 1647157379215,
+        "status": "completed",
+        "timeTook": 188.095
+      },
+      "types": [
+        "stored"
+      ],
+      "activeTime": 1647161924424
+    },
+    "status": {
+      "timestamp": 1647161999454,
+      "status": "active",
+      "level": "debug",
+      "activeTime": 1647161924424,
+      "pipeline": "t2",
+      "data": {
+        "progress": 92.31,
+        "states": {
+          "succeed": 12,
+          "storing": 1
+        },
+        "details": "92.31% completed, 12 succeed, 1 storing"
+      }
+    },
+    "completion": false,
+    "graph": {
+      "jobId": "opmeoz7yt5ee",
+      "timestamp": 1647161999506,
+      "edges": [
+        {
+          "from": "green",
+          "to": "yellow",
+          "value": {
+            "types": [
+              "waitNode",
+              "input"
+            ]
+          }
+        },
+        {
+          "from": "yellow",
+          "to": "black",
+          "value": {
+            "types": [
+              "waitNode",
+              "input"
+            ]
+          }
+        }
+      ],
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "taskId": "05frvviz",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            {
+              "path": "dev1-spot-hkube/opmeoz7yt5ee/opmeoz7yt5ee"
+            }
+          ],
+          "output": {
+            "storageInfo": {
+              "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+              "size": 22
+            },
+            "metadata": {
+              "green": {
+                "type": "object"
+              }
+            },
+            "discovery": {
+              "host": "100.96.1.199",
+              "port": "9020"
+            },
+            "taskId": "05frvviz"
+          },
+          "podName": "green-alg-77ti1-mvxgj",
+          "status": "succeed",
+          "startTime": 1647161924581,
+          "endTime": 1647161939627,
+          "level": 0
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "batch": [
+            {
+              "taskId": "3uuzjq96",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                0
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/3uuzjq96",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.172",
+                  "port": "9020"
+                },
+                "taskId": "3uuzjq96"
+              },
+              "podName": "yellow-alg-5iex7-t6244",
+              "status": "succeed",
+              "batchIndex": 1,
+              "startTime": 1647161941501,
+              "endTime": 1647161956577
+            },
+            {
+              "taskId": "4e9x0sns",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                1
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/4e9x0sns",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.244",
+                  "port": "9020"
+                },
+                "taskId": "4e9x0sns"
+              },
+              "podName": "yellow-alg-2sslr-qzj6c",
+              "status": "succeed",
+              "batchIndex": 2,
+              "startTime": 1647161941684,
+              "endTime": 1647161956732
+            },
+            {
+              "taskId": "9a8nzafc",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                2
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/9a8nzafc",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.185",
+                  "port": "9020"
+                },
+                "taskId": "9a8nzafc"
+              },
+              "podName": "yellow-alg-8rvpl-xcbs7",
+              "status": "succeed",
+              "batchIndex": 3,
+              "startTime": 1647161943873,
+              "endTime": 1647161959041
+            },
+            {
+              "taskId": "91dh1eqb",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                3
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/91dh1eqb",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.38",
+                  "port": "9020"
+                },
+                "taskId": "91dh1eqb"
+              },
+              "podName": "yellow-alg-n7ebc-g7v9b",
+              "status": "succeed",
+              "batchIndex": 4,
+              "startTime": 1647161954421,
+              "endTime": 1647161969484
+            },
+            {
+              "taskId": "9f6n5fkf",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                4
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/9f6n5fkf",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.196",
+                  "port": "9020"
+                },
+                "taskId": "9f6n5fkf"
+              },
+              "podName": "yellow-alg-r2aam-j4zd7",
+              "status": "succeed",
+              "batchIndex": 5,
+              "startTime": 1647161956679,
+              "endTime": 1647161971718
+            },
+            {
+              "taskId": "1ipeocry",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                5
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/1ipeocry",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.157",
+                  "port": "9020"
+                },
+                "taskId": "1ipeocry"
+              },
+              "podName": "yellow-alg-drsvo-52clg",
+              "status": "succeed",
+              "batchIndex": 6,
+              "startTime": 1647161959091,
+              "endTime": 1647161974142
+            },
+            {
+              "taskId": "xt74nbq8",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                6
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/xt74nbq8",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.184",
+                  "port": "9020"
+                },
+                "taskId": "xt74nbq8"
+              },
+              "podName": "yellow-alg-s38xs-tx5sf",
+              "status": "succeed",
+              "batchIndex": 7,
+              "startTime": 1647161969556,
+              "endTime": 1647161984591
+            },
+            {
+              "taskId": "otf6xpgm",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                7
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/otf6xpgm",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.203",
+                  "port": "9020"
+                },
+                "taskId": "otf6xpgm"
+              },
+              "podName": "yellow-alg-7zym2-7brg8",
+              "status": "succeed",
+              "batchIndex": 8,
+              "startTime": 1647161971724,
+              "endTime": 1647161986935
+            },
+            {
+              "taskId": "qzp2r7ed",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                8
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/qzp2r7ed",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.221",
+                  "port": "9020"
+                },
+                "taskId": "qzp2r7ed"
+              },
+              "podName": "yellow-alg-zsnm6-tsqds",
+              "status": "succeed",
+              "batchIndex": 9,
+              "startTime": 1647161972012,
+              "endTime": 1647161987163
+            },
+            {
+              "taskId": "y3nx78b3",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                9
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/y3nx78b3",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.157",
+                  "port": "9020"
+                },
+                "taskId": "y3nx78b3"
+              },
+              "podName": "yellow-alg-drsvo-52clg",
+              "status": "succeed",
+              "batchIndex": 10,
+              "startTime": 1647161974180,
+              "endTime": 1647161989220
+            },
+            {
+              "taskId": "2mavvupm",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/05frvviz",
+                  "size": 22
+                },
+                10
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/opmeoz7yt5ee/2mavvupm",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.227",
+                  "port": "9020"
+                },
+                "taskId": "2mavvupm"
+              },
+              "podName": "yellow-alg-zif8y-g9pb9",
+              "status": "succeed",
+              "batchIndex": 11,
+              "startTime": 1647161982764,
+              "endTime": 1647161998281
+            }
+          ],
+          "batchInfo": {
+            "idle": 0,
+            "completed": 11,
+            "errors": 0,
+            "running": 0,
+            "total": 11
+          },
+          "level": 1
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "taskId": "bn3l3jhw",
+          "input": [
+            {
+              "type": "array",
+              "size": 11
+            }
+          ],
+          "output": {
+            "storageInfo": {
+              "path": "dev1-spot-hkube/opmeoz7yt5ee/bn3l3jhw",
+              "size": 243
+            },
+            "metadata": {}
+          },
+          "podName": "black-alg-ako6i-vmtr2",
+          "status": "succeed",
+          "startTime": 1647161998276,
+          "endTime": 1647161999463,
+          "level": 2
+        }
+      ]
+    },
+    "result": {
+      "startTime": 1647157379513,
+      "pipeline": "t2",
+      "data": {
+        "storageInfo": {
+          "path": "dev1-spot-hkube-results/opmeoz7yt5ee/result.json"
+        }
+      },
+      "status": "completed",
+      "timestamp": 1647161999486,
+      "timeTook": 4619.977
+    }
+  },{
+    "jobId": "9pdq4co6bh7u",
+    "userPipeline": {
+      "modified": 1646910362853,
+      "name": "t1",
+      "kind": "batch",
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@flowInput.files.link"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@green",
+            "#[0...30]"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "input": [
+            "@yellow"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        }
+      ],
+      "options": {
+        "batchTolerance": 100,
+        "concurrentPipelines": {
+          "amount": 20,
+          "rejectOnFailure": false
+        },
+        "ttl": 36000,
+        "activeTtl": 600,
+        "progressVerbosityLevel": "debug"
+      },
+      "priority": 3,
+      "tags": [
+        "t1"
+      ],
+      "experimentName": "main",
+      "flowInput": null,
+      "flowInputMetadata": {
+        "metadata": {
+          "flowInput.files.link": {
+            "type": "string"
+          }
+        },
+        "storageInfo": {
+          "path": "dev1-spot-hkube/9pdq4co6bh7u/9pdq4co6bh7u"
+        }
+      }
+    },
+    "pipeline": {
+      "modified": 1646910362853,
+      "name": "t1",
+      "kind": "batch",
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@flowInput.files.link"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@green",
+            "#[0...30]"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "input": [
+            "@yellow"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        }
+      ],
+      "options": {
+        "batchTolerance": 100,
+        "concurrentPipelines": {
+          "amount": 20,
+          "rejectOnFailure": false
+        },
+        "ttl": 36000,
+        "activeTtl": 600,
+        "progressVerbosityLevel": "debug"
+      },
+      "priority": 3,
+      "tags": [
+        "t1"
+      ],
+      "experimentName": "main",
+      "flowInput": null,
+      "flowInputMetadata": {
+        "metadata": {
+          "flowInput.files.link": {
+            "type": "string"
+          }
+        },
+        "storageInfo": {
+          "path": "dev1-spot-hkube/9pdq4co6bh7u/9pdq4co6bh7u"
+        }
+      },
+      "maxExceeded": true,
+      "startTime": 1647157606271,
+      "lastRunResult": {
+        "timestamp": 1647157486071,
+        "status": "completed",
+        "timeTook": 290.753
+      },
+      "types": [
+        "stored"
+      ],
+      "activeTime": 1647162842803
+    },
+    "status": {
+      "timestamp": 1647162899659,
+      "status": "active",
+      "level": "debug",
+      "activeTime": 1647162842803,
+      "pipeline": "t1",
+      "data": {
+        "progress": 96.97,
+        "states": {
+          "succeed": 32,
+          "storing": 1
+        },
+        "details": "96.97% completed, 32 succeed, 1 storing"
+      }
+    },
+    "completion": true,
+    "graph": {
+      "jobId": "9pdq4co6bh7u",
+      "timestamp": 1647162899697,
+      "edges": [
+        {
+          "from": "green",
+          "to": "yellow",
+          "value": {
+            "types": [
+              "waitNode",
+              "input"
+            ]
+          }
+        },
+        {
+          "from": "yellow",
+          "to": "black",
+          "value": {
+            "types": [
+              "waitNode",
+              "input"
+            ]
+          }
+        }
+      ],
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "taskId": "g146u6az",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            {
+              "path": "dev1-spot-hkube/9pdq4co6bh7u/9pdq4co6bh7u"
+            }
+          ],
+          "output": {
+            "storageInfo": {
+              "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+              "size": 22
+            },
+            "metadata": {
+              "green": {
+                "type": "object"
+              }
+            },
+            "discovery": {
+              "host": "100.96.2.101",
+              "port": "9020"
+            },
+            "taskId": "g146u6az"
+          },
+          "podName": "green-alg-7w7vd-jlrtx",
+          "status": "succeed",
+          "startTime": 1647162842926,
+          "endTime": 1647162858058,
+          "level": 0
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "batch": [
+            {
+              "taskId": "pg4vu37v",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                0
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/pg4vu37v",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.207",
+                  "port": "9020"
+                },
+                "taskId": "pg4vu37v"
+              },
+              "podName": "yellow-alg-s1g6h-7pwns",
+              "status": "succeed",
+              "batchIndex": 1,
+              "startTime": 1647162859013,
+              "endTime": 1647162874079
+            },
+            {
+              "taskId": "jtpbxmm2",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                1
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/jtpbxmm2",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.9",
+                  "port": "9020"
+                },
+                "taskId": "jtpbxmm2"
+              },
+              "podName": "yellow-alg-agtg2-qzj2v",
+              "status": "succeed",
+              "batchIndex": 2,
+              "startTime": 1647162859010,
+              "endTime": 1647162874046
+            },
+            {
+              "taskId": "ug7kn0ut",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                2
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/ug7kn0ut",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.71",
+                  "port": "9020"
+                },
+                "taskId": "ug7kn0ut"
+              },
+              "podName": "yellow-alg-71oyi-h2xww",
+              "status": "succeed",
+              "batchIndex": 3,
+              "startTime": 1647162859028,
+              "endTime": 1647162874164
+            },
+            {
+              "taskId": "ene4bz1h",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                3
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/ene4bz1h",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.124",
+                  "port": "9020"
+                },
+                "taskId": "ene4bz1h"
+              },
+              "podName": "yellow-alg-zbhyd-q6qpb",
+              "status": "succeed",
+              "batchIndex": 4,
+              "startTime": 1647162859028,
+              "endTime": 1647162874083
+            },
+            {
+              "taskId": "1defnc5r",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                4
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/1defnc5r",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.135",
+                  "port": "9020"
+                },
+                "taskId": "1defnc5r"
+              },
+              "podName": "yellow-alg-d875t-dp4g5",
+              "status": "succeed",
+              "batchIndex": 5,
+              "startTime": 1647162859043,
+              "endTime": 1647162874225
+            },
+            {
+              "taskId": "ywhwo2qh",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                5
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/ywhwo2qh",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.252",
+                  "port": "9020"
+                },
+                "taskId": "ywhwo2qh"
+              },
+              "podName": "yellow-alg-sb7he-nrnmz",
+              "status": "succeed",
+              "batchIndex": 6,
+              "startTime": 1647162859850,
+              "endTime": 1647162874885
+            },
+            {
+              "taskId": "cq0on6og",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                6
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/cq0on6og",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.3",
+                  "port": "9020"
+                },
+                "taskId": "cq0on6og"
+              },
+              "podName": "yellow-alg-2gcrz-495rx",
+              "status": "succeed",
+              "batchIndex": 7,
+              "startTime": 1647162859959,
+              "endTime": 1647162875000
+            },
+            {
+              "taskId": "x1dq4z5a",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                7
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/x1dq4z5a",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.143",
+                  "port": "9020"
+                },
+                "taskId": "x1dq4z5a"
+              },
+              "podName": "yellow-alg-syx1u-6lrvx",
+              "status": "succeed",
+              "batchIndex": 8,
+              "startTime": 1647162860035,
+              "endTime": 1647162875228
+            },
+            {
+              "taskId": "ehr9t5jn",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                8
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/ehr9t5jn",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.179",
+                  "port": "9020"
+                },
+                "taskId": "ehr9t5jn"
+              },
+              "podName": "yellow-alg-jrsn7-8vtkg",
+              "status": "succeed",
+              "batchIndex": 9,
+              "startTime": 1647162860079,
+              "endTime": 1647162875113
+            },
+            {
+              "taskId": "fxu7ie6o",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                9
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/fxu7ie6o",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.25",
+                  "port": "9020"
+                },
+                "taskId": "fxu7ie6o"
+              },
+              "podName": "yellow-alg-9onya-xgbv8",
+              "status": "succeed",
+              "batchIndex": 10,
+              "startTime": 1647162860884,
+              "endTime": 1647162876141
+            },
+            {
+              "taskId": "a8b0rhjd",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                10
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/a8b0rhjd",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.168",
+                  "port": "9020"
+                },
+                "taskId": "a8b0rhjd"
+              },
+              "podName": "yellow-alg-e5olp-xwjz7",
+              "status": "succeed",
+              "batchIndex": 11,
+              "startTime": 1647162860996,
+              "endTime": 1647162876155
+            },
+            {
+              "taskId": "6dv3h0js",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                11
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/6dv3h0js",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.236",
+                  "port": "9020"
+                },
+                "taskId": "6dv3h0js"
+              },
+              "podName": "yellow-alg-x3o41-fkpql",
+              "status": "succeed",
+              "batchIndex": 12,
+              "startTime": 1647162861059,
+              "endTime": 1647162876144
+            },
+            {
+              "taskId": "2w4kfyv9",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                12
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/2w4kfyv9",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.94",
+                  "port": "9020"
+                },
+                "taskId": "2w4kfyv9"
+              },
+              "podName": "yellow-alg-0jlla-pd78d",
+              "status": "succeed",
+              "batchIndex": 13,
+              "startTime": 1647162861075,
+              "endTime": 1647162876482
+            },
+            {
+              "taskId": "enosp7ru",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                13
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/enosp7ru",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.247",
+                  "port": "9020"
+                },
+                "taskId": "enosp7ru"
+              },
+              "podName": "yellow-alg-ciwg6-8w5nl",
+              "status": "succeed",
+              "batchIndex": 14,
+              "startTime": 1647162861677,
+              "endTime": 1647162876758
+            },
+            {
+              "taskId": "2p3zil91",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                14
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/2p3zil91",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.132",
+                  "port": "9020"
+                },
+                "taskId": "2p3zil91"
+              },
+              "podName": "yellow-alg-sbm1c-nks2b",
+              "status": "succeed",
+              "batchIndex": 15,
+              "startTime": 1647162862035,
+              "endTime": 1647162877755
+            },
+            {
+              "taskId": "741bm54j",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                15
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/741bm54j",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.65",
+                  "port": "9020"
+                },
+                "taskId": "741bm54j"
+              },
+              "podName": "yellow-alg-k2r8k-6rpbw",
+              "status": "succeed",
+              "batchIndex": 16,
+              "startTime": 1647162865076,
+              "endTime": 1647162880158
+            },
+            {
+              "taskId": "75h40je1",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                16
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/75h40je1",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.46",
+                  "port": "9020"
+                },
+                "taskId": "75h40je1"
+              },
+              "podName": "yellow-alg-r23vz-489k8",
+              "status": "succeed",
+              "batchIndex": 17,
+              "startTime": 1647162865214,
+              "endTime": 1647162880261
+            },
+            {
+              "taskId": "us6svd0x",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                17
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/us6svd0x",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.68",
+                  "port": "9020"
+                },
+                "taskId": "us6svd0x"
+              },
+              "podName": "yellow-alg-iunlx-hkm4d",
+              "status": "succeed",
+              "batchIndex": 18,
+              "startTime": 1647162865886,
+              "endTime": 1647162880971
+            },
+            {
+              "taskId": "1q0zj9v3",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                18
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/1q0zj9v3",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.198",
+                  "port": "9020"
+                },
+                "taskId": "1q0zj9v3"
+              },
+              "podName": "yellow-alg-ub2vw-7m52h",
+              "status": "succeed",
+              "batchIndex": 19,
+              "startTime": 1647162866414,
+              "endTime": 1647162881655
+            },
+            {
+              "taskId": "9n053mcu",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                19
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/9n053mcu",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.67",
+                  "port": "9020"
+                },
+                "taskId": "9n053mcu"
+              },
+              "podName": "yellow-alg-9qm3y-mgn78",
+              "status": "succeed",
+              "batchIndex": 20,
+              "startTime": 1647162866516,
+              "endTime": 1647162881648
+            },
+            {
+              "taskId": "dhmlkzpe",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                20
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/dhmlkzpe",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.13",
+                  "port": "9020"
+                },
+                "taskId": "dhmlkzpe"
+              },
+              "podName": "yellow-alg-v8mrq-2r5rp",
+              "status": "succeed",
+              "batchIndex": 21,
+              "startTime": 1647162866614,
+              "endTime": 1647162881655
+            },
+            {
+              "taskId": "cgnmdl89",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                21
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/cgnmdl89",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.106",
+                  "port": "9020"
+                },
+                "taskId": "cgnmdl89"
+              },
+              "podName": "yellow-alg-m20of-g9kfx",
+              "status": "succeed",
+              "batchIndex": 22,
+              "startTime": 1647162867706,
+              "endTime": 1647162882835
+            },
+            {
+              "taskId": "wro02ok8",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                22
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/wro02ok8",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.115",
+                  "port": "9020"
+                },
+                "taskId": "wro02ok8"
+              },
+              "podName": "yellow-alg-vqzu2-7gpfv",
+              "status": "succeed",
+              "batchIndex": 23,
+              "startTime": 1647162867892,
+              "endTime": 1647162882975
+            },
+            {
+              "taskId": "j6dvheoj",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                23
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/j6dvheoj",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.5",
+                  "port": "9020"
+                },
+                "taskId": "j6dvheoj"
+              },
+              "podName": "yellow-alg-spcvl-n7j28",
+              "status": "succeed",
+              "batchIndex": 24,
+              "startTime": 1647162868047,
+              "endTime": 1647162883164
+            },
+            {
+              "taskId": "cob0bhcg",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                24
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/cob0bhcg",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.135",
+                  "port": "9020"
+                },
+                "taskId": "cob0bhcg"
+              },
+              "podName": "yellow-alg-iogfz-bzcb4",
+              "status": "succeed",
+              "batchIndex": 25,
+              "startTime": 1647162868091,
+              "endTime": 1647162883166
+            },
+            {
+              "taskId": "kpauqs9f",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                25
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/kpauqs9f",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.155",
+                  "port": "9020"
+                },
+                "taskId": "kpauqs9f"
+              },
+              "podName": "yellow-alg-fafu9-vdt78",
+              "status": "succeed",
+              "batchIndex": 26,
+              "startTime": 1647162868207,
+              "endTime": 1647162883355
+            },
+            {
+              "taskId": "0dzt9ys4",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                26
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/0dzt9ys4",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.244",
+                  "port": "9020"
+                },
+                "taskId": "0dzt9ys4"
+              },
+              "podName": "yellow-alg-gfn1m-nsfhv",
+              "status": "succeed",
+              "batchIndex": 27,
+              "startTime": 1647162868353,
+              "endTime": 1647162883395
+            },
+            {
+              "taskId": "cjxybp8y",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                27
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/cjxybp8y",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.97",
+                  "port": "9020"
+                },
+                "taskId": "cjxybp8y"
+              },
+              "podName": "yellow-alg-10r9g-zs7f5",
+              "status": "succeed",
+              "batchIndex": 28,
+              "startTime": 1647162869255,
+              "endTime": 1647162884352
+            },
+            {
+              "taskId": "4ro9lex9",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                28
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/4ro9lex9",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.134",
+                  "port": "9020"
+                },
+                "taskId": "4ro9lex9"
+              },
+              "podName": "yellow-alg-lurog-fvqqt",
+              "status": "succeed",
+              "batchIndex": 29,
+              "startTime": 1647162870620,
+              "endTime": 1647162885656
+            },
+            {
+              "taskId": "xjyw6t65",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                29
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/xjyw6t65",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.79",
+                  "port": "9020"
+                },
+                "taskId": "xjyw6t65"
+              },
+              "podName": "yellow-alg-4yhnc-jkk95",
+              "status": "succeed",
+              "batchIndex": 30,
+              "startTime": 1647162872144,
+              "endTime": 1647162887193
+            },
+            {
+              "taskId": "s0cz4ulg",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/g146u6az",
+                  "size": 22
+                },
+                30
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/9pdq4co6bh7u/s0cz4ulg",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.71",
+                  "port": "9020"
+                },
+                "taskId": "s0cz4ulg"
+              },
+              "podName": "yellow-alg-5txmz-j6gzr",
+              "status": "succeed",
+              "batchIndex": 31,
+              "startTime": 1647162873582,
+              "endTime": 1647162888732
+            }
+          ],
+          "batchInfo": {
+            "idle": 0,
+            "completed": 31,
+            "errors": 0,
+            "running": 0,
+            "total": 31
+          },
+          "level": 1
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "taskId": "q330cgcq",
+          "input": [
+            {
+              "type": "array",
+              "size": 31
+            }
+          ],
+          "output": {
+            "storageInfo": {
+              "path": "dev1-spot-hkube/9pdq4co6bh7u/q330cgcq",
+              "size": 685
+            },
+            "metadata": {}
+          },
+          "podName": "black-alg-s18zc-l2868",
+          "status": "succeed",
+          "startTime": 1647162898243,
+          "endTime": 1647162899646,
+          "level": 2
+        }
+      ]
+    },
+    "result": {
+      "startTime": 1647157606271,
+      "pipeline": "t1",
+      "data": {
+        "storageInfo": {
+          "path": "dev1-spot-hkube-results/9pdq4co6bh7u/result.json"
+        }
+      },
+      "status": "completed",
+      "timestamp": 1647162899675,
+      "timeTook": 5293.407
+    }
+  },{
+    "jobId": "gxsm5u58b9dg",
+    "userPipeline": {
+      "modified": 1646910362853,
+      "name": "t1",
+      "kind": "batch",
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@flowInput.files.link"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@green",
+            "#[0...30]"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "input": [
+            "@yellow"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        }
+      ],
+      "options": {
+        "batchTolerance": 100,
+        "concurrentPipelines": {
+          "amount": 20,
+          "rejectOnFailure": false
+        },
+        "ttl": 36000,
+        "activeTtl": 600,
+        "progressVerbosityLevel": "debug"
+      },
+      "priority": 3,
+      "tags": [
+        "t1"
+      ],
+      "experimentName": "main",
+      "flowInput": null,
+      "flowInputMetadata": {
+        "metadata": {
+          "flowInput.files.link": {
+            "type": "string"
+          }
+        },
+        "storageInfo": {
+          "path": "dev1-spot-hkube/gxsm5u58b9dg/gxsm5u58b9dg"
+        }
+      }
+    },
+    "pipeline": {
+      "modified": 1646910362853,
+      "name": "t1",
+      "kind": "batch",
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@flowInput.files.link"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@green",
+            "#[0...30]"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "input": [
+            "@yellow"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        }
+      ],
+      "options": {
+        "batchTolerance": 100,
+        "concurrentPipelines": {
+          "amount": 20,
+          "rejectOnFailure": false
+        },
+        "ttl": 36000,
+        "activeTtl": 600,
+        "progressVerbosityLevel": "debug"
+      },
+      "priority": 3,
+      "tags": [
+        "t1"
+      ],
+      "experimentName": "main",
+      "flowInput": null,
+      "flowInputMetadata": {
+        "metadata": {
+          "flowInput.files.link": {
+            "type": "string"
+          }
+        },
+        "storageInfo": {
+          "path": "dev1-spot-hkube/gxsm5u58b9dg/gxsm5u58b9dg"
+        }
+      },
+      "maxExceeded": true,
+      "startTime": 1647157606603,
+      "lastRunResult": {
+        "timestamp": 1647157486071,
+        "status": "completed",
+        "timeTook": 290.753
+      },
+      "types": [
+        "stored"
+      ],
+      "activeTime": 1647162848523
+    },
+    "status": {
+      "timestamp": 1647162899181,
+      "status": "active",
+      "level": "debug",
+      "activeTime": 1647162848523,
+      "pipeline": "t1",
+      "data": {
+        "progress": 96.97,
+        "states": {
+          "succeed": 32,
+          "storing": 1
+        },
+        "details": "96.97% completed, 32 succeed, 1 storing"
+      }
+    },
+    "completion": true,
+    "graph": {
+      "jobId": "gxsm5u58b9dg",
+      "timestamp": 1647162899225,
+      "edges": [
+        {
+          "from": "green",
+          "to": "yellow",
+          "value": {
+            "types": [
+              "waitNode",
+              "input"
+            ]
+          }
+        },
+        {
+          "from": "yellow",
+          "to": "black",
+          "value": {
+            "types": [
+              "waitNode",
+              "input"
+            ]
+          }
+        }
+      ],
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "taskId": "v8vgveej",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            {
+              "path": "dev1-spot-hkube/gxsm5u58b9dg/gxsm5u58b9dg"
+            }
+          ],
+          "output": {
+            "storageInfo": {
+              "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+              "size": 22
+            },
+            "metadata": {
+              "green": {
+                "type": "object"
+              }
+            },
+            "discovery": {
+              "host": "100.96.0.27",
+              "port": "9020"
+            },
+            "taskId": "v8vgveej"
+          },
+          "podName": "green-alg-mhv6j-smcmr",
+          "status": "succeed",
+          "startTime": 1647162848729,
+          "endTime": 1647162863923,
+          "level": 0
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "batch": [
+            {
+              "taskId": "nyhqcdt7",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                0
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/nyhqcdt7",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.171",
+                  "port": "9020"
+                },
+                "taskId": "nyhqcdt7"
+              },
+              "podName": "yellow-alg-mbqi8-vdg5x",
+              "status": "succeed",
+              "batchIndex": 1,
+              "startTime": 1647162865003,
+              "endTime": 1647162880078
+            },
+            {
+              "taskId": "ulcbjajb",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                1
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/ulcbjajb",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.116",
+                  "port": "9020"
+                },
+                "taskId": "ulcbjajb"
+              },
+              "podName": "yellow-alg-rllnm-zw6kt",
+              "status": "succeed",
+              "batchIndex": 2,
+              "startTime": 1647162865003,
+              "endTime": 1647162880140
+            },
+            {
+              "taskId": "w55qk2qf",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                2
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/w55qk2qf",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.113",
+                  "port": "9020"
+                },
+                "taskId": "w55qk2qf"
+              },
+              "podName": "yellow-alg-pwa68-wrl9w",
+              "status": "succeed",
+              "batchIndex": 3,
+              "startTime": 1647162865063,
+              "endTime": 1647162880143
+            },
+            {
+              "taskId": "g5ehshhf",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                3
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/g5ehshhf",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.59",
+                  "port": "9020"
+                },
+                "taskId": "g5ehshhf"
+              },
+              "podName": "yellow-alg-bl5wp-x6mdf",
+              "status": "succeed",
+              "batchIndex": 4,
+              "startTime": 1647162865151,
+              "endTime": 1647162880230
+            },
+            {
+              "taskId": "9sqw0wze",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                4
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/9sqw0wze",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.148",
+                  "port": "9020"
+                },
+                "taskId": "9sqw0wze"
+              },
+              "podName": "yellow-alg-l5qpv-tx2f4",
+              "status": "succeed",
+              "batchIndex": 5,
+              "startTime": 1647162865214,
+              "endTime": 1647162880259
+            },
+            {
+              "taskId": "6bf7kz2e",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                5
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/6bf7kz2e",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.60",
+                  "port": "9020"
+                },
+                "taskId": "6bf7kz2e"
+              },
+              "podName": "yellow-alg-vcei2-rtpcw",
+              "status": "succeed",
+              "batchIndex": 6,
+              "startTime": 1647162865243,
+              "endTime": 1647162880281
+            },
+            {
+              "taskId": "ounh24yt",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                6
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/ounh24yt",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.17",
+                  "port": "9020"
+                },
+                "taskId": "ounh24yt"
+              },
+              "podName": "yellow-alg-5dl8j-bsf8r",
+              "status": "succeed",
+              "batchIndex": 7,
+              "startTime": 1647162866073,
+              "endTime": 1647162881148
+            },
+            {
+              "taskId": "ey41e6v5",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                7
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/ey41e6v5",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.140",
+                  "port": "9020"
+                },
+                "taskId": "ey41e6v5"
+              },
+              "podName": "yellow-alg-ks928-kqlw6",
+              "status": "succeed",
+              "batchIndex": 8,
+              "startTime": 1647162866379,
+              "endTime": 1647162881421
+            },
+            {
+              "taskId": "nkmr6gc5",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                8
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/nkmr6gc5",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.8",
+                  "port": "9020"
+                },
+                "taskId": "nkmr6gc5"
+              },
+              "podName": "yellow-alg-4b9qh-587j5",
+              "status": "succeed",
+              "batchIndex": 9,
+              "startTime": 1647162866426,
+              "endTime": 1647162881548
+            },
+            {
+              "taskId": "l3xrf8i4",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                9
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/l3xrf8i4",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.123",
+                  "port": "9020"
+                },
+                "taskId": "l3xrf8i4"
+              },
+              "podName": "yellow-alg-4emya-2lbjh",
+              "status": "succeed",
+              "batchIndex": 10,
+              "startTime": 1647162866530,
+              "endTime": 1647162881630
+            },
+            {
+              "taskId": "fwvl1zeb",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                10
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/fwvl1zeb",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.30",
+                  "port": "9020"
+                },
+                "taskId": "fwvl1zeb"
+              },
+              "podName": "yellow-alg-b5vxy-8b8pr",
+              "status": "succeed",
+              "batchIndex": 11,
+              "startTime": 1647162866555,
+              "endTime": 1647162881600
+            },
+            {
+              "taskId": "u06gfez7",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                11
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/u06gfez7",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.136",
+                  "port": "9020"
+                },
+                "taskId": "u06gfez7"
+              },
+              "podName": "yellow-alg-hgwn2-5zdq9",
+              "status": "succeed",
+              "batchIndex": 12,
+              "startTime": 1647162866591,
+              "endTime": 1647162881630
+            },
+            {
+              "taskId": "win63303",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                12
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/win63303",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.98",
+                  "port": "9020"
+                },
+                "taskId": "win63303"
+              },
+              "podName": "yellow-alg-aklgg-4sm9l",
+              "status": "succeed",
+              "batchIndex": 13,
+              "startTime": 1647162867253,
+              "endTime": 1647162882288
+            },
+            {
+              "taskId": "jq78kj77",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                13
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/jq78kj77",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.193",
+                  "port": "9020"
+                },
+                "taskId": "jq78kj77"
+              },
+              "podName": "yellow-alg-zj0lb-pjgh4",
+              "status": "succeed",
+              "batchIndex": 14,
+              "startTime": 1647162867564,
+              "endTime": 1647162882595
+            },
+            {
+              "taskId": "fz328q3o",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                14
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/fz328q3o",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.185",
+                  "port": "9020"
+                },
+                "taskId": "fz328q3o"
+              },
+              "podName": "yellow-alg-cbovg-d9lkq",
+              "status": "succeed",
+              "batchIndex": 15,
+              "startTime": 1647162867807,
+              "endTime": 1647162882861
+            },
+            {
+              "taskId": "3ihr2v9n",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                15
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/3ihr2v9n",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.37",
+                  "port": "9020"
+                },
+                "taskId": "3ihr2v9n"
+              },
+              "podName": "yellow-alg-a8ho7-d4zgj",
+              "status": "succeed",
+              "batchIndex": 16,
+              "startTime": 1647162867869,
+              "endTime": 1647162882935
+            },
+            {
+              "taskId": "9om7wsbk",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                16
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/9om7wsbk",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.123",
+                  "port": "9020"
+                },
+                "taskId": "9om7wsbk"
+              },
+              "podName": "yellow-alg-4n06d-wtkkd",
+              "status": "succeed",
+              "batchIndex": 17,
+              "startTime": 1647162867963,
+              "endTime": 1647162883064
+            },
+            {
+              "taskId": "t7k7q8ku",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                17
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/t7k7q8ku",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.118",
+                  "port": "9020"
+                },
+                "taskId": "t7k7q8ku"
+              },
+              "podName": "yellow-alg-1ymns-g8sf4",
+              "status": "succeed",
+              "batchIndex": 18,
+              "startTime": 1647162868052,
+              "endTime": 1647162883080
+            },
+            {
+              "taskId": "5n1adopd",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                18
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/5n1adopd",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.244",
+                  "port": "9020"
+                },
+                "taskId": "5n1adopd"
+              },
+              "podName": "yellow-alg-2sslr-qzj6c",
+              "status": "succeed",
+              "batchIndex": 19,
+              "startTime": 1647162868076,
+              "endTime": 1647162883155
+            },
+            {
+              "taskId": "khai442m",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                19
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/khai442m",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.132",
+                  "port": "9020"
+                },
+                "taskId": "khai442m"
+              },
+              "podName": "yellow-alg-ebx50-z9f67",
+              "status": "succeed",
+              "batchIndex": 20,
+              "startTime": 1647162868119,
+              "endTime": 1647162883165
+            },
+            {
+              "taskId": "m8c26mk3",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                20
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/m8c26mk3",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.43",
+                  "port": "9020"
+                },
+                "taskId": "m8c26mk3"
+              },
+              "podName": "yellow-alg-9kup1-2hwcj",
+              "status": "succeed",
+              "batchIndex": 21,
+              "startTime": 1647162868167,
+              "endTime": 1647162883326
+            },
+            {
+              "taskId": "gba0629k",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                21
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/gba0629k",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.63",
+                  "port": "9020"
+                },
+                "taskId": "gba0629k"
+              },
+              "podName": "yellow-alg-5978v-tzkr7",
+              "status": "succeed",
+              "batchIndex": 22,
+              "startTime": 1647162868267,
+              "endTime": 1647162883340
+            },
+            {
+              "taskId": "3nblpcea",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                22
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/3nblpcea",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.122",
+                  "port": "9020"
+                },
+                "taskId": "3nblpcea"
+              },
+              "podName": "yellow-alg-69akd-qgl2l",
+              "status": "succeed",
+              "batchIndex": 23,
+              "startTime": 1647162868347,
+              "endTime": 1647162883455
+            },
+            {
+              "taskId": "odg6naim",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                23
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/odg6naim",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.193",
+                  "port": "9020"
+                },
+                "taskId": "odg6naim"
+              },
+              "podName": "yellow-alg-tvgzy-l6lht",
+              "status": "succeed",
+              "batchIndex": 24,
+              "startTime": 1647162868884,
+              "endTime": 1647162884055
+            },
+            {
+              "taskId": "xko4ghma",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                24
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/xko4ghma",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.149",
+                  "port": "9020"
+                },
+                "taskId": "xko4ghma"
+              },
+              "podName": "yellow-alg-0rsl9-tmdck",
+              "status": "succeed",
+              "batchIndex": 25,
+              "startTime": 1647162869209,
+              "endTime": 1647162884330
+            },
+            {
+              "taskId": "lss5o2gg",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                25
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/lss5o2gg",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.79",
+                  "port": "9020"
+                },
+                "taskId": "lss5o2gg"
+              },
+              "podName": "yellow-alg-7lv6c-2cl95",
+              "status": "succeed",
+              "batchIndex": 26,
+              "startTime": 1647162869382,
+              "endTime": 1647162884474
+            },
+            {
+              "taskId": "8gefba3j",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                26
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/8gefba3j",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.145",
+                  "port": "9020"
+                },
+                "taskId": "8gefba3j"
+              },
+              "podName": "yellow-alg-zp00f-bwnm8",
+              "status": "succeed",
+              "batchIndex": 27,
+              "startTime": 1647162870543,
+              "endTime": 1647162885589
+            },
+            {
+              "taskId": "lo67e1qk",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                27
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/lo67e1qk",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.191",
+                  "port": "9020"
+                },
+                "taskId": "lo67e1qk"
+              },
+              "podName": "yellow-alg-vbs9s-zqc45",
+              "status": "succeed",
+              "batchIndex": 28,
+              "startTime": 1647162870592,
+              "endTime": 1647162885625
+            },
+            {
+              "taskId": "rm4rlo42",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                28
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/rm4rlo42",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.221",
+                  "port": "9020"
+                },
+                "taskId": "rm4rlo42"
+              },
+              "podName": "yellow-alg-zsnm6-tsqds",
+              "status": "succeed",
+              "batchIndex": 29,
+              "startTime": 1647162870777,
+              "endTime": 1647162885925
+            },
+            {
+              "taskId": "nw99c3dn",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                29
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/nw99c3dn",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.27",
+                  "port": "9020"
+                },
+                "taskId": "nw99c3dn"
+              },
+              "podName": "yellow-alg-igmbq-t4547",
+              "status": "succeed",
+              "batchIndex": 30,
+              "startTime": 1647162872163,
+              "endTime": 1647162887213
+            },
+            {
+              "taskId": "qbpqb6ne",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/v8vgveej",
+                  "size": 22
+                },
+                30
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/gxsm5u58b9dg/qbpqb6ne",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.80",
+                  "port": "9020"
+                },
+                "taskId": "qbpqb6ne"
+              },
+              "podName": "yellow-alg-k64yw-8nkdz",
+              "status": "succeed",
+              "batchIndex": 31,
+              "startTime": 1647162873592,
+              "endTime": 1647162888732
+            }
+          ],
+          "batchInfo": {
+            "idle": 0,
+            "completed": 31,
+            "errors": 0,
+            "running": 0,
+            "total": 31
+          },
+          "level": 1
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "taskId": "sfrqyo19",
+          "input": [
+            {
+              "type": "array",
+              "size": 31
+            }
+          ],
+          "output": {
+            "storageInfo": {
+              "path": "dev1-spot-hkube/gxsm5u58b9dg/sfrqyo19",
+              "size": 685
+            },
+            "metadata": {}
+          },
+          "podName": "black-alg-y8g0c-r7qxv",
+          "status": "succeed",
+          "startTime": 1647162897417,
+          "endTime": 1647162899174,
+          "level": 2
+        }
+      ]
+    },
+    "result": {
+      "startTime": 1647157606603,
+      "pipeline": "t1",
+      "data": {
+        "storageInfo": {
+          "path": "dev1-spot-hkube-results/gxsm5u58b9dg/result.json"
+        }
+      },
+      "status": "stopped",
+      "timestamp": 1647162899206,
+      "timeTook": 5292.606
+    }
+  },{
+    "jobId": "jgedy8cedn4x",
+    "userPipeline": {
+      "modified": 1646910362853,
+      "name": "t1",
+      "kind": "batch",
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@flowInput.files.link"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@green",
+            "#[0...30]"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "input": [
+            "@yellow"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        }
+      ],
+      "options": {
+        "batchTolerance": 100,
+        "concurrentPipelines": {
+          "amount": 20,
+          "rejectOnFailure": false
+        },
+        "ttl": 36000,
+        "activeTtl": 600,
+        "progressVerbosityLevel": "debug"
+      },
+      "priority": 3,
+      "tags": [
+        "t1"
+      ],
+      "experimentName": "main",
+      "flowInput": null,
+      "flowInputMetadata": {
+        "metadata": {
+          "flowInput.files.link": {
+            "type": "string"
+          }
+        },
+        "storageInfo": {
+          "path": "dev1-spot-hkube/jgedy8cedn4x/jgedy8cedn4x"
+        }
+      }
+    },
+    "pipeline": {
+      "modified": 1646910362853,
+      "name": "t1",
+      "kind": "batch",
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@flowInput.files.link"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@green",
+            "#[0...30]"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "input": [
+            "@yellow"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        }
+      ],
+      "options": {
+        "batchTolerance": 100,
+        "concurrentPipelines": {
+          "amount": 20,
+          "rejectOnFailure": false
+        },
+        "ttl": 36000,
+        "activeTtl": 600,
+        "progressVerbosityLevel": "debug"
+      },
+      "priority": 3,
+      "tags": [
+        "t1"
+      ],
+      "experimentName": "main",
+      "flowInput": null,
+      "flowInputMetadata": {
+        "metadata": {
+          "flowInput.files.link": {
+            "type": "string"
+          }
+        },
+        "storageInfo": {
+          "path": "dev1-spot-hkube/jgedy8cedn4x/jgedy8cedn4x"
+        }
+      },
+      "maxExceeded": true,
+      "startTime": 1647157606771,
+      "lastRunResult": {
+        "timestamp": 1647157486071,
+        "status": "completed",
+        "timeTook": 290.753
+      },
+      "types": [
+        "stored"
+      ],
+      "activeTime": 1647162855722
+    },
+    "status": {
+      "timestamp": 1647162899964,
+      "status": "active",
+      "level": "debug",
+      "activeTime": 1647162855722,
+      "pipeline": "t1",
+      "data": {
+        "progress": 96.97,
+        "states": {
+          "succeed": 32,
+          "storing": 1
+        },
+        "details": "96.97% completed, 32 succeed, 1 storing"
+      }
+    },
+    "completion": true,
+    "graph": {
+      "jobId": "jgedy8cedn4x",
+      "timestamp": 1647162899997,
+      "edges": [
+        {
+          "from": "green",
+          "to": "yellow",
+          "value": {
+            "types": [
+              "waitNode",
+              "input"
+            ]
+          }
+        },
+        {
+          "from": "yellow",
+          "to": "black",
+          "value": {
+            "types": [
+              "waitNode",
+              "input"
+            ]
+          }
+        }
+      ],
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "taskId": "iflwakc5",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            {
+              "path": "dev1-spot-hkube/jgedy8cedn4x/jgedy8cedn4x"
+            }
+          ],
+          "output": {
+            "storageInfo": {
+              "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+              "size": 22
+            },
+            "metadata": {
+              "green": {
+                "type": "object"
+              }
+            },
+            "discovery": {
+              "host": "100.96.0.176",
+              "port": "9020"
+            },
+            "taskId": "iflwakc5"
+          },
+          "podName": "green-alg-szlj7-r2l69",
+          "status": "succeed",
+          "startTime": 1647162855937,
+          "endTime": 1647162870979,
+          "level": 0
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "batch": [
+            {
+              "taskId": "rgod07as",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                0
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/rgod07as",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.237",
+                  "port": "9020"
+                },
+                "taskId": "rgod07as"
+              },
+              "podName": "yellow-alg-umx8g-cnjrk",
+              "status": "succeed",
+              "batchIndex": 1,
+              "startTime": 1647162871912,
+              "endTime": 1647162887029
+            },
+            {
+              "taskId": "s3pnco2i",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                1
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/s3pnco2i",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.183",
+                  "port": "9020"
+                },
+                "taskId": "s3pnco2i"
+              },
+              "podName": "yellow-alg-2pyh5-v6zrr",
+              "status": "succeed",
+              "batchIndex": 2,
+              "startTime": 1647162871991,
+              "endTime": 1647162887026
+            },
+            {
+              "taskId": "mkkxncka",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                2
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/mkkxncka",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.184",
+                  "port": "9020"
+                },
+                "taskId": "mkkxncka"
+              },
+              "podName": "yellow-alg-xvq5b-dqztm",
+              "status": "succeed",
+              "batchIndex": 3,
+              "startTime": 1647162872024,
+              "endTime": 1647162887068
+            },
+            {
+              "taskId": "0ul1iz26",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                3
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/0ul1iz26",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.150",
+                  "port": "9020"
+                },
+                "taskId": "0ul1iz26"
+              },
+              "podName": "yellow-alg-zxuw6-dcn4v",
+              "status": "succeed",
+              "batchIndex": 4,
+              "startTime": 1647162872046,
+              "endTime": 1647162887086
+            },
+            {
+              "taskId": "fk10nin7",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                4
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/fk10nin7",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.114",
+                  "port": "9020"
+                },
+                "taskId": "fk10nin7"
+              },
+              "podName": "yellow-alg-xpcec-cfwld",
+              "status": "succeed",
+              "batchIndex": 5,
+              "startTime": 1647162872054,
+              "endTime": 1647162887099
+            },
+            {
+              "taskId": "i3vjb3dc",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                5
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/i3vjb3dc",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.75",
+                  "port": "9020"
+                },
+                "taskId": "i3vjb3dc"
+              },
+              "podName": "yellow-alg-r28sj-fr9t6",
+              "status": "succeed",
+              "batchIndex": 6,
+              "startTime": 1647162872075,
+              "endTime": 1647162887118
+            },
+            {
+              "taskId": "fzvsq1m7",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                6
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/fzvsq1m7",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.20",
+                  "port": "9020"
+                },
+                "taskId": "fzvsq1m7"
+              },
+              "podName": "yellow-alg-rqt20-j6sm8",
+              "status": "succeed",
+              "batchIndex": 7,
+              "startTime": 1647162872090,
+              "endTime": 1647162887128
+            },
+            {
+              "taskId": "jqbrzgv1",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                7
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/jqbrzgv1",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.173",
+                  "port": "9020"
+                },
+                "taskId": "jqbrzgv1"
+              },
+              "podName": "yellow-alg-7buyh-vjr7p",
+              "status": "succeed",
+              "batchIndex": 8,
+              "startTime": 1647162872117,
+              "endTime": 1647162887157
+            },
+            {
+              "taskId": "8pju55js",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                8
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/8pju55js",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.142",
+                  "port": "9020"
+                },
+                "taskId": "8pju55js"
+              },
+              "podName": "yellow-alg-8s64i-m27sw",
+              "status": "succeed",
+              "batchIndex": 9,
+              "startTime": 1647162872127,
+              "endTime": 1647162887243
+            },
+            {
+              "taskId": "zbxp6xwv",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                9
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/zbxp6xwv",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.210",
+                  "port": "9020"
+                },
+                "taskId": "zbxp6xwv"
+              },
+              "podName": "yellow-alg-8l1cl-q2pwp",
+              "status": "succeed",
+              "batchIndex": 10,
+              "startTime": 1647162872127,
+              "endTime": 1647162887235
+            },
+            {
+              "taskId": "7g46djpe",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                10
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/7g46djpe",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.207",
+                  "port": "9020"
+                },
+                "taskId": "7g46djpe"
+              },
+              "podName": "yellow-alg-vudm7-nrnvd",
+              "status": "succeed",
+              "batchIndex": 11,
+              "startTime": 1647162872134,
+              "endTime": 1647162887242
+            },
+            {
+              "taskId": "713e7fyw",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                11
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/713e7fyw",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.133",
+                  "port": "9020"
+                },
+                "taskId": "713e7fyw"
+              },
+              "podName": "yellow-alg-wydjy-wdsgw",
+              "status": "succeed",
+              "batchIndex": 12,
+              "startTime": 1647162872163,
+              "endTime": 1647162887245
+            },
+            {
+              "taskId": "22y9s4m6",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                12
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/22y9s4m6",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.75",
+                  "port": "9020"
+                },
+                "taskId": "22y9s4m6"
+              },
+              "podName": "yellow-alg-f6vfk-d69vm",
+              "status": "succeed",
+              "batchIndex": 13,
+              "startTime": 1647162872172,
+              "endTime": 1647162887240
+            },
+            {
+              "taskId": "sziz706t",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                13
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/sziz706t",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.31",
+                  "port": "9020"
+                },
+                "taskId": "sziz706t"
+              },
+              "podName": "yellow-alg-f1oe4-h8j5s",
+              "status": "succeed",
+              "batchIndex": 14,
+              "startTime": 1647162872182,
+              "endTime": 1647162887345
+            },
+            {
+              "taskId": "j1cpxpyw",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                14
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/j1cpxpyw",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.103",
+                  "port": "9020"
+                },
+                "taskId": "j1cpxpyw"
+              },
+              "podName": "yellow-alg-pwuwd-hhj89",
+              "status": "succeed",
+              "batchIndex": 15,
+              "startTime": 1647162872203,
+              "endTime": 1647162887256
+            },
+            {
+              "taskId": "wnpjtq7i",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                15
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/wnpjtq7i",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.112",
+                  "port": "9020"
+                },
+                "taskId": "wnpjtq7i"
+              },
+              "podName": "yellow-alg-6af7c-ghcx9",
+              "status": "succeed",
+              "batchIndex": 16,
+              "startTime": 1647162872203,
+              "endTime": 1647162887252
+            },
+            {
+              "taskId": "ww7p7ho5",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                16
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/ww7p7ho5",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.188",
+                  "port": "9020"
+                },
+                "taskId": "ww7p7ho5"
+              },
+              "podName": "yellow-alg-shuyf-5hx6l",
+              "status": "succeed",
+              "batchIndex": 17,
+              "startTime": 1647162872216,
+              "endTime": 1647162887340
+            },
+            {
+              "taskId": "wmmclczf",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                17
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/wmmclczf",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.36",
+                  "port": "9020"
+                },
+                "taskId": "wmmclczf"
+              },
+              "podName": "yellow-alg-va945-lpvmn",
+              "status": "succeed",
+              "batchIndex": 18,
+              "startTime": 1647162872216,
+              "endTime": 1647162887265
+            },
+            {
+              "taskId": "chlui6sz",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                18
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/chlui6sz",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.188",
+                  "port": "9020"
+                },
+                "taskId": "chlui6sz"
+              },
+              "podName": "yellow-alg-6o9bh-9twdn",
+              "status": "succeed",
+              "batchIndex": 19,
+              "startTime": 1647162872218,
+              "endTime": 1647162887355
+            },
+            {
+              "taskId": "abeqoa89",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                19
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/abeqoa89",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.31",
+                  "port": "9020"
+                },
+                "taskId": "abeqoa89"
+              },
+              "podName": "yellow-alg-3a5r9-zg78n",
+              "status": "succeed",
+              "batchIndex": 20,
+              "startTime": 1647162872216,
+              "endTime": 1647162887248
+            },
+            {
+              "taskId": "uvifalpe",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                20
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/uvifalpe",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.210",
+                  "port": "9020"
+                },
+                "taskId": "uvifalpe"
+              },
+              "podName": "yellow-alg-5j5cp-gq2tn",
+              "status": "succeed",
+              "batchIndex": 21,
+              "startTime": 1647162872222,
+              "endTime": 1647162887355
+            },
+            {
+              "taskId": "pp63wx4x",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                21
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/pp63wx4x",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.214",
+                  "port": "9020"
+                },
+                "taskId": "pp63wx4x"
+              },
+              "podName": "yellow-alg-53o0d-n5fhx",
+              "status": "succeed",
+              "batchIndex": 22,
+              "startTime": 1647162872225,
+              "endTime": 1647162887350
+            },
+            {
+              "taskId": "7syn4qzz",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                22
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/7syn4qzz",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.117",
+                  "port": "9020"
+                },
+                "taskId": "7syn4qzz"
+              },
+              "podName": "yellow-alg-ktjik-wthj4",
+              "status": "succeed",
+              "batchIndex": 23,
+              "startTime": 1647162873472,
+              "endTime": 1647162888575
+            },
+            {
+              "taskId": "s8dqojwb",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                23
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/s8dqojwb",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.80",
+                  "port": "9020"
+                },
+                "taskId": "s8dqojwb"
+              },
+              "podName": "yellow-alg-1yb30-kkjc8",
+              "status": "succeed",
+              "batchIndex": 24,
+              "startTime": 1647162873489,
+              "endTime": 1647162888684
+            },
+            {
+              "taskId": "lg38vhj7",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                24
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/lg38vhj7",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.140",
+                  "port": "9020"
+                },
+                "taskId": "lg38vhj7"
+              },
+              "podName": "yellow-alg-hhcgk-47dd8",
+              "status": "succeed",
+              "batchIndex": 25,
+              "startTime": 1647162873503,
+              "endTime": 1647162888683
+            },
+            {
+              "taskId": "tou74b79",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                25
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/tou74b79",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.132",
+                  "port": "9020"
+                },
+                "taskId": "tou74b79"
+              },
+              "podName": "yellow-alg-xmmi4-fhhl9",
+              "status": "succeed",
+              "batchIndex": 26,
+              "startTime": 1647162873576,
+              "endTime": 1647162888691
+            },
+            {
+              "taskId": "t00v7lmy",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                26
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/t00v7lmy",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.239",
+                  "port": "9020"
+                },
+                "taskId": "t00v7lmy"
+              },
+              "podName": "yellow-alg-zztao-l6jq2",
+              "status": "succeed",
+              "batchIndex": 27,
+              "startTime": 1647162873599,
+              "endTime": 1647162888740
+            },
+            {
+              "taskId": "7eiwb1cl",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                27
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/7eiwb1cl",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.249",
+                  "port": "9020"
+                },
+                "taskId": "7eiwb1cl"
+              },
+              "podName": "yellow-alg-tvn8k-hxq2q",
+              "status": "succeed",
+              "batchIndex": 28,
+              "startTime": 1647162873599,
+              "endTime": 1647162888748
+            },
+            {
+              "taskId": "oah6x8ci",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                28
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/oah6x8ci",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.38",
+                  "port": "9020"
+                },
+                "taskId": "oah6x8ci"
+              },
+              "podName": "yellow-alg-p38yd-gclpf",
+              "status": "succeed",
+              "batchIndex": 29,
+              "startTime": 1647162873666,
+              "endTime": 1647162888753
+            },
+            {
+              "taskId": "oxbrcwmn",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                29
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/oxbrcwmn",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.190",
+                  "port": "9020"
+                },
+                "taskId": "oxbrcwmn"
+              },
+              "podName": "yellow-alg-np41b-jc4cg",
+              "status": "succeed",
+              "batchIndex": 30,
+              "startTime": 1647162873684,
+              "endTime": 1647162888761
+            },
+            {
+              "taskId": "exorf8nf",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/iflwakc5",
+                  "size": 22
+                },
+                30
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/jgedy8cedn4x/exorf8nf",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.143",
+                  "port": "9020"
+                },
+                "taskId": "exorf8nf"
+              },
+              "podName": "yellow-alg-fybcb-zdztf",
+              "status": "succeed",
+              "batchIndex": 31,
+              "startTime": 1647162873685,
+              "endTime": 1647162888765
+            }
+          ],
+          "batchInfo": {
+            "idle": 0,
+            "completed": 31,
+            "errors": 0,
+            "running": 0,
+            "total": 31
+          },
+          "level": 1
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "taskId": "p5a8k1kc",
+          "input": [
+            {
+              "type": "array",
+              "size": 31
+            }
+          ],
+          "output": {
+            "storageInfo": {
+              "path": "dev1-spot-hkube/jgedy8cedn4x/p5a8k1kc",
+              "size": 685
+            },
+            "metadata": {}
+          },
+          "podName": "black-alg-mi4p9-qkqvs",
+          "status": "succeed",
+          "startTime": 1647162898584,
+          "endTime": 1647162899959,
+          "level": 2
+        }
+      ]
+    },
+    "result": {
+      "startTime": 1647157606771,
+      "pipeline": "t1",
+      "data": {
+        "storageInfo": {
+          "path": "dev1-spot-hkube-results/jgedy8cedn4x/result.json"
+        }
+      },
+      "status": "completed",
+      "timestamp": 1647162899982,
+      "timeTook": 5293.214
+    }
+  },{
+    "jobId": "7kml8o6v8tum",
+    "userPipeline": {
+      "modified": 1646910362853,
+      "name": "t1",
+      "kind": "batch",
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@flowInput.files.link"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@green",
+            "#[0...30]"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "input": [
+            "@yellow"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        }
+      ],
+      "options": {
+        "batchTolerance": 100,
+        "concurrentPipelines": {
+          "amount": 20,
+          "rejectOnFailure": false
+        },
+        "ttl": 36000,
+        "activeTtl": 600,
+        "progressVerbosityLevel": "debug"
+      },
+      "priority": 3,
+      "tags": [
+        "t1"
+      ],
+      "experimentName": "main",
+      "flowInput": null,
+      "flowInputMetadata": {
+        "metadata": {
+          "flowInput.files.link": {
+            "type": "string"
+          }
+        },
+        "storageInfo": {
+          "path": "dev1-spot-hkube/7kml8o6v8tum/7kml8o6v8tum"
+        }
+      }
+    },
+    "pipeline": {
+      "modified": 1646910362853,
+      "name": "t1",
+      "kind": "batch",
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@flowInput.files.link"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            "@green",
+            "#[0...30]"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "input": [
+            "@yellow"
+          ],
+          "retry": {
+            "policy": "OnCrash",
+            "limit": 3
+          },
+          "batchOperation": "indexed",
+          "ttl": 0,
+          "kind": "algorithm"
+        }
+      ],
+      "options": {
+        "batchTolerance": 100,
+        "concurrentPipelines": {
+          "amount": 20,
+          "rejectOnFailure": false
+        },
+        "ttl": 36000,
+        "activeTtl": 600,
+        "progressVerbosityLevel": "debug"
+      },
+      "priority": 3,
+      "tags": [
+        "t1"
+      ],
+      "experimentName": "main",
+      "flowInput": null,
+      "flowInputMetadata": {
+        "metadata": {
+          "flowInput.files.link": {
+            "type": "string"
+          }
+        },
+        "storageInfo": {
+          "path": "dev1-spot-hkube/7kml8o6v8tum/7kml8o6v8tum"
+        }
+      },
+      "maxExceeded": true,
+      "startTime": 1647157669045,
+      "lastRunResult": {
+        "timestamp": 1647157668086,
+        "status": "completed",
+        "timeTook": 465.866
+      },
+      "types": [
+        "stored"
+      ],
+      "activeTime": 1647163389815
+    },
+    "status": {
+      "timestamp": 1647163439391,
+      "status": "active",
+      "level": "debug",
+      "activeTime": 1647163389815,
+      "pipeline": "t1",
+      "data": {
+        "progress": 96.97,
+        "states": {
+          "succeed": 32,
+          "storing": 1
+        },
+        "details": "96.97% completed, 32 succeed, 1 storing"
+      }
+    },
+    "completion": true,
+    "graph": {
+      "jobId": "7kml8o6v8tum",
+      "timestamp": 1647163439565,
+      "edges": [
+        {
+          "from": "green",
+          "to": "yellow",
+          "value": {
+            "types": [
+              "waitNode",
+              "input"
+            ]
+          }
+        },
+        {
+          "from": "yellow",
+          "to": "black",
+          "value": {
+            "types": [
+              "waitNode",
+              "input"
+            ]
+          }
+        }
+      ],
+      "nodes": [
+        {
+          "nodeName": "green",
+          "algorithmName": "green-alg",
+          "taskId": "ast1m9xc",
+          "input": [
+            {
+              "command": "delay",
+              "delay": 15
+            },
+            {
+              "path": "dev1-spot-hkube/7kml8o6v8tum/7kml8o6v8tum"
+            }
+          ],
+          "output": {
+            "storageInfo": {
+              "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+              "size": 22
+            },
+            "metadata": {
+              "green": {
+                "type": "object"
+              }
+            },
+            "discovery": {
+              "host": "100.96.3.49",
+              "port": "9020"
+            },
+            "taskId": "ast1m9xc"
+          },
+          "podName": "green-alg-8t06t-2xtx5",
+          "status": "succeed",
+          "startTime": 1647163402363,
+          "endTime": 1647163417449,
+          "level": 0
+        },
+        {
+          "nodeName": "yellow",
+          "algorithmName": "yellow-alg",
+          "batch": [
+            {
+              "taskId": "59rxchb7",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                0
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/59rxchb7",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.127",
+                  "port": "9020"
+                },
+                "taskId": "59rxchb7"
+              },
+              "podName": "yellow-alg-14va1-rgjp7",
+              "status": "succeed",
+              "batchIndex": 1,
+              "startTime": 1647163417600,
+              "endTime": 1647163432759
+            },
+            {
+              "taskId": "vg1zgreu",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                1
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/vg1zgreu",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.76",
+                  "port": "9020"
+                },
+                "taskId": "vg1zgreu"
+              },
+              "podName": "yellow-alg-8sb79-d6zjg",
+              "status": "succeed",
+              "batchIndex": 2,
+              "startTime": 1647163417600,
+              "endTime": 1647163432781
+            },
+            {
+              "taskId": "ei7bw486",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                2
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ei7bw486",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.167",
+                  "port": "9020"
+                },
+                "taskId": "ei7bw486"
+              },
+              "podName": "yellow-alg-73jnh-jtp5q",
+              "status": "succeed",
+              "batchIndex": 3,
+              "startTime": 1647163417607,
+              "endTime": 1647163432662
+            },
+            {
+              "taskId": "z5ui1kgf",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                3
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/z5ui1kgf",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.156",
+                  "port": "9020"
+                },
+                "taskId": "z5ui1kgf"
+              },
+              "podName": "yellow-alg-r9zrs-9kgwl",
+              "status": "succeed",
+              "batchIndex": 4,
+              "startTime": 1647163417605,
+              "endTime": 1647163432735
+            },
+            {
+              "taskId": "kcb6rj1j",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                4
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/kcb6rj1j",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.174",
+                  "port": "9020"
+                },
+                "taskId": "kcb6rj1j"
+              },
+              "podName": "yellow-alg-rov6b-jz42v",
+              "status": "succeed",
+              "batchIndex": 5,
+              "startTime": 1647163417611,
+              "endTime": 1647163432735
+            },
+            {
+              "taskId": "rqwy3yfm",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                5
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/rqwy3yfm",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.125",
+                  "port": "9020"
+                },
+                "taskId": "rqwy3yfm"
+              },
+              "podName": "yellow-alg-gr4bz-djf8d",
+              "status": "succeed",
+              "batchIndex": 6,
+              "startTime": 1647163417607,
+              "endTime": 1647163432764
+            },
+            {
+              "taskId": "u47hvo62",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                6
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/u47hvo62",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.190",
+                  "port": "9020"
+                },
+                "taskId": "u47hvo62"
+              },
+              "podName": "yellow-alg-10ork-vjg9q",
+              "status": "succeed",
+              "batchIndex": 7,
+              "startTime": 1647163417605,
+              "endTime": 1647163432656
+            },
+            {
+              "taskId": "01qvlumi",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                7
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/01qvlumi",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.103",
+                  "port": "9020"
+                },
+                "taskId": "01qvlumi"
+              },
+              "podName": "yellow-alg-atlus-5cqsn",
+              "status": "succeed",
+              "batchIndex": 8,
+              "startTime": 1647163417605,
+              "endTime": 1647163432762
+            },
+            {
+              "taskId": "92vy1olp",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                8
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/92vy1olp",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.244",
+                  "port": "9020"
+                },
+                "taskId": "92vy1olp"
+              },
+              "podName": "yellow-alg-gfn1m-nsfhv",
+              "status": "succeed",
+              "batchIndex": 9,
+              "startTime": 1647163417606,
+              "endTime": 1647163432735
+            },
+            {
+              "taskId": "uwqebh7e",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                9
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/uwqebh7e",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.149",
+                  "port": "9020"
+                },
+                "taskId": "uwqebh7e"
+              },
+              "podName": "yellow-alg-f7rvn-gkq2p",
+              "status": "succeed",
+              "batchIndex": 10,
+              "startTime": 1647163417613,
+              "endTime": 1647163432779
+            },
+            {
+              "taskId": "0g7jyurd",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                10
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/0g7jyurd",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.138",
+                  "port": "9020"
+                },
+                "taskId": "0g7jyurd"
+              },
+              "podName": "yellow-alg-dujkg-h72cs",
+              "status": "succeed",
+              "batchIndex": 11,
+              "startTime": 1647163417623,
+              "endTime": 1647163432756
+            },
+            {
+              "taskId": "yzv2uquu",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                11
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/yzv2uquu",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.148",
+                  "port": "9020"
+                },
+                "taskId": "yzv2uquu"
+              },
+              "podName": "yellow-alg-l7ay1-xkqqn",
+              "status": "succeed",
+              "batchIndex": 12,
+              "startTime": 1647163417623,
+              "endTime": 1647163432848
+            },
+            {
+              "taskId": "n9rlclvt",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                12
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/n9rlclvt",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.164",
+                  "port": "9020"
+                },
+                "taskId": "n9rlclvt"
+              },
+              "podName": "yellow-alg-nlu2m-srnc8",
+              "status": "succeed",
+              "batchIndex": 13,
+              "startTime": 1647163417638,
+              "endTime": 1647163432802
+            },
+            {
+              "taskId": "289noe0d",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                13
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/289noe0d",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.198",
+                  "port": "9020"
+                },
+                "taskId": "289noe0d"
+              },
+              "podName": "yellow-alg-vi5su-n8qhp",
+              "status": "succeed",
+              "batchIndex": 14,
+              "startTime": 1647163417636,
+              "endTime": 1647163432751
+            },
+            {
+              "taskId": "uewuoezw",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                14
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/uewuoezw",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.223",
+                  "port": "9020"
+                },
+                "taskId": "uewuoezw"
+              },
+              "podName": "yellow-alg-sknwv-6cxdz",
+              "status": "succeed",
+              "batchIndex": 15,
+              "startTime": 1647163417637,
+              "endTime": 1647163432837
+            },
+            {
+              "taskId": "k31dg3h8",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                15
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/k31dg3h8",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.200",
+                  "port": "9020"
+                },
+                "taskId": "k31dg3h8"
+              },
+              "podName": "yellow-alg-db8od-l5f7p",
+              "status": "succeed",
+              "batchIndex": 16,
+              "startTime": 1647163417636,
+              "endTime": 1647163432685
+            },
+            {
+              "taskId": "jf416e16",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                16
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/jf416e16",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.139",
+                  "port": "9020"
+                },
+                "taskId": "jf416e16"
+              },
+              "podName": "yellow-alg-c005y-lbbqd",
+              "status": "succeed",
+              "batchIndex": 17,
+              "startTime": 1647163417638,
+              "endTime": 1647163432799
+            },
+            {
+              "taskId": "xglrb4cy",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                17
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/xglrb4cy",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.46",
+                  "port": "9020"
+                },
+                "taskId": "xglrb4cy"
+              },
+              "podName": "yellow-alg-r23vz-489k8",
+              "status": "succeed",
+              "batchIndex": 18,
+              "startTime": 1647163417638,
+              "endTime": 1647163432794
+            },
+            {
+              "taskId": "ax4bt8hi",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                18
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ax4bt8hi",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.168",
+                  "port": "9020"
+                },
+                "taskId": "ax4bt8hi"
+              },
+              "podName": "yellow-alg-e5olp-xwjz7",
+              "status": "succeed",
+              "batchIndex": 19,
+              "startTime": 1647163417636,
+              "endTime": 1647163432759
+            },
+            {
+              "taskId": "tx5b52t8",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                19
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/tx5b52t8",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.125",
+                  "port": "9020"
+                },
+                "taskId": "tx5b52t8"
+              },
+              "podName": "yellow-alg-2kt6g-jkl4n",
+              "status": "succeed",
+              "batchIndex": 20,
+              "startTime": 1647163417636,
+              "endTime": 1647163432854
+            },
+            {
+              "taskId": "f66thwb4",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                20
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/f66thwb4",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.154",
+                  "port": "9020"
+                },
+                "taskId": "f66thwb4"
+              },
+              "podName": "yellow-alg-z7u4r-npklm",
+              "status": "succeed",
+              "batchIndex": 21,
+              "startTime": 1647163417638,
+              "endTime": 1647163432804
+            },
+            {
+              "taskId": "aecux4tz",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                21
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/aecux4tz",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.227",
+                  "port": "9020"
+                },
+                "taskId": "aecux4tz"
+              },
+              "podName": "yellow-alg-t69ii-h85l9",
+              "status": "succeed",
+              "batchIndex": 22,
+              "startTime": 1647163417656,
+              "endTime": 1647163432859
+            },
+            {
+              "taskId": "fs733dvi",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                22
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/fs733dvi",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.202",
+                  "port": "9020"
+                },
+                "taskId": "fs733dvi"
+              },
+              "podName": "yellow-alg-q5vwe-p6z9f",
+              "status": "succeed",
+              "batchIndex": 23,
+              "startTime": 1647163417627,
+              "endTime": 1647163432668
+            },
+            {
+              "taskId": "d6r3mh0v",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                23
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/d6r3mh0v",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.1.202",
+                  "port": "9020"
+                },
+                "taskId": "d6r3mh0v"
+              },
+              "podName": "yellow-alg-z4qch-7dvb9",
+              "status": "succeed",
+              "batchIndex": 24,
+              "startTime": 1647163417799,
+              "endTime": 1647163432926
+            },
+            {
+              "taskId": "rp2zn46f",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                24
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/rp2zn46f",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.102",
+                  "port": "9020"
+                },
+                "taskId": "rp2zn46f"
+              },
+              "podName": "yellow-alg-b8u8z-t5dvb",
+              "status": "succeed",
+              "batchIndex": 25,
+              "startTime": 1647163417799,
+              "endTime": 1647163432889
+            },
+            {
+              "taskId": "zxz9meeb",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                25
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/zxz9meeb",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.20",
+                  "port": "9020"
+                },
+                "taskId": "zxz9meeb"
+              },
+              "podName": "yellow-alg-rqt20-j6sm8",
+              "status": "succeed",
+              "batchIndex": 26,
+              "startTime": 1647163417888,
+              "endTime": 1647163432949
+            },
+            {
+              "taskId": "ys02qpn8",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                26
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ys02qpn8",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.249",
+                  "port": "9020"
+                },
+                "taskId": "ys02qpn8"
+              },
+              "podName": "yellow-alg-tvn8k-hxq2q",
+              "status": "succeed",
+              "batchIndex": 27,
+              "startTime": 1647163417903,
+              "endTime": 1647163432948
+            },
+            {
+              "taskId": "wwitsl45",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                27
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/wwitsl45",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.97",
+                  "port": "9020"
+                },
+                "taskId": "wwitsl45"
+              },
+              "podName": "yellow-alg-10r9g-zs7f5",
+              "status": "succeed",
+              "batchIndex": 28,
+              "startTime": 1647163417908,
+              "endTime": 1647163432947
+            },
+            {
+              "taskId": "4cw3ioy0",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                28
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/4cw3ioy0",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.3.171",
+                  "port": "9020"
+                },
+                "taskId": "4cw3ioy0"
+              },
+              "podName": "yellow-alg-f3gtj-l55bz",
+              "status": "succeed",
+              "batchIndex": 29,
+              "startTime": 1647163417910,
+              "endTime": 1647163432949
+            },
+            {
+              "taskId": "k0szs9rt",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                29
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/k0szs9rt",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.0.212",
+                  "port": "9020"
+                },
+                "taskId": "k0szs9rt"
+              },
+              "podName": "yellow-alg-qja8d-r7f7l",
+              "status": "succeed",
+              "batchIndex": 30,
+              "startTime": 1647163417908,
+              "endTime": 1647163432948
+            },
+            {
+              "taskId": "6mk5xv6p",
+              "input": [
+                {
+                  "command": "delay",
+                  "delay": 15
+                },
+                {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/ast1m9xc",
+                  "size": 22
+                },
+                30
+              ],
+              "output": {
+                "storageInfo": {
+                  "path": "dev1-spot-hkube/7kml8o6v8tum/6mk5xv6p",
+                  "size": 22
+                },
+                "metadata": {
+                  "yellow": {
+                    "type": "object"
+                  }
+                },
+                "discovery": {
+                  "host": "100.96.2.200",
+                  "port": "9020"
+                },
+                "taskId": "6mk5xv6p"
+              },
+              "podName": "yellow-alg-h5dvz-v8h5w",
+              "status": "succeed",
+              "batchIndex": 31,
+              "startTime": 1647163417908,
+              "endTime": 1647163433036
+            }
+          ],
+          "batchInfo": {
+            "idle": 0,
+            "completed": 31,
+            "errors": 0,
+            "running": 0,
+            "total": 31
+          },
+          "level": 1
+        },
+        {
+          "nodeName": "black",
+          "algorithmName": "black-alg",
+          "taskId": "y132t56l",
+          "input": [
+            {
+              "type": "array",
+              "size": 31
+            }
+          ],
+          "output": {
+            "storageInfo": {
+              "path": "dev1-spot-hkube/7kml8o6v8tum/y132t56l",
+              "size": 685
+            },
+            "metadata": {}
+          },
+          "podName": "black-alg-j4yvr-5cgpt",
+          "status": "succeed",
+          "startTime": 1647163438004,
+          "endTime": 1647163439377,
+          "level": 2
+        }
+      ]
+    },
+    "result": {
+      "startTime": 1647157669045,
+      "pipeline": "t1",
+      "data": {
+        "storageInfo": {
+          "path": "dev1-spot-hkube-results/7kml8o6v8tum/result.json"
+        }
+      },
+      "status": "completed",
+      "timestamp": 1647163439486,
+      "timeTook": 5770.444
+    }
+  }]
