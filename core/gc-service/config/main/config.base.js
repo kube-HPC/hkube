@@ -82,6 +82,12 @@ config.cleanerSettings = {
             }
         }
     },
+    status: {
+        cron: process.env.STATUS_CRON || '*/5 * * * *',
+        enabled: formatter.parseBool(process.env.STATUS_ENABLED, true),
+        settings: {
+        }
+    },
     redis: {
         cron: process.env.REDIS_CRON || '20 1 * * *',
         enabled: formatter.parseBool(process.env.REDIS_ENABLED, true),
