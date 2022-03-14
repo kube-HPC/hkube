@@ -22,9 +22,6 @@ class QueueRunner {
             scoreHeuristic: job => job
         });
         this.queues = [this.preferredQueue, this.queue];
-        for (const queue of this.queues) {
-            await queue.persistencyLoad();
-        }
     }
 
     jobAddedToQueue(job) {

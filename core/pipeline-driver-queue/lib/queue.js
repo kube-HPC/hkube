@@ -1,3 +1,5 @@
+/* eslint-disable no-plusplus */
+/* eslint-disable no-await-in-loop */
 const Events = require('events');
 const orderby = require('lodash.orderby');
 const remove = require('lodash.remove');
@@ -38,7 +40,7 @@ class Queue extends Events {
         }
     }
 
-    _persistencyLoadOrdered(jobs) {
+    async _persistencyLoadOrdered(jobs) {
         const data = jobs.filter(job => job.next !== undefined);
         const orderedData = [];
         let previous = 'FirstInLine';
@@ -49,45 +51,6 @@ class Queue extends Events {
                 orderedData.push(item);
             }
         });
-        const filteredData = [];
-        for (let i = 0; i < orderedData.length; i++) {
-            const item = orderedData[i];
-            const { jobId } = item;
-            log.info(`getting recovery info for job ${jobId} loaded from persistency`, { component, jobId });
-            const jobData = await dataStore.getJob({ jobId });
-            const { status, pipeline } = jobData || {};
-            let skip = false;
-            if (!pipeline) {
-                log.warning(`unable to find pipeline for job ${jobId} loaded from persistency`, { component, jobId });
-                skip = true;
-            }
-            if (status && (status.status === pipelineStatuses.STOPPED || status.status === pipelineStatuses.PAUSED)) {
-                log.warning(`job ${jobId} loaded from persistency with state stop therefore will not added to queue`, { component, jobId });
-                skip = true;
-            }
-            if (!skip) {
-                item.next = i === 0 ? 'FirstInLine' : orderedData[i - 1].jobId;
-                filteredData.push(item);
-            }
-        }
-        if (filteredData.length > 0) {
-            filteredData.forEach(q => {
-                const item = {
-                    ...q,
-                    calculated: {
-                        latestScores: {}
-                    }
-                };
-                if (staticOrder) {
-                    this.queue.push(item);
-                }
-                else {
-                    this.enqueue(item, true);
-                }
-            });
-            log.info(`calculating heuristics for queue ${this._name} loaded from persistency`, { component });
-            this._calculateHeuristic();
-        }
         if (orderedData.length > 0) {
             orderedData.forEach(q => {
                 concurrencyMap.checkConcurrencyLimit(q.pipeline);

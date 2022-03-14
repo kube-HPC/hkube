@@ -1,4 +1,4 @@
-{ Consumer, Events } = require('@hkube/producer-consumer');
+const { Consumer, Events } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
