@@ -76,6 +76,11 @@ describe('Preferred and Managed', () => {
             expect(result.body.prevCount).to.eql(0);
             expect(result.body.returnList.length).to.eql(3);
             expect(result.body.returnList.map((job) => job.jobId)).to.include('a');
+            result = await request({
+                url: `${restUrl}/managed/count`, method: 'GET'
+
+            });
+            expect(result.body).to.eql(6);
         });
         it('getting filters', async () => {
             result = await request({
@@ -214,6 +219,11 @@ describe('Preferred and Managed', () => {
                     }
                 });
                 expect(result.body[0].jobId).to.eql('c')
+                result = await request({
+                    url: `${restUrl}/preferred/count`, method: 'GET'
+
+                });
+                expect(result.body).to.eql(2);
 
             });
         });
