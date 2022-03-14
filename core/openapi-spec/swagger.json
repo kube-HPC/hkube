@@ -12809,218 +12809,6 @@
         }
       }
     },
-    "/queue/preferred/count": {
-      "get": {
-        "tags": [
-          "Preferred"
-        ],
-        "summary": "Get preferred",
-        "description": "Get preferred count",
-        "responses": {
-          "200": {
-            "description": "Get preferred",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "integer"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Preferred"
-        ],
-        "summary": "Add to preferred",
-        "description": "Add to preferred",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "jobs": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "description": "Unique identifier representing pipeline execution"
-                    }
-                  },
-                  "position": {
-                    "type": "string",
-                    "enum": [
-                      "first",
-                      "last",
-                      "before",
-                      "after"
-                    ]
-                  },
-                  "query": {
-                    "type": "object",
-                    "properties": {
-                      "tag": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific tag",
-                        "minLength": 1,
-                        "maxLength": 32
-                      },
-                      "jobId": {
-                        "type": "string",
-                        "description": "Unique identifier representing pipeline execution"
-                      },
-                      "pipeline": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific pipeline",
-                        "minLength": 1,
-                        "format": "pipeline-name"
-                      }
-                    }
-                  }
-                },
-                "required": [
-                  "jobs",
-                  "position"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "start board response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "jobs": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "description": "Unique identifier representing pipeline execution"
-                      }
-                    },
-                    "position": {
-                      "type": "string",
-                      "enum": [
-                        "first",
-                        "last",
-                        "before",
-                        "after"
-                      ]
-                    },
-                    "query": {
-                      "type": "object",
-                      "properties": {
-                        "tag": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific tag",
-                          "minLength": 1,
-                          "maxLength": 32
-                        },
-                        "jobId": {
-                          "type": "string",
-                          "description": "Unique identifier representing pipeline execution"
-                        },
-                        "pipeline": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific pipeline",
-                          "minLength": 1,
-                          "format": "pipeline-name"
-                        }
-                      }
-                    }
-                  },
-                  "required": [
-                    "jobs",
-                    "position"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/queue/preferred/deletes": {
       "post": {
         "tags": [
@@ -13571,26 +13359,189 @@
         }
       }
     },
-    "/queue/managed/count": {
+    "/queue/count": {
       "get": {
         "tags": [
-          "Managed"
+          "Queue"
         ],
-        "summary": "Get Managed count",
-        "description": "Get managed count",
+        "summary": "Get queue count",
+        "description": "Get queue count",
         "responses": {
           "200": {
-            "description": "Get managed jobs",
+            "description": "Get queue count",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "integer"
+                  "type": "object",
+                  "properties": {
+                    "preferred": {
+                      "type": "integer",
+                      "description": "preferred count"
+                    },
+                    "managed": {
+                      "type": "integer",
+                      "description": "managed count"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
             "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Preferred"
+        ],
+        "summary": "Add to preferred",
+        "description": "Add to preferred",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Unique identifier representing pipeline execution"
+                    }
+                  },
+                  "position": {
+                    "type": "string",
+                    "enum": [
+                      "first",
+                      "last",
+                      "before",
+                      "after"
+                    ]
+                  },
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "tag": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific tag",
+                        "minLength": 1,
+                        "maxLength": 32
+                      },
+                      "jobId": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                      },
+                      "pipeline": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific pipeline",
+                        "minLength": 1,
+                        "format": "pipeline-name"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "jobs",
+                  "position"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                      }
+                    },
+                    "position": {
+                      "type": "string",
+                      "enum": [
+                        "first",
+                        "last",
+                        "before",
+                        "after"
+                      ]
+                    },
+                    "query": {
+                      "type": "object",
+                      "properties": {
+                        "tag": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific tag",
+                          "minLength": 1,
+                          "maxLength": 32
+                        },
+                        "jobId": {
+                          "type": "string",
+                          "description": "Unique identifier representing pipeline execution"
+                        },
+                        "pipeline": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific pipeline",
+                          "minLength": 1,
+                          "format": "pipeline-name"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "jobs",
+                    "position"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
             "content": {
               "application/json": {
                 "schema": {
@@ -19220,6 +19171,19 @@
             "description": "Unique identifier representing a specific pipeline",
             "minLength": 1,
             "format": "pipeline-name"
+          }
+        }
+      },
+      "queueCountResponse": {
+        "type": "object",
+        "properties": {
+          "preferred": {
+            "type": "integer",
+            "description": "preferred count"
+          },
+          "managed": {
+            "type": "integer",
+            "description": "managed count"
           }
         }
       },

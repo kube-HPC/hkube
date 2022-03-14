@@ -111,8 +111,6 @@
 # preferred
 /queue/preferred:
   $ref: ./preferred/preferred.yaml
-/queue/preferred/count:
-  $ref: ./preferred/preferred_count.yaml  
 /queue/preferred/deletes:
   $ref: ./preferred/deletes.yaml
 /queue/preferred/aggregation/pipeline:
@@ -126,8 +124,10 @@
   $ref: ./aggregation/managed.yaml
 /queue/managed/:
   $ref: ./managed/list.yaml  
-/queue/managed/count:
-  $ref: ./managed/managed_count.yaml   
+
+# queue
+/queue/count:
+  $ref: ./queue/count.yaml   
 
 # builds
 /builds/status/{buildId}:

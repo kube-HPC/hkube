@@ -15,6 +15,10 @@ class PreferredJobs extends PagingBase {
         });
     }
 
+    _getCount() {
+        return queueRunner.preferredQueue.queue.length;
+    }
+
     _filteredFlatJobList(filter) {
         let filteredList;
         if (filter) {
@@ -30,7 +34,7 @@ class PreferredJobs extends PagingBase {
         }
         else filteredList = queueRunner.preferredQueue.queue;
         return filteredList.map(job => {
-            const { score, calculated, next, maxExceeded, ...rest } = job;
+            const { score, calculated, next, ...rest } = job;
             return rest;
         });
     }

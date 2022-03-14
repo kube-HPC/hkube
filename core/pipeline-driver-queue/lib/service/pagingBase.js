@@ -1,7 +1,6 @@
 class PagingBase {
     getCount() {
-        const returnList = this._filteredFlatJobList();
-        return returnList.length;
+        return this._getCount();
     }
 
     getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag, lastJobs = false) {

@@ -1,15 +1,15 @@
 get:
   tags:
-    - Preferred
-  summary: Get preferred
-  description: Get preferred count
+    - Queue
+  summary: Get queue count
+  description: Get queue count
   responses:
     "200":
-      description: Get preferred
+      description: Get queue count
       content:
         application/json:
           schema:
-            type: integer
+            $ref: "#/components/schemas/queueCountResponse"
     "400":
       description: Bad request
       content:
