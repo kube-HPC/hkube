@@ -73,10 +73,11 @@ class PreferredJobs extends PagingBase {
             const deletedArr = queueRunner.preferredQueue.dequeue({ jobId });
             if (deletedArr.length > 0) {
                 const job = deletedArr[0];
-                queueRunner.queue.enqueue(job);
+                queueRunner.queue.enqueue(job, true);
             }
             return deletedArr.length > 0 ? deletedArr[0] : null;
         }).filter(job => job !== null);
+        queueRunner.queue.calculateHeuristic();
         return deletedJobs;
     }
 
