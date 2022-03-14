@@ -1,8 +1,11 @@
 const queuePosition = require('@hkube/consts').queuePositions;
+const log = require('@hkube/logger').GetLogFromContainer();
 const queueRunner = require('../queue-runner');
 const validator = require('../validation');
 const InvalidDataError = require('../errors/InvalidDataError');
 const PagingBase = require('./pagingBase');
+const { componentName } = require('../consts');
+const component = componentName.PREFERRED_SERVICE;
 
 class PreferredJobs extends PagingBase {
     getPreferredJobsList() {
@@ -73,10 +76,12 @@ class PreferredJobs extends PagingBase {
             const deletedArr = queueRunner.preferredQueue.dequeue({ jobId });
             if (deletedArr.length > 0) {
                 const job = deletedArr[0];
-                queueRunner.queue.enqueue(job);
+                queueRunner.queue.enqueue(job, true);
             }
             return deletedArr.length > 0 ? deletedArr[0] : null;
         }).filter(job => job !== null);
+        log.info(`calculating heuristics for ${queueRunner.queue.name} queue loaded from persistency`, { component });
+        queueRunner.queue.calculateHeuristic();
         return deletedJobs;
     }
 
