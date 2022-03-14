@@ -315,7 +315,7 @@ class StateManager extends EventEmitter {
 
     async getRunningJobs({ status } = {}) {
         const statuses = status ? [status] : [pipelineStatuses.ACTIVE, pipelineStatuses.PENDING];
-        return this._db.jobs.search({ pipelineStatus: { $in: statuses }, fields: { jobId: true, status: 'status.status' } });
+        return this._db.jobs.search({ pipelineStatus: { $in: statuses }, fields: { jobId: true, status: 'status.status', pipelineName: 'pipeline.name' } });
     }
 
     async getNotCompletedJobs() {
