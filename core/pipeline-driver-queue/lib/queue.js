@@ -139,6 +139,10 @@ class Queue extends Events {
         return this.queue.length;
     }
 
+    get name() {
+        return this._name;
+    }
+
     getQueue(filter = () => true) {
         return this.queue.filter(filter);
     }
