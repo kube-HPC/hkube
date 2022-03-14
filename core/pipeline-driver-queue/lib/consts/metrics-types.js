@@ -6,7 +6,8 @@ const HISTOGRAM_OPERATION = {
 
 const GAUGE_OPERATION = {
     increase: 'inc',
-    decrease: 'dec'
+    decrease: 'dec',
+    set: 'set'
 };
 const COUNTER_OPERATION = {
     increase: 'inc',

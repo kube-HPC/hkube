@@ -20,7 +20,8 @@ const Components = {
     MASTER_ADAPTER: 'Master-Adapter',
     SLAVE_ADAPTER: 'Slave-Adapter',
     STREAM_SERVICE: 'Stream-Service',
-    SERVICE_DISCOVERY: 'Service-Discovery'
+    SERVICE_DISCOVERY: 'Service-Discovery',
+    JOBS_PRODUCER: 'Jobs-Producer',
 };
 
 module.exports = Components;

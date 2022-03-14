@@ -68,12 +68,37 @@ class JobProducer {
         this._isActive = false;
     }
 
+    async _checkQueue() {
+        try {
+            for (const queue of queueRunner.queues) {
+                const queueAvailable = queue.getQueue(q => !q.maxExceeded);
+                if (queueAvailable.length > 0) {
+                    const pendingAmount = await this._redisQueue.getWaitingCount();
+                    if (pendingAmount === 0) {
+                        // create job first time only, then rely on 3 events (active/completed/enqueue)
+                        this._firstJobDequeue = true;
+                        log.info('firstJobDequeue', { component });
+                        await this.createJob(queueAvailable[0], queue);
+                        return;
+                    }
+                }
+            }
+        }
+        catch (error) {
+            log.throttle.error(error.message, { component }, error);
+        }
+        finally {
+            if (!this._firstJobDequeue) {
+                setTimeout(this._checkQueue, this._checkQueueInterval);
+            }
+        }
+    }
+
     async _updateState() {
         try {
-            let data = queueRunner.queue.getQueue();
-            const prefData = queueRunner.preferredQueue.getQueue();
-            data = data.concat(prefData);
-            await persistence.store(data);
+            for (const queue of queueRunner.queues) {
+                await queue.persistenceStore();
+            }
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);
@@ -182,6 +207,7 @@ class JobProducer {
         log.debug(`creating new job ${job.jobId}, calculated score: ${job.score}`, { component });
         const jobData = this._pipelineToJob(job);
         await dataStore.setJobStatus({ jobId: job.jobId, status: pipelineStatuses.DEQUEUED });
+        queueRunner.jobRemovedFromQueue(job);
         await this._producer.createJob(jobData);
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "algorithm-queue",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -23,7 +23,7 @@
     "@hkube/etcd": "^5.1.7",
     "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
-    "@hkube/producer-consumer": "^1.0.51",
+    "@hkube/producer-consumer": "^1.0.52",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/uid": "^1.0.4",
     "lodash.isequal": "^4.5.0",

@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver-queue",
-  "version": "2.3.0",
+  "version": "2.3.2",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -25,7 +25,7 @@
     "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
     "@hkube/parsers": "^2.1.9",
-    "@hkube/producer-consumer": "^1.0.51",
+    "@hkube/producer-consumer": "^1.0.52",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.18",
     "@hkube/stats": "^1.0.1",

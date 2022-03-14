@@ -1,4 +1,4 @@
-const { Consumer } = require('@hkube/producer-consumer');
+{ Consumer, Events } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -26,6 +26,9 @@ class JobConsumer {
                 type: options.consumer.jobType,
                 concurrency: options.consumer.concurrency
             }
+        });
+        this._consumer.on(Events.FAILED, (job) => {
+            this._handleFailedJob(job);
         });
         this._consumer.on('job', (job) => {
             this._handleJob(job);
@@ -80,13 +83,33 @@ class JobConsumer {
 
     _stopJob(jobId, status) {
         log.info(`job ${status} ${jobId}`, { component });
-        queueRunner.preferredQueue.remove(jobId);
-        queueRunner.queue.remove(jobId);
+        const { job, queue } = queueRunner.findJobByJobId(jobId);
+        if (job) {
+            queue.remove(jobId);
+        }
+        queueRunner.jobRemovedFromQueue(job);
     }
 
-    _queueJob({ jobId, pipeline }) {
-        const job = queueRunner.queue.pipelineToQueueAdapter({ jobId, pipeline });
-        queueRunner.queue.enqueue(job);
+    _queueJob({ jobId, pipeline, job }) {
+        const jobData = this._pipelineToQueueAdapter({ jobId, pipeline, job });
+        queueRunner.queue.enqueue(jobData);
+        queueRunner.jobAddedToQueue(jobData);
+    }
+
+    _pipelineToQueueAdapter({ jobId, pipeline, job }) {
+        return {
+            jobId,
+            done: () => job.done(),
+            experimentName: pipeline.experimentName,
+            pipelineName: pipeline.name,
+            priority: pipeline.priority,
+            maxExceeded: pipeline.maxExceeded,
+            entranceTime: pipeline.startTime || Date.now(),
+            tags: pipeline.tags || [],
+            calculated: {
+                latestScores: {}
+            }
+        };
     }
 }
 

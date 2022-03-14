@@ -106,6 +106,10 @@ class JobProducer {
                     log.info(`completed job stalled with ${data.status} status. Skipping`, { component });
                     return;
                 }
+                if (data.status === taskStatuses.PRESCHEDULE) {
+                    log.info(`job stalled with ${data.status} status. Skipping`, { component });
+                    return;
+                }
             }
             let err;
             let status;

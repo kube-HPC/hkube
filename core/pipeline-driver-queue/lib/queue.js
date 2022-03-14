@@ -49,7 +49,45 @@ class Queue extends Events {
                 orderedData.push(item);
             }
         });
-
+        const filteredData = [];
+        for (let i = 0; i < orderedData.length; i++) {
+            const item = orderedData[i];
+            const { jobId } = item;
+            log.info(`getting recovery info for job ${jobId} loaded from persistency`, { component, jobId });
+            const jobData = await dataStore.getJob({ jobId });
+            const { status, pipeline } = jobData || {};
+            let skip = false;
+            if (!pipeline) {
+                log.warning(`unable to find pipeline for job ${jobId} loaded from persistency`, { component, jobId });
+                skip = true;
+            }
+            if (status && (status.status === pipelineStatuses.STOPPED || status.status === pipelineStatuses.PAUSED)) {
+                log.warning(`job ${jobId} loaded from persistency with state stop therefore will not added to queue`, { component, jobId });
+                skip = true;
+            }
+            if (!skip) {
+                item.next = i === 0 ? 'FirstInLine' : orderedData[i - 1].jobId;
+                filteredData.push(item);
+            }
+        }
+        if (filteredData.length > 0) {
+            filteredData.forEach(q => {
+                const item = {
+                    ...q,
+                    calculated: {
+                        latestScores: {}
+                    }
+                };
+                if (staticOrder) {
+                    this.queue.push(item);
+                }
+                else {
+                    this.enqueue(item, true);
+                }
+            });
+            log.info(`calculating heuristics for queue ${this._name} loaded from persistency`, { component });
+            this._calculateHeuristic();
+        }
         if (orderedData.length > 0) {
             orderedData.forEach(q => {
                 concurrencyMap.checkConcurrencyLimit(q.pipeline);
@@ -79,23 +117,25 @@ class Queue extends Events {
         };
     }
 
-    enqueue(job, { emitEvent = true, applyScore = true } = {}) {
+    _calculateHeuristic() {
+        this.queue = this.queue.map(q => this.scoreHeuristic(q));
+        this.queue = orderby(this.queue, 'score', 'desc');
+    }
+
+    enqueue(job, skipHeuristic = false) {
         this.queue.push(job);
-        if (applyScore) {
-            this.queue = this.queue.map(q => this.scoreHeuristic(q));
-            this.queue = orderby(this.queue, 'score', 'desc');
+        if (!skipHeuristic) {
+            this._calculateHeuristic();
         }
-        if (emitEvent) {
-            this.emit(queueEvents.INSERT, job);
-        }
-        log.info(`new job inserted to queue, queue size: ${this.size}`, { component });
+        this.emit(queueEvents.INSERT, job);
+        log.info(`new job inserted to queue ${this._name}, queue size: ${this.size}`, { component });
     }
 
     dequeue(job) {
         const removedJob = remove(this.queue, j => j.jobId === job.jobId);
         if (removedJob.length > 0) {
             this.emit(queueEvents.POP, job);
-            log.info(`job pop from queue, queue size: ${this.size}`, { component });
+            log.info(`job pop from queue ${this._name}, queue size: ${this.size}`, { component });
         }
         return removedJob;
     }
@@ -104,7 +144,7 @@ class Queue extends Events {
         const jobs = remove(this.queue, job => job.jobId === jobId);
         if (jobs.length > 0) {
             this.emit(queueEvents.REMOVE, jobs[0]);
-            log.info(`job removed from queue, queue size: ${this.size}`, { component });
+            log.info(`job removed from queue ${this._name}, queue size: ${this.size}`, { component });
         }
         return jobs;
     }
