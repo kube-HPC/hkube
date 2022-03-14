@@ -9,6 +9,10 @@ const routes = () => {
         const response = managedQueue.getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag, lastJobs);
         res.json(response);
     });
+    router.get('/count/', (req, res) => {
+        const response = managedQueue.getCount();
+        res.json(response);
+    });
     router.get('/aggregation/tag/', (req, res) => {
         const response = managedQueue.groupBy('tag');
         res.json(response);

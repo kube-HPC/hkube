@@ -10,6 +10,10 @@ const routes = () => {
         const response = preferredService.getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag, lastJobs);
         res.json(response);
     });
+    router.get('/count/', (req, res) => {
+        const response = preferredService.getCount();
+        res.json(response);
+    });
     router.get('/aggregation/pipeline/', (req, res) => {
         const response = preferredService.getPreferredAggregatedByPipeline();
         res.json(response);

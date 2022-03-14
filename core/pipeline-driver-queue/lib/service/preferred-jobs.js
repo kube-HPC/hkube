@@ -30,7 +30,7 @@ class PreferredJobs extends PagingBase {
         }
         else filteredList = queueRunner.preferredQueue.queue;
         return filteredList.map(job => {
-            const { score, calculated, next, ...rest } = job;
+            const { score, calculated, next, maxExceeded, ...rest } = job;
             return rest;
         });
     }
