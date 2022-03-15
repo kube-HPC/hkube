@@ -15,6 +15,10 @@ class PreferredJobs extends PagingBase {
         });
     }
 
+    _getCount() {
+        return queueRunner.preferredQueue.queue.length;
+    }
+
     _filteredFlatJobList(filter) {
         return super._filter(filter, queueRunner.preferredQueue);
     }

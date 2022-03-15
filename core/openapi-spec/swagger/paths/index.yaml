@@ -125,6 +125,10 @@
 /queue/managed/:
   $ref: ./managed/list.yaml  
 
+# queue
+/queue/count:
+  $ref: ./queue/count.yaml   
+
 # builds
 /builds/status/{buildId}:
   $ref: ./builds/status.yaml

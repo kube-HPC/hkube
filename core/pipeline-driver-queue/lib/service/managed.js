@@ -2,6 +2,10 @@ const queueRunner = require('../queue-runner');
 const PagingBase = require('./pagingBase');
 
 class Managed extends PagingBase {
+    _getCount() {
+        return queueRunner.queue.queue.length;
+    }
+
     _filteredFlatJobList(filter) {
         return super._filter(filter, queueRunner.queue);
     }
