@@ -29,7 +29,7 @@ get:
       in: query 
       schema:
         type: string        
-      description: filter by tag , value NO-TAG, will return jobs without any tags 
+      description: filter by tag  
     - name: lastJobs
       in: query 
       schema:
