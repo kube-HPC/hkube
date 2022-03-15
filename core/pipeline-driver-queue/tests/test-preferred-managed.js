@@ -102,6 +102,13 @@ describe('Preferred and Managed', () => {
             expect(result.body.nextCount).to.eql(0);
             expect(result.body.prevCount).to.eql(4);
             expect(result.body.returnList[0].jobId).to.eql('b_b');
+            result = await request({
+                url: `${restUrl}/managed/?pageSize=6&tag=NO-TAG`, method: 'GET'
+            });
+
+            expect(result.body.returnList.length).to.eql(2);
+            expect(result.body.returnList[0].jobId).to.eql('c');
+
         });
         it('getting missing', async () => {
             result = await request({
