@@ -8,7 +8,7 @@ class PagingBase {
                 }
                 if (filter.tag) {
                     if (filter.tag === 'NO-TAG') {
-                        return (!job.tags) || job.tags?.length < 1;
+                        return (!job.tags) || job.tags?.length === 0;
                     }
                     return job.tags?.findIndex((tag) => tag === filter.tag) > -1;
                 }
