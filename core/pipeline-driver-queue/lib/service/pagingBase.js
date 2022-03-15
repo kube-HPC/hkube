@@ -6,8 +6,8 @@ class PagingBase {
                 if (filter.pipelineName) {
                     return job.pipelineName === filter.pipelineName;
                 }
-                if (filter.tag) {
-                    if (filter.tag === 'NO-TAG') {
+                if (filter.tag !== undefined) {
+                    if (filter.tag === 'null' || filter.tag.trim() === '') {
                         return (!job.tags) || job.tags?.length === 0;
                     }
                     return job.tags?.findIndex((tag) => tag === filter.tag) > -1;
@@ -28,7 +28,7 @@ class PagingBase {
 
     getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag, lastJobs = false) {
         let filter;
-        if (tag || pipelineName) {
+        if (tag !== undefined || pipelineName) {
             filter = {};
             filter.pipelineName = pipelineName;
             filter.tag = tag;

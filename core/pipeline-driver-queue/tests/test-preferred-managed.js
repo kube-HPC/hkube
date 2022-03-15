@@ -108,7 +108,7 @@ describe('Preferred and Managed', () => {
             expect(result.body.prevCount).to.eql(4);
             expect(result.body.returnList[0].jobId).to.eql('b_b');
             result = await request({
-                url: `${restUrl}/managed/?pageSize=6&tag=NO-TAG`, method: 'GET'
+                url: `${restUrl}/managed/?pageSize=6&tag=`, method: 'GET'
             });
 
             expect(result.body.returnList.length).to.eql(2);
