@@ -27,6 +27,11 @@ class AppServer {
             });
         });
 
+        routes.push({
+            route: path.join('/', prefix),
+            router: require('./root')()  // eslint-disable-line
+        });
+
         const opt = {
             routes,
             bodySizeLimit,

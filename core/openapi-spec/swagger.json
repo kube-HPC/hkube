@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.11",
+    "version": "2.3.1",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -13359,6 +13359,75 @@
         }
       }
     },
+    "/queue/count": {
+      "get": {
+        "tags": [
+          "Queue"
+        ],
+        "summary": "Get queue count",
+        "description": "Get queue count",
+        "responses": {
+          "200": {
+            "description": "Get queue count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "preferred": {
+                      "type": "integer",
+                      "description": "preferred count"
+                    },
+                    "managed": {
+                      "type": "integer",
+                      "description": "managed count"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/builds/status/{buildId}": {
       "get": {
         "tags": [
@@ -18949,6 +19018,19 @@
             "description": "Unique identifier representing a specific pipeline",
             "minLength": 1,
             "format": "pipeline-name"
+          }
+        }
+      },
+      "queueCountResponse": {
+        "type": "object",
+        "properties": {
+          "preferred": {
+            "type": "integer",
+            "description": "preferred count"
+          },
+          "managed": {
+            "type": "integer",
+            "description": "managed count"
           }
         }
       },

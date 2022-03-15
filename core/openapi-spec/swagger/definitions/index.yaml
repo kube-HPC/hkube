@@ -54,6 +54,10 @@ removeFromPreferredRequest:
 preferredQuery:
   $ref: ./preferred/preferredQuery.yaml
 
+#queue
+queueCountResponse:
+  $ref: ./queue/queueCountResponse.yaml
+
 #jobsAggregation
 jobsAggregationResponse:
   $ref: ./aggregation/jobsAggregationResponse.yaml
