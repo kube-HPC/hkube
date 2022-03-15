@@ -21,6 +21,7 @@ class PagingBase {
             return rest;
         });
     }
+
     getCount() {
         return this._getCount();
     }
