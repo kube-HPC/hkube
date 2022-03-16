@@ -27,11 +27,11 @@ describe('Preferred and Managed', () => {
         let jobs;
         beforeEach(async () => {
             jobs = [];
-            jobs.push({ jobId: 'a', pipelineName: 'p_a',tags: ['b'], entranceTime: 1, priority: 1 });
+            jobs.push({ jobId: 'a', pipelineName: 'p_a', tags: ['b'], entranceTime: 1, priority: 1 });
             jobs.push({ jobId: 'b', pipelineName: 'p_a', tags: ['a', 'b'], entranceTime: 2, priority: 2 });
             jobs.push({ jobId: 'c', pipelineName: 'p_a', entranceTime: 3, priority: 3, });
             jobs.push({ jobId: 'b_a', pipelineName: 'p_b', entranceTime: 4, priority: 4, });
-            jobs.push({ jobId: 'b_b', pipelineName: 'p_b',tags: ['a'], entranceTime: 5, priority: 5, });
+            jobs.push({ jobId: 'b_b', pipelineName: 'p_b', tags: ['a'], entranceTime: 5, priority: 5, });
             jobs.push({ jobId: 'b_c', pipelineName: 'p_b', tags: ['a'], entranceTime: 6, priority: 6 });
             await Promise.all(jobs.map(job => queueRunner.queue.enqueue(stubTemplate(job))));
         });

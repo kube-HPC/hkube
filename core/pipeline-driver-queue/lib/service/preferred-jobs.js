@@ -85,7 +85,7 @@ class PreferredJobs extends PagingBase {
             return deletedArr.length > 0 ? deletedArr[0] : null;
         }).filter(job => job !== null);
         log.info(`calculating heuristics for ${queueRunner.queue.name} queue loaded from persistency`, { component });
-        queueRunner.queue.calculateHeuristic();
+        queueRunner.queue._calculateHeuristic();
         return deletedJobs;
     }
 

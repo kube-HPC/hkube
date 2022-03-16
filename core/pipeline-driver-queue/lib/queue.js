@@ -58,7 +58,7 @@ class Queue extends Events {
                 this.enqueue(job, { emitEvent: false, applyScore: false });
             });
         }
-        this.calculateHeuristic();
+        this._calculateHeuristic();
     }
 
     updateHeuristic(scoreHeuristic) {
@@ -89,7 +89,7 @@ class Queue extends Events {
     enqueue(job, skipHeuristic = false) {
         this.queue.push(job);
         if (!skipHeuristic) {
-            this.calculateHeuristic();
+            this._calculateHeuristic();
         }
         this.emit(queueEvents.INSERT, job);
         log.info(`new job inserted to queue ${this._name}, queue size: ${this.size}`, { component });
