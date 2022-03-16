@@ -25,25 +25,22 @@ class Producers {
         this._producer = new Producer({ setting });
         this._producer.on(Events.WAITING, (data) => {
             const jobId = data?.options?.data?.jobId;
-            const taskId = data?.options?.data?.tasks[0]?.taskId;
-            log.info(`${Events.WAITING} ${jobId} ${taskId}`, { component, jobId, taskId, status: Events.WAITING });
+            log.info(`${Events.WAITING} ${jobId} `, { component, jobId, status: Events.WAITING });
         });
         this._producer.on(Events.ACTIVE, async (data) => {
             const jobId = data?.options?.data?.jobId;
-            const taskId = data?.options?.data?.tasks[0]?.taskId;
-            log.info(`${Events.ACTIVE} ${jobId} ${taskId}`, { component, jobId, taskId, status: Events.ACTIVE });
+
+            log.info(`${Events.ACTIVE} ${jobId} `, { component, jobId, status: Events.ACTIVE });
         });
         this._producer.on(Events.COMPLETED, (data) => {
             const jobId = data?.options?.data?.jobId;
-            const taskId = data?.options?.data?.tasks[0]?.taskId;
-            log.info(`${Events.COMPLETED} ${jobId} ${taskId}`, { component, jobId, taskId, status: Events.COMPLETED });
+            log.info(`${Events.COMPLETED} ${jobId} `, { component, jobId, status: Events.COMPLETED });
         });
         this._producer.on(Events.FAILED, (data) => {
             const jobId = data?.options?.data?.jobId;
-            const taskId = data?.options?.data?.tasks[0]?.taskId;
-            log.info(`${Events.FAILED} ${jobId} ${taskId} error: ${data?.error}`, { component, jobId, taskId, status: Events.FAILED });
+            log.info(`${Events.FAILED} ${jobId}  error: ${data?.error}`, { component, jobId, status: Events.FAILED });
             // workaround for __default__ handler being called
-            if (data?.error === Events.DEFAULT_HANDLER_CALLED && this._executions.get(taskId)) {
+            if (data?.error === Events.DEFAULT_HANDLER_CALLED) {
                 log.error('Crashing process because of error');
                 process.exit(1);
             }
