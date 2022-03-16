@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.3.1",
+    "version": "2.3.2",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -12578,7 +12578,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "filter by tag"
+            "description": "filter by tag, value 'null' or empty string , will return jobs without any tags"
           },
           {
             "name": "lastJobs",
@@ -13281,7 +13281,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "filter by tag"
+            "description": "filter by tag, value 'null' or empty string , will return jobs without any tags"
           },
           {
             "name": "lastJobs",
