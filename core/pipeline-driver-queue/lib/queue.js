@@ -58,6 +58,7 @@ class Queue extends Events {
                 this.enqueue(job, { emitEvent: false, applyScore: false });
             });
         }
+        this.calculateHeuristic();
     }
 
     updateHeuristic(scoreHeuristic) {
@@ -88,7 +89,7 @@ class Queue extends Events {
     enqueue(job, skipHeuristic = false) {
         this.queue.push(job);
         if (!skipHeuristic) {
-            this._calculateHeuristic();
+            this.calculateHeuristic();
         }
         this.emit(queueEvents.INSERT, job);
         log.info(`new job inserted to queue ${this._name}, queue size: ${this.size}`, { component });
@@ -114,6 +115,10 @@ class Queue extends Events {
 
     get size() {
         return this.queue.length;
+    }
+
+    get name() {
+        return this._name;
     }
 
     getQueue(filter = () => true) {

@@ -37,13 +37,14 @@ describe('Executions', () => {
             };
             for (let i=0;i<2;i++) {
 
-                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'active'}, type: 'stored'});
+                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'active'}, type: 'stored', pipeline: pipelines[0]});
             }
             for (let i=2;i<6;i++) {
-                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'pending'}, type: 'stored'});
+                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'pending'}, type: 'stored', pipeline: pipelines[0]});
             }
             const response = await request(options);
             expect(response.body).to.have.length(2)
+            expect(response.body[0].pipelineName).to.equal('flow1')
         });
 
         it('should return pending list', async () => {
@@ -52,13 +53,15 @@ describe('Executions', () => {
                 uri: `${restPath}?status=pending`,
             };
             for (let i=0;i<2;i++) {
-                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'active'}, type: 'stored'});
+                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'active'}, type: 'stored', pipeline: pipelines[0]});
             }
             for (let i=2;i<6;i++) {
-                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'pending'}, type: 'stored'});
+                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'pending'}, type: 'stored', pipeline: pipelines[1]});
             }
             const response = await request(options);
             expect(response.body).to.have.length(4)
+            expect(response.body[0].pipelineName).to.equal('flow2')
+
         });
 
         it('should return all list', async () => {
@@ -67,13 +70,15 @@ describe('Executions', () => {
                 uri: `${restPath}`,
             };
             for (let i=0;i<111;i++) {
-                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'active'}, type: 'stored'});
+                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'active'}, type: 'stored', pipeline: pipelines[0]});
             }
             for (let i=111;i<300;i++) {
-                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'pending'}, type: 'stored'});
+                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'pending'}, type: 'stored', pipeline: pipelines[0]});
             }
             const response = await request(options);
             expect(response.body).to.have.length(300)
+            expect(response.body[0].pipelineName).to.equal('flow1')
+
         });
 
         it('should return all list just jobIds', async () => {
@@ -82,10 +87,10 @@ describe('Executions', () => {
                 uri: `${restPath}?raw=true`,
             };
             for (let i=0;i<111;i++) {
-                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'active'}, type: 'stored'});
+                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'active'}, type: 'stored', pipeline: pipelines[0]});
             }
             for (let i=111;i<300;i++) {
-                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'pending'}, type: 'stored'});
+                await stateManager._db.jobs.create({jobId: `job_${i}`, status: {status:'pending'}, type: 'stored', pipeline: pipelines[0]});
             }
             const response = await request(options);
             expect(response.body).to.have.length(300);
