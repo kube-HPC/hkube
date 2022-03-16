@@ -130,7 +130,7 @@ config.jobs = {
     consumer: {
         prefix: 'data-sources',
         type: 'data-sources-job',
-        concurrency: 10000,
+        concurrency: formatter.parseInt(process.env.DATASOURCE_SERVICE_CONSUMER_CONCURRENCY, 1),
     },
 };
 
