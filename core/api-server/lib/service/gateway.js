@@ -54,7 +54,7 @@ class Gateway extends AlgorithmBase {
         };
         validator.gateways.validateGateway(algorithm);
         await stateManager.updateAlgorithm(algorithm);
-        return { algorithmName, url: gatewayUrl };
+        return { algorithmName, url: gatewayUrl, streamKind: algorithm.streamKind };
     }
 
     async deleteGateways({ pipeline, jobId }) {
