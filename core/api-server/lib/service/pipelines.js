@@ -10,6 +10,7 @@ class PipelineService {
         validator.pipelines.validateUpdatePipeline(options);
         await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
+        validator.gateways.validateGatewayNodes(options.nodes);
         const newPipeline = {
             modified: Date.now(),
             ...options,
@@ -103,7 +104,7 @@ class PipelineService {
     async insertPipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
-
+        validator.gateways.validateGatewayNodes(options.nodes);
         const pipeline = await stateManager.getPipeline(options);
         if (pipeline) {
             throw new ResourceExistsError('pipeline', options.name);

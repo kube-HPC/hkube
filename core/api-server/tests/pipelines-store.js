@@ -472,6 +472,37 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
         });
+        it('should throw validation error gateway stateType', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    kind: 'stream',
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType: 'stateless'
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('Gateway node A stateType must be "stateful". Got stateless');
+        });
     });
     describe('/store/pipelines PUT', () => {
         it('should succeed to update pipeline', async () => {
@@ -502,6 +533,39 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm not.exists Not Found');
+        });
+        it('should throw validation error gateway stateType', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response1 = await request(options);
+            options.body.nodes[0].stateType = 'stateless';
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('Gateway node A stateType must be "stateful". Got stateless');
         });
     });
 });
