@@ -23,7 +23,9 @@ class JobConsumer extends EventEmitter {
         this._options = null;
         this._job = null;
         this._jobId = undefined;
+        this._jobIdForLogging = undefined;
         this._taskId = undefined;
+        this._taskIdForLogging = undefined;
         this._nodeName = undefined;
         this._batchIndex = undefined;
         this._pipelineName = undefined;
@@ -130,7 +132,9 @@ class JobConsumer extends EventEmitter {
         this._job = job;
         this._kind = job.data.kind;
         this._jobId = job.data.jobId;
+        this._jobIdForLogging = job.data.jobId;
         this._taskId = job.data.taskId;
+        this._taskIdForLogging = job.data.taskId;
         this._execId = job.data.execId;
         this._nodeName = job.data.nodeName;
         this._isStateful = job.data.stateType === stateType.Stateful;
@@ -325,8 +329,8 @@ class JobConsumer extends EventEmitter {
 
     currentTaskInfo() {
         return {
-            jobId: this._jobId,
-            taskId: this._taskId,
+            jobId: this._jobIdForLogging,
+            taskId: this._taskIdForLogging,
             pipelineName: this._pipelineName,
             algorithmName: this.getAlgorithmType(),
             batchIndex: this._batchIndex
