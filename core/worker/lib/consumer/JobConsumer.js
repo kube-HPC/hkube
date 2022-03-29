@@ -329,9 +329,9 @@ class JobConsumer extends EventEmitter {
         return {
             jobId: this._loggingInfo.jobId,
             taskId: this._loggingInfo.taskId,
-            pipelineName: this._loggingInfo._pipelineName,
+            pipelineName: this._loggingInfo.pipelineName,
             algorithmName: this.getAlgorithmType(),
-            batchIndex: this._loggingInfo._batchIndex
+            batchIndex: this._loggingInfo.batchIndex
         };
     }
 
