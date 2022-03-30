@@ -10,6 +10,7 @@ config.transport = {
 config.console = {
     json: false,
     colors: false,
+    format: 'wrapper::{level}::{message}',
     level: process.env.HKUBE_LOG_LEVEL,
 };
 config.file = {
