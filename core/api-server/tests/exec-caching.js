@@ -82,6 +82,39 @@ describe('Executions', () => {
             expect(response).to.have.property('jobId');
             const { body: job } = await getJob(response.jobId);
             expect(job.nodes[0].kind).to.eql('debug');
+            expect(job.options.debugOverride).to.eql(['green']);
+            expect(job.types).to.contain('debug');
+            expect(job.types).to.contain('node');
+            expect(job.types).to.contain('raw');
+        });
+        it('should succeed run caching with debug and remove extra debug nodes', async () => {
+
+            const runRawPath = `${restUrl}/exec/raw`;
+            const pipeline = pipelines.find((pl) => pl.name === 'flow1');
+            const optionsExec = {
+                uri: runRawPath,
+                body: {
+                    ...pipeline, options: { debugOverride: ['green', 'black'] }
+                }
+            };
+            const responseExec = await request(optionsExec);
+
+            const options = {
+                uri: restPath,
+                body: {
+                    jobId: responseExec.body.jobId,
+                    nodeName: 'yellow',
+                    debug: true
+                }
+            };
+            const { body: response } = await request(options);
+            expect(response).not.to.have.property('error');
+            expect(response).to.have.property('jobId');
+            const { body: job } = await getJob(response.jobId);
+            expect(job.nodes[0].kind).to.eql('debug');
+            expect(job.options.debugOverride).to.contain('yellow');
+            expect(job.options.debugOverride).to.contain('black');
+            expect(job.options.debugOverride).to.not.contain('green');
             expect(job.types).to.contain('debug');
             expect(job.types).to.contain('node');
             expect(job.types).to.contain('raw');
