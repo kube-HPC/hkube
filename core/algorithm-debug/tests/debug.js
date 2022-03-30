@@ -1,7 +1,9 @@
 const configIt = require('@hkube/config');
+const { once } = require('events');
 const { main: config } = configIt.load();
 const { expect } = require('chai');
 const { messages } = require('@hkube/nodejs-wrapper');
+const { debugMessages } = require('../lib/consts');
 const WebSocket = require('ws');
 let app;
 // const Logger = require('@hkube/logger');
@@ -467,18 +469,14 @@ describe('Debug', () => {
     });
 
     it('connect twice', async () => {
-        socket = new WebSocket(combinedUrl, {});
-        const socket2 = new WebSocket(combinedUrl, {});
-        let resolveGotAlreadyConnected;
-        const gotConnectedAlready = new Promise((res, rej) => {
-            resolveGotAlreadyConnected = res;
-        });
+        socket = new WebSocket(`${combinedUrl}&hostname=host 1`, {});
+        const socket2 = new WebSocket(`${combinedUrl}&hostname=host 2`, {});
+        const [alreadyConnectedRes] = await once(socket2, 'message');
+        const decodedData = encoding.decode(alreadyConnectedRes);
+        expect(decodedData.command).to.eql(debugMessages.outgoing.alreadyConnectedError);
+        expect(decodedData.data.hostname).to.eql('host 1')
+        const [closeCode] = await once(socket2, 'close');
+        expect(closeCode).to.eql(debugMessages.codes.close);
 
-        socket2.on("close", (code) => {
-            if (code == 1013) {
-                resolveGotAlreadyConnected();
-            }
-        })
-        await gotConnectedAlready;
     });
 });
