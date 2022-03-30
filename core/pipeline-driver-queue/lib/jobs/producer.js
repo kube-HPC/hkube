@@ -96,9 +96,10 @@ class JobProducer {
 
     async _updateState() {
         try {
-            for (const queue of queueRunner.queues) {
-                await queue.persistenceStore();
-            }
+            let data = queueRunner.queue.getQueue();
+            const prefData = queueRunner.preferredQueue.getQueue();
+            data = data.concat(prefData);
+            await persistence.store(data);
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);
