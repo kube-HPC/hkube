@@ -20,23 +20,7 @@ class PreferredJobs extends PagingBase {
     }
 
     _filteredFlatJobList(filter) {
-        let filteredList;
-        if (filter) {
-            filteredList = queueRunner.preferredQueue.queue.filter(job => {
-                if (filter.pipelineName) {
-                    return job.pipelineName === filter.pipelineName;
-                }
-                if (filter.tag) {
-                    return job.tags?.findIndex((tag) => tag === filter.tag) > -1;
-                }
-                return true;
-            });
-        }
-        else filteredList = queueRunner.preferredQueue.queue;
-        return filteredList.map(job => {
-            const { score, calculated, next, ...rest } = job;
-            return rest;
-        });
+        return super._filter(filter, queueRunner.preferredQueue);
     }
 
     getPreferredAggregatedByPipeline() {

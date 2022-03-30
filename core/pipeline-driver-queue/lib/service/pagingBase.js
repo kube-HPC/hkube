@@ -1,11 +1,34 @@
 class PagingBase {
+    _filter(filter, queue) {
+        let filteredList;
+        if (filter) {
+            filteredList = queue.queue.filter(job => {
+                if (filter.pipelineName) {
+                    return job.pipelineName === filter.pipelineName;
+                }
+                if (filter.tag !== undefined) {
+                    if (filter.tag === 'null' || filter.tag.trim() === '') {
+                        return (!job.tags) || job.tags?.length === 0;
+                    }
+                    return job.tags?.findIndex((tag) => tag === filter.tag) > -1;
+                }
+                return true;
+            });
+        }
+        else filteredList = queue.queue;
+        return filteredList.map(job => {
+            const { score, calculated, next, ...rest } = job;
+            return rest;
+        });
+    }
+
     getCount() {
         return this._getCount();
     }
 
     getFlatJobsList(pageSize, firstJobId, lastJobId, pipelineName, tag, lastJobs = false) {
         let filter;
-        if (tag || pipelineName) {
+        if (tag !== undefined || pipelineName) {
             filter = {};
             filter.pipelineName = pipelineName;
             filter.tag = tag;

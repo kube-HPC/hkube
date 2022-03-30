@@ -7,10 +7,10 @@ const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 const component = require('./lib/consts/component-name').MAIN;
 const gracefulShutdown = require('./lib/graceful-shutdown');
-
+const etcd = require('./lib/persistency/etcd');
 const modules = [
     require('./lib/persistency/db'),
-    require('./lib/persistency/etcd'),
+    etcd,
     require('./lib/queues-manager'),
     require('./lib/metrics/aggregation-metrics-factory')
 ];
@@ -31,6 +31,10 @@ class Bootstrap {
             if (config.tracer) {
                 await tracer.init(config.tracer);
             }
+            etcd.on('error', (err, path) => {
+                log.error(`etcd watcher for ${path} error: ${err.message}`, { component }, err);
+                this._gracefulShutdown(1);
+            });
             for (const m of modules) {
                 await m.init(config);
             }

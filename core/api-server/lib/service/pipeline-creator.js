@@ -196,8 +196,12 @@ class PipelineCreator {
                 if (!gateways) {
                     gateways = [];
                 }
-                const { nodeName, spec } = node;
-                const { algorithmName, url } = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
+                const { nodeName, spec, stateType: nodeStateType } = node;
+                if (nodeStateType && nodeStateType !== stateType.Stateful) {
+                    throw new InvalidDataError(`Gateway node ${nodeName} stateType must be "stateful". Got ${nodeStateType}`);
+                }
+                const { algorithmName, url, streamKind} = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
+                node.stateType = streamKind;
                 node.algorithmName = algorithmName;
                 gateways.push({ nodeName, url });
             }

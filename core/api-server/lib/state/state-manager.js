@@ -69,6 +69,10 @@ class StateManager extends EventEmitter {
 
     async _watchBuilds() {
         await this._etcd.algorithms.builds.singleWatch();
+        this._etcd.watcher.on('error', (err, path) => {
+            log.error(`etcd watcher for ${path} error: ${err.message}`, { component }, err);
+            process.exit(1);
+        });
     }
 
     async setPipelineDriversSettings(data) {

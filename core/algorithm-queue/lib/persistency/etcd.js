@@ -41,6 +41,9 @@ class EtcdClient extends EventEmitter {
 
     // TODO: Move to mongo.tasks
     async _watch() {
+        this._etcd.watcher.on('error', (err, path) => {
+            this.emit('error', err, path);
+        });
         await this._etcd.algorithms.executions.watch();
         this._etcd.algorithms.executions.on('change', (data) => {
             this.emit('exec-change', data);

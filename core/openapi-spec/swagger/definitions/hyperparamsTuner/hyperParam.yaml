@@ -10,7 +10,7 @@ properties:
       - categorical
   low:
     type: number 
-  hight: 
+  high: 
       type: number
   choices:
     type: array
