@@ -35,7 +35,7 @@ class JobProducer {
 
         queueRunner.queue.on(queueEvents.INSERT, () => {
             if (this._isConsumerActive) {
-                this._dequeueJob();
+                this._dequeueJobInternal();
             }
         });
         const jobs = await dataStore.getJobs({ status: pipelineStatuses.QUEUED });
@@ -118,7 +118,7 @@ class JobProducer {
         }).on(Events.ACTIVE, (data) => {
             this._isConsumerActive = true;
             log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: Events.ACTIVE });
-            this._dequeueJob();
+            this._dequeueJobInternal();
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.COMPLETED });
             this._checkConcurrencyLimit(data.options.data);
@@ -136,30 +136,6 @@ class JobProducer {
         });
     }
 
-    /**
-     * This method executes if one of the following conditions are met:
-     * 1. active event.
-     * 2  completed/failed job and there is a concurrency limit in queue.
-     * 3. new job enqueue and consumers are active.
-     */
-    async _dequeueJob() {
-        try {
-            const preferredQueue = queueRunner.preferredQueue.getAvailableQueue();
-            if (preferredQueue.length > 0) {
-                await this.createJob(preferredQueue[0], queueRunner.preferredQueue);
-            }
-            else {
-                const queue = queueRunner.queue.getAvailableQueue();
-                if (queue.length > 0) {
-                    await this.createJob(queue[0], queueRunner.queue);
-                }
-            }
-        }
-        catch (error) {
-            log.throttle.error(error.message, { component }, error);
-        }
-    }
-
     _checkConcurrencyLimit({ experiment, pipeline }) {
         let job = queueRunner.preferredQueue
             .getConcurrencyLimitQueue()
@@ -173,8 +149,43 @@ class JobProducer {
             log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked with concurrency limit`, { component });
             concurrencyMap.disableConcurrencyLimit(job);
             if (this._isConsumerActive) {
-                this._dequeueJob();
+                this._dequeueJobInternal();
             }
+        }
+    }
+    /**
+     * This method executes if one of the following conditions are met:
+     * 1. active event.
+     * 2  completed/failed job and there is a concurrency limit in queue.
+     * 3. new job enqueue and consumers are active.
+     */
+
+    async _dequeueJobInternal(jobId) {
+        try {
+            if (jobId) {
+                const { job, queue } = queueRunner.findJobByJobId(jobId);
+                if (job) {
+                    await this.createJob(job, queue);
+                    return;
+                }
+            }
+            for (const queue of queueRunner.queues) {
+                const availableJobs = queue.getQueue(q => !q.maxExceeded);
+                if (availableJobs.length > 0) {
+                    const job = availableJobs[0];
+                    await this.createJob(job, queue);
+                    return;
+                }
+            }
+        }
+        catch (error) {
+            log.throttle.error(error.message, { component }, error);
+        }
+    }
+
+    async dequeueJob(jobId) {
+        if (this._isConsumerActive) {
+            await this._dequeueJobInternal(jobId);
         }
     }
 
