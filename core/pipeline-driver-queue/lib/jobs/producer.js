@@ -170,7 +170,7 @@ class JobProducer {
                 }
             }
             for (const queue of queueRunner.queues) {
-                const availableJobs = queue.getQueue(q => !q.maxExceeded);
+                const availableJobs = queue.getQueue(q => !q.concurrency?.limit);
                 if (availableJobs.length > 0) {
                     const job = availableJobs[0];
                     await this.createJob(job, queue);
