@@ -103,7 +103,7 @@ class JobConsumer {
             experimentName: pipeline.experimentName,
             pipelineName: pipeline.name,
             priority: pipeline.priority,
-            maxExceeded: pipeline.maxExceeded,
+            concurrency: pipeline.concurrency,
             entranceTime: pipeline.startTime || Date.now(),
             tags: pipeline.tags || [],
             calculated: {
