@@ -340,7 +340,7 @@ class StateManager {
 
     // Tasks
     createTasks(tasks) {
-        return this._db.tasks.createMany(tasks);
+        return this._db.tasks.createOrReplaceMany(tasks);
     }
 
     createTask({ jobId, taskId, status }) {

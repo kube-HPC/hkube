@@ -60,7 +60,6 @@ class JobConsumer extends EventEmitter {
             }
             if (task.status === taskStatuses.PRESCHEDULE) {
                 log.info(`job ${jobId}, taskId ${taskId} is in ${task.status} mode, calling done...`, { component, jobId, taskId });
-                await stateAdapter.deleteTask(taskId);
                 job.done();
                 return;
             }
