@@ -1,5 +1,143 @@
 # Changelog
 
+## [v2.3.19] (2022-04-03)
+
+**Notable changes:**
+
+- UI -  show queued job and manage preferred queue using drag and drop  #1476
+- Stability improvements - recover from redis, etcd, mongodb disconnections and crashes #1433
+
+**Fixed bugs:**
+- trigger-service ETCD watch disconnected after ETCD failover  [\#1558](https://github.com/kube-HPC/hkube/issues/1558)
+- building algorithm - an algorithm version was not created after a successful build [\#1555](https://github.com/kube-HPC/hkube/issues/1555)
+- pipeline driver queue - recovery when all jobs are in Preferred queue [\#1547](https://github.com/kube-HPC/hkube/issues/1547)
+- debug: debugged algorithm error is not reported [\#1474](https://github.com/kube-HPC/hkube/issues/1474)
+- possible inconsistency upon algorithm queue crashes  [\#1382](https://github.com/kube-HPC/hkube/issues/1382)
+- java code api does not work [\#1358](https://github.com/kube-HPC/hkube/issues/1358)
+- Ingress does not work in kubernetes 1.22 [\#1354](https://github.com/kube-HPC/hkube/issues/1354)
+- Swagger api /pipeline/results and /pipeline/status limit their responces to 1000 jobs [\#1190](https://github.com/kube-HPC/hkube/issues/1190)
+- UI - Gateway node should have default "stateType": "stateful" [\#1562](https://github.com/kube-HPC/hkube/issues/1562)
+- UI - datasource copy button version/snapshot generate wrong json   [\#1404](https://github.com/kube-HPC/hkube/issues/1404)
+- Recover from Redis disconnection [\#1433](https://github.com/kube-HPC/hkube/issues/1433)
+
+**Closed issues:**
+- User ordering for pending jobs  - pipeline-driver-queue [\#1449](https://github.com/kube-HPC/hkube/issues/1449)
+- Make algorithm loading errors visible in dashboard [\#1168](https://github.com/kube-HPC/hkube/issues/1168)
+- Add storageClass placeholders in helm chart [\#1557](https://github.com/kube-HPC/hkube/issues/1557)
+- Add active dashboard [\#1512](https://github.com/kube-HPC/hkube/issues/1512)
+- Add specific TTL for active pipelines [\#1485](https://github.com/kube-HPC/hkube/issues/1485)
+
+**Merged pull requests:**
+- log by last task details [\#1569](https://github.com/kube-HPC/hkube/pull/1569) ([golanha](https://github.com/golanha))
+- validate gateway node type if set or set it to stateful [\#1563](https://github.com/kube-HPC/hkube/pull/1563) ([yehiyam](https://github.com/yehiyam))
+- add force flag to kaniko to fix cgroups v2 issue [\#1561](https://github.com/kube-HPC/hkube/pull/1561) ([yehiyam](https://github.com/yehiyam))
+- exit on etcd watch error [\#1560](https://github.com/kube-HPC/hkube/pull/1560) ([yehiyam](https://github.com/yehiyam))
+- support filtering managed with no tag [\#1554](https://github.com/kube-HPC/hkube/pull/1554) ([golanha](https://github.com/golanha))
+- add queue count [\#1553](https://github.com/kube-HPC/hkube/pull/1553) ([golanha](https://github.com/golanha))
+- add pipeline name to exec/jobs [\#1552](https://github.com/kube-HPC/hkube/pull/1552) ([yehiyam](https://github.com/yehiyam))
+- reduce memory in managed insertion [\#1551](https://github.com/kube-HPC/hkube/pull/1551) ([yehiyam](https://github.com/yehiyam))
+- fix job invalid status [\#1550](https://github.com/kube-HPC/hkube/pull/1550) ([yehiyam](https://github.com/yehiyam))
+- Pdq-fixes [\#1549](https://github.com/kube-HPC/hkube/pull/1549) ([yehiyam](https://github.com/yehiyam))
+- fix status if not set correctly py pipeline driver [\#1548](https://github.com/kube-HPC/hkube/pull/1548) ([yehiyam](https://github.com/yehiyam))
+- fix consumer initialization order [\#1546](https://github.com/kube-HPC/hkube/pull/1546) ([yehiyam](https://github.com/yehiyam))
+- order bootstrap init [\#1545](https://github.com/kube-HPC/hkube/pull/1545) ([golanha](https://github.com/golanha))
+- add pipeline name to discovery [\#1544](https://github.com/kube-HPC/hkube/pull/1544) ([yehiyam](https://github.com/yehiyam))
+- concurrency updates [\#1538](https://github.com/kube-HPC/hkube/pull/1538) ([yehiyam](https://github.com/yehiyam))
+- restart on error [\#1537](https://github.com/kube-HPC/hkube/pull/1537) ([golanha](https://github.com/golanha))
+- add exec jobs api [\#1528](https://github.com/kube-HPC/hkube/pull/1528) ([yehiyam](https://github.com/yehiyam))
+
+
+
+## [v2.2.47] (2022-03-01)
+
+**Notable changes:**
+- Add output node type. Allows to collect output from multiple nodes in the pipeline
+- Add ability to prioritize queued jobs by jobIds, pipeline name and tags #1449 
+- Usability updated to UI 
+ 
+**Merged pull requests:**
+- update etcd package to prevent watch and get race condition [\#1535](https://github.com/kube-HPC/hkube/pull/1535) ([yehiyam](https://github.com/yehiyam))
+- handle pipeline-driver scale [\#1530](https://github.com/kube-HPC/hkube/pull/1530) ([yehiyam](https://github.com/yehiyam))
+- upgrade dvc [\#1525](https://github.com/kube-HPC/hkube/pull/1525) ([yehiyam](https://github.com/yehiyam))
+- fix python build on slim [\#1523](https://github.com/kube-HPC/hkube/pull/1523) ([yehiyam](https://github.com/yehiyam))
+- paging to the end of the list, and returning count next prev [\#1519](https://github.com/kube-HPC/hkube/pull/1519) ([golanha](https://github.com/golanha))
+- count instead of jobs list and expose filter by pipeline and tag [\#1513](https://github.com/kube-HPC/hkube/pull/1513) ([golanha](https://github.com/golanha))
+- add counter metrics [\#1517](https://github.com/kube-HPC/hkube/pull/1517) ([yehiyam](https://github.com/yehiyam))
+- add buildConfig resources [\#1516](https://github.com/kube-HPC/hkube/pull/1516) ([yehiyam](https://github.com/yehiyam))
+- add active ttl [\#1486](https://github.com/kube-HPC/hkube/pull/1486) ([yehiyam](https://github.com/yehiyam))
+- allow self signed s3 [\#1509](https://github.com/kube-HPC/hkube/pull/1509) ([golanha](https://github.com/golanha))
+- update nodejs wrapper to 2.0.61 [\#1508](https://github.com/kube-HPC/hkube/pull/1508) ([hkube-ci](https://github.com/hkube-ci))
+- remove get dependency python and nodejs [\#1396](https://github.com/kube-HPC/hkube/pull/1396) ([golanha](https://github.com/golanha))
+- Job aggregation api [\#1493](https://github.com/kube-HPC/hkube/pull/1493) ([golanha](https://github.com/golanha))
+- update java wrapper to v2.1.10-SNAPSHOT [\#1502](https://github.com/kube-HPC/hkube/pull/1502) ([hkube-ci](https://github.com/hkube-ci))
+- update java wrapper to v2.1.9-SNAPSHOT [\#1501](https://github.com/kube-HPC/hkube/pull/1501) ([hkube-ci](https://github.com/hkube-ci))
+- use getAll on clean etcd [\#1457](https://github.com/kube-HPC/hkube/pull/1457) ([golanha](https://github.com/golanha))
+- fix loading order [\#1487](https://github.com/kube-HPC/hkube/pull/1487) ([golanha](https://github.com/golanha))
+- job priority [\#1466](https://github.com/kube-HPC/hkube/pull/1466) ([golanha](https://github.com/golanha))
+- prevent error message if unable to find snapshot [\#1480](https://github.com/kube-HPC/hkube/pull/1480) ([yehiyam](https://github.com/yehiyam))
+- handle error from debugged algorithm [\#1478](https://github.com/kube-HPC/hkube/pull/1478) ([yehiyam](https://github.com/yehiyam))
+- update java wrapper to v2.1.8-SNAPSHOT [\#1479](https://github.com/kube-HPC/hkube/pull/1479) ([hkube-ci](https://github.com/hkube-ci))
+- Optimizer [\#1430](https://github.com/kube-HPC/hkube/pull/1430) ([golanha](https://github.com/golanha))
+- flow-input [\#1419](https://github.com/kube-HPC/hkube/pull/1419) ([nassiharel](https://github.com/nassiharel))
+- fix: webhooks levels [\#1464](https://github.com/kube-HPC/hkube/pull/1464) ([nassiharel](https://github.com/nassiharel))
+- disable datasources mount if service is disabled [\#1456](https://github.com/kube-HPC/hkube/pull/1456) ([yehiyam](https://github.com/yehiyam))
+- apply resources to pipeline driver [\#1458](https://github.com/kube-HPC/hkube/pull/1458) ([yehiyam](https://github.com/yehiyam))
+- fix negative free gpu resouces [\#1441](https://github.com/kube-HPC/hkube/pull/1441) ([yehiyam](https://github.com/yehiyam))
+- setting.xml plugin repository points to artifacts-registry [\#1450](https://github.com/kube-HPC/hkube/pull/1450) ([golanha](https://github.com/golanha))
+- feat: exit on redis disconnection [\#1437](https://github.com/kube-HPC/hkube/pull/1437) ([nassiharel](https://github.com/nassiharel))
+- feat: improve delete algorithm [\#1434](https://github.com/kube-HPC/hkube/pull/1434) ([nassiharel](https://github.com/nassiharel))
+- algorithm kind [\#1424](https://github.com/kube-HPC/hkube/pull/1424) ([nassiharel](https://github.com/nassiharel))
+- update python wrapper to hkube-python-wrapper==2.3.0.dev1 [\#1442](https://github.com/kube-HPC/hkube/pull/1442) ([hkube-ci](https://github.com/hkube-ci))
+- Update-logger-master [\#1432](https://github.com/kube-HPC/hkube/pull/1432) ([yehiyam](https://github.com/yehiyam))
+- pipeline kind [\#1421](https://github.com/kube-HPC/hkube/pull/1421) ([nassiharel](https://github.com/nassiharel))
+
+**Fixed bugs:**
+- when stopping running  pipeline the job stay active in the pipeline driver [\#1534](https://github.com/kube-HPC/hkube/issues/1534)
+- fail to execute pipeline with output in the second time [\#1531](https://github.com/kube-HPC/hkube/issues/1531)
+- pipeline driver does not scale-up  [\#1529](https://github.com/kube-HPC/hkube/issues/1529)
+- Algorithm queue - when the algorithm starts for the first time after creating an error is displayed  [\#1443](https://github.com/kube-HPC/hkube/issues/1443)
+- Rebuild failed Error: unable to find build -\>... [\#1412](https://github.com/kube-HPC/hkube/issues/1412)
+- Streaming Gateway send message issues [\#1376](https://github.com/kube-HPC/hkube/issues/1376)
+- return no tags in managed tag aggregation [\#1526](https://github.com/kube-HPC/hkube/pull/1526) ([golanha](https://github.com/golanha))
+- algorithm operator version [\#1520](https://github.com/kube-HPC/hkube/pull/1520) ([golanha](https://github.com/golanha))
+- Fail to build algorithm with "baseImage":"python:3.7-slim" [\#1522](https://github.com/kube-HPC/hkube/issues/1522)
+- when creating Tensor board optuna board board is created with the same path [\#1518](https://github.com/kube-HPC/hkube/issues/1518)
+- fail to execute node with input object that contains flowinput and  batch on previews node results [\#1365](https://github.com/kube-HPC/hkube/issues/1365)
+- pipe in pipe request are block by API server [\#1521](https://github.com/kube-HPC/hkube/issues/1521)
+- No resources for buildConfig [\#1515](https://github.com/kube-HPC/hkube/issues/1515)
+- Cannot disable datasource in worker when datasource PVC is not available [\#1455](https://github.com/kube-HPC/hkube/issues/1455)
+- algorithm-operator does not set pipeline-driver resources [\#1453](https://github.com/kube-HPC/hkube/issues/1453)
+- Pipeline wizard -in the JSON  streaming "flows" should be under "streaming" [\#1397](https://github.com/kube-HPC/hkube/issues/1397)
+- if an algorithm is in a terminating state it should be ignored [\#1348](https://github.com/kube-HPC/hkube/issues/1348)
+- pipeline wizard [\#1336](https://github.com/kube-HPC/hkube/issues/1336)
+- DVC client fails to move files [\#1299](https://github.com/kube-HPC/hkube/issues/1299)
+- webbrowser crashes viewing dashboard after heavy run [\#1183](https://github.com/kube-HPC/hkube/issues/1183)
+- API-server disconnected to the watcher  [\#1129](https://github.com/kube-HPC/hkube/issues/1129)
+- streaming: stateful node memory leak when reconnecting to stateless node [\#1108](https://github.com/kube-HPC/hkube/issues/1108)
+- streaming - fail maintains high rage  flow over time [\#1064](https://github.com/kube-HPC/hkube/issues/1064)
+- Streaming stateless NodeJS  . pods that were stooped does not restart [\#1252](https://github.com/kube-HPC/hkube/issues/1252)
+- pipeline "progressVerbosityLevel" does not change the webhook verbosity level  [\#1463](https://github.com/kube-HPC/hkube/issues/1463)
+- Caching and debug node buttons should be disabled in the streaming pipeline [\#1335](https://github.com/kube-HPC/hkube/issues/1335)
+
+**Closed issues:**
+- Allow user to specify debug nodes in pipeline execution [\#1324](https://github.com/kube-HPC/hkube/issues/1324)
+- allow multiple pipelines with output [\#1533](https://github.com/kube-HPC/hkube/pull/1533) ([yehiyam](https://github.com/yehiyam))
+- Add specific TTL for active pipelines to v1.3 [\#1482](https://github.com/kube-HPC/hkube/issues/1482)
+- Create output kind  [\#1448](https://github.com/kube-HPC/hkube/issues/1448)
+- Job search API [\#1337](https://github.com/kube-HPC/hkube/issues/1337)
+- Algorithm Queue auto-removal [\#1281](https://github.com/kube-HPC/hkube/issues/1281)
+- Add ability to filter out pending jobs \(part feature, part bug\) [\#1186](https://github.com/kube-HPC/hkube/issues/1186)
+- Pipeline with conditional algorithms \(if statements\) [\#1173](https://github.com/kube-HPC/hkube/issues/1173)
+- Resource consumption optimizations [\#966](https://github.com/kube-HPC/hkube/issues/966)
+- algorithm nullable properties [\#1271](https://github.com/kube-HPC/hkube/issues/1271)
+- streaming [\#585](https://github.com/kube-HPC/hkube/issues/585)
+
+**Implemented enhancements:**
+- FlowInput Size Issue [\#1303](https://github.com/kube-HPC/hkube/issues/1303)
+
+
+
+
 
 ## [v2.1.93](https://github.com/kube-HPC/hkube/compare/v2.1.0...v2.1.93)(2021-11-7)
 
