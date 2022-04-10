@@ -1,6 +1,6 @@
 {
   "name": "trigger-service",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "description": "trigger service which allows flows to be triggered from variety ways",
   "main": "app.js",
   "directories": {
