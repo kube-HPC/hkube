@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.2.10",
+    "version": "2.4.0",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -3044,6 +3044,82 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exec/jobs": {
+      "get": {
+        "tags": [
+          "Execution"
+        ],
+        "summary": "Get jobs (active and pending)",
+        "description": "Returns a list of all jobs (active and pending)",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "status of the jobs to return",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "pending"
+              ]
+            }
+          },
+          {
+            "name": "raw",
+            "in": "query",
+            "description": "if true returns just the jobId",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "jobs list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "jobId": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                      },
+                      "status": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
@@ -12502,7 +12578,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "filter by tag"
+            "description": "filter by tag, value 'null' or empty string , will return jobs without any tags"
           },
           {
             "name": "lastJobs",
@@ -13205,7 +13281,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "filter by tag"
+            "description": "filter by tag, value 'null' or empty string , will return jobs without any tags"
           },
           {
             "name": "lastJobs",
@@ -13236,6 +13312,75 @@
                     "timeTook": {
                       "type": "string",
                       "description": "the query completion time took in milliseconds"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/queue/count": {
+      "get": {
+        "tags": [
+          "Queue"
+        ],
+        "summary": "Get queue count",
+        "description": "Get queue count",
+        "responses": {
+          "200": {
+            "description": "Get queue count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "preferred": {
+                      "type": "integer",
+                      "description": "preferred count"
+                    },
+                    "managed": {
+                      "type": "integer",
+                      "description": "managed count"
                     }
                   }
                 }
@@ -19493,6 +19638,19 @@
           }
         }
       },
+      "queueCountResponse": {
+        "type": "object",
+        "properties": {
+          "preferred": {
+            "type": "integer",
+            "description": "preferred count"
+          },
+          "managed": {
+            "type": "integer",
+            "description": "managed count"
+          }
+        }
+      },
       "jobsAggregationResponse": {
         "type": "object",
         "properties": {
@@ -19590,6 +19748,18 @@
           "jobId"
         ]
       },
+      "jobListItem": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
       "tag": {
         "type": "string",
         "description": "Unique identifier representing a specific tag",
@@ -19600,8 +19770,7 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string",
-            "default": ""
+            "type": "string"
           },
           "experimentName": {
             "type": "string",
@@ -19625,10 +19794,7 @@
             "minimum": 1,
             "maximum": 100000
           }
-        },
-        "required": [
-          "name"
-        ]
+        }
       },
       "queryRange": {
         "type": "object",
@@ -21110,7 +21276,7 @@
                 "low": {
                   "type": "number"
                 },
-                "hight": {
+                "high": {
                   "type": "number"
                 },
                 "choices": {
@@ -21178,7 +21344,7 @@
           "low": {
             "type": "number"
           },
-          "hight": {
+          "high": {
             "type": "number"
           },
           "choices": {

@@ -1,6 +1,6 @@
 {
   "name": "algorithm-queue",
-  "version": "2.2.4",
+  "version": "2.4.0",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -20,10 +20,10 @@
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "^1.0.31",
     "@hkube/db": "^1.0.34",
-    "@hkube/etcd": "^5.1.6",
+    "@hkube/etcd": "^5.1.10",
     "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
-    "@hkube/producer-consumer": "^1.0.50",
+    "@hkube/producer-consumer": "^1.0.52",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/storage-manager": "^2.0.34",
     "@hkube/uid": "^1.0.4",

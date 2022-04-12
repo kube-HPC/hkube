@@ -1,31 +1,20 @@
 [
     {
-        "name": "pipeline-driver",
+        "name": "preferred",
         "data": [
-            {
-                "jobId": "eval-1:c1792042-2c5a-4ed9-906a-c83f4575437d",
-                "pipelineName": "eval-1",
-                "priority": 1,
-                "score": 0.8
-            },
-            {
-                "jobId": "eval-2:c1792042-2c5a-4ed9-906a-c83f4575437d",
-                "pipelineName": "eval-2",
-                "priority": 2,
-                "score": 0.7
-            },
-            {
-                "jobId": "eval-3:c1792042-2c5a-4ed9-906a-c83f4575437d",
-                "pipelineName": "eval-3",
-                "priority": 3,
-                "score": 0.6
-            },
-            {
-                "jobId": "eval-4:c1792042-2c5a-4ed9-906a-c83f4575437d",
-                "pipelineName": "eval-4",
-                "priority": 4,
-                "score": 0.5
-            }
+            0.4,
+            0.3,
+            0.2,
+            0.1
+        ]
+    },
+    {
+        "name": "main",
+        "data": [
+            0.8,
+            0.7,
+            0.6,
+            0.5
         ]
     }
 ]

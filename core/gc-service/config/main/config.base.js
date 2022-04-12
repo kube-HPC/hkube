@@ -38,6 +38,13 @@ config.cleanerSettings = {
             maxAge: formatter.parseFloat(process.env.DEBUG_MAX_AGE, 10)
         }
     },
+    output: {
+        cron: process.env.OUTPUT_CRON || '*/2 * * * *',
+        enabled: formatter.parseBool(process.env.OUTPUT_ENABLED, true),
+        settings: {
+            maxAge: formatter.parseFloat(process.env.OUTPUT_MAX_AGE, 10)
+        }
+    },
     etcd: {
         cron: process.env.ETCD_CRON || '0 1 * * *',
         enabled: formatter.parseBool(process.env.ETCD_ENABLED, true),
@@ -73,6 +80,12 @@ config.cleanerSettings = {
                 port: process.env.API_SERVER_SERVICE_PORT || 3000,
                 stopPath: 'internal/v1/exec/stop'
             }
+        }
+    },
+    status: {
+        cron: process.env.STATUS_CRON || '*/5 * * * *',
+        enabled: formatter.parseBool(process.env.STATUS_ENABLED, true),
+        settings: {
         }
     },
     redis: {

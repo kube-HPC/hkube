@@ -1,16 +1,15 @@
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
-const persistence = require('../persistency/persistency');
+const ConcurrencyHandler = require('./concurrencyHandler');
 const queueRunner = require('../queue-runner');
 
 class JobProducer {
     constructor() {
         this._isActive = false;
-        this._isConsumerActive = false;
+        this._isConsumerActive = true;
         this._firstJobDequeue = false;
         this._checkQueue = this._checkQueue.bind(this);
         this._updateState = this._updateState.bind(this);
@@ -19,6 +18,8 @@ class JobProducer {
     async init(options) {
         const { jobType, ...producer } = options.producer;
         this._jobType = jobType;
+        this._prefix = options.producer.prefix;
+        this.redisPrefix = `${this._prefix}:${this._jobType}`;
         this._producer = new Producer({
             setting: {
                 tracer,
@@ -30,14 +31,16 @@ class JobProducer {
         this._redisQueue = this._producer._createQueue(this._jobType);
         this._checkQueueInterval = options.checkQueueInterval;
         this._updateStateInterval = options.updateStateInterval;
+        this._concurrencyHandler = new ConcurrencyHandler(this, options);
 
         this._producerEventRegistry();
         this._checkQueue();
+        this._concurrencyHandler.startInterval();
         this._updateState();
 
         queueRunner.queue.on(queueEvents.INSERT, () => {
             if (this._isConsumerActive) {
-                this._dequeueJob();
+                this._dequeueJobInternal();
             }
         });
     }
@@ -48,14 +51,17 @@ class JobProducer {
 
     async _checkQueue() {
         try {
-            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
-            if (queue.length > 0) {
-                const pendingAmount = await this._redisQueue.getWaitingCount();
-                if (pendingAmount === 0) {
-                    // create job first time only, then rely on 3 events (active/completed/enqueue)
-                    this._firstJobDequeue = true;
-                    log.info('firstJobDequeue', { component });
-                    await this.createJob(queue[0], queueRunner.queue);
+            for (const queue of queueRunner.queues) {
+                const queueAvailable = queue.getQueue(q => !q.maxExceeded);
+                if (queueAvailable.length > 0) {
+                    const pendingAmount = await this._redisQueue.getWaitingCount();
+                    if (pendingAmount === 0) {
+                        // create job first time only, then rely on 3 events (active/completed/enqueue)
+                        this._firstJobDequeue = true;
+                        log.info('firstJobDequeue', { component });
+                        await this.createJob(queueAvailable[0], queue);
+                        return;
+                    }
                 }
             }
         }
@@ -71,8 +77,9 @@ class JobProducer {
 
     async _updateState() {
         try {
-            await queueRunner.queue.persistenceStore();
-            await queueRunner.preferredQueue.persistenceStore();
+            for (const queue of queueRunner.queues) {
+                await queue.persistenceStore();
+            }
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);
@@ -91,22 +98,15 @@ class JobProducer {
         }).on(Events.ACTIVE, (data) => {
             this._isConsumerActive = true;
             log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: Events.ACTIVE });
-            this._dequeueJob();
+            this._dequeueJobInternal();
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.COMPLETED });
-            this._checkMaxExceeded(data.options.data);
+            this._concurrencyHandler.checkMaxExceeded({ pipelineName: data.options.data.pipeline, experimentName: data.options.data.experiment });
         }).on(Events.FAILED, (data) => {
             log.info(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: Events.FAILED });
-            this._checkMaxExceeded(data.options.data);
+            this._concurrencyHandler.checkMaxExceeded({ pipelineName: data.options.data.pipeline, experimentName: data.options.data.experiment });
         }).on(Events.STALLED, (data) => {
             log.warning(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.STALLED });
-        }).on(Events.CRASHED, async (data) => {
-            const { jobId, error } = data;
-            const status = pipelineStatuses.FAILED;
-            log.warning(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
-            const pipeline = await persistence.getExecution({ jobId });
-            await persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, error, level: 'error' });
-            await persistence.setJobResults({ jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime });
         });
     }
 
@@ -116,40 +116,26 @@ class JobProducer {
      * 2  completed active and there is a maxExceeded in queue.
      * 3. new job enqueue and consumers are active.
      */
-    async _dequeueJob() {
+    async _dequeueJobInternal(jobId) {
         try {
-            const preferredQueue = queueRunner.preferredQueue.getQueue(q => !q.maxExceeded);
-
-            if (preferredQueue.length > 0) {
-                await this.createJob(preferredQueue[0], queueRunner.preferredQueue);
+            if (jobId) {
+                const { job, queue } = queueRunner.findJobByJobId(jobId);
+                if (job) {
+                    await this.createJob(job, queue);
+                    return;
+                }
             }
-            else {
-                const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
-                if (queue.length > 0) {
-                    await this.createJob(queue[0], queueRunner.queue);
+            for (const queue of queueRunner.queues) {
+                const availableJobs = queue.getQueue(q => !q.maxExceeded);
+                if (availableJobs.length > 0) {
+                    const job = availableJobs[0];
+                    await this.createJob(job, queue);
+                    return;
                 }
             }
         }
         catch (error) {
             log.throttle.error(error.message, { component }, error);
-        }
-    }
-
-    _checkMaxExceeded({ experiment, pipeline }) {
-        let job = queueRunner.preferredQueue
-            .getQueue(q => q.maxExceeded)
-            .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
-        if (!job) {
-            job = queueRunner.queue
-                .getQueue(q => q.maxExceeded)
-                .find(q => q.experimentName === experiment && q.pipelineName === pipeline);
-        }
-        if (job) {
-            log.info(`found and disable job with experiment ${experiment} and pipeline ${pipeline} that marked as maxExceeded`, { component });
-            job.maxExceeded = false;
-            if (this._isConsumerActive) {
-                this._dequeueJob();
-            }
         }
     }
 
@@ -176,10 +162,18 @@ class JobProducer {
         };
     }
 
+    async dequeueJob(jobId) {
+        if (this._isConsumerActive) {
+            await this._dequeueJobInternal(jobId);
+        }
+    }
+
     async createJob(job, queue) {
         queue.dequeue(job);
-        log.debug(`creating new job ${job.jobId}, calculated score: ${job.score}`, { component });
+        log.info(`creating new job ${job.jobId}`, { component, jobId: job.jobId });
+        this._concurrencyHandler.updateActiveJobs(job);
         const jobData = this._pipelineToJob(job);
+        queueRunner.jobRemovedFromQueue(job);
         await this._producer.createJob(jobData);
     }
 }

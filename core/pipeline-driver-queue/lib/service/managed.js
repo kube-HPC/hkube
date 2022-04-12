@@ -2,24 +2,12 @@ const queueRunner = require('../queue-runner');
 const PagingBase = require('./pagingBase');
 
 class Managed extends PagingBase {
+    _getCount() {
+        return queueRunner.queue.queue.length;
+    }
+
     _filteredFlatJobList(filter) {
-        let filteredList;
-        if (filter) {
-            filteredList = queueRunner.queue.queue.filter(job => {
-                if (filter.pipelineName) {
-                    return job.pipelineName === filter.pipelineName;
-                }
-                if (filter.tag) {
-                    return job.tags?.findIndex((tag) => tag === filter.tag) > -1;
-                }
-                return true;
-            });
-        }
-        else filteredList = queueRunner.queue.queue;
-        return filteredList.map(job => {
-            const { score, calculated, next, ...rest } = job;
-            return rest;
-        });
+        return super._filter(filter, queueRunner.queue);
     }
 
     addToAggregation(propertyValue, groupedRecords) {
@@ -40,9 +28,14 @@ class Managed extends PagingBase {
                 aggregationByValue = this.addToAggregation(job.pipelineName, aggregationByValue);
             }
             if (propertyName === 'tag') {
-                job.tags.forEach((tag) => {
-                    aggregationByValue = this.addToAggregation(tag, aggregationByValue);
-                });
+                if (job.tags?.length >= 1) {
+                    job.tags.forEach((tag) => {
+                        aggregationByValue = this.addToAggregation(tag, aggregationByValue);
+                    });
+                }
+                else {
+                    aggregationByValue = this.addToAggregation('', aggregationByValue);
+                }
             }
         });
         return Object.values(aggregationByValue);

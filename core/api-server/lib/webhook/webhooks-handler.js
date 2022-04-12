@@ -28,17 +28,39 @@ class WebhooksHandler {
     }
 
     _watch() {
-        stateManager.onJobResult((response) => {
-            this._requestResults(response);
+        stateManager.on('job-result-change', async (response) => {
+            await this._requestResults(response);
             const { jobId } = response;
-            gatewayService.deleteGateways({ jobId });
-            outputService.deleteOutputs({ jobId });
-            hyperparamsTunerService.deleteHyperparamsTuners({ jobId });
-            debugService.updateLastUsed({ jobId });
+            await Promise.allSettled([
+                gatewayService.deleteGateways({ jobId }),
+                hyperparamsTunerService.deleteHyperparamsTuners({ jobId }),
+                debugService.updateLastUsed({ jobId }),
+                outputService.updateLastUsed({ jobId }),
+            ]);
+            await this._validateJobStatus(response);
+            await this._completeJob(response);
         });
         stateManager.onJobStatus((response) => {
             this._requestStatus(response);
         });
+    }
+
+    async _validateJobStatus(payload) {
+        try {
+            const { jobId, reportedStatus, status } = payload;
+            if (status && reportedStatus && status !== reportedStatus) {
+                log.warning(`reported status ${reportedStatus} does not match result status ${status}`, { component, jobId });
+                await stateManager.updateJobStatus({ jobId, status });
+            }
+        }
+        catch (error) {
+            log.warning(`failed to validate job status ${error.message}`, { component, jobId: payload.jobId });
+        }
+    }
+
+    async _completeJob(payload) {
+        const { jobId } = payload;
+        return stateManager.updateJobCompletion({ jobId, completion: true });
     }
 
     async _requestStatus(payload) {
@@ -56,14 +78,12 @@ class WebhooksHandler {
                 await stateManager.updateStatusWebhook({ jobId, ...result });
             }
         }
-        if (this.isCompletedState(payload.status)) {
-            await stateManager.releaseJobStatusLock({ jobId });
-        }
     }
 
     // TODO: DELETE JOB FROM ETCD
-    async _requestResults(payload) {
-        const { jobId } = payload;
+    async _requestResults(data) {
+        const { jobId } = data;
+        const { reportedStatus, ...payload } = data;
         const pipeline = await stateManager.getJobPipeline({ jobId });
 
         const time = Date.now() - pipeline.startTime;
@@ -74,15 +94,15 @@ class WebhooksHandler {
                 status: payload.status
             }
         });
+
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await stateManager.getResultFromStorage(payload);
-            if (payloadData?.data) {
+            if (payloadData?.data && Array.isArray(payloadData.data)) {
                 await Promise.all(payloadData.data.map(p => this._fillMissing(p)));
             }
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
             await stateManager.updateResultWebhook({ jobId, ...result });
         }
-        await stateManager.releaseJobResultLock({ jobId });
     }
 
     async _fillMissing(element) {

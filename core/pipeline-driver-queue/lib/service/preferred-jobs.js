@@ -1,8 +1,11 @@
 const queuePosition = require('@hkube/consts').queuePositions;
+const log = require('@hkube/logger').GetLogFromContainer();
 const queueRunner = require('../queue-runner');
 const validator = require('../validation');
 const InvalidDataError = require('../errors/InvalidDataError');
 const PagingBase = require('./pagingBase');
+const { componentName } = require('../consts');
+const component = componentName.PREFERRED_SERVICE;
 
 class PreferredJobs extends PagingBase {
     getPreferredJobsList() {
@@ -12,24 +15,12 @@ class PreferredJobs extends PagingBase {
         });
     }
 
+    _getCount() {
+        return queueRunner.preferredQueue.queue.length;
+    }
+
     _filteredFlatJobList(filter) {
-        let filteredList;
-        if (filter) {
-            filteredList = queueRunner.preferredQueue.queue.filter(job => {
-                if (filter.pipelineName) {
-                    return job.pipelineName === filter.pipelineName;
-                }
-                if (filter.tag) {
-                    return job.tags?.findIndex((tag) => tag === filter.tag) > -1;
-                }
-                return true;
-            });
-        }
-        else filteredList = queueRunner.preferredQueue.queue;
-        return filteredList.map(job => {
-            const { score, calculated, next, ...rest } = job;
-            return rest;
-        });
+        return super._filter(filter, queueRunner.preferredQueue);
     }
 
     getPreferredAggregatedByPipeline() {
@@ -73,10 +64,12 @@ class PreferredJobs extends PagingBase {
             const deletedArr = queueRunner.preferredQueue.dequeue({ jobId });
             if (deletedArr.length > 0) {
                 const job = deletedArr[0];
-                queueRunner.queue.enqueue(job);
+                queueRunner.queue.enqueue(job, true);
             }
             return deletedArr.length > 0 ? deletedArr[0] : null;
         }).filter(job => job !== null);
+        log.info(`calculating heuristics for ${queueRunner.queue.name} queue loaded from persistency`, { component });
+        queueRunner.queue.calculateHeuristic();
         return deletedJobs;
     }
 

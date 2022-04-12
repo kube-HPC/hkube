@@ -581,6 +581,69 @@ describe('Streaming', () => {
             expect(response.body.gateways[0].nodeName).to.eql(options.body.nodes[0].nodeName);
             expect(response.body.gateways[0].url).to.eql(`hkube/gateway/${options.body.nodes[0].spec.name}`);
         });
+        it('should set gateway streamType to stateful', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    kind: 'stream',
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway'
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            const extendedPipelineResponse = await request({
+                uri: `${restUrl}/exec/pipelines/${response.body.jobId}`,
+                method: 'GET'
+            })
+            expect(extendedPipelineResponse.body.nodes[0].stateType).to.eql('stateful');
+
+        });
+        it('should throw if gateway stateType is not stateful', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    kind: 'stream',
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType: 'stateless'
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.eq('Gateway node A stateType must be "stateful". Got stateless');
+        });
         it('should insert gateway without spec', async () => {
             const options = {
                 uri: restPath,

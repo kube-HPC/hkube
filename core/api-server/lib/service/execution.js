@@ -124,7 +124,7 @@ class ExecutionService {
             const pipelineObject = { ...extendedPipeline, maxExceeded, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
             const statusObject = { timestamp: Date.now(), pipeline: extendedPipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
-            await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject });
+            await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject, completion: false });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return { jobId, gateways: extendedPipeline.streaming?.gateways };
@@ -244,6 +244,12 @@ class ExecutionService {
     async getRunningPipelines() {
         const list = await stateManager.searchJobs({ hasResult: false, fields: { jobId: true, pipeline: true } });
         return list.map(l => ({ jobId: l.jobId, ...l.pipeline }));
+    }
+
+    async getActivePipelines({ status, raw } = {}) {
+        const active = await stateManager.getRunningJobs({ status });
+
+        return raw === 'true' ? active.map(f => (f.jobId)) : active;
     }
 
     async stopJob(options) {

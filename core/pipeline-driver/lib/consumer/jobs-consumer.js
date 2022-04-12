@@ -11,6 +11,7 @@ class JobConsumer {
         this._maxJobs = 0;
         this._consumerPaused = false;
         this._drivers = new Map();
+        stateManager.setJobConsumer(this);
     }
 
     init(options) {
@@ -151,6 +152,10 @@ class JobConsumer {
             this._consumerPaused = false;
             log.error(`Failed to pause consumer. Error:${err.message}`, { component });
         }
+    }
+
+    getTaskRunners() {
+        return this._drivers;
     }
 }
 

@@ -21,6 +21,8 @@
   $ref: ./exec/pipelines_jobId.yaml
 /exec/pipeline/list:
   $ref: ./exec/pipelines_list.yaml
+/exec/jobs:
+  $ref: ./exec/jobs.yaml
 /exec/status/{jobId}:
   $ref: ./exec/status.yaml
 /exec/results/{jobId}:
@@ -122,7 +124,10 @@
   $ref: ./aggregation/managed.yaml
 /queue/managed/:
   $ref: ./managed/list.yaml  
-
+# queue
+/queue/count:
+  $ref: ./queue/count.yaml
+  
 # Development Environments
 /devenv:
   $ref: ./devenv/create.yaml
@@ -134,7 +139,6 @@
   $ref: ./devenv/stop.yaml
 /devenv/list:
   $ref: ./devenv/list.yaml
-
 
 # builds
 /builds/status/{buildId}:

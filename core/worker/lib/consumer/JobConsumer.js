@@ -24,6 +24,7 @@ class JobConsumer extends EventEmitter {
         this._job = null;
         this._jobId = undefined;
         this._taskId = undefined;
+        this._loggingInfo = {};
         this._nodeName = undefined;
         this._batchIndex = undefined;
         this._pipelineName = undefined;
@@ -56,6 +57,7 @@ class JobConsumer extends EventEmitter {
                 job.done();
                 return;
             }
+            stateManager.setJob(job);
             this._setJob(job);
             log.info(`execute job ${job.data.jobId}`, { component });
             const watchState = await stateAdapter.watch({ jobId: job.data.jobId });
@@ -80,7 +82,6 @@ class JobConsumer extends EventEmitter {
                 startTime: Date.now()
             });
 
-            stateManager.setJob(job);
             this._handleJob(job);
         });
 
@@ -130,6 +131,7 @@ class JobConsumer extends EventEmitter {
         this._job = job;
         this._kind = job.data.kind;
         this._jobId = job.data.jobId;
+        this._loggingInfo = { jobId: job.data.jobId, taskId: job.data.taskId, pipelineName: job.data.pipelineName, batchIndex: job.data.batchIndex };
         this._taskId = job.data.taskId;
         this._execId = job.data.execId;
         this._nodeName = job.data.nodeName;
@@ -325,11 +327,11 @@ class JobConsumer extends EventEmitter {
 
     currentTaskInfo() {
         return {
-            jobId: this._jobId,
-            taskId: this._taskId,
-            pipelineName: this._pipelineName,
+            jobId: this._loggingInfo.jobId,
+            taskId: this._loggingInfo.taskId,
+            pipelineName: this._loggingInfo.pipelineName,
             algorithmName: this.getAlgorithmType(),
-            batchIndex: this._batchIndex
+            batchIndex: this._loggingInfo.batchIndex
         };
     }
 

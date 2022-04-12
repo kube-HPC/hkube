@@ -316,6 +316,7 @@ describe('/dataSource POST', () => {
                 'kind',
                 'endpoint',
                 'bucketName',
+                'verifySsl'
             ]);
             expect(dataSource.git.repositoryUrl).to.match(/\/hkube\//i);
             expect(

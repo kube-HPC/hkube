@@ -33,6 +33,10 @@ class TaskRunner {
         this._schedulingWarningTimeoutMs = options.unScheduledAlgorithms.warningTimeoutMs;
     }
 
+    getGraphStore() {
+        return this._graphStore;
+    }
+
     async onStop(data) {
         log.info(`pipeline ${data.status} ${this._jobId}. ${data.reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
         await this.stop({ shouldStop: false });
@@ -46,7 +50,8 @@ class TaskRunner {
     getStatus() {
         return {
             jobId: this._jobId,
-            active: this._active
+            active: this._active,
+            pipelineName: this.pipeline.name
         };
     }
 
@@ -161,8 +166,8 @@ class TaskRunner {
                 await this._deleteTasks();
             }
             await this._unWatchJob();
-            await this._cleanJob(error);
             await this._deleteStreamingStats();
+            await this._cleanJob(error);
         }
     }
 

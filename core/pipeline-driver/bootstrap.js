@@ -12,9 +12,9 @@ const modules = [
     require('./lib/state/db'),
     require('./lib/state/state-manager'),
     require('./lib/producer/jobs-producer'),
-    require('./lib/consumer/jobs-consumer'),
     require('./lib/metrics/pipeline-metrics'),
-    require('./lib/datastore/graph-store')
+    require('./lib/datastore/graph-store'),
+    require('./lib/consumer/jobs-consumer')
 ];
 
 class Bootstrap {
@@ -37,7 +37,9 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            await Promise.all(modules.map(m => m.init(main)));
+            for (const m of modules) {
+                await m.init(main);
+            }
             log.info(`driver has started with concurrency limit of ${main.jobs.consumer.concurrency} jobs`, { component });
         }
         catch (error) {
@@ -52,6 +54,7 @@ class Bootstrap {
 
     _handleErrors() {
         process.on('exit', (code) => {
+
             log.info(`exit code ${code}`, { component });
         });
         process.on('SIGINT', () => {
