@@ -36,6 +36,15 @@ class ExecutionService {
         }
         const { jobId, startTime, lastRunResult, ...restPipeline } = pipeline;
         const debugNode = options.debug ? options.nodeName : null;
+        // add debug node if needed
+        if (debugNode) {
+            let debugOverrides = restPipeline.options.debugOverride || [];
+            debugOverrides = debugOverrides.filter(v => restPipeline.nodes.find(n => n.nodeName === v));
+            if (!debugOverrides.includes(debugNode)) {
+                debugOverrides.push(debugNode);
+            }
+            restPipeline.options.debugOverride = debugOverrides;
+        }
         const types = [...pipeline.types, pipelineTypes.NODE];
         return this._runPipeline({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types, debugNode });
     }
@@ -84,7 +93,7 @@ class ExecutionService {
     }
 
     async _runPipeline(payload) {
-        const { pipeline, rootJobId, options, types, debugNode } = payload;
+        const { pipeline, rootJobId, options, types } = payload;
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
         const { parentSpan, validateNodes } = options || {};
         let extendedPipeline = restPipeline;
@@ -97,7 +106,7 @@ class ExecutionService {
             validator.pipelines.validatePipelineNodes(extendedPipeline);
             const maxExceeded = await validator.executions.validateConcurrentPipelines(extendedPipeline);
             extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(extendedPipeline);
-            extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline, debugNode);
+            extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline);
             extendedPipeline = await pipelineCreator.updateOutput(extendedPipeline, jobId);
             extendedPipeline = await pipelineCreator.updateOptimize(extendedPipeline, jobId);
             const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
