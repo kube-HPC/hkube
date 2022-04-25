@@ -89,13 +89,13 @@ class ExecutionService {
             }
             return undefined;
         });
-        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, options: { parentSpan }, types });
+        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, parentSpan, types });
     }
 
     async _runPipeline(payload) {
-        const { pipeline, rootJobId, options, types } = payload;
+        const { pipeline, rootJobId, options, parentSpan, types } = payload;
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
-        const { parentSpan, validateNodes } = options || {};
+        const { validateNodes } = options || {};
         let extendedPipeline = restPipeline;
         const userPipeline = cloneDeep(extendedPipeline);
 
