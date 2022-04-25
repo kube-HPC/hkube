@@ -100,9 +100,9 @@ class PipelineCreator {
         return newPipeline;
     }
 
-    async updateDebug(pipeline, debugNode) {
+    async updateDebug(pipeline) {
         for (const node of pipeline.nodes) { // eslint-disable-line
-            if (node.nodeName === debugNode || pipeline.options?.debugOverride?.includes(node.nodeName)) {
+            if (pipeline.options?.debugOverride?.includes(node.nodeName)) {
                 node.kind = nodeKind.Debug;
             }
             if (node.kind === nodeKind.Debug) {
