@@ -1,3 +1,4 @@
+const https = require('https');
 const { S3 } = require('aws-sdk');
 const dbConnect = require('../db');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
@@ -39,7 +40,12 @@ class DataSources {
         if (Number.isNaN(port)) {
             port = url.protocol === 'https:' ? 443 : 80;
         }
-
+        let agent;
+        if (url.protocol === 'https:' && !storage.verifySsl) {
+            agent = new https.Agent({
+                rejectUnauthorized: false,
+            });
+        }
         const s3Client = new S3({
             endpoint: {
                 host: url.host,
@@ -47,6 +53,9 @@ class DataSources {
                 protocol: url.protocol,
                 hostname: url.hostname,
                 port,
+            },
+            httpOptions: {
+                agent
             },
             s3ForcePathStyle: true,
             s3BucketEndpoint: false,

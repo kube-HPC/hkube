@@ -1,6 +1,6 @@
 {
   "name": "trigger-service",
-  "version": "2.1.2",
+  "version": "2.4.0",
   "description": "trigger service which allows flows to be triggered from variety ways",
   "main": "app.js",
   "directories": {
@@ -22,8 +22,8 @@
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/db": "^1.0.32",
-    "@hkube/etcd": "^5.1.2",
-    "@hkube/logger": "^2.0.1",
+    "@hkube/etcd": "^5.1.10",
+    "@hkube/logger": "^2.0.2",
     "async": "^3.2.0",
     "cron": "^1.8.2",
     "requestretry": "^4.1.2"

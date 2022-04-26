@@ -21,6 +21,8 @@
   $ref: ./exec/pipelines_jobId.yaml
 /exec/pipeline/list:
   $ref: ./exec/pipelines_list.yaml
+/exec/jobs:
+  $ref: ./exec/jobs.yaml
 /exec/status/{jobId}:
   $ref: ./exec/status.yaml
 /exec/results/{jobId}:
@@ -99,6 +101,33 @@
   $ref: ./boards/tensorboard_single.yaml
 /boards/tensors/:
   $ref: ./boards/tensorboard_list.yaml
+/boards/optunas:
+  $ref: ./boards/optunaboard_create.yaml
+/boards/optunas/{id}:
+  $ref: ./boards/optunaboard_single.yaml
+/boards/optunas/:
+  $ref: ./boards/optunaboard_list.yaml  
+
+# preferred
+/queue/preferred:
+  $ref: ./preferred/preferred.yaml
+/queue/preferred/deletes:
+  $ref: ./preferred/deletes.yaml
+/queue/preferred/aggregation/pipeline:
+  $ref: ./aggregation/preferred.yaml
+/queue/preferred/aggregation/tag:
+  $ref: ./aggregation/preferred.yaml
+# managed
+/queue/managed/aggregation/pipeline:
+  $ref: ./aggregation/managed.yaml
+/queue/managed/aggregation/tag:
+  $ref: ./aggregation/managed.yaml
+/queue/managed/:
+  $ref: ./managed/list.yaml  
+
+# queue
+/queue/count:
+  $ref: ./queue/count.yaml   
 
 # builds
 /builds/status/{buildId}:

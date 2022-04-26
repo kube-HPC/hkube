@@ -1,21 +1,29 @@
 # First build
 
+FROM  ${DOCKER_PULL_REGISTRY_USER}/node:14.5.0 AS wrapper
+COPY ./wrapper/package.json /hkube/algorithm-runner/
+WORKDIR /hkube/algorithm-runner/
+RUN npm --registry=http://artifacts-registry:8081/hkube/artifacts-registry/repository/npm install
+
+
+# Second build
+
 FROM ${baseImage} AS build
 LABEL maintainer="hkube.dev@gmail.com"
+WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
 COPY ./algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./dockerfile /hkube/algorithm-runner/dockerfile
-WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
 ENV packagesRegistry=${packagesRegistry}
 ENV packagesToken=${packagesToken}
 ENV packagesAuth=${packagesAuth}
 ENV dependency_install_cmd=${dependency_install_cmd}
 RUN ../dockerfile/requirements.sh
 
-# Second build
+# - build
 FROM ${baseImage}
 RUN mkdir -p /hkube-logs
 COPY ./wrapper /hkube/algorithm-runner
-COPY ./packages/ /hkube/algorithm-runner/
+COPY --from=wrapper /hkube/algorithm-runner/ /hkube/algorithm-runner/
 COPY ./nodemon ./docker-entrypoint.sh /hkube/
 COPY --from=build /hkube/algorithm-runner/algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 

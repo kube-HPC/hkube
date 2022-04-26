@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver-queue",
-  "version": "2.1.6",
+  "version": "2.4.0",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -8,8 +8,8 @@
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
-    "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --colors --recursive --exit",
-    "test:cov": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --colors --recursive --exit",
+    "test": "NODE_ENV=test DEFAULT_STORAGE=fs STORAGE_ENCODING=msgpack ./node_modules/mocha/bin/_mocha tests --timeout=10000 --colors --recursive --exit",
+    "test:cov": "./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov npm run test",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",
     "build": "./dockerfile/build.sh pipeline-driver-queue"
@@ -18,16 +18,25 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/consts": "^1.0.31",
-    "@hkube/db": "^1.0.42",
+    "@hkube/consts": "^1.0.45",
+    "@hkube/db": "^1.0.47",
     "@hkube/etcd": "^5.1.2",
-    "@hkube/logger": "^2.0.1",
+    "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
-    "@hkube/producer-consumer": "^1.0.48",
+    "@hkube/producer-consumer": "^1.0.52",
     "@hkube/redis-utils": "^1.0.3",
+    "@hkube/rest-server": "^1.0.18",
+    "@hkube/storage-manager": "^2.0.34",
+    "ajv": "^6.12.0",
+    "async": "^3.2.3",
+    "fs-extra": "^10.0.0",
+    "http-status-codes": "^2.1.4",
+    "lodash.countby": "^4.6.0",
+    "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
     "lodash.orderby": "^4.6.0",
-    "lodash.remove": "^4.7.0"
+    "lodash.remove": "^4.7.0",
+    "performance-now": "^2.1.0"
   },
   "devDependencies": {
     "@hkube/uid": "^1.0.4",
@@ -35,13 +44,13 @@
     "await-done": "^1.0.10",
     "chai": "^4.2.0",
     "coveralls": "^3.0.3",
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.17.2",
-    "istanbul": "^1.1.0-alpha.1",
-    "mocha": "^6.1.4",
+    "eslint": "^6.7.2",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-chai-friendly": "^0.5.0",
+    "eslint-plugin-import": "^2.19.1",
+    "mocha": "^6.2.2",
     "mockery": "^2.1.0",
-    "sinon": "^7.3.2"
+    "nyc": "^14.1.1",
+    "sinon": "^7.5.0"
   }
 }

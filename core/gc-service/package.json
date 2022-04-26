@@ -1,6 +1,6 @@
 {
   "name": "gc-service",
-  "version": "2.1.11",
+  "version": "2.4.0",
   "description": "Hkube garbage collector",
   "main": "app.js",
   "scripts": {
@@ -21,12 +21,12 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/consts": "^1.0.35",
+    "@hkube/consts": "^1.0.39",
     "@hkube/db": "^1.0.42",
     "@hkube/etcd": "^5.1.6",
     "@hkube/healthchecks": "^1.0.2",
     "@hkube/kubernetes-client": "^1.0.35",
-    "@hkube/logger": "^2.0.1",
+    "@hkube/logger": "^2.0.2",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.18",
     "@hkube/storage-manager": "^2.0.33",

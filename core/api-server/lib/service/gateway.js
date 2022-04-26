@@ -1,5 +1,5 @@
 const { uid } = require('@hkube/uid');
-const { nodeKind, buildTypes } = require('@hkube/consts');
+const { nodeKind, buildTypes, stateType } = require('@hkube/consts');
 const validator = require('../validation/api-validator');
 const { InvalidDataError } = require('../errors');
 const stateManager = require('../state/state-manager');
@@ -41,6 +41,7 @@ class Gateway extends AlgorithmBase {
             jobId,
             nodeName,
             kind: nodeKind.Gateway,
+            streamKind: stateType.Stateful,
             algorithmImage: 'hkube/algorithm-gateway',
             algorithmEnv: {
                 GATEWAY_NAME: gatewayName,
@@ -53,7 +54,7 @@ class Gateway extends AlgorithmBase {
         };
         validator.gateways.validateGateway(algorithm);
         await stateManager.updateAlgorithm(algorithm);
-        return { algorithmName, url: gatewayUrl };
+        return { algorithmName, url: gatewayUrl, streamKind: algorithm.streamKind };
     }
 
     async deleteGateways({ pipeline, jobId }) {

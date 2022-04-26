@@ -17,9 +17,30 @@ class StoreManager {
                 jobId: true,
                 startTime: 'pipeline.startTime',
                 ttl: 'pipeline.options.ttl',
+                activeTtl: 'pipeline.options.activeTtl',
+                activeTime: 'pipeline.activeTime',
                 nodes: 'pipeline.nodes',
             },
         });
+    }
+
+    async getInvalidStatusJobs() {
+        return this._db.jobs.fetchAll({
+            query: {
+                completion: true,
+                $where: 'function() {return this.result && this.result.status != this.status.status}'
+            },
+            fields: {
+                jobId: true,
+                resultStatus: 'result.status',
+                statusStatus: 'status.status',
+            },
+            excludeId: true
+        });
+    }
+
+    async updateJobStatus(status) {
+        await this._db.jobs.updateStatus(status);
     }
 
     async deleteAlgByName({ name, kind }) {

@@ -1,25 +1,21 @@
-
 const { ApolloServer } = require('apollo-server-express');
-const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core');
-const { SubscriptionServer } = require('subscriptions-transport-ws');
-const { PubSub, withFilter } = require("graphql-subscriptions");
-const { GraphQLScalarType, execute, subscribe } = require('graphql');
-//const stubs = require('./stub.json');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
+const log = require('@hkube/logger').GetLogFromContanier();
+const component = require('../../lib/consts/componentNames').GRAPHQL_SERVER;
+// const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core');
+// const { SubscriptionServer } = require('subscriptions-transport-ws');
+// const { PubSub } = require('graphql-subscriptions');
+// const { execute, subscribe } = require('graphql');
+// const stubs = require('./stub.json');
+
 const typeDefs = require('./graphql-schema');
 const resolvers = require('./resolvers');
 
-
-const pubsub = new PubSub();
-
-async function startApolloServer(typeDefs, resolvers, app, httpServer, port) {
-
+async function startApolloServer(app, httpServer, port) {
     const schema = makeExecutableSchema({
         typeDefs,
         resolvers,
     });
-
-
 
     const server = new ApolloServer({
         schema,
@@ -27,7 +23,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port) {
             async serverWillStart() {
                 return {
                     async drainServer() {
-                        subscriptionServer.close();
+                        // subscriptionServer.close();
                     }
                 };
             }
@@ -35,51 +31,45 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port) {
     });
     await server.start();
     server.applyMiddleware({ app });
-    const subscriptionServer = SubscriptionServer.create(
-        {
-            schema, execute, subscribe, onConnect(connectionParams, webSocket, context) {
-                console.log('Connected!')
-            },
-            onDisconnect(webSocket, context) {
-                console.log('Disconnected!')
-            },
-        },
-        { server: httpServer, path: server.graphqlPath },
-    );
+    // const subscriptionServer = SubscriptionServer.create({
+    //     schema,
+    //     execute,
+    //     subscribe,
+    // onConnect(connectionParams, webSocket, context) {
+    //     console.log('Connected!');
+    // },
+    // onDisconnect(webSocket, context) {
+    //     console.log('Disconnected!');
+    // },
+    // },
+    //     { server: httpServer, path: server.graphqlPath });
     // const PORT = 4000;
     // httpServer.listen(PORT, () => {
-    console.log(`🚀 Query endpoint ready at http://localhost:${port}${server.graphqlPath}`);
-    console.log(`🚀 Subscription endpoint ready at ws://localhost:${port}${server.graphqlPath}`);
+    log.info(`🚀 Query endpoint ready at http://localhost:${port}${server.graphqlPath}`, { component });
+    log.info(`🚀 Subscription endpoint ready at ws://localhost:${port}${server.graphqlPath}`, { component });
 
-    let currentNumber = 0;
-    function incrementNumber() {
-        currentNumber++;
-        pubsub.publish("NUMBER_INCREMENTED", { numberIncremented: currentNumber });
-        pubsub.publish("NUMBER_INCREMENTED_ODD", { numberIncrementedOdd: currentNumber });
+    // const pubsub = new PubSub();
+    // let currentNumber = 0;
+    // function incrementNumber() {
+    //     currentNumber++;
+    //     pubsub.publish('NUMBER_INCREMENTED', { numberIncremented: currentNumber });
+    //     pubsub.publish('NUMBER_INCREMENTED_ODD', { numberIncrementedOdd: currentNumber });
 
-        setTimeout(incrementNumber, 1000);
-    }
-    // Start incrementing
-    incrementNumber();
-
+    //     setTimeout(incrementNumber, 1000);
+    // }
+    // // Start incrementing
+    // incrementNumber();
 
     //  });
 }
 
-
-
-
-
 const graphqlServer = (app, httpServer, port) => {
     startApolloServer(typeDefs, resolvers.getResolvers(), app, httpServer, port).catch(err => {
-        console.log(err);
+        log.error(err, { component });
     });
-}
+};
 
 module.exports = graphqlServer;
-
-
-
 
 // const ObjectScalarType = new GraphQLScalarType({
 //     name: 'Object',
@@ -102,7 +92,6 @@ module.exports = graphqlServer;
 //         }
 //     }
 // })
-
 
 // const resolvers = {
 //     Object: ObjectScalarType,

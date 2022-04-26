@@ -5,8 +5,9 @@ const url = require('url');
 const Logger = require('@hkube/logger');
 const { Encoding } = require('@hkube/encoding');
 const Validator = require('ajv');
-const schema = require('./schema').socketWorkerCommunicationSchema;
-const component = require('./consts').Components.COMMUNICATIONS;
+const { socketWorkerCommunicationSchema: schema } = require('./schema');
+const { Components, debugMessages } = require('../consts');
+const component = Components.COMMUNICATIONS;
 const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 let connectedPromise;
@@ -16,6 +17,7 @@ class WsWorkerCommunication extends EventEmitter {
         super();
         this._socketServer = null;
         this._socket = null;
+        this._queryData = null;
         connectedPromise = new Promise((res) => {
             resolveConnected = res;
         });
@@ -35,13 +37,14 @@ class WsWorkerCommunication extends EventEmitter {
 
                 this._socketServer.on('connection', (socket, opt) => {
                     if (this._socketServer.clients.size > 1) {
-                        log.info('Debugger connected already');
-                        socket.close(1013);
+                        log.info(`Debugger already connected from ${this._queryData?.hostname}`);
+                        socket.send(this._encoding.encode({ command: debugMessages.outgoing.alreadyConnectedError, data: { hostname: this._queryData?.hostname } }));
+                        socket.close(debugMessages.codes.close);
                     }
                     else {
                         const data = url.parse(opt.url, true).query;
-                        log.info('Connected!!!', { component });
-                        this._registerSocketMessages(socket);
+                        log.info(`Debugger connected from ${data.hostname || 'unknown'}`, { component });
+                        this._registerSocketMessages(socket, data);
                         this.setEncodingType(data.encoding);
                         this.emit('connection', data);
                     }
@@ -67,18 +70,20 @@ class WsWorkerCommunication extends EventEmitter {
         this._encoding = new Encoding({ type });
     }
 
-    _registerSocketMessages(socket) {
+    _registerSocketMessages(socket, queryData) {
         this._socket = socket;
+        this._queryData = queryData;
         resolveConnected();
         socket.on('message', (data) => {
             const payload = this._encoding.decode(data);
             log.info(`got message ${payload.command}`, { component });
-            this.emit(payload.command, payload.data);
+            this.emit(payload.command, payload.data || payload);
         });
         socket.on('close', (code) => {
             log.info('Debug connection closed');
             const reason = code === 1006 ? 'CLOSE_ABNORMAL' : `${code}`;
             this._socket = null;
+            this._queryData = null;
             connectedPromise = new Promise((res) => {
                 resolveConnected = res;
             });

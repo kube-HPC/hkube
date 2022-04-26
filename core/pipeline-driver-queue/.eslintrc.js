@@ -10,10 +10,10 @@ module.exports = {
     ],
     "parserOptions": {
         "sourceType": "module",
-        "ecmaVersion": 2018
+        "ecmaVersion": 2020
     },
     "rules": {
-        "no-param-reassign": "off",
+        "no-param-reassign": "error",
         "prefer-template": "error",
         "no-trailing-spaces": "error",
         "no-console": "error",
@@ -23,14 +23,17 @@ module.exports = {
         "import/newline-after-import": "off",
         "max-len": ["error", 200],
         "brace-style": ["error", "stroustrup"],
+        "indent": ["warn", 4],
         "comma-dangle": "off",
         "no-underscore-dangle": "off",
         "linebreake-style": "off",
         "object-curly-newline": "off",
         "newline-per-chained-call": "off",
         "arrow-body-style": "off",
+        "arrow-parens": "off",
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
-        "indent": ["warn", 4, { "SwitchCase": 1 }]
+        "no-restricted-syntax": "off",
+        "no-await-in-loop": "off",
     }
 };

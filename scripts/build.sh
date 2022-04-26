@@ -1,6 +1,10 @@
 #!/bin/bash
 set -xo pipefail
-echo ${DOCKER_PASSWORD} | docker login --username yehiyam --password-stdin
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+$DIR/docker-login.sh
+# add more registries (space delimited) (in CI env for instance)
+# export EXTRA_PRIVATE_REGISTRIES="ghcr.io/kube-hpc"
+export EXTRA_PRIVATE_REGISTRIES=${EXTRA_PRIVATE_REGISTRIES}
 echo ${CHANGED}
 for REPO in ${CHANGED}
 do

@@ -44,6 +44,9 @@ class EtcdClient extends EventEmitter {
     }
 
     async _watch() {
+        this._etcd.watcher.on('error', (err, path) => {
+            this.emit('error', err, path);
+        });
         await this._etcd.jobs.status.watch();
         await this._etcd.algorithms.executions.watch();
         this._etcd.jobs.status.on('change', async (data) => {

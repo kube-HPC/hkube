@@ -106,10 +106,14 @@ class JobProducer {
                     log.info(`completed job stalled with ${data.status} status. Skipping`, { component });
                     return;
                 }
+                if (data.status === taskStatuses.PRESCHEDULE) {
+                    log.info(`job stalled with ${data.status} status. Skipping`, { component });
+                    return;
+                }
             }
             let err;
             let status;
-            const maxAttempts = (retry && retry.limit) || MAX_JOB_ATTEMPTS;
+            const maxAttempts = retry?.limit ?? MAX_JOB_ATTEMPTS;
             const task = this._pipelineToQueueAdapter(job.options);
             let { attempts } = task;
 

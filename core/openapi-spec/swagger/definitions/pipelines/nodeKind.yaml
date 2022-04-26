@@ -6,3 +6,5 @@ enum:
   - debug
   - dataSource
   - gateway
+  - output
+  - hyperparamsTuner

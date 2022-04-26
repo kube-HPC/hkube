@@ -1,14 +1,24 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
+const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
-const { buildStatuses } = require('@hkube/consts');
+let log;
+const { buildStatuses, pipelineStatuses } = require('@hkube/consts');
 const component = require('../consts/componentNames').DB;
 
-class StateManager {
+class StateManager extends EventEmitter {
+    constructor() {
+        super();
+        this._failedHealthcheckCount = 0;
+    }
+
     async init(options) {
-        const log = Logger.GetLogFromContainer();
+        log = Logger.GetLogFromContainer();
+        this._options = options;
         this._etcd = new Etcd(options.etcd);
         await this._watch();
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
@@ -18,12 +28,60 @@ class StateManager {
         this._db = dbConnect(config, provider);
         await this._db.init({ createIndices: true });
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
+        this._healthcheck();
+    }
+
+    checkHealth(maxFailed) {
+        return this._failedHealthcheckCount < maxFailed;
+    }
+
+    _healthcheck() {
+        if (this._options.healthchecks.checkInterval) {
+            setTimeout(() => {
+                this._healthcheckInterval();
+            }, this._options.healthchecks.checkInterval);
+        }
+    }
+
+    async _healthcheckInterval() {
+        try {
+            const running = await this.getNotCompletedJobs();
+            const completedToDelete = [];
+            for (const { jobId, result, status: reportedStatus } of running) {
+                if (result) {
+                    const age = Date.now() - new Date(result.timestamp);
+                    if (age > this._options.healthchecks.minAge) {
+                        completedToDelete.push({ jobId, ...result, reportedStatus: reportedStatus?.status });
+                    }
+                }
+            }
+            if (completedToDelete.length) {
+                log.info(`found ${completedToDelete.length} completed jobs`, { component });
+                this._failedHealthcheckCount += 1;
+            }
+            for (const result of completedToDelete) {
+                this.emit('job-result-change', result);
+            }
+        }
+        catch (error) {
+            log.throttle.warning(`Failed to run healthchecks: ${error.message}`, { component });
+        }
+        this._healthcheck();
     }
 
     async _watch() {
-        await this._etcd.algorithms.builds.singleWatch();
-        await this._etcd.jobs.results.singleWatch();
-        await this._etcd.jobs.status.singleWatch();
+        this._etcd.watcher.on('error', (err, path) => {
+            log.error(`etcd watcher for ${path} error: ${err.message}`, { component }, err);
+            process.exit(1);
+        });
+        await this._etcd.algorithms.builds.watch();
+        await this._etcd.jobs.results.watch();
+        await this._etcd.jobs.status.watch();
+
+        this._etcd.jobs.results.on('change', result => {
+            this.emit('job-result-change', result);
+            this._failedHealthcheckCount = 0;
+        });
     }
 
     async setPipelineDriversSettings(data) {
@@ -245,33 +303,39 @@ class StateManager {
         return this._db.jobs.createMany(list);
     }
 
-    onJobResult(func) {
-        this._etcd.jobs.results.on('change', (response) => {
-            func(response);
-        });
-    }
-
     onJobStatus(func) {
         this._etcd.jobs.status.on('change', (response) => {
             func(response);
         });
     }
 
-    releaseJobResultLock({ jobId }) {
-        return this._etcd.jobs.results.releaseChangeLock({ jobId });
-    }
-
-    releaseJobStatusLock({ jobId }) {
-        return this._etcd.jobs.status.releaseChangeLock({ jobId });
-    }
-
-    async createJob({ jobId, userPipeline, pipeline, status }) {
-        await this._db.jobs.create({ jobId, userPipeline, pipeline, status });
+    async createJob({ jobId, userPipeline, pipeline, status, completion }) {
+        await this._db.jobs.create({ jobId, userPipeline, pipeline, status, completion });
         await this._etcd.jobs.status.set({ jobId, ...status });
     }
 
     async getJob({ jobId, fields }) {
         return this._db.jobs.fetch({ jobId, fields });
+    }
+
+    async getRunningJobs({ status } = {}) {
+        const statuses = status ? [status] : [pipelineStatuses.ACTIVE, pipelineStatuses.PENDING];
+        return this._db.jobs.search({ pipelineStatus: { $in: statuses }, fields: { jobId: true, status: 'status.status', pipelineName: 'pipeline.name' } });
+    }
+
+    async getNotCompletedJobs() {
+        return this._db.jobs.fetchAll({
+            query: {
+                completion: false,
+                result: { $exists: true }
+            },
+            fields: {
+                jobId: true,
+                result: true,
+                'status.status': true
+            },
+            excludeId: true
+        });
     }
 
     async getStatus(status) {
@@ -388,6 +452,27 @@ class StateManager {
         return this._etcd.algorithms.queue.list();
     }
 
+    // Tensorboards
+    async getOptunaboard({ id }) {
+        return this._db.optunaboards.fetch({ id });
+    }
+
+    async getOptunaboards() {
+        return this._db.optunaboards.fetchAll();
+    }
+
+    async deleteOptunaboard({ id }) {
+        return this._db.optunaboards.delete({ id });
+    }
+
+    async createOptunaboard(board) {
+        return this._db.optunaboards.create(board);
+    }
+
+    async updateOptunaboard(board) {
+        return this._db.optunaboards.update(board);
+    }
+
     async cleanJob({ jobId }) {
         await Promise.all([
             this._etcd.jobs.results.delete({ jobId }),
@@ -398,6 +483,10 @@ class StateManager {
 
     async getSystemResources() {
         return this._etcd.discovery.list({ serviceName: 'task-executor' });
+    }
+
+    async updateJobCompletion({ jobId, completion }) {
+        return this._db.jobs.patch({ query: { jobId }, data: { completion } });
     }
 }
 

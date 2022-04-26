@@ -88,18 +88,6 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('unable to find flowInput.files.links');
         });
-        it('should throw stateful node is not allowed on batch pipeline', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'stateful'
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('stateful node "one" is not allowed on batch pipeline');
-        });
         it('should throw debugOverride algorithm not found', async () => {
             const options = {
                 uri: restPath,
@@ -203,6 +191,12 @@ describe('Executions', () => {
             expect(res2.body.nodes[3].kind).to.eql('debug');
         });
         it('should update debug algorithm modified time on execute', async () => {
+            const optionsGET = {
+                uri: `${restUrl}/store/algorithms/yellow-alg-debug`,
+                method: 'GET'
+            };
+            // delete debug algorithms
+            await request({method: 'DELETE', uri: `${restUrl}/store/algorithms/yellow-alg-debug?force=true`});
             const options = {
                 uri: restPath,
                 body: {
@@ -216,11 +210,8 @@ describe('Executions', () => {
                 }
             };
             await request(options);
-            const optionsGET = {
-                uri: `${restUrl}/store/algorithms/yellow-alg-debug`,
-                method: 'GET'
-            };
-            let res2 = await request(optionsGET);
+
+            res2 = await request(optionsGET);
             expect(Math.abs(res2.body.created - res2.body.modified)).to.closeTo(0, 100);
             await delay(1000)
             await request(options);

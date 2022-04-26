@@ -23,7 +23,12 @@ class KubernetesApi {
             log.throttle.error(`unable to delete job ${jobName}. error: ${e.message}`, { component }, e);
             if (e.code === 404) {
                 // if we didn't find the job we will try to delete the pod
-                await this._tryToDeletePod(podName);
+                if (!podName) {
+                    log.warning(`podName is not defined for job ${jobName}`, { component });
+                }
+                else {
+                    await this._tryToDeletePod(podName);
+                }
             }
             else {
                 throw e;

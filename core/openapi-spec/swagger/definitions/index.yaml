@@ -1,6 +1,8 @@
 # algorithms
 algorithm:
   $ref: ./algorithms/algorithm.yaml
+algorithmKind:
+  $ref: ./algorithms/algorithmKind.yaml
 algorithmName:
   $ref: ./algorithms/algorithmName.yaml
 algorithmNameObject:
@@ -33,6 +35,8 @@ kubernetesValueFrom:
 # boards
 createBoardRequest:
   $ref: ./boards/createBoardRequest.yaml
+createOptunaboardRequest:
+  $ref: ./boards/createOptunaboardRequest.yaml  
 createBoardResponse:
   $ref: ./boards/createBoardResponse.yaml
 getBoardResponse:
@@ -41,6 +45,22 @@ listBoardResponse:
   $ref: ./boards/listBoardResponse.yaml
 metrics:
   $ref: ./boards/metrics.yaml
+
+#preferred
+addToPreferredRequest:
+  $ref: ./preferred/addToPreferredRequest.yaml
+removeFromPreferredRequest:
+  $ref: ./preferred/removeFromPreferredRequest.yaml
+preferredQuery:
+  $ref: ./preferred/preferredQuery.yaml
+
+#queue
+queueCountResponse:
+  $ref: ./queue/queueCountResponse.yaml
+
+#jobsAggregation
+jobsAggregationResponse:
+  $ref: ./aggregation/jobsAggregationResponse.yaml
 
 # builds
 buildId:
@@ -59,6 +79,8 @@ jobId:
   $ref: ./common/jobId.yaml
 jobIdObject:
   $ref: ./common/jobIdObject.yaml
+jobListItem:
+  $ref: ./exec/jobListItem.yaml
 tag:
   $ref: ./common/tag.yaml
 queryList:
@@ -172,6 +194,20 @@ gatewayName:
 gateway:
   $ref: ./gateway/gateway.yaml
 
+output:
+  $ref: ./output/output.yaml
+
+hyperparamsTuner:
+  $ref: ./hyperparamsTuner/hyperparamsTuner.yaml  
+hyperparamsTunerName:
+  $ref: ./hyperparamsTuner/hyperparamsTunerName.yaml  
+hyperparamsTunerSpec:
+  $ref: ./hyperparamsTuner/hyperparamsTunerSpec.yaml      
+hyperParams:
+  $ref: ./hyperparamsTuner/hyperParam.yaml  
+sampler:
+  $ref: ./hyperparamsTuner/sampler.yaml
+
 # GC
 clean:
   $ref: ./gc/clean.yaml
@@ -193,6 +229,8 @@ pipeline:
   $ref: ./pipelines/pipeline.yaml
 pipelineName:
   $ref: ./pipelines/pipelineName.yaml
+kindPipeline:
+  $ref: ./pipelines/kindPipeline.yaml
 pipelineKind:
   $ref: ./pipelines/pipelineKind.yaml
 nodeKind:

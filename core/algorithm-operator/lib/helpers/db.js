@@ -52,6 +52,18 @@ class DB extends EventEmitter {
     async deleteTensorboard(options) {
         await this._db.tensorboards.delete(options);
     }
+
+    async getOptunaboards(status) {
+        return this._db.optunaboards.search({ status });
+    }
+
+    async updateOptunaboard(options) {
+        await this._db.optunaboards.update(options);
+    }
+
+    async deleteOptunaboard(options) {
+        await this._db.optunaboards.delete(options);
+    }
 }
 
 module.exports = new DB();

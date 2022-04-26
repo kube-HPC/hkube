@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const { Consumer } = require('@hkube/producer-consumer');
+const { Consumer, Events } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { pipelineStatuses } = require('@hkube/consts');
 const { tracer } = require('@hkube/metrics');
@@ -23,6 +23,15 @@ class JobConsumer extends EventEmitter {
         });
         this._consumer.on('job', async (job) => {
             await this._handleJob(job);
+        });
+        this._consumer.on(Events.DEFAULT_HANDLER_CALLED, job => {
+            try {
+                const sanitized = { ...job, queue: {}, data: { ...job.data, tasks: job.data.tasks.map(t => ({ ...t, input: ['cut'] })) } };
+                log.info(`${Events.DEFAULT_HANDLER_CALLED}: ${JSON.stringify(sanitized)}`);
+            }
+            catch (error) {
+                log.info(`${Events.DEFAULT_HANDLER_CALLED}: failed to serialize`);
+            }
         });
         this._consumer.register({
             job: {
@@ -120,8 +129,7 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-    // TODO: remove this calculated stuff....
-    pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
+    _adaptData(jobData, taskData, initialBatchLength) {
         const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
             acc[cur] = 0.00001;
             return acc;
@@ -149,7 +157,7 @@ class JobConsumer extends EventEmitter {
 
     queueTasksBuilder(job) {
         const { tasks, ...jobData } = job.data;
-        const taskList = tasks.map(task => this.pipelineToQueueAdapter(jobData, task, tasks.length));
+        const taskList = tasks.map(task => this._adaptData(jobData, task, tasks.length));
         this.emit('jobs-add', taskList);
     }
 }

@@ -1,3 +1,4 @@
+const { nodeKind } = require('@hkube/consts');
 const { InvalidDataError } = require('../errors');
 
 class ApiValidator {
@@ -6,7 +7,7 @@ class ApiValidator {
     }
 
     validateUpdatePipeline(pipeline) {
-        this._validator.validate(this._validator.definitions.pipeline, pipeline, true, { validateStateType: false });
+        this._validator.validate(this._validator.definitions.pipeline, pipeline, true);
         this.validatePipelineNodes(pipeline);
     }
 
@@ -16,8 +17,16 @@ class ApiValidator {
 
     validatePipelineNodes(pipeline) {
         if (!pipeline.nodes?.length) {
-            throw new InvalidDataError('pipeline must have at nodes property with at least one node');
+            throw new InvalidDataError('pipeline must have at least one node');
         }
+        const outputs = pipeline.nodes.filter(n => n.kind === nodeKind.Output);
+        if (outputs?.length > 1) {
+            throw new InvalidDataError('pipeline can not have more than one output');
+        }
+        const hyperparamsTuners = pipeline.nodes.filter(n => n.kind === nodeKind.HyperparamsTuner);
+        hyperparamsTuners.forEach((node) => {
+            this._validator.validate(this._validator.definitions.hyperparamsTuner, node.spec, true);
+        });
         const debugOverride = pipeline.options?.debugOverride || [];
         debugOverride.forEach((a) => {
             const algorithm = pipeline.nodes.find(n => n.nodeName === a);

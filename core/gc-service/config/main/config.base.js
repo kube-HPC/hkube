@@ -1,4 +1,3 @@
-const path = require('path');
 const config = {};
 const packageJson = require(process.cwd() + '/package.json');
 const formatter = require(process.cwd() + '/lib/utils/formatters');
@@ -8,7 +7,6 @@ config.serviceName = packageJson.name;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.ingressPrefix = process.env.INGRESS_PREFIX || '';
-const secured = !!process.env.IS_SSL;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.rest = {
@@ -16,13 +14,6 @@ config.rest = {
     prefix: 'api/v1/gc',
     poweredBy: 'HKube GC',
     bodySizeLimit: process.env.BODY_SIZE_LIMIT || '50mb'
-};
-
-config.swagger = {
-    protocol: secured ? 'https' : 'http',
-    host: process.env.BASE_URL_HOST || 'localhost',
-    port: process.env.BASE_URL_PORT || config.rest.port,
-    path: process.env.BASE_URL_PATH ? path.join(config.ingressPrefix, process.env.BASE_URL_PATH) : config.ingressPrefix
 };
 
 config.cleanerSettings = {
@@ -45,6 +36,13 @@ config.cleanerSettings = {
         enabled: formatter.parseBool(process.env.DEBUG_ENABLED, true),
         settings: {
             maxAge: formatter.parseFloat(process.env.DEBUG_MAX_AGE, 10)
+        }
+    },
+    output: {
+        cron: process.env.OUTPUT_CRON || '*/2 * * * *',
+        enabled: formatter.parseBool(process.env.OUTPUT_ENABLED, true),
+        settings: {
+            maxAge: formatter.parseFloat(process.env.OUTPUT_MAX_AGE, 10)
         }
     },
     etcd: {
@@ -84,6 +82,12 @@ config.cleanerSettings = {
             }
         }
     },
+    status: {
+        cron: process.env.STATUS_CRON || '*/5 * * * *',
+        enabled: formatter.parseBool(process.env.STATUS_ENABLED, true),
+        settings: {
+        }
+    },
     redis: {
         cron: process.env.REDIS_CRON || '20 1 * * *',
         enabled: formatter.parseBool(process.env.REDIS_ENABLED, true),
@@ -97,10 +101,11 @@ config.cleanerSettings = {
         settings: {
             maxAge: {
                 results: formatter.parseFloat(process.env.STORAGE_RESULT_MAX_AGE, 10 * 60 * 24),
-                temp: formatter.parseFloat(process.env.STORAGE_TEMP_MAX_AGE, 5 * 60 * 24)
+                temp: formatter.parseFloat(process.env.STORAGE_TEMP_MAX_AGE, 5 * 60 * 24),
+                builds: formatter.parseFloat(process.env.BUILDS_MAX_AGE, 1 * 60 * 24),
             }
         }
-    },
+    }
 };
 
 config.healthchecksInterval = formatter.parseInt(process.env.HEALTH_CHECK_INTERVAL, 10000);

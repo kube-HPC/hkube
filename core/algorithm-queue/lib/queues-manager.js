@@ -1,13 +1,11 @@
-const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const log = require('@hkube/logger').GetLogFromContainer();
 const etcd = require('./persistency/etcd');
 const queueRunner = require('./queue-runner');
 const component = require('./consts/component-name').JOBS_CONSUMER;
 
-class QueuesManager extends EventEmitter {
+class QueuesManager {
     constructor() {
-        super();
         this._active = true;
         this._lastActive = Date.now();
         this._queues = new Map();
@@ -34,6 +32,13 @@ class QueuesManager extends EventEmitter {
         await etcd.discoveryRegister({ data: discovery });
         this._livenessInterval();
         log.info(`queue ${queueId} is up and running`, { component });
+    }
+
+    async shutdown() {
+        this._active = false;
+        const queues = Array.from(this._queues.values());
+        await etcd.unWatchQueueActions({ queueId: this._queueId });
+        await Promise.allSettled(queues.map(q => q.shutdown()));
     }
 
     /**
@@ -63,7 +68,9 @@ class QueuesManager extends EventEmitter {
                 log.throttle.error(`fail on discovery interval ${e}`, { component }, e);
             }
             finally {
-                this._livenessInterval();
+                if (this._active) {
+                    this._livenessInterval();
+                }
             }
         }, this._options.algorithmQueueBalancer.livenessInterval);
     }

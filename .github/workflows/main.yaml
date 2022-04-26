@@ -8,7 +8,10 @@ on:
   push:
     branches: [master]
   workflow_dispatch:
-
+    inputs:
+      BUILD_ALL:
+        description: should build all repos
+        required: false
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -50,10 +53,17 @@ jobs:
       - name: bootstrap
         run: |
           export CHANGED=$(lerna changed --includeMergedTags)||true
+          if [ "$BUILD_ALL" = "true" ]; then
+            echo "Building all packages"
+            export CHANGED=$(lerna list)
+          fi
           echo ${CHANGED}
           # export CHANGED=${CHANGED:-$(lerna list)}
           echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec npm ci --scope {}
           echo CHANGED=$CHANGED >> $GITHUB_ENV
+        env:
+          BUILD_ALL: '${{ github.event.client_payload.BUILD_ALL || github.event.inputs.BUILD_ALL }}'
+
       - name: build and test
         run: |
           echo $CHANGED
@@ -64,7 +74,11 @@ jobs:
             scripts/runTestAndBuild.sh
           fi
         env: 
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+          DOCKER_USER: "${{ secrets.DOCKER_USER }}"
+          EXTRA_DOCKER_LOGINS: "${{ secrets.EXTRA_DOCKER_LOGINS }}"
+          EXTRA_PRIVATE_REGISTRIES: "${{ secrets.EXTRA_PRIVATE_REGISTRIES }}"
       - name: trigger
         if: env.CHANGED
         id: trigger

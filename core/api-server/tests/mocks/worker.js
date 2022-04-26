@@ -3,10 +3,10 @@ const storageManager = require('@hkube/storage-manager');
 
 class WorkerStub {
 
-    async done({ jobId, data }) {
+    async done({ jobId, data, status = 'completed' }) {
         const results = {
             jobId,
-            status: 'completed',
+            status,
             data,
             level: 'info'
         }

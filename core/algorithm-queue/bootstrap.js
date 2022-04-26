@@ -1,39 +1,46 @@
 
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
-const monitor = require('@hkube/redis-utils').Monitor;
-const { componentName } = require('./lib/consts/index');
 const { tracer } = require('@hkube/metrics');
-
+const storageManager = require('@hkube/storage-manager');
+const monitor = require('@hkube/redis-utils').Monitor;
+const { main: config, logger } = configIt.load();
+const log = new Logger(config.serviceName, logger);
+const component = require('./lib/consts/component-name').MAIN;
+const gracefulShutdown = require('./lib/graceful-shutdown');
+const etcd = require('./lib/persistency/etcd');
 const modules = [
     require('./lib/persistency/db'),
-    require('./lib/persistency/etcd'),
+    etcd,
     require('./lib/queues-manager'),
-    require('./lib/persistency/redis-storage-adapter'),
     require('./lib/metrics/aggregation-metrics-factory')
 ];
 
 class Bootstrap {
-    async init() {
+    async init(bootstrap) {
         try {
             this._handleErrors();
-            log.info('running application in ' + configIt.env() + ' environment', { component: componentName.MAIN });
+            log.info(`running application with env: ${configIt.env()}, version: ${config.version}, node: ${process.versions.node}`, { component });
             monitor.on('ready', (data) => {
-                log.info((data.message).green, { component: componentName.MAIN });
+                log.info((data.message).green, { component });
             });
             monitor.on('close', (data) => {
-                log.error(data.error.message, { component: componentName.MAIN });
+                log.error(data.error.message, { component });
+                this._gracefulShutdown(1);
             });
-            await monitor.check(main.redis);
-            if (main.tracer) {
-                await tracer.init(main.tracer);
+            await monitor.check(config.redis);
+            if (config.tracer) {
+                await tracer.init(config.tracer);
             }
+            etcd.on('error', (err, path) => {
+                log.error(`etcd watcher for ${path} error: ${err.message}`, { component }, err);
+                this._gracefulShutdown(1);
+            });
+            await storageManager.init(config, log, bootstrap);
             for (const m of modules) {
-                await m.init(main);
+                await m.init(config);
             }
-            return main;
+            return config;
         }
         catch (error) {
             this._onInitFailed(error);
@@ -42,29 +49,35 @@ class Bootstrap {
     }
 
     _onInitFailed(error) {
-        log.error(error.message, { component: componentName.MAIN }, error);
+        log.error(error.message, { component }, error);
         process.exit(1);
+    }
+
+    _gracefulShutdown(code) {
+        gracefulShutdown.shutdown(() => {
+            process.exit(code);
+        });
     }
 
     _handleErrors() {
         process.on('exit', (code) => {
-            log.info('exit' + (code ? ' code ' + code : ''), { component: componentName.MAIN });
+            log.info(`exit code ${code}`, { component });
         });
         process.on('SIGINT', () => {
-            log.info('SIGINT', { component: componentName.MAIN });
-            process.exit(1);
+            log.info('SIGINT', { component });
+            this._gracefulShutdown(0);
         });
         process.on('SIGTERM', () => {
-            log.info('SIGTERM', { component: componentName.MAIN });
-            process.exit(1);
+            log.info('SIGTERM', { component });
+            this._gracefulShutdown(0);
         });
         process.on('unhandledRejection', (error) => {
-            log.error('unhandledRejection: ' + error, { component: componentName.MAIN }, error);
-            process.exit(1);
+            log.error(`unhandledRejection: ${error.message}`, { component }, error);
+            this._gracefulShutdown(1);
         });
         process.on('uncaughtException', (error) => {
-            log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);
-            process.exit(1);
+            log.error(`uncaughtException: ${error.message}`, { component }, error);
+            this._gracefulShutdown(1);
         });
     }
 }

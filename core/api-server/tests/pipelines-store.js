@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { StatusCodes } = require('http-status-codes');
 const clone = require('clone');
-const { pipelineStatuses } = require('@hkube/consts');
+const { pipelineStatuses, nodeKind } = require('@hkube/consts');
 const { uuid } = require('@hkube/uid');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
@@ -146,7 +146,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('pipeline must have at nodes property with at least one node');
+            expect(response.body.error.message).to.equal('pipeline must have at least one node');
         });
         it('should throw validation error of required property nodes.nodeName', async () => {
             const options = {
@@ -225,7 +225,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('please provide algorithmName');
+            expect(response.body.error.message).to.contain('please provide algorithm name');
         });
         it('should throw validation error of nodes.input should be array', async () => {
             const options = {
@@ -381,7 +381,7 @@ describe('Store/Pipelines', () => {
         it('should throw validation error if debugOverride algorithm not in nodes', async () => {
             const pipeline = clone(pipelines[0]);
             pipeline.name = uuid();
-            pipeline.options.debugOverride=['not-exist']
+            pipeline.options.debugOverride = ['not-exist']
             const body = pipeline;
             const options = {
                 uri: restPath,
@@ -391,6 +391,26 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('debugOverride node not in nodes list');
+        });
+        it('should succeed to store pipeline', async () => {
+            const pipeline = clone(pipelines[2]);
+            pipeline.name = uuid();
+            pipeline.description = 'my description';
+            pipeline.tags = ['bla', 'hot'];
+            const options = {
+                uri: restPath,
+                body: pipeline
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.eql(pipeline);
+            const storedPipeline = await request({
+                uri: restPath + '/' + pipeline.name,
+                method: 'GET'
+            });
+            const actual = storedPipeline.body;
+            delete actual.modified;
+            expect(actual).to.eql(pipeline);
         });
         it('should succeed to store pipeline and add defaults', async () => {
             const name = uuid();
@@ -414,6 +434,7 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('options');
             expect(response.body).to.have.property('priority');
             expect(response.body.options).to.have.property('ttl');
+            expect(response.body.options).to.not.have.property('activeTtl');
             expect(response.body.options).to.have.property('batchTolerance');
             expect(response.body.options).to.have.property('progressVerbosityLevel');
 
@@ -428,14 +449,18 @@ describe('Store/Pipelines', () => {
                 nodes: [
                     {
                         nodeName: 'A',
-                        kind: 'pipeline',
-                        pipelineName: 'simple',
+                        kind: nodeKind.Pipeline,
+                        spec: {
+                            name: 'simple-1'
+                        },
                         input: []
                     },
                     {
                         nodeName: 'B',
-                        kind: 'pipeline',
-                        pipelineName: 'simple',
+                        kind: nodeKind.Pipeline,
+                        spec: {
+                            name: 'simple-1'
+                        },
                         input: [{ data: '@A' }]
                     }
                 ]
@@ -447,6 +472,37 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
         });
+        it('should throw validation error gateway stateType', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    kind: 'stream',
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType: 'stateless'
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('Gateway node A stateType must be "stateful". Got stateless');
+        });
     });
     describe('/store/pipelines PUT', () => {
         it('should succeed to update pipeline', async () => {
@@ -455,7 +511,6 @@ describe('Store/Pipelines', () => {
             pipeline.kind = 'stream';
             pipeline.nodes.forEach((n) => {
                 n.kind = 'algorithm';
-                n.stateType = 'stateless';
             });
             const options = {
                 uri: restPath,
@@ -478,6 +533,39 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm not.exists Not Found');
+        });
+        it('should throw validation error gateway stateType', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response1 = await request(options);
+            options.body.nodes[0].stateType = 'stateless';
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('Gateway node A stateType must be "stateful". Got stateless');
         });
     });
 });

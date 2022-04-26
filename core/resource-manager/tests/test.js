@@ -18,6 +18,7 @@ const AlgorithmRatios = require('../lib/allocators/ratios-allocator');
 const ResourceAllocator = require('../lib/allocators/resource-allocator');
 const metricsProvider = require('../lib/monitoring/metrics-provider');
 const algorithmQueueMock = require('./mocks/data/algorithm-queue-map.json');
+const driversQueueMock = require('./mocks/data/drivers-queue.json');
 let intervalRunner;
 
 const configFlat = {
@@ -149,6 +150,37 @@ describe('Test', function () {
                 expect(adapterKeys[0]).to.equal(adapterName);
                 expect(result.data).to.deep.equal(algorithmQueueMock);
                 expect(adapter._cache.data).to.deep.equal(algorithmQueueMock);
+            });
+        });
+        describe('PipelineDriverQueue', function () {
+            it('should get adapter drivers.queue data', async function () {
+                const settings = {
+                    drivers: {
+                        queue: {
+                            enable: true
+                        },
+                        store: {
+                            enable: false
+                        },
+                        templatesStore: {
+                            enable: false
+                        }
+                    }
+                }
+                const adapterName = 'queue';
+                const adapterController = new AdapterController(config, settings);
+                await adapterController.init();
+                const adapter = adapterController._adapters.drivers.queue;
+                const adapterKeys = Object.keys(adapterController._adapters.drivers);
+                const result = await adapter.getData();
+                expect(adapter._cacheTTL).to.equal(0);
+                expect(adapter._cache).to.be.null;
+                expect(adapter._working).to.equal(false);
+                expect(adapter.name).to.equal(adapterName);
+                expect(adapter.mandatory).to.equal(false);
+                expect(adapterKeys).to.have.lengthOf(1);
+                expect(adapterKeys[0]).to.equal(adapterName);
+                expect(result.data[0].data).to.have.length(driversQueueMock[0].data.length + driversQueueMock[1].data.length);
             });
         });
         describe('K8s', function () {

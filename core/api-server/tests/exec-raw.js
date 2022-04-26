@@ -1,7 +1,8 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { pipelineTypes } = require('@hkube/consts');
-const { request } = require('./utils');
+const stateManager = require('../lib/state/state-manager');
+const { request, delay } = require('./utils');
 const validationMessages = require('../lib/consts/validationMessages.js');
 let restUrl;
 
@@ -66,7 +67,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('pipeline must have at nodes property with at least one node');
+            expect(response.body.error.message).to.equal('pipeline must have at least one node');
         });
         it('should throw validation error of required property nodes.nodeName', async () => {
             const options = {
@@ -101,7 +102,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('please provide algorithmName');
+            expect(response.body.error.message).to.contain('please provide algorithm name');
         });
         it('should throw validation error of nodes.input should be array', async () => {
             const options = {
@@ -312,6 +313,51 @@ describe('Executions', () => {
             };
             const res2 = await request(optionsGET);
             expect(res2.body.types).to.eql([pipelineTypes.RAW]);
+        });
+        it('should succeed to execute with output kind', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'exec-raw',
+                    nodes: [
+                        {
+                            nodeName: 'green',
+                            algorithmName: 'green-alg',
+                            input: []
+                        },
+                        {
+                            nodeName: 'out',
+                            kind: 'output',
+                            input: ["@green"]
+                        }
+                    ]
+                }
+            };
+            const res1 = await request(options);
+            expect(res1.body).to.have.property('jobId');
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.nodes[1].algorithmName).to.eql('exec-raw-output');
+            const optionsGETAlgorithm = {
+                uri: `${restUrl}/store/algorithms/${res2.body.nodes[1].algorithmName}`,
+                method: 'GET'
+            };
+            const res3 = await request(optionsGETAlgorithm);
+            expect(res3.body.kind).to.eql('output');
+            expect(res3.body.modified).to.exist;
+            const results = {
+                jobId: res1.body.jobId,
+                status: 'completed',
+                data: [{ res1: 400 }, { res2: 500 }]
+            };
+            await stateManager.updateJobStatus(results);
+            await stateManager.updateJobResult(results);
+            await delay(1000);
+            const res4 = await request(optionsGETAlgorithm);
+            expect(res4.body.modified).to.be.greaterThan(res3.body.modified);
         });
     });
 });

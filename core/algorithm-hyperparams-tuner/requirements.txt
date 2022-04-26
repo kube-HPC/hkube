@@ -1,0 +1,2 @@
+optuna==2.10.0
+hkube-python-wrapper==2.2.0.dev9

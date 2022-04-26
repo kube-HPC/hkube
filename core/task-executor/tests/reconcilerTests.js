@@ -1423,6 +1423,22 @@ describe('reconciler', () => {
             expect(algorithms[algorithm.name].message).to.eql('insufficient mem (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 } });
         });
+        it('should create algorithm that does not use GPU in openshift mode', async () => {
+            const algorithm = algorithmTemplates['yellow-alg'];
+            const localResources = clone(resources);
+            const localNormResources = normalizeResources({nodes: localResources.nodesNoGpu, pods: localResources.podsGpu});
+            const data = [
+                { name: algorithm.name },
+            ];
+
+            const res = await reconciler.reconcile({
+                options,
+                normResources: localNormResources,
+                algorithmTemplates: { [algorithm.name]: algorithm },
+                algorithmRequests: [{ data }]
+            });
+            expect(res['yellow-alg'].created).to.eql(1)
+        });
         it('should update algorithm that cannot be schedule due to gpu', async () => {
             const algorithm = algorithmTemplates['big-gpu'];
             const data = [

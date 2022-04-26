@@ -95,6 +95,7 @@
             {
                 "nodeName": "green",
                 "algorithmName": "green-alg",
+                "kind": "algorithm",
                 "input": [
                     "#@flowInput.files.links"
                 ]
@@ -102,6 +103,7 @@
             {
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
+                "kind": "algorithm",
                 "input": [
                     "#@flowInput.files.links"
                 ]
@@ -109,6 +111,7 @@
             {
                 "nodeName": "black",
                 "algorithmName": "black-alg",
+                "kind": "algorithm",
                 "input": [
                     "#@flowInput.files.links"
                 ]
@@ -134,6 +137,7 @@
         "experimentName": "main",
         "options": {
             "ttl": 3600,
+            "activeTtl": 1000,
             "batchTolerance": 30,
             "progressVerbosityLevel": "debug"
         }
@@ -591,14 +595,12 @@
             {
                 "nodeName": "A",
                 "algorithmName": "green-alg",
-                "input": [],
-                "stateType": "stateless"
+                "input": []
             },
             {
                 "nodeName": "Z",
                 "algorithmName": "green-alg",
-                "input": [],
-                "stateType": "stateless"
+                "input": []
             }
         ],
         "streaming": {
@@ -613,15 +615,13 @@
         "nodes": [
             {
                 "nodeName": "A",
-                "algorithmName": "green-alg",
-                "input": [],
-                "stateType": "stateful"
+                "algorithmName": "stateful-alg",
+                "input": []
             },
             {
                 "nodeName": "Z",
                 "algorithmName": "green-alg",
-                "input": [],
-                "stateType": "stateless"
+                "input": []
             }
         ],
         "streaming": {
@@ -636,9 +636,8 @@
         "nodes": [
             {
                 "nodeName": "one",
-                "algorithmName": "green-alg",
-                "input": [],
-                "stateType": "stateful"
+                "algorithmName": "stateful-alg",
+                "input": []
             }
         ]
     },

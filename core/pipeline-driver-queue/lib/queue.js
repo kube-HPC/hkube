@@ -1,77 +1,136 @@
+/* eslint-disable no-plusplus */
+/* eslint-disable no-await-in-loop */
 const Events = require('events');
 const orderby = require('lodash.orderby');
 const remove = require('lodash.remove');
+const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { queueEvents, componentName } = require('./consts');
+const dataStore = require('./persistency/data-store');
+
 const component = componentName.QUEUE;
 
 class Queue extends Events {
-    constructor({ scoreHeuristic = { run: null }, persistence = null } = {}) {
+    constructor({ scoreHeuristic, persistency, name } = {}) {
         super();
-        this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
+        this.scoreHeuristic = scoreHeuristic;
         this.queue = [];
-        this.isIntervalRunning = true;
-        this.persistence = persistence;
+        this._active = true;
+        this._persistency = persistency;
+        this._name = name;
     }
 
     flush() {
         this.queue = [];
     }
 
-    async persistencyLoad() {
-        if (!this.persistence) {
+    async shutdown() {
+        this._active = false;
+        await this.pause();
+        const pendingAmount = await this._producer.getWaitingCount();
+        await this.persistencyStore({ data: this.queue, pendingAmount });
+    }
+
+    async persistencyLoad(staticOrder = false) {
+        if (!this._persistency) {
             return;
         }
-        log.info('try to load data from persistent storage', { component });
-        try {
-            const queueItems = await this.persistence.get();
-            if (queueItems && queueItems.data && queueItems.data.length > 0) {
-                queueItems.data.forEach(q => this.enqueue(q));
+        const data = await this._persistency.get(this._name);
+        const orderedData = [];
+        let previous = 'FirstInLine';
+        data?.forEach(() => {
+            const item = data.find(job => job.next === previous);
+            previous = item.jobId;
+            orderedData.push(item);
+        });
+        const filteredData = [];
+        for (let i = 0; i < orderedData.length; i++) {
+            const item = orderedData[i];
+            const { jobId } = item;
+            log.info(`getting recovery info for job ${jobId} loaded from persistency`, { component, jobId });
+            const jobData = await dataStore.getJob({ jobId });
+            const { status, pipeline } = jobData || {};
+            let skip = false;
+            if (!pipeline) {
+                log.warning(`unable to find pipeline for job ${jobId} loaded from persistency`, { component, jobId });
+                skip = true;
             }
-            log.info('successfully load data from persistent storage', { component });
+            if (status && (status.status === pipelineStatuses.STOPPED || status.status === pipelineStatuses.PAUSED)) {
+                log.warning(`job ${jobId} loaded from persistency with state stop therefore will not added to queue`, { component, jobId });
+                skip = true;
+            }
+            if (!skip) {
+                item.next = i === 0 ? 'FirstInLine' : orderedData[i - 1].jobId;
+                filteredData.push(item);
+            }
         }
-        catch (e) {
-            log.error(`failed to load data from persistent storage, ${e.message}`, { component }, e);
+        if (filteredData.length > 0) {
+            filteredData.forEach(q => {
+                const item = {
+                    ...q,
+                    calculated: {
+                        latestScores: {}
+                    }
+                };
+                if (staticOrder) {
+                    this.queue.push(item);
+                }
+                else {
+                    this.enqueue(item, true);
+                }
+            });
+            log.info(`calculating heuristics for queue ${this._name} loaded from persistency`, { component });
+            this.calculateHeuristic();
         }
     }
 
-    async persistenceStore(data) {
-        if (!this.persistence) {
+    async persistenceStore() {
+        const data = this.getQueue();
+        if (!this._persistency || !data) {
             return;
         }
-        log.debug('try to store data to persistent storage', { component });
-        try {
-            await this.persistence.store(data);
-            log.debug('successfully store data to storage', { component });
-        }
-        catch (e) {
-            log.error(`failed to store data to persistent storage, ${e.message}`, { component }, e);
-        }
+        let previous = 'FirstInLine';
+        const mapData = data.map(q => {
+            const { calculated, ...rest } = q;
+            const result = { ...rest, next: previous };
+            previous = result.jobId;
+            return result;
+        });
+        await this._persistency.store(mapData, this._name);
     }
 
     updateHeuristic(scoreHeuristic) {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
     }
 
-    enqueue(job) {
-        this.queue.push(job);
+    calculateHeuristic() {
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
         this.queue = orderby(this.queue, 'score', 'desc');
+    }
+
+    enqueue(job, skipHeuristic = false) {
+        this.queue.push(job);
+        if (!skipHeuristic) {
+            this.calculateHeuristic();
+        }
         this.emit(queueEvents.INSERT, job);
-        log.info(`new job inserted to queue, queue size: ${this.size}`, { component });
+        log.info(`new job inserted to queue ${this._name}, queue size: ${this.size}`, { component });
     }
 
     dequeue(job) {
-        remove(this.queue, j => j.jobId === job.jobId);
-        this.emit(queueEvents.POP, job);
-        log.info(`job pop from queue, queue size: ${this.size}`, { component });
+        const removedJob = remove(this.queue, j => j.jobId === job.jobId);
+        if (removedJob.length > 0) {
+            this.emit(queueEvents.POP, job);
+            log.info(`job pop from queue ${this._name}, queue size: ${this.size}`, { component });
+        }
+        return removedJob;
     }
 
     remove(jobId) {
         const jobs = remove(this.queue, job => job.jobId === jobId);
         if (jobs.length > 0) {
             this.emit(queueEvents.REMOVE, jobs[0]);
-            log.info(`job removed from queue, queue size: ${this.size}`, { component });
+            log.info(`job removed from queue ${this._name}, queue size: ${this.size}`, { component });
         }
         return jobs;
     }
@@ -80,12 +139,12 @@ class Queue extends Events {
         return this.queue.length;
     }
 
-    getQueue(filter = () => true) {
-        return this.queue.filter(filter);
+    get name() {
+        return this._name;
     }
 
-    set intervalRunningStatus(status) {
-        this.isIntervalRunning = status;
+    getQueue(filter = () => true) {
+        return this.queue.filter(filter);
     }
 }
 

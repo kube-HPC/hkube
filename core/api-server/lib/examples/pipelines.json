@@ -48,203 +48,6 @@
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "input": [
-                    "@green"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@yellow"
-                ]
-            }
-        ],
-        "flowInput": {
-            "files": {
-                "links": [
-                    "links-1",
-                    "links-2",
-                    "links-3",
-                    "links-4",
-                    "links-5",
-                    "links-6",
-                    "links-7",
-                    "links-8",
-                    "links-9",
-                    "links-10"
-                ]
-            }
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "big-batch",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            }
-        ],
-        "flowInput": {
-            "files": {
-                "links": [
-                    "links-1",
-                    "links-2",
-                    "links-3",
-                    "links-4",
-                    "links-5",
-                    "links-6",
-                    "links-7",
-                    "links-8",
-                    "links-9",
-                    "links-10"
-                ]
-            }
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "big-wait-batch",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@green",
-                    "@yellow"
-                ]
-            }
-        ],
-        "flowInput": {
-            "files": {
-                "links": [
-                    "links-1",
-                    "links-2",
-                    "links-3",
-                    "links-4",
-                    "links-5",
-                    "links-6",
-                    "links-7",
-                    "links-8",
-                    "links-9",
-                    "links-10"
-                ]
-            }
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "wait-any-batch",
-        "nodes": [
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    {
-                        "a": "*@green"
-                    },
-                    {
-                        "c": "@green"
-                    }
-                ]
-            },
-            {
-                "nodeName": "red",
-                "algorithmName": "red-alg",
-                "input": [
-                    {
-                        "b": "*@yellow"
-                    },
-                    {
-                        "d": "@yellow"
-                    }
-                ]
-            },
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            }
-        ],
-        "flowInput": {
-            "files": {
-                "links": [
-                    "links-1",
-                    "links-2",
-                    "links-3",
-                    "links-4",
-                    "links-5"
-                ]
-            }
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "batch-on-node",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
                     "#@green"
                 ]
             },
@@ -278,18 +81,8 @@
         }
     },
     {
-        "name": "simple-wait-batch",
+        "name": "for-each",
         "nodes": [
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "*@green",
-                    "*@yellow",
-                    "@green",
-                    "@yellow"
-                ]
-            },
             {
                 "nodeName": "green",
                 "algorithmName": "green-alg",
@@ -302,6 +95,16 @@
                 "algorithmName": "yellow-alg",
                 "input": [
                     "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "*@green",
+                    "*@yellow",
+                    "@green",
+                    "@yellow"
                 ]
             }
         ],
@@ -393,116 +196,55 @@
         }
     },
     {
-        "name": "trigger-3",
+        "name": "streaming",
+        "kind": "stream",
         "nodes": [
             {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
+                "nodeName": "A",
+                "algorithmName": "stream-alg",
                 "input": [
-                    "@flowInput"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "@green"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@yellow"
-                ]
-            }
-        ],
-        "flowInput": {
-            "files": {
-                "link": "links-1"
-            }
-        },
-        "triggers": {
-            "pipelines": [
-                "trigger-2"
-            ]
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "trigger-4",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "@flowInput"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "@green"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@yellow"
-                ]
-            }
-        ],
-        "flowInput": {
-            "files": {
-                "link": "links-1"
-            }
-        },
-        "triggers": {
-            "pipelines": [
-                "trigger-3"
-            ]
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "batch_trigger",
-        "nodes": [
-            {
-                "nodeName": "count",
-                "algorithmName": "eval-alg",
-                "input": [
-                    "@flowInput"
+                    {
+                        "msgPerSec": "@flowInput.msgPerSec"
+                    }
                 ],
-                "extraData": {
-                    "code": [
-                        "function count(input) {",
-                        "let dict = {}",
-                        "input[0].forEach(r => {",
-                        "Object.entries(r).forEach(([k, v]) => {",
-                        "if (!dict[k]) {",
-                        "dict[k] = 0;",
-                        "}",
-                        "dict[k] += v",
-                        "});",
-                        "});",
-                        "return dict",
-                        "}"
-                    ]
-                }
+                "stateType": "stateful"
+            },
+            {
+                "nodeName": "B",
+                "algorithmName": "stream-alg",
+                "input": [
+                    {
+                        "delay": "@flowInput.delay"
+                    }
+                ]
+            },
+            {
+                "nodeName": "C",
+                "algorithmName": "stream-alg",
+                "input": [
+                    {
+                        "delay": "@flowInput.delay"
+                    }
+                ]
+            },
+            {
+                "nodeName": "D",
+                "algorithmName": "stream-alg",
+                "input": [
+                    {
+                        "delay": "@flowInput.delay"
+                    }
+                ]
             }
         ],
-        "flowInput": {},
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
+        "streaming": {
+            "flows": {
+                "analyze": "A >> B&C&D"
+            }
+        },
+        "flowInput": {
+            "msgPerSec": 30,
+            "delay": 0.033
         }
     }
 ]

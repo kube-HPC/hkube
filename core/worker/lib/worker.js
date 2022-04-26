@@ -238,7 +238,7 @@ class Worker {
             }
         }
         catch (e) {
-            log.throttle.error(e.message, { component });
+            log.throttle.error(e.message, { component }, e);
         }
         finally {
             if (this._shouldCheckAlgorithmStatus) {

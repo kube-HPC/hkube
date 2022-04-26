@@ -4,6 +4,8 @@ const { parser, consts } = require('@hkube/parsers');
 const { pipelineKind, nodeKind, retryPolicy, stateType } = require('@hkube/consts');
 const gatewayService = require('./gateway');
 const debugService = require('./debug');
+const outputService = require('./output');
+const optimizeService = require('./hyperparams-tuner');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
@@ -21,89 +23,115 @@ const StreamRetryPolicy = {
 class PipelineCreator {
     async buildPipelineOfPipelines(pipeline) {
         let newPipeline = pipeline;
-        const duplicates = pipeline.nodes.some(p => p.algorithmName && p.pipelineName);
-        if (duplicates.length > 0) {
-            throw new InvalidDataError('algorithmName and pipelineName are not allowed in single node');
-        }
-        const pipelineNames = pipeline.nodes.filter(p => p.pipelineName).map(p => p.pipelineName);
-        const pipelinesNames = [...new Set(pipelineNames)];
-        if (pipelinesNames.length > 0) {
-            const pipelines = await stateManager.getPipelines({ pipelinesNames });
-            const flowInput = pipeline.flowInput || {};
-
-            pipelinesNames.forEach(pl => {
-                const storedPipeline = pipelines.find(p => p.name === pl);
-                if (!storedPipeline) {
-                    throw new ResourceNotFoundError('pipeline', pl);
+        const pipelineNames = pipeline.nodes
+            .filter(n => n.kind === nodeKind.Pipeline)
+            .map(n => {
+                if (!n.spec?.name) {
+                    throw new InvalidDataError(`node ${n.nodeName} must have spec with name`);
                 }
-                mergeWith(flowInput, storedPipeline.flowInput);
+                return n.spec.name;
             });
+        const pipelinesNames = [...new Set(pipelineNames)];
+        if (!pipelinesNames.length) {
+            return newPipeline;
+        }
 
-            const nodes = [];
-            const edges = [];
-            const validateNodesRelations = false;
+        const pipelines = await stateManager.getPipelines({ pipelinesNames });
+        const flowInput = pipeline.flowInput || {};
 
-            pipeline.nodes.forEach(node => {
-                if (node.input.length > 0) {
-                    node.input.forEach((i) => {
-                        const results = parser.extractNodesFromInput(i);
-                        if (results.length > 0) {
-                            results.forEach(r => {
-                                const nd = pipeline.nodes.find(n => n.nodeName === r.nodeName);
-                                const source = nd;
-                                const target = node;
+        pipelinesNames.forEach(pl => {
+            const storedPipeline = pipelines.find(p => p.name === pl);
+            if (!storedPipeline) {
+                throw new ResourceNotFoundError('pipeline', pl);
+            }
+            mergeWith(flowInput, storedPipeline.flowInput);
+        });
 
-                                const sourceNodes = this._mapNodes(source, pipelines);
-                                const targetNodes = this._mapNodes(target, pipelines);
+        const nodes = [];
+        const edges = [];
+        const validateNodesRelations = false;
 
-                                nodes.push(...sourceNodes, ...targetNodes);
+        pipeline.nodes.forEach(node => {
+            if (node.input.length > 0) {
+                node.input.forEach((i) => {
+                    const results = parser.extractNodesFromInput(i);
+                    if (results.length > 0) {
+                        results.forEach(r => {
+                            const nd = pipeline.nodes.find(n => n.nodeName === r.nodeName);
+                            const source = nd;
+                            const target = node;
 
-                                const sourceGraph = new DAG({ nodes: sourceNodes }, { validateNodesRelations });
-                                const targetGraph = new DAG({ nodes: targetNodes }, { validateNodesRelations });
+                            const sourceNodes = this._mapNodes(source, pipelines);
+                            const targetNodes = this._mapNodes(target, pipelines);
 
-                                const sinks = sourceGraph.getSinks();
-                                const sources = targetGraph.getSources();
+                            nodes.push(...sourceNodes, ...targetNodes);
 
-                                sinks.forEach(s => {
-                                    sources.forEach(t => {
-                                        edges.push({ source: s, target: t });
-                                    });
+                            const sourceGraph = new DAG({ nodes: sourceNodes }, { validateNodesRelations });
+                            const targetGraph = new DAG({ nodes: targetNodes }, { validateNodesRelations });
+
+                            const sinks = sourceGraph.getSinks();
+                            const sources = targetGraph.getSources();
+
+                            sinks.forEach(s => {
+                                sources.forEach(t => {
+                                    edges.push({ source: s, target: t });
                                 });
                             });
-                        }
-                        else {
-                            const mapNodes = this._mapNodes(node, pipelines);
-                            nodes.push(...mapNodes);
-                        }
-                    });
-                }
-                else {
-                    const mapNodes = this._mapNodes(node, pipelines);
-                    nodes.push(...mapNodes);
-                }
-            });
-            const nodesList = nodes.filter((n, i, s) => i === s.findIndex((t) => t.nodeName === n.nodeName));
-            newPipeline = {
-                ...pipeline,
-                flowInput,
-                nodes: nodesList,
-                edges
-            };
-        }
+                        });
+                    }
+                    else {
+                        const mapNodes = this._mapNodes(node, pipelines);
+                        nodes.push(...mapNodes);
+                    }
+                });
+            }
+            else {
+                const mapNodes = this._mapNodes(node, pipelines);
+                nodes.push(...mapNodes);
+            }
+        });
+        const nodesList = nodes.filter((n, i, s) => i === s.findIndex((t) => t.nodeName === n.nodeName));
+        newPipeline = {
+            ...pipeline,
+            flowInput,
+            nodes: nodesList,
+            edges
+        };
         return newPipeline;
     }
 
     async updateDebug(pipeline) {
-        pipeline.options?.debugOverride?.forEach(d => {
-            const node = pipeline.nodes.find(n => n.nodeName === d);
-            if (node) {
+        for (const node of pipeline.nodes) { // eslint-disable-line
+            if (pipeline.options?.debugOverride?.includes(node.nodeName)) {
                 node.kind = nodeKind.Debug;
             }
-        });
-        for (const node of pipeline.nodes) { // eslint-disable-line
             if (node.kind === nodeKind.Debug) {
                 const { algorithmName } = node;
                 const { algorithmName: newAlgorithmName } = await debugService.createDebug({ algorithmName }); // eslint-disable-line
+                node.algorithmName = newAlgorithmName;
+            }
+        }
+        return pipeline;
+    }
+
+    async updateOutput(pipeline, jobId) {
+        const { name: pipelineName } = pipeline;
+        for (const node of pipeline.nodes) { // eslint-disable-line
+            if (node.kind === nodeKind.Output) {
+                const { spec } = node;
+                const { algorithmName: newAlgorithmName } = await outputService.createOutput(pipelineName, jobId, spec); // eslint-disable-line
+                node.algorithmName = newAlgorithmName;
+            }
+        }
+        return pipeline;
+    }
+
+    async updateOptimize(pipeline, jobId) {
+        const { name: pipelineName } = pipeline;
+        for (const node of pipeline.nodes) { // eslint-disable-line
+            if (node.kind === nodeKind.HyperparamsTuner) {
+                const { spec } = node;
+                const { algorithmName: newAlgorithmName } = await optimizeService.createHyperparamsTuner(pipelineName, jobId, spec); // eslint-disable-line
                 node.algorithmName = newAlgorithmName;
             }
         }
@@ -134,9 +162,11 @@ class PipelineCreator {
      *        }}
      *
      */
-    async buildStreamingFlow(pipeline, jobId) {
+    async buildStreamingFlow(pipeline, jobId, algorithms) {
         const flows = pipeline.streaming?.flows;
         let defaultFlow = pipeline.streaming?.defaultFlow;
+        let gateways;
+
         if (pipeline.kind === pipelineKind.Batch) {
             if (flows) {
                 throw new InvalidDataError(`streaming flow is only allowed in ${pipelineKind.Stream} pipeline`);
@@ -153,9 +183,12 @@ class PipelineCreator {
             }
             [defaultFlow] = flowNames;
         }
-        let gateways;
 
         for (const node of pipeline.nodes) { // eslint-disable-line
+            const algorithm = algorithms.get(node.algorithmName);
+            if (algorithm && !node.stateType) {
+                node.stateType = algorithm.streamKind || stateType.Stateless;
+            }
             const type = node.stateType || stateType.Stateless;
             node.retry = StreamRetryPolicy[type];
 
@@ -163,8 +196,12 @@ class PipelineCreator {
                 if (!gateways) {
                     gateways = [];
                 }
-                const { nodeName, spec } = node;
-                const { algorithmName, url } = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
+                const { nodeName, spec, stateType: nodeStateType } = node;
+                if (nodeStateType && nodeStateType !== stateType.Stateful) {
+                    throw new InvalidDataError(`Gateway node ${nodeName} stateType must be "stateful". Got ${nodeStateType}`);
+                }
+                const { algorithmName, url, streamKind} = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
+                node.stateType = streamKind;
                 node.algorithmName = algorithmName;
                 gateways.push({ nodeName, url });
             }
@@ -227,14 +264,23 @@ class PipelineCreator {
                     });
                 });
             });
-            const dag = new DAG({});
-            Object.values(flowEdges).forEach(e => dag.setEdge(e.source, e.target));
-            const sources = dag.getSources();
-            if (sources.length > 1) {
-                throw new InvalidDataError(`flow ${k} has ${sources.length} sources (${sources.join(',')}) each flow should have exactly one source`);
-            }
             parsedFlow[k] = flow;
         });
+
+        const dag = new DAG({});
+        edges.forEach(e => dag.setEdge(e.source, e.target));
+        const nodeNames = new Set(dag.getNodeNames());
+        const node = pipeline.nodes.find(n => !nodeNames.has(n.nodeName || n.origName));
+        if (node) {
+            throw new InvalidDataError(`node "${node.nodeName}" does not belong to any flow`);
+        }
+
+        const sources = dag.getSources().map(s => pipeline.nodes.find(n => n.nodeName === s));
+        const statelessNodes = sources.filter(s => s.stateType === stateType.Stateless);
+        if (statelessNodes.length > 0) {
+            throw new InvalidDataError(`entry node "${statelessNodes[0].nodeName}" cannot be ${stateType.Stateless} on ${pipeline.kind} pipeline`);
+        }
+
         return {
             ...pipeline,
             edges,
@@ -248,8 +294,8 @@ class PipelineCreator {
     }
 
     _mapNodes(node, pipelines) {
-        if (node.pipelineName) {
-            const pipeline = pipelines.find(p => p.name === node.pipelineName);
+        if (node.spec?.name) {
+            const pipeline = pipelines.find(p => p.name === node.spec.name);
             const nodes = this._mapInput(pipeline.nodes, node.nodeName);
             return nodes;
         }

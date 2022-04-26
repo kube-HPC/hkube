@@ -5,6 +5,7 @@
 const Components = {
     MAIN: 'Main',
     REST_API: 'Rest-API',
+    GRAPHQL_SERVER: 'GraphQL-Server',
     WEBHOOK_HANDLER: 'Webhook-Handler',
     JOBS_PRODUCER: 'Jobs-Producer',
     EXECUTION_SERVICE: 'Execution-Service',

@@ -13,9 +13,9 @@ fi
 echo install hkube + dependencies
 if [ ! -z ${PACKAGES_REGISTRY} ]; then
      echo "found pip registry ${PACKAGES_REGISTRY}. Setting trusted host to ${PACKAGES_REGISTRY_HOST}"
-     pip install --trusted-host "${PACKAGES_REGISTRY_HOST}" --index-url "${PACKAGES_REGISTRY}" --find-links /hkube/packages/ -r /hkube/algorithm-runner/requirements.txt
+     pip install --trusted-host "${PACKAGES_REGISTRY_HOST}" --trusted-host "artifacts-registry" --index-url "http://artifacts-registry:8081/hkube/artifacts-registry/repository/python-all/simple/" --extra-index-url "${PACKAGES_REGISTRY}"  -r /hkube/algorithm-runner/requirements.txt
 else
-  pip install --find-links /hkube/packages/ -r /hkube/algorithm-runner/requirements.txt
+  pip install --trusted-host "artifacts-registry" --index-url "http://artifacts-registry:8081/hkube/artifacts-registry/repository/python-all/simple/"  -r /hkube/algorithm-runner/requirements.txt
 fi
 
 if [ ! -z ${dependency_install_cmd} ]; then
