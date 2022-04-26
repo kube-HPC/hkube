@@ -3,6 +3,7 @@ const HttpStatus = require('http-status-codes');
 const stateManager = require('../lib/state/state-manager');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
+const { tracer } = require('@hkube/metrics');
 let restUrl;
 
 describe('Executions', () => {
@@ -11,9 +12,20 @@ describe('Executions', () => {
     });
     describe('/exec/pipelines', () => {
         let restPath = null;
+        let rootSpan;
         before(() => {
             restPath = `${restUrl}/exec/pipelines`;
+
+            tracer.startSpanOld = tracer.startSpan;
+            tracer.startSpan = function (options) {
+                if (!rootSpan) {
+                    rootSpan = options.parent;
+                    options.parent = undefined;
+                }
+                return tracer.startSpanOld(options);
+            };
         });
+        beforeEach(() => { rootSpan = undefined });
         it('should return a list of all running pipelines', async () => {
             const runResponse = await request({
                 uri: restUrl + '/exec/raw',
@@ -26,7 +38,8 @@ describe('Executions', () => {
                             kind: 'algorithm',
                             input: []
                         }
-                    ]
+                    ],
+                    spanId: 'abc'
                 }
             });
             const { jobId } = runResponse.body;
@@ -37,6 +50,7 @@ describe('Executions', () => {
             expect(response.body).to.be.instanceOf(Array);
             const createdItem = response.body.find((item) => item.jobId === jobId);
             expect(createdItem).to.exist;
+            expect(rootSpan).to.eq('abc');
         });
         it('should throw validation error of required property name', async () => {
             const options = {
@@ -134,10 +148,13 @@ describe('Executions', () => {
             const options = {
                 uri: restUrl + '/exec/stored',
                 body: {
-                    name: pipeline.name
+                    name: pipeline.name,
+                    spanId: 'abcd'
                 }
             };
             const response = await request(options);
+            expect(rootSpan).to.eq('abcd');
+            options.body.spanId = undefined;
             const response1 = await request(options);
             const response2 = await request(options);
             expect(response.body).to.have.property('jobId');

@@ -19,12 +19,12 @@ const PausedState = [pipelineStatuses.PAUSED];
 class ExecutionService {
     async runRaw(options) {
         validator.executions.validateRunRawPipeline(options);
-        return this._runPipeline({ pipeline: options, types: [pipelineTypes.RAW] });
+        return this._runPipeline({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.RAW] });
     }
 
     async runStored(options) {
         validator.executions.validateRunStoredPipeline(options);
-        return this._runStored({ pipeline: options, types: [pipelineTypes.STORED] });
+        return this._runStored({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.STORED] });
     }
 
     async runCaching(options) {
