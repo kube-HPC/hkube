@@ -29,4 +29,4 @@ COPY --from=build /hkube/algorithm-runner/algorithm_unique_folder/ /hkube/algori
 
 WORKDIR /hkube/algorithm-runner
 ENTRYPOINT ["/hkube/docker-entrypoint.sh"]
-CMD ["/bin/sh", "-c", "mkfifo /tmp/pipe; (tee -a /tmp/hkube-logs/stdout.log < /tmp/pipe & ) ; exec npm start > /tmp/pipe 2>&1"]
+CMD ["/bin/sh", "-c", "mkfifo /tmp/pipe; (tee -a /hkube-logs/stdout.log < /tmp/pipe & ) ; exec npm start > /tmp/pipe 2>&1"]

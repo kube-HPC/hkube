@@ -10,4 +10,4 @@ RUN export dependency_install_cmd=${dependency_install_cmd} && ./dockerfile/requ
 
 ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm_unique_folder
 ENTRYPOINT ["/hkube/docker-entrypoint.sh"]
-CMD ["/bin/sh", "-c", "mkfifo /tmp/pipe; (tee -a /tmp/hkube-logs/stdout.log < /tmp/pipe & ) ; exec python -u app.py > /tmp/pipe 2>&1"]
+CMD ["/bin/sh", "-c", "mkfifo /tmp/pipe; (tee -a /hkube-logs/stdout.log < /tmp/pipe & ) ; exec python -u app.py > /tmp/pipe 2>&1"]
