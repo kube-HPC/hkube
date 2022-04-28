@@ -8,10 +8,10 @@ const component = require('../../lib/consts/componentNames').GRAPHQL_SERVER;
 // const { execute, subscribe } = require('graphql');
 // const stubs = require('./stub.json');
 
-const typeDefs = require('./graphql-schema');
-const resolvers = require('./resolvers');
+const _typeDefs = require('./graphql-schema');
+const _resolvers = require('./resolvers');
 
-async function startApolloServer(app, httpServer, port) {
+async function startApolloServer(typeDefs, resolvers, app, httpServer, port) {
     const schema = makeExecutableSchema({
         typeDefs,
         resolvers,
@@ -64,34 +64,14 @@ async function startApolloServer(app, httpServer, port) {
 }
 
 const graphqlServer = (app, httpServer, port) => {
-    startApolloServer(typeDefs, resolvers.getResolvers(), app, httpServer, port).catch(err => {
+    startApolloServer(_typeDefs, _resolvers.getResolvers(), app, httpServer, port).catch(err => {
         log.error(err, { component });
     });
 };
 
 module.exports = graphqlServer;
 
-// const ObjectScalarType = new GraphQLScalarType({
-//     name: 'Object',
-//     description: 'Arbitrary object',
-//     parseValue: (value) => {
-//         return typeof value === 'object' ? value
-//             : typeof value === 'string' ? JSON.parse(value)
-//                 : null
-//     },
-//     serialize: (value) => {
-//         return typeof value === 'object' ? value
-//             : typeof value === 'string' ? JSON.parse(value)
-//                 : null
-//     },
-//     parseLiteral: (ast) => {
-//         switch (ast.kind) {
-//             case Kind.STRING: return JSON.parse(ast.value)
-//             case Kind.OBJECT: throw new Error(`Not sure what to do with OBJECT for ObjectScalarType`)
-//             default: return null
-//         }
-//     }
-// })
+
 
 // const resolvers = {
 //     Object: ObjectScalarType,
