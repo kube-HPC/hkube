@@ -28,16 +28,16 @@ const jobTemplate = {
                         envFrom: [
                             {
                                 configMapRef: {
+                                    name: 'algorithm-builder-configmap'
+                                }
+                            },
+                            {
+                                configMapRef: {
                                     name: 'mongodb-configmap'
                                 }
                             }
                         ],
                         env: [
-                            {
-                                configMapRef: {
-                                    name: 'algorithm-builder-configmap'
-                                }
-                            },
                             {
                                 name: 'POD_ID',
                                 valueFrom: {
