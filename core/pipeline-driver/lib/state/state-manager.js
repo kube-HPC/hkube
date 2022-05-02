@@ -359,8 +359,8 @@ class StateManager {
         return this._db.tasks.unwatch({ jobId });
     }
 
-    getTasks({ jobId }) {
-        return this._db.tasks.search({ jobId });
+    getTasks({ jobId, nodeName }) {
+        return this._db.tasks.search({ jobId, nodeName });
     }
 }
 
