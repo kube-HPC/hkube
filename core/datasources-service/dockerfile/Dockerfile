@@ -1,11 +1,11 @@
 ARG BASE_PRIVATE_REGISTRY=""
-FROM ${BASE_PRIVATE_REGISTRY}node:14.5.0 as install
+FROM ${BASE_PRIVATE_REGISTRY}node:18.0.0 as install
 ADD ./package-lock.json ./package.json /hkube/datasource-service/
 WORKDIR /hkube/datasource-service
 RUN npm ci --production
 
 ARG BASE_PRIVATE_REGISTRY=""
-FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v1.2.1-buster
+FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v2.0.0-buster
 LABEL maintainer="yehiyam@gmail.com"
 RUN apt update && apt install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 RUN wget -O dvc.deb https://github.com/iterative/dvc/releases/download/2.9.3/dvc_2.9.3_amd64.deb &&\

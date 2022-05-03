@@ -1,12 +1,11 @@
 ARG BASE_PRIVATE_REGISTRY=""
-FROM ${BASE_PRIVATE_REGISTRY}node:14.5.0 as install
+FROM ${BASE_PRIVATE_REGISTRY}node:18.0.0 as install
 ADD ./package-lock.json ./package.json /hkube/api-server/
 WORKDIR /hkube/api-server
 RUN npm ci --production
 
-
 ARG BASE_PRIVATE_REGISTRY=""
-FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v1.2.0
+FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v2.0.0-buster
 LABEL maintainer="yehiyam@gmail.com"
 RUN mkdir /hkube
 COPY . /hkube/api-server
