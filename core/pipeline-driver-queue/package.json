@@ -26,7 +26,7 @@
     "@hkube/producer-consumer": "^1.0.52",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.18",
-    "@hkube/storage-manager": "^2.0.34",
+    "@hkube/storage-manager": "2.1.0-beta-2",
     "ajv": "^6.12.0",
     "async": "^3.2.3",
     "fs-extra": "^10.0.0",

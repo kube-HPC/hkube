@@ -6,9 +6,9 @@
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "1.0.35",
-    "@hkube/encoding": "^1.0.21",
+    "@hkube/encoding": "2.0.0-beta-2",
     "@hkube/logger": "^2.0.2",
-    "@hkube/nodejs-wrapper": "^2.0.61",
+    "@hkube/nodejs-wrapper": "2.1.0-beta-1",
     "@hkube/uid": "^1.0.4",
     "ajv": "^6.12.0",
     "ws": "^7.2.3"
