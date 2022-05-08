@@ -42,3 +42,13 @@ The workflow accepts the following inputs:
 
 The workflow sets kubeconfig from github secrets and tries to install the chart in the `cicd` cluster. If the chart is not ready yet, the workflow retries up to 20 times.
 After the chart is installed, the [sanity tests](https://github.com/kube-HPC/system-test-node.git) are executed.
+## Frozen Version Development
+When needed it is possible to make changes to a frozen version (create release patches).
+1. Checkout the version branch (e.g. release_v2.3)
+2. Create a feature brance for the fix (make sure to **not** name is release* as this is a reserved prefix).
+3. Create the fix, and commit the changes
+4. Create a PR. This will run the regular PR checks and allow for a code-review.
+5. Optionally deploy to `dev1` cluster for testing (`/deply` comment, only on [hkube](https://github.com/kube-HPC/hkube) repo).
+6. When the PR is merged the [CI-FROZEN](https://github.com/kube-HPC/hkube/actions/workflows/frozen.yml) workflow is executed to build the new version and trigger a new helm chart (dev-version)
+7. After the dev-version is tested, run the [CI-PROMOTE](https://github.com/kube-HPC/helm/actions/workflows/promote.yaml) workflow specifing the chart version to promote the helm chart from dev-version to frozen version (from `./dev` to `./`).
+8. Optionally run the [CI-CREATE-RELEASE_BUNDLE_S3](https://github.dev/kube-HPC/release-manager/blob/master/.github/workflows/create_release_bundle_s3.yaml) workflow to create a downloadable bundle (tar.gz)
