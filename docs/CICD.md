@@ -38,7 +38,7 @@ The packaged chart is copied to the `./dev` folder for dev version or the `./` f
 ### deploy
 The [cd-manager main](https://github.dev/kube-HPC/cd-manager/blob/master/.github/workflows/main.yml) workflow is triggered by the helm workflow. 
 The workflow accepts the following inputs:
-* version: The helm chart to install (e.g. v2.4.10)
+* `version`: The helm chart to install (e.g. v2.4.10)
 
 The workflow sets kubeconfig from github secrets and tries to install the chart in the `cicd` cluster. If the chart is not ready yet, the workflow retries up to 20 times.
 After the chart is installed, the [sanity tests](https://github.com/kube-HPC/system-test-node.git) are executed.
