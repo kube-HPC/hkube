@@ -10,5 +10,5 @@ LABEL maintainer="yehiyam@gmail.com"
 RUN mkdir /hkube
 COPY . /hkube/resource-manager
 COPY --from=install /hkube/resource-manager/node_modules /hkube/resource-manager/node_modules
-WORKDIR /hkube/task-executor
+WORKDIR /hkube/resource-manager
 CMD ["node", "app.js"]
