@@ -19,12 +19,12 @@ const PausedState = [pipelineStatuses.PAUSED];
 class ExecutionService {
     async runRaw(options) {
         validator.executions.validateRunRawPipeline(options);
-        return this._runPipeline({ pipeline: options, types: [pipelineTypes.RAW] });
+        return this._runPipeline({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.RAW] });
     }
 
     async runStored(options) {
         validator.executions.validateRunStoredPipeline(options);
-        return this._runStored({ pipeline: options, types: [pipelineTypes.STORED] });
+        return this._runStored({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.STORED] });
     }
 
     async runCaching(options) {
@@ -89,13 +89,13 @@ class ExecutionService {
             }
             return undefined;
         });
-        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, options: { parentSpan }, types });
+        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, parentSpan, types });
     }
 
     async _runPipeline(payload) {
-        const { pipeline, rootJobId, options, types } = payload;
+        const { pipeline, rootJobId, options, parentSpan, types } = payload;
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
-        const { parentSpan, validateNodes } = options || {};
+        const { validateNodes } = options || {};
         let extendedPipeline = restPipeline;
         const userPipeline = cloneDeep(extendedPipeline);
 

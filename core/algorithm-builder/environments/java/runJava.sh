@@ -10,4 +10,4 @@ else
 fi
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/lib/x86_64-linux-gnu/jni/
 
-java -Xms${MIN_MEM} -Xmx${MAX_MEM} -Dcom.amazonaws.sdk.disableCertChecking=true -jar wrapper.jar algorithm_unique_folder/encapsulated-algorithm.jar  2>&1 |tee /hkube-logs/stdout.log
+mkfifo /tmp/pipe; (tee -a /hkube-logs/stdout.log < /tmp/pipe & ) ; exec java -Xms${MIN_MEM} -Xmx${MAX_MEM} -Dcom.amazonaws.sdk.disableCertChecking=true -jar wrapper.jar algorithm_unique_folder/encapsulated-algorithm.jar > /tmp/pipe 2>&1
