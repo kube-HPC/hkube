@@ -69,7 +69,7 @@ class AppServer {
         };
 
         const data = await rest.start(opt);
-        graphqlServer(rest._app, rest._server, options.port);
+        graphqlServer(rest._app, rest._server, options.port, options.grpahql);
         log.info(`🚀 ${data.message}`, { component });
     }
 }
