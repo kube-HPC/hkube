@@ -11,10 +11,11 @@ const component = require('../../lib/consts/componentNames').GRAPHQL_SERVER;
 const _typeDefs = require('./graphql-schema');
 const _resolvers = require('./resolvers');
 
-async function startApolloServer(typeDefs, resolvers, app, httpServer, port) {
+async function startApolloServer(typeDefs, resolvers, app, httpServer, port, config) {
     const schema = makeExecutableSchema({
         typeDefs,
         resolvers,
+        introspection: config.introspection
     });
 
     const server = new ApolloServer({
@@ -63,8 +64,8 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port) {
     //  });
 }
 
-const graphqlServer = (app, httpServer, port) => {
-    startApolloServer(_typeDefs, _resolvers.getResolvers(), app, httpServer, port).catch(err => {
+const graphqlServer = (app, httpServer, port, config) => {
+    startApolloServer(_typeDefs, _resolvers.getResolvers(), app, httpServer, port, config).catch(err => {
         log.error(err, { component });
     });
 };

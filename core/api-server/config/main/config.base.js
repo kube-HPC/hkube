@@ -191,5 +191,8 @@ config.graph = {
     maxBatchSize: formatter.parseInt(process.env.MAX_BATCH_SIZE, 10),
 
 };
+config.graphql = {
+    introspection: process.env.GRAPHQL_INTROSPECTION || true,
+}
 
 module.exports = config;
