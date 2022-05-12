@@ -192,7 +192,7 @@ config.graph = {
 
 };
 config.graphql = {
-    introspection: process.env.GRAPHQL_INTROSPECTION || true,
+    introspection: formatter.parseBool(process.env.GRAPHQL_INTROSPECTION, true),
 }
 
 module.exports = config;

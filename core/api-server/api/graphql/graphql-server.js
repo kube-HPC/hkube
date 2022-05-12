@@ -15,7 +15,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
     const schema = makeExecutableSchema({
         typeDefs,
         resolvers,
-        introspection: config.introspection
+
     });
 
     const server = new ApolloServer({
@@ -29,6 +29,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                 };
             }
         }],
+        introspection: config.introspection
     });
     await server.start();
     server.applyMiddleware({ app });
