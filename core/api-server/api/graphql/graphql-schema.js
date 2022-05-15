@@ -10,6 +10,7 @@ const pipelineStatsTypeDefs = require('./schemas/pipeline-stats-schema');
 const dataSourcesTypeDefs = require('./schemas/datasource-schema');
 const algorithmBuildsTypeDefs = require('./schemas/algorithm-builder-schema');
 const logsTypeDefs = require('./schemas/log-schema');
+const preferedTypeDefs = require('./schemas/prefered-schema');
 const SubscriptionIncNumbersTypeDefs = gql`
 type Subscription {
     numberIncremented: Int
@@ -40,6 +41,7 @@ const types = [
   discoveryTypeDefs,
   pipelineStatsTypeDefs,
   SubscriptionIncNumbersTypeDefs,
+  preferedTypeDefs,
   Query,
   Subscription
 ];

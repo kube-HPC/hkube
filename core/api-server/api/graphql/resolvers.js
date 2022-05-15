@@ -2,6 +2,7 @@ const { GraphQLScalarType } = require('graphql');
 const { withFilter } = require('graphql-subscriptions');
 const stateManager = require('../../lib/state/state-manager');
 const dbQueires = require('./database-querier');
+const preferedQuerier = require('./prefered-querier');
 const logsQueries = require('../task-logs/logs');
 class GraphqlResolvers {
     constructor() {
@@ -92,7 +93,10 @@ class GraphqlResolvers {
             jobsByExperimentName: (parent, args, context, info) => {
                 return this.quesearchJobs(args.experimentName);
             },
-            pipelines: () => this.queryPipelines(),
+            pipelines: () => (parent, args, context, info) => {
+                return this.queryPipelines();
+            },
+
             algorithmBuilds: (parent, args, context, info) => {
                 return this.queryAlgorithmBuilds(args.algorithmName);
             },
@@ -107,9 +111,29 @@ class GraphqlResolvers {
             },
             logsByQuery: (parent, args, context, info) => {
                 return this.queryLogs({ ...args });
+            },
+            preferedList: (parent, args, context, info) => {
+                return preferedQuerier.getPreferedList(args);
+            },
+            managedList: (parent, args, context, info) => {
+                return preferedQuerier.getManagedList(args);
+            },
+            aggregatedTagsPrefered: (parent, args, context, info) => {
+                return preferedQuerier.getAggregatedPreferedByTags(args);
+            },
+            aggregatedPipelinePrefered: (parent, args, context, info) => {
+                return preferedQuerier.getAggregatedPreferedByPipeline(args);
+            },
+            aggregatedTagsManaged: (parent, args, context, info) => {
+                return preferedQuerier.getAggregatedManagedByTags(args);
+            },
+            aggregatedPipelineManaged: (parent, args, context, info) => {
+                return preferedQuerier.getAggregatedManagedByPipeline(args);
             }
         };
     }
+
+
 
     _getMutationResolvers() {
 

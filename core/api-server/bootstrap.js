@@ -23,6 +23,7 @@ const modules = [
     require('./lib/service/gateway'),
     require('./lib/service/debug'),
     require('./api/graphql/database-querier'),
+    require('./api/graphql/prefered-querier'),
     require('./api/task-logs/logs'),
     require('./lib/service/output'),
     require('./lib/service/hyperparams-tuner'),
