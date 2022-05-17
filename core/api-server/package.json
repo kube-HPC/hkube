@@ -16,7 +16,7 @@
         "@hkube/producer-consumer": "^1.0.51",
         "@hkube/redis-utils": "^1.0.3",
         "@hkube/rest-server": "^1.0.18",
-        "@hkube/storage-manager": "2.1.0-beta-2",
+        "@hkube/storage-manager": "^2.1.1",
         "@hkube/uid": "^1.0.4",
         "@hkube/units-converter": "^1.0.17",
         "@octokit/rest": "^18.12.0",
@@ -47,7 +47,7 @@
         "string-template": "^1.0.0"
     },
     "devDependencies": {
-        "@hkube/encoding": "2.0.0-beta-2",
+        "@hkube/encoding": "^2.0.1",
         "chai": "^4.2.0",
         "clone": "^2.1.2",
         "coveralls": "^3.1.0",

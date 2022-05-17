@@ -1,6 +1,6 @@
 # First build
 
-FROM  ${DOCKER_PULL_REGISTRY_USER}/node:14.5.0 AS wrapper
+FROM  ${DOCKER_PULL_REGISTRY_USER}/node:18.1.0-buster AS wrapper
 COPY ./wrapper/package.json /hkube/algorithm-runner/
 WORKDIR /hkube/algorithm-runner/
 RUN npm --registry=http://artifacts-registry:8081/hkube/artifacts-registry/repository/npm install

@@ -14,7 +14,7 @@
         "@hkube/metrics": "^1.0.42",
         "@hkube/producer-consumer": "^1.0.48",
         "@hkube/rest-server": "^1.0.18",
-        "@hkube/storage-manager": "2.1.0-beta-2",
+        "@hkube/storage-manager": "^2.1.1",
         "@hkube/uid": "^1.0.4",
         "@octokit/rest": "^18.5.2",
         "ajv": "^6.12.0",
