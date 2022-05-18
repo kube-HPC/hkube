@@ -58,7 +58,7 @@ class GraphqlResolvers {
     }
 
     async queryPipelines() {
-        return dbQueires._getStoredPipelines();
+        return await dbQueires._getStoredPipelines();
     }
 
     async queryPipelinesStats(pipelineName) {
@@ -93,9 +93,7 @@ class GraphqlResolvers {
             jobsByExperimentName: (parent, args, context, info) => {
                 return this.quesearchJobs(args.experimentName);
             },
-            pipelines: () => (parent, args, context, info) => {
-                return this.queryPipelines();
-            },
+            pipelines: () => this.queryPipelines(),
 
             algorithmBuilds: (parent, args, context, info) => {
                 return this.queryAlgorithmBuilds(args.algorithmName);

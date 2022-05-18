@@ -12,44 +12,60 @@ const _typeDefs = require('./graphql-schema');
 const _resolvers = require('./resolvers');
 
 async function startApolloServer(typeDefs, resolvers, app, httpServer, port, config) {
-    const schema = makeExecutableSchema({
-        typeDefs,
-        resolvers,
+    try {
+        const schema = makeExecutableSchema({
+            typeDefs,
+            resolvers,
 
+        });
+
+
+        const server = new ApolloServer({
+            schema,
+            plugins: [{
+                async serverWillStart() {
+                    return {
+                        async drainServer() {
+                            // subscriptionServer.close();
+                        }
+                    };
+                }
+            }],
+            introspection: config.introspection
+        });
+        await server.start();
+        server.applyMiddleware({ app });
+
+        log.info(`🚀 Query endpoint ready at http://localhost:${port}${server.graphqlPath}`, { component });
+        log.info(`🚀 Subscription endpoint ready at ws://localhost:${port}${server.graphqlPath}`, { component });
+    } catch (error) {
+        log.error('Error on running gr ' + error,)
+    }
+
+
+}
+
+const graphqlServer = (app, httpServer, port, config) => {
+    startApolloServer(_typeDefs, _resolvers.getResolvers(), app, httpServer, port, config).catch(err => {
+        log.error(err, { component });
     });
+};
 
-    const server = new ApolloServer({
-        schema,
-        plugins: [{
-            async serverWillStart() {
-                return {
-                    async drainServer() {
-                        // subscriptionServer.close();
-                    }
-                };
-            }
-        }],
-        introspection: config.introspection
-    });
-    await server.start();
-    server.applyMiddleware({ app });
-    // const subscriptionServer = SubscriptionServer.create({
-    //     schema,
-    //     execute,
-    //     subscribe,
-    // onConnect(connectionParams, webSocket, context) {
-    //     console.log('Connected!');
-    // },
-    // onDisconnect(webSocket, context) {
-    //     console.log('Disconnected!');
-    // },
-    // },
-    //     { server: httpServer, path: server.graphqlPath });
-    // const PORT = 4000;
-    // httpServer.listen(PORT, () => {
-    log.info(`🚀 Query endpoint ready at http://localhost:${port}${server.graphqlPath}`, { component });
-    log.info(`🚀 Subscription endpoint ready at ws://localhost:${port}${server.graphqlPath}`, { component });
-
+module.exports = graphqlServer;
+   // const subscriptionServer = SubscriptionServer.create({
+        //     schema,
+        //     execute,
+        //     subscribe,
+        // onConnect(connectionParams, webSocket, context) {
+        //     console.log('Connected!');
+        // },
+        // onDisconnect(webSocket, context) {
+        //     console.log('Disconnected!');
+        // },
+        // },
+        //     { server: httpServer, path: server.graphqlPath });
+        // const PORT = 4000;
+        // httpServer.listen(PORT, () => {
     // const pubsub = new PubSub();
     // let currentNumber = 0;
     // function incrementNumber() {
@@ -63,17 +79,6 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
     // incrementNumber();
 
     //  });
-}
-
-const graphqlServer = (app, httpServer, port, config) => {
-    startApolloServer(_typeDefs, _resolvers.getResolvers(), app, httpServer, port, config).catch(err => {
-        log.error(err, { component });
-    });
-};
-
-module.exports = graphqlServer;
-
-
 
 // const resolvers = {
 //     Object: ObjectScalarType,
