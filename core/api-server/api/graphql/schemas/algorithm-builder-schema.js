@@ -16,8 +16,8 @@ type GitRepository { gitKind: String
 type Options { debug: Boolean pending: Boolean }
 
 type Algorithm { name: String
-  cpu: Int
-  gpu: Int
+  cpu: Float
+  gpu: Float
   mem: String
   reservedMemory: String
   minHotWorkers: Int
