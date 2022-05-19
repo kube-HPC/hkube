@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.3.2",
+    "version": "2.4.0",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -9103,6 +9103,112 @@
                   "properties": {
                     "message": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/store/pipelines/graph/{name}": {
+      "get": {
+        "tags": [
+          "StorePipelines"
+        ],
+        "summary": "Get pipeline graph",
+        "description": "Get specific pipeline graph from store",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "pipeline name to get from the store",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string",
+                      "description": "Unique identifier representing pipeline execution"
+                    },
+                    "timestamp": {
+                      "type": "number"
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "Array of edges"
+                    },
+                    "nodes": {
+                      "type": "array",
+                      "description": "Array of nodes"
                     }
                   }
                 }
@@ -20659,7 +20765,7 @@
                 "low": {
                   "type": "number"
                 },
-                "hight": {
+                "high": {
                   "type": "number"
                 },
                 "choices": {
@@ -20727,7 +20833,7 @@
           "low": {
             "type": "number"
           },
-          "hight": {
+          "high": {
             "type": "number"
           },
           "choices": {
