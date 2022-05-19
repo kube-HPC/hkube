@@ -1,6 +1,6 @@
 const objectPath = require('object-path');
-const clone = require('clone');
-const flatten = require('flat');
+const clone = require('lodash.clonedeep');
+const flatten = require('lodash.flattendeep');
 
 class GraphBuilder {
     _filterData(graph) {
