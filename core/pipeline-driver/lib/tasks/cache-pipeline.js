@@ -50,7 +50,7 @@ class Cache {
         const node = graph.nodes.find(n => n.nodeName === nodeName);
         const tasks = await stateManager.getTasks({ jobId: cacheJobId, nodeName });
         if (node.batchInfo) {
-            result = { node: nodeName, result: tasks.map(b => b.output) };
+            result = { node: nodeName, result: tasks.map(b => b.result) };
         }
         else {
             result = { node: nodeName, result: tasks[0].result };
