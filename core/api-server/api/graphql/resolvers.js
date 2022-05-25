@@ -1,3 +1,5 @@
+/* eslint-disable no-plusplus */
+/* eslint-disable default-case */
 const { GraphQLScalarType } = require('graphql');
 const { withFilter } = require('graphql-subscriptions');
 const stateManager = require('../../lib/state/state-manager');
@@ -58,7 +60,8 @@ class GraphqlResolvers {
     }
 
     async queryPipelines() {
-        return await dbQueires._getStoredPipelines();
+        const pipelines = await dbQueires.getPipelines();
+        return pipelines;
     }
 
     async queryPipelinesStats(pipelineName) {
@@ -66,7 +69,8 @@ class GraphqlResolvers {
     }
 
     async queryAlgorithmBuilds(algorithmName) {
-        return stateManager.getBuilds({ algorithmName });
+        const builds = await dbQueires._getAlgorithmBuilds(algorithmName);
+        return builds;
     }
 
     async queryLogs(query) {
@@ -131,10 +135,29 @@ class GraphqlResolvers {
         };
     }
 
+    _getTypesResolvers() {
+        return {
+            Algorithm: {
+                async buildStats(parent) {
+                    const builds = await dbQueires._getAlgorithmBuilds(parent.name) || [];
+                    const buildStatsObject = {
+                        total: 0,
+                        pending: 0,
+                        creating: 0,
+                        active: 0,
+                        completed: 0,
+                        failed: 0,
+                        stopped: 0
+                    };
+                    builds.forEach(build => {
+                        buildStatsObject.total++;
+                        buildStatsObject[build.status]++;
+                    });
+                    return buildStatsObject;
+                }
+            }
 
-
-    _getMutationResolvers() {
-
+        };
     }
 
     _getSubscriptionResolvers() {
@@ -162,6 +185,7 @@ class GraphqlResolvers {
 
     getResolvers() {
         return {
+            ...this._getTypesResolvers(),
             //    Object: this.ObjectScalarType,
             Query: this._getQueryResolvers(),
             Subscription: this._getSubscriptionResolvers()

@@ -1,6 +1,5 @@
 const { gql } = require('apollo-server');
 
-
 const algorithmBuildsTypeDefs = gql`
 type Result { data: String warnings: String errors: String }
 
@@ -15,7 +14,7 @@ type GitRepository { gitKind: String
 
 type Options { debug: Boolean pending: Boolean }
 
-type Algorithm { name: String
+type AlgorithmData { name: String
   cpu: Float
   gpu: Float
   mem: String
@@ -47,14 +46,23 @@ type AlgorithmBuild {
   buildMode: String
   result: Result
   gitRepository: GitRepository
-  algorithm: Algorithm
+  algorithm: AlgorithmData
+ }
+ type BuildStatsForAlgorithm {
+  total: Int,
+  pending: Int,
+  creating: Int,
+  active: Int,
+  completed: Int,
+  failed: Int,
+  stopped: Int
+
  }
 
  extend type Query {
     algorithmBuilds(algorithmName:String!):[AlgorithmBuild]
 
  }
- `
-
+ `;
 
 module.exports = algorithmBuildsTypeDefs;
