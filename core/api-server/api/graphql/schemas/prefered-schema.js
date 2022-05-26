@@ -9,7 +9,7 @@ type ReturnList {
   pipelineName: String
   priority: Int
   maxExceeded: Boolean
-  entranceTime: Int
+  entranceTime: Float
   tags: [String]
 }
 
