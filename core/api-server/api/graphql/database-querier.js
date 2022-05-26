@@ -167,7 +167,9 @@ class DatabaseQuerier extends Events {
     async _getAlgorithmBuilds() {
         return this._db.algorithms.builds.fetchAll({ sort: { startTime: 'desc' }, limit: MAX_ITEMS });
     }
-
+    async _getAlgorithmBuildsByAlgorithmName(_algorithmName) {
+        return this._db.algorithms.builds.search({ algorithmName: _algorithmName, sort: { startTime: 'desc' }, limit: MAX_ITEMS });
+    }
     async _getBoards() {
         return this._db.tensorboards.fetchAll({ sort: { startTime: 'desc' }, limit: MAX_ITEMS });
     }

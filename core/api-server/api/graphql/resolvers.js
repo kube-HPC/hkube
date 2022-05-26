@@ -60,7 +60,7 @@ class GraphqlResolvers {
     }
 
     async queryPipelines() {
-        const pipelines = await dbQueires.getPipelines();
+        const pipelines = await dbQueires._getStoredPipelines();
         return pipelines;
     }
 
@@ -139,7 +139,7 @@ class GraphqlResolvers {
         return {
             Algorithm: {
                 async buildStats(parent) {
-                    const builds = await dbQueires._getAlgorithmBuilds(parent.name) || [];
+                    const builds = await dbQueires._getAlgorithmBuildsByAlgorithmName(parent.name) || [];
                     const buildStatsObject = {
                         total: 0,
                         pending: 0,
