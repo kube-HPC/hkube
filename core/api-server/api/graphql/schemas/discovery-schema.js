@@ -3,12 +3,22 @@ const { gql } = require('apollo-server');
 const discoveryTypeDefs = gql`
 
 type Pipelinedriver {
-     driverId: String
-    paused: Boolean
-    driverStatus: String
-    jobStatus: String
-    podName: String }
+  driverId: String
+  podName: String
+  idle: Boolean
+  paused: Boolean
+  status: String
+  max: Int
+  capacity: Int
+  jobs: [JobsForDriver]
+    
+     }
 
+type JobsForDriver {
+  jobId: String
+  active: Boolean
+  pipelineName: String
+}
   type Workers { total: Int stats: [String ] }
 
   type Labels { 

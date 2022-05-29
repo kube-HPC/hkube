@@ -5,7 +5,7 @@ const formatter = require(process.cwd() + '/lib/utils/formatters');
 const config = {};
 config.serviceName = packageJson.name;
 config.systemVersion = process.env.HKUBE_SYSTEM_VERSION;
-
+config.clusterName = process.env.CLUSTER_NAME || 'local';
 const secured = !!process.env.API_SERVER_SSL;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
@@ -130,7 +130,7 @@ config.webhooks = {
     }
 };
 
-config.clusterName = process.env.CLUSTER_NAME || 'local';
+
 
 config.pipelineDriversResources = {
     cpu: parseFloat(process.env.PIPELINE_DRIVER_CPU || 0.15),
