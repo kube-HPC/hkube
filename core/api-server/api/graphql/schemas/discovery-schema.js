@@ -29,13 +29,13 @@ type Pipelinedriver {
     topologykubernetesioregion: String
     topologykubernetesiozone: String }
 
-  type WorkersTotal { cpu: Int gpu: Int mem: Int }
+  type WorkersTotal { cpu: Float gpu: Float mem: Float }
 
-  type Other { cpu: Float gpu: Int mem: Int }
+  type Other { cpu: Float gpu: Float mem: Float }
 
-  type Requests { cpu: Float gpu: Int mem: Int }
+  type Requests { cpu: Float gpu: Float mem: Float }
 
-  type Total { cpu: Int gpu: Int mem: Float }
+  type Total { cpu: Float gpu: Float mem: Float }
 
   type DiscoveryNodes { name: String
     workers: Workers

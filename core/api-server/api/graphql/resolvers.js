@@ -83,6 +83,10 @@ class GraphqlResolvers {
         // return await dbQueires._getDiscovery();
         return dbQueires.lastResults?.discovery;
     }
+    async getDataSources() {
+        const dataSources = await dbQueires._getDataSources();
+        return dataSources;
+    }
 
     _getQueryResolvers() {
         return {
@@ -108,6 +112,7 @@ class GraphqlResolvers {
             job: (parent, args, context, info) => {
                 return this.queryJob(args.id);
             },
+            dataSources: () => this.getDataSources(),
             discovery: (parent, args, context, info) => {
                 return this.getDiscovery();
             },
