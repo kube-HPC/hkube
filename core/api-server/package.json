@@ -1,6 +1,6 @@
 {
     "name": "api-server",
-    "version": "2.4.2",
+    "version": "2.4.3",
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
@@ -32,6 +32,7 @@
         "graphlib": "^2.1.8",
         "http-status-codes": "^2.1.4",
         "lodash.clonedeep": "^4.5.0",
+        "lodash.flattendeep": "^4.4.0",
         "lodash.isequal": "^4.5.0",
         "lodash.merge": "^4.6.2",
         "lodash.mergewith": "^4.6.2",

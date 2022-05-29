@@ -83,6 +83,8 @@
   $ref: ./store/algorithms_apply.yaml
 /store/pipelines/{name}:
   $ref: ./store/pipelines_name.yaml
+/store/pipelines/graph/{name}:
+  $ref: ./store/pipeline_graph.yaml  
 /store/pipelines:
   $ref: ./store/pipelines.yaml
 
