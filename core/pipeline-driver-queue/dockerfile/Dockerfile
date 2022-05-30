@@ -1,12 +1,11 @@
 ARG BASE_PRIVATE_REGISTRY=""
-FROM ${BASE_PRIVATE_REGISTRY}node:14.5.0 as install
+FROM ${BASE_PRIVATE_REGISTRY}node:18.1.0-buster as install
 ADD ./package-lock.json ./package.json /hkube/pipeline-driver-queue/
 WORKDIR /hkube/pipeline-driver-queue
 RUN npm ci --production
 
-
 ARG BASE_PRIVATE_REGISTRY=""
-FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v1.2.0
+FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v2.0.1-buster
 LABEL maintainer="maty21@gmail.com"
 RUN mkdir /hkube
 COPY . /hkube/pipeline-driver-queue

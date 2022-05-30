@@ -25,7 +25,7 @@
     "@hkube/metrics": "^1.0.42",
     "@hkube/producer-consumer": "^1.0.52",
     "@hkube/redis-utils": "^1.0.3",
-    "@hkube/storage-manager": "^2.0.34",
+    "@hkube/storage-manager": "^2.1.1",
     "@hkube/uid": "^1.0.4",
     "lodash.isequal": "^4.5.0",
     "lodash.orderby": "^4.6.0",
