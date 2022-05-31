@@ -20,6 +20,6 @@ describe('bootstrap', () => {
     it('should list template store above limit', async () => {
         await Promise.all([...Array(110).keys()].map(i => db._db.algorithms.update({ name: `key-${i}`, modified: Date.now() })));
         const { algorithms, count } = await db.getAlgorithmTemplates();
-        expect(algorithms.length).to.not.eql(count);
+        expect(algorithms.length).to.eql(count);
     });
 });
