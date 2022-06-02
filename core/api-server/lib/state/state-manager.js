@@ -120,6 +120,12 @@ class StateManager extends EventEmitter {
         });
     }
 
+    async searchAlgorithms({ name, kind, algorithmImage, pending, cursor, page, sort, limit, fields } = {}) {
+        return this._db.algorithms.searchApi({
+            name, kind, algorithmImage, isPending: pending, cursor, page, sort, limit, fields
+        });
+    }
+
     async getAlgorithmsMapByNames({ names }) {
         if (!names?.length) {
             return new Map();

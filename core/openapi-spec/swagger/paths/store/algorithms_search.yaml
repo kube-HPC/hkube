@@ -1,0 +1,57 @@
+get:
+  tags:
+    - StoreAlgorithms
+  summary: Get all algorithms
+  description: Get all available algorithms from store
+  parameters:
+    - name: name
+      in: query
+      schema:
+        type: string  
+    - name: kind
+      in: query
+      schema:
+        type: string
+    - name: algorithmImage
+      in: query
+      schema:
+        type: boolean
+    - name: pending
+      in: query
+      schema:
+        type: boolean        
+    - name: cursor
+      in: query
+      schema:
+        type: string
+    - name: page
+      in: query
+      schema:
+        type: string
+    - name: sort
+      in: query
+      example: asc
+      schema:
+        type: string
+    - name: limit
+      in: query
+      schema:
+        type: string
+    - name: fields
+      in: query
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            items:
+              $ref: "#/components/schemas/algorithm"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
