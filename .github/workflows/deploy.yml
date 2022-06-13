@@ -161,6 +161,43 @@ jobs:
       - build_job
     name: deploy
     steps:
+      - name: get environment
+        run: |
+          echo "environment is: $DEPLOY_ENVIRONMENT"
+          URL=''
+          case "$DEPLOY_ENVIRONMENT" in
+            *dev1*)
+              export URL=$DEV1_URL
+              export KUBE_CONFIG_DATA=$DEV1_KUBE_CONFIG_DATA
+              ;;
+            *test*)
+              export URL=$TEST_URL
+              export KUBE_CONFIG_DATA=$TEST_KUBE_CONFIG_DATA
+              ;;
+            *cicd*)
+              export URL=$CICD_URL
+              export KUBE_CONFIG_DATA=$CICD_KUBE_CONFIG_DATA
+              ;;
+            **)
+              echo "unknown environment. defaulting to cicd"
+              export URL=$CICD_URL
+              export KUBE_CONFIG_DATA=$CICD_KUBE_CONFIG_DATA
+              ;;
+          esac
+          echo "set params:"
+          echo URL=$URL >> $GITHUB_ENV
+          # echo KUBE_CONFIG_DATA=$KUBE_CONFIG_DATA >> $GITHUB_ENV
+          echo "######## update kubeconfig: #######"
+          echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/config
+          echo KUBECONFIG=/tmp/config >> $GITHUB_ENV
+        env:
+          DEPLOY_ENVIRONMENT: "${{ github.event.deployment.environment }}"
+          CICD_URL: ${{ secrets.CICD_URL }}
+          CICD_KUBE_CONFIG_DATA: ${{ secrets.CICD_KUBECONFIG }}
+          DEV1_URL: ${{ secrets.DEV1_URL }}
+          DEV1_KUBE_CONFIG_DATA: ${{ secrets.DEV1_KUBECONFIG }}
+          TEST_URL: ${{ secrets.TEST_KUBERNETES_MASTER_IP }}
+          TEST_KUBE_CONFIG_DATA: ${{ secrets.TEST_KUBECONFIG }}
       - name: download chart
         uses: actions/download-artifact@v2
         with:
