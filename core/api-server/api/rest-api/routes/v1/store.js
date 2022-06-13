@@ -23,6 +23,13 @@ const routes = (option) => {
         const response = await pipelineStore.getPipeline({ name });
         res.json(response);
     });
+
+    router.get('/pipelines/graph/:name', async (req, res) => {
+        const { name } = req.params;
+        const response = await pipelineStore.getPipelineGraph({ name });
+        res.json(response);
+    });
+
     router.post('/pipelines', async (req, res) => {
         const response = await pipelineStore.insertPipeline(req.body);
         res.status(HttpStatus.CREATED).json(response);

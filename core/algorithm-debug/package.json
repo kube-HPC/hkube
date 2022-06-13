@@ -1,14 +1,14 @@
 {
   "name": "algorithm-debug",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "algorithm-debug",
   "main": "app.js",
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "1.0.35",
-    "@hkube/encoding": "^1.0.21",
+    "@hkube/encoding": "^2.0.1",
     "@hkube/logger": "^2.0.2",
-    "@hkube/nodejs-wrapper": "^2.0.61",
+    "@hkube/nodejs-wrapper": "^2.1.1",
     "@hkube/uid": "^1.0.4",
     "ajv": "^6.12.0",
     "ws": "^7.2.3"

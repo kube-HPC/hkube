@@ -91,7 +91,7 @@ class Queue extends Events {
         }
         let previous = 'FirstInLine';
         const mapData = data.map(q => {
-            const { calculated, ...rest } = q;
+            const { calculated, done, ...rest } = q;
             const result = { ...rest, next: previous };
             previous = result.jobId;
             return result;
