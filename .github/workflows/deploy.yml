@@ -1,120 +1,122 @@
 name: Deploy
-on:
-  deployment
+on: deployment
 jobs:
   build_job:
     runs-on: ubuntu-latest
     name: build dockers
-    if: ${{ github.event.deployment.environment == 'dev' }}
+    if: |
+      github.event.deployment.environment == 'dev1' ||
+      github.event.deployment.environment == 'cicd' ||
+      github.event.deployment.environment == 'test'
     steps:
-    - name: set deployment status to in progress
-      id: start_deployment
-      uses: octokit/request-action@v2.x
-      with:
-        route: POST /repos/:repository/deployments/:deployment/statuses
-        repository: ${{ github.repository }}
-        deployment: ${{ github.event.deployment.id }}
-        environment: dev
-        environment_url: https://${{ secrets.DEV1_URL }}/hkube/dashboard/
-        log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        state: in_progress
-        mediaType: '{"previews": ["flash", "ant-man"]}'
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-    - name: Checkout
-      uses: actions/checkout@v2
-    - name: stam
-      env:
+      - name: set deployment status to in progress
+        id: start_deployment
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/:repository/deployments/:deployment/statuses
+          repository: ${{ github.repository }}
+          deployment: ${{ github.event.deployment.id }}
+          environment: dev
+          environment_url: https://${{ secrets.DEV1_URL }}/hkube/dashboard/
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          state: in_progress
+          mediaType: '{"previews": ["flash", "ant-man"]}'
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: stam
+        env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: |
-        echo "$GITHUB_CONTEXT"
-        env
-        
-    - name: Checkout helm
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git clone "https://${{ secrets.GH_TOKEN }}@github.com/kube-HPC/helm.git" "$HOME/helm"
-        cd $HOME/helm
-        git checkout ${{ github.event.deployment.ref }} || git checkout -b ${{ github.event.deployment.ref }}
-        git status
-    - uses: actions/setup-node@v2-beta
-      with:
-        node-version: '14'
-    - name: Docker login
-      run: ${{ github.workspace }}/scripts/docker-login.sh
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
-        DOCKER_USER: "${{ secrets.DOCKER_USER }}"
-        EXTRA_DOCKER_LOGINS: "${{ secrets.EXTRA_DOCKER_LOGINS }}"
-    - name: build changed
-      id: build_changed
-      uses: yehiyam/deploy-to-k8s@master
-      with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
-        prNumber: ${{ github.event.deployment.payload.prNumber }}
-        branchName: ${{ github.event.ref }}
-      env:
-        EXTRA_PRIVATE_REGISTRIES: "${{ secrets.EXTRA_PRIVATE_REGISTRIES }}"
+        run: |
+          echo "$GITHUB_CONTEXT"
+          env
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: values.yaml
-        path: $HOME/helm/hkube/values.yaml
-    - name: update helm repo
-      run: |
-        cd $HOME/helm/hkube
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        set +e
-        git diff --exit-code --quiet
-        if [ "$?" == 1 ]; then
-          set -e
-          git add values.yaml
-          git commit -m "update version [skip ci]"
-          git push --set-upstream origin ${{ github.event.deployment.ref }}
-        fi
-    - name: get-helm
-      run: |
-        curl -LO https://get.helm.sh/helm-v3.2.4-linux-amd64.tar.gz
-        tar -zxvf helm-v3.2.4-linux-amd64.tar.gz
-        mv linux-amd64/helm $HOME/helm3
-    - name: package
-      run: |
-        cd $HOME/helm/hkube
-        $HOME/helm3 package . --app-version=${{ steps.build_changed.outputs.version}} --version=${{ steps.build_changed.outputs.version}} -d /tmp/
-        mv /tmp/hkube-${{ steps.build_changed.outputs.version}}.tgz /tmp/chart.tgz
-    - uses: actions/upload-artifact@v2
-      with:
-        name: chart.tgz
-        path: /tmp/chart.tgz
-    - name: set values
-      run: |
-        envsubst < ${{ github.workspace }}/scripts/values-dev1-template.yml > /tmp/dev1.yml
-      shell: bash
-      env:
-        DOCKER_BUILD_PUSH_PASSWORD: ${{ secrets.DOCKER_BUILD_PUSH_PASSWORD }}
-        DOCKER_BUILD_PUSH_USERNAME: ${{ secrets.DOCKER_BUILD_PUSH_USERNAME }}
-    - uses: actions/upload-artifact@v2
-      with:
-        name: dev1.yml
-        path: /tmp/dev1.yml
-    - name: set deployment status to failure
-      id: failed_deployment
-      uses: octokit/request-action@v2.x
-      if: failure()
-      with:
-        route: POST /repos/:repository/deployments/:deployment/statuses
-        repository: ${{ github.repository }}
-        deployment: ${{ github.event.deployment.id }}
-        environment: dev
-        environment_url: https://${{ secrets.DEV1_URL }}/hkube/dashboard/
-        log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        mediaType: '{"previews": ["ant-man"]}'
-        state: failure
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Checkout helm
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git clone "https://${{ secrets.GH_TOKEN }}@github.com/kube-HPC/helm.git" "$HOME/helm"
+          cd $HOME/helm
+          git checkout ${{ github.event.deployment.ref }} || git checkout -b ${{ github.event.deployment.ref }}
+          git status
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: 18.x
+      - name: Docker login
+        run: ${{ github.workspace }}/scripts/docker-login.sh
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+          DOCKER_USER: "${{ secrets.DOCKER_USER }}"
+          EXTRA_DOCKER_LOGINS: "${{ secrets.EXTRA_DOCKER_LOGINS }}"
+      - name: build changed
+        id: build_changed
+        uses: yehiyam/deploy-to-k8s@master
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          prNumber: ${{ github.event.deployment.payload.prNumber }}
+          branchName: ${{ github.event.ref }}
+        env:
+          EXTRA_PRIVATE_REGISTRIES: "${{ secrets.EXTRA_PRIVATE_REGISTRIES }}"
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: values.yaml
+          path: $HOME/helm/hkube/values.yaml
+      - name: update helm repo
+        run: |
+          cd $HOME/helm/hkube
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          set +e
+          git diff --exit-code --quiet
+          if [ "$?" == 1 ]; then
+            set -e
+            git add values.yaml
+            git commit -m "update version [skip ci]"
+            git push --set-upstream origin ${{ github.event.deployment.ref }}
+          fi
+      - name: get-helm
+        run: |
+          curl -LO https://get.helm.sh/helm-v3.2.4-linux-amd64.tar.gz
+          tar -zxvf helm-v3.2.4-linux-amd64.tar.gz
+          mv linux-amd64/helm $HOME/helm3
+      - name: package
+        run: |
+          cd $HOME/helm/hkube
+          $HOME/helm3 package . --app-version=${{ steps.build_changed.outputs.version}} --version=${{ steps.build_changed.outputs.version}} -d /tmp/
+          mv /tmp/hkube-${{ steps.build_changed.outputs.version}}.tgz /tmp/chart.tgz
+      - uses: actions/upload-artifact@v2
+        with:
+          name: chart.tgz
+          path: /tmp/chart.tgz
+      - name: set values
+        run: |
+          envsubst < ${{ github.workspace }}/scripts/values-dev1-template.yml > /tmp/dev1.yml
+        shell: bash
+        env:
+          DOCKER_BUILD_PUSH_PASSWORD: ${{ secrets.DOCKER_BUILD_PUSH_PASSWORD }}
+          DOCKER_BUILD_PUSH_USERNAME: ${{ secrets.DOCKER_BUILD_PUSH_USERNAME }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dev1.yml
+          path: /tmp/dev1.yml
+      - name: set deployment status to failure
+        id: failed_deployment
+        uses: octokit/request-action@v2.x
+        if: failure()
+        with:
+          route: POST /repos/:repository/deployments/:deployment/statuses
+          repository: ${{ github.repository }}
+          deployment: ${{ github.event.deployment.id }}
+          environment: dev
+          environment_url: https://${{ secrets.DEV1_URL }}/hkube/dashboard/
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          mediaType: '{"previews": ["ant-man"]}'
+          state: failure
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     outputs:
       chart: chart.tgz
       values: dev1.yml
@@ -124,54 +126,83 @@ jobs:
       - build_job
     name: deploy
     steps:
-    - name: download chart
-      uses: actions/download-artifact@v2
-      with:
-        name: ${{ needs.build_job.outputs.chart }}
-    - name: download values
-      uses: actions/download-artifact@v2
-      with:
-        name: ${{ needs.build_job.outputs.values }}
-    - name: create kubeconfig
-      run: |
+      - name: get environment
+        run: |
+          echo "environment is: $DEPLOY_ENVIRONMENT"
+          URL=''
+          case "$DEPLOY_ENVIRONMENT" in
+            *dev1*)
+              export URL=$DEV1_URL
+              export KUBE_CONFIG_DATA=$DEV1_KUBE_CONFIG_DATA
+              ;;
+            *test*)
+              export URL=$TEST_URL
+              export KUBE_CONFIG_DATA=$TEST_KUBE_CONFIG_DATA
+              ;;
+            *cicd*)
+              export URL=$CICD_URL
+              export KUBE_CONFIG_DATA=$CICD_KUBE_CONFIG_DATA
+              ;;
+            **)
+              echo "unknown environment. defaulting to cicd"
+              export URL=$CICD_URL
+              export KUBE_CONFIG_DATA=$CICD_KUBE_CONFIG_DATA
+              ;;
+          esac
+          echo URL=$URL >> $GITHUB_ENV
+          # echo KUBE_CONFIG_DATA=$KUBE_CONFIG_DATA >> $GITHUB_ENV
           echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/config
           echo KUBECONFIG=/tmp/config >> $GITHUB_ENV
-      env:
-        KUBE_CONFIG_DATA: ${{ secrets.DEV1_KUBECONFIG }}
-    - name: verify kubectl
-      run: kubectl cluster-info
-    - name: deploy
-      run: |
+        env:
+          DEPLOY_ENVIRONMENT: "${{ github.event.deployment.environment }}"
+          CICD_URL: ${{ secrets.CICD_URL }}
+          CICD_KUBE_CONFIG_DATA: ${{ secrets.CICD_KUBECONFIG }}
+          DEV1_URL: ${{ secrets.DEV1_URL }}
+          DEV1_KUBE_CONFIG_DATA: ${{ secrets.DEV1_KUBECONFIG }}
+          TEST_URL: ${{ secrets.TEST_KUBERNETES_MASTER_IP }}
+          TEST_KUBE_CONFIG_DATA: ${{ secrets.TEST_KUBECONFIG }}
+      - name: download chart
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.build_job.outputs.chart }}
+      - name: download values
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.build_job.outputs.values }}
+      - name: verify kubectl
+        run: kubectl cluster-info
+      - name: deploy
+        run: |
           helm ls
           helm upgrade -i hkube --wait -f ${{ github.workspace }}/${{ needs.build_job.outputs.values }} ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
           helm ls
-    - name: set deployment status to success
-      id: successful_deployment
-      uses: octokit/request-action@v2.x
-      with:
-        route: POST /repos/:repository/deployments/:deployment/statuses
-        repository: ${{ github.repository }}
-        deployment: ${{ github.event.deployment.id }}
-        environment: dev
-        environment_url: https://${{ secrets.DEV1_URL }}/hkube/dashboard/
-        log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        mediaType: '{"previews": ["ant-man"]}'
-        state: success
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: set deployment status to success
+        id: successful_deployment
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/:repository/deployments/:deployment/statuses
+          repository: ${{ github.repository }}
+          deployment: ${{ github.event.deployment.id }}
+          environment: dev
+          environment_url: https://${{ secrets.DEV1_URL }}/hkube/dashboard/
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          mediaType: '{"previews": ["ant-man"]}'
+          state: success
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-    - name: set deployment status to failure
-      id: failed_deployment
-      uses: octokit/request-action@v2.x
-      if: failure()
-      with:
-        route: POST /repos/:repository/deployments/:deployment/statuses
-        repository: ${{ github.repository }}
-        deployment: ${{ github.event.deployment.id }}
-        environment: dev
-        environment_url: https://${{ secrets.DEV1_URL }}/hkube/dashboard/
-        log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        mediaType: '{"previews": ["ant-man"]}'
-        state: failure
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: set deployment status to failure
+        id: failed_deployment
+        uses: octokit/request-action@v2.x
+        if: failure()
+        with:
+          route: POST /repos/:repository/deployments/:deployment/statuses
+          repository: ${{ github.repository }}
+          deployment: ${{ github.event.deployment.id }}
+          environment: dev
+          environment_url: https://${{ secrets.DEV1_URL }}/hkube/dashboard/
+          log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          mediaType: '{"previews": ["ant-man"]}'
+          state: failure
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
