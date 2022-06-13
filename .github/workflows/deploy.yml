@@ -4,7 +4,10 @@ jobs:
   build_job:
     runs-on: ubuntu-latest
     name: build dockers
-    if: ${{ github.event.deployment.environment == 'dev' }}
+    if: |
+      github.event.deployment.environment == 'dev1' ||
+      github.event.deployment.environment == 'cicd' || 
+      github.event.deployment.environment == 'test'
     steps:
       - name: set deployment status to in progress
         id: start_deployment
