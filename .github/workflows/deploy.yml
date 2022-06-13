@@ -42,7 +42,7 @@ jobs:
           git status
       - uses: actions/setup-node@v2-beta
         with:
-          node-version: 18.x
+          node-version: 14.x
       - name: Docker login
         run: ${{ github.workspace }}/scripts/docker-login.sh
         env:
