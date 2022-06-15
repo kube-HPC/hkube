@@ -5,6 +5,7 @@ const { withFilter } = require('graphql-subscriptions');
 const stateManager = require('../../lib/state/state-manager');
 const dbQueires = require('./database-querier');
 const preferedQuerier = require('./prefered-querier');
+const dataSourceQuerier = require('./dataSource-querier');
 const logsQueries = require('../task-logs/logs');
 class GraphqlResolvers {
     constructor() {
@@ -79,12 +80,30 @@ class GraphqlResolvers {
         return logs;
     }
 
+    async quertDataSource(query) {
+        const dataSource = await dataSourceQuerier.getDataSource(query);
+        return dataSource;
+    }
+    async queryDataSourceVersions(query) {
+        const dataSource = await dataSourceQuerier.getDataSourceVersions(query);
+        return dataSource;
+    }
+    async queryDataSourceSnapshots(query) {
+        const dataSource = await dataSourceQuerier.getDataSourceSnapshots(query);
+        return dataSource;
+    }
+    async queryDataSourcePreviewQuery(query) {
+        const dataSource = await dataSourceQuerier.postDataSourcePreviewQuery(query);
+        return dataSource;
+    }
+
     async getDiscovery() {
         // return await dbQueires._getDiscovery();
         return dbQueires.lastResults?.discovery;
     }
     async getDataSources() {
-        const dataSources = await dbQueires._getDataSources();
+        // const dataSources = await dbQueires._getDataSources();
+        const dataSources = await dataSourceQuerier.getDataSourcesList();
         return dataSources;
     }
 
@@ -113,6 +132,18 @@ class GraphqlResolvers {
                 return this.queryJob(args.id);
             },
             dataSources: () => this.getDataSources(),
+            dataSource: (parent, args, context, info) => {
+                return this.getDataSource(args);
+            },
+            DataSourceVersions: (parent, args, context, info) => {
+                return this.queryDataSourceVersions(args);
+            },
+            DataSourceSnapanshots: (parent, args, context, info) => {
+                return this.queryDataSourceSnapshots(args);
+            },
+            DataSourcePreviewQuery: (parent, args, context, info) => {
+                return this.queryDataSourcePreviewQuery(args);
+            },
             discovery: (parent, args, context, info) => {
                 return this.getDiscovery();
             },

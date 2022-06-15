@@ -43,6 +43,13 @@ config.pipelineDriverQueueService = {
     prefix: 'api/v1/queue'
 };
 
+config.dataSourceService = {
+    protocol: 'http',
+    host: process.env.DATASOURCES_SERVICE_PORT_3005_TCP_ADDR || 'localhost',
+    port: process.env.DATASOURCES_SERVICE_SERVICE_PORT_REST || 3005,
+    prefix: 'api/v1/datasource'
+}
+
 config.healthchecks = {
     checkInterval: process.env.HEALTHCHECK_CHECK_INTERVAL || 5000,
     minAge: process.env.HEALTHCHECK_MIN_JOB_AGE || 10000,
