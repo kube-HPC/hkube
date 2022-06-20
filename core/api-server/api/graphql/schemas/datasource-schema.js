@@ -19,7 +19,7 @@ type DataSources {
   size: Int
   type: String
   meta: String
-  uploadedAt: Int
+  uploadedAt: String
 }
 
 type Storage {

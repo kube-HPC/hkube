@@ -107,6 +107,11 @@ class GraphqlResolvers {
         return dataSources;
     }
 
+    async getDataSource(query) {
+        const ds = await dataSourceQuerier.getDataSource(query);
+        return ds;
+    }
+
     _getQueryResolvers() {
         return {
             jobsAggregated: async (parent, args, context, info) => {
