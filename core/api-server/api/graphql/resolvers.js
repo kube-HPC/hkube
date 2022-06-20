@@ -127,6 +127,10 @@ class GraphqlResolvers {
                 const stats = await statisticsQuerier.getStatisticsResults()
                 return stats;
             },
+            diskSpace: async () => {
+                const stats = await statisticsQuerier.getDiskUsage()
+                return stats;
+            },
             jobsByExperimentName: (parent, args, context, info) => {
                 return this.quesearchJobs(args.experimentName);
             },
