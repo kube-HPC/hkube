@@ -38,7 +38,6 @@ class DatabaseQuerier extends Events {
             try {
                 this._working = true;
                 await this.getResult();
-                // await this.getJobs();
                 await this._getDiscovery();
             }
             catch (error) {
@@ -64,28 +63,16 @@ class DatabaseQuerier extends Events {
     }
 
     async getResult() {
-        //   const [discovery, algorithms, pipelines, algorithmBuilds, experiments, dataSources, boards] = await Promise.all([
         const [discovery] = await Promise.all([
 
             this._getDiscovery(),
-            // this._getAlgorithms(),
-            // this._getStoredPipelines(),
-            // this._getAlgorithmBuilds(),
-            // this._getExperiments(),
-            // this._getDataSources(),
-            // this._getBoards()
+
         ]);
-        // this.lastResults = { discovery, algorithms, pipelines, algorithmBuilds, experiments, dataSources, boards };
         this.lastResults = { discovery };
 
         return this.lastResults;
     }
 
-    // async getJobs() {
-    //     const jobs = await Promise.all(this.experimentList.map(exp => this.getJobsForExperiment(exp)));
-    //     this.lastJobsByExperiment = jobs;
-    //     return jobs;
-    // }
 
     _experimentFilter(experimentName) {
         if (!experimentName || experimentName === allExperimentsName) {
@@ -173,6 +160,7 @@ class DatabaseQuerier extends Events {
     async _getBoards() {
         return this._db.tensorboards.fetchAll({ sort: { startTime: 'desc' }, limit: MAX_ITEMS });
     }
+
 }
 
 module.exports = new DatabaseQuerier();

@@ -25,6 +25,7 @@ const modules = [
     require('./api/graphql/database-querier'),
     require('./api/graphql/prefered-querier'),
     require('./api/graphql/dataSource-querier'),
+    require('./api/graphql/statistics-querier'),
     require('./api/task-logs/logs'),
     require('./lib/service/output'),
     require('./lib/service/hyperparams-tuner'),

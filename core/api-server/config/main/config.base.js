@@ -137,7 +137,10 @@ config.webhooks = {
     }
 };
 
-
+config.fs = {
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+    binary: formatter.parseBool(process.env.STORAGE_BINARY, false)
+};
 
 config.pipelineDriversResources = {
     cpu: parseFloat(process.env.PIPELINE_DRIVER_CPU || 0.15),
@@ -168,9 +171,6 @@ config.s3 = {
     endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
 };
 
-config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
-};
 
 config.storageAdapters = {
     s3: {
@@ -207,6 +207,7 @@ config.graph = {
 };
 config.graphql = {
     introspection: formatter.parseBool(process.env.GRAPHQL_INTROSPECTION, true),
+    useIntervalForStatistics: formatter.parseBool(process.env.GRAPHQL_USE_INTERVAL_FOR_STATISTICS, false),
 }
 
 module.exports = config;

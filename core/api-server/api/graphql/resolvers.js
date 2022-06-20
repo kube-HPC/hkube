@@ -6,6 +6,7 @@ const stateManager = require('../../lib/state/state-manager');
 const dbQueires = require('./database-querier');
 const preferedQuerier = require('./prefered-querier');
 const dataSourceQuerier = require('./dataSource-querier');
+const statisticsQuerier = require('./statistics-querier');
 const logsQueries = require('../task-logs/logs');
 class GraphqlResolvers {
     constructor() {
@@ -121,6 +122,10 @@ class GraphqlResolvers {
             algorithms: () => this.queryAlgorithms(),
             algorithmsByName: (parent, args, context, info) => {
                 return this.queryAlgorithmsByName(args.name);
+            },
+            nodeStatistics: async () => {
+                const stats = await statisticsQuerier.getStatisticsResults()
+                return stats;
             },
             jobsByExperimentName: (parent, args, context, info) => {
                 return this.quesearchJobs(args.experimentName);
