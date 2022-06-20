@@ -1,4 +1,4 @@
-const diskUsage = require('check-disk-space');
+const checkDiskSpace = require('check-disk-space').default
 const log = require('@hkube/logger').GetLogFromContainer();
 const DatabaseQuerier = require('./database-querier');
 const parse = require('@hkube/units-converter');
@@ -148,7 +148,7 @@ class NodesStatistics {
         try {
             if (this._options.defaultStorage === 'fs') {
                 const { baseDirectory } = this._options.fs;
-                result = await diskUsage(baseDirectory);
+                result = await checkDiskSpace(baseDirectory);
                 const { size, free } = result;
                 return { size, free };
             }
