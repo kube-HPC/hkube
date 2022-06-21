@@ -77,7 +77,7 @@
 # store
 /store/algorithms/{name}:
   $ref: ./store/algorithms_name.yaml
-/store/search/algorithms:
+/store/algorithmsFilter:
   $ref: ./store/algorithms_search.yaml
 /store/algorithms:
   $ref: ./store/algorithms.yaml

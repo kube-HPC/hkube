@@ -51,7 +51,7 @@ const routes = (option) => {
         const response = await algorithmStore.getAlgorithms({ name, sort, limit });
         res.json(response);
     });
-    router.get('/search/algorithms', async (req, res) => {
+    router.get('/algorithmsFilter', async (req, res) => {
         const { name, kind, algorithmImage, pending, cursor, page, sort, limit, fields } = req.query;
         const response = await algorithmStore.searchAlgorithm({ name, kind, algorithmImage, pending, cursor, page, sort, limit, fields });
         res.json(response);

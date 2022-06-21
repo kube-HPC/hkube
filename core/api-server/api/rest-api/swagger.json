@@ -6973,7 +6973,7 @@
         }
       }
     },
-    "/store/search/algorithms": {
+    "/store/algorithmsFilter": {
       "get": {
         "tags": [
           "StoreAlgorithms"
