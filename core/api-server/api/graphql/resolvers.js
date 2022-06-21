@@ -3,10 +3,11 @@
 const { GraphQLScalarType } = require('graphql');
 const { withFilter } = require('graphql-subscriptions');
 const stateManager = require('../../lib/state/state-manager');
-const dbQueires = require('./database-querier');
-const preferedQuerier = require('./prefered-querier');
-const dataSourceQuerier = require('./dataSource-querier');
-const statisticsQuerier = require('./statistics-querier');
+const dbQueires = require('./queries/database-querier');
+const preferedQuerier = require('./queries/prefered-querier');
+const dataSourceQuerier = require('./queries/dataSource-querier');
+const statisticsQuerier = require('./queries/statistics-querier');
+const errorLogsQuerier = require('./queries/error-logs-querier');
 const logsQueries = require('../task-logs/logs');
 class GraphqlResolvers {
     constructor() {
@@ -85,14 +86,17 @@ class GraphqlResolvers {
         const dataSource = await dataSourceQuerier.getDataSource(query);
         return dataSource;
     }
+
     async queryDataSourceVersions(query) {
         const dataSource = await dataSourceQuerier.getDataSourceVersions(query);
         return dataSource;
     }
+
     async queryDataSourceSnapshots(query) {
         const dataSource = await dataSourceQuerier.getDataSourceSnapshots(query);
         return dataSource;
     }
+
     async queryDataSourcePreviewQuery(query) {
         const dataSource = await dataSourceQuerier.postDataSourcePreviewQuery(query);
         return dataSource;
@@ -102,6 +106,7 @@ class GraphqlResolvers {
         // return await dbQueires._getDiscovery();
         return dbQueires.lastResults?.discovery;
     }
+
     async getDataSources() {
         // const dataSources = await dbQueires._getDataSources();
         const dataSources = await dataSourceQuerier.getDataSourcesList();
@@ -124,11 +129,11 @@ class GraphqlResolvers {
                 return this.queryAlgorithmsByName(args.name);
             },
             nodeStatistics: async () => {
-                const stats = await statisticsQuerier.getStatisticsResults()
+                const stats = await statisticsQuerier.getStatisticsResults();
                 return stats;
             },
             diskSpace: async () => {
-                const stats = await statisticsQuerier.getDiskUsage()
+                const stats = await statisticsQuerier.getDiskUsage();
                 return stats;
             },
             jobsByExperimentName: (parent, args, context, info) => {
@@ -163,6 +168,10 @@ class GraphqlResolvers {
             },
             logsByQuery: (parent, args, context, info) => {
                 return this.queryLogs({ ...args });
+            },
+            errorLogs: async () => {
+                const res = await errorLogsQuerier.getLogs();
+                return res;
             },
             preferedList: (parent, args, context, info) => {
                 return preferedQuerier.getPreferedList(args);

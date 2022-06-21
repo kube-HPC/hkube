@@ -13,7 +13,8 @@ const Components = {
     BUILDS_SERVICE: 'Builds-Service',
     GITHUB_WEBHOOK: 'Github-Webhook',
     DB: 'DB',
-    LOGS: 'logs'
+    LOGS: 'logs',
+    GRAPHQL_QUERIES:'GraphqlQueries'
 };
 
 module.exports = Components;

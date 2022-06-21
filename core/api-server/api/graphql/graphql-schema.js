@@ -11,6 +11,7 @@ const dataSourcesTypeDefs = require('./schemas/datasource-schema');
 const algorithmBuildsTypeDefs = require('./schemas/algorithm-builder-schema');
 const logsTypeDefs = require('./schemas/log-schema');
 const preferedTypeDefs = require('./schemas/prefered-schema');
+const errorLogsTypeDefs = require('./schemas/error-logs-schema');
 const SubscriptionIncNumbersTypeDefs = gql`
 type Subscription {
     numberIncremented: Int
@@ -29,21 +30,22 @@ type Subscription {
   }
   `;
 const types = [
-  dataSourcesTypeDefs,
-  algorithmBuildsTypeDefs,
-  jobTypeDefs,
-  algorithmTypeDefs,
-  pipelineTypeDefs,
-  experimentTypeDefs,
-  logsTypeDefs,
-  nodeStatisticTypeDefs,
-  diskSpaceTypeDefs,
-  discoveryTypeDefs,
-  pipelineStatsTypeDefs,
-  SubscriptionIncNumbersTypeDefs,
-  preferedTypeDefs,
-  Query,
-  Subscription
+    dataSourcesTypeDefs,
+    algorithmBuildsTypeDefs,
+    jobTypeDefs,
+    algorithmTypeDefs,
+    pipelineTypeDefs,
+    experimentTypeDefs,
+    logsTypeDefs,
+    nodeStatisticTypeDefs,
+    diskSpaceTypeDefs,
+    discoveryTypeDefs,
+    pipelineStatsTypeDefs,
+    SubscriptionIncNumbersTypeDefs,
+    preferedTypeDefs,
+    errorLogsTypeDefs,
+    Query,
+    Subscription
 ];
 
 module.exports = types;
