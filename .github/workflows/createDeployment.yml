@@ -11,7 +11,7 @@ jobs:
         name: check for deployment command
         uses: khan/pull-request-comment-trigger@master
         with:
-          trigger: '/deploy'
+          trigger: "/deploy"
           reaction: rocket
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
@@ -22,40 +22,60 @@ jobs:
     needs: deploy-check
     if: needs.deploy-check.outputs.triggered == 'true'
     steps:
-    - name: get pull request ref
-      id: get_pull_request_ref
-      uses: octokit/request-action@v2.x
-      with:
-        route: GET /repos/:repository/pulls/:issue_id
-        repository: ${{ github.repository }}
-        issue_id: ${{ github.event.issue.number }}
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-    - name: create deployment
-      id: create_deployment
-      uses: octokit/request-action@v2.x
-      with:
-        route: POST /repos/:repository/deployments
-        repository: ${{ github.repository }}
-        ref: ${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}
-        environment: dev
-        auto_merge: false
-        required_contexts: '[]'
-        payload: |
-          prNumber: ${{ github.event.issue.number }}
-      env:
-        GITHUB_TOKEN: "${{ secrets.GH_TOKEN }}"
-    - name: write failed comment on failure
-      id: failed_deployment
-      uses: octokit/request-action@v2.x
-      if: failure()
-      with:
-        route: PATCH /repos/:repository/issues/comments/:comment_id
-        repository: ${{ github.repository }}
-        comment_id: ${{ github.event.comment.id }}
-        body: 'Failed to create deployment'
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-    
-  
-
+      - name: get pull request ref
+        id: get_pull_request_ref
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/:repository/pulls/:issue_id
+          repository: ${{ github.repository }}
+          issue_id: ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - name: get environment
+        run: |
+          commit=$COMMENT_BODY
+          echo "commit message is: $commit"
+          environment=dev1
+          case "$commit" in
+            *dev1*)
+              environment=dev1
+              ;;
+              *test*)
+              environment=test
+              ;;
+              *cicd*)
+              environment=cicd
+              ;;
+            **)
+              echo "unknown environment. defaulting to dev1"
+              environment=dev1
+          esac
+          echo environment=$environment
+          echo DEPLOY_ENVIRONMENT=$environment >> $GITHUB_ENV
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+      - name: create deployment
+        id: create_deployment
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/:repository/deployments
+          repository: ${{ github.repository }}
+          ref: ${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}
+          environment: ${{ env.DEPLOY_ENVIRONMENT }}
+          auto_merge: false
+          required_contexts: "[]"
+          payload: |
+            prNumber: ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GH_TOKEN }}"
+      - name: write failed comment on failure
+        id: failed_deployment
+        uses: octokit/request-action@v2.x
+        if: failure()
+        with:
+          route: PATCH /repos/:repository/issues/comments/:comment_id
+          repository: ${{ github.repository }}
+          comment_id: ${{ github.event.comment.id }}
+          body: "Failed to create deployment"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
