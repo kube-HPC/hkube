@@ -12,7 +12,14 @@ const versionsService = require('./versions');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
-
+const formatter = require('../utils/formatters');
+const createQueryObjectFromString = (str) => {
+    return str?.replace(/\s/g, '').split(',').reduce((acc, cur) => {
+        const [k, v] = cur.split(':');
+        acc[k] = formatter.parseBool(v);
+        return acc;
+    }, {});
+};
 class AlgorithmStore {
     init(config) {
         this._debugUrl = config.debugUrl.path;
@@ -47,6 +54,15 @@ class AlgorithmStore {
     async getAlgorithms(options) {
         const { name, sort, limit } = options || {};
         return stateManager.getAlgorithms({ name, sort, limit });
+    }
+
+    async searchAlgorithm(options) {
+        const { name, kind, algorithmImage, pending, cursor, page, sort, limit, fields } = options || {};
+        let algorithmImageBoolean;
+        if (algorithmImage !== undefined) {
+            algorithmImageBoolean = algorithmImage === 'true';
+        }
+        return stateManager.searchAlgorithms({ name, kind, algorithmImage: algorithmImageBoolean, pending, cursor, page, sort, limit, fields: createQueryObjectFromString(fields) });
     }
 
     async insertAlgorithm(options) {

@@ -18,11 +18,18 @@ class DB extends EventEmitter {
     }
 
     async getAlgorithmTemplates() {
-        const [algorithms, count] = await Promise.all([
-            this._db.algorithms.search({ sort: { modified: 'desc' }, limit: 100 }),
-            this._db.algorithms.count()
-        ]);
-        return { algorithms, count };
+        const limit = 100;
+        let allRecords = [];
+        let prevCursor = null;
+        let results;
+        do {
+            // eslint-disable-next-line no-await-in-loop
+            const { hits, cursor } = await this._db.algorithms.searchApi({ cursor: prevCursor, limit });
+            results = hits;
+            prevCursor = cursor;
+            allRecords = [...hits, ...allRecords];
+        } while (results.length > limit);
+        return { algorithms: allRecords, count: allRecords.length };
     }
 
     async getDriversTemplate() {
