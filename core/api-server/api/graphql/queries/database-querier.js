@@ -73,7 +73,6 @@ class DatabaseQuerier extends Events {
         return this.lastResults;
     }
 
-
     _experimentFilter(experimentName) {
         if (!experimentName || experimentName === allExperimentsName) {
             return undefined;
@@ -115,7 +114,23 @@ class DatabaseQuerier extends Events {
             maxItemsSize: this._options.sizes.maxFlowInputSize,
             itemsToRemove: ['pipeline.flowInput', 'userPipeline.flowInput', 'pipeline.flowInputMetadata']
         });
+
         return jobs;
+
+
+        // async countByQuery({
+        //     query,
+        //     cursor,
+        //     pageNum,
+        //     sort,
+        //     limit,
+        //     fields,
+        //     exists,
+        // }){
+        //     const queryObj = this._createQuery({ ...query, exists });
+        //     const count = await this.collection.find(queryObj).count()
+        //     return count;
+        //  }
     }
 
     async _getStoredPipelines() {
@@ -154,13 +169,14 @@ class DatabaseQuerier extends Events {
     async _getAlgorithmBuilds() {
         return this._db.algorithms.builds.fetchAll({ sort: { startTime: 'desc' }, limit: MAX_ITEMS });
     }
+
     async _getAlgorithmBuildsByAlgorithmName(_algorithmName) {
         return this._db.algorithms.builds.search({ algorithmName: _algorithmName, sort: { startTime: 'desc' }, limit: MAX_ITEMS });
     }
+
     async _getBoards() {
         return this._db.tensorboards.fetchAll({ sort: { startTime: 'desc' }, limit: MAX_ITEMS });
     }
-
 }
 
 module.exports = new DatabaseQuerier();
