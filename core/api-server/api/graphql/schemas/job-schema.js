@@ -89,7 +89,7 @@ type Results {
 
   type FlowInput { files: Files }
 
-  type Pipeline { name: String
+  type PipelineForJob { name: String
     experimentName: String
     kind: String
     priority: Int
@@ -114,13 +114,17 @@ type Results {
     results: Results
     graph: Graph
     status: Status
-    pipeline: Pipeline
+    pipeline: PipelineForJob
     userPipeline: UserPipeline 
     cursor:String
     timeTook:String
     }
 
-  type AggregatedJobs { jobs:[Job] ,cursor:String }
+  type AggregatedJobs { 
+    jobs:[Job]
+    cursor:String
+    jobsCount:Int 
+    }
 
 
   extend type Query {

@@ -1,6 +1,5 @@
 const { gql } = require('apollo-server');
 
-
 const preferedTypeDefs = gql`
 
 type ReturnList {
@@ -30,6 +29,10 @@ type AggragationManaged {
   name: String
   count: Int
 }
+type QueueCount {
+  managed: Int
+  preferred: Int
+}
 
 
 
@@ -40,9 +43,7 @@ extend type Query {
     aggregatedPipelinePrefered: [AggragationPrefered]
     aggregatedTagsManaged: [AggragationManaged]
     aggregatedPipelineManaged: [AggragationManaged]
+    queueCount:QueueCount
  }
-
 `;
-
-
 module.exports = preferedTypeDefs;

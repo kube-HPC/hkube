@@ -96,15 +96,16 @@ class DatabaseQuerier extends Events {
     }
 
     async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, cursor, pageNum, sort, limit = MAX_ITEMS }) {
+        const query = {
+            experimentName,
+            pipelineName,
+            pipelineType,
+            pipelineStatus,
+            algorithmName,
+            datesRange
+        };
         const jobs = await this._db.jobs.searchApi({
-            query: {
-                experimentName,
-                pipelineName,
-                pipelineType,
-                pipelineStatus,
-                algorithmName,
-                datesRange
-            },
+            query,
             cursor,
             pageNum,
             sort,
@@ -116,21 +117,30 @@ class DatabaseQuerier extends Events {
         });
 
         return jobs;
+    }
 
+    async jobSCountByQuery({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange }) {
+        const query = {
+            experimentName,
+            pipelineName,
+            pipelineType,
+            pipelineStatus,
+            algorithmName,
+            datesRange
+        };
 
-        // async countByQuery({
-        //     query,
-        //     cursor,
-        //     pageNum,
-        //     sort,
-        //     limit,
-        //     fields,
-        //     exists,
-        // }){
-        //     const queryObj = this._createQuery({ ...query, exists });
-        //     const count = await this.collection.find(queryObj).count()
-        //     return count;
-        //  }
+        const jobsCount = await this._db.jobs.count({ query });
+        return jobsCount;
+    }
+
+    async pipelinesCount() {
+        const count = await this._db.pipelines.count();
+        return count;
+    }
+
+    async algorithmsCount() {
+        const count = await this._db.pipelines.count();
+        return count;
     }
 
     async _getStoredPipelines() {
