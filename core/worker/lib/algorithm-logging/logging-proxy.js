@@ -65,7 +65,7 @@ class LoggingProxy {
 
     _getLogMessage(rawLine) {
         let stream;
-        let internalLog;
+        let internalLog = {};
         let logMessage = rawLine;
         const logParsed = this._jsonTryParse(rawLine);
         if (logParsed) {
@@ -77,13 +77,13 @@ class LoggingProxy {
                         logObject = internalParsed;
                     }
                     else {
-                        internalLog = { parsedMessage: logParsed };
+                        internalLog = { ...internalLog, parsedMessage: logParsed };
                     }
                 }
                 const { log: logStr, stream: streamLog, ...rest } = logObject;
                 logMessage = logStr;
                 stream = streamLog;
-                internalLog = rest;
+                internalLog = { ...internalLog, ...rest };
             }
             else {
                 internalLog = { parsedMessage: logParsed };
