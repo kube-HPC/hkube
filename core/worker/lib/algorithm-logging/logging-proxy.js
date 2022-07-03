@@ -72,7 +72,8 @@ class LoggingProxy {
             if (logParsed.log) {
                 const internalParsed = this._jsonTryParse(logParsed.log);
                 let logObject = logParsed;
-                if (internalParsed) {
+                // Check if json
+                if (internalParsed !== logParsed.log) {
                     if (internalParsed?.log) {
                         logObject = internalParsed;
                     }
