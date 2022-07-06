@@ -78,7 +78,7 @@ class LoggingProxy {
                         logObject = internalParsed;
                     }
                     else {
-                        internalLog = { ...internalLog, parsedMessage: internalParsed };
+                        logObject.logStr = internalParsed;
                     }
                 }
                 const { log: logStr, stream: streamLog, ...rest } = logObject;
@@ -87,7 +87,7 @@ class LoggingProxy {
                 internalLog = { ...internalLog, ...rest };
             }
             else {
-                internalLog = { parsedMessage: logParsed };
+                logMessage = logParsed;
             }
         }
         return { logMessage, stream, internalLog };
