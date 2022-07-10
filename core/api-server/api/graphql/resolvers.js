@@ -55,6 +55,9 @@ class GraphqlResolvers {
     async queryAlgorithmsByName(name) {
         return stateManager.getAlgorithm({ name });
     }
+    async queryExperiments() {
+        return await dbQueires._getExperiments();
+    }
 
     async quesearchJobs(query) {
         return stateManager.getJobs().filter(job => {
@@ -126,6 +129,7 @@ class GraphqlResolvers {
                 return { jobs: jobs.jobs, cursor: jobs.cursor };
             },
             algorithms: () => ({ list: this.queryAlgorithms() }),
+            experiments: () => this.queryExperiments(),
             algorithmsByName: (parent, args, context, info) => {
                 return this.queryAlgorithmsByName(args.name);
             },
