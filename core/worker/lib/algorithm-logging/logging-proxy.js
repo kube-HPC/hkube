@@ -71,7 +71,7 @@ class LoggingProxy {
         if (logParsed !== rawLine) {
             if (logParsed.log) {
                 const internalParsed = this._jsonTryParse(logParsed.log);
-                const { stream: streamLog, ...rest } = logParsed;
+                const { log: _, stream: streamLog, ...rest } = logParsed;
                 logMessage = internalParsed;
                 stream = streamLog;
                 internalLog = rest;
