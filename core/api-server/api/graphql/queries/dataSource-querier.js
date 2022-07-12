@@ -1,4 +1,5 @@
 const { default: axios } = require('axios');
+const { accessSync } = require('fs-extra');
 const querystring = require('query-string');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../../lib/consts/componentNames').GRAPHQL_SERVER;
@@ -33,6 +34,14 @@ class DataSourceQuerier {
     postDataSourcePreviewQuery(options) {
         return this._postRequest(this.pathGenerator.preview(options.id), options);
     }
+    async getDataSourcesCount() {
+        const data = await this._getRequest(this.pathGenerator.dataSources());
+        if (data) {
+            return data.length
+        }
+        return 0;
+    }
+
 
     async _getRequest(url, options) {
         try {

@@ -139,7 +139,7 @@ class DatabaseQuerier extends Events {
     }
 
     async algorithmsCount() {
-        const count = await this._db.pipelines.count();
+        const count = await this._db.algorithms.count();
         return count;
     }
 
