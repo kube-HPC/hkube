@@ -3,9 +3,9 @@ const formatter = require(process.cwd() + '/lib/helpers/formatters');
 
 const config = {};
 config.algorunnerLogging = {
-    disable: formatter.parseBool(process.env.DISABLE_ALGORITHM_LOGGING || true),
-    algorunnerLogFileName: process.env.ALGORITHM_LOG_FILE_NAME || 'algorunner_0.log',
-    baseLogsPath: path.join((process.env.BASE_LOGS_PATH || '/var/log/pods'), (process.env.POD_ID || ''))
+    disable: false,// formatter.parseBool(process.env.DISABLE_ALGORITHM_LOGGING || true),
+    algorunnerLogFileName: process.env.ALGORITHM_LOG_FILE_NAME || 'log.txt',
+    baseLogsPath: path.join((process.env.BASE_LOGS_PATH || '/home/golanha'), (process.env.POD_ID || ''))
 };
 
 config.timeouts = {
