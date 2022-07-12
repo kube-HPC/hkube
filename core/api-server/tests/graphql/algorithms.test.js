@@ -3,9 +3,10 @@ const configIt = require('@hkube/config');
 const { main: config, logger } = configIt.load();
 const {request } = require('graphql-request');
 const algorithmsQuery = require('./queries/algorithm-query');
-
+const algorithmByNameQuery = require('./queries/algorithm-by-name-query');
 let baseUrl;
-describe.only('graphql algorithms get', () => {
+let graphqlUrl
+describe('graphql algorithms get', () => {
     before(async() => {
        baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
        graphqlUrl = `${baseUrl}/graphql`;
@@ -20,6 +21,11 @@ describe.only('graphql algorithms get', () => {
         const response = await request(graphqlUrl, algorithmsQuery);
         expect(response.algorithms.algorithmsCount).to.equal(response.algorithms.list.length);
     })
+    it('should return green-alg', async () => {
+        const response = await request(graphqlUrl, algorithmByNameQuery);
+        expect(response.algorithmsByName.name).to.be.eql('green-alg');
+      
+    });
 
 });
 
