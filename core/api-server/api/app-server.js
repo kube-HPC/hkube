@@ -4,10 +4,11 @@ const RestServer = require('@hkube/rest-server');
 const log = require('@hkube/logger').GetLogFromContanier();
 const { metrics } = require('@hkube/metrics');
 const HttpStatus = require('http-status-codes');
-const internal = require('./internal/index');
-const validator = require('../../lib/validation/api-validator');
-const component = require('../../lib/consts/componentNames').REST_API;
+const internal = require('./rest-api/internal/index');
+const validator = require('../lib/validation/api-validator');
+const component = require('../lib/consts/componentNames').REST_API;
 const rest = new RestServer();
+const graphqlServer = require('./graphql/graphql-server');
 const routeLogBlacklist = ['/metrics', '/swagger'];
 
 class AppServer {
@@ -28,16 +29,16 @@ class AppServer {
         const { prefix, port, rateLimit, poweredBy, bodySizeLimit } = options.rest;
         const routes = internal();
         routes.push(metrics.getRouter());
-        const versions = await fse.readdir(path.join(__dirname, 'routes'));
+        const versions = await fse.readdir(path.join(__dirname, './rest-api/routes'));
 
         await Promise.all(versions.map(async (v) => {
             swagger.servers.push({ url: path.join('/', options.swagger.path, prefix, v) });
-            const routers = await fse.readdir(path.join(__dirname, 'routes', v));
+            const routers = await fse.readdir(path.join(__dirname, './rest-api/routes', v));
             routers.forEach((f) => {
                 const file = path.basename(f, '.js');
                 routes.push({
                     route: path.join('/', prefix, v, file),
-                    router: require('./' + path.join('routes', v, file))({ ...options, version: v, file })  // eslint-disable-line
+                    router: require('./' + path.join('rest-api/routes', v, file))({ ...options, version: v, file })  // eslint-disable-line
                 });
             });
         }));
@@ -66,7 +67,9 @@ class AppServer {
                 }
             }
         };
+
         const data = await rest.start(opt);
+        graphqlServer(rest._app, rest._server, options.port, options.graphql);
         log.info(`🚀 ${data.message}`, { component });
     }
 }

@@ -55,6 +55,7 @@ mkdir -p ${BASE_LOGS_PATH}
 export DLL_PATH="../libStub/build/liblibStub.so"
 node app worker& PID_LIST+=" $!";
 
+sleep 3s
 pushd .
 cd ${ALGOCWD}
 ${ALGO_COMMAND} 

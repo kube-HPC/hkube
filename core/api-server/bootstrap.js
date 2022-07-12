@@ -10,8 +10,8 @@ const { main: config, logger } = configIt.load();
 const log = new Logger(config.serviceName, logger);
 
 const modules = [
-    stateManager,
-    require('./api/rest-api/app-server'),
+    require('./lib/state/state-manager'),
+    require('./api/app-server'),
     require('./lib/producer/jobs-producer'),
     require('./lib/examples/pipelines-updater'),
     require('./lib/webhook/webhooks-handler'),
@@ -22,6 +22,12 @@ const modules = [
     require('./lib/service/storage'),
     require('./lib/service/gateway'),
     require('./lib/service/debug'),
+    require('./api/graphql/queries/database-querier'),
+    require('./api/graphql/queries/prefered-querier'),
+    require('./api/graphql/queries/dataSource-querier'),
+    require('./api/graphql/queries/statistics-querier'),
+    require('./api/graphql/queries/error-logs-querier'),
+    require('./api/task-logs/logs'),
     require('./lib/service/output'),
     require('./lib/service/hyperparams-tuner'),
 ];

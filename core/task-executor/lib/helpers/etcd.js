@@ -61,8 +61,7 @@ class Etcd {
     async getAlgorithmTemplate() {
         const algorithms = await this._db.algorithms.search({
             hasImage: true,
-            sort: { created: 'desc' },
-            limit: 100,
+            sort: { created: 'desc' }
         });
         const templates = algorithms.map((a) => {
             if (a.mem) {

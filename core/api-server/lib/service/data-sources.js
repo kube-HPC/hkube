@@ -16,7 +16,7 @@ class DataSources {
         let response;
         let error = null;
         try {
-            response = await this.client.get(`/datasource/validate?${qs}`);
+            response = await this.client.get(`/validate?${qs}`);
         }
         catch (err) {
             error = err.response?.data?.error?.message || err.response?.message || err.message;

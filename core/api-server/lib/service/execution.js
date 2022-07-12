@@ -337,6 +337,18 @@ class ExecutionService {
         return uid({ length: 12 });
     }
 
+    async getFlowInputByJobId(jobId) {
+        let flowInput;
+        const pipeline = await stateManager._db.jobs.fetchPipeline({ jobId });
+        if (pipeline?.flowInput) {
+            flowInput = pipeline.flowInput;
+        }
+        else if (!pipeline?.flowInput && pipeline?.flowInputMetadata?.storageInfo) {
+            flowInput = await storageManager.storage.get(pipeline.flowInputMetadata.storageInfo);
+        }
+        return flowInput;
+    }
+
     async _getLastPipeline(pipeline) {
         const { experimentName, name: pipelineName } = pipeline;
         const result = await stateManager.searchJobs({

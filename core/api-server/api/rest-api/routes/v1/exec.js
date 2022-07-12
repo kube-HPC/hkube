@@ -16,37 +16,37 @@ const routes = (options) => {
     router.get('/', (req, res) => {
         res.json({ message: `${options.version} ${options.file} api` });
     });
-    router.all('/raw', methods(['POST']), async (req, res) => {
+    router.post('/raw', async (req, res) => {
         const { jobId, gateways } = await Execution.runRaw(req.body);
         res.json({ jobId, gateways });
     });
-    router.all('/stored', methods(['POST']), async (req, res) => {
+    router.post('/stored', async (req, res) => {
         const { jobId, gateways } = await Execution.runStored(req.body);
         res.json({ jobId, gateways });
     });
-    router.all('/caching', methods(['POST']), async (req, res) => {
+    router.post('/caching', async (req, res) => {
         const { jobId, gateways } = await Execution.runCaching(req.body);
         res.json({ jobId, gateways });
     });
-    router.all('/algorithm', methods(['POST']), async (req, res) => {
+    router.post('/algorithm', async (req, res) => {
         const { jobId, gateways } = await Execution.runAlgorithm(req.body);
         res.json({ jobId, gateways });
     });
-    router.all('/rerun', methods(['POST']), async (req, res) => {
+    router.post('/rerun', async (req, res) => {
         const { jobId, gateways } = await Execution.rerun(req.body);
         res.json({ jobId, gateways });
     });
-    router.all('/stop', methods(['POST']), async (req, res) => {
+    router.post('/stop', async (req, res) => {
         const { jobId, reason } = req.body;
         await Execution.stopJob({ jobId, reason });
         res.json({ message: 'OK' });
     });
-    router.all('/pause', methods(['POST']), async (req, res) => {
+    router.post('/pause', async (req, res) => {
         const { jobId } = req.body;
         await Execution.pauseJob({ jobId });
         res.json({ message: 'OK' });
     });
-    router.all('/resume', methods(['POST']), async (req, res) => {
+    router.post('/resume', async (req, res) => {
         const { jobId } = req.body;
         await Execution.resumeJob({ jobId });
         res.json({ message: 'OK' });
@@ -81,6 +81,19 @@ const routes = (options) => {
         const response = await Execution.getTree({ jobId });
         res.json(response);
     });
+    router.get('/flowInput/:jobId?', async (req, res) => {
+        const data = await Execution.getFlowInputByJobId(req.params.jobId);
+        if (data) {
+            if (req.query.download) {
+                res.setHeader('Content-Disposition', 'attachment;filename="flowInput.json"');
+            }
+            res.json(data);
+        }
+        else {
+            res.status(404).end();
+        }
+    });
+
     router.get('/search', async (req, res) => {
         const { experimentName, pipelineName, pipelineType, algorithmName, pipelineStatus, from, to, cursor, page, sort, limit, fields, exists } = req.query;
         const search = {
