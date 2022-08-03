@@ -22,7 +22,8 @@ before(async function () {
     global.testParams = {
         restUrl,
         internalUrl,
-        config
+        config,
+        baseUrl
     };
 });
 
