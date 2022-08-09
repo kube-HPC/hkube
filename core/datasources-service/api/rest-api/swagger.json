@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.3.2",
+    "version": "2.4.2",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6973,6 +6973,368 @@
         }
       }
     },
+    "/store/algorithmsFilter": {
+      "get": {
+        "tags": [
+          "StoreAlgorithms"
+        ],
+        "summary": "Get all algorithms",
+        "description": "Get all available algorithms from store",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "algorithmImage",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "pending",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "example": "asc",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32,
+                        "format": "algorithm-name"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
+                      "env": {
+                        "type": "string",
+                        "enum": [
+                          "nodejs",
+                          "python",
+                          "java"
+                        ]
+                      },
+                      "algorithmImage": {
+                        "type": "string",
+                        "description": "image name as in the docker registry",
+                        "format": "algorithm-image"
+                      },
+                      "cpu": {
+                        "type": "number",
+                        "default": 0.1,
+                        "minimum": 0,
+                        "description": "algorithm cpu"
+                      },
+                      "gpu": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "algorithm gpu"
+                      },
+                      "mem": {
+                        "type": "string",
+                        "description": "algorithm memory",
+                        "format": "algorithm-memory",
+                        "default": "256Mi",
+                        "example": "512Mi"
+                      },
+                      "reservedMemory": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+                        "format": "memory",
+                        "example": "512Mi"
+                      },
+                      "options": {
+                        "type": "object",
+                        "properties": {
+                          "devMode": {
+                            "type": "boolean",
+                            "description": "runs algorithm with mounted sources to allow rapid development cycles"
+                          },
+                          "pending": {
+                            "type": "boolean",
+                            "description": "pending algorithm",
+                            "default": false
+                          },
+                          "opengl": {
+                            "type": "boolean",
+                            "description": "should algorithm support XGL context creation (mount X socket)"
+                          }
+                        },
+                        "default": {}
+                      },
+                      "version": {
+                        "type": "string",
+                        "description": "Hkube's auto increment semantic versioning",
+                        "readOnly": true
+                      },
+                      "mounts": {
+                        "type": "array",
+                        "nullable": true,
+                        "description": "a list of volumes to mount into the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "pvcName": {
+                              "type": "string",
+                              "format": "algorithm-mount-pvc",
+                              "minLength": 1,
+                              "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                            },
+                            "path": {
+                              "type": "string",
+                              "format": "path",
+                              "minLength": 1,
+                              "description": "the mount path in the algorithm container"
+                            },
+                            "volumeType": {
+                              "type": "string",
+                              "description": "Special volume types such as emptyDir",
+                              "enum": [
+                                "emptyDir",
+                                "configMap"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "pvcName",
+                            "path"
+                          ]
+                        },
+                        "uniqueItems": true,
+                        "example": []
+                      },
+                      "gitRepository": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "a url for the git repository",
+                            "format": "url"
+                          },
+                          "commit": {
+                            "type": "object",
+                            "description": "commit details",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "commit id"
+                              },
+                              "timestamp": {
+                                "type": "string",
+                                "description": "commit time"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "commit message"
+                              }
+                            },
+                            "required": [
+                              "id"
+                            ]
+                          },
+                          "branchName": {
+                            "type": "string",
+                            "default": "master",
+                            "description": "the branch name you wish to create a build from"
+                          },
+                          "tag": {
+                            "type": "string",
+                            "description": "a specific tag which will trigger the build"
+                          },
+                          "token": {
+                            "type": "string",
+                            "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                          },
+                          "gitKind": {
+                            "type": "string",
+                            "enum": [
+                              "github",
+                              "gitlab"
+                            ],
+                            "default": "github"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "entryPoint": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "dependencyInstallCmd": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Command to run to install algorithm dependencies. CWD is the algorithm root folder\nDefaults to language specific defaults.\ne.g. For python: pip install -r requirements.txt\n"
+                      },
+                      "baseImage": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Custom docker image to be used as base to the newly built algorithm image"
+                      },
+                      "minHotWorkers": {
+                        "type": "integer",
+                        "description": "how many live algorithm instances will always run",
+                        "minimum": 0,
+                        "default": 0
+                      },
+                      "maxWorkers": {
+                        "type": "integer",
+                        "description": "Maximum number of workers for this algorithm. 0 marks no limit",
+                        "minimum": 0,
+                        "nullable": true
+                      },
+                      "quotaGuarantee": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+                        "minimum": 0
+                      },
+                      "algorithmEnv": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "key value environment variables for algorithm"
+                      },
+                      "workerEnv": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "key value environment variables for worker"
+                      },
+                      "nodeSelector": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "key value labels for nodes constraint",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "labels": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "attach key value metadata to algorithm pod, usually for users"
+                      },
+                      "annotations": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
+                      },
+                      "streamKind": {
+                        "enum": [
+                          "stateless",
+                          "stateful"
+                        ]
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "type of algorithm code resource",
+                        "enum": [
+                          "Git",
+                          "Code",
+                          "Image"
+                        ],
+                        "default": "Image"
+                      },
+                      "downloadFileExt": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/store/algorithms": {
       "get": {
         "tags": [
@@ -9103,6 +9465,112 @@
                   "properties": {
                     "message": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/store/pipelines/graph/{name}": {
+      "get": {
+        "tags": [
+          "StorePipelines"
+        ],
+        "summary": "Get pipeline graph",
+        "description": "Get specific pipeline graph from store",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "pipeline name to get from the store",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string",
+                      "description": "Unique identifier representing pipeline execution"
+                    },
+                    "timestamp": {
+                      "type": "number"
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "Array of edges"
+                    },
+                    "nodes": {
+                      "type": "array",
+                      "description": "Array of nodes"
                     }
                   }
                 }
@@ -20659,7 +21127,7 @@
                 "low": {
                   "type": "number"
                 },
-                "hight": {
+                "high": {
                   "type": "number"
                 },
                 "choices": {
@@ -20727,7 +21195,7 @@
           "low": {
             "type": "number"
           },
-          "hight": {
+          "high": {
             "type": "number"
           },
           "choices": {

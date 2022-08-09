@@ -1,12 +1,12 @@
 {
   "name": "algorithm-output",
-  "version": "2.4.0",
+  "version": "2.4.3",
   "description": "algorithm-output",
   "main": "app.js",
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/logger": "^2.0.2",
-    "@hkube/nodejs-wrapper": "^2.0.61"
+    "@hkube/nodejs-wrapper": "^2.1.2"
   },
   "devDependencies": {
     "@hkube/uid": "^1.0.4",

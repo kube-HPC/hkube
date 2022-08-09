@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "2.4.0",
+    "version": "2.4.1",
     "description": "worker process",
     "main": "app.js",
     "scripts": {
@@ -23,7 +23,7 @@
         "@hkube/consts": "^1.0.35",
         "@hkube/dag": "^2.1.16",
         "@hkube/db": "^1.0.32",
-        "@hkube/encoding": "^1.0.21",
+        "@hkube/encoding": "^2.0.1",
         "@hkube/etcd": "^5.1.2",
         "@hkube/kubernetes-client": "^1.0.33",
         "@hkube/logger": "^2.0.2",
@@ -32,9 +32,9 @@
         "@hkube/producer-consumer": "^1.0.48",
         "@hkube/redis-utils": "^1.0.3",
         "@hkube/stats": "^1.0.1",
-        "@hkube/storage-manager": "^2.0.32",
+        "@hkube/storage-manager": "^2.1.1",
         "@hkube/uid": "^1.0.4",
-        "@hkube/worker-data-adapter": "^1.0.20",
+        "@hkube/worker-data-adapter": "^1.1.1",
         "ajv": "^6.12.0",
         "async.queue": "^0.5.2",
         "delay": "^4.3.0",

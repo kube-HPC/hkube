@@ -77,12 +77,16 @@
 # store
 /store/algorithms/{name}:
   $ref: ./store/algorithms_name.yaml
+/store/algorithmsFilter:
+  $ref: ./store/algorithms_search.yaml
 /store/algorithms:
   $ref: ./store/algorithms.yaml
 /store/algorithms/apply:
   $ref: ./store/algorithms_apply.yaml
 /store/pipelines/{name}:
   $ref: ./store/pipelines_name.yaml
+/store/pipelines/graph/{name}:
+  $ref: ./store/pipeline_graph.yaml  
 /store/pipelines:
   $ref: ./store/pipelines.yaml
 
