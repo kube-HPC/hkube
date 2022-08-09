@@ -1,7 +1,7 @@
-const checkDiskSpace = require('check-disk-space').default
+const checkDiskSpace = require('check-disk-space').default;
 const log = require('@hkube/logger').GetLogFromContainer();
-const DatabaseQuerier = require('./database-querier');
 const parse = require('@hkube/units-converter');
+const DatabaseQuerier = require('./database-querier');
 const INTERVAL = 10000;
 const METRICS = ['cpu', 'mem', 'gpu'];
 const component = 'NodesStatistics';
@@ -10,7 +10,6 @@ class NodesStatistics {
     constructor() {
         this._currentResults = [];
         this._lastIntervalTime = null;
-
     }
 
     init(options) {
@@ -34,7 +33,7 @@ class NodesStatistics {
     async _statisticsInterval() {
         this._lastIntervalTime = Date.now();
         try {
-            this._currentResults = await this.getStatisticsResults();;
+            this._currentResults = await this.getStatisticsResults();
             this._diskSpace = await this.getDiskUsage();
         }
         catch (error) {
@@ -42,6 +41,7 @@ class NodesStatistics {
         }
         this.run();
     }
+
     async getStatisticsResults() {
         try {
             const data = await this._getEtcdData();
@@ -52,8 +52,9 @@ class NodesStatistics {
         catch (error) {
             log.error(error.message, { component }, error);
         }
-
+        return [];
     }
+
     run() {
         setTimeout(() => {
             this._statisticsInterval();

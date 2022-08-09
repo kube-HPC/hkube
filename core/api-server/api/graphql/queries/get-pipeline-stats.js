@@ -1,4 +1,4 @@
-// const db = require('./database-querier');
+const log = require('@hkube/logger').GetLogFromContainer();
 let lastRun = [];
 let active = false;
 const INTERVAL = 100000;
@@ -30,7 +30,7 @@ const checkJobStatus = async () => {
     await getJobStatus();
 };
 
-const getPipelinesStats = async ({ limit, db }) => {
+const getPipelinesStats = async ({ db }) => {
     _db = db;
     await checkJobStatus();
 

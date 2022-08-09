@@ -14,7 +14,7 @@ const Components = {
     GITHUB_WEBHOOK: 'Github-Webhook',
     DB: 'DB',
     LOGS: 'logs',
-    GRAPHQL_QUERIES:'GraphqlQueries'
+    GRAPHQL_QUERIES: 'GraphqlQueries'
 };
 
 module.exports = Components;

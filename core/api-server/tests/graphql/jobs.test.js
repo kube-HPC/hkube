@@ -15,8 +15,9 @@ let baseUrl;
 let graphqlUrl
 describe('graphql jobs', () => {
     before(() => {
-        restUrl = global.testParams.restUrl;
+      
         baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
+        restUrl = `${baseUrl}/${config.rest.prefix}/v1`;
         graphqlUrl = `${baseUrl}/graphql`;
     });
     describe('query jobs', () => {

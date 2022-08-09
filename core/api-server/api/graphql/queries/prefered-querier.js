@@ -1,5 +1,4 @@
 const { default: axios } = require('axios');
-const querystring = require('query-string');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../../lib/consts/componentNames').GRAPHQL_SERVER;
 class PreferedQuerier {

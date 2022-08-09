@@ -1,7 +1,6 @@
 const { gql } = require('apollo-server');
 
 const discoveryTypeDefs = gql`
-
 type Pipelinedriver {
   driverId: String
   podName: String
@@ -92,7 +91,6 @@ type JobsForDriver {
   extend type Query {
     discovery:Discovery
   }
-`
-
+`;
 
 module.exports = discoveryTypeDefs;

@@ -1,7 +1,5 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable default-case */
-const { GraphQLScalarType } = require('graphql');
-const { withFilter } = require('graphql-subscriptions');
 const stateManager = require('../../lib/state/state-manager');
 const dbQueires = require('./queries/database-querier');
 const preferedQuerier = require('./queries/prefered-querier');
@@ -10,30 +8,6 @@ const statisticsQuerier = require('./queries/statistics-querier');
 const errorLogsQuerier = require('./queries/error-logs-querier');
 const logsQueries = require('../task-logs/logs');
 class GraphqlResolvers {
-    constructor() {
-        // this.ObjectScalarType = new GraphQLScalarType({
-        //     name: 'Object',
-        //     description: 'Arbitrary object',
-        //     parseValue: (value) => {
-        //         return typeof value === 'object' ? value
-        //             : typeof value === 'string' ? JSON.parse(value)
-        //                 : null;
-        //     },
-        //     serialize: (value) => {
-        //         return typeof value === 'object' ? value
-        //             : typeof value === 'string' ? JSON.parse(value)
-        //                 : null;
-        //     },
-        //     parseLiteral: (ast) => {
-        //         switch (ast.kind) {
-        //             case Kind.STRING: return JSON.parse(ast.value);
-        //             case Kind.OBJECT: throw new Error('Not sure what to do with OBJECT for ObjectScalarType');
-        //             default: return null;
-        //         }
-        //     }
-        // });
-    }
-
     async queryJobs(query) {
         const jobs = await dbQueires.getJobs(query || {});
         return {
@@ -55,8 +29,9 @@ class GraphqlResolvers {
     async queryAlgorithmsByName(name) {
         return stateManager.getAlgorithm({ name });
     }
+
     async queryExperiments() {
-        return await dbQueires._getExperiments();
+        return dbQueires._getExperiments();
     }
 
     async quesearchJobs(query) {
@@ -70,7 +45,7 @@ class GraphqlResolvers {
         return pipelines;
     }
 
-    async queryPipelinesStats(pipelineName) {
+    async queryPipelinesStats() {
         return dbQueires.getPipelinesStats();
     }
 
@@ -106,12 +81,10 @@ class GraphqlResolvers {
     }
 
     async getDiscovery() {
-        // return await dbQueires._getDiscovery();
         return dbQueires.lastResults?.discovery;
     }
 
     async getDataSources() {
-        // const dataSources = await dbQueires._getDataSources();
         const dataSources = await dataSourceQuerier.getDataSourcesList();
         return dataSources;
     }
@@ -123,14 +96,14 @@ class GraphqlResolvers {
 
     _getQueryResolvers() {
         return {
-            jobsAggregated: async (parent, args, context, info) => {
+            jobsAggregated: async (parent, args, context) => {
                 context.args = { ...args };
                 const jobs = await this.queryJobs({ ...args });
                 return { jobs: jobs.jobs, cursor: jobs.cursor };
             },
             algorithms: () => ({ list: this.queryAlgorithms() }),
             experiments: () => this.queryExperiments(),
-            algorithmsByName: (parent, args, context, info) => {
+            algorithmsByName: (parent, args) => {
                 return this.queryAlgorithmsByName(args.name);
             },
             nodeStatistics: async () => {
@@ -141,7 +114,7 @@ class GraphqlResolvers {
                 const stats = await statisticsQuerier.getDiskUsage();
                 return stats;
             },
-            jobsByExperimentName: (parent, args, context, info) => {
+            jobsByExperimentName: (parent, args) => {
                 return this.quesearchJobs(args.experimentName);
             },
             pipelines: async () => {
@@ -149,54 +122,54 @@ class GraphqlResolvers {
                 return { list };
             },
 
-            algorithmBuilds: (parent, args, context, info) => {
+            algorithmBuilds: (parent, args) => {
                 return this.queryAlgorithmBuilds(args.algorithmName);
             },
-            pipelineStats: (parent, args, context, info) => {
+            pipelineStats: () => {
                 return this.queryPipelinesStats();
             },
-            job: (parent, args, context, info) => {
+            job: (parent, args) => {
                 return this.queryJob(args.id);
             },
             dataSources: () => ({ list: this.getDataSources() }),
-            dataSource: (parent, args, context, info) => {
+            dataSource: (parent, args) => {
                 return this.getDataSource(args);
             },
-            DataSourceVersions: (parent, args, context, info) => {
+            DataSourceVersions: (parent, args) => {
                 return this.queryDataSourceVersions(args);
             },
-            DataSourceSnapanshots: (parent, args, context, info) => {
+            DataSourceSnapanshots: (parent, args) => {
                 return this.queryDataSourceSnapshots(args);
             },
-            DataSourcePreviewQuery: (parent, args, context, info) => {
+            DataSourcePreviewQuery: (parent, args) => {
                 return this.queryDataSourcePreviewQuery(args);
             },
-            discovery: (parent, args, context, info) => {
+            discovery: () => {
                 return this.getDiscovery();
             },
-            logsByQuery: (parent, args, context, info) => {
+            logsByQuery: (parent, args) => {
                 return this.queryLogs({ ...args });
             },
             errorLogs: async () => {
                 const res = await errorLogsQuerier.getLogs();
                 return res;
             },
-            preferedList: (parent, args, context, info) => {
+            preferedList: (parent, args) => {
                 return preferedQuerier.getPreferedList(args);
             },
-            managedList: (parent, args, context, info) => {
+            managedList: (parent, args) => {
                 return preferedQuerier.getManagedList(args);
             },
-            aggregatedTagsPrefered: (parent, args, context, info) => {
+            aggregatedTagsPrefered: (parent, args) => {
                 return preferedQuerier.getAggregatedPreferedByTags(args);
             },
-            aggregatedPipelinePrefered: (parent, args, context, info) => {
+            aggregatedPipelinePrefered: (parent, args) => {
                 return preferedQuerier.getAggregatedPreferedByPipeline(args);
             },
-            aggregatedTagsManaged: (parent, args, context, info) => {
+            aggregatedTagsManaged: (parent, args) => {
                 return preferedQuerier.getAggregatedManagedByTags(args);
             },
-            aggregatedPipelineManaged: (parent, args, context, info) => {
+            aggregatedPipelineManaged: (parent, args) => {
                 return preferedQuerier.getAggregatedManagedByPipeline(args);
             },
             queueCount: () => {
@@ -227,7 +200,7 @@ class GraphqlResolvers {
                 }
             },
             AggregatedJobs: {
-                async jobsCount(parent, args, context, info) {
+                async jobsCount(parent, args, context) {
                     const count = await dbQueires.jobSCountByQuery(context && context.args ? context.args : {}) || 0;
                     return count;
                 }
@@ -254,71 +227,11 @@ class GraphqlResolvers {
         };
     }
 
-    _getSubscriptionResolvers() {
-        return {
-            numberIncremented: {
-                subscribe: () => {
-                    return pubsub.asyncIterator(['NUMBER_INCREMENTED']);
-                }
-            },
-            numberIncrementedOdd: {
-                subscribe: withFilter(
-                    () => pubsub.asyncIterator('NUMBER_INCREMENTED_ODD'),
-                    (payload, variables) => {
-                        // Only push an update if the comment is on
-                        // the correct repository for this operation
-                        console.log(variables);
-                        return ((payload.numberIncrementedOdd % variables.number) === 0);
-                    },
-                )
-
-            }
-
-        };
-    }
-
     getResolvers() {
         return {
             ...this._getTypesResolvers(),
-            //    Object: this.ObjectScalarType,
             Query: this._getQueryResolvers(),
-            Subscription: this._getSubscriptionResolvers()
         };
     }
 }
 module.exports = new GraphqlResolvers();
-
-// const resolvers = {
-//     Object: ObjectScalarType,
-//     Query: {
-//         jobs: () => stubs.jobs,
-//         algorithms: () => stubs.algorithms,
-//         algorithmsByName: (parent, args, context, info) => {
-//             return stubs.algorithms.find(algorithm => algorithm.name === args.name);
-//         },
-//         jobsByExperimentName: (parent, args, context, info) => {
-//             return stubs.jobs.filter(job => job.pipeline.experimentName === args.experimentName);
-//         },
-//         pipelines: () => stubs.pipelines,
-//         algorithmBuilds: (algorithmName) => stubs.algorithmBuilds,
-//     },
-//     Subscription: {
-//         numberIncremented: {
-//             subscribe: () => {
-//                 return pubsub.asyncIterator(["NUMBER_INCREMENTED"])
-//             }
-//         },
-//         numberIncrementedOdd: {
-//             subscribe: withFilter(
-//                 () => pubsub.asyncIterator('NUMBER_INCREMENTED_ODD'),
-//                 (payload, variables) => {
-//                     // Only push an update if the comment is on
-//                     // the correct repository for this operation
-//                     console.log(variables)
-//                     return ((payload.numberIncrementedOdd % variables.number) === 0);
-//                 },
-//             )
-//         }
-//     },
-
-// };
