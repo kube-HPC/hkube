@@ -25,7 +25,7 @@ module.exports = {
     quotes: ["error", "single"],
     "comma-dangle": "off",
     "no-underscore-dangle": "off",
-    "linebreake-style": "off",
+    "linebreak-style": "off",
     "object-curly-newline": "off",
     "newline-per-chained-call": "off",
     "arrow-body-style": "off",

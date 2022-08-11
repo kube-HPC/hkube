@@ -5,7 +5,7 @@ const formatter = require(process.cwd() + '/lib/utils/formatters');
 const config = {};
 config.serviceName = packageJson.name;
 config.systemVersion = process.env.HKUBE_SYSTEM_VERSION;
-
+config.clusterName = process.env.CLUSTER_NAME || 'local';
 const secured = !!process.env.API_SERVER_SSL;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
@@ -36,6 +36,20 @@ config.dataSourceService = {
     prefix: 'api/v1'
 };
 
+config.pipelineDriverQueueService = {
+    protocol: 'http',
+    host: process.env.PIPELINE_DRIVER_QUEUE_SERVICE_HOST || 'localhost',
+    port: process.env.PIPELINE_DRIVER_QUEUE_SERVICE_PORT || 7100,
+    prefix: 'api/v1/queue'
+};
+
+config.dataSourceService = {
+    protocol: 'http',
+    host: process.env.DATASOURCES_SERVICE_PORT_3005_TCP_ADDR || 'localhost',
+    port: process.env.DATASOURCES_SERVICE_SERVICE_PORT_REST || 3005,
+    prefix: 'api/v1/datasource'
+}
+
 config.healthchecks = {
     checkInterval: process.env.HEALTHCHECK_CHECK_INTERVAL || 5000,
     minAge: process.env.HEALTHCHECK_MIN_JOB_AGE || 10000,
@@ -56,6 +70,24 @@ config.gatewayUrl = {
 };
 
 config.addDefaultAlgorithms = process.env.ADD_DEFAULT_ALGORITHMS || true;
+
+config.elasticSearch = {
+    url: process.env.ELASTICSEARCH_SERVICE_URL || `http://elasticsearch-ingest.logging.svc.${config.clusterName}:9200`,
+    index: process.env.ELASTICSEARCH_LOGS_INDEX || 'logstash-*',
+    type: process.env.ELASTICSEARCH_LOGS_DOC_TYPE || '_doc'
+
+};
+
+config.kubernetes = {
+    isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
+    namespace: process.env.NAMESPACE || 'default',
+    version: '1.9'
+};
+
+config.logsView = {
+    format: process.env.LOGS_VIEW_FORMAT || 'json',
+    source: process.env.LOGS_VIEW_SOURCE || 'k8s'
+};
 
 config.swagger = {
     protocol: secured ? 'https' : 'http',
@@ -105,7 +137,10 @@ config.webhooks = {
     }
 };
 
-config.clusterName = process.env.CLUSTER_NAME || 'local';
+config.fs = {
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+    binary: formatter.parseBool(process.env.STORAGE_BINARY, false)
+};
 
 config.pipelineDriversResources = {
     cpu: parseFloat(process.env.PIPELINE_DRIVER_CPU || 0.15),
@@ -136,9 +171,6 @@ config.s3 = {
     endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
 };
 
-config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
-};
 
 config.storageAdapters = {
     s3: {
@@ -160,5 +192,22 @@ config.storageAdapters = {
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };
+
+
+//monitor-server
+
+config.sizes = {
+    maxFlowInputSize: formatter.parseInt(process.env.MAX_FLOW_INPUT_SIZE, 3000),
+};
+
+config.graph = {
+    enableStreamingMetrics: formatter.parseBool(process.env.ENABLE_STREAMING_METRICS, false),
+    maxBatchSize: formatter.parseInt(process.env.MAX_BATCH_SIZE, 10),
+
+};
+config.graphql = {
+    introspection: formatter.parseBool(process.env.GRAPHQL_INTROSPECTION, true),
+    useIntervalForStatistics: formatter.parseBool(process.env.GRAPHQL_USE_INTERVAL_FOR_STATISTICS, false),
+}
 
 module.exports = config;
