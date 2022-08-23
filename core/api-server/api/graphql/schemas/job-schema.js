@@ -35,7 +35,16 @@ type Results {
     metadata: Metadata
     storageInfo: StorageInfo
  }
-
+type  Batch {
+  taskId: String
+  podName: String
+  status: String
+  batchIndex: Int
+  startTime: String
+  endTime: String
+  output: Output
+  input: [NodeInput]
+}
   type NodeInput { path: String }
 
   type JobNodes { 
@@ -46,8 +55,11 @@ type Results {
     status: String
     startTime: Float
     endTime: Float
+    batchOperation:String
+    ttl:Int
+    kind:String
     level: Int
-    batch: String
+    batch: [Batch]
     boards: [String ]
     output: Output
     input: [NodeInput ] }
@@ -105,10 +117,14 @@ type Results {
 
   type UserPipeline { name: String
     experimentName: String
+    kind: String
+    priority: Int
+    modified: String
     triggers: Triggers
     options: Options
     flowInput: FlowInput
-    nodes: [JobNodes ] }
+    nodes: [JobNodes ] 
+    }
 
   type Job { key: String
     results: Results
