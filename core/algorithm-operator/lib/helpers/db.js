@@ -28,7 +28,7 @@ class DB extends EventEmitter {
             results = hits;
             prevCursor = cursor;
             allRecords = [...hits, ...allRecords];
-        } while (results.length > limit);
+        } while (results.length >= limit);
         return { algorithms: allRecords, count: allRecords.length };
     }
 

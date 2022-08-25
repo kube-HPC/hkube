@@ -408,7 +408,7 @@ describe('bootstrap', () => {
                 });
                 expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
             });
-            it('should apply jaeger without privileged mode', () => {
+            it.skip('should apply jaeger without privileged mode', () => {
                 const res = createDriverJobSpec({
                     ...{ options: { ...options, kubernetes: { isPrivileged: false } } },
                     image: 'myImage1',

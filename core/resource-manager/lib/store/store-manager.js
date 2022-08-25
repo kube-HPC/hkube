@@ -21,8 +21,7 @@ class StoreManager {
     async getAlgorithmTemplateStore() {
         return this._db.algorithms.search({
             isPending: false,
-            sort: { created: 'desc' },
-            limit: 100,
+            sort: { created: 'desc' }
         });
     }
 

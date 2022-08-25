@@ -43,7 +43,14 @@ const query = gql`{
         startTime
         endTime
         level
-        batch
+        batch {
+          taskId
+          podName
+          status
+          batchIndex
+          startTime
+          endTime
+        }
         boards
         output {
           taskId
