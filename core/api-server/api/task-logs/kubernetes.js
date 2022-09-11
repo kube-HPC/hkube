@@ -30,6 +30,7 @@ class KubernetesLogs {
         this._formatMethod = this._formatMethods.get(format);
     }
 
+    /* eslint-disable indent */
     getContainerName(kind) {
         switch (kind) {
             case containers.pipelineDriver:
