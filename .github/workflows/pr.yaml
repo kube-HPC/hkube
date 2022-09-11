@@ -40,6 +40,7 @@ jobs:
       - run: ./scripts/beforeInstall.sh
       - run: |
           npm ci
+          echo  "${{ secrets.DOCKER_USER }}!!!!!!!!!!!!!!!!!!!!!!!"
           echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
       - name: setup-git
         run: |
