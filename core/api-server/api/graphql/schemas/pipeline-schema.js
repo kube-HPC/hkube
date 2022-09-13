@@ -3,14 +3,20 @@ const { gql } = require('apollo-server');
 const pipelineTypeDefs = gql`
 type Cron { enabled: Boolean pattern: String }
 
-type Triggers { cron: Cron }
+type Triggers { cron: Cron ,pipelines: [String]}
 
 type ConcurrentPipelines { amount: Int rejectOnFailure: Boolean }
+
+type Webhooks { progress:String, result:String }
+
+type Streaming { flows:Object, defaultFlow:String }
 
 type Options { batchTolerance: Int
   ttl: Int
   progressVerbosityLevel: String
-  concurrentPipelines: ConcurrentPipelines }
+  concurrentPipelines: ConcurrentPipelines 
+  activeTtl: Int
+}
 
 type Metrics { tensorboard: Boolean }
 
@@ -36,6 +42,8 @@ type Pipeline { modified: Float
   experimentName: String
   triggers: Triggers
   options: Options
+  webhooks: Webhooks
+  streaming: Streaming
   nodes: [PipelineNodes ]
   flowInput: FlowInput }
 
