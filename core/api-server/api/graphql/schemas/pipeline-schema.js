@@ -23,12 +23,17 @@ type Snapshot{
               name: String
 }
 
+type Sampler{
+  search_space: Object
+}
+
 type HyperParams{
                 name: String
                 suggest: String
                 high: String
                 low: String
                 choices: [String]
+                sampler: Sampler
 }
 type Spec {
             name: String
@@ -40,6 +45,7 @@ type Spec {
             objectivePipeline: String
             numberOfTrials: Int
             hyperParams: [HyperParams]
+            sampler: Sampler
   }
 type Retry { policy: String limit: Int }
 
