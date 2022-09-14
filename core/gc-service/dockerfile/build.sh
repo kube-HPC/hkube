@@ -25,9 +25,3 @@ then
   docker push ${TAG_VER}
 fi
 
-for EXTRA_REGISTRY in $EXTRA_PRIVATE_REGISTRIES; do
-  EXTRA_TAG="${EXTRA_REGISTRY}/${REPO_NAME}:${VERSION}"
-  echo pushing also to ${EXTRA_TAG}
-  docker tag ${TAG_VER} ${EXTRA_TAG}
-  docker push ${EXTRA_TAG}
-done
