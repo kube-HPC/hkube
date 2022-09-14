@@ -39,7 +39,7 @@ type Spec {
             cpu: String
             objectivePipeline: String
             numberOfTrials: Int
-            hyperParams: HyperParams
+            hyperParams: [HyperParams]
   }
 type Retry { policy: String limit: Int }
 
