@@ -54,7 +54,7 @@ type PipelineNodes {
   spec: Spec
   kind: String
   stateType: String
-  input: [String]
+  input: [Object]
  }
 
 type FlowInput { mul: Int data: Int }
