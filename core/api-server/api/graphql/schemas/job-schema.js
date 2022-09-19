@@ -66,9 +66,9 @@ type  Batch {
     input: [NodeInput ] }
 
   type BatchInfo {
-    idle: Boolean
-    completed: Boolean
-    errors: Object
+    idle: Int
+    completed: Int
+    errors: Int
     running: Int
     total: Int
   }
