@@ -68,7 +68,7 @@ type  Batch {
   type BatchInfo {
     idle: Boolean
     completed: Boolean
-    errors: [Object]
+    errors: Object
     running: Int
     total: Int
   }
