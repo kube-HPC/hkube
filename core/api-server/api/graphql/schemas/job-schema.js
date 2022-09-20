@@ -60,9 +60,18 @@ type  Batch {
     kind:String
     level: Int
     batch: [Batch]
+    batchInfo: BatchInfo
     boards: [String ]
     output: Output
     input: [NodeInput ] }
+
+  type BatchInfo {
+    idle: Int
+    completed: Int
+    errors: Int
+    running: Int
+    total: Int
+  }
 
   type Value { types: [String ] }
 
