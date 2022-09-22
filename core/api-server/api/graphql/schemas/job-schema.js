@@ -73,7 +73,7 @@ type  Batch {
     total: Int
   }
 
-  type Value { types: [String ] }
+  type Value { types: [String ] metrics: Object}
 
   type Edges { from: String to: String value: Value }
 
