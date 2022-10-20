@@ -50,7 +50,15 @@ class GraphqlResolvers {
     }
 
     async queryAlgorithmBuilds(algorithmName) {
-        const builds = await dbQueires._getAlgorithmBuilds(algorithmName);
+        let builds = [];
+
+        if (algorithmName) {
+            builds = await dbQueires._getAlgorithmBuildsByAlgorithmName(algorithmName);
+        }
+        else {
+            builds = await dbQueires._getAlgorithmBuilds();
+        }
+
         return builds;
     }
 
