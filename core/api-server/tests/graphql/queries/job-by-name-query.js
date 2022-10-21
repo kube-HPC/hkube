@@ -1,4 +1,4 @@
-const {gql } = require('graphql-request');
+const { gql } = require('graphql-request');
 const query = gql`{
   job(id:"job_2" ) {
     key
@@ -151,20 +151,7 @@ const query = gql`{
           rejectOnFailure
         }
       }
-      flowInput {
-        files {
-          path
-          id
-          name
-          size
-          type
-          meta
-          uploadedAt
-          link
-        }
-        mul
-        data
-      }
+      flowInput
     }
     userPipeline {
       name
