@@ -63,7 +63,6 @@ type PipelineNodes {
   input: [Object]
  }
 
-type FlowInput { mul: Int data: Int }
 
 type Pipeline { 
   modified: Float
@@ -77,7 +76,7 @@ type Pipeline {
   webhooks: Webhooks
   streaming: Streaming
   nodes: [PipelineNodes ]
-  flowInput: FlowInput 
+  flowInput: Object 
 }
 type Metrics { tensorboard: Boolean }
 

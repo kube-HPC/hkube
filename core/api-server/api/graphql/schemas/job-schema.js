@@ -120,7 +120,7 @@ type  Batch {
     flowInputMetadata: FlowInputMetadata
     triggers: Triggers
     options: Options
-    flowInput: FlowInput
+    flowInput: Object
     nodes: [JobNodes ] 
 }
 
@@ -131,7 +131,7 @@ type  Batch {
     modified: String
     triggers: Triggers
     options: Options
-    flowInput: FlowInput
+    flowInput: Object
     nodes: [JobNodes ] 
     }
 

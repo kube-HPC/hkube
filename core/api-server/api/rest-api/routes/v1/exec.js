@@ -20,7 +20,7 @@ const routes = (options) => {
         const { jobId, gateways } = await Execution.runRaw(req.body);
         res.json({ jobId, gateways });
     });
-    router.all('/stored', methods(['POST']), async (req, res) => {
+    router.post('/stored', async (req, res) => {
         const { jobId, gateways } = await Execution.runStored(req.body);
         res.json({ jobId, gateways });
     });
@@ -81,6 +81,19 @@ const routes = (options) => {
         const response = await Execution.getTree({ jobId });
         res.json(response);
     });
+    router.get('/flowInput/:jobId?', async (req, res) => {
+        const data = await Execution.getFlowInputByJobId(req.params.jobId);
+        if (data) {
+            if (req.query.download) {
+                res.setHeader('Content-Disposition', 'attachment;filename="flowInput.json"');
+            }
+            res.json(data);
+        }
+        else {
+            res.status(404).end();
+        }
+    });
+
     router.get('/search', async (req, res) => {
         const { experimentName, pipelineName, pipelineType, algorithmName, pipelineStatus, from, to, cursor, page, sort, limit, fields, exists } = req.query;
         const search = {

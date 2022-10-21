@@ -29,6 +29,8 @@
   $ref: ./exec/results.yaml
 /exec/tree/{jobId}:
   $ref: ./exec/tree.yaml
+/exec/flowInput/{jobId}:
+  $ref: ./exec/flowInput.yaml  
 
 # pipelines
 /pipelines/results:
