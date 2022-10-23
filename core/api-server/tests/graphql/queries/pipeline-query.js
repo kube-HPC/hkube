@@ -1,5 +1,5 @@
 
-const {gql } = require('graphql-request');
+const { gql } = require('graphql-request');
 
 const query = gql`{ 
     pipelines {
@@ -39,21 +39,9 @@ const query = gql`{
                         limit
                         }
                     }
-                    flowInput {
-                        files {
-                        path
-                        id
-                        name
-                        size
-                        type
-                        meta
-                        uploadedAt
-                        link
-                        }
-                        mul
-                        data
-                    }
-                    }
+                
+                    flowInput
+                }
                     pipelinesCount
                    }
                 }

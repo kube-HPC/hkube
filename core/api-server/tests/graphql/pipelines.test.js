@@ -1,14 +1,14 @@
 const { expect } = require('chai');
 const configIt = require('@hkube/config');
 const { main: config, logger } = configIt.load();
-const {request } = require('graphql-request');
+const { request } = require('graphql-request');
 const pipelineQuery = require('./queries/pipeline-query');
 const pipelineSnapshot = require('./snapshots/pipeline.snapshot');
 let baseUrl;
 describe('graphql pipelines get', () => {
-    before(async() => {
-       baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
-       graphqlUrl = `${baseUrl}/graphql`;
+    before(async () => {
+        baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
+        graphqlUrl = `${baseUrl}/graphql`;
     })
     it('should get a list of all pipelines', async () => {
         const response = await request(graphqlUrl, pipelineQuery);

@@ -1,4 +1,4 @@
-const {gql } = require('graphql-request');
+const { gql } = require('graphql-request');
 const query = gql`{
    jobsAggregated(pipelineName:"flow1"  ) {
     jobs {
@@ -117,20 +117,7 @@ const query = gql`{
             rejectOnFailure
           }
         }
-        flowInput {
-          files {
-            path
-            id
-            name
-            size
-            type
-            meta
-            uploadedAt
-            link
-          }
-          mul
-          data
-        }
+        flowInput
       }
       userPipeline {
         name

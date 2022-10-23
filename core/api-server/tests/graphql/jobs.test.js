@@ -15,7 +15,7 @@ let baseUrl;
 let graphqlUrl
 describe('graphql jobs', () => {
     before(() => {
-      
+
         baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
         restUrl = `${baseUrl}/${config.rest.prefix}/v1`;
         graphqlUrl = `${baseUrl}/graphql`;
@@ -28,27 +28,27 @@ describe('graphql jobs', () => {
         beforeEach(async () => {
             const list = await stateManager.getRunningJobs();
             for (const job of list) {
-                await stateManager._db.jobs.delete({jobId: job.jobId});
+                await stateManager._db.jobs.delete({ jobId: job.jobId });
             }
         });
-        
-       
+
+
 
         it('should return specific job ', async () => {
-           
-                await stateManager._db.jobs.create({jobId: `job_${2}`, status: {status:'pending'}, type: 'stored', pipeline: pipelines[0]});
+
+            await stateManager._db.jobs.create({ jobId: `job_${2}`, status: { status: 'pending' }, type: 'stored', pipeline: pipelines[0] });
             const res = await req(graphqlUrl, jobByNameQuery);
             expect(res.job.key).to.be.eql('job_2');
-           
+
         });
         it('should query job by parameters', async () => {
-                await stateManager._db.jobs.create({jobId: `job_${2}`, status: {status:'pending'}, type: 'stored', pipeline: pipelines[0]});
+            await stateManager._db.jobs.create({ jobId: `job_${2}`, status: { status: 'pending' }, type: 'stored', pipeline: pipelines[0] });
             const res = await req(graphqlUrl, aggregatedJobQuery);
             expect(res.jobsAggregated.jobs[0].key).to.be.eql('job_2');
             expect(res.jobsAggregated.cursor).to.be.not.null;
-           
+
         });
-     
-  
+
+
     });
 });
