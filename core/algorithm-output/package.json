@@ -1,6 +1,6 @@
 {
   "name": "algorithm-output",
-  "version": "2.5.0",
+  "version": "2.4.3",
   "description": "algorithm-output",
   "main": "app.js",
   "dependencies": {
