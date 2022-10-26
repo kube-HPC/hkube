@@ -44,12 +44,17 @@ class DataSourceQuerier {
     }
 
     async _getRequest(url, options) {
-        try {
-            const { data } = await axios.get(url, { params: options });
-            return data;
-        }
-        catch (error) {
-            log.error(error.message, { component });
+        let allowedFailures = 3;
+        while (allowedFailures > 0) {
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                const { data } = await axios.get(url, { params: options });
+                return data;
+            }
+            catch (error) {
+                allowedFailures -= 1;
+                log.info(error.message, { component });
+            }
         }
         return null;
     }
