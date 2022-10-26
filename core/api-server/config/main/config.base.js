@@ -29,13 +29,6 @@ config.rest = {
     }
 };
 
-config.dataSourceService = {
-    protocol: 'http',
-    host: process.env.DATASOURCES_SERVICE_SERVICE_HOST || 'localhost',
-    port: process.env.DATASOURCES_SERVICE_SERVICE_PORT || 3005,
-    prefix: 'api/v1'
-};
-
 config.pipelineDriverQueueService = {
     protocol: 'http',
     host: process.env.PIPELINE_DRIVER_QUEUE_SERVICE_HOST || 'localhost',
@@ -47,7 +40,7 @@ config.dataSourceService = {
     protocol: 'http',
     host: process.env.DATASOURCES_SERVICE_PORT_3005_TCP_ADDR || 'localhost',
     port: process.env.DATASOURCES_SERVICE_SERVICE_PORT_REST || 3005,
-    prefix: 'api/v1/datasource'
+    prefix: 'api/v1'
 }
 
 config.healthchecks = {
