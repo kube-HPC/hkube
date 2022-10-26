@@ -40,7 +40,7 @@ config.dataSourceService = {
     protocol: 'http',
     host: process.env.DATASOURCES_SERVICE_PORT_3005_TCP_ADDR || 'localhost',
     port: process.env.DATASOURCES_SERVICE_SERVICE_PORT_REST || 3005,
-    prefix: 'api/v1'
+    prefix: 'api/v1/datasource'
 }
 
 config.healthchecks = {
