@@ -84,7 +84,7 @@ type  Batch {
 
   type States { succeed: Int,failed:Int,stopped:Int,active:Int,creating:Int,preschedule:Int,pending:Int,skipped:Int,stalled:Int,warning:Int }
 
-  type Data { progress: Float details: String states: States }
+  type Data { progress: Float details: String states: States storageInfo: StorageInfo }
 
   type Status { timestamp: Float
     status: String
