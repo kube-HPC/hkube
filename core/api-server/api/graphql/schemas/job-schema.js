@@ -18,7 +18,7 @@ type Results {
     status: String
     timestamp: Float
     timeTook: Float
-    data: Data 
+    data: DataWide 
 }
 
   type Discovery { host: String port: String }
@@ -84,7 +84,8 @@ type  Batch {
 
   type States { succeed: Int,failed:Int,stopped:Int,active:Int,creating:Int,preschedule:Int,pending:Int,skipped:Int,stalled:Int,warning:Int }
 
-  type Data { progress: Float details: String states: States storageInfo: StorageInfo }
+  type Data { progress: Float details: String states: States  }
+  type DataWide { progress: Float details: String states: States storageInfo: StorageInfo }
 
   type Status { timestamp: Float
     status: String
