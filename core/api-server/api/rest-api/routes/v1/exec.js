@@ -41,7 +41,7 @@ const routes = (options) => {
         await Execution.stopJob({ jobId, reason });
         res.json({ message: 'OK' });
     });
-    router.apostll('/pause', async (req, res) => {
+    router.post('/pause', async (req, res) => {
         const { jobId } = req.body;
         await Execution.pauseJob({ jobId });
         res.json({ message: 'OK' });
