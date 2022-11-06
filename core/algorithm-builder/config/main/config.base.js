@@ -43,7 +43,7 @@ config.packagesRepo = {
         registry: process.env.NPM_REGISTRY || '',
         token: process.env.NPM_TOKEN || '',
         auth: process.env.NPM_AUTH || '',
-        defaultBaseImage: process.env.NODE_DEFAULT_BASE_IMAGE || 'node:14.5.0-slim',
+        defaultBaseImage: process.env.NODE_DEFAULT_BASE_IMAGE || 'node:18.1.0-buster-slim',
         wrapperVersion: process.env.NODE_WRAPPER_VERSION || ''
     },
     python: {

@@ -1,0 +1,45 @@
+global:
+  clusterName: test
+  storage:
+    binary: true
+    fs:
+      base_directory: /hkubedata
+      pvc:
+        capacity: 50Gi
+        name: hkube-storage
+        nfs_root: /nfs/storageclass/test-spot
+        nfs_server: 172.20.45.142
+        storage_class: "-"
+      dev_pvc:
+        name: hkube-dev-sources
+        capacity: 10Gi
+        storage_class: "nfs-client"
+        enabled: true
+  ingress:
+    use_regex: true
+env:
+  default_storage: "fs"
+build_secret:
+  docker_registry: ""
+  docker_namespace: ""
+  docker_username: ${DOCKER_BUILD_PUSH_USERNAME}
+  docker_password: ${DOCKER_BUILD_PUSH_PASSWORD}
+etcd:
+  persistentVolume:
+    enabled: true
+    storageClass: etcd-sc
+task_executor:
+  env:
+    pipeline_drivers_amount: 5
+    use_resource_limits: true
+monitor_server:
+  env:
+    elasticsearch_service_url: "http://elasticsearch-ingest.logging:9200"
+storage_cleaner:
+  pattern: "30 7 * * *"
+etcd_cleaner:
+  pattern: "30 7 * * *"
+jaeger:
+  enable: true
+minio:
+  enable: true

@@ -70,9 +70,14 @@ class StateManager extends EventEmitter {
     }
 
     async _watch() {
+        this._etcd.watcher.on('error', (err, path) => {
+            log.error(`etcd watcher for ${path} error: ${err.message}`, { component }, err);
+            process.exit(1);
+        });
         await this._etcd.algorithms.builds.watch();
         await this._etcd.jobs.results.watch();
         await this._etcd.jobs.status.watch();
+
         this._etcd.jobs.results.on('change', result => {
             this.emit('job-result-change', result);
             this._failedHealthcheckCount = 0;
@@ -112,6 +117,12 @@ class StateManager extends EventEmitter {
             kind,
             sort: { created: sort },
             limit
+        });
+    }
+
+    async searchAlgorithms({ name, kind, algorithmImage, pending, cursor, page, sort, limit, fields } = {}) {
+        return this._db.algorithms.searchApi({
+            name, kind, algorithmImage, isPending: pending, cursor, page, sort, limit, fields
         });
     }
 

@@ -24,13 +24,13 @@ class InternalService {
     async runStoredSubPipeline(options) {
         validator.internal.validateStoredSubPipeline(options);
         const { pipeline, rootJobId, parentSpan } = await this._createPipeline(options);
-        return execution._runStored({ pipeline, rootJobId, mergeFlowInput: true, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.SUB_PIPELINE] });
+        return execution._runStored({ pipeline, rootJobId, mergeFlowInput: true, parentSpan, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.SUB_PIPELINE] });
     }
 
     async runRawSubPipeline(options) {
         validator.internal.validateRawSubPipeline(options);
-        const { pipeline, rootJobId, parentSpan } = await this._createPipeline(options);
-        return execution._runPipeline({ pipeline, rootJobId, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE] });
+        const { pipeline, rootJobId, spanId: parentSpan } = await this._createPipeline(options);
+        return execution._runPipeline({ pipeline, rootJobId, parentSpan, types: [pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE] });
     }
 
     async _createPipeline(options) {

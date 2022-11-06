@@ -19,12 +19,12 @@ const PausedState = [pipelineStatuses.PAUSED];
 class ExecutionService {
     async runRaw(options) {
         validator.executions.validateRunRawPipeline(options);
-        return this._runPipeline({ pipeline: options, types: [pipelineTypes.RAW] });
+        return this._runPipeline({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.RAW] });
     }
 
     async runStored(options) {
         validator.executions.validateRunStoredPipeline(options);
-        return this._runStored({ pipeline: options, types: [pipelineTypes.STORED] });
+        return this._runStored({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.STORED] });
     }
 
     async runCaching(options) {
@@ -36,6 +36,15 @@ class ExecutionService {
         }
         const { jobId, startTime, lastRunResult, ...restPipeline } = pipeline;
         const debugNode = options.debug ? options.nodeName : null;
+        // add debug node if needed
+        if (debugNode) {
+            let debugOverrides = restPipeline.options.debugOverride || [];
+            debugOverrides = debugOverrides.filter(v => restPipeline.nodes.find(n => n.nodeName === v));
+            if (!debugOverrides.includes(debugNode)) {
+                debugOverrides.push(debugNode);
+            }
+            restPipeline.options.debugOverride = debugOverrides;
+        }
         const types = [...pipeline.types, pipelineTypes.NODE];
         return this._runPipeline({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types, debugNode });
     }
@@ -80,13 +89,13 @@ class ExecutionService {
             }
             return undefined;
         });
-        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, options: { parentSpan }, types });
+        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, parentSpan, types });
     }
 
     async _runPipeline(payload) {
-        const { pipeline, rootJobId, options, types, debugNode } = payload;
+        const { pipeline, rootJobId, options, parentSpan, types } = payload;
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
-        const { parentSpan, validateNodes } = options || {};
+        const { validateNodes } = options || {};
         let extendedPipeline = restPipeline;
         const userPipeline = cloneDeep(extendedPipeline);
 
@@ -97,7 +106,7 @@ class ExecutionService {
             validator.pipelines.validatePipelineNodes(extendedPipeline);
             const maxExceeded = await validator.executions.validateConcurrentPipelines(extendedPipeline);
             extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(extendedPipeline);
-            extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline, debugNode);
+            extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline);
             extendedPipeline = await pipelineCreator.updateOutput(extendedPipeline, jobId);
             extendedPipeline = await pipelineCreator.updateOptimize(extendedPipeline, jobId);
             const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
@@ -326,6 +335,18 @@ class ExecutionService {
 
     _createJobID() {
         return uid({ length: 12 });
+    }
+
+    async getFlowInputByJobId(jobId) {
+        let flowInput;
+        const pipeline = await stateManager._db.jobs.fetchPipeline({ jobId });
+        if (pipeline?.flowInput) {
+            flowInput = pipeline.flowInput;
+        }
+        else if (!pipeline?.flowInput && pipeline?.flowInputMetadata?.storageInfo) {
+            flowInput = await storageManager.storage.get(pipeline.flowInputMetadata.storageInfo);
+        }
+        return flowInput;
     }
 
     async _getLastPipeline(pipeline) {

@@ -100,9 +100,9 @@ class PipelineCreator {
         return newPipeline;
     }
 
-    async updateDebug(pipeline, debugNode) {
+    async updateDebug(pipeline) {
         for (const node of pipeline.nodes) { // eslint-disable-line
-            if (node.nodeName === debugNode || pipeline.options?.debugOverride?.includes(node.nodeName)) {
+            if (pipeline.options?.debugOverride?.includes(node.nodeName)) {
                 node.kind = nodeKind.Debug;
             }
             if (node.kind === nodeKind.Debug) {
@@ -196,8 +196,12 @@ class PipelineCreator {
                 if (!gateways) {
                     gateways = [];
                 }
-                const { nodeName, spec } = node;
-                const { algorithmName, url } = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
+                const { nodeName, spec, stateType: nodeStateType } = node;
+                if (nodeStateType && nodeStateType !== stateType.Stateful) {
+                    throw new InvalidDataError(`Gateway node ${nodeName} stateType must be "stateful". Got ${nodeStateType}`);
+                }
+                const { algorithmName, url, streamKind} = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
+                node.stateType = streamKind;
                 node.algorithmName = algorithmName;
                 gateways.push({ nodeName, url });
             }

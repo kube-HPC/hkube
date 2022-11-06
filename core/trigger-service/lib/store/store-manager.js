@@ -66,6 +66,10 @@ class StateManager extends EventEmitter {
     }
 
     async _watchJobResults() {
+        this._etcd.watcher.on('error', (err, path) => {
+            log.error(`etcd watcher for ${path} error: ${err.message}`, { component }, err);
+            process.exit(1);
+        });
         await this._etcd.jobs.results.watch();
         this._etcd.jobs.results.on(Events.CHANGE, async (result) => {
             this.emit(Events.RESULTS, result);

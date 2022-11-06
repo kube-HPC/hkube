@@ -45,7 +45,7 @@ jobs:
       - run: git fetch --prune --unshallow
       - uses: actions/setup-node@v1
         with:
-          node-version: 14.x
+          node-version: 18.x
       - run: ./scripts/beforeInstall.sh
       - run: |
           npm ci
@@ -74,11 +74,7 @@ jobs:
             scripts/runTestAndBuild.sh
           fi
         env: 
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
-          DOCKER_USER: "${{ secrets.DOCKER_USER }}"
-          EXTRA_DOCKER_LOGINS: "${{ secrets.EXTRA_DOCKER_LOGINS }}"
-          EXTRA_PRIVATE_REGISTRIES: "${{ secrets.EXTRA_PRIVATE_REGISTRIES }}"
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       - name: trigger
         if: env.CHANGED
         id: trigger

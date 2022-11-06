@@ -3,6 +3,8 @@ const HttpStatus = require('http-status-codes');
 const stateManager = require('../lib/state/state-manager');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
+const { tracer } = require('@hkube/metrics');
+const sinon = require('sinon');
 let restUrl;
 
 describe('Executions', () => {
@@ -26,7 +28,8 @@ describe('Executions', () => {
                             kind: 'algorithm',
                             input: []
                         }
-                    ]
+                    ],
+                    spanId: { "uber-trace-id": "parentTraceId:0:1" }
                 }
             });
             const { jobId } = runResponse.body;
@@ -38,6 +41,41 @@ describe('Executions', () => {
             const createdItem = response.body.find((item) => item.jobId === jobId);
             expect(createdItem).to.exist;
         });
+
+        it('should pass on parent tracing from request', async () => {
+            let spy = sinon.spy(tracer, 'startSpan');
+            const runResponse = await request({
+                uri: restUrl + '/exec/raw',
+                body: {
+                    name: 'exec_pipeline',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            algorithmName: 'green-alg',
+                            kind: 'algorithm',
+                            input: []
+                        }
+                    ],
+                    spanId: { "uber-trace-id": "parentTraceId:0:1" }
+                }
+            });
+            expect(spy.getCalls()[0]['args'][0]['parent']["uber-trace-id"]).to.eq("parentTraceId:0:1");
+            spy.restore();
+            spy = sinon.spy(tracer, 'startSpan');
+            const pipeline = pipelines.find((p) => p.name === 'flow1');
+            const options = {
+                uri: restUrl + '/exec/stored',
+                body: {
+                    name: pipeline.name,
+                    spanId: { "uber-trace-id": "parentTraceId:0:2" }
+                }
+            };
+            const response = await request(options);
+            expect(spy.getCalls()[0]['args'][0]['parent']["uber-trace-id"]).to.eq("parentTraceId:0:2");
+
+
+        });
+
         it('should throw validation error of required property name', async () => {
             const options = {
                 method: 'GET',

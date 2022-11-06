@@ -1,15 +1,18 @@
 const graphlib = require('graphlib');
 const { pipelineTypes } = require('@hkube/consts');
+const { NodesMap } = require('@hkube/dag');
 const validator = require('../validation/api-validator');
 const executionService = require('./execution');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors');
-
+const pipelineCreator = require('./pipeline-creator');
+const graphBuilder = require('../utils/graph-builder');
 class PipelineService {
     async updatePipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
         await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
+        validator.gateways.validateGatewayNodes(options.nodes);
         const newPipeline = {
             modified: Date.now(),
             ...options,
@@ -49,6 +52,20 @@ class PipelineService {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
         return pipeline;
+    }
+
+    async getPipelineGraph(options) {
+        validator.pipelines.validatePipelineName(options.name);
+        const pipeline = await stateManager.getPipeline(options);
+        if (!pipeline) {
+            throw new ResourceNotFoundError('pipeline', options.name);
+        }
+        const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
+
+        const extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(restPipeline);
+        const nodes = new NodesMap(extendedPipeline, { validateNodesRelations: true });
+        const graph = nodes.getJSONGraph();
+        return graphBuilder._filterData(graph);
     }
 
     async getPipelines() {
@@ -103,7 +120,7 @@ class PipelineService {
     async insertPipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
-
+        validator.gateways.validateGatewayNodes(options.nodes);
         const pipeline = await stateManager.getPipeline(options);
         if (pipeline) {
             throw new ResourceExistsError('pipeline', options.name);

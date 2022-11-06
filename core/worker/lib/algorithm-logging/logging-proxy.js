@@ -6,6 +6,7 @@ const component = require('../consts').Components.ALGORUNNER;
 const kubernetes = require('../helpers/kubernetes');
 
 const DELAY = 2;
+const criLogRegex = /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/;
 let log;
 
 class LoggingProxy {
@@ -67,7 +68,15 @@ class LoggingProxy {
         let stream;
         let internalLog;
         let logMessage = rawLine;
-        const logParsed = this._jsonTryParse(rawLine);
+        const match = criLogRegex.exec(logMessage);
+
+        if ((match) !== null) {
+            const { stream: _stream, log: _log } = match.groups;
+            stream = _stream;
+            logMessage = _log;
+        }
+
+        const logParsed = this._jsonTryParse(logMessage);
 
         if (logParsed?.log) {
             const internalParsed = this._jsonTryParse(logParsed.log);
