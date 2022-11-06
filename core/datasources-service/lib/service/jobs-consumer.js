@@ -20,9 +20,9 @@ class JobConsumer {
         this.config = config;
         this.rootDir = getDatasourcesInUseFolder(config);
         await fse.ensureDir(this.rootDir);
-        const { type, prefix } = config.jobs.consumer;
+        const { type, prefix, concurrency } = config.jobs.consumer;
         const consumerSettings = {
-            job: { type, prefix },
+            job: { type, prefix, concurrency },
             setting: {
                 redis: config.redis,
                 prefix,
