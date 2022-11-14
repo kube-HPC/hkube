@@ -36,13 +36,13 @@ describe('graphql jobs', () => {
 
         it('should return specific job ', async () => {
 
-            await stateManager._db.jobs.create({ jobId: `job_${2}`, status: { status: 'pending' }, type: 'stored', pipeline: pipelines[0] });
+            await stateManager._db.jobs.create({ jobId: `job_${2}`, status: { status: 'active' }, type: 'stored', pipeline: pipelines[0] });
             const res = await req(graphqlUrl, jobByNameQuery);
             expect(res.job.key).to.be.eql('job_2');
 
         });
         it('should query job by parameters', async () => {
-            await stateManager._db.jobs.create({ jobId: `job_${2}`, status: { status: 'pending' }, type: 'stored', pipeline: pipelines[0] });
+            await stateManager._db.jobs.create({ jobId: `job_${2}`, status: { status: 'active' }, type: 'stored', pipeline: pipelines[0] });
             const res = await req(graphqlUrl, aggregatedJobQuery);
             expect(res.jobsAggregated.jobs[0].key).to.be.eql('job_2');
             expect(res.jobsAggregated.cursor).to.be.not.null;
