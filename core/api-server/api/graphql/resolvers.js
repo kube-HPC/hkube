@@ -1,5 +1,6 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable default-case */
+const { pipelineStatuses } = require('@hkube/consts');
 const stateManager = require('../../lib/state/state-manager');
 const dbQueires = require('./queries/database-querier');
 const preferedQuerier = require('./queries/prefered-querier');
@@ -105,6 +106,12 @@ class GraphqlResolvers {
     _getQueryResolvers() {
         return {
             jobsAggregated: async (parent, args, context) => {
+                // eslint-disable-next-line no-param-reassign
+                args.pipelineStatus = args.pipelineStatus ? args.pipelineStatus : {
+                    $not: {
+                        $in: [pipelineStatuses.PENDING]
+                    }
+                };
                 context.args = { ...args };
                 const jobs = await this.queryJobs({ ...args });
                 return { jobs: jobs.jobs, cursor: jobs.cursor };
