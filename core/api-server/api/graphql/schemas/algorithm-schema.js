@@ -18,6 +18,7 @@ type Algorithm {
   cpu: String
   created: Float
   entryPoint: String
+  debugUrl: String
   env: String
   gpu: String
   mem: String
