@@ -18,7 +18,7 @@ type JobsForDriver {
   active: Boolean
   pipelineName: String
 }
-  type Workers { total: Int stats: [String ] }
+  type Workers { total: Int stats: [Stats] }
 
   type Labels { 
     betaubernetesioarch: String
