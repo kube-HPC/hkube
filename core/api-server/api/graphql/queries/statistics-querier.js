@@ -81,7 +81,7 @@ class NodesStatistics {
         const algorithmsData = [];
 
         const getMetric = (mtr, algorithm) => {
-            const rawMetric = algorithm[mtr];
+            const rawMetric = algorithm[mtr] ? algorithm[mtr] : 0;
             if (mtr === 'mem') {
                 return parse.getMemoryInMi(rawMetric);
             }

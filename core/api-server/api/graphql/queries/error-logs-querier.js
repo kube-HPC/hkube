@@ -21,7 +21,12 @@ class ErrorLogsQuerier {
     async getLogs(start = 0, end = 99) {
         try {
             const logs = await this._client.lrange(LOGS_PREFIX, start, end) || [];
-            const msgs = logs.map(l => JSON.parse(l));
+            const msgs = logs.map(l => JSON.parse(l)).map(l => {
+                if ((typeof l.message) !== 'string') {
+                    // eslint-disable-next-line no-param-reassign
+                    l.message = JSON.stringify(l.message);
+                } return l;
+            });
             return msgs;
         }
         catch (error) {
