@@ -98,7 +98,6 @@ class LoggingProxy {
             else {
                 internalLog = { parsedMessage: logParsed };
             }
-
         }
         return { logMessage, stream, internalLog };
     }
