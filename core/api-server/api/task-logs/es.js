@@ -16,7 +16,8 @@ class EsLogs {
                 host: options.elasticSearch.url,
                 enableLivenessCheck: false,
                 keepAlive: false,
-                livenessCheckInterval: -1
+                livenessCheckInterval: -1,
+                token: options.token
             });
             this._type = options.elasticSearch.type;
             this._index = options.elasticSearch.index;
