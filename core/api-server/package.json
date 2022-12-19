@@ -1,6 +1,6 @@
 {
     "name": "api-server",
-    "version": "2.5.4",
+    "version": "2.5.5",
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
@@ -8,7 +8,7 @@
         "@hkube/config": "^2.0.11",
         "@hkube/consts": "^1.0.39",
         "@hkube/dag": "^2.1.25",
-        "@hkube/db": "^2.0.10",
+        "@hkube/db": "^2.0.11",
         "@hkube/elastic-client": "^1.0.1",
         "@hkube/etcd": "^5.1.10",
         "@hkube/healthchecks": "^1.0.2",
