@@ -13,7 +13,7 @@ class EsLogs {
     async init(options) {
         try {
             this._client = new ElasticClient({
-                host: options.elasticSearch.url,
+                node: options.elasticSearch.url,
                 enableLivenessCheck: false,
                 keepAlive: false,
                 livenessCheckInterval: -1,

@@ -9,7 +9,7 @@
         "@hkube/consts": "^1.0.39",
         "@hkube/dag": "^2.1.25",
         "@hkube/db": "^2.0.11",
-        "@hkube/elastic-client": "^1.0.1",
+        "@hkube/elastic-client": "^1.0.3",
         "@hkube/etcd": "^5.1.10",
         "@hkube/healthchecks": "^1.0.2",
         "@hkube/kubernetes-client": "^2.0.6",
