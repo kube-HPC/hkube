@@ -1,4 +1,5 @@
 const semverLib = require('semver');
+const {  errorsCode } = require('@hkube/consts');
 const asyncQueue = require('async.queue');
 const { uid } = require('@hkube/uid');
 const validator = require('../validation/api-validator');
@@ -61,6 +62,11 @@ class AlgorithmVersions {
                 throw new ActionNotAllowed(`there are ${runningPipelines.length} running pipelines which dependent on "${options.name}" algorithm`, runningPipelines.map(p => p.jobId));
             }
         }
+
+        if (algorithmVersion.algorithm.errors != null) {
+            algorithmVersion.algorithm.errors = algorithmVersion.algorithm?.errors.filter(x => x !== errorsCode.NOT_LAST_VERSION_ALGORITHM);
+        }
+
         await stateManager.updateAlgorithm(algorithmVersion.algorithm);
         return algorithmVersion;
     }

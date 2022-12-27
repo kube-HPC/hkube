@@ -39,7 +39,7 @@ class AlgorithmStore {
 
             // try to apply last version
             try {
-                await versionsService.applyVersion({ name, version: version.version });
+                await versionsService.applyVersion({ name, version });
                 if (versions.length === 0) {
                     stateManager.updateAlgorithm({ ...newAlgorithm, version });
                 }
