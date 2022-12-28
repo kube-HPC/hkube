@@ -1,10 +1,11 @@
 const merge = require('lodash.merge');
+
 const isEqual = require('lodash.isequal');
 const cloneDeep = require('lodash.clonedeep');
 const format = require('string-template');
 const unitsConverter = require('@hkube/units-converter');
 const storageManager = require('@hkube/storage-manager');
-const { buildTypes } = require('@hkube/consts');
+const { buildTypes, errorsCode } = require('@hkube/consts');
 const executionService = require('./execution');
 const stateManager = require('../state/state-manager');
 const buildsService = require('./builds');
@@ -36,8 +37,17 @@ class AlgorithmStore {
             const newAlgorithm = merge({}, algorithm, { algorithmImage, options: { pending: false } });
             const version = await versionsService.createVersion(newAlgorithm, buildId);
 
-            if (versions.length === 0) {
-                await stateManager.updateAlgorithm({ ...newAlgorithm, version });
+            // try to apply last version
+            try {
+                await versionsService.applyVersion({ name, version });
+                if (versions.length === 0) {
+                    stateManager.updateAlgorithm({ ...newAlgorithm, version });
+                }
+            }
+            catch (e) {
+                newAlgorithm.errors = newAlgorithm.errors || []; // error version is not last
+                newAlgorithm.errors.push(errorsCode.NOT_LAST_VERSION_ALGORITHM);
+                stateManager.updateAlgorithm({ ...newAlgorithm, version });
             }
         });
     }
