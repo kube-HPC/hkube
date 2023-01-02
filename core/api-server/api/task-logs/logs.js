@@ -1,3 +1,4 @@
+
 const orderBy = require('lodash.orderby');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { logModes } = require('@hkube/consts');
@@ -10,6 +11,7 @@ class Logs {
         this._sources = new Map();
         this._sources.set(sources.k8s, kubernetes);
         this._sources.set(sources.es, elasticSearch);
+
     }
 
     async init(options) {
@@ -67,7 +69,7 @@ class Logs {
             logsData.podStatus = podStatus.NORMAL;
 
             try {
-                const podData = await this._client.pods.get({ podName });
+                const podData = await kubernetes._client.pods.get({ podName });
                 const currentAlgorunner = podData.body.status.containerStatuses.filter(x => x.name === containers.algorunner);
                 const { terminated, waiting } = currentAlgorunner.state;
 
