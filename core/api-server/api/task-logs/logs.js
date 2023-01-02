@@ -70,7 +70,7 @@ class Logs {
 
             try {
                 const podData = await kubernetes._client.pods.get({ podName });
-                const currentAlgorunner = podData.body.status.containerStatuses.filter(x => x.name === containers.algorunner);
+                const currentAlgorunner = podData.body.status.containerStatuses.filter(x => x.name === containers.algorunner)[0];
                 const { terminated, waiting } = currentAlgorunner.state;
 
                 if (terminated?.reason === 'Error') {
