@@ -48,9 +48,14 @@ class JobConsumer extends EventEmitter {
         this._hotWorker = this._options.hotWorker;
         this._consumer = new Consumer(this._options.jobConsumer);
         this._consumer.register(this._options.jobConsumer);
-        log.info(`registering for job ${this._options.jobConsumer.job.type}`, { component });
 
+        this._onJobInvokedResolver;
+        this._onJobInvoked = new Promise((resolve) => {
+            this._onJobInvokedResolver = resolve;
+        });
+        log.info(`registering for job ${this._options.jobConsumer.job.type}`, { component });
         this._consumer.on('job', async (job) => {
+            this._onJobInvokedResolver();
             if (job.data.status === taskStatuses.PRESCHEDULE) {
                 log.info(`job ${job.data.jobId}, taskId ${job.data.taskId} is in ${job.data.status} mode, calling done...`,
                     { component, jobId: job.data.jobId, taskId: job.data.taskId });
