@@ -232,8 +232,6 @@ class Worker {
                         }
                     };
                     log.error(options.error.message, { component });
-                    await jobConsumer._onJobInvoked;
-                    log.error(options.error.message, { component: Components.ALGORUNNER });
                     await this._endJob(options);
                     this._shouldCheckAlgorithmStatus = false;
                 }
