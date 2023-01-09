@@ -1,4 +1,3 @@
-
 const orderBy = require('lodash.orderby');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { logModes } = require('@hkube/consts');
@@ -11,7 +10,6 @@ class Logs {
         this._sources = new Map();
         this._sources.set(sources.k8s, kubernetes);
         this._sources.set(sources.es, elasticSearch);
-
     }
 
     async init(options) {

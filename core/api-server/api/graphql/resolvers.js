@@ -20,6 +20,19 @@ class GraphqlResolvers {
 
     async queryJob(jobId) {
         const { result, ...job } = await stateManager.getJob({ jobId });
+
+        job.nodes = job.nodes.map(node => {
+            // eslint-disable-next-line no-param-reassign
+            node.input = node.input.map(itemInput => {
+                if (!itemInput.path) {
+                    return { value: itemInput };
+                }
+
+                return itemInput;
+            });
+
+            return node;
+        });
         return { ...job, key: job.jobId, results: result };
     }
 
