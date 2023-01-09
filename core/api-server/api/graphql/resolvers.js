@@ -20,9 +20,8 @@ class GraphqlResolvers {
 
     async queryJob(jobId) {
         const { result, ...job } = await stateManager.getJob({ jobId });
-        if (job.graph.nodes) {
+        if (job.graph?.nodes) {
             job.graph.nodes = job.graph.nodes.map(node => {
-
                 if (node.input) {
                     // eslint-disable-next-line no-param-reassign
                     node.input = node.input.map(itemInput => {
