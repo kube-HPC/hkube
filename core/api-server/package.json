@@ -6,7 +6,7 @@
     "dependencies": {
         "@graphql-tools/schema": "^8.3.10",
         "@hkube/config": "^2.0.11",
-        "@hkube/consts": "^1.0.46",
+        "@hkube/consts": "^1.0.47",
         "@hkube/dag": "^2.1.25",
         "@hkube/db": "^2.0.11",
         "@hkube/elastic-client": "^1.0.0",

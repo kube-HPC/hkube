@@ -28,14 +28,6 @@ const internalLogPrefix = 'wrapper::';
 
 const LOGS_LIMIT = 500;
 
-const podStatus = {
-    NORMAL: 'NORMAL',
-    NO_IMAGE: 'NO_IMAGE',
-    ERROR: 'ERROR',
-    NOT_EXIST: 'NOT_EXIST',
-
-};
-
 module.exports = {
     sources,
     formats,
@@ -44,5 +36,4 @@ module.exports = {
     components,
     internalLogPrefix,
     LOGS_LIMIT,
-    podStatus
 };

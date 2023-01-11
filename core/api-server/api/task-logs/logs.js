@@ -1,10 +1,10 @@
 const orderBy = require('lodash.orderby');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { logModes } = require('@hkube/consts');
+const { logModes, podStatus } = require('@hkube/consts');
 const elasticSearch = require('./es');
 const kubernetes = require('./kubernetes');
 const component = require('../../lib/consts/componentNames').LOGS;
-const { sources, formats, containers, sortOrder, LOGS_LIMIT, podStatus } = require('./consts');
+const { sources, formats, containers, sortOrder, LOGS_LIMIT } = require('./consts');
 class Logs {
     constructor() {
         this._sources = new Map();
@@ -76,12 +76,6 @@ class Logs {
                 }
                 else if (waiting?.reason === 'ImagePullBackOff') {
                     logsData.podStatus = podStatus.NO_IMAGE;
-
-                    logsData.logs = [{
-                        message: [`image ${currentAlgorunner.image} not exist`],
-                        level: 'info',
-                        timestamp: Date.now()
-                    }];
                 }
             }
             catch (e) {
