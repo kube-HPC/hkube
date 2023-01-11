@@ -51,7 +51,9 @@ class KubernetesLogs {
         if (sort === sortOrder.desc) {
             tailLines = limit;
         }
+
         const logsData = await this._client.logs.get({ podName, tailLines, containerName: this.getContainerName(nodeKind) });
+
         return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip });
     }
 

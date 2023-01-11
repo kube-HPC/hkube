@@ -45,7 +45,8 @@ type  Batch {
   output: Output
   input: [NodeInput]
 }
-  type NodeInput { path: String }
+  type NodeInput { path: String ,value : Object}
+
 
   type JobNodes { 
     nodeName: String
@@ -63,7 +64,21 @@ type  Batch {
     batchInfo: BatchInfo
     boards: [String ]
     output: Output
-    input: [NodeInput ] }
+    input: [NodeInput ] 
+  
+    error:String
+    warnings:[String]
+    retries:Int
+    downloadFileExt:String
+    
+  }
+
+  type PipelineForJobNodes { 
+      nodeName: String
+      algorithmName: String
+      input:[Object]
+      kind: String
+  }
 
   type BatchInfo {
     idle: Int
@@ -122,7 +137,7 @@ type  Batch {
     triggers: Triggers
     options: Options
     flowInput: Object
-    nodes: [JobNodes ] 
+    nodes: [PipelineForJobNodes ] 
 }
 
   type UserPipeline { name: String

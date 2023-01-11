@@ -35,5 +35,5 @@ module.exports = {
     containers,
     components,
     internalLogPrefix,
-    LOGS_LIMIT
+    LOGS_LIMIT,
 };
