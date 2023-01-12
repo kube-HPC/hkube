@@ -53,7 +53,10 @@ class Logs {
         logMode = logModes.ALGORITHM,
         pageNum = 0,
         sort = sortOrder.desc,
-        limit = LOGS_LIMIT }) {
+        limit = LOGS_LIMIT,
+        searchWord,
+        taskTime
+    }) {
         let logs = [];
         const logsData = {};
         try {
@@ -96,6 +99,8 @@ class Logs {
                     skip,
                     ageNum: pageNumber,
                     limit: sizeLimit,
+                    searchWord,
+                    taskTime
                 });
                 logs = logs.map(this._format);
                 logs = orderBy(logs, l => l.timestamp, sortOrder.asc);
