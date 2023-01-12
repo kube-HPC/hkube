@@ -57,7 +57,7 @@ class EsLogs {
             }
         }
         if (searchWord) {
-            query.push(searchWord);
+            query.push(`${searchWord}*`);
         }
 
         const queryString = query.join(' AND ');
