@@ -74,6 +74,7 @@ type JobsForDriver {
     isMaster: Boolean
     workerStartingTime: String
     jobCurrentTime: String
+    jobId: String
     workerPaused: Boolean
     hotWorker: Boolean
     error: String
