@@ -82,6 +82,12 @@ class EsLogs {
             }
         };
 
+        // eslint-disable-next-line no-unused-vars
+        const logsTest = await this._client.search({
+            index: this._index,
+            type: this._type,
+            body
+        });
         // add range date
         if (taskTime) {
             body.query.bool.must.push({
