@@ -28,6 +28,7 @@ class Worker {
         this._isScalingDown = false;
         this._inTerminationMode = false;
         this._shouldCheckAlgorithmStatus = true;
+        this._algorunnerStatusFailAttempts = 0;
         this._checkAlgorithmStatus = this._checkAlgorithmStatus.bind(this);
     }
 
@@ -225,15 +226,18 @@ class Worker {
             else if (reason) {
                 const containerMessage = kubernetes.formatContainerMessage(reason);
                 if (containerMessage.isImagePullErr) {
-                    const options = {
-                        error: {
-                            message: `${message}. ${containerMessage.message}`,
-                            isImagePullErr: true
-                        }
-                    };
-                    log.error(options.error.message, { component });
-                    await this._endJob(options);
-                    this._shouldCheckAlgorithmStatus = false;
+                    this._algorunnerStatusFailAttempts += 1;
+                    if (this._algorunnerStatusFailAttempts > 3) {
+                        const options = {
+                            error: {
+                                message: `${message}. ${containerMessage.message}`,
+                                isImagePullErr: true
+                            }
+                        };
+                        log.error(options.error.message, { component });
+                        await this._endJob(options);
+                        this._shouldCheckAlgorithmStatus = false;
+                    }
                 }
             }
         }
