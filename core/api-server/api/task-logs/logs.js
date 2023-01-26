@@ -54,7 +54,6 @@ class Logs {
         sort = sortOrder.desc,
         limit = LOGS_LIMIT,
         searchWord,
-        taskTime
     }) {
         let logs = [];
         const logsData = {};
@@ -99,7 +98,7 @@ class Logs {
                     ageNum: pageNumber,
                     limit: sizeLimit,
                     searchWord,
-                    taskTime
+
                 });
                 logs = logs.map(this._format);
 
