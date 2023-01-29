@@ -493,6 +493,7 @@ const _createWindow = (currentRequests) => {
  *    2. creating new window from the requests
  */
 const _createRequestsWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
+    // Get list of requests that are quotaGuaranteed, meaning should be handled first.
     const currentRequests = _createRequisite(normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
     const requestsWindow = _createWindow(currentRequests);
     return requestsWindow;
@@ -518,16 +519,22 @@ const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
     return filtered;
 };
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
+    // update the cache of jobs lately created by removing old jobs
     _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
+    // assign created jobs to workers, and list all jobs with no workers.
     const merged = mergeWorkers(normWorkers, normJobs);
+    // filter out algorithm requests that have no such algorithm definition
     const normRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
+    // find workers who's image changed
     const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
+    // subtract the workers which changed from the workers list.
     const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
+    // get a list of workers that should turn 'hot' and be marked as hot.
     const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
+    // get a list of workers that should turn 'cold' and not be marked as hot any longer
     const coolDownWorkers = normalizeColdWorkers(mergedWorkers, algorithmTemplates);
-
     const isCpuPressure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESSURE;
     const isMemoryPressure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESSURE;
     const isResourcePressure = isCpuPressure || isMemoryPressure;
@@ -542,12 +549,20 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const idleWorkers = clonedeep(mergedWorkers.filter(w => _idleWorkerFilter(w)));
     const activeWorkers = clonedeep(mergedWorkers.filter(w => _activeWorkerFilter(w)));
     const pausedWorkers = clonedeep(mergedWorkers.filter(w => _pausedWorkerFilter(w)));
+
+    // workers that already have a job created but no worker registered yet.
     const pendingWorkers = clonedeep(merged.extraJobs);
     const jobsCreated = clonedeep(createdJobsList);
 
     _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
+
+    // leave only requests that are not exceeding max workers.
     const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
+
+    // In order to handle request gradually create a sub list (according to prioritization.)
     const requestsWindow = _createRequestsWindow(algorithmTemplates, maxFilteredRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
+
+    // Add requests for hot workers as well
     const totalRequests = normalizeHotRequests(requestsWindow, algorithmTemplates);
 
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
@@ -555,7 +570,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // const workerTypes = calcRatio(mergedWorkers);
     // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
     // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
-    // cut requests based on ratio
+    // cut requests based on ratio, since totalCapacityNow should grow gradually, we cut some of the requests, we do it according to their ratio of all requests.
     const cutRequests = [];
     totalRequests.forEach(r => {
         const ratios = calcRatio(cutRequests, totalCapacityNow);
