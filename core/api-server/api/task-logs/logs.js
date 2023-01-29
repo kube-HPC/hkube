@@ -1,4 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
+const orderBy = require('lodash.orderby');
 const { logModes, podStatus } = require('@hkube/consts');
 const elasticSearch = require('./es');
 const kubernetes = require('./kubernetes');
@@ -102,7 +103,7 @@ class Logs {
                     taskTime
                 });
                 logs = logs.map(this._format);
-
+                logs = orderBy(logs, l => l.timestamp, sortOrder.desc);
                 logsData.logs = logs;
             }
         }
