@@ -52,14 +52,13 @@ class AlgorithmStore {
                 const oldAlgorithm = await stateManager.getAlgorithm({ name });
 
                 // set error version is not last
-                oldAlgorithm.errors = algorithm.errors || [];
+                oldAlgorithm.errors = oldAlgorithm.errors || [];
 
                 oldAlgorithm.errors.push(errorsCode.NOT_LAST_VERSION_ALGORITHM);
 
                 // update Algorithm and no create new version
                 stateManager.updateAlgorithm(oldAlgorithm);
             }
-
         });
     }
 
