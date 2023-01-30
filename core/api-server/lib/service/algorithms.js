@@ -47,7 +47,7 @@ class AlgorithmStore {
             catch (e) {
                 newAlgorithm.errors = newAlgorithm.errors || []; // error version is not last
                 newAlgorithm.errors.push(errorsCode.NOT_LAST_VERSION_ALGORITHM);
-                stateManager.updateAlgorithm({ ...newAlgorithm, version });
+                stateManager.updateAlgorithm(newAlgorithm); // no create new version
             }
         });
     }
