@@ -37,9 +37,6 @@ class AlgorithmStore {
             const newAlgorithm = merge({}, algorithm, { algorithmImage, options: { pending: false } });
             const version = await versionsService.createVersion(newAlgorithm, buildId);
 
-            // try to apply last version
-            await versionsService.applyVersion({ name, version });
-
             // check if running pipelines
             const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
 
@@ -57,7 +54,9 @@ class AlgorithmStore {
                 oldAlgorithm.errors.push(errorsCode.NOT_LAST_VERSION_ALGORITHM);
 
                 // update Algorithm and no create new version
-                stateManager.updateAlgorithm(oldAlgorithm);
+
+                const OldAlgorithmVersion = await stateManager.getVersion({ version: oldAlgorithm.version });
+                stateManager.updateAlgorithm({ ...oldAlgorithm, version: OldAlgorithmVersion });
             }
         });
     }
