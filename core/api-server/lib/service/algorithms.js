@@ -54,9 +54,7 @@ class AlgorithmStore {
                 oldAlgorithm.errors.push(errorsCode.NOT_LAST_VERSION_ALGORITHM);
 
                 // update Algorithm and no create new version
-
-                const OldAlgorithmVersion = await stateManager.getVersion({ version: oldAlgorithm.version });
-                stateManager.updateAlgorithm({ ...oldAlgorithm, version: OldAlgorithmVersion });
+                stateManager.updateAlgorithm(oldAlgorithm);
             }
         });
     }
