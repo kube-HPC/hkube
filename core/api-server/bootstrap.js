@@ -50,6 +50,7 @@ class Bootstrap {
                 await tracer.init(config.tracer);
             }
             for (const m of modules) {
+                console.log(m)
                 await m.init(config);
             }
             if (config.healthchecks.enabled) {
