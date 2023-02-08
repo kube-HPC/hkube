@@ -1,4 +1,5 @@
 const path = require('path');
+const { errorsCode } = require('@hkube/consts');
 const merge = require('lodash.merge');
 const crypto = require('crypto');
 const format = require('string-template');
@@ -14,6 +15,7 @@ const stateManager = require('../state/state-manager');
 const Build = require('./build');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
+
 const gitDataAdapter = require('./githooks/git-data-adapter');
 const component = require('../consts/componentNames').BUILDS_SERVICE;
 const ActiveStates = [buildStatuses.PENDING, buildStatuses.CREATING, buildStatuses.ACTIVE];
@@ -106,7 +108,7 @@ class Builds {
         return ActiveStates.includes(state);
     }
 
-    async tryToCreateBuild(oldAlgorithm, newAlgorithm, file, forceBuild, messages) {
+    async tryToCreateBuild(oldAlgorithm, newAlgorithm, file, forceBuild, messages, messagesCode) {
         let fileInfo;
         let gitRepository;
         let buildId;
@@ -124,9 +126,11 @@ class Builds {
         }
         if (fileInfo || gitRepository) {
             validator.builds.validateAlgorithmBuild({ fileExt: fileInfo?.fileExt, env: newAlgorithm.env });
-            const { message, shouldBuild } = this._shouldBuild(oldAlgorithm, newAlgorithm, forceBuild, file);
+            const { message, shouldBuild, messageCode } = this._shouldBuild(oldAlgorithm, newAlgorithm, forceBuild, file);
+
             log.info(message, { component });
             messages.push(message);
+            messagesCode.push(messageCode);
             if (shouldBuild) {
                 const build = new Build({
                     env: newAlgorithm.env,
@@ -197,13 +201,16 @@ class Builds {
     _shouldBuild(oldAlgorithm, newAlgorithm, forceBuild, file) {
         let shouldBuild = false;
         let message;
+        let messagesCode;
         if (forceBuild) {
             shouldBuild = true;
             message = MESSAGES.FORCE_BUILD;
+            messagesCode = errorsCode.FORCE_BUILD;
         }
         else if (!oldAlgorithm) {
             shouldBuild = true;
             message = MESSAGES.FIRST_BUILD;
+            messagesCode = errorsCode.FIRST_BUILD;
         }
         else {
             const oldAlg = this._formatDiff(oldAlgorithm);
@@ -212,13 +219,15 @@ class Builds {
             if (differences) {
                 const triggers = differences.map(d => `${d.path.join('.')}`).join(',');
                 message = format(MESSAGES.TRIGGER_BUILD, { triggers });
+                messagesCode = errorsCode.TRIGGER_BUILD;
                 shouldBuild = true;
             }
             else if (file?.path) {
                 message = MESSAGES.NO_TRIGGER_FOR_BUILD;
+                messagesCode = errorsCode.NO_TRIGGER_FOR_BUILD;
             }
         }
-        return { message, shouldBuild };
+        return { message, messagesCode, shouldBuild };
     }
 
     _formatDiff(algorithm) {

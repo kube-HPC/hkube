@@ -189,6 +189,7 @@ class AlgorithmStore {
      */
     async applyAlgorithm(data) {
         const messages = [];
+        const messagesCode = [];
         const { forceUpdate, forceBuild } = data.options || {};
         const { version, created, modified, ...payload } = data.payload;
         const file = { path: data.file?.path, name: data.file?.originalname };
@@ -209,7 +210,7 @@ class AlgorithmStore {
         }
         await this._validateAlgorithm(newAlgorithm);
         const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
-        const buildId = await buildsService.tryToCreateBuild(oldAlgorithm, newAlgorithm, file, forceBuild, messages);
+        const buildId = await buildsService.tryToCreateBuild(oldAlgorithm, newAlgorithm, file, forceBuild, messages, messagesCode);
 
         this._validateApplyParams(newAlgorithm);
         if (!newAlgorithm.algorithmImage && buildId && !oldAlgorithm) {
@@ -225,6 +226,7 @@ class AlgorithmStore {
         if (newVersion) {
             newAlgorithm.version = newVersion;
             messages.push(format(MESSAGES.VERSION_CREATED, { algorithmName: newAlgorithm.name }));
+            messagesCode.push(errorsCode.VERSION_CREATED);
         }
 
         const hasVersion = !!newVersion || buildId;
@@ -233,9 +235,10 @@ class AlgorithmStore {
 
         if (shouldStoreOverride || shouldStoreFirstApply) {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
+            messagesCode.push(errorsCode.ALGORITHM_PUSHED);
             await stateManager.updateAlgorithm(newAlgorithm);
         }
-        return { buildId, messages, algorithm: newAlgorithm };
+        return { buildId, messages, messagesCode, algorithm: newAlgorithm };
     }
 
     _compareAlgorithms(oldAlgorithm, newAlgorithm) {
@@ -257,7 +260,7 @@ class AlgorithmStore {
 
     _validateApplyParams(newAlgorithm) {
         if (!newAlgorithm.algorithmImage && !newAlgorithm.fileInfo && !newAlgorithm.gitRepository) {
-            throw new InvalidDataError(MESSAGES.APPLY_ERROR);
+            throw new InvalidDataError(`${MESSAGES.APPLY_ERROR} ${errorsCode.APPLY_ERROR}`);
         }
     }
 
