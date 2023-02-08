@@ -124,7 +124,7 @@ class Builds {
         }
         if (fileInfo || gitRepository) {
             validator.builds.validateAlgorithmBuild({ fileExt: fileInfo?.fileExt, env: newAlgorithm.env });
-            const { message, shouldBuild } = this._shouldBuild(oldAlgorithm, newAlgorithm, forceBuild);
+            const { message, shouldBuild } = this._shouldBuild(oldAlgorithm, newAlgorithm, forceBuild, file);
             log.info(message, { component });
             messages.push(message);
             if (shouldBuild) {
@@ -194,7 +194,7 @@ class Builds {
         });
     }
 
-    _shouldBuild(oldAlgorithm, newAlgorithm, forceBuild) {
+    _shouldBuild(oldAlgorithm, newAlgorithm, forceBuild, file) {
         let shouldBuild = false;
         let message;
         if (forceBuild) {
@@ -214,7 +214,7 @@ class Builds {
                 message = format(MESSAGES.TRIGGER_BUILD, { triggers });
                 shouldBuild = true;
             }
-            else {
+            else if (file?.path) {
                 message = MESSAGES.NO_TRIGGER_FOR_BUILD;
             }
         }
