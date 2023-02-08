@@ -201,16 +201,16 @@ class Builds {
     _shouldBuild(oldAlgorithm, newAlgorithm, forceBuild, file) {
         let shouldBuild = false;
         let message;
-        let messagesCode;
+        let messageCode;
         if (forceBuild) {
             shouldBuild = true;
             message = MESSAGES.FORCE_BUILD;
-            messagesCode = errorsCode.FORCE_BUILD;
+            messageCode = errorsCode.FORCE_BUILD;
         }
         else if (!oldAlgorithm) {
             shouldBuild = true;
             message = MESSAGES.FIRST_BUILD;
-            messagesCode = errorsCode.FIRST_BUILD;
+            messageCode = errorsCode.FIRST_BUILD;
         }
         else {
             const oldAlg = this._formatDiff(oldAlgorithm);
@@ -219,15 +219,15 @@ class Builds {
             if (differences) {
                 const triggers = differences.map(d => `${d.path.join('.')}`).join(',');
                 message = format(MESSAGES.TRIGGER_BUILD, { triggers });
-                messagesCode = errorsCode.TRIGGER_BUILD;
+                messageCode = errorsCode.TRIGGER_BUILD;
                 shouldBuild = true;
             }
             else if (file?.path) {
                 message = MESSAGES.NO_TRIGGER_FOR_BUILD;
-                messagesCode = errorsCode.NO_TRIGGER_FOR_BUILD;
+                messageCode = errorsCode.NO_TRIGGER_FOR_BUILD;
             }
         }
-        return { message, messagesCode, shouldBuild };
+        return { message, messageCode, shouldBuild };
     }
 
     _formatDiff(algorithm) {
