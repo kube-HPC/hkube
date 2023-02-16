@@ -522,7 +522,15 @@ const runBuild = async (options) => {
     const { data, warnings, errors } = _analyzeErrors(result.output, error);
     await _removeFolder({ folder: buildPath });
     const status = errors ? STATES.FAILED : STATES.COMPLETED;
-    await _setBuildStatus({ buildId, algorithmName, algorithmImage: result.algorithmImage, buildMode, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
+    try {
+        await _setBuildStatus({ buildId, algorithmName, algorithmImage: result.algorithmImage, buildMode, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
+    }
+    catch (e) {
+        error = e.message;
+        trace = e.stack;
+        log.error(e.message, { component }, e);
+        await _setBuildStatus({ buildId, algorithmName, algorithmImage: result.algorithmImage, buildMode, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
+    }
     return { buildId, error, status, result: { data, warnings, errors } };
 };
 
