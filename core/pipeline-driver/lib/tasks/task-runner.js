@@ -196,8 +196,8 @@ class TaskRunner {
         this.pipeline = pipeline;
         this._isStreaming = pipeline.kind === pipelineKind.Stream;
 
-        this.pipeline.nodes.forEach((n) => {
-            const algorithm = stateManager.getAlgorithmsByName(n.algorithmName);
+        this.pipeline.nodes.forEach(async (n) => {
+            const algorithm = await stateManager.getAlgorithmsByName(n.algorithmName);
             n.algorithmVersion = algorithm.version;
         });
 
