@@ -224,10 +224,10 @@ class TaskRunner {
             this._runEntryNodes();
         }
 
-      //  this._nodes.forEach((n) => {
-     //       const algorithm = stateManager.getAlgorithmsByName(n.algorithmName);
-     //       n.algorithmVersion = algorithm.version;
-     //   });
+        this._nodes._graph._nodes.forEach((n) => {
+            const algorithm = stateManager.getAlgorithmsByName(n.algorithmName);
+            n.algorithmVersion = algorithm.version;
+        });
 
         await this._graphStore.start(job.data.jobId, this._nodes);
         return this.pipeline;
