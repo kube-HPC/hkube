@@ -193,10 +193,13 @@ class TaskRunner {
         await stateManager.updatePipeline({ jobId, activeTime });
         this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);
 
-        pipeline.nodes.foreach(async (n, index) => {
-            const algorithm = await stateManager.getAlgorithmsByName(n.algorithmName);
-            pipeline.nodes[index].algorithmVersion = algorithm.version;
-        });
+        const nodesModifiedArr = await Promise.all(pipeline.nodes.map(async node => {
+            const algorithm = await stateManager.getAlgorithmsByName(node.algorithmName);
+            node.algorithmVersion = algorithm.version;
+            return node;
+        }));
+
+        pipeline.nodes = nodesModifiedArr;
 
         this.pipeline = pipeline;
         this._isStreaming = pipeline.kind === pipelineKind.Stream;
