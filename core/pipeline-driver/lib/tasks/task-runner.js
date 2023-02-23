@@ -195,6 +195,12 @@ class TaskRunner {
 
         this.pipeline = pipeline;
         this._isStreaming = pipeline.kind === pipelineKind.Stream;
+
+        this.pipeline.nodes.forEach((n) => {
+            const algorithm = stateManager.getAlgorithmsByName(n.algorithmName);
+            n.algorithmVersion = algorithm.version;
+        });
+
         this._nodes = new NodesMap(this.pipeline, { validateNodesRelations: !this._isCachedPipeline });
         this._nodes.on('node-ready', (node) => {
             this._runNode(node.nodeName, node.parentOutput, node.index);
@@ -223,11 +229,6 @@ class TaskRunner {
             await this._watchTasks();
             this._runEntryNodes();
         }
-
-        this._nodes._graph._nodes.forEach((n) => {
-            const algorithm = stateManager.getAlgorithmsByName(n.algorithmName);
-            n.algorithmVersion = algorithm.version;
-        });
 
         await this._graphStore.start(job.data.jobId, this._nodes);
         return this.pipeline;
