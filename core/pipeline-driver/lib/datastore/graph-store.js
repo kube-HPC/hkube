@@ -118,6 +118,7 @@ class GraphStore {
         const node = {
             nodeName: n.nodeName,
             algorithmName: n.algorithmName,
+            algorithmVersion: n.algorithmVersion,
             ...this._mapTask(n)
         };
         return node;
