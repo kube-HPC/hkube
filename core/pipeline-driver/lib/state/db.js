@@ -44,6 +44,10 @@ class DB {
         await this._db.jobs.create({ jobId, pipeline, status });
     }
 
+    async getAlgorithmsByName(name) {
+        return this._db.algorithms.fetch({ name });
+    }
+
     _wrapJobsService() {
         ['updateResult', 'updateStatus', 'fetchStatus', 'fetchPipeline', 'updatePipeline', 'createJob'].forEach(propertyName => {
             if (typeof this._db.jobs[propertyName] === 'function') {
