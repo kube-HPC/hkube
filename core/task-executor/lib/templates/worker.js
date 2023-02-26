@@ -363,20 +363,19 @@ const gatewayEnv = {
 const hyperparamsTunerEnv = {
     SHARED_METRICS: '/hkube/datasciencemetrics-storage'
 };
-const logVolumes = [
-    {
-        name: 'varlog',
-        hostPath: {
-            path: '/var/log'
-        }
-    },
-    {
-        name: 'varlibdockercontainers',
-        hostPath: {
-            path: '/var/lib/docker/containers'
-        }
+
+const varLog = {
+    name: 'varlog',
+    hostPath: {
+        path: '/var/log'
     }
-];
+};
+const varlibdockercontainers = {
+    name: 'varlibdockercontainers',
+    hostPath: {
+        path: '/var/lib/docker/containers'
+    }
+};
 
 const algoMetricVolume = {
     name: 'algometrics',
@@ -391,22 +390,21 @@ const sharedVolumeMounts = [
 ];
 const sharedMetricsVolumeMount = { name: 'dsmetrics', mountPath: '/var/ds-metrics' };
 
-const logVolumeMounts = [
-    {
-        name: 'varlog',
-        mountPath: '/var/log'
-    },
-    {
-        name: 'varlibdockercontainers',
-        mountPath: '/var/lib/docker/containers',
-        readOnly: true
-    }
-];
-
+const varlogMount = {
+    name: 'varlog',
+    mountPath: '/var/log'
+};
+const varlibdockercontainersMount = {
+    name: 'varlibdockercontainers',
+    mountPath: '/var/lib/docker/containers',
+    readOnly: true
+};
 module.exports = {
     workerTemplate,
-    logVolumes,
-    logVolumeMounts,
+    varlogMount,
+    varlibdockercontainersMount,
+    varLog,
+    varlibdockercontainers,
     sharedVolumeMounts,
     sharedMetricsVolumeMount,
     algoMetricVolume,

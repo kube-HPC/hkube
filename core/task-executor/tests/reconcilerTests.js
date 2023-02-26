@@ -11,7 +11,7 @@ const awsSecretAccessKey = { name: 'AWS_SECRET_ACCESS_KEY', valueFrom: { secretK
 const s3EndpointUrl = { name: 'S3_ENDPOINT_URL', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsEndpointUrl' } } };
 const fsVolumes = { name: 'storage-volume', persistentVolumeClaim: { claimName: 'hkube-storage-pvc' } };
 const fsVolumeMounts = { name: 'storage-volume', mountPath: '/hkubedata' };
-const { logVolumes, logVolumeMounts } = require('../lib/templates/index');
+const { workerTemplate, varlogMount, varlibdockercontainersMount, varLog, varlibdockercontainers, } = require('../lib/templates/index');
 const { settings: globalSettings } = require('../lib/helpers/settings');
 const resources = require('./stub/resources');
 
@@ -644,10 +644,10 @@ describe('reconciler', () => {
             });
             expect(res).to.exist;
             expect(callCount('createJob').length).to.eql(1);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.include(logVolumeMounts[0]);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.include(logVolumeMounts[1]);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(logVolumes[0]);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(logVolumes[1]);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.include(varlogMount);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.include(varlibdockercontainersMount);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(varLog);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(varlibdockercontainers);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext.privileged).to.be.true;
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env
                 .find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
@@ -686,10 +686,10 @@ describe('reconciler', () => {
             });
             expect(res).to.exist;
             expect(callCount('createJob').length).to.eql(1);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.not.include(logVolumeMounts[0]);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.not.include(logVolumeMounts[1]);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.not.include(logVolumes[0]);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.not.include(logVolumes[1]);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.not.include(varlogMount);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.not.include(varlibdockercontainersMount);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.not.include(varLog);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.not.include(varlibdockercontainers);
 
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext).to.not.exist;
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.be.undefined
@@ -1426,7 +1426,7 @@ describe('reconciler', () => {
         it('should create algorithm that does not use GPU in openshift mode', async () => {
             const algorithm = algorithmTemplates['yellow-alg'];
             const localResources = clone(resources);
-            const localNormResources = normalizeResources({nodes: localResources.nodesNoGpu, pods: localResources.podsGpu});
+            const localNormResources = normalizeResources({ nodes: localResources.nodesNoGpu, pods: localResources.podsGpu });
             const data = [
                 { name: algorithm.name },
             ];

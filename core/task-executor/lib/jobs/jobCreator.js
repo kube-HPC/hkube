@@ -11,7 +11,7 @@ const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
-const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, logVolumes, logVolumeMounts, sharedVolumeMounts, algoMetricVolume } = require('../templates');
+const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, varLog, varlibdockercontainers, varlogMount, varlibdockercontainersMount, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
 
@@ -270,12 +270,14 @@ const applyLogging = (inputSpec, options) => {
     }
 
     spec = applyPrivileged(spec, isPrivileged, CONTAINERS.WORKER);
-    logVolumeMounts.forEach((vm) => {
-        spec = applyVolumeMounts(spec, CONTAINERS.WORKER, vm);
-    });
-    logVolumes.forEach((v) => {
-        spec = applyVolumes(spec, v);
-    });
+    if (options.kubernetes.outputMountPath) {
+        varlibdockercontainersMount.mountPath = options.kubernetes.outputMountPath;
+        varlibdockercontainers.hostPath.path = options.kubernetes.outputMountPath;
+    }
+    spec = applyVolumeMounts(spec, CONTAINERS.WORKER, varlibdockercontainersMount);
+    spec = applyVolumeMounts(spec, CONTAINERS.WORKER, varlogMount);
+    spec = applyVolumes(spec, varlibdockercontainers);
+    spec = applyVolumes(spec, varLog);
     return spec;
 };
 const getJavaMaxMem = (memory) => {
