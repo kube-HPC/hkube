@@ -128,6 +128,7 @@ class GraphStore {
         const node = {
             nodeName: n.nodeName,
             algorithmName: n.algorithmName,
+            algorithmVersion: n.algorithmVersion,
             batch: n.batch.map(b => this._mapTask(b)),
             batchInfo: this._batchInfo(n.batch),
             level: n.level
