@@ -51,6 +51,7 @@ type  Batch {
   type JobNodes { 
     nodeName: String
     algorithmName: String
+    algorithmVersion: String
     taskId: String
     podName: String
     status: String
