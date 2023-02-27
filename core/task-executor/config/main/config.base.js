@@ -17,7 +17,8 @@ config.kubernetes = {
     isPrivileged: formatter.parseBool(process.env.IS_PRIVILEGED, true),
     labels: {
         gpu: process.env.GPU_NODE_SELECTOR_LABEL || 'hkube-gpu'
-    }
+    },
+    outputMountPath: process.env.PODS_OUTPUT_LOG_FOLDER
 };
 
 config.etcd = {
