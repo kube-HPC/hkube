@@ -1,7 +1,6 @@
-const orderBy = require('lodash.orderby');
-const fs = require('fs');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { logModes } = require('@hkube/consts');
+const orderBy = require('lodash.orderby');
+const { logModes, podStatus } = require('@hkube/consts');
 const elasticSearch = require('./es');
 const kubernetes = require('./kubernetes');
 const component = require('../../lib/consts/componentNames').LOGS;
@@ -60,8 +59,12 @@ class Logs {
         logMode = logModes.ALGORITHM,
         pageNum = 0,
         sort = sortOrder.desc,
-        limit = LOGS_LIMIT }) {
+        limit = LOGS_LIMIT,
+        searchWord,
+        taskTime
+    }) {
         let logs = [];
+        const logsData = {};
         try {
             let skip = 0;
             const pageNumber = parseInt(pageNum, 10);
@@ -69,28 +72,55 @@ class Logs {
             if (pageNumber > 0) {
                 skip = (pageNumber - 1) * sizeLimit;
             }
-            const logSource = this._getLogSource(source);
-            logs = await logSource.getLogs({
-                taskId,
-                podName,
-                nodeKind,
-                logMode,
-                sort,
-                skip,
-                pageNum: pageNumber,
-                limit: sizeLimit,
-            });
-            logs = logs.map(this._format);
-            logs = orderBy(logs, l => l.timestamp, sortOrder.asc);
+
+            logsData.podStatus = podStatus.NORMAL;
+
+            try {
+                const podData = await kubernetes._client.pods.get({ podName });
+                const currentAlgorunner = podData.body.status.containerStatuses.filter(x => x.name === containers.algorunner)[0];
+                const { terminated, waiting } = currentAlgorunner.state;
+
+                if (terminated?.reason === 'Error') {
+                    logsData.podStatus = podStatus.ERROR;
+                }
+                else if (waiting?.reason === 'ImagePullBackOff') {
+                    logsData.podStatus = podStatus.NO_IMAGE;
+                }
+            }
+            catch (e) {
+                logsData.podStatus = podStatus.NOT_EXIST;
+            }
+
+            if (source === sources.k8s && logsData.podStatus === podStatus.NOT_EXIST) {
+                logsData.logs = [];
+            }
+            else {
+                const logSource = this._getLogSource(source);
+                logs = await logSource.getLogs({
+                    taskId,
+                    podName,
+                    nodeKind,
+                    logMode,
+                    sort,
+                    skip,
+                    ageNum: pageNumber,
+                    limit: sizeLimit,
+                    searchWord,
+                    taskTime
+                });
+                logs = logs.map(this._format);
+                logs = orderBy(logs, l => l.timestamp, sortOrder.desc);
+                logsData.logs = logs;
+            }
         }
         catch (e) {
             const error = `cannot read logs from ${source}, err: ${e.message}`;
             log.warning(error, { component });
-            logs = [{
+            logsData.logs = [{
                 message: error
             }];
         }
-        return logs;
+        return logsData;
     }
 
     _format(line) {

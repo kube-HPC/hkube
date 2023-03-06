@@ -37,7 +37,7 @@ class EsLogs {
         return search;
     }
 
-    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip }) {
+    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime }) {
         const query = [];
         if (taskId) {
             query.push(`meta.internal.taskId: "${taskId}"`);
@@ -56,6 +56,9 @@ class EsLogs {
             if (searchComponent) {
                 query.push(searchComponent);
             }
+        }
+        if (searchWord) {
+            query.push(`${searchWord}*`);
         }
 
         const queryString = query.join(' AND ');
@@ -79,6 +82,21 @@ class EsLogs {
                 }
             }
         };
+
+        // add range date
+        if (taskTime) {
+            body.query.bool.must.push({
+                range: {
+                    '@timestamp': {
+                        gte: taskTime,
+                        lt: 'now/d'
+                    }
+
+                }
+
+            });
+        }
+
         const logs = await this._client.search({
             index: this._index,
             type: this._type,

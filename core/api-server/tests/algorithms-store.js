@@ -1513,7 +1513,7 @@ describe('Store/Algorithms', () => {
                 expect(get2.body.options.pending).to.eql(true);
                 expect(get3.body.cpu).to.eql(1);
                 expect(get3.body.options.pending).to.eql(false);
-                expect(get4.body.cpu).to.eql(1);
+                expect(get4.body.cpu).to.eql(2);
                 expect(get4.body.options.pending).to.eql(false);
             });
         });

@@ -223,6 +223,7 @@ class TaskRunner {
             await this._watchTasks();
             this._runEntryNodes();
         }
+
         await this._graphStore.start(job.data.jobId, this._nodes);
         return this.pipeline;
     }

@@ -6,11 +6,11 @@ type Logs {
   timestamp: String
   message: String
 }
-type LogsMainType { logs: [Logs ] }
+type LogsMainType { logs: [Logs ],podStatus: String }
 
 extend type Query {
     
-    logsByQuery(podName: String!,taskId:String,source:String,nodeKind:String,logMode:String): [Logs]
+    logsByQuery(podName: String!,taskId:String,source:String,nodeKind:String,logMode:String,searchWord:String, taskTime:String): LogsMainType
 }
 
 `;

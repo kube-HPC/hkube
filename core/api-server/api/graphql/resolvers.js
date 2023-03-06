@@ -20,6 +20,22 @@ class GraphqlResolvers {
 
     async queryJob(jobId) {
         const { result, ...job } = await stateManager.getJob({ jobId });
+        if (job.graph?.nodes) {
+            job.graph.nodes = job.graph.nodes.map(node => {
+                if (node.input) {
+                    // eslint-disable-next-line no-param-reassign
+                    node.input = node.input.map(itemInput => {
+                        if (!itemInput.path) {
+                            return { value: itemInput };
+                        }
+
+                        return itemInput;
+                    });
+                }
+
+                return node;
+            });
+        }
         return { ...job, key: job.jobId, results: result };
     }
 
@@ -64,8 +80,8 @@ class GraphqlResolvers {
     }
 
     async queryLogs(query) {
-        const { taskId, podName, source, nodeKind, logMode, pageNum, sort, limit } = query;
-        const logs = await logsQueries.getLogs({ taskId, podName, source, nodeKind, logMode, pageNum, sort, limit });
+        const { taskId, podName, source, nodeKind, logMode, pageNum, sort, limit, searchWord, taskTime } = query;
+        const logs = await logsQueries.getLogs({ taskId, podName, source, nodeKind, logMode, pageNum, sort, limit, searchWord, taskTime });
         return logs;
     }
 

@@ -293,6 +293,10 @@ class StateManager {
         return db.updatePipeline(options);
     }
 
+    getAlgorithmsByName(options) {
+        return db.getAlgorithmsByName(options);
+    }
+
     async watchTasks(options) {
         return this._etcd.jobs.tasks.watch(options);
     }

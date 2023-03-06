@@ -24,7 +24,7 @@ class PipelinesCleaner extends BaseCleaner {
         const pipelines = await storeManager.getRunningJobs();
         const keys = pipelines.map(p => {
             const now = Date.now();
-            const expirationTime = p.ttl ? moment(p.startTime).add(p.ttl, 'seconds') : null;
+            const expirationTime = p.ttl && p.ttl > 0 ? moment(p.startTime).add(p.ttl, 'seconds') : null;
             const activeExpirationTime = p.activeTime && p.activeTtl ? moment(p.activeTime).add(p.activeTtl, 'seconds') : null;
             let shouldStop = false;
             let reason = 'pipeline expired';

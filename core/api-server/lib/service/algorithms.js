@@ -1,10 +1,11 @@
 const merge = require('lodash.merge');
+
 const isEqual = require('lodash.isequal');
 const cloneDeep = require('lodash.clonedeep');
 const format = require('string-template');
 const unitsConverter = require('@hkube/units-converter');
 const storageManager = require('@hkube/storage-manager');
-const { buildTypes } = require('@hkube/consts');
+const { buildTypes, errorsCode } = require('@hkube/consts');
 const executionService = require('./execution');
 const stateManager = require('../state/state-manager');
 const buildsService = require('./builds');
@@ -36,8 +37,24 @@ class AlgorithmStore {
             const newAlgorithm = merge({}, algorithm, { algorithmImage, options: { pending: false } });
             const version = await versionsService.createVersion(newAlgorithm, buildId);
 
-            if (versions.length === 0) {
-                await stateManager.updateAlgorithm({ ...newAlgorithm, version });
+            // check if running pipelines
+            const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
+
+            // if not versions on this Algorithm or not running pipelines then update Algorithm to new version
+            if (versions.length === 0 || runningPipelines.length === 0) {
+                stateManager.updateAlgorithm({ ...newAlgorithm, version });
+            }
+            else {
+                // get old algorithm by algorithmName
+                const oldAlgorithm = await stateManager.getAlgorithm({ name });
+
+                // set error version is not last
+                oldAlgorithm.errors = oldAlgorithm.errors || [];
+
+                oldAlgorithm.errors.push(errorsCode.NOT_LAST_VERSION_ALGORITHM);
+
+                // update Algorithm and no create new version
+                stateManager.updateAlgorithm(oldAlgorithm);
             }
         });
     }

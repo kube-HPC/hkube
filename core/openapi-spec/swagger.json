@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.4.3",
+    "version": "2.5.0",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -363,7 +363,6 @@
                       "ttl": {
                         "type": "integer",
                         "description": "pipeline time to live in seconds (including pending and active states)",
-                        "minimum": 1,
                         "default": 3600,
                         "example": 3600
                       },
@@ -860,7 +859,6 @@
                       "ttl": {
                         "type": "integer",
                         "description": "pipeline time to live in seconds (including pending and active states)",
-                        "minimum": 1,
                         "default": 3600,
                         "example": 3600
                       },
@@ -2388,7 +2386,6 @@
                         "ttl": {
                           "type": "integer",
                           "description": "pipeline time to live in seconds (including pending and active states)",
-                          "minimum": 1,
                           "default": 3600,
                           "example": 3600
                         },
@@ -2884,7 +2881,6 @@
                         "ttl": {
                           "type": "integer",
                           "description": "pipeline time to live in seconds (including pending and active states)",
-                          "minimum": 1,
                           "default": 3600,
                           "example": 3600
                         },
@@ -9330,7 +9326,6 @@
                         "ttl": {
                           "type": "integer",
                           "description": "pipeline time to live in seconds (including pending and active states)",
-                          "minimum": 1,
                           "default": 3600,
                           "example": 3600
                         },
@@ -10035,7 +10030,6 @@
                           "ttl": {
                             "type": "integer",
                             "description": "pipeline time to live in seconds (including pending and active states)",
-                            "minimum": 1,
                             "default": 3600,
                             "example": 3600
                           },
@@ -10490,7 +10484,6 @@
                       "ttl": {
                         "type": "integer",
                         "description": "pipeline time to live in seconds (including pending and active states)",
-                        "minimum": 1,
                         "default": 3600,
                         "example": 3600
                       },
@@ -10921,7 +10914,6 @@
                         "ttl": {
                           "type": "integer",
                           "description": "pipeline time to live in seconds (including pending and active states)",
-                          "minimum": 1,
                           "default": 3600,
                           "example": 3600
                         },
@@ -11413,7 +11405,6 @@
                       "ttl": {
                         "type": "integer",
                         "description": "pipeline time to live in seconds (including pending and active states)",
-                        "minimum": 1,
                         "default": 3600,
                         "example": 3600
                       },
@@ -11844,7 +11835,6 @@
                         "ttl": {
                           "type": "integer",
                           "description": "pipeline time to live in seconds (including pending and active states)",
-                          "minimum": 1,
                           "default": 3600,
                           "example": 3600
                         },
@@ -21415,7 +21405,6 @@
           "ttl": {
             "type": "integer",
             "description": "pipeline time to live in seconds (including pending and active states)",
-            "minimum": 1,
             "default": 3600,
             "example": 3600
           },
@@ -21750,7 +21739,6 @@
               "ttl": {
                 "type": "integer",
                 "description": "pipeline time to live in seconds (including pending and active states)",
-                "minimum": 1,
                 "default": 3600,
                 "example": 3600
               },
