@@ -11,7 +11,7 @@
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "^1.0.38",
     "@hkube/dag": "^2.1.21",
-    "@hkube/db": "^2.0.7",
+    "@hkube/db": "^2.0.12",
     "@hkube/etcd": "^5.1.9",
     "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
