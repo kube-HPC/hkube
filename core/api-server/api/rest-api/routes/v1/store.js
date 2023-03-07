@@ -72,7 +72,7 @@ const routes = (option) => {
     router.delete('/algorithms/:name', async (req, res) => {
         const { name } = req.params;
         const { force } = req.query;
-        const message = await algorithmStore.deleteAlgorithm({ name, force });
+        const message = await algorithmStore.deleteAlgorithm({ name, force, keepOldVersion: true });
         res.json({ message });
     });
     router.post('/algorithms/apply', upload.single('file'), async (req, res) => {
