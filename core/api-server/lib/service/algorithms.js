@@ -260,7 +260,7 @@ class AlgorithmStore {
 
     _validateApplyParams(newAlgorithm) {
         if (!newAlgorithm.algorithmImage && !newAlgorithm.fileInfo && !newAlgorithm.gitRepository) {
-            throw new InvalidDataError(`${MESSAGES.APPLY_ERROR} ${errorsCode.APPLY_ERROR}`);
+            throw new InvalidDataError(`${MESSAGES.APPLY_ERROR}`);
         }
     }
 
