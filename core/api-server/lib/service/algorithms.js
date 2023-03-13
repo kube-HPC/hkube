@@ -104,7 +104,7 @@ class AlgorithmStore {
 
     async deleteAlgorithm(options) {
         validator.algorithms.validateAlgorithmDelete(options);
-        const { name, force, keepOldVersion } = options;
+        const { name, force, keepOldVersions } = options;
         const algorithm = await stateManager.getAlgorithm({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
@@ -117,7 +117,7 @@ class AlgorithmStore {
             throw new ActionNotAllowed(message, details);
         }
         else {
-            const result = await stateManager.deleteAlgorithm({ name, keepOldVersion });
+            const result = await stateManager.deleteAlgorithm({ name, keepOldVersions });
             const buildPaths = versions.filter(v => v.fileInfo).map(v => v.fileInfo.path);
             await this._deleteAll(buildPaths, (a) => storageManager.delete({ path: a }));
             const pipelineRes = await stateManager.deletePipelines({ names: pipelines.map(p => p.name) });
