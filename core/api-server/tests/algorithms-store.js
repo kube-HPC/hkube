@@ -168,7 +168,7 @@ describe('Store/Algorithms', () => {
             await buildsService.startBuild({ buildId: `${algorithmName}-2`, algorithmName });
 
             const optionsDelete = {
-                uri: `${restPath}/${algorithmName}?force=false`,
+                uri: `${restPath}/${algorithmName}?force=false&keepOldVersions=false`,
                 method: 'DELETE'
             };
             const response = await request(optionsDelete);

@@ -106,8 +106,8 @@ class StateManager extends EventEmitter {
         return this._db.algorithms.fetch(payload);
     }
 
-    async deleteAlgorithm({ name, kind, keepOldVersion }) {
-        return this._db.algorithms.delete({ name, kind, keepOldVersion });
+    async deleteAlgorithm({ name, kind, keepOldVersions }) {
+        return this._db.algorithms.delete({ name, kind, keepOldVersions });
     }
 
     async getAlgorithms({ name, names, kind, sort, limit } = {}) {
