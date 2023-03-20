@@ -6,6 +6,7 @@ const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
 const experiments = require('./experiments.json');
 const stateManager = require('../state/state-manager');
+const versionsService = require('../../lib/service/versions');
 
 class PipelinesUpdater {
     async init(options) {
@@ -147,9 +148,15 @@ class PipelinesUpdater {
 
         for (const algorithm of algorithmList) {
             const versions = await stateManager._etcd.algorithms.versions.list({ name: algorithm.name, limit });
+      
             if (versions.length) {
                 versionsCount += versions.length;
                 await stateManager.createVersions(versions);
+            }
+            else
+            {
+                const newVersion = await versionsService.createVersion(algorithm);
+                await versionsService.applyVersion({ name : algorithm.name, version : newVersion, force : true })
             }
 
             const builds = await stateManager._etcd.algorithms.builds.list({ name: algorithm.name, limit });
