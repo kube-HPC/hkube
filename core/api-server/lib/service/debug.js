@@ -2,6 +2,7 @@ const { nodeKind, buildTypes } = require('@hkube/consts');
 const { InvalidDataError } = require('../errors');
 const stateManager = require('../state/state-manager');
 const AlgorithmBase = require('./algorithmBase');
+const versionsService = require('./versions');
 
 class Debug extends AlgorithmBase {
     init(config) {
@@ -49,7 +50,8 @@ class Debug extends AlgorithmBase {
             },
             maxWorkers: 1
         };
-        await stateManager.updateAlgorithm(algorithm);
+        const version = await versionsService.createVersion(algorithm);
+        await stateManager.updateAlgorithm({ ...algorithm, version });
         return { algorithmName: newAlgName };
     }
 
