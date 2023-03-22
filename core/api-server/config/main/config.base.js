@@ -13,7 +13,10 @@ config.maxStorageFetchKeys = formatter.parseInt(process.env.MAX_STORAGE_FETCH_KE
 config.storageResultsThreshold = process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
 config.defaultAlgorithmReservedMemoryRatio = formatter.parseInt(process.env.DEFAULT_ALGORITHM_RESERVED_MEMORY_RATIO, 0.2);
 const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
-
+config.serviceAccount = {
+    token: process.env.SERVICE_ACCOUNT_TOKEN,
+    tokenPath: process.env.SERVICE_ACCOUNT_TOKEN_PATH || '/var/run/secrets/kubernetes.io/serviceaccount/token'
+}
 config.version = packageJson.version;
 
 config.rest = {

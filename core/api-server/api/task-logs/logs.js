@@ -1,3 +1,4 @@
+const fs = require('fs');
 const log = require('@hkube/logger').GetLogFromContainer();
 const orderBy = require('lodash.orderby');
 const { logModes, podStatus } = require('@hkube/consts');
@@ -13,11 +14,13 @@ class Logs {
     }
 
     async init(options) {
-        const tokenPath = '/var/run/secrets/kubernetes.io/serviceaccount/token';
-        if (fs.existsSync(tokenPath)) {
-            const buffer = fs.readFileSync(tokenPath);
-            // eslint-disable-next-line no-param-reassign
-            options.token = buffer.toString();
+        if (!options.serviceAccount.token) {
+            const { tokenPath } = options.serviceAccount;
+            if (fs.existsSync(tokenPath)) {
+                const buffer = fs.readFileSync(tokenPath);
+                // eslint-disable-next-line no-param-reassign
+                options.token = buffer.toString();
+            }
         }
         elasticSearch.init(options);
         await kubernetes.init(options);
