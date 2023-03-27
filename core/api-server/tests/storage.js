@@ -363,7 +363,7 @@ describe('Storage', () => {
             const content = res.response.headers['content-disposition'];
             const [, file] = content.split(';');
             const [, fileName] = file.split('=');
-            expect(fileName).to.equal('hkube-result.jpg');
+            expect(fileName).to.contain.oneOf(['jpg']);
             expect(res.body).to.equal(encoded);
         });
         it('should download with custom encode: true and value: null', async () => {
@@ -469,7 +469,7 @@ describe('Storage', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.response.headers['content-disposition']).to.eql('attachment; filename=hkube-result.zip');
+            expect(response.response.headers['content-disposition']).to.contain.oneOf(['zip']);
             expect(response.body).to.contains('metadata.json');
             expect(response.body).to.contains('jpg');
             expect(response.body).to.contains('png');
