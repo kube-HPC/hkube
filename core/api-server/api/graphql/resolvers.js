@@ -47,6 +47,10 @@ class GraphqlResolvers {
         return stateManager.getAlgorithm({ name });
     }
 
+    async queryAlgorithmsByVersion(name, version) {
+        return stateManager.getVersion({ name, version });
+    }
+
     async queryExperiments() {
         return dbQueires._getExperiments();
     }
@@ -136,6 +140,9 @@ class GraphqlResolvers {
             experiments: () => this.queryExperiments(),
             algorithmsByName: (parent, args) => {
                 return this.queryAlgorithmsByName(args.name);
+            },
+            algorithmsByVersion: (parent, args) => {
+                return this.queryAlgorithmsByVersion(args.name, args.version);
             },
             nodeStatistics: async () => {
                 const stats = await statisticsQuerier.getStatisticsResults();

@@ -120,7 +120,7 @@ const routes = (options) => {
         const jobId = req.params[0];
         try {
             const stream = await storage.getPipelineResult({ jobId });
-            await downloadApi(res, stream, 'zip');
+            await downloadApi(res, stream, 'zip', jobId);
         }
         catch (e) {
             handleStreamError(e, 'path', res, next);
