@@ -22,16 +22,17 @@ const routes = (options) => {
         const response = await Cron.getCronList({ sort, order, limit });
         res.json(response);
     });
-    router.all('/start', methods(['POST']), async (req, res) => {
+    router.post('/start', async (req, res) => {
         const { name, pattern } = req.body;
         await Cron.startCronJob({ name, pattern });
         res.json({ message: 'OK' });
     });
-    router.all('/stop', methods(['POST']), async (req, res) => {
+    router.post('/stop', async (req, res) => {
         const { name, pattern } = req.body;
         await Cron.stopCronJob({ name, pattern });
         res.json({ message: 'OK' });
     });
+
     return router;
 };
 
