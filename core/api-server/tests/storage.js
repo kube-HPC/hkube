@@ -356,14 +356,14 @@ describe('Storage', () => {
             const path = storageManager.hkube.createPath({ jobId, taskId });
             const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: false } });
             const options = {
-                uri: `${restPath}/${result.path}?ext=jpg`,
+                uri: `${restPath}/${result.path}?ext=jpg&namefile=testAlgorithmName`,
                 method: 'GET'
             };
             const res = await request(options);
             const content = res.response.headers['content-disposition'];
             const [, file] = content.split(';');
             const [, fileName] = file.split('=');
-            expect(fileName).to.contains("hkube-result");
+            expect(fileName).to.contains("testAlgorithmName");
             expect(fileName).to.contains(".jpg");
             expect(res.body).to.equal(encoded);
         });
