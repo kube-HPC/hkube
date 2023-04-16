@@ -107,10 +107,10 @@ const routes = (options) => {
     });
     router.get('/download/custom/*', async (req, res, next) => {
         const path = req.params[0];
-        const { ext } = req.query;
+        const { ext, namefile } = req.query;
         try {
             const stream = await storage.getCustomStream({ path });
-            await downloadApi(res, stream, ext);
+            await downloadApi(res, stream, ext, namefile);
         }
         catch (e) {
             handleStreamError(e, path, res, next);
@@ -118,9 +118,11 @@ const routes = (options) => {
     });
     router.get('/download/pipeline/result/*', async (req, res, next) => {
         const jobId = req.params[0];
+        const { namefile } = req.query;
+
         try {
             const stream = await storage.getPipelineResult({ jobId });
-            await downloadApi(res, stream, 'zip', jobId);
+            await downloadApi(res, stream, 'zip', namefile);
         }
         catch (e) {
             handleStreamError(e, 'path', res, next);
