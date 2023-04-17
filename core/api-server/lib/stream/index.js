@@ -21,7 +21,7 @@ const promisifyStream = (res, stream) => new Promise((resolve, reject) => {
 });
 
 const downloadApi = async (res, stream, ext, name) => {
-    res.setHeader('Content-disposition', `attachment; filename=${name ? `${name}-` : 'hkube-result'}${ext ? `.${ext}` : ''}`);
+    res.setHeader('Content-disposition', `attachment; filename=${name ? `${name}` : 'hkube-result'}${ext ? `.${ext}` : ''}`);
     res.setHeader('Content-type', 'application/octet-stream');
     await promisifyStream(res, stream);
 };
