@@ -1,7 +1,7 @@
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const clonedeep = require('lodash.clonedeep');
-
+const { resourceLog } = require('../service/resourceState');
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
@@ -519,6 +519,8 @@ const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
     return filtered;
 };
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
+    // reset the locally stored log state of unallocated algorithms
+    resourceLog.resetState();
     // update the cache of jobs lately created by removing old jobs
     _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);

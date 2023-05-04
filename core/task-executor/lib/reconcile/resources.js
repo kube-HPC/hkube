@@ -1,5 +1,6 @@
 const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
+const { resourceLog } = require('../service/resourceState');
 const { consts, gpuVendors } = require('../consts');
 const { lessWithTolerance } = require('../helpers/compare');
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
@@ -107,6 +108,11 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule) 
 
 const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     if (totalAdded >= MAX_JOBS_PER_TICK) {
+        const unallocatedAlg = {
+            algorithmName: jobDetails.algorithmName,
+            exceededMaxJobs: true
+        };
+        resourceLog.addResourceLog(unallocatedAlg);
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
     const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
@@ -116,7 +122,19 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     const nodesForSchedule = nodesBySelector.map(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
 
     const availableNode = nodesForSchedule.find(n => n.available);
-    if (!availableNode) {
+    if (!availableNode) {  
+        const memoryIssue = nodesForSchedule.reduce((acc, n) => acc || n.details.mem, false);
+        const cpuIssue = nodesForSchedule.reduce((acc, n) => acc || n.details.cpu, false);
+        const gpuIssue = nodesForSchedule.reduce((acc, n) => acc || n.details.gpu, false);      
+        const unallocatedAlg = {
+            algorithmName: jobDetails.algorithmName,
+            missingResources: {
+                memory: memoryIssue,
+                cpu: cpuIssue,
+                gpu: gpuIssue
+            }
+        };
+        resourceLog.addResourceLog(unallocatedAlg);
         const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
         const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule);
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
@@ -253,6 +271,7 @@ const pauseAccordingToResources = (stopDetails, availableResources, skippedReque
 };
 
 const matchJobsToResources = (createDetails, availableResources, scheduledRequests = []) => {
+    resourceLog.resetState(); // Reset the state of resourceLogs for the whole iteration of TaskExecutor
     const created = [];
     const skipped = [];
     const localDetails = clone(createDetails);

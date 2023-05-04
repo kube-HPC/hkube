@@ -1,10 +1,10 @@
 /* const algoSchema = {
     algorithmName: '',
-    quantity: 0,
+    exceededMaxJobs: true,
     missingResources: {
-        cpu: 0,
-        gpu: 0,
-        memory: 0
+        cpu: true,
+        gpu: true,
+        memory: false
     }
 }; */
 
