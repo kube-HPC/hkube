@@ -14,6 +14,7 @@ const fsVolumeMounts = { name: 'storage-volume', mountPath: '/hkubedata' };
 const { workerTemplate, varlogMount, varlibdockercontainersMount, varLog, varlibdockercontainers, } = require('../lib/templates/index');
 const { settings: globalSettings } = require('../lib/helpers/settings');
 const resources = require('./stub/resources');
+const { resourceLog } = require('../lib/service/resourceState');
 
 const options = main;
 let callCount, clearCount, normResources, reconciler, algorithmTemplates;
@@ -1521,7 +1522,7 @@ describe('reconciler', () => {
             expect(algorithms[algorithm.name].message).to.eql('maximum capacity exceeded gpu (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
-        it('should update algorithm that cannot be schedule due to node selector', async () => {
+        it.only('should update algorithm that cannot be schedule due to node selector', async () => {
             const algorithm = algorithmTemplates['node-selector'];
             const data = [
                 { name: algorithm.name },

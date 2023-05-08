@@ -123,15 +123,17 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
 
     const availableNode = nodesForSchedule.find(n => n.available);
     if (!availableNode) {  
-        const memoryIssue = nodesForSchedule.reduce((acc, n) => acc || n.details.mem, false);
-        const cpuIssue = nodesForSchedule.reduce((acc, n) => acc || n.details.cpu, false);
-        const gpuIssue = nodesForSchedule.reduce((acc, n) => acc || n.details.gpu, false);      
+        // One false resource notation is enough to indicate an issue in either node.
+        const memoryIssue = nodesForSchedule.reduce((acc, n) => acc && n.details.mem, true);
+        const cpuIssue = nodesForSchedule.reduce((acc, n) => acc && n.details.cpu, true);
+        const gpuIssue = nodesForSchedule.reduce((acc, n) => acc && n.details.gpu, true);  
+        // To denote an issue, the flag is inverted for API readability.  
         const unallocatedAlg = {
             algorithmName: jobDetails.algorithmName,
             missingResources: {
-                memory: memoryIssue,
-                cpu: cpuIssue,
-                gpu: gpuIssue
+                memory: !memoryIssue,
+                cpu: !cpuIssue,
+                gpu: !gpuIssue
             }
         };
         resourceLog.addResourceLog(unallocatedAlg);
