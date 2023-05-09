@@ -60,12 +60,28 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
 
 const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesAfterSelector) => {
     const messages = [];
-    if (unMatchedNodesBySelector > 0) {
-        const ns = Object.entries(jobDetails.nodeSelector).map(([k, v]) => `${k}=${v}`);
-        messages.push(`Number of nodes without selector condition- (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
+    let ns;
+    let complexResourceDescriptor;
+    if (unMatchedNodesBySelector) {
+        ns = Object.entries(jobDetails.nodeSelector).map(([k, v]) => `${k}=${v}`);
+        complexResourceDescriptor = {
+            ...complexResourceDescriptor,
+            requestedSelectors: ns
+        };
     }
     if (!nodesAfterSelector) {
-        messages.push('No nodes available for scheduling due to selector condition');
+        messages.push(`No nodes available for scheduling due to selector condition - '${ns.join(',')}'`);
+        complexResourceDescriptor = {
+            ...complexResourceDescriptor,
+            nodesAfterSelector: false
+        };
+    }
+    else if (unMatchedNodesBySelector > 0) {
+        messages.push(`Number of nodes without selector condition - (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
+        complexResourceDescriptor = {
+            ...complexResourceDescriptor,
+            numUnmatchedNodesBySelector: unMatchedNodesBySelector
+        };
     }
     let hasMaxCapacity = true;
     const resourcesMap = Object.create(null);
@@ -105,7 +121,8 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
         reason: 'FailedScheduling',
         hasMaxCapacity,
         message: messages.join(', '),
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        complexResourceDescriptor
     };
     return warning;
 };
