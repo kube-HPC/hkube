@@ -63,31 +63,34 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
     let ns;
     let complexResourceDescriptor;
     if (unMatchedNodesBySelector) {
-        ns = Object.entries(jobDetails.nodeSelector).map(([k, v]) => `${k}=${v}`);
+        ns = Object.entries(jobDetails.nodeSelector).map(([k, v]) => `${k}=${v}`); // Key value array of selectors
         complexResourceDescriptor = {
             ...complexResourceDescriptor,
-            requestedSelectors: ns
+            requestedSelectors: ns,
+            numUnmatchedNodesBySelector: unMatchedNodesBySelector
         };
-    }
+    } // Handle selector info, and update info for the compledResourceDescriptor
     if (!nodesAfterSelector) {
         messages.push(`No nodes available for scheduling due to selector condition - '${ns.join(',')}'`);
         complexResourceDescriptor = {
             ...complexResourceDescriptor,
-            nodesAfterSelector: false
+            noNodesAfterSelector: true
         };
     }
     else if (unMatchedNodesBySelector > 0) {
         messages.push(`Number of nodes without selector condition - (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
-        complexResourceDescriptor = {
-            ...complexResourceDescriptor,
-            numUnmatchedNodesBySelector: unMatchedNodesBySelector
-        };
-    }
+    } // Message flow for the warning object
+    
     let hasMaxCapacity = true;
     const resourcesMap = Object.create(null);
     const maxCapacityMap = Object.create(null);
 
     nodesForSchedule.forEach(n => {
+        complexResourceDescriptor = {
+            ...complexResourceDescriptor,
+            [n.node.name]: {
+            }
+        };
         const maxCapacity = Object.entries(n.maxCapacity).filter(([, v]) => v === true);
         if (maxCapacity.length === 0) {
             hasMaxCapacity = false;
@@ -98,7 +101,26 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
             }
             maxCapacityMap[k] += 1;
         });
-        Object.entries(n.details).filter(([, v]) => v === false).forEach(([k]) => {
+        if (maxCapacity) {
+            complexResourceDescriptor = {
+                ...complexResourceDescriptor,
+                [n.node.name]: {
+                    ...complexResourceDescriptor[n.node.name],
+                    requestOverMaxCapacity: maxCapacity
+                }
+            };
+        } // if requests exceed max capacity, log the array containing mem, cpu, gpu.
+        const nodeMissingResources = Object.entries(n.details).filter(([, v]) => v === false);
+        if (nodeMissingResources) {
+            complexResourceDescriptor = {
+                ...complexResourceDescriptor,
+                [n.node.name]: {
+                    ...complexResourceDescriptor[n.node.name],
+                    hasEnough: nodeMissingResources
+                }
+            };
+        }
+        nodeMissingResources.forEach(([k]) => {
             if (!resourcesMap[k]) {
                 resourcesMap[k] = 0;
             }
