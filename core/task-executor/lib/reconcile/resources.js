@@ -33,12 +33,26 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
     const cpuMaxCapacity = requestedCpu > totalCpu;
     const memMaxCapacity = requestedMemory > totalMemory;
     const gpuMaxCapacity = requestedGpu > 0 && lessWithTolerance(totalGpu, requestedGpu);
+    // log the amount of missing capacity per resource.
+    let missingCpu;
+    let missingMem;
+    let missingGpu;
+    if (!cpu) {
+        missingCpu = requestedCpu - freeCpu;
+    }
+    if (!mem) {
+        missingMem = requestedMemory - freeMemory;
+    }
+    if ((requestedGpu > 0) && !gpu) {
+        missingGpu = requestedGpu - freeGpu;
+    }
 
     return {
         node,
         available: cpu && mem && gpu,
         maxCapacity: { cpu: cpuMaxCapacity, mem: memMaxCapacity, gpu: gpuMaxCapacity },
-        details: { cpu, mem, gpu }
+        details: { cpu, mem, gpu },
+        amountsMissing: { cpu: missingCpu || 0, mem: missingMem || 0, gpu: missingGpu || 0 }
     };
 };
 
@@ -89,6 +103,7 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
         complexResourceDescriptor = {
             ...complexResourceDescriptor,
             [n.node.name]: {
+                amountsMissing: n.amountsMissing
             }
         };
         const maxCapacity = Object.entries(n.maxCapacity).filter(([, v]) => v === true);
