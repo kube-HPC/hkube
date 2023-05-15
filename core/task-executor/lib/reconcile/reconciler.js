@@ -362,20 +362,21 @@ const _checkUnscheduled = (created, skipped, requests, algorithms, algorithmTemp
     });
 
     const algorithmsMap = Object.keys(algorithms);
-
+    let algorithmForLogging; 
     if (algorithmsMap.length > 0) {
         const createdSet = new Set(created.map(x => x.algorithmName));
         const requestSet = new Set(requests.map(x => x.algorithmName));
-
         algorithmsMap.forEach((k) => {
             const create = createdSet.has(k);
             const request = requestSet.has(k);
+            // If algo was created, or not requested, or template missing, remove it from map and log it to etcd.
             if (create || !request || !algorithmTemplates[k]) {
                 delete algorithms[k];
+                algorithmForLogging = clonedeep(algorithms);
             }
         });
     }
-    return algorithms;
+    return { algorithms, algorithmForLogging };
 };
 
 const _workersToMap = (requests) => {
@@ -597,7 +598,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
 
-    const unScheduledAlgorithms = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, algorithmTemplates);
+    const {algorithms: unScheduledAlgorithms, algorithmForLogging: ignoredUnScheduledAlgorithms} = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, algorithmTemplates);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
@@ -649,6 +650,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     await etcd.updateDiscovery({
         reconcileResult,
         unScheduledAlgorithms,
+        ignoredUnScheduledAlgorithms,
         actual: workerStats,
         resourcePressure: {
             cpu: consts.CPU_RATIO_PRESSURE,

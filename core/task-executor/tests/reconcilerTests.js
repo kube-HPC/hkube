@@ -1373,7 +1373,7 @@ describe('reconciler', () => {
         });
     });
     describe('reconcile algorithms scheduling tests', () => {
-        it('should update algorithm that cannot be schedule due to cpu', async () => {
+        it('should update algorithm that cannot be scheduled due to cpu', async () => {
             const algorithm = algorithmTemplates['big-cpu'];
             const data = [
                 { name: algorithm.name },
@@ -1521,7 +1521,7 @@ describe('reconciler', () => {
             expect(algorithms[algorithm.name].message).to.eql('maximum capacity exceeded gpu (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
-        it('should update algorithm that cannot be schedule due to node selector', async () => {
+        it('should update algorithm that cannot be scheduled due to node selector', async () => {
             const algorithm = algorithmTemplates['node-selector'];
             const data = [
                 { name: algorithm.name },
@@ -1540,7 +1540,7 @@ describe('reconciler', () => {
             expect(algorithms[algorithm.name].message).to.eql(`No nodes available for scheduling due to selector condition - 'type=cpu-extreme'`);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
-        it('should update algorithm that cannot be schedule due to all params', async () => {
+        it('should update algorithm that cannot be scheduled due to all params', async () => {
             const algorithm = algorithmTemplates['node-all-params'];
             const data = [
                 { name: algorithm.name },

@@ -84,12 +84,12 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
             numUnmatchedNodesBySelector: unMatchedNodesBySelector
         };
     } // Handle selector info, and update info for the compledResourceDescriptor
+    complexResourceDescriptor = {
+        ...complexResourceDescriptor,
+        totalAvailableNodes: unMatchedNodesBySelector + nodesAfterSelector
+    }; // Gives you the ability to know if no nodes came back after the selector
     if (!nodesAfterSelector) {
         messages.push(`No nodes available for scheduling due to selector condition - '${ns.join(',')}'`);
-        complexResourceDescriptor = {
-            ...complexResourceDescriptor,
-            noNodesAfterSelector: true
-        };
     }
     else if (unMatchedNodesBySelector > 0) {
         messages.push(`Number of nodes without selector condition - (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
@@ -126,15 +126,6 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
             };
         } // if requests exceed max capacity, log the array containing mem, cpu, gpu.
         const nodeMissingResources = Object.entries(n.details).filter(([, v]) => v === false);
-        if (nodeMissingResources) {
-            complexResourceDescriptor = {
-                ...complexResourceDescriptor,
-                [n.node.name]: {
-                    ...complexResourceDescriptor[n.node.name],
-                    hasEnough: nodeMissingResources
-                }
-            };
-        }
         nodeMissingResources.forEach(([k]) => {
             if (!resourcesMap[k]) {
                 resourcesMap[k] = 0;
