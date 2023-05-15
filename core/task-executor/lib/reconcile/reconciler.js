@@ -371,11 +371,16 @@ const _checkUnscheduled = (created, skipped, requests, algorithms, algorithmTemp
             const request = requestSet.has(k);
             // If algo was created, or not requested, or template missing, remove it from map and log it to etcd.
             if (create || !request || !algorithmTemplates[k]) {
+                const clonedAlgo = clonedeep(algorithms[k]);
+                algorithmForLogging = {
+                    ...algorithmForLogging,
+                    [k]: clonedAlgo
+                };
                 delete algorithms[k];
-                algorithmForLogging = clonedeep(algorithms);
             }
         });
     }
+    algorithmForLogging = algorithmForLogging || {}; // Persistant type for etcd.
     return { algorithms, algorithmForLogging };
 };
 
