@@ -112,7 +112,7 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
         if (maxCapacity) {
             currentNode = {
                 ...currentNode,
-                requestOverMaxCapacity: maxCapacity
+                requestsOverMaxCapacity: maxCapacity
             };         
         } // if requests exceed max capacity, add the array containing mem, cpu, gpu.
         const nodeMissingResources = Object.entries(n.details).filter(([, v]) => v === false);
