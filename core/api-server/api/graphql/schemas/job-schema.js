@@ -68,7 +68,6 @@ type  Batch {
     input: [NodeInput ] 
   
     error:String
-    resourceWarning:String
     warnings:[String]
     retries:Int
     downloadFileExt:String

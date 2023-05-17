@@ -8,7 +8,6 @@ const dataSourceQuerier = require('./queries/dataSource-querier');
 const statisticsQuerier = require('./queries/statistics-querier');
 const errorLogsQuerier = require('./queries/error-logs-querier');
 const logsQueries = require('../task-logs/logs');
-const nodeLogNeededStatus = 'FailedScheduling';
 class GraphqlResolvers {
     async queryJobs(query) {
         const jobs = await dbQueires.getJobs(query || {});
@@ -17,42 +16,6 @@ class GraphqlResolvers {
             cursor: jobs.cursor
 
         };
-    }
-
-    _nodeResourceWarningBuilder(unScheduledAlg) {
-        let warningMessage = '';
-        let selectors = '';
-        if (unScheduledAlg.complexResourceDescriptor.requestedSelectors) {
-            const selectorConcat = unScheduledAlg.complexResourceDescriptor.requestedSelectors.map(([k, v]) => `${k}=${v}`);
-            selectors = `${selectorConcat.join(', ')}`;
-        } // Build selector string
-        if (unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector) {
-            if (unScheduledAlg.complexResourceDescriptor.nodes.length === 0) {
-                warningMessage += `All ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes unmatched due to selector -  
-                ${selectors}`;
-            } // Unmatched all nodes by selector condition
-            else {
-                warningMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes unmatched due to selector - ${selectors},\n`;
-                warningMessage += this._specificNodesResourceWarningBuilder(unScheduledAlg);
-            } // Selector present, but also resource issues.
-        }
-        else {
-            warningMessage += this._specificNodesResourceWarningBuilder(unScheduledAlg);
-        } // No selectors, only node resource issues
-        return warningMessage;
-    }
-
-    _specificNodesResourceWarningBuilder(unScheduledAlg) {
-        let resourceWarning = '';
-        unScheduledAlg.complexResourceDescriptor.nodes.forEach((node) => {
-            resourceWarning += `Node: ${node.nodeName} -  `;
-            const resourcesMissing = Object.entries(node.amountsMissing).map(([, v]) => v !== 0);
-            resourceWarning += `missing resources: ${resourcesMissing.join(', ')},\nover capacity: `;
-            node.requestsOverMaxCapacity.forEach(([k]) => {
-                resourceWarning += `${k}: ,\n`;
-            });
-        });
-        return resourceWarning.slice(0, -1); // remove trailing comma
     }
 
     async queryJob(jobId) {
@@ -69,14 +32,6 @@ class GraphqlResolvers {
                         return itemInput;
                     });
                 }
-                let algWarningString = '';
-                if (node.status === nodeLogNeededStatus) {
-                    const resources = await dbQueires._getDiscoveryType('task-executor');
-                    const algoResources = resources && resources[0] && resources[0].unScheduledAlgorithms && resources[0].ignoredUnScheduledAlgorithms;
-                    algWarningString = await this._nodeResourceWarningBuilder(algoResources[node.algorithmName]);
-                }
-                // eslint-disable-next-line no-param-reassign
-                node.resourceWarning = algWarningString;
                 return node;
             });
         }

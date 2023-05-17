@@ -120,7 +120,7 @@ class TaskRunner {
             });
             n.status = event.reason;
             n.warnings = n.warnings || [];
-            n.warnings.push(event.message);
+            n.warnings.push(this._nodeResourceWarningBuilder(event));
         });
         this._progressStatus({ status: DriverStates.ACTIVE });
     }
@@ -129,6 +129,43 @@ class TaskRunner {
         return task.algorithmName === event.algorithmName
             && task.status === taskStatuses.CREATING
             && (Date.now() - event.timestamp > this._schedulingWarningTimeoutMs || event.hasMaxCapacity);
+    }
+
+    // Build custom warning for each unscheduled algorithm
+    _nodeResourceWarningBuilder(unScheduledAlg) {
+        let warningMessage = `Summary: ${unScheduledAlg.message}\n`;
+        let selectors = '';
+        if (unScheduledAlg.complexResourceDescriptor.requestedSelectors) {
+            const selectorConcat = unScheduledAlg.complexResourceDescriptor.requestedSelectors.map(([k, v]) => `${k}=${v}`);
+            selectors = `${selectorConcat.join(', ')}`;
+        } // Build selector string
+        if (unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector) {
+            if (unScheduledAlg.complexResourceDescriptor.nodes.length === 0) {
+                warningMessage += `All ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes unmatched due to selector -  
+                ${selectors}`;
+            } // Unmatched all nodes by selector condition
+            else {
+                warningMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes unmatched due to selector - ${selectors},\n`;
+                warningMessage += this._specificNodesResourceWarningBuilder(unScheduledAlg);
+            } // Selector present, but also resource issues.
+        }
+        else {
+            warningMessage += this._specificNodesResourceWarningBuilder(unScheduledAlg);
+        } // No selectors, only node resource issues
+        return warningMessage;
+    }
+
+    _specificNodesResourceWarningBuilder(unScheduledAlg) {
+        let resourceWarning = '';
+        unScheduledAlg.complexResourceDescriptor.nodes.forEach((node) => {
+            resourceWarning += `Node: ${node.nodeName} -  `;
+            const resourcesMissing = Object.entries(node.amountsMissing).map(([, v]) => v !== 0);
+            resourceWarning += `missing resources: ${resourcesMissing.join(', ')},\nover capacity: `;
+            node.requestsOverMaxCapacity.forEach(([k]) => {
+                resourceWarning += `${k}: ,\n`;
+            });
+        });
+        return resourceWarning.slice(0, -1); // remove trailing comma
     }
 
     async start(job) {
