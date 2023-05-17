@@ -136,8 +136,7 @@ class TaskRunner {
         let warningMessage = `Summary: ${unScheduledAlg.message}\n`;
         let selectors = '';
         if (unScheduledAlg.complexResourceDescriptor.requestedSelectors) {
-            const selectorConcat = unScheduledAlg.complexResourceDescriptor.requestedSelectors.map(([k, v]) => `${k}=${v}`);
-            selectors = `${selectorConcat.join(', ')}`;
+            selectors = `${unScheduledAlg.complexResourceDescriptor.requestedSelectors.join(', ')}`;
         } // Build selector string
         if (unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector) {
             if (unScheduledAlg.complexResourceDescriptor.nodes.length === 0) {
