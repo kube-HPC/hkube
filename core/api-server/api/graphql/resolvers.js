@@ -73,7 +73,7 @@ class GraphqlResolvers {
                 if (node.status === nodeLogNeededStatus) {
                     const resources = await dbQueires._getDiscoveryType('task-executor');
                     const algoResources = resources && resources[0] && resources[0].unScheduledAlgorithms && resources[0].ignoredUnScheduledAlgorithms;
-                    algWarningString = await this._nodeResourceWarningBuilder(algoResources[node.name]);
+                    algWarningString = await this._nodeResourceWarningBuilder(algoResources[node.algorithmName]);
                 }
                 // eslint-disable-next-line no-param-reassign
                 node.resourceWarning = algWarningString;
