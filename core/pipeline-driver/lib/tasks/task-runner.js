@@ -120,7 +120,6 @@ class TaskRunner {
             });
             n.status = event.reason;
             n.warnings = n.warnings || [];
-            n.warnings.push(event.message);
             n.warnings.push(this._nodeResourceWarningBuilder(event));
         });
         this._progressStatus({ status: DriverStates.ACTIVE });
