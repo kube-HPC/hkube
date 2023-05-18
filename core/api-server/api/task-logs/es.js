@@ -13,13 +13,21 @@ class EsLogs {
     async init(options) {
         try {
             this._client = new ElasticClient({
-                host: options.elasticSearch.url,
+                node: options.elasticSearch.url,
                 enableLivenessCheck: false,
                 keepAlive: false,
-                livenessCheckInterval: -1
+                livenessCheckInterval: -1,
+                token: options.serviceAccount.token,
+                tls: {
+                    rejectUnauthorized: false
+                },
+                ssl: {
+                    rejectUnauthorized: false
+                }
             });
             this._type = options.elasticSearch.type;
             this._index = options.elasticSearch.index;
+            this._structuredPrefix = options.elasticSearch.structuredPrefix;
             log.info(`Initialized elasticSearch client with options ${JSON.stringify(this._client.options)}`, { component });
         }
         catch (error) {
@@ -29,7 +37,7 @@ class EsLogs {
 
     addComponentCriteria(nodeKind) {
         let search;
-        const components = getSearchComponent(nodeKind).map(sc => `meta.internal.component: "${sc}"`);
+        const components = getSearchComponent(nodeKind).map(sc => `${this._structuredPrefix}meta.internal.component: "${sc}"`);
         if (components.length) {
             search = `(${components.join(' OR ')})`;
         }
@@ -39,16 +47,16 @@ class EsLogs {
     async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip }) {
         const query = [];
         if (taskId) {
-            query.push(`meta.internal.taskId: "${taskId}"`);
+            query.push(`${this._structuredPrefix}meta.internal.taskId: "${taskId}"`);
         }
         if (podName) {
             query.push(`kubernetes.pod_name: "${podName}"`);
         }
         if (logMode === logModes.INTERNAL) {
-            query.push(`message: "${internalLogPrefix}*"`);
+            query.push(`${this._structuredPrefix}message: "${internalLogPrefix}*"`);
         }
         if (logMode === logModes.ALGORITHM) {
-            query.push(`NOT message: "${internalLogPrefix}*"`);
+            query.push(`NOT ${this._structuredPrefix}message: "${internalLogPrefix}*"`);
         }
         if (nodeKind) {
             const searchComponent = this.addComponentCriteria(nodeKind);
@@ -62,12 +70,9 @@ class EsLogs {
         const body = {
             size: limit,
             from: skip,
-            sort: [{
-                'meta.timestamp': {
-                    order: sort
-                }
-            }],
-            _source: ['message', 'level', 'meta.timestamp'],
+            sort: [{ [`${this._structuredPrefix}meta.timestamp`]: { order: sort } }],
+            _source: [`${this._structuredPrefix}message`, 'level', `${this._structuredPrefix}meta.timestamp`],
+
             query: {
                 bool: {
                     must: [{
