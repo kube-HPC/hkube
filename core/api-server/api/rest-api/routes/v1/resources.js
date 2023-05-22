@@ -1,7 +1,6 @@
 const RestServer = require('@hkube/rest-server');
 const DatabaseQuerier = require('../../../graphql/queries/database-querier');
 
-// const { pipeTrace } = require('../../../../lib/service/jaeger-api');
 const taskExecResourceName = 'task-executor';
 const routes = () => {
     const router = RestServer.router();

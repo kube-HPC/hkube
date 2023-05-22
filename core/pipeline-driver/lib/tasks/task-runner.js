@@ -140,11 +140,11 @@ class TaskRunner {
         } // Build selector string
         if (unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector) {
             if (unScheduledAlg.complexResourceDescriptor.nodes.length === 0) {
-                warningMessage += `All ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes unmatched due to selector -  
-                ${selectors}`;
+                warningMessage += `None of the ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes, match node selector
+                ${selectors}\n`;
             } // Unmatched all nodes by selector condition
             else {
-                warningMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes unmatched due to selector - ${selectors},\n`;
+                warningMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes don't match node selector: ${selectors},\n`;
                 warningMessage += this._specificNodesResourceWarningBuilder(unScheduledAlg);
             } // Selector present, but also resource issues.
         }
@@ -159,10 +159,13 @@ class TaskRunner {
         unScheduledAlg.complexResourceDescriptor.nodes.forEach((node) => {
             resourceWarning += `Node: ${node.nodeName} -  `;
             const resourcesMissing = Object.entries(node.amountsMissing).map(([, v]) => v !== 0);
-            resourceWarning += `missing resources: ${resourcesMissing.join(', ')},\nover capacity: `;
-            node.requestsOverMaxCapacity.forEach(([k]) => {
-                resourceWarning += `${k}: ,\n`;
-            });
+            resourceWarning += `missing resources: ${resourcesMissing.join(' ')},\n`;
+            if (node.requestsOverMaxCapacity) {
+                resourceWarning += 'over capacity:';
+                node.requestsOverMaxCapacity.forEach(([k]) => {
+                    resourceWarning += `${k}: ,\n`;
+                });
+            } // Add above capacity if present
         });
         return resourceWarning.slice(0, -1); // remove trailing comma
     }
