@@ -1556,7 +1556,7 @@ describe('reconciler', () => {
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
-            expect(algorithms[algorithm.name].message).to.eql(`Number of nodes without selector condition - (3) 'type=gpu-extreme,max=bound', maximum capacity exceeded cpu (1), mem (1), gpu (1)`);
+            expect(algorithms[algorithm.name].message).to.eql(`Not matching node selector: (3) 'type=gpu-extreme,max=bound', maximum capacity exceeded cpu (1) mem (1) gpu (1)`);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm unschedule and then succeed to schedule', async () => {

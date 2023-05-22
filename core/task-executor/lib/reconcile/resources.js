@@ -88,7 +88,7 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
         messages.push(`No nodes available for scheduling due to selector condition - '${ns.join(',')}'`);
     }
     else if (unMatchedNodesBySelector > 0) {
-        messages.push(`Number of nodes without selector condition - (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
+        messages.push(`Not matching node selector: (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
     } // Message flow for the warning object
     
     let hasMaxCapacity = true;
@@ -127,7 +127,7 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
     // Valid node's total resource is lower than requested
     if (hasMaxCapacity && Object.keys(maxCapacityMap).length > 0) {
         const maxCapacity = Object.entries(maxCapacityMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`maximum capacity exceeded ${maxCapacity.join(', ')}`);
+        messages.push(`maximum capacity exceeded ${maxCapacity.join(' ')}`);
     }
     // Not enough resources in valid node
     else if (Object.keys(resourcesMap).length > 0) {
