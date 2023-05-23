@@ -11,7 +11,7 @@ get:
         type: string
   responses:
     "200":
-      description: action summery
+      description: action summary
       content:
         application/json:
           schema:
@@ -74,7 +74,7 @@ put:
     required: true
   responses:
     "200":
-      description: action summery
+      description: action summary
       content:
         application/json:
           schema:

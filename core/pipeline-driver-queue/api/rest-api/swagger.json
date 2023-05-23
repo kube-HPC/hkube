@@ -18679,15 +18679,43 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "code": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "message": {
-                        "type": "string"
+                  "type": "object",
+                  "properties": {
+                    "algorithmName": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "hasMaxCapacity": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Summary of the resource issues"
+                    },
+                    "timestamp": {
+                      "type": "number"
+                    },
+                    "complexResourceDescriptor": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "object",
+                          "properties": {
+                            "nodeName": {
+                              "type": "string"
+                            },
+                            "amountsMissing": {
+                              "type": "object",
+                              "description": "For each missing resource key, ( cpu, memory, gpu ) note how much of it is missing"
+                            },
+                            "requestsOverMaxCapacity": {
+                              "type": "array",
+                              "description": "Any resource noted here, was requested over the maximum capacity of a node"
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -18725,27 +18753,6 @@
         "summary": "Get resource status for all unscheduled algorithms",
         "description": "Gets missing resources(cpu, memory, gpu) per available node, conditions(nodeSelector), and requests over node capacity",
         "responses": {
-          "200": {
-            "description": "action summary",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "code": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "message": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
           "default": {
             "description": "Unexpected error",
             "content": {
@@ -22416,16 +22423,79 @@
       "resourceResponse": {
         "type": "object",
         "properties": {
+          "algorithmName": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "hasMaxCapacity": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "description": "Summary of the resource issues"
+          },
           "timestamp": {
             "type": "number"
           },
-          "edges": {
-            "type": "array",
-            "description": "Array of edges"
+          "complexResourceDescriptor": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "object",
+                "properties": {
+                  "nodeName": {
+                    "type": "string"
+                  },
+                  "amountsMissing": {
+                    "type": "object",
+                    "description": "For each missing resource key, ( cpu, memory, gpu ) note how much of it is missing"
+                  },
+                  "requestsOverMaxCapacity": {
+                    "type": "array",
+                    "description": "Any resource noted here, was requested over the maximum capacity of a node"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "complexResourceDescriptor": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "object",
+            "properties": {
+              "nodeName": {
+                "type": "string"
+              },
+              "amountsMissing": {
+                "type": "object",
+                "description": "For each missing resource key, ( cpu, memory, gpu ) note how much of it is missing"
+              },
+              "requestsOverMaxCapacity": {
+                "type": "array",
+                "description": "Any resource noted here, was requested over the maximum capacity of a node"
+              }
+            }
+          }
+        }
+      },
+      "nodes": {
+        "type": "object",
+        "properties": {
+          "nodeName": {
+            "type": "string"
           },
-          "nodes": {
+          "amountsMissing": {
+            "type": "object",
+            "description": "For each missing resource key, ( cpu, memory, gpu ) note how much of it is missing"
+          },
+          "requestsOverMaxCapacity": {
             "type": "array",
-            "description": "Array of nodes"
+            "description": "Any resource noted here, was requested over the maximum capacity of a node"
           }
         }
       }
