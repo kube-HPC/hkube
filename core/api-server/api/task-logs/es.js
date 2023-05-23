@@ -37,7 +37,7 @@ class EsLogs {
 
     addComponentCriteria(nodeKind) {
         let search;
-        const components = getSearchComponent(nodeKind).map(sc => `${this._structuredPrefix}meta.internal.component: "${sc}"`);
+        const components = getSearchComponent(nodeKind).map(sc => `${this._structuredPrefix}.meta.internal.component: "${sc}"`);
         if (components.length) {
             search = `(${components.join(' OR ')})`;
         }
@@ -47,16 +47,16 @@ class EsLogs {
     async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip }) {
         const query = [];
         if (taskId) {
-            query.push(`${this._structuredPrefix}meta.internal.taskId: "${taskId}"`);
+            query.push(`${this._structuredPrefix}.meta.internal.taskId: "${taskId}"`);
         }
         if (podName) {
             query.push(`kubernetes.pod_name: "${podName}"`);
         }
         if (logMode === logModes.INTERNAL) {
-            query.push(`${this._structuredPrefix}message: "${internalLogPrefix}*"`);
+            query.push(`${this._structuredPrefix}.message: "${internalLogPrefix}*"`);
         }
         if (logMode === logModes.ALGORITHM) {
-            query.push(`NOT ${this._structuredPrefix}message: "${internalLogPrefix}*"`);
+            query.push(`NOT ${this._structuredPrefix}.message: "${internalLogPrefix}*"`);
         }
         if (nodeKind) {
             const searchComponent = this.addComponentCriteria(nodeKind);
@@ -70,8 +70,8 @@ class EsLogs {
         const body = {
             size: limit,
             from: skip,
-            sort: [{ [`${this._structuredPrefix}meta.timestamp`]: { order: sort } }],
-            _source: [`${this._structuredPrefix}message`, 'level', `${this._structuredPrefix}meta.timestamp`],
+            sort: [{ [`${this._structuredPrefix}.meta.timestamp`]: { order: sort } }],
+            _source: [`${this._structuredPrefix}.message`, 'level', `${this._structuredPrefix}.meta.timestamp`],
 
             query: {
                 bool: {
@@ -88,6 +88,11 @@ class EsLogs {
             type: this._type,
             body
         });
+        if (this._structuredPrefix) {
+            logs.hits = logs.hit.map(line => ({
+                ...line, ...line[this._structuredPrefix]
+            }));
+        }
         return logs.hits;
     }
 }
