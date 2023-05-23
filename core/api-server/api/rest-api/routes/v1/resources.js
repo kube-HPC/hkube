@@ -8,7 +8,7 @@ const routes = () => {
         let mergedResoures;
         try {
             const resources = await DatabaseQuerier._getDiscoveryType(taskExecResourceName);
-            mergedResoures = { ...resources[0].unScheduledAlgorithms, ...resources[0].ignoredUnscheduledAlgorithms };
+            mergedResoures = { ...resources[0].unScheduledAlgorithms, ...resources[0].ignoredUnScheduledAlgorithms };
         }
         catch (error) {
             res.status(500).send(`Failed fetching info from ${taskExecResourceName}, ${error}`);
@@ -20,7 +20,7 @@ const routes = () => {
         const { algorithmName } = req.params;
         try {
             const resources = await DatabaseQuerier._getDiscoveryType(taskExecResourceName);
-            mergedResources = { ...resources[0].unScheduledAlgorithms, ...resources[0].ignoredUnscheduledAlgorithms };
+            mergedResources = { ...resources[0].unScheduledAlgorithms, ...resources[0].ignoredUnScheduledAlgorithms };
             if (!mergedResources[algorithmName]) {
                 res.status(404).send(`Algorithm ${algorithmName} not found in the unscheduled list`);
             }
