@@ -1,0 +1,15 @@
+type: object
+properties:
+  algorithmName:
+    type: string
+  type:
+    type: string
+  hasMaxCapacity:
+    type: string
+  message:
+    type: string
+    description: Summary of the resource issues
+  timestamp:
+    type: number
+  complexResourceDescriptor:
+    $ref: "#/components/schemas/complexResourceDescriptor"

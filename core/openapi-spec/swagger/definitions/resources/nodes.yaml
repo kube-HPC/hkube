@@ -1,0 +1,10 @@
+type: object
+properties:
+  nodeName:
+    type: string
+  amountsMissing:
+    type: object
+    description: For each missing resource key, ( cpu, memory, gpu ) note how much of it is missing
+  requestsOverMaxCapacity:
+    type: array
+    description: Any resource noted here, was requested over the maximum capacity of a node

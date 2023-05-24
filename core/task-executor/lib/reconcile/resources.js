@@ -33,12 +33,26 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
     const cpuMaxCapacity = requestedCpu > totalCpu;
     const memMaxCapacity = requestedMemory > totalMemory;
     const gpuMaxCapacity = requestedGpu > 0 && lessWithTolerance(totalGpu, requestedGpu);
+    // log the amount of missing capacity per resource.
+    let missingCpu;
+    let missingMem;
+    let missingGpu;
+    if (!cpu) {
+        missingCpu = requestedCpu - freeCpu;
+    }
+    if (!mem) {
+        missingMem = requestedMemory - freeMemory;
+    }
+    if ((requestedGpu > 0) && !gpu) {
+        missingGpu = requestedGpu - freeGpu;
+    }
 
     return {
         node,
         available: cpu && mem && gpu,
         maxCapacity: { cpu: cpuMaxCapacity, mem: memMaxCapacity, gpu: gpuMaxCapacity },
-        details: { cpu, mem, gpu }
+        details: { cpu, mem, gpu },
+        amountsMissing: { cpu: missingCpu || 0, mem: missingMem || 0, gpu: missingGpu || 0 }
     };
 };
 
@@ -58,17 +72,33 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
     return matched;
 };
 
-const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule) => {
+const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesAfterSelector) => {
     const messages = [];
-    if (unMatchedNodesBySelector > 0) {
-        const ns = Object.entries(jobDetails.nodeSelector).map(([k, v]) => `${k}=${v}`);
-        messages.push(`insufficient node selector (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
+    let ns;
+    let complexResourceDescriptor;
+    if (unMatchedNodesBySelector) {
+        ns = Object.entries(jobDetails.nodeSelector).map(([k, v]) => `${k}=${v}`); // Key value array of selectors
+        complexResourceDescriptor = {
+            ...complexResourceDescriptor,
+            requestedSelectors: ns,
+            numUnmatchedNodesBySelector: unMatchedNodesBySelector
+        };
+    } // Handle selector info, and update info for the complexResourceDescriptor
+    if (!nodesAfterSelector) {
+        messages.push(`No nodes available for scheduling due to selector condition - '${ns.join(',')}'`);
     }
+    else if (unMatchedNodesBySelector > 0) {
+        messages.push(`Not matching node selector: (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
+    } // Message flow for the warning object
+    
     let hasMaxCapacity = true;
     const resourcesMap = Object.create(null);
     const maxCapacityMap = Object.create(null);
 
+    const nodes = [];
     nodesForSchedule.forEach(n => {
+        // let nodeIndex = -1;
+        let currentNode = {nodeName: n.node.name, amountsMissing: n.amountsMissing};
         const maxCapacity = Object.entries(n.maxCapacity).filter(([, v]) => v === true);
         if (maxCapacity.length === 0) {
             hasMaxCapacity = false;
@@ -79,28 +109,43 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule) 
             }
             maxCapacityMap[k] += 1;
         });
-        Object.entries(n.details).filter(([, v]) => v === false).forEach(([k]) => {
+        if (maxCapacity) {
+            currentNode = {
+                ...currentNode,
+                requestsOverMaxCapacity: maxCapacity
+            };         
+        } // if requests exceed max capacity, add the array containing mem, cpu, gpu.
+        const nodeMissingResources = Object.entries(n.details).filter(([, v]) => v === false);
+        nodeMissingResources.forEach(([k]) => {
             if (!resourcesMap[k]) {
                 resourcesMap[k] = 0;
             }
             resourcesMap[k] += 1;
         });
+        nodes.push(currentNode);
     });
+    // Valid node's total resource is lower than requested
     if (hasMaxCapacity && Object.keys(maxCapacityMap).length > 0) {
         const maxCapacity = Object.entries(maxCapacityMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`maximum capacity exceeded ${maxCapacity.join(', ')}`);
+        messages.push(`maximum capacity exceeded ${maxCapacity.join(' ')}`);
     }
+    // Not enough resources in valid node
     else if (Object.keys(resourcesMap).length > 0) {
         const resources = Object.entries(resourcesMap).map(([k, v]) => `${k} (${v})`);
         messages.push(`insufficient ${resources.join(', ')}`);
     }
+    complexResourceDescriptor = {
+        ...complexResourceDescriptor,
+        nodes,
+    };
     const warning = {
         algorithmName: jobDetails.algorithmName,
         type: 'warning',
         reason: 'FailedScheduling',
         hasMaxCapacity,
         message: messages.join(', '),
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        complexResourceDescriptor
     };
     return warning;
 };
@@ -117,8 +162,9 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
 
     const availableNode = nodesForSchedule.find(n => n.available);
     if (!availableNode) {
+        // Number of total nodes that don't fit the attribute under nodeSelector
         const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
-        const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule);
+        const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesBySelector.length);
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
     }
 

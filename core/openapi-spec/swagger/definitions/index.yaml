@@ -259,3 +259,12 @@ githubWebhook:
   $ref: ./webhooks/githubWebhook.yaml
 gitlabWebhook:
   $ref: ./webhooks/gitlabWebhook.yaml
+
+# resource
+resourceResponse:
+  $ref: ./resources/resourceResponse.yaml
+complexResourceDescriptor:
+  $ref: ./resources/complexResourceDescriptor.yaml
+nodes:
+  $ref: ./resources/nodes.yaml
+
