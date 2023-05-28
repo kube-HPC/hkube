@@ -13,7 +13,10 @@ config.maxStorageFetchKeys = formatter.parseInt(process.env.MAX_STORAGE_FETCH_KE
 config.storageResultsThreshold = process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
 config.defaultAlgorithmReservedMemoryRatio = formatter.parseInt(process.env.DEFAULT_ALGORITHM_RESERVED_MEMORY_RATIO, 0.2);
 const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
-
+config.serviceAccount = {
+    token: process.env.SERVICE_ACCOUNT_TOKEN,
+    tokenPath: process.env.SERVICE_ACCOUNT_TOKEN_PATH || '/var/run/secrets/kubernetes.io/serviceaccount/token'
+};
 config.version = packageJson.version;
 
 config.rest = {
@@ -67,7 +70,8 @@ config.addDefaultAlgorithms = process.env.ADD_DEFAULT_ALGORITHMS || true;
 config.elasticSearch = {
     url: process.env.ELASTICSEARCH_SERVICE_URL || `http://elasticsearch-ingest.logging.svc.${config.clusterName}:9200`,
     index: process.env.ELASTICSEARCH_LOGS_INDEX || 'logstash-*',
-    type: process.env.ELASTICSEARCH_LOGS_DOC_TYPE || '_doc'
+    type: process.env.ELASTICSEARCH_LOGS_DOC_TYPE || '_doc',
+    structuredPrefix: process.env.ELASTICSEARCH_STRUCTURED_PREFIX || ""
 
 };
 

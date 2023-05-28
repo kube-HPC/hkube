@@ -1,4 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
+const fs = require('fs');
 const orderBy = require('lodash.orderby');
 const { logModes, podStatus } = require('@hkube/consts');
 const elasticSearch = require('./es');
@@ -13,6 +14,14 @@ class Logs {
     }
 
     async init(options) {
+        if (!options.serviceAccount.token) {
+            const { tokenPath } = options.serviceAccount;
+            if (fs.existsSync(tokenPath)) {
+                const buffer = fs.readFileSync(tokenPath);
+                // eslint-disable-next-line no-param-reassign
+                options.serviceAccount.token = buffer.toString();
+            }
+        }
         elasticSearch.init(options);
         await kubernetes.init(options);
         this.updateSource(options.logsView.source);
@@ -110,6 +119,7 @@ class Logs {
         catch (e) {
             const error = `cannot read logs from ${source}, err: ${e.message}`;
             log.warning(error, { component });
+            log.warning(e);
             logsData.logs = [{
                 message: error
             }];
