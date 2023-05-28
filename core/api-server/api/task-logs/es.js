@@ -28,7 +28,7 @@ class EsLogs {
             this._type = options.elasticSearch.type;
             this._index = options.elasticSearch.index;
             this._structuredPrefixAtrributeName = options.elasticSearch.structuredPrefix;
-            this._structuredPrefix = `${this._structuredPrefixAtrributeName}.`;
+            this._structuredPrefix = options.elasticSearch.structuredPrefix ? `${this._structuredPrefixAtrributeName}.` : undefined;
             log.info(`Initialized elasticSearch client with options ${JSON.stringify(this._client.options)}`, { component });
         }
         catch (error) {
@@ -38,7 +38,7 @@ class EsLogs {
 
     addComponentCriteria(nodeKind) {
         let search;
-        const components = getSearchComponent(nodeKind).map(sc => `${this._structuredPrefix}.meta.internal.component: "${sc}"`);
+        const components = getSearchComponent(nodeKind).map(sc => `${this._structuredPrefix}meta.internal.component: "${sc}"`);
         if (components.length) {
             search = `(${components.join(' OR ')})`;
         }
@@ -48,7 +48,7 @@ class EsLogs {
     async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime }) {
         const query = [];
         if (taskId) {
-            query.push(`${this._structuredPrefix}.meta.internal.taskId: "${taskId}"`);
+            query.push(`${this._structuredPrefix}meta.internal.taskId: "${taskId}"`);
         }
         if (podName) {
             query.push(`kubernetes.pod_name: "${podName}"`);
@@ -74,8 +74,8 @@ class EsLogs {
         const body = {
             size: limit,
             from: skip,
-            sort: [{ [`${this._structuredPrefix}.meta.timestamp`]: { order: sort } }],
-            _source: [`${this._structuredPrefix}.message`, 'level', `${this._structuredPrefix}.meta.timestamp`],
+            sort: [{ [`${this._structuredPrefix}meta.timestamp`]: { order: sort } }],
+            _source: [`${this._structuredPrefix}message`, 'level', `${this._structuredPrefix}meta.timestamp`],
             query: {
                 bool: {
                     must: [{
