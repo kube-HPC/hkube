@@ -54,10 +54,10 @@ class EsLogs {
             query.push(`kubernetes.pod_name: "${podName}"`);
         }
         if (logMode === logModes.INTERNAL) {
-            query.push(`${this._structuredPrefix}.message: "${internalLogPrefix}*"`);
+            query.push(`${this._structuredPrefix}message: "${internalLogPrefix}*"`);
         }
         if (logMode === logModes.ALGORITHM) {
-            query.push(`NOT ${this._structuredPrefix}.message: "${internalLogPrefix}*"`);
+            query.push(`NOT ${this._structuredPrefix}message: "${internalLogPrefix}*"`);
         }
         if (nodeKind) {
             const searchComponent = this.addComponentCriteria(nodeKind);
