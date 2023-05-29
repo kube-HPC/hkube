@@ -28,7 +28,7 @@ class EsLogs {
             this._type = options.elasticSearch.type;
             this._index = options.elasticSearch.index;
             this._structuredPrefixAtrributeName = options.elasticSearch.structuredPrefix;
-            this._structuredPrefix = options.elasticSearch.structuredPrefix ? `${this._structuredPrefixAtrributeName}.` : undefined;
+            this._structuredPrefix = options.elasticSearch.structuredPrefix ? `${this._structuredPrefixAtrributeName}.` : '';
             log.info(`Initialized elasticSearch client with options ${JSON.stringify(this._client.options)}`, { component });
         }
         catch (error) {
