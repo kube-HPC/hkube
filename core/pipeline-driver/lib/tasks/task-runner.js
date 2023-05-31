@@ -120,7 +120,13 @@ class TaskRunner {
             });
             n.status = event.reason;
             n.warnings = n.warnings || [];
-            n.warnings.push(this._nodeResourceWarningBuilder(event));
+            const { resourceMessage, isError } = this._nodeResourceMessageBuilder(event);
+            if (isError) {
+                n.error = resourceMessage;
+            }
+            else {
+                n.warnings.push(resourceMessage);
+            }
         });
         this._progressStatus({ status: DriverStates.ACTIVE });
     }
@@ -131,42 +137,54 @@ class TaskRunner {
             && (Date.now() - event.timestamp > this._schedulingWarningTimeoutMs || event.hasMaxCapacity);
     }
 
-    // Build custom warning for each unscheduled algorithm
-    _nodeResourceWarningBuilder(unScheduledAlg) {
-        let warningMessage = `Summary: ${unScheduledAlg.message}\n`;
+    // Build a custom message for each unscheduled algorithm
+    _nodeResourceMessageBuilder(unScheduledAlg) {
+        let isError = false;
+        let resourceMessage = `Summary: ${unScheduledAlg.message}\n`;
         let selectors = '';
         if (unScheduledAlg.complexResourceDescriptor.requestedSelectors) {
             selectors = `${unScheduledAlg.complexResourceDescriptor.requestedSelectors.join(', ')}`;
         } // Build selector string
         if (unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector) {
             if (unScheduledAlg.complexResourceDescriptor.nodes.length === 0) {
-                warningMessage += `None of the ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes, match node selector
-                ${selectors}\n`;
+                resourceMessage += `None of the ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes, match node selector
+                '${selectors}'\n`;
+                isError = true;
             } // Unmatched all nodes by selector condition
             else {
-                warningMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes don't match node selector: ${selectors},\n`;
-                warningMessage += this._specificNodesResourceWarningBuilder(unScheduledAlg);
+                resourceMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes don't match node selector: '${selectors}',\n`;
+                resourceMessage += this._specificNodesResourceMessageBuilder(unScheduledAlg, isError);
             } // Selector present, but also resource issues.
         }
         else {
-            warningMessage += this._specificNodesResourceWarningBuilder(unScheduledAlg);
+            resourceMessage += this._specificNodesResourceMessageBuilder(unScheduledAlg, isError);
         } // No selectors, only node resource issues
-        return warningMessage;
+        return { resourceMessage, isError };
     }
 
-    _specificNodesResourceWarningBuilder(unScheduledAlg) {
+    // eslint-disable-next-line no-unused-vars
+    _specificNodesResourceMessageBuilder(unScheduledAlg, isError) {
         let resourceWarning = '';
+        const numOfNodes = unScheduledAlg.complexResourceDescriptor.nodes.length;
+        const nodeErrorArray = new Array(numOfNodes).fill(0);
+        // eslint-disable-next-line no-unused-vars
+        let i = 0;
         unScheduledAlg.complexResourceDescriptor.nodes.forEach((node) => {
             resourceWarning += `Node: ${node.nodeName} -  `;
             const resourcesMissing = Object.entries(node.amountsMissing).map(([, v]) => v !== 0);
             resourceWarning += `missing resources: ${resourcesMissing.join(' ')},\n`;
             if (node.requestsOverMaxCapacity) {
+                nodeErrorArray[i] = 1; // If a node has a request over capacity, it will never be valid for scheduling
                 resourceWarning += 'over capacity:';
                 node.requestsOverMaxCapacity.forEach(([k]) => {
                     resourceWarning += `${k}: ,\n`;
                 });
             } // Add above capacity if present
+            i += 1;
         });
+        if (numOfNodes === nodeErrorArray.filter(val => val === 1).length) {
+            isError = true; // If all nodes have a requests over capacity, the alg will never be scheduled
+        }
         return resourceWarning.slice(0, -1); // remove trailing comma
     }
 
