@@ -280,7 +280,38 @@ describe('TaskRunner', function () {
                     reason: "FailedScheduling",
                     hasMaxCapacity: false,
                     message: "insufficient mem (4)",
-                    timestamp: 1593926212391
+                    timestamp: 1593926212391,
+                    complexResourceDescriptor: {
+                        requestedSelectors: [
+                            "mock-selector = mock-value"
+                        ],
+                        "nodes": [
+                            {
+                                "nodeName" : "mockNodeName1",
+                                "amountsMissing": {
+                                    "mem" : 0.1
+                                }
+                            },
+                            {
+                                "nodeName" : "mockNodeName2",
+                                "amountsMissing": {
+                                    "mem" : 512
+                                }
+                            },
+                            {
+                                "nodeName" : "mockNodeName3",
+                                "amountsMissing": {
+                                    "mem" : 1024
+                                }
+                            },
+                            {
+                                "nodeName" : "mockNodeName4",
+                                "amountsMissing": {
+                                    "mem" : 256
+                                }
+                            }
+                        ]
+                    }
                 }
             }
         }
@@ -290,7 +321,7 @@ describe('TaskRunner', function () {
         const algorithm = discovery.unScheduledAlgorithms[algorithmName];
         expect(node.status).to.equal(algorithm.reason);
         expect(node.batch[0].status).to.equal(algorithm.reason);
-        expect(node.warnings[0]).to.equal(algorithm.message);
+        expect(node.warnings[0]).to.equal('Summary: insufficient mem (4)\nNode: mockNodeName1 -  missing resources: mem = 0.1,\nNode: mockNodeName2 -  missing resources: mem = 512,\nNode: mockNodeName3 -  missing resources: mem = 1024,\nNode: mockNodeName4 -  missing resources: mem = 256');
     });
     it('should start pipeline and handle maximum capacity exceeded warning', async function () {
         const jobId = createJobId();
@@ -313,7 +344,14 @@ describe('TaskRunner', function () {
                     reason: 'FailedScheduling',
                     hasMaxCapacity: true,
                     message: 'maximum capacity exceeded (4)',
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    complexResourceDescriptor: {
+                        requestedSelectors: [
+                            "kubernetes.io/hostname=ip-172-20-54-98.eu-west-1.compute.internal"
+                        ],
+                        "numUnmatchedNodesBySelector": 4,
+                        "nodes": []
+                    }
                 }
             }
         }

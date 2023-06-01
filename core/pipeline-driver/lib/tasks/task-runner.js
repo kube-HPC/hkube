@@ -140,7 +140,8 @@ class TaskRunner {
     // Build a custom message for each unscheduled algorithm
     _nodeResourceMessageBuilder(unScheduledAlg) {
         let isError = false;
-        let resourceMessage = `Summary: ${unScheduledAlg.message}\n`;
+        const resourceSummary = `Summary: ${unScheduledAlg.message}\n`;
+        let resourceMessage = '';
         let selectors = '';
         if (unScheduledAlg.complexResourceDescriptor.requestedSelectors) {
             selectors = `${unScheduledAlg.complexResourceDescriptor.requestedSelectors.join(', ')}`;
@@ -153,31 +154,32 @@ class TaskRunner {
             } // Unmatched all nodes by selector condition
             else {
                 resourceMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes don't match node selector: '${selectors}',\n`;
-                resourceMessage += this._specificNodesResourceMessageBuilder(unScheduledAlg, isError);
+                resourceMessage = this._specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError);
             } // Selector present, but also resource issues.
         }
         else {
-            resourceMessage += this._specificNodesResourceMessageBuilder(unScheduledAlg, isError);
+            resourceMessage = this._specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError);
         } // No selectors, only node resource issues
+        resourceMessage = resourceSummary.concat(resourceMessage);
         return { resourceMessage, isError };
     }
 
     // eslint-disable-next-line no-unused-vars
-    _specificNodesResourceMessageBuilder(unScheduledAlg, isError) {
-        let resourceWarning = '';
+    _specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError) {
         const numOfNodes = unScheduledAlg.complexResourceDescriptor.nodes.length;
         const nodeErrorArray = new Array(numOfNodes).fill(0);
         // eslint-disable-next-line no-unused-vars
         let i = 0;
         unScheduledAlg.complexResourceDescriptor.nodes.forEach((node) => {
-            resourceWarning += `Node: ${node.nodeName} -  `;
-            const resourcesMissing = Object.entries(node.amountsMissing).map(([, v]) => v !== 0);
-            resourceWarning += `missing resources: ${resourcesMissing.join(' ')},\n`;
+            resourceMessage += `Node: ${node.nodeName} -  `;
+            // eslint-disable-next-line no-unused-vars
+            const resourcesMissing = Object.entries(node.amountsMissing).filter(([, v]) => v !== 0).map(([k, v]) => `${k} = ${v}`);
+            resourceMessage += `missing resources: ${resourcesMissing.join(' ')},\n`;
             if (node.requestsOverMaxCapacity) {
                 nodeErrorArray[i] = 1; // If a node has a request over capacity, it will never be valid for scheduling
-                resourceWarning += 'over capacity:';
+                resourceMessage += 'over capacity:';
                 node.requestsOverMaxCapacity.forEach(([k]) => {
-                    resourceWarning += `${k}: ,\n`;
+                    resourceMessage += `${k}: ,\n`;
                 });
             } // Add above capacity if present
             i += 1;
@@ -185,7 +187,7 @@ class TaskRunner {
         if (numOfNodes === nodeErrorArray.filter(val => val === 1).length) {
             isError = true; // If all nodes have a requests over capacity, the alg will never be scheduled
         }
-        return resourceWarning.slice(0, -1); // remove trailing comma
+        return resourceMessage.slice(0, -2); // remove trailing  breakrow and comma
     }
 
     async start(job) {
@@ -252,7 +254,7 @@ class TaskRunner {
 
         pipeline.nodes = await Promise.all(pipeline.nodes.map(async node => {
             const algorithm = await stateManager.getAlgorithmsByName(node.algorithmName);
-            node.algorithmVersion = algorithm.version;
+            node.algorithmVersion = algorithm?.version;
             return node;
         }));
 

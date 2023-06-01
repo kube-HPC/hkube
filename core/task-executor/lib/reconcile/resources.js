@@ -145,7 +145,8 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
         hasMaxCapacity,
         message: messages.join(', '),
         timestamp: Date.now(),
-        complexResourceDescriptor
+        complexResourceDescriptor,
+        requestedResources: jobDetails.resourceRequests.requests
     };
     return warning;
 };
