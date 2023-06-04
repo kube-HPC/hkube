@@ -125,15 +125,29 @@ class GraphStore {
     }
 
     _handleBatch(n) {
+        const nodeStatus = this._nodeStatusForFailedBatch(n.batch);
         const node = {
             nodeName: n.nodeName,
             algorithmName: n.algorithmName,
             algorithmVersion: n.algorithmVersion,
             batch: n.batch.map(b => this._mapTask(b)),
             batchInfo: this._batchInfo(n.batch),
-            level: n.level
+            level: n.level,
+            warnings: n.warnings,
+            error: n.error,
+            status: nodeStatus
+
         };
         return node;
+    }
+
+    // A single failed batch symbolises a failed scheduling node
+    _nodeStatusForFailedBatch(batches) {
+        const batchesFailed = batches.filter(b => b.status === 'FailedScheduling');
+        if (batchesFailed.length > 0) {
+            return 'FailedScheduling';
+        }
+        return null;
     }
 
     _parseInput(node) {
