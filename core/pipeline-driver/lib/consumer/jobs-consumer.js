@@ -55,9 +55,9 @@ class JobConsumer {
         stateManager.onStopProcessing(async (data) => {
             await this._stopProcessing(data);
         });
-        stateManager.onUnScheduledAlgorithms((e) => {
+        stateManager.onUnScheduledAlgorithms((e, t) => {
             this._drivers.forEach(d => {
-                d.onUnScheduledAlgorithms(e);
+                d.onUnScheduledAlgorithms(e, t);
             });
         });
         this._intervalActives();

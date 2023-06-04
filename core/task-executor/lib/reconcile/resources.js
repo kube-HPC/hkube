@@ -127,12 +127,12 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
     // Valid node's total resource is lower than requested
     if (hasMaxCapacity && Object.keys(maxCapacityMap).length > 0) {
         const maxCapacity = Object.entries(maxCapacityMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`maximum capacity exceeded ${maxCapacity.join(' ')}`);
+        messages.push(`Maximum capacity exceeded ${maxCapacity.join(' ')}`);
     }
     // Not enough resources in valid node
     else if (Object.keys(resourcesMap).length > 0) {
         const resources = Object.entries(resourcesMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`insufficient ${resources.join(', ')}`);
+        messages.push(`Insufficient ${resources.join(', ')}`);
     }
     complexResourceDescriptor = {
         ...complexResourceDescriptor,

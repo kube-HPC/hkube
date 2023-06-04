@@ -103,7 +103,7 @@ class TaskRunner {
         }
     }
 
-    onUnScheduledAlgorithms(event) {
+    onUnScheduledAlgorithms(event, nodesFromEtcd) {
         if (!this._nodes) {
             return;
         }
@@ -120,7 +120,7 @@ class TaskRunner {
             });
             n.status = event.reason;
             n.warnings = n.warnings || [];
-            const { resourceMessage, isError } = this._nodeResourceMessageBuilder(event);
+            const { resourceMessage, isError } = this._nodeResourceMessageBuilder(event, nodesFromEtcd);
             if (isError) {
                 n.error = resourceMessage;
             }
@@ -138,9 +138,9 @@ class TaskRunner {
     }
 
     // Build a custom message for each unscheduled algorithm
-    _nodeResourceMessageBuilder(unScheduledAlg) {
+    _nodeResourceMessageBuilder(unScheduledAlg, nodesFromEtcd) {
         let isError = false;
-        const resourceSummary = `Summary: ${unScheduledAlg.message}\n`;
+        const resourceSummary = `${unScheduledAlg.message}\n`;
         let resourceMessage = '';
         let selectors = '';
         if (unScheduledAlg.complexResourceDescriptor.requestedSelectors) {
@@ -148,46 +148,70 @@ class TaskRunner {
         } // Build selector string
         if (unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector) {
             if (unScheduledAlg.complexResourceDescriptor.nodes.length === 0) {
-                resourceMessage += `None of the ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes, match node selector
-                '${selectors}'\n`;
+                resourceMessage += `None of the ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes match node selector '${selectors}'\n`;
                 isError = true;
             } // Unmatched all nodes by selector condition
             else {
                 resourceMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes don't match node selector: '${selectors}',\n`;
-                resourceMessage = this._specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError);
+                ({ resourceMessage, isError } = this._specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError, nodesFromEtcd));
             } // Selector present, but also resource issues.
         }
         else {
-            resourceMessage = this._specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError);
+            ({ resourceMessage, isError } = this._specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError, nodesFromEtcd));
         } // No selectors, only node resource issues
         resourceMessage = resourceSummary.concat(resourceMessage);
         return { resourceMessage, isError };
     }
 
     // eslint-disable-next-line no-unused-vars
-    _specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError) {
+    _specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError, nodesFromEtcd) {
         const numOfNodes = unScheduledAlg.complexResourceDescriptor.nodes.length;
         const nodeErrorArray = new Array(numOfNodes).fill(0);
+        const resourceKeyValues = [
+            ['gpu', 0],
+            ['mem', 0],
+            ['cpu', 0]
+        ];
+        const resourceIdentifier = new Map(resourceKeyValues);
         // eslint-disable-next-line no-unused-vars
         let i = 0;
         unScheduledAlg.complexResourceDescriptor.nodes.forEach((node) => {
             resourceMessage += `Node: ${node.nodeName} -  `;
             // eslint-disable-next-line no-unused-vars
-            const resourcesMissing = Object.entries(node.amountsMissing).filter(([, v]) => v !== 0).map(([k, v]) => `${k} = ${v}`);
-            resourceMessage += `missing resources: ${resourcesMissing.join(' ')},\n`;
-            if (node.requestsOverMaxCapacity) {
+            if (node.amountsMissing) {
+                const resourcesMissing = Object.entries(node.amountsMissing).filter(([, v]) => v !== 0).map(([k, v]) => `${k} = ${v}`);
+                resourceMessage += `missing resources: ${resourcesMissing.join(' ')},\n`;
+            }
+            if (node.requestsOverMaxCapacity.length > 0) {
                 nodeErrorArray[i] = 1; // If a node has a request over capacity, it will never be valid for scheduling
-                resourceMessage += 'over capacity:';
+                resourceMessage += 'over capacity: ';
                 node.requestsOverMaxCapacity.forEach(([k]) => {
-                    resourceMessage += `${k}: ,\n`;
+                    resourceMessage += `${k} ,\n`;
+                    const currentValue = resourceIdentifier.get(k);
+                    resourceIdentifier.set(k, currentValue + 1);
                 });
             } // Add above capacity if present
             i += 1;
         });
         if (numOfNodes === nodeErrorArray.filter(val => val === 1).length) {
             isError = true; // If all nodes have a requests over capacity, the alg will never be scheduled
+            const overCapKeys = Array.from(resourceIdentifier.keys()).filter(key => resourceIdentifier.get(key) === numOfNodes);
+            if (overCapKeys.length > 0) {
+                resourceMessage = '';
+                overCapKeys.forEach(key => {
+                    const maxResourceByType = this._getLargestCapacityByType(nodesFromEtcd, key);
+                    resourceMessage = `Your request of ${key} = ${unScheduledAlg.requestedResources[key]} is over max capacity of ${maxResourceByType}.\n`;
+                });
+            }
         }
-        return resourceMessage.slice(0, -2); // remove trailing  breakrow and comma
+        resourceMessage = resourceMessage.slice(0, -2);
+        return { resourceMessage, isError }; // remove trailing  breakrow and comma
+    }
+
+    _getLargestCapacityByType(nodesFromEtcd, resourceType) {
+        return nodesFromEtcd.reduce((max, node) => {
+            return node.total[resourceType] > max ? node.total[resourceType] : max;
+        }, 0);
     }
 
     async start(job) {
