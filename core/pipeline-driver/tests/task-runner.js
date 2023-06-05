@@ -380,21 +380,26 @@ describe('TaskRunner', function () {
                     "name" : "node1",
                     "total" : {
                         "cpu" : 1
-                    },
+                    }
+                },
+                {
                     "name" : "node2",
                     "total" : {
                         "cpu" : 1
-                    },
+                    }
+                },
+                {
                     "name" : "node3",
                     "total" : {
                         "cpu" : 1
-                    },
+                    }
+                },
+                {
                     "name" : "node4",
                     "total" : {
                         "cpu" : 1
                     }
                 }
-
             ]
         }
         const etcd = new Etcd(config.etcd);

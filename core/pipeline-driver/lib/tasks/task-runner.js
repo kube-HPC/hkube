@@ -103,7 +103,7 @@ class TaskRunner {
         }
     }
 
-    onUnScheduledAlgorithms(event, nodesFromEtcd) {
+    onUnScheduledAlgorithms(event, clusterNodes) {
         if (!this._nodes) {
             return;
         }
@@ -120,7 +120,7 @@ class TaskRunner {
             });
             n.status = event.reason;
             n.warnings = n.warnings || [];
-            const { resourceMessage, isError } = this._nodeResourceMessageBuilder(event, nodesFromEtcd);
+            const { resourceMessage, isError } = this._buildNodeResourceMessage(event, clusterNodes);
             if (isError) {
                 n.error = resourceMessage;
             }
@@ -138,7 +138,7 @@ class TaskRunner {
     }
 
     // Build a custom message for each unscheduled algorithm
-    _nodeResourceMessageBuilder(unScheduledAlg, nodesFromEtcd) {
+    _buildNodeResourceMessage(unScheduledAlg, clusterNodes) {
         let isError = false;
         const resourceSummary = `${unScheduledAlg.message}\n`;
         let resourceMessage = '';
@@ -153,26 +153,26 @@ class TaskRunner {
             } // Unmatched all nodes by selector condition
             else {
                 resourceMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes don't match node selector: '${selectors}',\n`;
-                ({ resourceMessage, isError } = this._specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError, nodesFromEtcd));
+                ({ resourceMessage, isError } = this._buildSpecificNodeResourceMessage(unScheduledAlg, resourceMessage, isError, clusterNodes));
             } // Selector present, but also resource issues.
         }
         else {
-            ({ resourceMessage, isError } = this._specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError, nodesFromEtcd));
+            ({ resourceMessage, isError } = this._buildSpecificNodeResourceMessage(unScheduledAlg, resourceMessage, isError, clusterNodes));
         } // No selectors, only node resource issues
         resourceMessage = resourceSummary.concat(resourceMessage);
         return { resourceMessage, isError };
     }
 
     // eslint-disable-next-line no-unused-vars
-    _specificNodesResourceMessageBuilder(unScheduledAlg, resourceMessage, isError, nodesFromEtcd) {
+    _buildSpecificNodeResourceMessage(unScheduledAlg, resourceMessage, isError, clusterNodes) {
         const numOfNodes = unScheduledAlg.complexResourceDescriptor.nodes.length;
-        const nodeErrorArray = new Array(numOfNodes).fill(0);
+        const nodeErrorArray = new Array(numOfNodes).fill(0); // Marks each clusterNode errors in it's corresponding index
         const resourceKeyValues = [
             ['gpu', 0],
             ['mem', 0],
             ['cpu', 0]
         ];
-        const resourceIdentifier = new Map(resourceKeyValues);
+        const breachCountPerResource = new Map(resourceKeyValues); // Counts occurences of each resource type for over capacity requests
         // eslint-disable-next-line no-unused-vars
         let i = 0;
         unScheduledAlg.complexResourceDescriptor.nodes.forEach((node) => {
@@ -186,30 +186,31 @@ class TaskRunner {
                 nodeErrorArray[i] = 1; // If a node has a request over capacity, it will never be valid for scheduling
                 resourceMessage += 'over capacity: ';
                 node.requestsOverMaxCapacity.forEach(([k]) => {
-                    resourceMessage += `${k} ,\n`;
-                    const currentValue = resourceIdentifier.get(k);
-                    resourceIdentifier.set(k, currentValue + 1);
+                    const totalResourceOfNode = clusterNodes.filter(n => n.name === node.nodeName)[0].total[k];
+                    resourceMessage += `${k} - requested-${unScheduledAlg.requestedResources[k]}, available-${totalResourceOfNode} ,\n`; // add requested and also total for node
+                    const currentValue = breachCountPerResource.get(k);
+                    breachCountPerResource.set(k, currentValue + 1);
                 });
-            } // Add above capacity if present
+            } // For resources over capacity, mark the node as invalid, update resource counter per type of over-capacity
             i += 1;
-        });
+        }); // Iterate over each node in complexResourceDescriptor ( from etcd)
         if (numOfNodes === nodeErrorArray.filter(val => val === 1).length) {
             isError = true; // If all nodes have a requests over capacity, the alg will never be scheduled
-            const overCapKeys = Array.from(resourceIdentifier.keys()).filter(key => resourceIdentifier.get(key) === numOfNodes);
+            const overCapKeys = Array.from(breachCountPerResource.keys()).filter(key => breachCountPerResource.get(key) === numOfNodes);
             if (overCapKeys.length > 0) {
                 resourceMessage = '';
                 overCapKeys.forEach(key => {
-                    const maxResourceByType = this._getLargestCapacityByType(nodesFromEtcd, key);
-                    resourceMessage = `Your request of ${key} = ${unScheduledAlg.requestedResources[key]} is over max capacity of ${maxResourceByType}.\n`;
-                });
+                    const maxResourceByType = this._getLargestCapacityByType(clusterNodes, key);
+                    resourceMessage += `Your request of ${key} = ${unScheduledAlg.requestedResources[key]} is over max capacity of ${maxResourceByType}.\n`;
+                }); // If there are over-capacity for a resource type over all available cluster nodes, give out a concise clue.
             }
         }
-        resourceMessage = resourceMessage.slice(0, -2);
-        return { resourceMessage, isError }; // remove trailing  breakrow and comma
+        resourceMessage = resourceMessage.slice(0, -2); // remove trailing  breakrow and comma
+        return { resourceMessage, isError };
     }
 
-    _getLargestCapacityByType(nodesFromEtcd, resourceType) {
-        return nodesFromEtcd.reduce((max, node) => {
+    _getLargestCapacityByType(clusterNodes, resourceType) {
+        return clusterNodes.reduce((max, node) => {
             return node.total[resourceType] > max ? node.total[resourceType] : max;
         }, 0);
     }

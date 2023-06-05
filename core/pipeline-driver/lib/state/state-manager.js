@@ -118,9 +118,9 @@ class StateManager {
                 const resources = await this._etcd.discovery.list({ serviceName: 'task-executor' });
                 if (resources && resources[0] && resources[0].unScheduledAlgorithms) {
                     const algorithms = { ...resources[0].unScheduledAlgorithms, ...resources[0].ignoredUnscheduledAlgorithms };
-                    const nodesFromEtcd = resources[0].nodes;
+                    const clusterNodes = resources[0].nodes;
                     Object.values(algorithms).forEach((e) => {
-                        this._emitter.emit(`events-${e.type}`, e, nodesFromEtcd);
+                        this._emitter.emit(`events-${e.type}`, e, clusterNodes);
                     });
                 }
             }

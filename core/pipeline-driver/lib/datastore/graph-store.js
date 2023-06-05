@@ -125,7 +125,7 @@ class GraphStore {
     }
 
     _handleBatch(n) {
-        const isAnyBatchFailed = n.batch.any(b => b.status === 'FailedScheduling');
+        const anyFailedScheduling = n.batch.some(b => b.status === 'FailedScheduling');
         const node = {
             nodeName: n.nodeName,
             algorithmName: n.algorithmName,
@@ -133,9 +133,9 @@ class GraphStore {
             batch: n.batch.map(b => this._mapTask(b)),
             batchInfo: this._batchInfo(n.batch),
             level: n.level,
-            warnings: isAnyBatchFailed ? n.warnings : null,
-            error: isAnyBatchFailed ? n.error : null,
-            status: isAnyBatchFailed ? 'FailedScheduling' : null
+            warnings: anyFailedScheduling ? n.warnings : null,
+            error: anyFailedScheduling ? n.error : null,
+            status: anyFailedScheduling ? 'FailedScheduling' : null
         };
         return node;
     }
