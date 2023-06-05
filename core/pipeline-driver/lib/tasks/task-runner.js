@@ -611,6 +611,8 @@ class TaskRunner {
         else {
             // remove taskId from node so the batch will generate new ids
             const { taskId, ...nodeBatch } = options.node;
+            // Mark node as creating, in order for onUnScheduledAlgorithms event to be fired in case any of the batches fail scheduling.
+            options.node.status = taskStatuses.CREATING;
             const batchList = [];
             options.input.forEach((inp, ind) => {
                 const batch = new Batch({
