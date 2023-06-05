@@ -39,15 +39,15 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
     let missingGpu;
     if (!cpu) {
         missingCpu = requestedCpu - freeCpu;
-        missingCpu.toFixed(2);
+        missingCpu = missingCpu.toFixed(2);
     }
     if (!mem) {
         missingMem = requestedMemory - freeMemory;
-        missingMem.toFixed(2);
+        missingMem = missingMem.toFixed(2);
     }
     if ((requestedGpu > 0) && !gpu) {
         missingGpu = requestedGpu - freeGpu;
-        missingGpu.toFixed(2);
+        missingGpu = missingGpu.toFixed(2);
     }
 
     return {
