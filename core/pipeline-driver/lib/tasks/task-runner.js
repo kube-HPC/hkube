@@ -103,7 +103,7 @@ class TaskRunner {
         }
     }
 
-    onUnScheduledAlgorithms(event) {
+    onUnScheduledAlgorithms(event, clusterNodes) {
         if (!this._nodes) {
             return;
         }
@@ -120,7 +120,13 @@ class TaskRunner {
             });
             n.status = event.reason;
             n.warnings = n.warnings || [];
-            n.warnings.push(this._nodeResourceWarningBuilder(event));
+            const { resourceMessage, isError } = this._buildNodeResourceMessage(event, clusterNodes);
+            if (isError) {
+                n.error = resourceMessage;
+            }
+            else {
+                n.warnings.push(resourceMessage);
+            }
         });
         this._progressStatus({ status: DriverStates.ACTIVE });
     }
@@ -131,43 +137,82 @@ class TaskRunner {
             && (Date.now() - event.timestamp > this._schedulingWarningTimeoutMs || event.hasMaxCapacity);
     }
 
-    // Build custom warning for each unscheduled algorithm
-    _nodeResourceWarningBuilder(unScheduledAlg) {
-        let warningMessage = `Summary: ${unScheduledAlg.message}\n`;
+    // Build a custom message for each unscheduled algorithm
+    _buildNodeResourceMessage(unScheduledAlg, clusterNodes) {
+        let isError = false;
+        const resourceSummary = `${unScheduledAlg.message}\n`;
+        let resourceMessage = '';
         let selectors = '';
         if (unScheduledAlg.complexResourceDescriptor.requestedSelectors) {
             selectors = `${unScheduledAlg.complexResourceDescriptor.requestedSelectors.join(', ')}`;
         } // Build selector string
         if (unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector) {
             if (unScheduledAlg.complexResourceDescriptor.nodes.length === 0) {
-                warningMessage += `None of the ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes, match node selector
-                ${selectors}\n`;
+                resourceMessage += `None of the ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes match node selector '${selectors}'\n`;
+                isError = true;
             } // Unmatched all nodes by selector condition
             else {
-                warningMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes don't match node selector: ${selectors},\n`;
-                warningMessage += this._specificNodesResourceWarningBuilder(unScheduledAlg);
+                resourceMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes don't match node selector: '${selectors}',\n`;
+                ({ resourceMessage, isError } = this._buildSpecificNodeResourceMessage(unScheduledAlg, resourceMessage, isError, clusterNodes));
             } // Selector present, but also resource issues.
         }
         else {
-            warningMessage += this._specificNodesResourceWarningBuilder(unScheduledAlg);
+            ({ resourceMessage, isError } = this._buildSpecificNodeResourceMessage(unScheduledAlg, resourceMessage, isError, clusterNodes));
         } // No selectors, only node resource issues
-        return warningMessage;
+        resourceMessage = resourceSummary.concat(resourceMessage);
+        return { resourceMessage, isError };
     }
 
-    _specificNodesResourceWarningBuilder(unScheduledAlg) {
-        let resourceWarning = '';
+    // eslint-disable-next-line no-unused-vars
+    _buildSpecificNodeResourceMessage(unScheduledAlg, resourceMessage, isError, clusterNodes) {
+        const numOfNodes = unScheduledAlg.complexResourceDescriptor.nodes.length;
+        const nodeErrorArray = new Array(numOfNodes).fill(0); // Marks each clusterNode errors in it's corresponding index
+        const resourceKeyValues = [
+            ['gpu', 0],
+            ['mem', 0],
+            ['cpu', 0]
+        ];
+        const breachCountPerResource = new Map(resourceKeyValues); // Counts occurences of each resource type for over capacity requests
+        // eslint-disable-next-line no-unused-vars
+        let i = 0;
         unScheduledAlg.complexResourceDescriptor.nodes.forEach((node) => {
-            resourceWarning += `Node: ${node.nodeName} -  `;
-            const resourcesMissing = Object.entries(node.amountsMissing).map(([, v]) => v !== 0);
-            resourceWarning += `missing resources: ${resourcesMissing.join(' ')},\n`;
-            if (node.requestsOverMaxCapacity) {
-                resourceWarning += 'over capacity:';
+            resourceMessage += `Node: ${node.nodeName} -  `;
+            // eslint-disable-next-line no-unused-vars
+            if (node.amountsMissing) {
+                const resourcesMissing = Object.entries(node.amountsMissing).filter(([, v]) => v !== 0).map(([k, v]) => `${k} = ${v}`);
+                resourceMessage += `missing resources: ${resourcesMissing.join(' ')},\n`;
+            }
+            if (node.requestsOverMaxCapacity.length > 0) {
+                nodeErrorArray[i] = 1; // If a node has a request over capacity, it will never be valid for scheduling
+                resourceMessage += 'over capacity: ';
                 node.requestsOverMaxCapacity.forEach(([k]) => {
-                    resourceWarning += `${k}: ,\n`;
+                    const totalResourceOfNode = clusterNodes.filter(n => n.name === node.nodeName)[0].total[k];
+                    resourceMessage += `${k} - requested-${unScheduledAlg.requestedResources[k]}, available-${totalResourceOfNode} ,\n`; // add requested and also total for node
+                    const currentValue = breachCountPerResource.get(k);
+                    breachCountPerResource.set(k, currentValue + 1);
                 });
-            } // Add above capacity if present
-        });
-        return resourceWarning.slice(0, -1); // remove trailing comma
+            } // For resources over capacity, mark the node as invalid, update resource counter per type of over-capacity
+            i += 1;
+        }); // Iterate over each node in complexResourceDescriptor ( from etcd)
+        if (numOfNodes === nodeErrorArray.filter(val => val === 1).length) {
+            isError = true; // If all nodes have a requests over capacity, the alg will never be scheduled
+            const overCapKeys = Array.from(breachCountPerResource.keys()).filter(key => breachCountPerResource.get(key) === numOfNodes);
+            if (overCapKeys.length > 0) {
+                resourceMessage = '';
+                overCapKeys.forEach(key => {
+                    const maxResourceByType = this._getLargestCapacityByType(clusterNodes, key);
+                    resourceMessage += `Your request of ${key} = ${unScheduledAlg.requestedResources[key]} is over max capacity of ${maxResourceByType}.\n`;
+                }); // If there are over-capacity for a resource type over all available cluster nodes, give out a concise clue.
+            }
+        }
+        resourceMessage = resourceMessage.slice(0, -2); // remove trailing  breakrow and comma
+        return { resourceMessage, isError };
+    }
+
+    _getLargestCapacityByType(clusterNodes, resourceType) {
+        return clusterNodes.reduce((max, node) => {
+            return node.total[resourceType] > max ? node.total[resourceType] : max;
+        }, 0);
     }
 
     async start(job) {
@@ -234,7 +279,7 @@ class TaskRunner {
 
         pipeline.nodes = await Promise.all(pipeline.nodes.map(async node => {
             const algorithm = await stateManager.getAlgorithmsByName(node.algorithmName);
-            node.algorithmVersion = algorithm.version;
+            node.algorithmVersion = algorithm?.version;
             return node;
         }));
 
@@ -566,6 +611,8 @@ class TaskRunner {
         else {
             // remove taskId from node so the batch will generate new ids
             const { taskId, ...nodeBatch } = options.node;
+            // Mark node as creating, in order for onUnScheduledAlgorithms event to be fired in case any of the batches fail scheduling.
+            options.node.status = taskStatuses.CREATING;
             const batchList = [];
             options.input.forEach((inp, ind) => {
                 const batch = new Batch({

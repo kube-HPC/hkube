@@ -279,8 +279,43 @@ describe('TaskRunner', function () {
                     type: "warning",
                     reason: "FailedScheduling",
                     hasMaxCapacity: false,
-                    message: "insufficient mem (4)",
-                    timestamp: 1593926212391
+                    message: "Insufficient mem (4)",
+                    timestamp: 1593926212391,
+                    complexResourceDescriptor: {
+                        requestedSelectors: [
+                            "mock-selector = mock-value"
+                        ],
+                        "nodes": [
+                            {
+                                "nodeName" : "mockNodeName1",
+                                "amountsMissing": {
+                                    "mem" : 0.1
+                                },
+                                "requestsOverMaxCapacity": []
+                            },
+                            {
+                                "nodeName" : "mockNodeName2",
+                                "amountsMissing": {
+                                    "mem" : 512
+                                },
+                                "requestsOverMaxCapacity": []
+                            },
+                            {
+                                "nodeName" : "mockNodeName3",
+                                "amountsMissing": {
+                                    "mem" : 1024
+                                },
+                                "requestsOverMaxCapacity": []
+                            },
+                            {
+                                "nodeName" : "mockNodeName4",
+                                "amountsMissing": {
+                                    "mem" : 256
+                                },
+                                "requestsOverMaxCapacity": []
+                            }
+                        ],
+                    }
                 }
             }
         }
@@ -290,9 +325,9 @@ describe('TaskRunner', function () {
         const algorithm = discovery.unScheduledAlgorithms[algorithmName];
         expect(node.status).to.equal(algorithm.reason);
         expect(node.batch[0].status).to.equal(algorithm.reason);
-        expect(node.warnings[0]).to.equal(algorithm.message);
+        expect(node.warnings[0]).to.equal('Insufficient mem (4)\nNode: mockNodeName1 -  missing resources: mem = 0.1,\nNode: mockNodeName2 -  missing resources: mem = 512,\nNode: mockNodeName3 -  missing resources: mem = 1024,\nNode: mockNodeName4 -  missing resources: mem = 256');
     });
-    it('should start pipeline and handle maximum capacity exceeded warning', async function () {
+    it('should start pipeline and handle maximum capacity exceeded - produce warning', async function () {
         const jobId = createJobId();
         const job = {
             data: { jobId },
@@ -312,10 +347,60 @@ describe('TaskRunner', function () {
                     type: 'warning',
                     reason: 'FailedScheduling',
                     hasMaxCapacity: true,
-                    message: 'maximum capacity exceeded (4)',
-                    timestamp: Date.now()
+                    message: 'Maximum capacity exceeded cpu (4)',
+                    timestamp: Date.now(),
+                    requestedResources: {
+                      cpu: 2  
+                    },
+                    complexResourceDescriptor: {
+                        "nodes": [
+                            {
+                                nodeName : 'node1',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node2',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node3',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node4',
+                                requestsOverMaxCapacity: []
+                            },
+                        ],
+                        
+                    }
                 }
-            }
+            },
+            nodes: [
+                {
+                    "name" : "node1",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                },
+                {
+                    "name" : "node2",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                },
+                {
+                    "name" : "node3",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                },
+                {
+                    "name" : "node4",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                }
+            ]
         }
         const etcd = new Etcd(config.etcd);
         await etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
@@ -323,6 +408,85 @@ describe('TaskRunner', function () {
         const algorithm = discovery.unScheduledAlgorithms[algorithmName];
         expect(node.status).to.equal(algorithm.reason);
         expect(node.batch[0].status).to.equal(algorithm.reason);
+        expect(node.warnings.length).to.equal(1);
+    });
+    it('should start pipeline and handle maximum capacity exceeded - produce error', async function () {
+        const jobId = createJobId();
+        const job = {
+            data: { jobId },
+            done: () => { }
+        }
+        const pipeline = pipelines.find(p => p.name === 'flow2');
+        const status = { status: 'pending' };
+        await stateManager.createJob({ jobId, pipeline, status });
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
+        const node = driver._nodes.getNode('green');
+        const algorithmName = node.algorithmName;
+        const discovery = {
+            unScheduledAlgorithms: {
+                [algorithmName]: {
+                    algorithmName: algorithmName,
+                    type: 'warning',
+                    reason: 'FailedScheduling',
+                    hasMaxCapacity: true,
+                    message: 'Maximum capacity exceeded cpu (4)',
+                    timestamp: Date.now(),
+                    requestedResources: {
+                      cpu: 2  
+                    },
+                    complexResourceDescriptor: {
+                        "nodes": [
+                            {
+                                nodeName : 'node1',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node2',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node3',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node4',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                        ],
+                        
+                    }
+                }
+            },
+            nodes: [
+                {
+                    "name" : "node1",
+                    "total" : {
+                        "cpu" : 1
+                    },
+                    "name" : "node2",
+                    "total" : {
+                        "cpu" : 1
+                    },
+                    "name" : "node3",
+                    "total" : {
+                        "cpu" : 1
+                    },
+                    "name" : "node4",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                }
+
+            ]
+        }
+        const etcd = new Etcd(config.etcd);
+        await etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
+        await delay(2000);
+        const algorithm = discovery.unScheduledAlgorithms[algorithmName];
+        expect(node.status).to.equal(algorithm.reason);
+        expect(node.batch[0].status).to.equal(algorithm.reason);
+        expect(node.warnings.length).to.equal(0);
     });
     it('should run stateful nodes at start', async function () {
         const jobId = createJobId();

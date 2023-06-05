@@ -82,8 +82,8 @@ class StateManager {
     }
 
     onUnScheduledAlgorithms(func) {
-        this._emitter.on('events-warning', (data) => {
-            func(data);
+        this._emitter.on('events-warning', (data, nodes) => {
+            func(data, nodes);
         });
     }
 
@@ -118,8 +118,9 @@ class StateManager {
                 const resources = await this._etcd.discovery.list({ serviceName: 'task-executor' });
                 if (resources && resources[0] && resources[0].unScheduledAlgorithms) {
                     const algorithms = { ...resources[0].unScheduledAlgorithms, ...resources[0].ignoredUnscheduledAlgorithms };
+                    const clusterNodes = resources[0].nodes;
                     Object.values(algorithms).forEach((e) => {
-                        this._emitter.emit(`events-${e.type}`, e);
+                        this._emitter.emit(`events-${e.type}`, e, clusterNodes);
                     });
                 }
             }

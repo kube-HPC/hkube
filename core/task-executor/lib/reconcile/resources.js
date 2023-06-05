@@ -39,12 +39,15 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
     let missingGpu;
     if (!cpu) {
         missingCpu = requestedCpu - freeCpu;
+        missingCpu = missingCpu.toFixed(2);
     }
     if (!mem) {
         missingMem = requestedMemory - freeMemory;
+        missingMem = missingMem.toFixed(2);
     }
     if ((requestedGpu > 0) && !gpu) {
         missingGpu = requestedGpu - freeGpu;
+        missingGpu = missingGpu.toFixed(2);
     }
 
     return {
@@ -127,12 +130,12 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
     // Valid node's total resource is lower than requested
     if (hasMaxCapacity && Object.keys(maxCapacityMap).length > 0) {
         const maxCapacity = Object.entries(maxCapacityMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`maximum capacity exceeded ${maxCapacity.join(' ')}`);
+        messages.push(`Maximum capacity exceeded ${maxCapacity.join(' ')}`);
     }
     // Not enough resources in valid node
     else if (Object.keys(resourcesMap).length > 0) {
         const resources = Object.entries(resourcesMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`insufficient ${resources.join(', ')}`);
+        messages.push(`Insufficient ${resources.join(', ')}`);
     }
     complexResourceDescriptor = {
         ...complexResourceDescriptor,
@@ -145,7 +148,8 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
         hasMaxCapacity,
         message: messages.join(', '),
         timestamp: Date.now(),
-        complexResourceDescriptor
+        complexResourceDescriptor,
+        requestedResources: jobDetails.resourceRequests.requests
     };
     return warning;
 };
