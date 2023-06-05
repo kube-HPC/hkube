@@ -160,8 +160,8 @@ class PipelinesUpdater {
             }
             else {
                 // Add versions only to algorithms with no versions.
-                const latestVer = await versionsService._getLatestSemver(algorithm);
-                if (!latestVer) {
+                const existingVersion = await versionsService._getLatestSemver(algorithm);
+                if (!existingVersion) {
                     const newVersion = await versionsService.createVersion(algorithm);
                     await versionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
                 }
