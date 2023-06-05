@@ -132,13 +132,18 @@ class PipelinesUpdater {
     }
 
     async _createAlgorithms(type, list) {
-        const result = await stateManager.createAlgorithms(list);
-        log.info(`algorithms: synced ${result?.inserted || 0} to db`);
-        await this._syncAlgorithmsData(list);
-        await this._deleteEtcdPrefix('algorithms', '/algorithms/store');
-        await this._deleteEtcdPrefix('algorithms', '/algorithms/versions');
-        await this._deleteEtcdPrefix('algorithms', '/algorithms/builds');
-        await this._deleteStoragePrefix(type);
+        try {
+            const result = await stateManager.createAlgorithms(list);
+            log.info(`algorithms: synced ${result?.inserted || 0} to db`);
+            await this._deleteEtcdPrefix('algorithms', '/algorithms/store');
+            await this._deleteEtcdPrefix('algorithms', '/algorithms/versions');
+            await this._deleteEtcdPrefix('algorithms', '/algorithms/builds');
+            await this._deleteStoragePrefix(type);
+        }
+        finally {
+            //Incase algorithms already exsit in db, still check a new version needs to be added
+            await this._syncAlgorithmsData(list);
+        }
     }
 
     async _syncAlgorithmsData(algorithmList) {
@@ -148,15 +153,18 @@ class PipelinesUpdater {
 
         for (const algorithm of algorithmList) {
             const versions = await stateManager._etcd.algorithms.versions.list({ name: algorithm.name, limit });
-      
+
             if (versions.length) {
                 versionsCount += versions.length;
                 await stateManager.createVersions(versions);
             }
-            else
-            {
-                const newVersion = await versionsService.createVersion(algorithm);
-                await versionsService.applyVersion({ name : algorithm.name, version : newVersion, force : true })
+            else {
+                // Add versions only to algorithms with no versions.
+                const existingVersion = await versionsService._getLatestSemver(algorithm);
+                if (!existingVersion) {
+                    const newVersion = await versionsService.createVersion(algorithm);
+                    await versionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
+                }
             }
 
             const builds = await stateManager._etcd.algorithms.builds.list({ name: algorithm.name, limit });
