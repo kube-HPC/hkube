@@ -682,6 +682,8 @@ class TaskRunner {
                 const { source, target, ...metric } = m;
                 const totalRequests = this._getStreamMetric(source, target);
                 this._nodes.updateEdge(source, target, { metrics: { ...metric, ...totalRequests } });
+                pipelineMetrics.setStreamingQueue({ value: m.queueSize, pipeline_name: this._pipeline.name, pipeline_id: this._pipeline.jobId });
+                pipelineMetrics.setEdgeThroughput({ throughput: m.throughput, pipelineName: this._pipeline.name, pipelinpipelineIde_id: this._pipeline.jobId, source, target });
             });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
