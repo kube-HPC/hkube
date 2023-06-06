@@ -26,12 +26,12 @@ class PipelineMetrics {
         metrics.addGaugeMeasure({
             name: metricsNames.streaming_edge_queue_size,
             description: 'Edge queue size',
-            labels: ['pipeline_name', 'status'],
+            labels: ['pipelineName', 'pipelineId', 'source', 'target'],
         });
         metrics.addGaugeMeasure({
             name: metricsNames.streaming_edge_throughput,
             description: 'Edge throughput',
-            labels: ['pipeline_name', 'status'],
+            labels: ['pipelineName', 'pipelineId', 'source', 'target'],
         });
     }
 
