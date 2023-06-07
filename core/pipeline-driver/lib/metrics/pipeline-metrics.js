@@ -24,13 +24,28 @@ class PipelineMetrics {
             labels: ['pipeline_name', 'status'],
         });
         metrics.addGaugeMeasure({
-            name: metricsNames.streaming_edge_queue_size,
+            name: metricsNames.streaming_edge_queueSize,
             description: 'Edge queue size',
             labels: ['pipelineName', 'pipelineId', 'source', 'target'],
         });
         metrics.addGaugeMeasure({
             name: metricsNames.streaming_edge_throughput,
             description: 'Edge throughput',
+            labels: ['pipelineName', 'pipelineId', 'source', 'target'],
+        });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_queueTimeMs,
+            description: 'Edge queue time in ms',
+            labels: ['pipelineName', 'pipelineId', 'source', 'target'],
+        });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_proccessingTimeMs,
+            description: 'Edge proccessing time in ms',
+            labels: ['pipelineName', 'pipelineId', 'source', 'target'],
+        });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_status,
+            description: 'Edge status',
             labels: ['pipelineName', 'pipelineId', 'source', 'target'],
         });
     }
@@ -58,23 +73,10 @@ class PipelineMetrics {
         });
     }
 
-    setEdgeQueueSize(options) {
-        const { queueSize, pipelineName, pipelineId, source, target } = options;
-        metrics.get(metricsNames.streaming_edge_queue_size).set({
-            value: queueSize,
-            labelValues: {
-                pipelineName,
-                pipelineId,
-                source,
-                target
-            }
-        });
-    }
-
-    setEdgeThroughput(options) {
-        const { throughput, pipelineName, pipelineId, source, target } = options;
-        metrics.get(metricsNames.streaming_edge_throughput).set({
-            value: throughput,
+    setStreamingGaugeValueByMetric(options, metricName) {
+        const { value, pipelineName, pipelineId, source, target } = options;
+        metrics.get(`pipeline_driver_streaming_${metricName}`).set({
+            value,
             labelValues: {
                 pipelineName,
                 pipelineId,

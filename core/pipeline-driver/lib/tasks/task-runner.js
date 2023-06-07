@@ -17,6 +17,7 @@ const { PipelineReprocess, PipelineNotFound } = require('../errors');
 const { Node, Batch } = NodeTypes;
 const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
 const activeTaskStates = [taskStatuses.CREATING, taskStatuses.ACTIVE, taskStatuses.PRESCHEDULE];
+const { streamingMetricToPropMap } = require('../consts/metricsNames');
 
 class TaskRunner {
     constructor(options) {
@@ -682,11 +683,18 @@ class TaskRunner {
                 const { source, target, ...metric } = m;
                 const totalRequests = this._getStreamMetric(source, target);
                 this._nodes.updateEdge(source, target, { metrics: { ...metric, ...totalRequests } });
-                pipelineMetrics.setEdgeQueueSize({ queueSize: m.queueSize, pipelineName: this._pipeline.name, pipelineId: this._pipeline.jobId, source, target });
-                pipelineMetrics.setEdgeThroughput({ throughput: m.throughput, pipelineName: this._pipeline.name, pipelineId: this._pipeline.jobId, source, target });
+                this._setAllStreamingGaugeMetrics(this.task, m);
             });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
+    }
+
+    _setAllStreamingGaugeMetrics(task, metric) {
+        Object.entries(streamingMetricToPropMap).forEach(([key, val]) => {
+            // Key represents the metric name suffix for prometheus, value - the prop to fetch
+            // eslint-disable-next-line max-len
+            pipelineMetrics.setStreamingGaugeValueByMetric({ value: metric[val], pipelineName: this._pipeline.name, pipelineId: this._pipeline.jobId, source: metric.source, target: metric.target }, key);
+        });
     }
 
     _getStreamMetric(source, target) {
