@@ -693,7 +693,15 @@ class TaskRunner {
         Object.entries(streamingMetricToPropMap).forEach(([key, val]) => {
             // Key represents the metric name suffix for prometheus, value - the prop to fetch
             // eslint-disable-next-line max-len
-            pipelineMetrics.setStreamingGaugeValueByMetric({ value: metric[val], pipelineName: this._pipeline.name, pipelineId: this._pipeline.jobId, source: metric.source, target: metric.target }, key);
+            pipelineMetrics.setStreamingGaugeValueByMetric(
+                { value: metric[val],
+                    pipelineName: this._pipeline.name,
+                    pipelineId: this._pipeline.jobId,
+                    source: metric.source,
+                    target: metric.target,
+                    status: metric.status },
+                key
+            );
         });
     }
 
