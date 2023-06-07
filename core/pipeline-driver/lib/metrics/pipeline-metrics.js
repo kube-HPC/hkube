@@ -39,7 +39,7 @@ class PipelineMetrics {
             labels: ['pipelineName', 'pipelineId', 'source', 'target'],
         });
         metrics.addGaugeMeasure({
-            name: metricsNames.streaming_edge_proccessingTimeMs,
+            name: metricsNames.streaming_edge_processingTimeMs,
             description: 'Edge proccessing time in ms',
             labels: ['pipelineName', 'pipelineId', 'source', 'target'],
         });
