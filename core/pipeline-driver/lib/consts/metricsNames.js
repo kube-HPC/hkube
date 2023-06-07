@@ -10,7 +10,7 @@ module.exports = {
         streaming_edge_proccessingTimeMs: 'pipeline_driver_streaming_proccessing_time',
         streaming_edge_status: 'pipeline_driver_streaming_edge_status'
     },
-    metricPropConvertMap: {
+    streamingMetricToPropMap: {
         queue_size: 'queueSize',
         throughput: 'throughput',
         queue_time: 'queueTimeMs',
