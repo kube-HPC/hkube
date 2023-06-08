@@ -68,7 +68,7 @@ class PipelineMetrics {
         });
     }
 
-    setStreamingGaugeValueByMetric(options, metricName) {
+    setStreamingEdgeGaugeMetric(options, metricName) {
         const { value, pipelineName, pipelineId, source, target, status } = options;
         metrics.get(`pipeline_driver_streaming_edge_${metricName}`).set({
             value,

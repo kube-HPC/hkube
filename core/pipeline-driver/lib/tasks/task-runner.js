@@ -683,17 +683,17 @@ class TaskRunner {
                 const { source, target, ...metric } = m;
                 const totalRequests = this._getStreamMetric(source, target);
                 this._nodes.updateEdge(source, target, { metrics: { ...metric, ...totalRequests } });
-                this._setAllStreamingGaugeMetrics(this, m);
+                this._setStreamingEdgeMetric(this, m);
             });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
 
-    _setAllStreamingGaugeMetrics(task, metric) {
+    _setStreamingEdgeMetric(task, metric) {
         Object.entries(streamingMetricToPropMap).forEach(([key, val]) => {
             // Key represents the metric name suffix for prometheus, value - the prop to fetch
             // eslint-disable-next-line max-len
-            pipelineMetrics.setStreamingGaugeValueByMetric(
+            pipelineMetrics.setStreamingEdgeGaugeMetric(
                 { value: metric[val],
                     pipelineName: this._pipeline.name,
                     pipelineId: this._pipeline.jobId,
