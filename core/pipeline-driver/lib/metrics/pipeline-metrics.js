@@ -23,6 +23,26 @@ class PipelineMetrics {
             description: 'Number of times the pipeline has ended',
             labels: ['pipeline_name', 'status'],
         });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_queueSize,
+            description: 'Edge queue size',
+            labels: ['pipelineName', 'pipelineId', 'source', 'target', 'status'],
+        });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_throughput,
+            description: 'Edge throughput',
+            labels: ['pipelineName', 'pipelineId', 'source', 'target', 'status'],
+        });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_queueTimeMs,
+            description: 'Edge queue time in ms',
+            labels: ['pipelineName', 'pipelineId', 'source', 'target', 'status'],
+        });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_processingTimeMs,
+            description: 'Edge proccessing time in ms',
+            labels: ['pipelineName', 'pipelineId', 'source', 'target', 'status'],
+        });
     }
 
     startMetrics(options) {
@@ -45,6 +65,20 @@ class PipelineMetrics {
             name: 'startPipeline',
             id: jobId,
             parent: spanId
+        });
+    }
+
+    setStreamingEdgeGaugeMetric(options, metricName) {
+        const { value, pipelineName, pipelineId, source, target, status } = options;
+        metrics.get(`pipeline_driver_streaming_edge_${metricName}`).set({
+            value,
+            labelValues: {
+                pipelineName,
+                pipelineId,
+                source,
+                target,
+                status
+            }
         });
     }
 
