@@ -683,13 +683,13 @@ class TaskRunner {
                 const { source, target, ...metric } = m;
                 const totalRequests = this._getStreamMetric(source, target);
                 this._nodes.updateEdge(source, target, { metrics: { ...metric, ...totalRequests } });
-                this._setStreamingMetric(this, m);
+                this._setStreamingMetric(m);
             });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
 
-    _setStreamingMetric(task, metric) {
+    _setStreamingMetric(metric) {
         Object.entries(streamingEdgeMetricToPropMap).forEach(([key, val]) => {
             if ((metric[val.propName] !== 0) || val.registerZeroValue) {
                 pipelineMetrics.setStreamingEdgeGaugeMetric(

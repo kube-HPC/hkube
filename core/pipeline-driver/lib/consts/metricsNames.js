@@ -31,7 +31,7 @@ module.exports = {
     },
     streamingGeneralMetricToPropMap: {
         pods_per_node: {
-            propName: 'queueSize',
+            propName: 'currentSize',
             registerZeroValue: true
         }
     }
