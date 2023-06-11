@@ -693,7 +693,7 @@ class TaskRunner {
         Object.entries(streamingMetricToPropMap).forEach(([key, val]) => {
             // Key represents the metric name suffix for prometheus, value - the prop to fetch
             // eslint-disable-next-line max-len
-            if ((metric[val] !== 0) || key === 'queue_size') { // Remove zero metrics to avoid wrong treadlines, except for queue_size.
+            if ((metric[val] !== 0) || key === 'queue_size' || key === 'queue_time') { // Remove zero metrics to avoid wrong treadlines, with exceptions
                 pipelineMetrics.setStreamingEdgeGaugeMetric(
                     { value: metric[val],
                         pipelineName: this._pipeline.name,
