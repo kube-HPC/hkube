@@ -708,7 +708,7 @@ class TaskRunner {
             // register a node only if it is stateless, also filter by zero value desicion based on the property.
             // TODO for future Metrics in 'streamingGeneralMetricToPropMap', seperate to a function
             const targetNode = this._pipeline.nodes.filter(n => n.nodeName === metric.target);
-            isStateless = targetNode.stateType === 'stateless';
+            isStateless = targetNode[0].stateType === 'stateless';
             if (isStateless && ((metric[val.propName] !== 0) || val.registerZeroValue)) {
                 pipelineMetrics.setStreamingGeneralMetric(
                     { value: metric[val.propName],
