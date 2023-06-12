@@ -690,6 +690,7 @@ class TaskRunner {
     }
 
     _setStreamingMetric(metric) {
+        let isStateless;
         Object.entries(streamingEdgeMetricToPropMap).forEach(([key, val]) => {
             if ((metric[val.propName] !== 0) || val.registerZeroValue) {
                 pipelineMetrics.setStreamingEdgeGaugeMetric(
@@ -697,20 +698,22 @@ class TaskRunner {
                         pipelineName: this._pipeline.name,
                         jobId: this._pipeline.jobId,
                         source: metric.source,
-                        target: metric.target,
-                        status: metric.status },
+                        target: metric.target },
                     key
                 );
             }
         });
         Object.entries(streamingGeneralMetricToPropMap).forEach(([key, val]) => {
-            if ((metric[val.propName] !== 0) || val.registerZeroValue) {
+            // register a node only if it is stateless, also filter by zero value desicion based on the property.
+            // TODO for future Metrics in 'streamingGeneralMetricToPropMap', seperate to a function
+            const targetNode = this._pipeline.nodes.filter(n => n.nodeName === metric.target);
+            isStateless = targetNode[0].stateType === 'stateless';
+            if (isStateless && ((metric[val.propName] !== 0) || val.registerZeroValue)) {
                 pipelineMetrics.setStreamingGeneralMetric(
                     { value: metric[val.propName],
                         pipelineName: this._pipeline.name,
                         jobId: this._pipeline.jobId,
-                        node: metric.target,
-                        status: metric.status },
+                        node: metric.target },
                     key
                 );
             }
