@@ -698,8 +698,7 @@ class TaskRunner {
                         pipelineName: this._pipeline.name,
                         jobId: this._pipeline.jobId,
                         source: metric.source,
-                        target: metric.target,
-                        status: metric.status },
+                        target: metric.target },
                     key
                 );
             }
