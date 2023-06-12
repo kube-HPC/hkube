@@ -26,22 +26,27 @@ class PipelineMetrics {
         metrics.addGaugeMeasure({
             name: metricsNames.streaming_edge_queueSize,
             description: 'Edge queue size',
-            labels: ['pipelineName', 'pipelineId', 'source', 'target', 'status'],
+            labels: ['pipelineName', 'jobId', 'source', 'target', 'status'],
         });
         metrics.addGaugeMeasure({
             name: metricsNames.streaming_edge_throughput,
             description: 'Edge throughput',
-            labels: ['pipelineName', 'pipelineId', 'source', 'target', 'status'],
+            labels: ['pipelineName', 'jobId', 'source', 'target', 'status'],
         });
         metrics.addGaugeMeasure({
             name: metricsNames.streaming_edge_queueTimeMs,
             description: 'Edge queue time in ms',
-            labels: ['pipelineName', 'pipelineId', 'source', 'target', 'status'],
+            labels: ['pipelineName', 'jobId', 'source', 'target', 'status'],
         });
         metrics.addGaugeMeasure({
             name: metricsNames.streaming_edge_processingTimeMs,
             description: 'Edge proccessing time in ms',
-            labels: ['pipelineName', 'pipelineId', 'source', 'target', 'status'],
+            labels: ['pipelineName', 'jobId', 'source', 'target', 'status'],
+        });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_pods_per_node,
+            description: 'Pod count per node',
+            labels: ['pipelineName', 'jobId', 'node', 'status'],
         });
     }
 
@@ -69,14 +74,27 @@ class PipelineMetrics {
     }
 
     setStreamingEdgeGaugeMetric(options, metricName) {
-        const { value, pipelineName, pipelineId, source, target, status } = options;
+        const { value, pipelineName, jobId, source, target, status } = options;
         metrics.get(`pipeline_driver_streaming_edge_${metricName}`).set({
             value,
             labelValues: {
                 pipelineName,
-                pipelineId,
+                jobId,
                 source,
                 target,
+                status
+            }
+        });
+    }
+
+    setStreamingGeneralMetric(options, metricName) {
+        const { value, pipelineName, jobId, node, status } = options;
+        metrics.get(`pipeline_driver_streaming_${metricName}`).set({
+            value,
+            labelValues: {
+                pipelineName,
+                jobId,
+                node,
                 status
             }
         });

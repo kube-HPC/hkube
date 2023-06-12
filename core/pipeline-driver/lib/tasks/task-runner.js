@@ -17,7 +17,7 @@ const { PipelineReprocess, PipelineNotFound } = require('../errors');
 const { Node, Batch } = NodeTypes;
 const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
 const activeTaskStates = [taskStatuses.CREATING, taskStatuses.ACTIVE, taskStatuses.PRESCHEDULE];
-const { streamingMetricToPropMap } = require('../consts/metricsNames');
+const { streamingEdgeMetricToPropMap, streamingGeneralMetricToPropMap } = require('../consts/metricsNames');
 
 class TaskRunner {
     constructor(options) {
@@ -683,23 +683,33 @@ class TaskRunner {
                 const { source, target, ...metric } = m;
                 const totalRequests = this._getStreamMetric(source, target);
                 this._nodes.updateEdge(source, target, { metrics: { ...metric, ...totalRequests } });
-                this._setStreamingEdgeMetric(this, m);
+                this._setStreamingMetric(m);
             });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
 
-    _setStreamingEdgeMetric(task, metric) {
-        Object.entries(streamingMetricToPropMap).forEach(([key, val]) => {
-            // Key represents the metric name suffix for prometheus, value - the prop to fetch
-            // eslint-disable-next-line max-len
-            if ((metric[val] !== 0) || key === 'queue_size' || key === 'queue_time') { // Remove zero metrics to avoid wrong treadlines, with exceptions
+    _setStreamingMetric(metric) {
+        Object.entries(streamingEdgeMetricToPropMap).forEach(([key, val]) => {
+            if ((metric[val.propName] !== 0) || val.registerZeroValue) {
                 pipelineMetrics.setStreamingEdgeGaugeMetric(
-                    { value: metric[val],
+                    { value: metric[val.propName],
                         pipelineName: this._pipeline.name,
-                        pipelineId: this._pipeline.jobId,
+                        jobId: this._pipeline.jobId,
                         source: metric.source,
                         target: metric.target,
+                        status: metric.status },
+                    key
+                );
+            }
+        });
+        Object.entries(streamingGeneralMetricToPropMap).forEach(([key, val]) => {
+            if ((metric[val.propName] !== 0) || val.registerZeroValue) {
+                pipelineMetrics.setStreamingGeneralMetric(
+                    { value: metric[val.propName],
+                        pipelineName: this._pipeline.name,
+                        jobId: this._pipeline.jobId,
+                        node: metric.target,
                         status: metric.status },
                     key
                 );
