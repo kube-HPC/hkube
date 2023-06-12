@@ -683,13 +683,13 @@ class TaskRunner {
                 const { source, target, ...metric } = m;
                 const totalRequests = this._getStreamMetric(source, target);
                 this._nodes.updateEdge(source, target, { metrics: { ...metric, ...totalRequests } });
-                this._setStreamingMetric(m);
+                this._setStreamingMetric(m, task.isStateful);
             });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
 
-    _setStreamingMetric(metric) {
+    _setStreamingMetric(metric, isStateful) {
         Object.entries(streamingEdgeMetricToPropMap).forEach(([key, val]) => {
             if ((metric[val.propName] !== 0) || val.registerZeroValue) {
                 pipelineMetrics.setStreamingEdgeGaugeMetric(
@@ -704,13 +704,13 @@ class TaskRunner {
             }
         });
         Object.entries(streamingGeneralMetricToPropMap).forEach(([key, val]) => {
-            if ((metric[val.propName] !== 0) || val.registerZeroValue) {
+            // register a node only if it is stateless, also filter by zero value desicion based on the property.
+            if (!isStateful && ((metric[val.propName] !== 0) || val.registerZeroValue)) {
                 pipelineMetrics.setStreamingGeneralMetric(
                     { value: metric[val.propName],
                         pipelineName: this._pipeline.name,
                         jobId: this._pipeline.jobId,
-                        node: metric.target,
-                        status: metric.status },
+                        node: metric.target },
                     key
                 );
             }

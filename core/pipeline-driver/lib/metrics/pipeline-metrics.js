@@ -46,7 +46,7 @@ class PipelineMetrics {
         metrics.addGaugeMeasure({
             name: metricsNames.streaming_pods_per_node,
             description: 'Pod count per node',
-            labels: ['pipelineName', 'jobId', 'node', 'status'],
+            labels: ['pipelineName', 'jobId', 'node'],
         });
     }
 
@@ -88,14 +88,13 @@ class PipelineMetrics {
     }
 
     setStreamingGeneralMetric(options, metricName) {
-        const { value, pipelineName, jobId, node, status } = options;
+        const { value, pipelineName, jobId, node } = options;
         metrics.get(`pipeline_driver_streaming_${metricName}`).set({
             value,
             labelValues: {
                 pipelineName,
                 jobId,
-                node,
-                status
+                node
             }
         });
     }
