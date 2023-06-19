@@ -90,9 +90,6 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
     if (!nodesAfterSelector) {
         messages.push(`No nodes available for scheduling due to selector condition - '${ns.join(',')}'`);
     }
-    else if (unMatchedNodesBySelector > 0) {
-        messages.push(`Not matching node selector: (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
-    } // Message flow for the warning object
     
     let hasMaxCapacity = true;
     const resourcesMap = Object.create(null);
