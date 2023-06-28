@@ -7,8 +7,8 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
     });
     router.get('/tensors', async (req, res) => {
-        const response = await boards.getTensorboards();
-        res.json(response);
+        // const response = await boards.getTensorboards();
+        res.json({ stam: 'kloom' });
     });
     router.get('/tensors/:id?', async (req, res) => {
         const { id } = req.params;
