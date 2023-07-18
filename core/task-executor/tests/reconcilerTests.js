@@ -16,8 +16,7 @@ const { settings: globalSettings } = require('../lib/helpers/settings');
 const resources = require('./stub/resources');
 
 const options = main;
-let callCount; let clearCount; let normResources; let reconciler; let 
-    algorithmTemplates;
+let callCount, clearCount, normResources, reconciler, algorithmTemplates;
 
 const shuffle = (array) => {
     for (let i = array.length - 1; i > 0; i--) {
@@ -25,7 +24,7 @@ const shuffle = (array) => {
         [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
-};
+}
 
 describe('reconciler', () => {
     before(async () => {
@@ -39,7 +38,7 @@ describe('reconciler', () => {
     beforeEach(() => {
         clearCount();
         reconciler._clearCreatedJobsList(Date.now() + 100000, options);
-        reconciler._updateCapacity(1000);
+        reconciler._updateCapacity(1000)
         const res = clone(resources);
         res.nodes.body.items.push(res.nodeWithLabels);
         normResources = normalizeResources(res);
@@ -49,10 +48,10 @@ describe('reconciler', () => {
     describe('reconcile algorithms tests', () => {
         it('should work with no params', async () => {
             const res = await reconciler.reconcile({ normResources, options });
-            expect(res).to.exist;
-            expect(res).to.be.empty;
-            expect(callCount('createJob')).to.be.undefined;
-        });
+            expect(res).to.exist
+            expect(res).to.be.empty
+            expect(callCount('createJob')).to.be.undefined
+        })
         it('should work with one algo', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
@@ -75,11 +74,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
@@ -228,11 +223,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 4, paused: 0, created: 0, skipped: 4, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 0, skipped: 4, resumed: 0 } });
         });
         it('should only create 40 in one iteration', async () => {
             const size = 40;
@@ -260,11 +251,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                'hungry-alg': {
-                    idle: 0, required: size, paused: 0, created: size, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ 'hungry-alg': { idle: 0, required: size, paused: 0, created: size, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(size);
         });
         it('should work with algorithm with enough resources', async () => {
@@ -293,11 +280,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 4, paused: 0, created: 4, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 4, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(4);
         });
         it('should work with algorithm with not enough memory', async () => {
@@ -326,11 +309,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 4, paused: 0, created: 0, skipped: 4, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 0, skipped: 4, resumed: 0 } });
         });
         it('should work with custom worker', async () => {
             const algorithm = 'green-alg';
@@ -360,11 +339,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('myregistry:5000/stam/myworker:v2');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
@@ -378,16 +353,16 @@ describe('reconciler', () => {
                 mem: 400
             };
             const versions = {
-                systemVersion: 'v2.0.74',
-                fullSystemVersion: 'v2.0.74-1612455176042',
-                versions: [
+                "systemVersion": "v2.0.74",
+                "fullSystemVersion": "v2.0.74-1612455176042",
+                "versions": [
                     {
-                        project: 'worker',
-                        tag: 'v2.0.25',
-                        image: 'hkube/worker'
+                        "project": "worker",
+                        "tag": "v2.0.25",
+                        "image": "hkube/worker"
                     }
                 ]
-            };
+            }
             const res = await reconciler.reconcile({
                 options,
                 versions,
@@ -409,11 +384,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker:v3.2.1-beta1');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
@@ -428,16 +399,16 @@ describe('reconciler', () => {
                 mem: 400
             };
             const versions = {
-                systemVersion: 'v2.0.74',
-                fullSystemVersion: 'v2.0.74-1612455176042',
-                versions: [
+                "systemVersion": "v2.0.74",
+                "fullSystemVersion": "v2.0.74-1612455176042",
+                "versions": [
                     {
-                        project: 'worker',
-                        tag: 'v2.0.25',
-                        image: 'hkube/worker'
+                        "project": "worker",
+                        "tag": "v2.0.25",
+                        "image": "hkube/worker"
                     }
                 ]
-            };
+            }
             const res = await reconciler.reconcile({
                 options,
                 versions,
@@ -459,11 +430,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('foo/bar:v3.2.1-beta1');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
@@ -478,16 +445,16 @@ describe('reconciler', () => {
                 mem: 400
             };
             const versions = {
-                systemVersion: 'v2.0.74',
-                fullSystemVersion: 'v2.0.74-1612455176042',
-                versions: [
+                "systemVersion": "v2.0.74",
+                "fullSystemVersion": "v2.0.74-1612455176042",
+                "versions": [
                     {
-                        project: 'worker',
-                        tag: 'v2.0.25',
-                        image: 'hkube/worker'
+                        "project": "worker",
+                        "tag": "v2.0.25",
+                        "image": "hkube/worker"
                     }
                 ]
-            };
+            }
             const registry = { registry: 'my.registry/prefix' };
             const res = await reconciler.reconcile({
                 options,
@@ -511,11 +478,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('my.registry/prefix/foo/bar:v3.2.1-beta1');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('my.registry/prefix/hkube/algorithm-example');
@@ -552,11 +515,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include({ name: 'myEnv', value: 'myValue' });
@@ -567,8 +526,8 @@ describe('reconciler', () => {
             const algorithm = 'black-alg';
             algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
-                env: 'java',
-                mem: '2048',
+                env: "java",
+                mem: "2048",
                 workerEnv: {
                     myEnv: 'myValue'
                 },
@@ -608,7 +567,7 @@ describe('reconciler', () => {
                     pvcName: 'mypvc2',
                     path: '/tmp/foo'
                 }
-            ];
+            ]
             algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
                 workerEnv: {
@@ -691,8 +650,8 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(varlibdockercontainers);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext.privileged).to.be.true;
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env
-                .find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom');
-        });
+                .find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
+        })
         it('should not add Privileged flag if configured', async () => {
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
@@ -733,7 +692,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.not.include(varlibdockercontainers);
 
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext).to.not.exist;
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.be.undefined;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.be.undefined
 
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include({
                 name: 'logs',
@@ -747,7 +706,9 @@ describe('reconciler', () => {
                 name: 'logs',
                 mountPath: '/hkube-logs/'
             });
-        });
+
+
+        })
         it('should add jaeger host when not Privileged if configured', async () => {
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
@@ -784,7 +745,7 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env
                 .find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST').value).to.eql(testOptions.jaeger.host);
-        });
+        })
         it('should add env param, volume, volumeMount if fs is defaultStorage', async () => {
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
@@ -818,11 +779,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.include(fsVolumeMounts);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(fsVolumes);
@@ -861,11 +818,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({
-                [algorithm]: {
-                    idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'DISCOVERY_MAX_CACHE_SIZE', value: '256' });
         });
@@ -909,7 +862,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include(s3EndpointUrl);
         });
         it('should add worker resources', async () => {
-            globalSettings.applyResources = true;
+            globalSettings.applyResources = true
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
@@ -939,14 +892,14 @@ describe('reconciler', () => {
             });
             expect(res).to.exist;
             expect(callCount('createJob').length).to.eql(1);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
                 .to.deep.include({ limits: { cpu: 1, memory: '1024Mi' } });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
         it('should not add worker resources', async () => {
-            globalSettings.applyResources = false;
+            globalSettings.applyResources = false
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
@@ -976,11 +929,11 @@ describe('reconciler', () => {
             });
             expect(res).to.exist;
             expect(callCount('createJob').length).to.eql(1);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.not.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.not.exist
         });
         it('should add worker resources useLimits', async () => {
-            globalSettings.useResourceLimits = true;
-            globalSettings.applyResources = true;
+            globalSettings.useResourceLimits = true
+            globalSettings.applyResources = true
 
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
@@ -1011,7 +964,7 @@ describe('reconciler', () => {
             });
             expect(res).to.exist;
             expect(callCount('createJob').length).to.eql(1);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
                 .to.deep.include({ limits: { cpu: 0.5, memory: '512Mi' } });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
@@ -1032,9 +985,7 @@ describe('reconciler', () => {
                 mem: 100
             };
             const workers = [
-                {
-                    workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus 
-                }
+                { workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus }
             ];
 
             const res = await reconciler.reconcile({
@@ -1073,9 +1024,7 @@ describe('reconciler', () => {
                 mem: 100
             };
             const workers = [
-                {
-                    workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus 
-                }
+                { workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus }
             ];
 
             const res = await reconciler.reconcile({
@@ -1115,12 +1064,8 @@ describe('reconciler', () => {
                 mem: 100
             };
             const workers = [
-                {
-                    workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus 
-                },
-                {
-                    workerId: `${algorithm1}-2`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus 
-                }
+                { workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus },
+                { workerId: `${algorithm1}-2`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus }
             ];
 
             const res = await reconciler.reconcile({
@@ -1184,7 +1129,7 @@ describe('reconciler', () => {
             expect(res[algorithm1].required).to.eql(1);
             expect(res[algorithm1].created).to.eql(1);
         });
-    });
+    })
     describe('reconcile algorithms quotaGuarantee', () => {
         it('should work with algorithm with no quotaGuarantee', async () => {
             const algorithm1 = 'no-requisite-x';
@@ -1226,7 +1171,7 @@ describe('reconciler', () => {
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm2 })),
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm3 })),
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm4 }))
-            ];
+            ]
             const data = array;
             const res = await reconciler.reconcile({
                 options,
@@ -1276,17 +1221,11 @@ describe('reconciler', () => {
                 ...Array.from(Array(800).keys()).map(() => ({ name: algorithm1 })),
                 ...Array.from(Array(200).keys()).map(() => ({ name: algorithm2 })),
                 ...Array.from(Array(100).keys()).map(() => ({ name: algorithm3 })),
-            ];
+            ]
             const workers = [
-                ...Array.from(Array(70).keys()).map((k) => ({
-                    workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus 
-                })),
-                ...Array.from(Array(12).keys()).map((k) => ({
-                    workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm2, workerStatus 
-                })),
-                ...Array.from(Array(5).keys()).map((k) => ({
-                    workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm3, workerStatus 
-                })),
+                ...Array.from(Array(70).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus })),
+                ...Array.from(Array(12).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm2, workerStatus })),
+                ...Array.from(Array(5).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm3, workerStatus })),
             ];
             const data = shuffle(requests);
             const res = await reconciler.reconcile({
@@ -1350,20 +1289,12 @@ describe('reconciler', () => {
                 ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm2 })),
                 ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm3 })),
                 ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm4 }))
-            ];
+            ]
             const workers = [
-                ...Array.from(Array(workersAmount).keys()).map((k) => ({
-                    workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus 
-                })),
-                ...Array.from(Array(workersAmount).keys()).map((k) => ({
-                    workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm2, workerStatus 
-                })),
-                ...Array.from(Array(workersAmount).keys()).map((k) => ({
-                    workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm3, workerStatus 
-                })),
-                ...Array.from(Array(workersAmount).keys()).map((k) => ({
-                    workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm4, workerStatus 
-                }))
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus })),
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm2, workerStatus })),
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm3, workerStatus })),
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm4, workerStatus }))
             ];
             const data = shuffle(requests);
             const res = await reconciler.reconcile({
@@ -1423,7 +1354,7 @@ describe('reconciler', () => {
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm2 })),
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm3 })),
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm4 }))
-            ];
+            ]
             const res = await reconciler.reconcile({
                 options,
                 normResources,
@@ -1465,11 +1396,7 @@ describe('reconciler', () => {
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Insufficient cpu (4)');
-            expect(res).to.eql({
-                [algorithm.name]: {
-                    idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 } });
         });
         it('should update algorithm that cannot be scheduled due to memory', async () => {
             const algorithm = algorithmTemplates['big-mem'];
@@ -1494,11 +1421,7 @@ describe('reconciler', () => {
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Insufficient mem (4)');
-            expect(res).to.eql({
-                [algorithm.name]: {
-                    idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 } });
         });
         it('should create algorithm that does not use GPU in openshift mode', async () => {
             const algorithm = algorithmTemplates['yellow-alg'];
@@ -1514,7 +1437,7 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            expect(res['yellow-alg'].created).to.eql(1);
+            expect(res['yellow-alg'].created).to.eql(1)
         });
         it('should update algorithm that cannot be scheduled due to gpu', async () => {
             const algorithm = algorithmTemplates['big-gpu'];
@@ -1539,11 +1462,7 @@ describe('reconciler', () => {
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Insufficient gpu (4)');
-            expect(res).to.eql({
-                [algorithm.name]: {
-                    idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 } });
         });
         it('should update algorithm that cannot be scheduled due to max limit cpu', async () => {
             const algorithm = algorithmTemplates['max-cpu'];
@@ -1563,12 +1482,8 @@ describe('reconciler', () => {
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded cpu (4)');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.cpu).to.eql('18.18');
-            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].requestsOverMaxCapacity[0]).to.eql(['cpu', true]);
-            expect(res).to.eql({
-                [algorithm.name]: {
-                    idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 
-                } 
-            });
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].requestsOverMaxCapacity[0]).to.eql(['cpu',true]);
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be scheduled due to max limit memory', async () => {
             const algorithm = algorithmTemplates['max-mem'];
@@ -1587,11 +1502,7 @@ describe('reconciler', () => {
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded mem (4)');
-            expect(res).to.eql({
-                [algorithm.name]: {
-                    idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be scheduled due to max limit gpu', async () => {
             const algorithm = algorithmTemplates['max-gpu'];
@@ -1610,11 +1521,7 @@ describe('reconciler', () => {
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded gpu (4)');
-            expect(res).to.eql({
-                [algorithm.name]: {
-                    idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be scheduled due to node selector', async () => {
             const algorithm = algorithmTemplates['node-selector'];
@@ -1632,14 +1539,10 @@ describe('reconciler', () => {
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
-            expect(algorithms[algorithm.name].message).to.eql('No nodes available for scheduling due to selector condition - \'type=cpu-extreme\'');
+            expect(algorithms[algorithm.name].message).to.eql(`No nodes available for scheduling due to selector condition - 'type=cpu-extreme'`);
             expect(algorithms[algorithm.name].complexResourceDescriptor.numUnmatchedNodesBySelector).to.eql(4);
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes).to.eql([]);
-            expect(res).to.eql({
-                [algorithm.name]: {
-                    idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 
-                } 
-            });
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be scheduled due to all params', async () => {
             const algorithm = algorithmTemplates['node-all-params'];
@@ -1657,15 +1560,11 @@ describe('reconciler', () => {
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
-            expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded cpu (1) mem (1) gpu (1)');
+            expect(algorithms[algorithm.name].message).to.eql(`Maximum capacity exceeded cpu (1) mem (1) gpu (1)`);
             expect(algorithms[algorithm.name].complexResourceDescriptor.numUnmatchedNodesBySelector).to.eql(3);
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].nodeName).to.eql('node4');
-            expect(algorithms[algorithm.name].complexResourceDescriptor.requestedSelectors).to.eql(['type=gpu-extreme', 'max=bound']);
-            expect(res).to.eql({
-                [algorithm.name]: {
-                    idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 
-                } 
-            });
+            expect(algorithms[algorithm.name].complexResourceDescriptor.requestedSelectors).to.eql(['type=gpu-extreme','max=bound']);
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm unschedule and then succeed to schedule', async () => {
             const algorithm = algorithmTemplates['eval-alg'];
@@ -1690,16 +1589,8 @@ describe('reconciler', () => {
             const res2 = await reconciler.reconcile(reconcile2);
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded cpu (4)');
-            expect(res1).to.eql({
-                [algorithm.name]: {
-                    idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 
-                } 
-            });
-            expect(res2).to.eql({
-                [algorithm.name]: {
-                    idle: 0, required: data.length, paused: 0, created: data.length, skipped: 0, resumed: 0 
-                } 
-            });
+            expect(res1).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
+            expect(res2).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: data.length, skipped: 0, resumed: 0 } });
         });
     });
 });
