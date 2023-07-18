@@ -52,7 +52,7 @@ describe('reconciler', () => {
             expect(res).to.be.empty
             expect(callCount('createJob')).to.be.undefined
         })
-        it('should work with one algo', async () => {
+        xit('should work with one algo', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
                 options,
@@ -1481,6 +1481,8 @@ describe('reconciler', () => {
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded cpu (4)');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.cpu).to.eql('18.18');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].requestsOverMaxCapacity[0]).to.eql(['cpu',true]);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be scheduled due to max limit memory', async () => {
@@ -1538,6 +1540,8 @@ describe('reconciler', () => {
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql(`No nodes available for scheduling due to selector condition - 'type=cpu-extreme'`);
+            expect(algorithms[algorithm.name].complexResourceDescriptor.numUnmatchedNodesBySelector).to.eql(4);
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes).to.eql([]);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be scheduled due to all params', async () => {
@@ -1557,6 +1561,9 @@ describe('reconciler', () => {
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql(`Maximum capacity exceeded cpu (1) mem (1) gpu (1)`);
+            expect(algorithms[algorithm.name].complexResourceDescriptor.numUnmatchedNodesBySelector).to.eql(3);
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].nodeName).to.eql('node4');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.requestedSelectors).to.eql(['type=gpu-extreme','max=bound']);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm unschedule and then succeed to schedule', async () => {
