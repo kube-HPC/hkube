@@ -1526,6 +1526,8 @@ describe('reconciler', () => {
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded gpu (4)');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.gpu).to.eql('7.00');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].requestsOverMaxCapacity[0]).to.eql(['gpu',true]);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be scheduled due to node selector', async () => {
