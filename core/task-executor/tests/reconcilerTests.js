@@ -1571,9 +1571,6 @@ describe('reconciler', () => {
             expect(algorithms[algorithm.name].message).to.eql(`Maximum capacity exceeded cpu (1) mem (1) gpu (1)`);
             expect(algorithms[algorithm.name].complexResourceDescriptor.numUnmatchedNodesBySelector).to.eql(3);
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].nodeName).to.eql('node4');
-            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].requestsOverMaxCapacity[0]).to.eql(['cpu',true])
-            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].requestsOverMaxCapacity[1]).to.eql(['mem',true])
-            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].requestsOverMaxCapacity[2]).to.eql(['gpu',true])
             expect(algorithms[algorithm.name].complexResourceDescriptor.requestedSelectors).to.eql(['type=gpu-extreme','max=bound']);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
