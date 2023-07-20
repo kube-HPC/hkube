@@ -1427,6 +1427,9 @@ describe('reconciler', () => {
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Insufficient mem (4)');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.mem).to.eql('11929.60');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[1].amountsMissing.mem).to.eql('12057.60');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[2].amountsMissing.mem).to.eql('11673.60');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[3].amountsMissing.mem).to.eql('36454.40');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 } });
         });
         it('should create algorithm that does not use GPU in openshift mode', async () => {
