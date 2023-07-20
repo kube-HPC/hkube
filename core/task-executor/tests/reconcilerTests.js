@@ -1397,6 +1397,9 @@ describe('reconciler', () => {
             expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Insufficient cpu (4)');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.cpu).to.eql('1.18');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[1].amountsMissing.cpu).to.eql('1.23');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[2].amountsMissing.cpu).to.eql('0.98');
+            expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[3].amountsMissing.cpu).to.eql('7.18');
             expect(algorithms[algorithm.name].hasMaxCapacity).to.be.false;
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 } });
         });
