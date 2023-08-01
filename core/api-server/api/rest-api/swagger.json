@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.5.1",
+    "version": "2.6.0",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6545,7 +6545,7 @@
             }
           },
           {
-            "name": "id",
+            "name": "download_id",
             "in": "query",
             "required": true,
             "schema": {
@@ -22562,7 +22562,7 @@
         }
       },
       "downloadIdQuery": {
-        "name": "id",
+        "name": "download_id",
         "in": "query",
         "required": true,
         "schema": {
