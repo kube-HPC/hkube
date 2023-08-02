@@ -6589,7 +6589,7 @@
             }
           },
           {
-            "name": "id",
+            "name": "download_id",
             "in": "query",
             "required": true,
             "schema": {
@@ -22694,7 +22694,7 @@
         }
       },
       "downloadIdQuery": {
-        "name": "id",
+        "name": "download_id",
         "in": "query",
         "required": true,
         "schema": {
