@@ -627,20 +627,15 @@ class TaskRunner {
     }
 
     async _runNodeSimple(options) {
-        if (this._checkMinStateless(options.node)) {
-            await this._runNodeStateless(options);
-        }
-        else {
-            const node = new Node({
-                ...options.node,
-                status: taskStatuses.CREATING,
-                storage: options.storage,
-                input: options.input
-            });
-            this._nodes.setNode(node);
-            this._setTaskState(node);
-            await this._createJob(options);
-        }
+        const node = new Node({
+            ...options.node,
+            status: taskStatuses.CREATING,
+            storage: options.storage,
+            input: options.input
+        });
+        this._nodes.setNode(node);
+        this._setTaskState(node);
+        await this._createJob(options);
     }
 
     async _runNodeBatch(options) {
@@ -680,8 +675,8 @@ class TaskRunner {
                 ...nodeStateless,
                 status: taskStatuses.CREATING,
                 statelessIndex: i + 1, // Index the node for recognition purposes
-                storage: nodeStateless.storage,
-                input: nodeStateless.input
+                storage: options.storage,
+                input: options.input
             });
             this._nodes.setNode(stateless);
             this._setTaskState(stateless);
