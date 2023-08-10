@@ -70,10 +70,11 @@ class JobConsumer {
 
         let dataSource;
         let resolvedSnapshot;
+        let snapshot;
 
         try {
             if (dataSourceDescriptor.snapshot) {
-                const { snapshot } = dataSourceDescriptor;
+                ({ snapshot } = dataSourceDescriptor);
                 resolvedSnapshot = await this.db.snapshots.fetchDataSourceWithCredentials(
                     {
                         snapshotName: snapshot.name,
@@ -109,7 +110,8 @@ class JobConsumer {
             pathLib.join(this.rootDir, job.jobId, dataSource.name),
             dataSource.git,
             dataSource.storage,
-            dataSource._credentials
+            dataSource._credentials,
+            resolvedSnapshot ? snapshot.name : null
         );
 
         try {
@@ -117,7 +119,12 @@ class JobConsumer {
                 component,
                 taskId,
             });
-            await repository.ensureClone(dataSource.commitHash);
+            if (resolvedSnapshot) {
+                await repository.ensureClone(dataSource.commitHash, true, snapshot.name);
+            }
+            else {
+                await repository.ensureClone(dataSource.commitHash);
+            }
             await repository.pullFiles();
         }
         catch (e) {

@@ -57,8 +57,7 @@ describe('JobsConsumer', () => {
         const mountedPath = pathLib.join(
 
             global.testParams.mountedDir,
-            dataSource.name,
-            dataSource.id,
+            jobId,
             dataSource.name
         );
         expect(await fse.pathExists(mountedPath)).to.be.true;
@@ -112,7 +111,8 @@ describe('JobsConsumer', () => {
         );
         expect(storagePayload.snapshotId).to.eq(snapshot.id);
 
-        const mountedDir = `${rootDir}/${dataSource.name}/${storagePayload.snapshotId}/${dataSource.name}`;
+        const mountedDir = `${rootDir}/${jobId}/${dataSource.name}/${snapshotName}`
+        //${dataSource.name}`;
         const existingFiles = await Promise.all(
             [
                 `${mountedDir}`,
