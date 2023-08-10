@@ -111,7 +111,7 @@ class JobConsumer {
             dataSource.git,
             dataSource.storage,
             dataSource._credentials,
-            resolvedSnapshot ? snapshot.name : null
+            resolvedSnapshot ? snapshot.name : 'complete'
         );
 
         try {
