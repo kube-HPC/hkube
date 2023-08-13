@@ -656,7 +656,6 @@ class TaskRunner {
             const stateless = new Stateless({
                 ...nodeStateless,
                 status: taskStatuses.CREATING,
-                statelessIndex: i + 1, // Index the node for recognition purposes
                 storage: options.storage,
                 input: options.input
             });
