@@ -415,7 +415,8 @@ class TaskRunner {
     _findEntryNodes() {
         const sourceNodes = this._nodes.getSources();
         const statefulNodes = this._nodes.getAllNodes().filter(n => n.stateType === stateType.Stateful).map(n => n.nodeName);
-        return [...new Set([...sourceNodes, ...statefulNodes])];
+        const minStatelessNodes = this._nodes.getAllNodes().filter(n => this._checkMinStateless(n)).map(n => n.nodeName);
+        return [...new Set([...sourceNodes, ...statefulNodes, ...minStatelessNodes])];
     }
 
     get _currentProgress() {
@@ -498,10 +499,7 @@ class TaskRunner {
 
     async _runNode(nodeName, parentOutput, index) {
         try {
-            let options;
-            let result;
             const node = this._nodes.getNode(nodeName);
-            const minStatelessToScale = [];
             // TODO: resolve this issue in a better way
             if (!shouldRunTaskStates.includes(node.status)) {
                 log.warning(`node ${nodeName} cannot run, status: ${node.status}`, { component });
@@ -514,25 +512,17 @@ class TaskRunner {
             this._nodeRuns.add(nodeName);
 
             log.info(`node ${nodeName} is ready to run`, { component });
-            this._checkPreSchedule(nodeName, minStatelessToScale);
-            minStatelessToScale.forEach((name, indx) => {
-                const statelessNode = this._nodes.getNode(name);
-                const { options: statelessOptions, result: statelessResult } = this._gatherNodeOptions(name, statelessNode, index, parentOutput);
-                minStatelessToScale[indx] = { nodeName: name, options: statelessOptions };
-                if (!this._isCachedPipeline) {
-                    uniqueDiscovery(statelessResult.storage);
-                }
-            });
-            await Promise.all(minStatelessToScale.map(m => this._runNodeStateless(m.options)));
+            this._checkPreSchedule(nodeName);
 
-            const { options: myOptions, result: nodeResult } = this._gatherNodeOptions(nodeName, node, index, parentOutput);
-            options = myOptions;
-            result = nodeResult;
+            const { options, result } = this._gatherNodeOptions(nodeName, node, index, parentOutput);
+
             if (!this._isCachedPipeline) {
                 uniqueDiscovery(result.storage);
             }
-
-            if (result.batch) {
+            if (this._checkMinStateless(node)) {
+                await this._runNodeStateless(options);
+            }
+            else if (result.batch) {
                 await this._runNodeBatch(options);
             }
             else if (index) {
@@ -575,21 +565,13 @@ class TaskRunner {
         return { options, result };
     }
 
-    async _checkPreSchedule(nodeName, minStatelessToScale) {
+    async _checkPreSchedule(nodeName) {
         const childs = this._nodes._childs(nodeName);
-        const childsWitohutStatelessScaling = childs.filter((c) => {
-            const child = this._nodes.getNode(c);
-            if (this._checkMinStateless(child)) {
-                minStatelessToScale.push(c); // Add disqualified child to list to handle outside of this scope
-                return false;
-            }
-            return true;
-        }); // Filter out nodes that are stateless with minStatelessCount, rest get prescheduled normally.
-        await Promise.all(childsWitohutStatelessScaling.map(c => this._sendPreSchedule(c)));
+        await Promise.all(childs.map(c => this._sendPreSchedule(c)));
     }
 
     _checkMinStateless(node) {
-        return (node.stateType && node.stateType === 'stateless' && node.minStatelessCount > 0);
+        return (node.stateType && node.stateType === stateType.Stateless && node.minStatelessCount > 0);
     }
 
     async _sendPreSchedule(nodeName) {
