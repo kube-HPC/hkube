@@ -148,6 +148,7 @@ describe('Executions', () => {
                             algorithmName: 'green-alg',
                             input: [],
                             metrics: { tensorboard: true },
+                            minStatelessCount: 0,
                             kind: 'algorithm'
                         }
                     ]

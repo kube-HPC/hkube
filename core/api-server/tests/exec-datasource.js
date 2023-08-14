@@ -171,16 +171,19 @@ describe('DataSources', () => {
                     {
                         nodeName: 'A',
                         kind: 'dataSource',
+                        minStatelessCount: 0,
                         spec: { name: 'exist' }
                     },
                     {
                         nodeName: 'B',
                         kind: 'dataSource',
+                        minStatelessCount: 0,
                         spec: { id: 'exist' }
                     },
                     {
                         nodeName: 'C',
                         kind: 'dataSource',
+                        minStatelessCount: 0,
                         spec: {
                             name: 'exist',
                             snapshot: {

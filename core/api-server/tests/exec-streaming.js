@@ -796,30 +796,35 @@ describe('Streaming', () => {
                         nodeName: 'A',
                         algorithmName: 'green-alg',
                         input: [],
+                        minStatelessCount: 0,
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'B',
                         algorithmName: 'green-alg',
                         input: [],
+                        minStatelessCount: 0,
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'C',
                         algorithmName: 'green-alg',
                         input: [],
+                        minStatelessCount: 0,
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'D',
                         algorithmName: 'green-alg',
                         input: [],
+                        minStatelessCount: 0,
                         kind: 'algorithm'
                     },
                     {
                         nodeName: 'E',
                         algorithmName: 'green-alg',
                         input: [],
+                        minStatelessCount: 0,
                         kind: 'algorithm'
                     }
                 ],
