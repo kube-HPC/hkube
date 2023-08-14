@@ -504,4 +504,22 @@ describe('TaskRunner', function () {
         const entryNodes = driver._findEntryNodes();
         expect(entryNodes.sort()).to.eql(allNodes.sort());
     });
+    it('should create stateless nodes at start', async function () {
+        const jobId = createJobId();
+        const job = {
+            data: { jobId },
+            done: () => { }
+        }
+        const pipeline = pipelines.find(p => p.name === 'minStatelessCount-pipeline');
+        const status = { status: 'pending' };
+        await stateManager.createJob({ jobId, pipeline, status });
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
+        await delay(2000);
+        const allNodes = pipeline.nodes.map(n => n.nodeName);
+        const entryNodes = driver._findEntryNodes();
+        expect(entryNodes.sort()).to.eql(allNodes.sort());
+        expect(driver._nodes._graph._nodes["black"].batch.length).to.eql(pipeline.nodes[2].minStatelessCount);
+        expect(driver._nodes._graph._nodes["yellow"].batch.length).to.eql(pipeline.nodes[1].minStatelessCount);
+    });
 });

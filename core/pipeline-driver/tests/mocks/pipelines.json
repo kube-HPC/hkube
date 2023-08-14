@@ -407,5 +407,36 @@
                 "stateType": "stateful"
             }
         ]
+    },
+    {
+        "name": "minStatelessCount-pipeline",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@flowInput.files.link"
+                ],
+                "stateType": "stateful"
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "minStatelessCount": 2,
+                "input": [
+                    "@green"
+                ],
+                "stateType": "stateless"
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "minStatelessCount": 3,
+                "input": [
+                    "@green"
+                ],
+                "stateType": "stateless"
+            }
+        ]
     }
 ]

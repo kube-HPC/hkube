@@ -43,6 +43,15 @@ properties:
       - cartesian
   kind:
     $ref: "#/components/schemas/nodeKind"
+  minStatelessCount:
+    type: integer
+    description: Minimum number of stateless nodes to create during pipeline initiation.
+    minimum: 0
+    default: 0
+  maxStatelessCount:
+    type: integer
+    description: Maximum number of stateless nodes to scale up to.
+    minimum: 0
   spec:
     anyOf:
       - $ref: "#/components/schemas/kindPipeline"

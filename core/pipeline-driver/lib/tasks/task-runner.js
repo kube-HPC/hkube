@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 const { parser } = require('@hkube/parsers');
 const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
@@ -14,7 +15,7 @@ const GraphStore = require('../datastore/graph-store');
 const cachePipeline = require('./cache-pipeline');
 const uniqueDiscovery = require('../helpers/discovery');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
-const { Node, Batch } = NodeTypes;
+const { Node, Batch, Stateless } = NodeTypes;
 const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
 const activeTaskStates = [taskStatuses.CREATING, taskStatuses.ACTIVE, taskStatuses.PRESCHEDULE];
 const { streamingEdgeMetricToPropMap, streamingGeneralMetricToPropMap } = require('../consts/metricsNames');
@@ -414,7 +415,8 @@ class TaskRunner {
     _findEntryNodes() {
         const sourceNodes = this._nodes.getSources();
         const statefulNodes = this._nodes.getAllNodes().filter(n => n.stateType === stateType.Stateful).map(n => n.nodeName);
-        return [...new Set([...sourceNodes, ...statefulNodes])];
+        const minStatelessNodes = this._nodes.getAllNodes().filter(n => this._checkMinStateless(n)).map(n => n.nodeName);
+        return [...new Set([...sourceNodes, ...statefulNodes, ...minStatelessNodes])];
     }
 
     get _currentProgress() {
@@ -512,34 +514,15 @@ class TaskRunner {
             log.info(`node ${nodeName} is ready to run`, { component });
             this._checkPreSchedule(nodeName);
 
-            const parse = {
-                flowInputMetadata: this.pipeline.flowInputMetadata,
-                nodeInput: node.input,
-                parentOutput: node.parentOutput || parentOutput,
-                batchOperation: node.batchOperation,
-                ignoreParentResult: node.stateType === stateType.Stateful,
-                index
-            };
-            const result = parser.parse(parse);
-            const paths = this._nodes.extractPaths(nodeName);
-            const parents = this._nodes._parents(nodeName);
-            const childs = this._nodes._childs(nodeName);
-
-            const options = {
-                node,
-                index,
-                paths,
-                parents,
-                childs,
-                input: result.input,
-                storage: result.storage
-            };
+            const { options, result } = this._gatherNodeOptions(nodeName, node, index, parentOutput);
 
             if (!this._isCachedPipeline) {
                 uniqueDiscovery(result.storage);
             }
-
-            if (result.batch) {
+            if (this._checkMinStateless(node)) {
+                await this._runNodeStateless(options);
+            }
+            else if (result.batch) {
                 await this._runNodeBatch(options);
             }
             else if (index) {
@@ -554,9 +537,41 @@ class TaskRunner {
         }
     }
 
+    _gatherNodeOptions(nodeName, node, index, parentOutput) {
+        const parse = {
+            flowInputMetadata: this.pipeline.flowInputMetadata,
+            nodeInput: node.input,
+            parentOutput: node.parentOutput || parentOutput,
+            batchOperation: node.batchOperation,
+            ignoreParentResult: node.stateType === stateType.Stateful,
+            index
+        };
+
+        const result = parser.parse(parse);
+        const paths = this._nodes.extractPaths(nodeName);
+        const parents = this._nodes._parents(nodeName);
+        const childs = this._nodes._childs(nodeName);
+
+        const options = {
+            node,
+            index,
+            paths,
+            parents,
+            childs,
+            input: result.input,
+            storage: result.storage
+        };
+
+        return { options, result };
+    }
+
     async _checkPreSchedule(nodeName) {
         const childs = this._nodes._childs(nodeName);
         await Promise.all(childs.map(c => this._sendPreSchedule(c)));
+    }
+
+    _checkMinStateless(node) {
+        return (node.stateType && node.stateType === stateType.Stateless && node.minStatelessCount > 0);
     }
 
     async _sendPreSchedule(nodeName) {
@@ -629,6 +644,28 @@ class TaskRunner {
             this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
             await this._createJob(options, batchList);
         }
+    }
+
+    async _runNodeStateless(options) {
+        const statelessList = [];
+        // remove taskId from node so the new stateless will generate new ids
+        const { taskId, ...nodeStateless } = options.node;
+        log.info(`node ${nodeStateless.nodeName} is ready to run`, { component });
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < nodeStateless.minStatelessCount; i++) {
+            const stateless = new Stateless({
+                ...nodeStateless,
+                status: taskStatuses.CREATING,
+                storage: options.storage,
+                input: options.input
+            });
+            this._nodes.setNode(stateless);
+            this._setTaskState(stateless);
+            statelessList.push(stateless);
+        }
+        this._nodes.addBatchList(nodeStateless.nodeName, statelessList);
+        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
+        await this._createJob(options, undefined, statelessList);
     }
 
     _skipBatchNode(options) {
@@ -827,8 +864,8 @@ class TaskRunner {
         this._nodes.updateTaskState(taskId, state);
     }
 
-    async _createJob(options, batch) {
-        return producer.createJob({ jobId: this._jobId, pipeline: this.pipeline, options, batch });
+    async _createJob(options, batch, statelessList) {
+        return producer.createJob({ jobId: this._jobId, pipeline: this.pipeline, options, batch, statelessList });
     }
 }
 
