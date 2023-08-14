@@ -31,12 +31,13 @@ let log;
  * responses and there are no replicas so we scale-up 1 replica (first scale)
  * Scaling up is done by sending jobs to the Algorithm-Queue
  * and then do not scale-up until desired replicas are fulfilled.
+ * If node is stateless, and has maxStatelessCount > 0, never scale above it
  *
  * --Scale-Down--
  * another condition to scale down is when there are no requests and no
  * responses for x time, it will scale-down the current size to zero.
  * Scaling down is done by sending commands to the workers.
- *
+ * If node is stateless, and has minStatelessCount > 0, never scale below it.
  */
 class AutoScaler {
     constructor(options, onSourceRemove) {
@@ -46,6 +47,8 @@ class AutoScaler {
         this._options = options;
         this._config = options.config;
         this._isStateful = options.node.stateType === stateType.Stateful;
+        this._minStatelessCount = options.node.minStatelessCount;
+        this._maxStatelessCount = options.node.maxStatelessCount;
         this._onSourceRemove = onSourceRemove;
         this.reset();
     }
@@ -325,15 +328,19 @@ class AutoScaler {
         return producer.createJob({ jobData: job });
     }
 
+    // replicas - how many to deduct, scaleTo - how many required in total,
     _scaleDown(scale) {
         if (!scale) {
             return null;
         }
         this._logScaling({ action: 'down', ...scale });
-        const { replicas, scaleTo } = scale;
+        const { replicas, currentSize, scaleTo } = scale;
         const discoveryWorkers = discovery.getInstances(this._nodeName);
         // we will prefer not to scale-down masters, unless we scaling down to zero
         const instances = scaleTo === 0 ? discoveryWorkers : discoveryWorkers.filter(d => !d.isMaster);
+        if (this._minStatelessCount > 0 && (currentSize - replicas < this._minStatelessCount)) {
+            // TODO calculate how much to deduct to stay at minStatelessCount.
+        }
         const workers = instances.slice(0, replicas);
         return Promise.all(workers.map(w => stateAdapter.stopWorker({ workerId: w.workerId })));
     }
