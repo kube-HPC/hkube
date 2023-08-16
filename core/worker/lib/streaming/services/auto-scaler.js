@@ -47,8 +47,7 @@ class AutoScaler {
         this._options = options;
         this._config = options.config;
         this._isStateful = options.node.stateType === stateType.Stateful;
-        this._minStatelessCount = options.node.minStatelessCount;
-        this._maxStatelessCount = options.node.maxStatelessCount;
+        this.statelessCountLimits = { minStateless: options.node.minStatelessCount, maxStateless: options.node.maxStatelessCount };
         this._onSourceRemove = onSourceRemove;
         this.reset();
     }
@@ -65,7 +64,7 @@ class AutoScaler {
             if (this._options.node.kind === nodeKind.Debug) {
                 conf = { ...this._config, scaleUp: { ...this._config.scaleUp, maxScaleUpReplicasPerNode: 1 } };
             }
-            this._scaler = new Scaler(conf, {
+            this._scaler = new Scaler(conf, this.statelessCountLimits, {
                 getCurrentSize: () => {
                     return discovery.countInstances(this._nodeName);
                 },
@@ -328,19 +327,18 @@ class AutoScaler {
         return producer.createJob({ jobData: job });
     }
 
-    // replicas - how many to deduct, scaleTo - how many required in total,
     _scaleDown(scale) {
         if (!scale) {
             return null;
         }
         this._logScaling({ action: 'down', ...scale });
-        const { replicas, currentSize, scaleTo } = scale;
+        const { replicas, scaleTo } = scale; // currentSize
         const discoveryWorkers = discovery.getInstances(this._nodeName);
         // we will prefer not to scale-down masters, unless we scaling down to zero
         const instances = scaleTo === 0 ? discoveryWorkers : discoveryWorkers.filter(d => !d.isMaster);
-        if (this._minStatelessCount > 0 && (currentSize - replicas < this._minStatelessCount)) {
-            // TODO calculate how much to deduct to stay at minStatelessCount.
-        }
+        // if (this._minStatelessCount > 0 && (currentSize - replicas < this._minStatelessCount)) {
+        //     const replicaDeductedMin = currentSize - this.minStatelessCount;
+        // }
         const workers = instances.slice(0, replicas);
         return Promise.all(workers.map(w => stateAdapter.stopWorker({ workerId: w.workerId })));
     }
