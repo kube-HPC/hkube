@@ -50,6 +50,13 @@ const pipeline = {
             algorithmName: "eval-alg",
             input: [],
             stateType: "stateless"
+        },
+        {
+            nodeName: "F",
+            algorithmName: "eval-alg",
+            input: [],
+            stateType: "stateless",
+            maxStatelessCount: 3
         }
     ],
     edges: [
@@ -57,7 +64,8 @@ const pipeline = {
         { source: "B", target: "D" },
         { source: "C", target: "D" },
         { source: "A", target: "E" },
-        { source: "B", target: "E" }
+        { source: "B", target: "E" },
+        { source: "C", target: "F" }
     ],
     flowInputMetadata: {
         metadata: {
@@ -376,7 +384,50 @@ describe('Streaming', () => {
             expect(jobs5.required).to.gte(4);
             expect(jobs6.required).to.gte(4);
         });
+        xit('should scale only up based on req/res rate with a maxStatelessCount limit', async () => {
+            const scale = async (data) => {
+                data[0].sent += 10;
+                data[0].responses += 3;
+                streamService.reportStats(data);
+                await delay(50);
+            }
+            const increaseSize = async (data) => {
+                data[0].responses += 1;
+                data[0].currentSize += 2;
+                streamService.reportStats(data);
+                await delay(50);
+            }
+            const list = [{
+                nodeName: 'F',
+                sent: 10,
+                queueSize: 0,
+                currentSize: 0,
+                netDurations,
+                responses: 3
+            }];
+            const scaledNode = pipeline.nodes[5]
+            await scale(list);
+            await scale(list);
+            const jobs1 = autoScale();
+            await increaseSize(list);
+            const jobs2 = autoScale();
+            await increaseSize(list);
+            autoScale();
+            const jobs3 = autoScale();
+            await scale(list);
+            await scale(list);
+            const jobs4 = autoScale();
+            const jobs5 = autoScale();
+            const jobs6 = autoScale();
+            expect(jobs1.required).to.eql(scaledNode.maxStatelessCount);
+            expect(jobs2.required).to.eql(scaledNode.maxStatelessCount);
+            expect(jobs3.required).to.eql(scaledNode.maxStatelessCount);
+            expect(jobs4.required).to.eql(scaledNode.maxStatelessCount);
+            expect(jobs5.required).to.eql(scaledNode.maxStatelessCount);
+            expect(jobs6.required).to.eql(scaledNode.maxStatelessCount);
+        });
     });
+    
     describe('scale-down', () => {
         it('should scale up and down based on durations', async () => {
             const nodeName = 'D';

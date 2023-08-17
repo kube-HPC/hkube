@@ -20,15 +20,13 @@ const SCALE_STATUS = {
  * the logic of scale up/down feasibility
  */
 class Scaler {
-    constructor(config, statelessSizeLimits, methods) {
+    constructor(config, methods) {
         log = Logger.GetLogFromContainer();
         this._maxScaleUpReplicasPerNode = config.scaleUp.maxScaleUpReplicasPerNode;
         this._maxScaleUpReplicasPerTick = config.scaleUp.maxScaleUpReplicasPerTick;
         this._minTimeWaitBeforeRetryScale = config.minTimeWaitBeforeRetryScale;
         this._minTimeBetweenScales = config.minTimeBetweenScales;
         this._scaleInterval = config.scaleInterval;
-        this._minStateless = statelessSizeLimits.minStateless;
-        this._maxStateless = statelessSizeLimits.maxStateless;
         this._getQueue = methods.getQueue;
         this._getUnScheduledAlgorithm = methods.getUnScheduledAlgorithm;
         this._getCurrentSize = methods.getCurrentSize;
@@ -120,15 +118,6 @@ class Scaler {
         if (currentSize < this._required
             && (!this._lastScaleDownTime || Date.now() - this._lastScaleDownTime > this._minTimeBetweenScales)) {
             if (this._desired <= currentSize) {
-                if (this._maxStateless === currentSize) {
-                    this._scalingInterventionLog(); // Can't scale anymore
-                    return shouldScaleUp;
-                }
-                // eslint-disable-next-line no-else-return
-                else if (this.required > this._maxStateless) { // Maintain max stateless at most.
-                    this._required = this._maxStateless;
-                    this._scalingInterventionLog(); // Scaling  cieling reached.
-                }
                 shouldScaleUp = true;
                 this._notFulfilledTimeUp = null;
             }
@@ -170,11 +159,6 @@ class Scaler {
             }
         }
         return shouldScaleDown;
-    }
-
-    _scalingInterventionLog(action, required, allowed) {
-        // TODO : Timestamp to avoid spamming logs
-        log.info(`scaling ${action} intervention, from ${required} to ${allowed} `, { component });
     }
 }
 
