@@ -1,4 +1,4 @@
-const { nodeKind } = require('@hkube/consts');
+const { nodeKind, stateType} = require('@hkube/consts');
 const { InvalidDataError } = require('../errors');
 
 class ApiValidator {
@@ -34,6 +34,20 @@ class ApiValidator {
                 throw new InvalidDataError('debugOverride node not in nodes list');
             }
         });
+        if (pipeline.kind === 'stream') {
+            const notStatelessNodes = pipeline.nodes.filter(n => n?.stateType !== stateType.Stateless);
+            notStatelessNodes.forEach((node) => {
+                if (node?.minStatelessCount !== 0 || node?.maxStatelessCount) {
+                    throw new InvalidDataError(`Nodes which are not stateType=${stateType.Stateless} cant have minStatelessCount or maxStatelessCount`);
+                }
+            });
+            const statelessNodes = pipeline.nodes.filter(n => n?.stateType === stateType.Stateless && n?.maxStatelessCount);
+            statelessNodes.forEach((node) => {
+                if (node.minStatelessCount > node.maxStatelessCount) {
+                    throw new InvalidDataError('maxStatelessCount must be greater or equal to minStatelessCount');
+                }
+            });
+        }
     }
 }
 
