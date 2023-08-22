@@ -200,7 +200,7 @@ class AlgorithmStore {
 
         const oldAlgorithm = await stateManager.getAlgorithm(payload);
 
-        if (!oldAlgorithm && payload.type === buildTypes.IMAGE && payload.fileInfo) {
+        if (!oldAlgorithm && !payload.type && !file.path && payload.algorithmImage && payload.fileInfo) {
             delete payload.fileInfo;
         }
 
