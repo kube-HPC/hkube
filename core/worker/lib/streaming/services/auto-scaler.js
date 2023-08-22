@@ -217,7 +217,6 @@ class AutoScaler {
     }
 
     _scalingInterventionLog(action, required, allowed) {
-        // TODO : Timestamp to avoid spamming logs
         const currentTime = Date.now();
         // Log-spam prevention
         if (this._interventionLogCallTrack.timeStamp) {
@@ -225,7 +224,7 @@ class AutoScaler {
                 && this._interventionLogCallTrack.required === required
                 && this._interventionLogCallTrack.allowed.type === allowed.type
                 && this._interventionLogCallTrack.allowed.size === allowed.size
-                && currentTime - this._interventionLogCallTrack.timeStamp < this._config.scaleInvervention.throttleMs) {
+                && currentTime - this._interventionLogCallTrack.timeStamp < this._config.scaleIntervention.throttleMs) {
                 return;
             }
         }
@@ -374,9 +373,6 @@ class AutoScaler {
         const discoveryWorkers = discovery.getInstances(this._nodeName);
         // we will prefer not to scale-down masters, unless we scaling down to zero
         const instances = scaleTo === 0 ? discoveryWorkers : discoveryWorkers.filter(d => !d.isMaster);
-        // if (this._minStatelessCount > 0 && (currentSize - replicas < this._minStatelessCount)) {
-        //     const replicaDeductedMin = currentSize - this.minStatelessCount;
-        // }
         const workers = instances.slice(0, replicas);
         return Promise.all(workers.map(w => stateAdapter.stopWorker({ workerId: w.workerId })));
     }
