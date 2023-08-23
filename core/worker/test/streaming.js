@@ -732,7 +732,8 @@ describe('Streaming', () => {
             slave1.report(list1);
             slave2.report(list2);
             await delay(500);
-            const masters = getMasters();
+            let masters = getMasters();
+            masters = masters.filter(m => m.nodeName === nodeName);
             const slaves = masters[0].slaves();
             expect(slaves.sort()).to.deep.equal([slave1.source, slave2.source])
         });

@@ -66,7 +66,7 @@ class AutoScaler {
             if (this._options.node.kind === nodeKind.Debug) {
                 conf = { ...this._config, scaleUp: { ...this._config.scaleUp, maxScaleUpReplicasPerNode: 1 } };
             }
-            this._scaler = new Scaler(conf, {
+            this._scaler = new Scaler(conf, this._statelessCountLimits.minStateless, {
                 getCurrentSize: () => {
                     return discovery.countInstances(this._nodeName);
                 },
