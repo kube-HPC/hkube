@@ -637,7 +637,7 @@ describe('Streaming', () => {
             const scale = autoScale(list[0].nodeName);
             expect(scale.required).to.eql(0);
         });
-        it.only('should not over the maxSizeWindow', async () => {
+        it('should not over the maxSizeWindow', async () => {
             const nodeName = 'D';
             const data = [{
                 nodeName,
