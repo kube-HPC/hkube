@@ -171,6 +171,35 @@ class DataSource {
             metaFilesByPath,
         };
     }
+    // async commitJobDs({ respository, versionDescription }) {
+
+    // }
+
+    async saveJobDs({ name, jobId, nodeName }) {
+        const versionDescription = `${jobId}:${nodeName}`;
+
+        const createdVersion = await this.db.dataSources.createVersion({
+            versionDescription,
+            name,
+        });
+
+        const repository = new Repository(
+            name,
+            this.config,
+            this.config.directories.dataSourcesInUse,
+            createdVersion.git,
+            createdVersion.storage,
+            createdVersion._credentials
+        );
+
+        const { commitHash, files } = this.commitJobDs({ repository, versionDescription });
+
+        return this.db.dataSources.updateFiles({
+            name,
+            files,
+            commitHash,
+        });
+    }
 
     async commitChange({
         repository,
