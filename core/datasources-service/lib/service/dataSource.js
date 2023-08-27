@@ -4,6 +4,8 @@ const {
     createFileMeta,
 } = require('@hkube/datasource-utils');
 const { StatusCodes } = require('http-status-codes');
+const { execSync } = require('child_process');
+const path = require('path');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
@@ -171,12 +173,72 @@ class DataSource {
             metaFilesByPath,
         };
     }
-    // async commitJobDs({ respository, versionDescription }) {
 
-    // }
+    // this function creates an object that can be give info to the object that is pushed into the db about the dvc file created
+    async dvcFileObj(directory, file) {
+        const fileObj = {};
+        const dvcFile = (await fse.readFile(path.join(directory, `${file}.dvc`))).toString('utf-8');
+        const fileName = path.basename(file, path.extname(file));
+        fileObj.originalname = fileName;
+        fileObj.mimetype = `text/${path.extname(file)}`;
+        // console.log(dvcFile);
+        const arrFile = dvcFile.split('\n');
+        for (let i = 0; i < arrFile.length; i += 1) {
+            arrFile[i] = arrFile[i].split(': ');
+            for (let j = 0; j < arrFile[i].length; j += 1) {
+                arrFile[i][j] = arrFile[i][j].trim();
+            }
+        }
+        for (let i = 0; i < arrFile.length; i += 1) {
+            if (arrFile[i][0] === 'size') {
+                const [, size] = arrFile[i];
+                // const [size] = arr2;
+                fileObj.size = size;
+            }
+        }
+        return fileObj;
+    }
+
+    async handleUntrackedFiles(repository, directory) {
+        const addedFiles = [];
+        // Get the list of untracked files from Git
+        const result = execSync('git ls-files --others --exclude-standard', { cwd: path.join(directory, 'data'), encoding: 'utf8' }).toString();
+
+        // Split the result into an array of filenames
+        const untrackedFiles = result.trim().split('\n');
+
+        // Filter the .gitignore
+        const dataFiles = untrackedFiles.filter(file => !file.endsWith('.gitignore'));
+
+        // Run `dvc add` on these files
+        dataFiles.forEach(file => {
+            if (file) {
+                // execSync(`dvc add data/${file}`, { cwd: directory, encoding: 'utf8' });
+                repository.dvc.add(`data/${file}`);
+                // execSync(`git add data/${file}.dvc`, { cwd: directory, encoding: 'utf8' });
+                repository.initGitClient();
+                repository.gitClient.add(`data/${file}.dvc`);
+                addedFiles.push(this.dvcFileObj(directory, `data/${file}`));
+            }
+        });
+        return addedFiles;
+    }
+
+    async commitJobDs({ repository, versionDescription }) {
+        const addedFiles = this.handleUntrackedFiles(repository, repository.cwd);
+        const commit = await repository.gitClient.commit(versionDescription);
+        const finalMapping = [];
+        for (let i = 0; i < addedFiles.length; i += 1) {
+            finalMapping.push(createFileMeta(addedFiles[i]));
+        }
+        return {
+            commitHash: commit,
+            files: finalMapping
+        };
+    }
 
     async saveJobDs({ name, jobId, nodeName }) {
-        const versionDescription = `${jobId}:${nodeName}`;
+        const versionDescription = `${jobId}, ${nodeName}`;
 
         const createdVersion = await this.db.dataSources.createVersion({
             versionDescription,
@@ -189,7 +251,8 @@ class DataSource {
             this.config.directories.dataSourcesInUse,
             createdVersion.git,
             createdVersion.storage,
-            createdVersion._credentials
+            createdVersion._credentials,
+            `${jobId}/complete`
         );
 
         const { commitHash, files } = this.commitJobDs({ repository, versionDescription });
