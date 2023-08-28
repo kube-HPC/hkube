@@ -260,11 +260,11 @@ class DataSource {
         const repository = new Repository(
             name,
             this.config,
-            this.config.directories.dataSourcesInUse,
+            path.join(this.config.directories.dataSourcesInUse, jobId, name),
             createdVersion.git,
             createdVersion.storage,
             createdVersion._credentials,
-            `${jobId}/${name}/complete`
+            'complete'
         );
 
         if (!repository.gitClient) {
