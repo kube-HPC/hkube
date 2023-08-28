@@ -114,7 +114,7 @@ class Repository extends RepositoryBase {
     }
 
     initGitClient() {
-        this.gitClient = simpleGit({ baseDir: this.cwd });
+        this.gitClient = simpleGit({ baseDir: this.rootDir });
     }
 
     async _setupDvcRepository() {
