@@ -267,7 +267,9 @@ class DataSource {
             `${jobId}/${name}/complete`
         );
 
-        repository.initGitClient();
+        if (!repository.gitClient) {
+            repository.initGitClient();
+        }
 
         const { commitHash, files } = await this.commitJobDs({ repository, versionDescription });
 
