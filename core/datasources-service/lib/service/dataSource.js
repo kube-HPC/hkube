@@ -268,7 +268,12 @@ class DataSource {
         );
 
         if (!repository.gitClient) {
-            repository.initGitClient();
+            try {
+                repository.initGitClient();
+            }
+            catch (error) {
+                return error;
+            }
         }
 
         const { commitHash, files } = await this.commitJobDs({ repository, versionDescription });
