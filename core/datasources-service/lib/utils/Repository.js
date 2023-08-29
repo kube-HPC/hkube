@@ -117,6 +117,12 @@ class Repository extends RepositoryBase {
         this.gitClient = simpleGit({ baseDir: this.cwd });
     }
 
+    async commitMidPipeline(commitMessage) {
+        this.gitClient.add('./data/');
+        const { commit } = await this.gitClient.commit(commitMessage);
+        return commit;
+    }
+
     async _setupDvcRepository() {
         await this.dvc.init();
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
