@@ -15,6 +15,7 @@ const normalize = require('../utils/normalize');
 const { ResourceNotFoundError } = require('../errors');
 const { Github } = require('../utils/GitRemoteClient');
 const gitToken = require('./gitToken');
+const { getDatasourcesInUseFolder } = require('../utils/pathUtils');
 
 const convertWhiteSpace = (str, to) => str.split(' ').join(to);
 const metaRegex = new RegExp('.meta');
@@ -260,7 +261,7 @@ class DataSource {
         const repository = new Repository(
             name,
             this.config,
-            path.join(this.config.directories.dataSourcesInUse, jobId, name),
+            path.join(getDatasourcesInUseFolder(this.config), jobId, name),
             createdVersion.git,
             createdVersion.storage,
             createdVersion._credentials,
