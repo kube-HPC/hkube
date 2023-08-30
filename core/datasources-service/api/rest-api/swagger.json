@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.6.0",
+    "version": "2.6.2",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6907,9 +6907,7 @@
                       "type": "object",
                       "nullable": true,
                       "description": "key value labels for nodes constraint",
-                      "additionalProperties": {
-                        "type": "string"
-                      }
+                      "additionalProperties": true
                     },
                     "labels": {
                       "type": "object",
@@ -7407,9 +7405,7 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "additionalProperties": true
                       },
                       "labels": {
                         "type": "object",
@@ -7713,9 +7709,7 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "additionalProperties": true
                       },
                       "labels": {
                         "type": "object",
@@ -8004,9 +7998,7 @@
                     "type": "object",
                     "nullable": true,
                     "description": "key value labels for nodes constraint",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
+                    "additionalProperties": true
                   },
                   "labels": {
                     "type": "object",
@@ -8350,9 +8342,7 @@
                     "type": "object",
                     "nullable": true,
                     "description": "key value labels for nodes constraint",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
+                    "additionalProperties": true
                   },
                   "labels": {
                     "type": "object",
@@ -8682,9 +8672,7 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "additionalProperties": true
                       },
                       "labels": {
                         "type": "object",
@@ -8978,9 +8966,7 @@
                           "type": "object",
                           "nullable": true,
                           "description": "key value labels for nodes constraint",
-                          "additionalProperties": {
-                            "type": "string"
-                          }
+                          "additionalProperties": true
                         },
                         "labels": {
                           "type": "object",
@@ -15648,9 +15634,7 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "additionalProperties": true
                       },
                       "labels": {
                         "type": "object",
@@ -16007,9 +15991,7 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "additionalProperties": true
                       },
                       "labels": {
                         "type": "object",
@@ -19105,9 +19087,7 @@
             "type": "object",
             "nullable": true,
             "description": "key value labels for nodes constraint",
-            "additionalProperties": {
-              "type": "string"
-            }
+            "additionalProperties": true
           },
           "labels": {
             "type": "object",
@@ -19551,9 +19531,7 @@
                 "type": "object",
                 "nullable": true,
                 "description": "key value labels for nodes constraint",
-                "additionalProperties": {
-                  "type": "string"
-                }
+                "additionalProperties": true
               },
               "labels": {
                 "type": "object",
