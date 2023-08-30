@@ -241,7 +241,12 @@ class DataSource {
 
     async commitJobDs({ repository, versionDescription }) {
         await this.handleUntrackedFiles(repository, repository.cwd);
-        const commit = await repository.commitMidPipeline(versionDescription);
+        // const commit = await repository.commitMidPipeline(versionDescription);
+        await repository.gitClient.add('data').catch(error => {
+            return error;
+        });
+        const { commit } = await repository.gitClient.commit(versionDescription);
+
         await repository.push();
         const finalMapping = await repository.scanDir();
         return {

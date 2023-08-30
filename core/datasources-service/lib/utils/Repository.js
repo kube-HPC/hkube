@@ -120,12 +120,12 @@ class Repository extends RepositoryBase {
     async commitMidPipeline(commitMessage) {
         try {
             await this.gitClient.add('./data/');
-            const { commit } = await this.gitClient.commit(commitMessage);
-            return commit;
         }
         catch (error) {
             return error;
         }
+        const { commit } = await this.gitClient.commit(commitMessage);
+        return commit;
     }
 
     async _setupDvcRepository() {
