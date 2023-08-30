@@ -119,7 +119,7 @@ class Repository extends RepositoryBase {
 
     async commitMidPipeline(commitMessage) {
         try {
-            this.gitClient.add('./data/');
+            await this.gitClient.add('./data/');
             const { commit } = await this.gitClient.commit(commitMessage);
             return commit;
         }
