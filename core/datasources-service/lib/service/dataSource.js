@@ -223,7 +223,7 @@ class DataSource {
         const dataFiles = untrackedFiles.filter(file => !file.endsWith('.gitignore'));
 
         // Run `dvc add` on these files
-        dataFiles.forEach(async file => {
+        await Promise.all(dataFiles.map(async (file) => {
             if (file) {
                 // execSync(`dvc add data/${file}`, { cwd: directory, encoding: 'utf8' });
                 repository.dvc.add(`data/${file}`);
@@ -236,7 +236,7 @@ class DataSource {
                 // repository.gitClient.add(`data/${file}.dvc`);
                 // addedFiles.push(this.dvcFileObj(directory, `data/${file}`));
             }
-        });
+        }));
     }
 
     async commitJobDs({ repository, versionDescription }) {
