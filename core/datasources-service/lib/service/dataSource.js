@@ -199,9 +199,13 @@ class DataSource {
                 dvcObj.size = size;
             }
         }
-
-        const rPath = extractRelativePath(path.parse(path.join(directory.replace(this.config.directories.dataSourcesInUse, ''), file).dir));
-
+        let rPath = '';
+        try {
+            rPath = extractRelativePath(path.parse(path.join(directory.replace(this.config.directories.dataSourcesInUse, ''), file).dir));
+        }
+        catch (error) {
+            return error;
+        }
         return { fileObj: dvcObj, relativePath: rPath };
     }
 
