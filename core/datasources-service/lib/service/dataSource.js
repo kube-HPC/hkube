@@ -228,9 +228,9 @@ class DataSource {
                 // execSync(`dvc add data/${file}`, { cwd: directory, encoding: 'utf8' });
                 repository.dvc.add(`data/${file}`);
                 // execSync(`git add data/${file}.dvc`, { cwd: directory, encoding: 'utf8' });
-                const { fileObj, relativePath } = this.dvcFileObj(directory, `data/${file}`);
+                const { fileObj, relativePath } = await this.dvcFileObj(directory, `data/${file}`);
                 const metaObj = createFileMeta(fileObj, relativePath);
-                const dvcObj = this.dvcYamlObj(path.join(directory, `data/${file}`));
+                const dvcObj = await this.dvcYamlObj(path.join(directory, `data/${file}`));
                 await repository.dvc.enrichMeta(relativePath, dvcObj, 'hkube', metaObj);
 
                 // repository.gitClient.add(`data/${file}.dvc`);
