@@ -396,6 +396,18 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[1].resources).to.deep.include({ limits: { cpu: '500m', memory: '200M' } });
             expect(res.spec.template.spec.containers[0].resources).to.deep.include({ limits: { cpu: '200m', memory: '100Mi' } });
         });
+        it('should apply nodeSelector', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1',nodeSelector: {name: "node1"} , options });
+            expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values).to.eql(['node1']);
+        });
+        it('should apply nodeSelector multiple values in same type', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1',nodeSelector: {name: ["node1","node2"]} , options });
+            expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values).to.eql(['node1','node2']);
+        });
+        it('should apply nodeSelector multiple values in multiple types', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1',nodeSelector: {name: ["node1","node2"], gpu: "max-gpu", "kubernetes.io/arch": ["amd64","intel"]} , options });
+            expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions.length).to.eql(3);
+        });
     });
     describe('sidecars', () => {
         before(() => {
