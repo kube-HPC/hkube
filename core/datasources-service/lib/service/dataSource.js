@@ -4,6 +4,10 @@ const {
     createFileMeta,
 } = require('@hkube/datasource-utils');
 const { StatusCodes } = require('http-status-codes');
+const { execSync } = require('child_process');
+const path = require('path');
+const { extractRelativePath } = require('@hkube/datasource-utils/lib/filePath');
+const yaml = require('js-yaml');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
@@ -11,6 +15,7 @@ const normalize = require('../utils/normalize');
 const { ResourceNotFoundError } = require('../errors');
 const { Github } = require('../utils/GitRemoteClient');
 const gitToken = require('./gitToken');
+const { getDatasourcesInUseFolder } = require('../utils/pathUtils');
 
 const convertWhiteSpace = (str, to) => str.split(' ').join(to);
 const metaRegex = new RegExp('.meta');
@@ -172,6 +177,124 @@ class DataSource {
         };
     }
 
+    // this function creates an object that can be give info to the object that is pushed into the db about the dvc file created
+    async dvcFileObj(directory, file) {
+        const dvcObj = {};
+        const dvcFile = (await fse.readFile(path.join(directory, `${file}.dvc`))).toString('utf-8');
+        const fileName = path.basename(file, path.extname(file));
+        dvcObj.originalname = fileName;
+        dvcObj.mimetype = `text/${path.extname(file)}`;
+        // console.log(dvcFile);
+        const arrFile = dvcFile.split('\n');
+        for (let i = 0; i < arrFile.length; i += 1) {
+            arrFile[i] = arrFile[i].split(': ');
+            for (let j = 0; j < arrFile[i].length; j += 1) {
+                arrFile[i][j] = arrFile[i][j].trim();
+            }
+        }
+        for (let i = 0; i < arrFile.length; i += 1) {
+            if (arrFile[i][0] === 'size') {
+                const [, size] = arrFile[i];
+                // const [size] = arr2;
+                dvcObj.size = size;
+            }
+        }
+        let rPath = '';
+        try {
+            rPath = extractRelativePath(path.parse(path.join(directory.replace(this.config.directories.dataSourcesInUse, ''), file).dir));
+        }
+        catch (error) {
+            return error;
+        }
+        return { fileObj: dvcObj, relativePath: rPath };
+    }
+
+    async dvcYamlObj(directory) {
+        const dvcContent = await fse.readFile(directory, 'utf-8');
+        const dvcObj = await yaml.load(dvcContent);
+        return dvcObj;
+    }
+
+    async handleUntrackedFiles(repository, directory) {
+        // const addedFiles = [];
+        // Get the list of untracked files from Git
+        const result = execSync('git ls-files --others --exclude-standard', { cwd: path.join(directory, 'data'), encoding: 'utf8' }).toString();
+
+        // Split the result into an array of filenames
+        const untrackedFiles = result.trim().split('\n');
+
+        // Filter the .gitignore
+        const dataFiles = untrackedFiles.filter(file => !file.endsWith('.gitignore'));
+
+        // Run `dvc add` on these files
+        await Promise.all(dataFiles.map(async (file) => {
+            if (file) {
+                // execSync(`dvc add data/${file}`, { cwd: directory, encoding: 'utf8' });
+                repository.dvc.add(`data/${file}`);
+                // execSync(`git add data/${file}.dvc`, { cwd: directory, encoding: 'utf8' });
+                const { fileObj, relativePath } = await this.dvcFileObj(directory, `data/${file}`);
+                const metaObj = createFileMeta(fileObj, relativePath);
+                const dvcObj = await this.dvcYamlObj(path.join(directory, `data/${file}`));
+                await repository.dvc.enrichMeta(relativePath, dvcObj, 'hkube', metaObj);
+
+                // repository.gitClient.add(`data/${file}.dvc`);
+                // addedFiles.push(this.dvcFileObj(directory, `data/${file}`));
+            }
+        }));
+    }
+
+    async commitJobDs({ repository, versionDescription }) {
+        await this.handleUntrackedFiles(repository, repository.cwd);
+        // const commit = await repository.commitMidPipeline(versionDescription);
+        await repository.gitClient.add('data').catch(error => {
+            return error;
+        });
+        const { commit } = await repository.gitClient.commit(versionDescription);
+
+        await repository.push();
+        const finalMapping = await repository.scanDir();
+        return {
+            commitHash: commit,
+            files: finalMapping
+        };
+    }
+
+    async saveJobDs({ name, jobId, nodeName }) {
+        const versionDescription = `${jobId}, ${nodeName}`;
+
+        const createdVersion = await this.db.dataSources.createVersion({
+            versionDescription,
+            name,
+        });
+
+        const repository = new Repository(
+            name,
+            this.config,
+            path.join(getDatasourcesInUseFolder(this.config), jobId, name),
+            createdVersion.git,
+            createdVersion.storage,
+            createdVersion._credentials,
+            'complete'
+        );
+
+        if (!repository.gitClient) {
+            try {
+                repository.initGitClient();
+            }
+            catch (error) {
+                return error;
+            }
+        }
+
+        const { commitHash, files } = await this.commitJobDs({ repository, versionDescription });
+
+        return this.db.dataSources.updateFiles({
+            name,
+            files,
+            commitHash,
+        });
+    }
+
     async commitChange({
         repository,
         commitMessage,
@@ -205,36 +328,6 @@ class DataSource {
             commitHash: commit,
             files: finalMapping,
         };
-    }
-
-    // async commitJobDs({ respository, versionDescription }) {
-
-    // }
-
-    async saveJobDs({ name, jobId, nodeName }) {
-        const versionDescription = `${jobId}:${nodeName}`;
-
-        const createdVersion = await this.db.dataSources.createVersion({
-            versionDescription,
-            name,
-        });
-
-        const repository = new Repository(
-            name,
-            this.config,
-            this.config.directories.dataSourcesInUse,
-            createdVersion.git,
-            createdVersion.storage,
-            createdVersion._credentials
-        );
-
-        const { commitHash, files } = this.commitJobDs({ repository, versionDescription });
-
-        return this.db.dataSources.updateFiles({
-            name,
-            files,
-            commitHash,
-        });
     }
 
     async update({ name, files: _files, versionDescription }) {
