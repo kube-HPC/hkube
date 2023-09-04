@@ -37,25 +37,33 @@ const routes = (options) => {
         res.json({ jobId, gateways });
     });
     router.post('/stop', async (req, res) => {
-        const { jobId, reason } = req.body;
-        await Execution.stopJob({ jobId, reason });
-        res.json({ message: 'OK' });
-    });
-    router.post('/stop/:pipelineName?', async (req, res) => {
-        const { pipelineName } = req.params;
-        const search = {
-            query: {
-                pipelineName
-            },
-        };
-        const searchResponse = await Execution.search(search);
-        const jobsToStop = searchResponse.results.map(job => job.jobId);
-        const stopPromises = jobsToStop.map(async jobId => {
-            await Execution.stopJob({ jobId, reason: 'stop all' });
-            return { jobId, success: true };
-        });
-        const stopResults = await Promise.all(stopPromises);
-        res.json({ stopResults });
+        const { jobId, pipelineName, startTime } = req.body;
+        let datesRange;
+        let search;
+        if (startTime !== undefined && startTime !== {}) {
+            datesRange = { from: startTime.from, to: startTime.to };
+            search = { query: { jobId, pipelineName, datesRange } };
+        }
+        else {
+            search = { query: { jobId, pipelineName } };
+        }
+        if (jobId) {
+            search.query.pipelineName = jobId;
+        }
+        const searchResponse = await Execution.search({ ...search, limit: 100 });
+        const jobsToStop = searchResponse.hits.filter(j => j.status.status === 'active' || j.status.status === 'pending');
+        if (jobsToStop.length === 0) {
+            return res.status(404).json({
+                error: {
+                    code: 404,
+                    message: jobId ? `jobId ${jobId} Not Found` : 'No Jobs Found'
+                }
+            });
+        }
+        await Promise.all(jobsToStop.map(async job => {
+            await Execution.stopJob({ jobId: job.jobId, reason: 'Stopped due to request' });
+        }));
+        return res.json({ message: 'OK' });
     });
     router.post('/pause', async (req, res) => {
         const { jobId } = req.body;
