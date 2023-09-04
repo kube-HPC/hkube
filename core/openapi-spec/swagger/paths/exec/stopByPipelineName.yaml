@@ -1,0 +1,43 @@
+/stop/{pipelineName}:
+  post:
+    tags:
+      - Execution
+    summary: Stop jobs by pipeline name
+    description: Call to stop jobs associated with a specific pipeline
+    parameters:
+      - name: pipelineName
+        in: path
+        required: true
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/stopRequest"
+    responses:
+      "200":
+        description: Success response
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/defaultResponse"
+      "400":
+        description: Bad request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/error"
+      "404":
+        description: Job not found
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/error"
+      default:
+        description: Unexpected error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/error"

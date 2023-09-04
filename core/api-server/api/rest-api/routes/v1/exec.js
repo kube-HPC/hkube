@@ -41,6 +41,22 @@ const routes = (options) => {
         await Execution.stopJob({ jobId, reason });
         res.json({ message: 'OK' });
     });
+    router.post('/stop/:pipelineName?', async (req, res) => {
+        const { pipelineName } = req.params;
+        const search = {
+            query: {
+                pipelineName
+            },
+        };
+        const searchResponse = await Execution.search(search);
+        const jobsToStop = searchResponse.results.map(job => job.jobId);
+        const stopPromises = jobsToStop.map(async jobId => {
+            await Execution.stopJob({ jobId, reason: 'stop all' });
+            return { jobId, success: true };
+        });
+        const stopResults = await Promise.all(stopPromises);
+        res.json({ stopResults });
+    });
     router.post('/pause', async (req, res) => {
         const { jobId } = req.body;
         await Execution.pauseJob({ jobId });
