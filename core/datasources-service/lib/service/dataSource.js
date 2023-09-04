@@ -199,13 +199,9 @@ class DataSource {
                 dvcObj.size = size;
             }
         }
-        let rPath = '';
-        try {
-            rPath = extractRelativePath(path.parse(path.join(directory.replace(this.config.directories.dataSourcesInUse, ''), file).dir));
-        }
-        catch (error) {
-            return error;
-        }
+
+        const rPath = extractRelativePath(file); // replace with file
+
         return { fileObj: dvcObj, relativePath: rPath };
     }
 
@@ -230,7 +226,7 @@ class DataSource {
         await Promise.all(dataFiles.map(async (file) => {
             if (file) {
                 // execSync(`dvc add data/${file}`, { cwd: directory, encoding: 'utf8' });
-                repository.dvc.add(`data/${file}`);
+                await repository.dvc.add(`data/${file}`);
                 // execSync(`git add data/${file}.dvc`, { cwd: directory, encoding: 'utf8' });
                 const { fileObj, relativePath } = await this.dvcFileObj(directory, `data/${file}`);
                 const metaObj = createFileMeta(fileObj, relativePath);
