@@ -40,6 +40,7 @@ const routes = (options) => {
         const { jobId, pipelineName, startTime } = req.body;
         let datesRange;
         let search;
+        let errormsg;
         if (startTime !== undefined && startTime !== {}) {
             datesRange = { from: startTime.from, to: startTime.to };
             search = { query: { jobId, pipelineName, datesRange } };
@@ -53,15 +54,24 @@ const routes = (options) => {
         const searchResponse = await Execution.search({ ...search, limit: 100 });
         const jobsToStop = searchResponse.hits.filter(j => j.status.status === 'active' || j.status.status === 'pending');
         if (jobsToStop.length === 0) {
+            if (jobId) {
+                errormsg = `jobId ${jobId} Not Found`;
+            }
+            else if (pipelineName) {
+                errormsg = `pipelineName ${pipelineName} jobs Not Found`;
+            }
+            else if (datesRange) {
+                errormsg = `No Jobs Found between ${datesRange.from} to ${datesRange.to}`;
+            }
             return res.status(404).json({
                 error: {
                     code: 404,
-                    message: jobId ? `jobId ${jobId} Not Found` : 'No Jobs Found'
+                    message: errormsg
                 }
             });
         }
         await Promise.all(jobsToStop.map(async job => {
-            await Execution.stopJob({ jobId: job.jobId, reason: 'Stopped due to request' });
+            await Execution.stopJob({ job });
         }));
         return res.json({ message: 'OK' });
     });
