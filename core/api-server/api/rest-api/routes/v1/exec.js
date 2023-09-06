@@ -57,8 +57,11 @@ const routes = (options) => {
             if (jobId) {
                 errormsg = `jobId ${jobId} Not Found`;
             }
-            else if (pipelineName) {
+            else if (pipelineName && !datesRange) {
                 errormsg = `pipelineName ${pipelineName} jobs Not Found`;
+            }
+            else if (pipelineName) {
+                errormsg = `pipelineName ${pipelineName} jobs Not Found between ${datesRange.from} to ${datesRange.to}`;
             }
             else if (datesRange) {
                 errormsg = `No Jobs Found between ${datesRange.from} to ${datesRange.to}`;
