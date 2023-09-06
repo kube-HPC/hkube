@@ -206,7 +206,7 @@ class DataSource {
     }
 
     async dvcYamlObj(directory) {
-        const dvcContent = await fse.readFile(directory, 'utf-8');
+        const dvcContent = await fse.readFile(`${directory}.dvc`, 'utf-8');
         const dvcObj = yaml.load(dvcContent);
         return dvcObj;
     }
@@ -223,6 +223,9 @@ class DataSource {
         const dataFiles = untrackedFiles.filter(file => !file.endsWith('.gitignore'));
 
         // Run `dvc add` on these files
+
+        // in this functiom within the map the file variable is the raw data file but all the
+        // functions here are operated on the dvc file
         await Promise.all(dataFiles.map(async (file) => {
             if (file) {
                 // execSync(`dvc add data/${file}`, { cwd: directory, encoding: 'utf8' });
