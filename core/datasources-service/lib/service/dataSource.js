@@ -234,7 +234,7 @@ class DataSource {
                 const { fileObj, relativePath } = await this.dvcFileObj(directory, `data/${file}`);
                 const metaObj = createFileMeta(fileObj, relativePath);
                 const dvcObj = await this.dvcYamlObj(path.join(directory, `data/${file}`));
-                await repository.dvc.enrichMeta(path.join(directory, 'data', file), dvcObj, 'hkube', metaObj);
+                await repository.dvc.enrichMeta(path.join('data', file), dvcObj, 'hkube', metaObj);
 
                 // repository.gitClient.add(`data/${file}.dvc`);
                 // addedFiles.push(this.dvcFileObj(directory, `data/${file}`));
