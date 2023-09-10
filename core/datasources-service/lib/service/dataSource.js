@@ -12,7 +12,7 @@ const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
-const { ResourceNotFoundError } = require('../errors');
+const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 const { Github } = require('../utils/GitRemoteClient');
 const gitToken = require('./gitToken');
 const { getDatasourcesInUseFolder } = require('../utils/pathUtils');
@@ -259,6 +259,9 @@ class DataSource {
     }
 
     async saveJobDs({ name, jobId, nodeName }) {
+        const headHash = execSync('git rev-parse HEAD');
+        const masterHash = execSync('git rev-parse origin/master');
+
         const versionDescription = `${jobId}, ${nodeName}`;
 
         const createdVersion = await this.db.dataSources.createVersion({
@@ -283,6 +286,13 @@ class DataSource {
             catch (error) {
                 return error;
             }
+        }
+
+        if (headHash === masterHash) {
+            repository.gitClient.checkout('master');
+        }
+        else {
+            throw new ActionNotAllowed('Mid pipeline saving is an action reserved to working on latest version of a DataSource');
         }
 
         const { commitHash, files } = await this.commitJobDs({ repository, versionDescription });
