@@ -259,9 +259,6 @@ class DataSource {
     }
 
     async saveJobDs({ name, jobId, nodeName }) {
-        const headHash = execSync('git rev-parse HEAD');
-        const masterHash = execSync('git rev-parse origin/master');
-
         const versionDescription = `${jobId}, ${nodeName}`;
 
         const createdVersion = await this.db.dataSources.createVersion({
@@ -287,6 +284,8 @@ class DataSource {
                 return error;
             }
         }
+        const headHash = execSync('git rev-parse HEAD', { cwd: repository.rootDir, encoding: 'utf8' }).toString();
+        const masterHash = execSync('git rev-parse origin/master', { cwd: repository.rootDir, encoding: 'utf8' }).toString();
 
         if (headHash === masterHash) {
             repository.gitClient.checkout('origin/master');
