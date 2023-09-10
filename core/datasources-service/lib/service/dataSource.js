@@ -289,7 +289,7 @@ class DataSource {
         }
 
         if (headHash === masterHash) {
-            repository.gitClient.checkout('master');
+            repository.gitClient.checkout('origin/master');
         }
         else {
             throw new ActionNotAllowed('Mid pipeline saving is an action reserved to working on latest version of a DataSource');
