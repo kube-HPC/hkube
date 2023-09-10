@@ -284,8 +284,8 @@ class DataSource {
                 return error;
             }
         }
-        const headHash = execSync('git rev-parse HEAD', { cwd: repository.rootDir, encoding: 'utf8' }).toString();
-        const masterHash = execSync('git rev-parse origin/master', { cwd: repository.rootDir, encoding: 'utf8' }).toString();
+        const headHash = execSync('git rev-parse HEAD', { cwd: repository.cwd, encoding: 'utf8' }).toString();
+        const masterHash = execSync('git rev-parse origin/master', { cwd: repository.cwd, encoding: 'utf8' }).toString();
 
         if (headHash === masterHash) {
             repository.gitClient.checkout('origin/master');
