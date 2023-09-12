@@ -289,10 +289,13 @@ class DataSource {
 
         if (headHash === masterHash) {
             try {
-                await repository.gitClient.checkout('origin/master');
+                await repository.gitClient.checkout('master')
+                    .then(async () => {
+                        await repository.gitClient.fetch('origin', 'master');
+                    });
             }
             catch (error) {
-                throw new Error('sorry');
+                throw new Error(error);
             }
         }
         else {
