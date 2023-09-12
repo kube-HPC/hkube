@@ -231,10 +231,10 @@ const routes = ({ directories }) => {
 
         try {
             await dataSource.saveJobDs({ name, jobId, nodeName });
-            res.status(200);
+            res.status(200).send('DataSource has been succesfully saved');
         }
         catch (error) {
-            res.status(500).send(error);
+            res.status(error.status).send(error.message);
         }
     });
 
