@@ -230,8 +230,8 @@ const routes = ({ directories }) => {
         const { jobId, name, nodeName } = req.params;
 
         try {
-            await dataSource.saveJobDs({ name, jobId, nodeName });
-            res.status(200).send('DataSource has been succesfully saved');
+            const resObj = await dataSource.saveJobDs({ name, jobId, nodeName });
+            res.status(200).json(resObj);
         }
         catch (error) {
             res.status(error.status).send(error.message);

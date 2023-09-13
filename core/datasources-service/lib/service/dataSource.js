@@ -304,11 +304,12 @@ class DataSource {
 
         const { commitHash, files } = await this.commitJobDs({ repository, versionDescription });
 
-        return this.db.dataSources.updateFiles({
+        await this.db.dataSources.updateFiles({
             name,
             files,
             commitHash,
         });
+        return { name, files, commitHash };
     }
 
     async commitChange({
