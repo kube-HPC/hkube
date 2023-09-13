@@ -51,17 +51,17 @@ const routes = (options) => {
         if (jobId) {
             search.query.pipelineName = jobId;
         }
-        const searchResponse = await Execution.search({ ...search, limit: 100 });
+        const searchResponse = await Execution.search({ ...search });
         const jobsToStop = searchResponse.hits.filter(j => j.status.status === 'active' || j.status.status === 'pending');
         if (jobsToStop.length === 0) {
             if (jobId) {
                 errormsg = `jobId ${jobId} Not Found`;
             }
             else if (pipelineName && !datesRange) {
-                errormsg = `pipelineName ${pipelineName} jobs Not Found`;
+                errormsg = `No running jobs of ${pipelineName} to stop`;
             }
             else if (pipelineName) {
-                errormsg = `pipelineName ${pipelineName} jobs Not Found between ${datesRange.from} to ${datesRange.to}`;
+                errormsg = `No running jobs of ${pipelineName} which started between ${datesRange.from} to ${datesRange.to} to stop`;
             }
             else if (datesRange) {
                 errormsg = `No Jobs Found between ${datesRange.from} to ${datesRange.to}`;

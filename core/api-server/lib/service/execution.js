@@ -270,7 +270,7 @@ class ExecutionService {
         if (jobId) {
             validator.executions.validateStopPipeline(options);
             const job = await stateManager.getJob({ jobId, fields: { status: true, result: true, pipeline: true } });
-            ({ status, result, pipeline } = job || {}); // Assign values here
+            ({ status, result, pipeline } = job || {});
             if (!status) {
                 throw new ResourceNotFoundError('jobId', jobId);
             }
