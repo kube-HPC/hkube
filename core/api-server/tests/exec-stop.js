@@ -74,7 +74,7 @@ describe('Executions', () => {
             expect(response.body.error).to.not.exist;
             expect(response.body.message).to.equal('OK');
         });
-        it.only('should throw a "not found" error when no jobs are found within a time frame', async () => {
+        it('should throw a "not found" error when no jobs are found within a time frame', async () => {
             const optionsStored = {
                 uri: restUrl + '/exec/stored',
                 body: { name: 'flow2' }
@@ -105,7 +105,7 @@ describe('Executions', () => {
             const optionsPipeline = {
                 uri: restPath,
                 body: {
-                    pipelineName: 'flow2'
+                    pipelineName: 'flow'
                 }
             };
             const optionsTimeFrame = {
@@ -113,8 +113,8 @@ describe('Executions', () => {
                 body: {
                     pipelineName: 'flow1',
                     startTime: {
-                        from: "2021-03-11T14:30:00",
-                        to: "2021-04-11T14:30:00"
+                        from: "2022-03-11T14:30:00",
+                        to: "2022-04-11T14:30:00"
                     }
                 }
             };
@@ -139,7 +139,7 @@ describe('Executions', () => {
             const optionsPipeline = {
                 uri: restPath,
                 body: {
-                    pipelineName: 'flow2'
+                    pipelineName: 'flow'
                 }
             };
             const responsePipeline = await request(optionsPipeline);
