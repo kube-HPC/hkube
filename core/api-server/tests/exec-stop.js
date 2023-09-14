@@ -50,20 +50,110 @@ describe('Executions', () => {
                 body: { name: 'flow2' }
             };
             const stored = await request(optionsStored);
+
+            const currentDate = new Date();
+            const previousDay = new Date(currentDate);
+            previousDay.setDate(currentDate.getDate() - 1);
+            const nextDay = new Date(currentDate);
+            nextDay.setDate(currentDate.getDate() + 1);
+
+            const fromDateString = previousDay.toISOString();
+            const toDateString = nextDay.toISOString();
             const optionsStop = {
                 uri: restPath,
                 body: {
                     jobId: stored.body.jobId,
                     pipelineName: 'flow2',
                     startTime: {
-                        from: '2021-09-04T00:00:00Z',
-                        to: '2024-09-04T23:59:59Z'
+                        from: fromDateString,
+                        to: toDateString
                     }
                 }
             };
             const response = await request(optionsStop);
-            expect(response.body.error).to.not.exist; // No error should be present
+            expect(response.body.error).to.not.exist;
             expect(response.body.message).to.equal('OK');
         });
+        it('should throw a "not found" error when no jobs are found within a time frame', async () => {
+            const optionsStored = {
+                uri: restUrl + '/exec/stored',
+                body: { name: 'flow2' }
+            };
+            const stored = await request(optionsStored);
+
+            const currentDate = new Date();
+            const previousDay = new Date(currentDate);
+            previousDay.setDate(currentDate.getDate() - 1);
+            const nextDay = new Date(currentDate);
+            nextDay.setDate(currentDate.getDate() + 1);
+
+            const fromDateString = previousDay.toISOString();
+            const toDateString = nextDay.toISOString();
+            const optionsStop = {
+                uri: restPath,
+                body: {
+                    startTime: {
+                        from: fromDateString,
+                        to: toDateString
+                    }
+                }
+            };
+            const response = await request(optionsStop);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.message).to.equal(`No Jobs Found between ${fromDateString} to ${toDateString}`)
+        }
+        );
+        it('should throw a "not found" error when no jobs of a certain pipeline are found within a time frame', async () => {
+            const optionsStored = {
+                uri: restUrl + '/exec/stored',
+                body: { 
+                    name: 'flow1',
+                }
+            };
+            const stored = await request(optionsStored);
+            const optionsPipeline = {
+                uri: restPath,
+                body: {
+                    pipelineName: 'flow2'
+                }
+            };
+            const optionsTimeFrame = {
+                uri: restPath,
+                body: {
+                    pipelineName: 'flow1',
+                    startTime: {
+                        from: "2021-03-11T14:30:00",
+                        to: "2021-04-11T14:30:00"
+                    }
+                }
+            };
+        
+            // Send both requests
+            const responsePipeline = await request(optionsPipeline);
+            const responseTimeFrame = await request(optionsTimeFrame);
+        
+            // Check if both responses contain a "not found" error
+            expect(responsePipeline.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(responsePipeline.body.error.message).to.equal(`No running jobs of ${optionsPipeline.body.pipelineName} to stop`);
+        
+            expect(responseTimeFrame.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(responseTimeFrame.body.error.message).to.equal(`No running jobs of ${optionsTimeFrame.body.pipelineName} which started between ${optionsTimeFrame.body.startTime.from} to ${optionsTimeFrame.body.startTime.to} to stop`);
+        });
+        it.only('should throw a "not found" error when no jobs of a certain pipeline are found', async () => {
+            const optionsStored = {
+                uri: restUrl + '/exec/stored',
+                body: { name: 'flow1' }
+            };
+            const stored = await request(optionsStored);
+            const optionsPipeline = {
+                uri: restPath,
+                body: {
+                    pipelineName: 'flow2'
+                }
+            };
+            const responsePipeline = await request(optionsPipeline);
+            expect(responsePipeline.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(responsePipeline.body.error.message).to.equal(`No running jobs of ${optionsPipeline.body.pipelineName} to stop`);
+        }); 
     });
 });
