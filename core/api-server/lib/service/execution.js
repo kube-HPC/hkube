@@ -262,18 +262,27 @@ class ExecutionService {
     }
 
     async stopJob(options) {
-        validator.executions.validateStopPipeline(options);
-        const { jobId, reason } = options;
-        const job = await stateManager.getJob({ jobId, fields: { status: true, result: true, pipeline: true } });
-        const { status, result, pipeline } = job || {};
-        if (!status) {
-            throw new ResourceNotFoundError('jobId', jobId);
-        }
-        // we only want to stop jobs that have no result
-        if (result) {
-            throw new InvalidDataError(`unable to stop pipeline ${status.pipeline} because its in ${status.status} status`);
-        }
+        let { jobId } = options;
+        const { reason } = 'stopped due to request';
+        let pipeline;
+        let status;
+        let result;
+        if (jobId) {
+            validator.executions.validateStopPipeline(options);
+            const job = await stateManager.getJob({ jobId, fields: { status: true, result: true, pipeline: true } });
+            ({ status, result, pipeline } = job || {});
+            if (!status) {
+                throw new ResourceNotFoundError('jobId', jobId);
+            }
 
+            if (result) {
+                throw new InvalidDataError(`unable to stop pipeline ${pipeline} because it's in ${status} status`);
+            }
+        }
+        else if (options.job) {
+            ({ jobId } = options.job || {});
+            ({ status, pipeline } = options.job || {});
+        }
         const statusObject = { jobId, status: pipelineStatuses.STOPPED, reason, level: levels.INFO.name };
         const resultObject = { jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status: pipelineStatuses.STOPPED };
         await stateManager.updateJobStatus(statusObject);
