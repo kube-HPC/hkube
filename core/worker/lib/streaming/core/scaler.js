@@ -20,7 +20,7 @@ const SCALE_STATUS = {
  * the logic of scale up/down feasibility
  */
 class Scaler {
-    constructor(config, methods) {
+    constructor(config, minStatelessCount, methods) {
         log = Logger.GetLogFromContainer();
         this._maxScaleUpReplicasPerNode = config.scaleUp.maxScaleUpReplicasPerNode;
         this._maxScaleUpReplicasPerTick = config.scaleUp.maxScaleUpReplicasPerTick;
@@ -33,7 +33,7 @@ class Scaler {
         this._scaleUp = methods.scaleUp;
         this._scaleDown = methods.scaleDown;
         this._required = 0;
-        this._desired = 0;
+        this._desired = minStatelessCount || 0;
         this._lastScaleUpTime = null;
         this._lastScaleDownTime = null;
         this._scale = false;
