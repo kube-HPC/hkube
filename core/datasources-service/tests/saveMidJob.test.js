@@ -22,3 +22,19 @@ const waitForStatus = async ({ jobId, taskId }, status) => {
     });
     return state;
 };
+
+describe('Save Mid Pipeline', () => {
+    before(() => {
+        jobConsumer = require('../lib/service/jobs-consumer');
+        storageManager = require('@hkube/storage-manager');
+        rootDir = getDatasourcesInUseFolder(global.testParams.config);
+    
+    });
+    after(() => {
+        fse.remove(rootDir);
+    });
+
+    it('should add new file to the dvc track', async () => {
+        
+    })
+})
