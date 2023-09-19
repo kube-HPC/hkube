@@ -11,7 +11,7 @@ const stateManager = require('../state/state-manager');
 const buildsService = require('./builds');
 const versionsService = require('./versions');
 const validator = require('../validation/api-validator');
-const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
+const { ResourceNotFoundError, ActionNotAllowed, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
 const formatter = require('../utils/formatters');
 const createQueryObjectFromString = (str) => {
@@ -83,13 +83,38 @@ class AlgorithmStore {
     }
 
     async insertAlgorithm(options) {
-        validator.algorithms.validateAlgorithmName(options);
-        const alg = await stateManager.getAlgorithm(options);
-        if (alg) {
-            throw new ResourceExistsError('algorithm', options.name);
+        try {
+            validator.algorithms.validateAlgorithmName(options);
+            const alg = await stateManager.getAlgorithm(options);
+            if (alg) {
+                // eslint-disable-next-line no-throw-literal
+                throw {
+                    code: 409,
+                    message: `algorithm ${options.name} already exists`,
+                };
+            }
+            else {
+                const { algorithm } = await this.applyAlgorithm({ payload: options });
+                return algorithm;
+            }
         }
-        const { algorithm } = await this.applyAlgorithm({ payload: options });
-        return algorithm;
+        catch (error) {
+            if (error.code === 409) {
+                return {
+                    error: {
+                        code: 409,
+                        message: error.message,
+                    },
+                };
+            }
+            return {
+                error: {
+                    name: options.name,
+                    code: 400,
+                    message: error.message,
+                },
+            };
+        }
     }
 
     async updateAlgorithm(options) {

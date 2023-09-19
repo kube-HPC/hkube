@@ -62,8 +62,20 @@ const routes = (option) => {
         res.json(response);
     });
     router.post('/algorithms', async (req, res) => {
-        const response = await algorithmStore.insertAlgorithm(req.body);
-        res.status(HttpStatus.CREATED).json(response);
+        if (Array.isArray(req.body)) {
+            const returnAlgoList = await Promise.all(
+                req.body.map(async (algorithmData) => {
+                    // eslint-disable-next-line no-return-await
+                    return await algorithmStore.insertAlgorithm(algorithmData);
+                })
+            );
+            res.status(HttpStatus.CREATED).json(returnAlgoList);
+        }
+        else {
+            // If req.body is not an array, process it as a single algorithm
+            const response = await algorithmStore.insertAlgorithm(req.body);
+            res.status(HttpStatus.CREATED).json(response);
+        }
     });
     router.put('/algorithms', async (req, res) => {
         const response = await algorithmStore.updateAlgorithm(req.body);
