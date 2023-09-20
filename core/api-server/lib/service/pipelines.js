@@ -117,20 +117,66 @@ class PipelineService {
         });
     }
 
-    async insertPipeline(options) {
-        validator.pipelines.validateUpdatePipeline(options);
-        await validator.algorithms.validateAlgorithmExists(options);
-        validator.gateways.validateGatewayNodes(options.nodes);
-        const pipeline = await stateManager.getPipeline(options);
-        if (pipeline) {
-            throw new ResourceExistsError('pipeline', options.name);
+    async insertPipeline(options, listFlag = false) {
+        if (!listFlag) {
+            validator.pipelines.validateUpdatePipeline(options);
+            await validator.algorithms.validateAlgorithmExists(options);
+            validator.gateways.validateGatewayNodes(options.nodes);
+            const pipeline = await stateManager.getPipeline(options);
+            if (pipeline) {
+                throw new ResourceExistsError('pipeline', options.name);
+            }
+            const newPipeline = {
+                modified: Date.now(),
+                ...options,
+            };
+            await stateManager.insertPipeline(newPipeline);
+            return options;
         }
-        const newPipeline = {
-            modified: Date.now(),
-            ...options,
-        };
-        await stateManager.insertPipeline(newPipeline);
-        return options;
+        try {
+            validator.pipelines.validateUpdatePipeline(options);
+            await validator.algorithms.validateAlgorithmExists(options);
+            validator.gateways.validateGatewayNodes(options.nodes);
+            const pipeline = await stateManager.getPipeline(options);
+            if (pipeline) {
+                // eslint-disable-next-line no-throw-literal
+                throw {
+                    code: 409,
+                    message: `pipeline ${options.name} already exists`,
+                };
+            }
+            const newPipeline = {
+                modified: Date.now(),
+                ...options,
+            };
+            await stateManager.insertPipeline(newPipeline);
+            return options;
+        }
+        catch (error) {
+            if (error.code === 409) {
+                return {
+                    error: {
+                        code: 409,
+                        message: error.message,
+                    },
+                };
+            }
+            if (error.status === 404) {
+                return {
+                    error: {
+                        code: 404,
+                        message: error.message,
+                    },
+                };
+            }
+            return {
+                error: {
+                    name: options.name,
+                    code: 400,
+                    message: error.message,
+                },
+            };
+        }
     }
 }
 
