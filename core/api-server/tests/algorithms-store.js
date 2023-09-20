@@ -558,6 +558,18 @@ describe('Store/Algorithms', () => {
             expect(response.body[0].error.name).to.equal('Invalid Algorithm NAME-')
             expect(response.body[0].error.message).to.include('algorithm name must contain only lower-case alphanumeric, dash or dot');
         });
+        it.only('should return a 201 Created status and an empty array for an empty request body', async () => {
+            const emptyArray = [];
+            const emptyData = {
+                uri: restPath,
+                body: emptyArray
+            }
+        
+            const response = await request(emptyData)
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(0);
+          });
     });
     describe('/store/algorithms/apply POST', () => {
         describe('Validation', () => {
