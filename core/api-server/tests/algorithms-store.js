@@ -481,7 +481,7 @@ describe('Store/Algorithms', () => {
             expect(response.body).to.have.lengthOf(body.length);
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
         });
-        it.only('should succeed creating an array containing a 409 Conflict status and error message for existing algorithms', async () => {
+        it('should succeed creating an array containing a 409 Conflict status and error message for existing algorithms', async () => {
             const existingAlgorithm ={
                 name: 'existing-algorithm',
                 algorithmImage: 'image',
@@ -522,8 +522,41 @@ describe('Store/Algorithms', () => {
             expect(response.body).to.be.an('array');
             expect(response.body).to.have.lengthOf(algorithmsList.length);
             expect(response.body[1].error).to.not.exist;
-            expect(response.body[0].error.code).to.equal(409)
+            expect(response.body[0].error.code).to.equal(HttpStatus.CONFLICT)
             expect(response.body[0].error.message).to.include('algorithm existing-algorithm already exists');
+        });
+        it('should secceed creating an array containing a 400 Bad Request status and error message for invalid data', async () => {
+            // Define some algorithm data objects, including one with invalid data
+            const invalidAlgorithmData = [
+                {
+                    name: 'Invalid Algorithm NAME-',
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                },
+                {
+                    name: 'valid-algorithm-name',
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                },
+            ];
+
+            const algorithmData = {
+                uri: restPath,
+                body: invalidAlgorithmData
+            }
+        
+            const response = await request(algorithmData)
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(invalidAlgorithmData.length);
+            expect(response.body[1].error).to.not.exist;
+            expect(response.body[0].error.code).to.equal(HttpStatus.BAD_REQUEST)
+            expect(response.body[0].error.name).to.equal('Invalid Algorithm NAME-')
+            expect(response.body[0].error.message).to.include('algorithm name must contain only lower-case alphanumeric, dash or dot');
         });
     });
     describe('/store/algorithms/apply POST', () => {

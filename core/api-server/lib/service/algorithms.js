@@ -114,14 +114,6 @@ class AlgorithmStore {
                     },
                 };
             }
-            if (error instanceof InvalidDataError) {
-                return {
-                    error: {
-                        code: 400,
-                        message: error.message,
-                    },
-                };
-            }
             return {
                 error: {
                     name: options.name,
