@@ -558,7 +558,7 @@ describe('Store/Algorithms', () => {
             expect(response.body[0].error.name).to.equal('Invalid Algorithm NAME-')
             expect(response.body[0].error.message).to.include('algorithm name must contain only lower-case alphanumeric, dash or dot');
         });
-        it.only('should return a 201 Created status and an empty array for an empty request body', async () => {
+        it('should return a 201 Created status and an empty array for an empty request body', async () => {
             const emptyArray = [];
             const emptyData = {
                 uri: restPath,
