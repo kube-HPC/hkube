@@ -26,6 +26,7 @@ let createdJobsList = [];
 let totalCapacityNow = 10; // how much pods are running now
 const WINDOW_SIZE_FACTOR = 3;
 const unscheduledAlgorithms = {};
+const ignoredunscheduledAlgorithms = {};
 
 const _updateCapacity = (algorithmCount) => {
     const factor = 0.9;
@@ -354,7 +355,7 @@ const calcRatio = (totalRequests, capacity) => {
  * 3) if we found such an algorithm, we delete it from map.
  * 4) each iteration we update the discovery with the current map.
  */
-const _checkUnscheduled = (created, skipped, requests, algorithms, algorithmTemplates) => {
+const _checkUnscheduled = (created, skipped, requests, algorithms, algorithmsForLogging, algorithmTemplates) => {
     skipped.forEach((s) => {
         if (!algorithms[s.algorithmName]) {
             algorithms[s.algorithmName] = s.warning;
@@ -362,7 +363,6 @@ const _checkUnscheduled = (created, skipped, requests, algorithms, algorithmTemp
     });
 
     const algorithmsMap = Object.keys(algorithms);
-    let algorithmForLogging; 
     if (algorithmsMap.length > 0) {
         const createdSet = new Set(created.map(x => x.algorithmName));
         const requestSet = new Set(requests.map(x => x.algorithmName));
@@ -371,16 +371,16 @@ const _checkUnscheduled = (created, skipped, requests, algorithms, algorithmTemp
             const request = requestSet.has(k);
             // If algo was created, or not requested, or template missing, remove it from map and log it to etcd.
             if (create || !request || !algorithmTemplates[k]) {
-                algorithmForLogging = {
-                    ...algorithmForLogging,
+                algorithmsForLogging = {
+                    ...algorithmsForLogging,
                     [k]: algorithms[k]
                 };
                 delete algorithms[k];
             }
         });
     }
-    algorithmForLogging = algorithmForLogging || {}; // Persistant type for etcd.
-    return { algorithms, algorithmForLogging };
+    algorithmsForLogging = algorithmsForLogging || {}; // Persistant type for etcd.
+    return { algorithms, algorithmsForLogging };
 };
 
 const _workersToMap = (requests) => {
@@ -601,8 +601,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     created.forEach((j) => {
         createdJobsList.push(j);
     });
-
-    const {algorithms: unScheduledAlgorithms, algorithmForLogging: ignoredUnScheduledAlgorithms} = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, algorithmTemplates);
+    const unScheduledObject = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
+    const {algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms} = unScheduledObject;
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];

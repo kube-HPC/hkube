@@ -66,7 +66,8 @@ type  Batch {
     boards: [String ]
     output: Output
     input: [NodeInput ] 
-  
+    minStatelessCount: Int
+    maxStatelessCount: Int
     error:String
     warnings:[String]
     retries:Int

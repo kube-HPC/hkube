@@ -31,12 +31,13 @@ let log;
  * responses and there are no replicas so we scale-up 1 replica (first scale)
  * Scaling up is done by sending jobs to the Algorithm-Queue
  * and then do not scale-up until desired replicas are fulfilled.
+ * If node is stateless, and has maxStatelessCount > 0, never scale above it
  *
  * --Scale-Down--
  * another condition to scale down is when there are no requests and no
  * responses for x time, it will scale-down the current size to zero.
  * Scaling down is done by sending commands to the workers.
- *
+ * If node is stateless, and has minStatelessCount > 0, never scale below it.
  */
 class AutoScaler {
     constructor(options, onSourceRemove) {
@@ -46,6 +47,9 @@ class AutoScaler {
         this._options = options;
         this._config = options.config;
         this._isStateful = options.node.stateType === stateType.Stateful;
+        this._statelessCountLimits = { minStateless: options.node.minStatelessCount, maxStateless: options.node.maxStatelessCount };
+        this._limitActionType = { minStateless: 'minStatelessCount', maxStateless: 'maxStatelessCount' };
+        this._interventionLogCallTrack = { action: null, required: null, allowed: null, timeStamp: null };
         this._onSourceRemove = onSourceRemove;
         this.reset();
     }
@@ -62,7 +66,7 @@ class AutoScaler {
             if (this._options.node.kind === nodeKind.Debug) {
                 conf = { ...this._config, scaleUp: { ...this._config.scaleUp, maxScaleUpReplicasPerNode: 1 } };
             }
-            this._scaler = new Scaler(conf, {
+            this._scaler = new Scaler(conf, this._statelessCountLimits.minStateless, {
                 getCurrentSize: () => {
                     return discovery.countInstances(this._nodeName);
                 },
@@ -212,6 +216,22 @@ class AutoScaler {
         log.info(`scaling ${action} ${replicas} replicas for node ${this._nodeName} from ${currentSize} to ${scaleTo} replicas`, { component });
     }
 
+    _scalingInterventionLog(action, required, allowed) {
+        const currentTime = Date.now();
+        // Log-spam prevention
+        if (this._interventionLogCallTrack.timeStamp) {
+            if (this._interventionLogCallTrack.action === action
+                && this._interventionLogCallTrack.required === required
+                && this._interventionLogCallTrack.allowed.type === allowed.type
+                && this._interventionLogCallTrack.allowed.size === allowed.size
+                && currentTime - this._interventionLogCallTrack.timeStamp < this._config.scaleIntervention.throttleMs) {
+                return;
+            }
+        }
+        this._interventionLogCallTrack = { timeStamp: currentTime, action, required, allowed };
+        log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type} ${allowed.size} `, { component });
+    }
+
     _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, queueSize, avgQueueSize, currentSize }) {
         const result = { up: 0, down: 0 };
         const requiredByDurationRate = calcRatio(reqRate, durationsRate);
@@ -225,10 +245,12 @@ class AutoScaler {
         // first scale up
         if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
             required = this._config.scaleUp.replicasOnFirstScale;
+            required = this._capScaleByLimits(required, this._limitActionType.maxStateless);
         }
         // scale up based on durations
         else if (totalRequests > 0 && currentSize < requiredByDuration) {
             required = requiredByDuration;
+            required = this._capScaleByLimits(required, this._limitActionType.maxStateless);
         }
 
         // scale down based on stop streaming
@@ -240,12 +262,29 @@ class AutoScaler {
             const diff = relDiff(requiredByDuration, this._scaler.required);
             if (diff > this._config.scaleDown.tolerance && requiredByDuration > 0) {
                 required = requiredByDuration;
+                required = this._capScaleByLimits(required, this._limitActionType.minStateless);
             }
         }
         if (required !== null) {
             this._scaler.updateRequired(required);
         }
         return result;
+    }
+
+    _capScaleByLimits(required, type) {
+        if (type === this._limitActionType.maxStateless && this._statelessCountLimits.maxStateless) {
+            if (required > this._statelessCountLimits.maxStateless) {
+                this._scalingInterventionLog('up', required, { type: this._limitActionType.maxStateless, size: this._statelessCountLimits.maxStateless });
+                return this._statelessCountLimits.maxStateless;
+            }
+        }
+        else if (type === this._limitActionType.minStateless && this._statelessCountLimits.minStateless) {
+            if (required < this._statelessCountLimits.minStateless) {
+                this._scalingInterventionLog('down', required, { type: this._limitActionType.minStateless, size: this._statelessCountLimits.minStateless });
+                return this._statelessCountLimits.minStateless;
+            }
+        }
+        return required;
     }
 
     _addExtraReplicas(requiredByDurationRate, requiredByQueueSize) {
@@ -330,7 +369,7 @@ class AutoScaler {
             return null;
         }
         this._logScaling({ action: 'down', ...scale });
-        const { replicas, scaleTo } = scale;
+        const { replicas, scaleTo } = scale; // currentSize
         const discoveryWorkers = discovery.getInstances(this._nodeName);
         // we will prefer not to scale-down masters, unless we scaling down to zero
         const instances = scaleTo === 0 ? discoveryWorkers : discoveryWorkers.filter(d => !d.isMaster);
