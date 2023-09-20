@@ -454,6 +454,77 @@ describe('Store/Algorithms', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(algorithm).to.eql(merge({}, defaultProps, body));
         });
+        it('should secceed to create algorithms when provided with an array of valid data', async () => {
+            const body = [
+              {
+                name: uuid(),
+                algorithmImage: 'image',
+                mem: '50Mi',
+                cpu: 1,
+                type: 'Image',
+              },
+              {
+                name: uuid(),
+                algorithmImage: 'image',
+                mem: '50Mi',
+                cpu: 1,
+                type: 'Image',
+              },
+            ];
+            const options = {
+                uri: restPath,
+                body
+            };
+        
+            const response = await request(options);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(body.length);
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+        });
+        it.only('should succeed creating an array containing a 409 Conflict status and error message for existing algorithms', async () => {
+            const existingAlgorithm ={
+                name: 'existing-algorithm',
+                algorithmImage: 'image',
+                mem: '50Mi',
+                cpu: 1,
+                type: 'Image',
+              }
+              const existingAlgOption = {
+                uri: restPath,
+                body: existingAlgorithm
+            };
+            const responseOfExists = await request(existingAlgOption)
+        
+            const algorithmsList = [
+                {
+                    name: 'existing-algorithm',
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                },
+                {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                },
+            ];
+
+            const algorithmData = {
+                uri: restPath,
+                body: algorithmsList
+            }
+
+            const response = await request(algorithmData)
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(algorithmsList.length);
+            expect(response.body[1].error).to.not.exist;
+            expect(response.body[0].error.code).to.equal(409)
+            expect(response.body[0].error.message).to.include('algorithm existing-algorithm already exists');
+        });
     });
     describe('/store/algorithms/apply POST', () => {
         describe('Validation', () => {
