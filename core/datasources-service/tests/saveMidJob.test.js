@@ -35,6 +35,9 @@ describe('Save Mid Pipeline', () => {
     });
 
     it('should add new file to the dvc track', async () => {
-        
+        const name = uuid();
+        const { body: dataSource } = await createDataSource(name);
+        const job = await createJob({ dataSource });
+        const { jobId } = job.data;
     })
 })
