@@ -181,9 +181,10 @@ class DataSource {
     async dvcFileObj(directory, file) {
         const dvcObj = {};
         const dvcFile = (await fse.readFile(path.join(directory, `${file}.dvc`))).toString('utf-8');
-        const fileName = path.basename(file, path.extname(file));
+        const fileName = file.split('/').pop();
         dvcObj.originalname = fileName;
-        dvcObj.mimetype = `text/${path.extname(file)}`;
+        const fileNameEnd = path.extname(file).slice(1);
+        dvcObj.mimetype = `text/${fileNameEnd}`;
         // console.log(dvcFile);
         const arrFile = dvcFile.split('\n');
         for (let i = 0; i < arrFile.length; i += 1) {
@@ -288,10 +289,10 @@ class DataSource {
         const masterHash = execSync('git rev-parse origin/master', { cwd: repository.cwd, encoding: 'utf8' }).toString();
 
         if (headHash === masterHash) {
-            await repository.gitClient.checkout('master')
-                .then(async () => {
-                    await repository.gitClient.fetch('origin', 'master');
-                });
+            await repository.gitClient.checkout('master');
+            // .then(async () => {
+            await repository.gitClient.fetch('origin', 'master');
+            // });
         }
         else {
             throw new ActionNotAllowed('Mid pipeline saving is an action reserved to working on latest version of a DataSource');
