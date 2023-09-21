@@ -36,7 +36,7 @@ describe('Save Mid Pipeline', () => {
         await fse.remove(rootDir);
     });
 
-    it.only('should add new file to the dvc track', async () => {
+    it('should add new file to the dvc track', async () => {
         const name = uuid()
         const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
@@ -73,7 +73,7 @@ describe('Save Mid Pipeline', () => {
         expect(aFile[0].meta).to.eq('');
         
     })
-    it.only('should fail with ActionNotAllowed error', async () => {
+    it('should fail with ActionNotAllowed error', async () => {
         const name = uuid()
         const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
