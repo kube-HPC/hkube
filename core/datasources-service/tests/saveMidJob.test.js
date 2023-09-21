@@ -9,8 +9,8 @@ const {
     createJob,
 } = require('./api');
 const { request } = require('./request');
+const { default: simpleGit } = require('simple-git');
 let jobConsumer;
-let storageManager;
 let rootDir = null;
 
 const waitForStatus = async ({ jobId, taskId }, status) => {
@@ -26,22 +26,21 @@ function sleep(sleepTime){
 }
 
 describe('Save Mid Pipeline', () => {
-    before(() => {
+    before(async () => {
         jobConsumer = require('../lib/service/jobs-consumer');
-        storageManager = require('@hkube/storage-manager');
         rootDir = getDatasourcesInUseFolder(global.testParams.config);
         restUrl = global.testParams.restUrl;
-    
+
     });
     after(async () => {
         await fse.remove(rootDir);
     });
 
-    it('should add new file to the dvc track', async () => {
-        const name = uuid();
-        const { body: dataSource } = await createDataSource(name, {
+    it.only('should add new file to the dvc track', async () => {
+        const name = uuid()
+        const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
-        });
+        })
         const job = await createJob({ dataSource });
         const { jobId, nodeName } = job.data;
         const dsPath = pathLib.join(rootDir, jobId, name, 'complete');
@@ -74,4 +73,58 @@ describe('Save Mid Pipeline', () => {
         expect(aFile[0].meta).to.eq('');
         
     })
+    it.only('should fail with ActionNotAllowed error', async () => {
+        const name = uuid()
+        const {body: dataSource} = await createDataSource(name, {
+            fileNames: ['logo.svg', 'logo.svg.meta'],
+        })
+        const job = await createJob({ dataSource });
+        const { jobId, nodeName } = job.data;
+        const dsPath = pathLib.join(rootDir, jobId, name, 'complete');
+        const newFilePath1 = pathLib.join(dsPath, 'data', 'a.txt');
+        let triesCount = 0;
+        while( true ){
+            if (await fse.pathExists(pathLib.join(dsPath, 'data'))){
+                break;
+            }
+            else{
+                await sleep(1000);
+                triesCount+=1;
+            }
+            if (triesCount > 10){
+                throw Error(`path ${dsPath} is not being created by job`)
+            }
+            }
+            await fse.outputFile(newFilePath1, 'testing');
+            const options1 = {
+                uri: `${restUrl}/datasource/${jobId}/${name}/${nodeName}`,
+                method: 'POST'}
+            await request(options1);
+
+
+            // end of recreate the first dataSoource now we add another file and try to create the error 
+            
+            const git = simpleGit({baseDir: pathLib.join(rootDir, jobId, name, 'complete')});
+            await git.fetch('origin', 'master')
+            const commitHashes = await git.raw(['rev-list', 'master'])
+            const commitHashesList = commitHashes.split('\n')
+            const commitToCheckout = commitHashesList[1];
+            await git.checkout(commitToCheckout);
+
+            const newFilePath2 = pathLib.join(dsPath, 'data', 'b.txt');
+            await fse.outputFile(newFilePath2, 'testing');
+
+
+            const options = {
+                uri: `${restUrl}/datasource/${jobId}/${name}/${nodeName}`,
+                method: 'POST'}
+            const response = await request(options);
+
+
+            expect(response.response.statusCode).to.eq(400);
+            expect(response.body).to.eq('Mid pipeline saving is an action reserved to working on latest version of a DataSource')
+
+
+        })
+
 })
