@@ -165,7 +165,7 @@ describe('Save Mid Pipeline', () => {
 
         })
 
-        it.skip('delete file and should save', async () => {
+        it('delete file and should save', async () => {
             const name = uuid()
         const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
@@ -187,7 +187,7 @@ describe('Save Mid Pipeline', () => {
             }
         }
 
-        fse.remove(pathLib.join(dsPath, 'data', 'logo.svg'))
+        await fse.remove(pathLib.join(dsPath, 'data', 'logo.svg'))
         const options = {
             uri: `${restUrl}/datasource/${jobId}/${name}/${nodeName}`,
             method: 'POST'}
@@ -196,10 +196,7 @@ describe('Save Mid Pipeline', () => {
         expect(response.body).to.be.an('object');
         expect(response.body.name).to.eq(name);
         expect(response.body.files).to.be.an('array');
-        const nameList = response.body.files.map(file => file.name);
-        expect(nameList).to.include('a.txt');
-        const aFile = response.body.files.filter(file => file.name === 'a.txt');
-        expect(aFile[0].meta).to.eq('');
+        expect(response.body.files.length).to.eq(0);
 
         })
 
