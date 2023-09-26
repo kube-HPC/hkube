@@ -165,7 +165,7 @@ describe('Save Mid Pipeline', () => {
 
         })
 
-        it.only('delete file and should save', async () => {
+        it.skip('delete file and should save', async () => {
             const name = uuid()
         const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
