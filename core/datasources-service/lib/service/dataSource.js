@@ -243,7 +243,113 @@ class DataSource {
         }));
     }
 
+    async handleModifiedFiles(files, directory, repository) {
+        // The process of handling modified files in DVC is similar to adding them
+        files.forEach(async file => {
+            // execSync(`dvc add ${file}`, { cwd: directory, encoding: 'utf8' });
+            // execSync(`git add ${file}.dvc`, { cwd: directory, encoding: 'utf8' });
+            await repository.dvc.add(file);
+            await repository.gitClient.add(path.join(directory, `${file}.dvc`));
+        });
+    }
+
+    async handleDeletedFiles(files, directory, repository) {
+        // This is deleting the dvc files of the deleted files
+        files.forEach(file => {
+            // execSync(`git rm ${file}.dvc`, { cwd: directory, encoding: 'utf8' });
+            repository.gitclient.rm(path.join(directory, `${file}.dvc`));
+        });
+
+        // Now we need to remove the name of the file from the gitignore file
+
+        let gitignoreContent = await fse.readFile(path.join(directory, '.gitignore'), 'utf-8');
+        let gitignoreContentarr = gitignoreContent.split('\n');
+        for (let i = 0; i < gitignoreContent.length; i += 1) {
+            for (let j = 0; j < files.length; j += 1) {
+                if (gitignoreContent[i] === `/${files[j]}`) {
+                    gitignoreContentarr.splice(i, 1);
+                }
+                break;
+            }
+        }
+
+        for (let i = 0; i < files.length; i += 1) {
+            let gitignoreDir = files[i].split('/');
+            gitignoreDir[gitignoreDir.length - 1] = '.gitignore';
+            gitignoreDir = gitignoreDir.join('/');
+            gitignoreContent = fse.readFileSync(path.join(directory, gitignoreDir), 'utf-8');
+            gitignoreContentarr = gitignoreContent.split('\n');
+            for (let j = 0; j < gitignoreContent.length; j += 1) {
+                if (gitignoreContent[i] === `/${files[j]}`) {
+                    gitignoreContentarr.splice(i, 1);
+                }
+                break;
+            }
+
+            // Now we write the new string into the gitignore
+            gitignoreContent = gitignoreContentarr.join('\n');
+            fse.writeFileSync(path.join(directory, '.gitignore'), gitignoreContent);
+        }
+    }
+
+    getDvcDiff(directory) {
+        const result = execSync('dvc diff', { cwd: path.join(directory, 'data'), encoding: 'utf8' });
+
+        // Split the result into lines
+        const lines = result.split('\n');
+
+        const added = [];
+        const modified = [];
+        const deleted = [];
+
+        let currentCategory = null;
+
+        lines.forEach(line => {
+            const trimmedLine = line.trim();
+
+            if (trimmedLine.startsWith('files summary')) {
+                return; // Skip the "files summary" line
+            }
+
+            if (trimmedLine === 'Added:') {
+                currentCategory = 'added';
+            }
+            else if (trimmedLine === 'Modified:') {
+                currentCategory = 'modified';
+            }
+            else if (trimmedLine === 'Deleted:') {
+                currentCategory = 'deleted';
+            }
+            else if (currentCategory && trimmedLine) {
+                switch (currentCategory) {
+                    case 'added':
+                        added.push(trimmedLine);
+                        break;
+                    case 'modified':
+                        modified.push(trimmedLine);
+                        break;
+                    case 'deleted':
+                        deleted.push(trimmedLine);
+                        break;
+                        // no default
+                }
+            }
+        });
+
+        return {
+            added,
+            modified,
+            deleted
+        };
+    }
+
     async commitJobDs({ repository, versionDescription }) {
+        // const { modified, deleted } = this.getDvcDiff(repository.cwd);
+
+        // await this.handleDeletedFiles(deleted, repository.cwd, repository);
+
+        // await this.handleModifiedFiles(modified, repository.cwd, repository);
+
         await this.handleUntrackedFiles(repository, repository.cwd);
         // const commit = await repository.commitMidPipeline(versionDescription);
         await repository.gitClient.add('data').catch(error => {
