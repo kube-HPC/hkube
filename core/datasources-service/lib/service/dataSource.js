@@ -344,11 +344,15 @@ class DataSource {
     }
 
     async commitJobDs({ repository, versionDescription }) {
-        // const { modified, deleted } = this.getDvcDiff(repository.cwd);
+        const { modified, deleted } = this.getDvcDiff(repository.cwd);
 
-        // await this.handleDeletedFiles(deleted, repository.cwd, repository);
+        if (deleted.length > 0) {
+            await this.handleDeletedFiles(deleted, repository.cwd, repository);
+        }
 
-        // await this.handleModifiedFiles(modified, repository.cwd, repository);
+        if (modified.length > 0) {
+            await this.handleModifiedFiles(modified, repository.cwd, repository);
+        }
 
         await this.handleUntrackedFiles(repository, repository.cwd);
         // const commit = await repository.commitMidPipeline(versionDescription);
