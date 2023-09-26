@@ -257,7 +257,7 @@ class DataSource {
         // This is deleting the dvc files of the deleted files
         files.forEach(file => {
             // execSync(`git rm ${file}.dvc`, { cwd: directory, encoding: 'utf8' });
-            repository.gitclient.rm(path.join(directory, `${file}.dvc`));
+            repository.gitClient.rm(path.join(directory, `${file}.dvc`));
         });
 
         // Now we need to remove the name of the file from the gitignore file
