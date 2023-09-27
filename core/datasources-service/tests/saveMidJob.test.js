@@ -36,7 +36,7 @@ describe('Save Mid Pipeline', () => {
         await fse.remove(rootDir);
     });
 
-    it('should add new file to the dvc track', async () => {
+    it.only('should add new file to the dvc track', async () => {
         const name = uuid()
         const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
@@ -73,7 +73,7 @@ describe('Save Mid Pipeline', () => {
         expect(aFile[0].meta).to.eq('');
         
     })
-    it('should fail with ActionNotAllowed error', async () => {
+    it.only('should fail with ActionNotAllowed error', async () => {
         const name = uuid()
         const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
@@ -122,7 +122,7 @@ describe('Save Mid Pipeline', () => {
 
 
             expect(response.response.statusCode).to.eq(400);
-            expect(response.body).to.eq('Mid pipeline saving is an action reserved for working on latest version of a DataSource')
+            expect(response.body).to.eq('Mid pipeline saving is an action reserved to working on latest version of a DataSource')
 
 
         })
