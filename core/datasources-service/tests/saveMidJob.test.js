@@ -127,7 +127,7 @@ describe('Save Mid Pipeline', () => {
 
         })
 
-        it.only('modify file and should save', async () => {
+        it('modify file and should save', async () => {
             const name = uuid()
         const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
