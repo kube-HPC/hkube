@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.6.0",
+    "version": "2.6.2",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -1461,8 +1461,8 @@
         "tags": [
           "Execution"
         ],
-        "summary": "Stop pipeline",
-        "description": "Call to stop pipeline execution",
+        "summary": "Stop pipeline execution",
+        "description": "Call to stop pipeline execution by jobId, pipelineName or startTime",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1473,15 +1473,24 @@
                     "type": "string",
                     "description": "Unique identifier representing pipeline execution"
                   },
-                  "reason": {
+                  "pipelineName": {
                     "type": "string",
-                    "default": "requested by user",
-                    "description": "reason for stop pipeline"
+                    "description": "pipeline name to stop"
+                  },
+                  "startTime": {
+                    "type": "object",
+                    "properties": {
+                      "from": {
+                        "type": "string",
+                        "example": "2021-03-11T14:30:00"
+                      },
+                      "to": {
+                        "type": "string",
+                        "example": "2021-03-11T14:30:00"
+                      }
+                    }
                   }
-                },
-                "required": [
-                  "jobId"
-                ]
+                }
               }
             }
           },
@@ -6907,9 +6916,7 @@
                       "type": "object",
                       "nullable": true,
                       "description": "key value labels for nodes constraint",
-                      "additionalProperties": {
-                        "type": "string"
-                      }
+                      "additionalProperties": true
                     },
                     "labels": {
                       "type": "object",
@@ -7407,9 +7414,7 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "additionalProperties": true
                       },
                       "labels": {
                         "type": "object",
@@ -7713,9 +7718,7 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "additionalProperties": true
                       },
                       "labels": {
                         "type": "object",
@@ -8004,9 +8007,7 @@
                     "type": "object",
                     "nullable": true,
                     "description": "key value labels for nodes constraint",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
+                    "additionalProperties": true
                   },
                   "labels": {
                     "type": "object",
@@ -8350,9 +8351,7 @@
                     "type": "object",
                     "nullable": true,
                     "description": "key value labels for nodes constraint",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
+                    "additionalProperties": true
                   },
                   "labels": {
                     "type": "object",
@@ -8682,9 +8681,7 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "additionalProperties": true
                       },
                       "labels": {
                         "type": "object",
@@ -8978,9 +8975,7 @@
                           "type": "object",
                           "nullable": true,
                           "description": "key value labels for nodes constraint",
-                          "additionalProperties": {
-                            "type": "string"
-                          }
+                          "additionalProperties": true
                         },
                         "labels": {
                           "type": "object",
@@ -15648,9 +15643,7 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "additionalProperties": true
                       },
                       "labels": {
                         "type": "object",
@@ -16007,9 +16000,7 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
+                        "additionalProperties": true
                       },
                       "labels": {
                         "type": "object",
@@ -19105,9 +19096,7 @@
             "type": "object",
             "nullable": true,
             "description": "key value labels for nodes constraint",
-            "additionalProperties": {
-              "type": "string"
-            }
+            "additionalProperties": true
           },
           "labels": {
             "type": "object",
@@ -19551,9 +19540,7 @@
                 "type": "object",
                 "nullable": true,
                 "description": "key value labels for nodes constraint",
-                "additionalProperties": {
-                  "type": "string"
-                }
+                "additionalProperties": true
               },
               "labels": {
                 "type": "object",
@@ -21119,15 +21106,24 @@
             "type": "string",
             "description": "Unique identifier representing pipeline execution"
           },
-          "reason": {
+          "pipelineName": {
             "type": "string",
-            "default": "requested by user",
-            "description": "reason for stop pipeline"
+            "description": "pipeline name to stop"
+          },
+          "startTime": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "example": "2021-03-11T14:30:00"
+              },
+              "to": {
+                "type": "string",
+                "example": "2021-03-11T14:30:00"
+              }
+            }
           }
-        },
-        "required": [
-          "jobId"
-        ]
+        }
       },
       "pauseRequest": {
         "type": "object",

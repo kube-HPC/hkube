@@ -199,6 +199,11 @@ class AlgorithmStore {
         }
 
         const oldAlgorithm = await stateManager.getAlgorithm(payload);
+
+        if (!oldAlgorithm && !payload.type && !file.path && payload.algorithmImage && payload.fileInfo) {
+            delete payload.fileInfo;
+        }
+
         const newAlgorithm = this._mergeAlgorithm(oldAlgorithm, payload);
         validator.algorithms.validateApplyAlgorithm(payload);
 

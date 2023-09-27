@@ -43,6 +43,9 @@ config.streaming = {
             minTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 60000),
             minQueueSizeBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_QUEUE_SIZE_BEFORE_SCALE_DOWN, 0),
             minTimeQueueEmptyBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_QUEUE_EMPTY, 60000),
+        },
+        scaleIntervention: {
+            throttleMs : process.env.SCALE_INTERVENTION_LOG_THROTTLE_TIME || 200
         }
     },
     election: {

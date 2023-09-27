@@ -1609,5 +1609,42 @@ describe('reconciler', () => {
             expect(res1).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
             expect(res2).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: data.length, skipped: 0, resumed: 0 } });
         });
+        it('should not allocate algorithm with multiple values in the same nodeSelector key ', async () => {
+            const algorithm = algorithmTemplates['selector-multi-values'];
+            const data = [
+                { name: algorithm.name },
+                { name: algorithm.name },
+                { name: algorithm.name }
+            ];
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates: { [algorithm.name]: algorithm },
+                algorithmRequests: [{ data }]
+            });
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql("No nodes available for scheduling due to selector condition - 'kubernetes.io/hostname=node1,node2,node3'");
+            expect(algorithms[algorithm.name].complexResourceDescriptor.numUnmatchedNodesBySelector).to.eql(4);
+            expect(algorithms[algorithm.name].complexResourceDescriptor.requestedSelectors).to.eql(["kubernetes.io/hostname=node1,node2,node3"]);
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
+        });
+        it('should allocate algorithm with multiple values in the same nodeSelector key ', async () => {
+            const algorithm = algorithmTemplates['selector-multi-values-node4'];
+            const data = [
+                { name: algorithm.name },
+                { name: algorithm.name },
+                { name: algorithm.name }
+            ];
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates: { [algorithm.name]: algorithm },
+                algorithmRequests: [{ data }]
+            });
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);
+        });
     });
 });

@@ -137,8 +137,7 @@ properties:
     type: object
     nullable: true
     description: key value labels for nodes constraint
-    additionalProperties:
-      type: string
+    additionalProperties: true
   labels:
     type: object
     nullable: true
