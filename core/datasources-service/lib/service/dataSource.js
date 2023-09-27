@@ -206,8 +206,8 @@ class DataSource {
         return { fileObj: dvcObj, relativePath: rPath };
     }
 
-    async dvcYamlObj(directory) {
-        const dvcContent = await fse.readFile(`${directory}.dvc`, 'utf-8');
+    async getDvcFileAsYaml(filePath) {
+        const dvcContent = await fse.readFile(`${filePath}.dvc`, 'utf-8');
         const dvcObj = yaml.load(dvcContent);
         return dvcObj;
     }
@@ -234,7 +234,7 @@ class DataSource {
                 // execSync(`git add data/${file}.dvc`, { cwd: directory, encoding: 'utf8' });
                 const { fileObj, relativePath } = await this.dvcFileObj(directory, `data/${file}`);
                 const metaObj = createFileMeta(fileObj, relativePath);
-                const dvcObj = await this.dvcYamlObj(path.join(directory, `data/${file}`));
+                const dvcObj = await this.getDvcFileAsYaml(path.join(directory, `data/${file}`));
                 await repository.dvc.enrichMeta(path.join('data', file), dvcObj, 'hkube', metaObj);
 
                 // repository.gitClient.add(`data/${file}.dvc`);
@@ -245,7 +245,6 @@ class DataSource {
 
     async commitJobDs({ repository, versionDescription }) {
         await this.handleUntrackedFiles(repository, repository.cwd);
-        // const commit = await repository.commitMidPipeline(versionDescription);
         await repository.gitClient.add('data').catch(error => {
             return error;
         });
@@ -295,7 +294,7 @@ class DataSource {
             // });
         }
         else {
-            throw new ActionNotAllowed('Mid pipeline saving is an action reserved to working on latest version of a DataSource');
+            throw new ActionNotAllowed('Mid pipeline saving is an action reserved for working on latest version of a DataSource');
         }
 
         const { commitHash, files } = await this.commitJobDs({ repository, versionDescription });

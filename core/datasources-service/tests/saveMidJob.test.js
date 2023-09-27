@@ -122,7 +122,7 @@ describe('Save Mid Pipeline', () => {
 
 
             expect(response.response.statusCode).to.eq(400);
-            expect(response.body).to.eq('Mid pipeline saving is an action reserved to working on latest version of a DataSource')
+            expect(response.body).to.eq('Mid pipeline saving is an action reserved for working on latest version of a DataSource')
 
 
         })
