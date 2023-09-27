@@ -198,6 +198,7 @@ class DataSource {
                 const [, size] = arrFile[i];
                 // const [size] = arr2;
                 dvcObj.size = size;
+                break;
             }
         }
 
@@ -213,7 +214,6 @@ class DataSource {
     }
 
     async handleUntrackedFiles(repository, directory) {
-        // const addedFiles = [];
         // Get the list of untracked files from Git
         const result = execSync('git ls-files --others --exclude-standard', { cwd: path.join(directory, 'data'), encoding: 'utf8' }).toString();
 
@@ -229,16 +229,12 @@ class DataSource {
         // functions here are operated on the dvc file
         await Promise.all(dataFiles.map(async (file) => {
             if (file) {
-                // execSync(`dvc add data/${file}`, { cwd: directory, encoding: 'utf8' });
                 await repository.dvc.add(`data/${file}`);
-                // execSync(`git add data/${file}.dvc`, { cwd: directory, encoding: 'utf8' });
+
                 const { fileObj, relativePath } = await this.dvcFileObj(directory, `data/${file}`);
                 const metaObj = createFileMeta(fileObj, relativePath);
                 const dvcObj = await this.dvcYamlObj(path.join(directory, `data/${file}`));
                 await repository.dvc.enrichMeta(path.join('data', file), dvcObj, 'hkube', metaObj);
-
-                // repository.gitClient.add(`data/${file}.dvc`);
-                // addedFiles.push(this.dvcFileObj(directory, `data/${file}`));
             }
         }));
     }
@@ -246,9 +242,11 @@ class DataSource {
     async handleModifiedFiles(files, directory, repository) {
         // The process of handling modified files in DVC is similar to adding them
         files.forEach(async file => {
-            // execSync(`dvc add ${file}`, { cwd: directory, encoding: 'utf8' });
-            // execSync(`git add ${file}.dvc`, { cwd: directory, encoding: 'utf8' });
             await repository.dvc.add(file);
+            const { fileObj, relativePath } = await this.dvcFileObj(directory, file);
+            const metaObj = createFileMeta(fileObj, relativePath);
+            const dvcObj = await this.dvcYamlObj(path.join(directory, file));
+            await repository.dvc.enrichMeta(file, dvcObj, 'hkube', metaObj);
             await repository.gitClient.add(path.join(directory, `${file}.dvc`));
         });
     }

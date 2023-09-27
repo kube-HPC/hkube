@@ -127,7 +127,7 @@ describe('Save Mid Pipeline', () => {
 
         })
 
-        it.skip('modify file and should save', async () => {
+        it.only('modify file and should save', async () => {
             const name = uuid()
         const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
@@ -148,38 +148,22 @@ describe('Save Mid Pipeline', () => {
             if (triesCount > 10){
                 throw Error(`path ${dsPath} is not being created by job`)
             }
-        }
+        };
         await fse.outputFile(newFilePath, 'testing');
         let options = {
             uri: `${restUrl}/datasource/${jobId}/${name}/${nodeName}`,
-            method: 'POST'}
+            method: 'POST'};
         let response = await request(options);
-        const state = await waitForStatus({ jobId, taskId }, 'succeed');
-        
-        job = await createJob({dataSource});
-        const { jobId:jobId1, nodeName:nodeName1 } = job.data;
-        dsPath = pathLib.join(rootDir, jobId1, name, 'complete');
-        newFilePath = pathLib.join(dsPath, 'data', 'a.txt');
-        triesCount = 0;
-        while( true ){
-            if (await fse.pathExists(pathLib.join(dsPath, 'data'))){
-                break;
-            }
-            else{
-                await sleep(1000);
-                triesCount+=1;
-            }
-            if (triesCount > 10){
-                throw Error(`path ${dsPath} is not being created by job`)
-            }
-        }
+        let firstSizeObj = +response.body.files.map(file =>  [file.name, file.size]).filter(item => item[0] === 'a.txt')[0][1];
+
         let fileContent = await fse.readFile(newFilePath);
         fileContent += ' another test'
         await fse.writeFile(newFilePath, fileContent);
         options = {
-            uri: `${restUrl}/datasource/${jobId1}/${name}/${nodeName1}`,
+            uri: `${restUrl}/datasource/${jobId}/${name}/${nodeName}`,
             method: 'POST'}
         response = await request(options);
+        let secondSizeObj = +response.body.files.map(file =>  [file.name, file.size]).filter(item => item[0] === 'a.txt')[0][1];
 
         expect(response.response.statusCode).to.eq(200);
         expect(response.body).to.be.an('object');
@@ -187,6 +171,7 @@ describe('Save Mid Pipeline', () => {
         expect(response.body.files).to.be.an('array');
         const nameList = response.body.files.map(file => file.name);
         expect(nameList).to.include('a.txt');
+        expect(secondSizeObj).to.be.greaterThan(firstSizeObj);
         const aFile = response.body.files.filter(file => file.name === 'a.txt');
         expect(aFile[0].meta).to.eq('');
 
