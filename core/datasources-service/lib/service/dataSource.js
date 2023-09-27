@@ -198,6 +198,7 @@ class DataSource {
                 const [, size] = arrFile[i];
                 // const [size] = arr2;
                 dvcObj.size = size;
+                break;
             }
         }
 
@@ -213,7 +214,6 @@ class DataSource {
     }
 
     async handleUntrackedFiles(repository, directory) {
-        // const addedFiles = [];
         // Get the list of untracked files from Git
         const result = execSync('git ls-files --others --exclude-standard', { cwd: path.join(directory, 'data'), encoding: 'utf8' }).toString();
 
@@ -229,21 +229,131 @@ class DataSource {
         // functions here are operated on the dvc file
         await Promise.all(dataFiles.map(async (file) => {
             if (file) {
-                // execSync(`dvc add data/${file}`, { cwd: directory, encoding: 'utf8' });
                 await repository.dvc.add(`data/${file}`);
-                // execSync(`git add data/${file}.dvc`, { cwd: directory, encoding: 'utf8' });
+
                 const { fileObj, relativePath } = await this.dvcFileObj(directory, `data/${file}`);
                 const metaObj = createFileMeta(fileObj, relativePath);
                 const dvcObj = await this.getDvcFileAsYaml(path.join(directory, `data/${file}`));
                 await repository.dvc.enrichMeta(path.join('data', file), dvcObj, 'hkube', metaObj);
-
-                // repository.gitClient.add(`data/${file}.dvc`);
-                // addedFiles.push(this.dvcFileObj(directory, `data/${file}`));
             }
         }));
     }
 
+    async handleModifiedFiles(files, directory, repository) {
+        // The process of handling modified files in DVC is similar to adding them
+        files.forEach(async file => {
+            await repository.dvc.add(file);
+            const { fileObj, relativePath } = await this.dvcFileObj(directory, file);
+            const metaObj = createFileMeta(fileObj, relativePath);
+            const dvcObj = await this.dvcYamlObj(path.join(directory, file));
+            await repository.dvc.enrichMeta(file, dvcObj, 'hkube', metaObj);
+            await repository.gitClient.add(path.join(directory, `${file}.dvc`));
+        });
+    }
+
+    async handleDeletedFiles(files, directory, repository) {
+        // This is deleting the dvc files of the deleted files
+        files.forEach(async file => {
+            // execSync(`git rm ${file}.dvc`, { cwd: directory, encoding: 'utf8' });
+            await repository.gitClient.rm(path.join(directory, `${file}.dvc`));
+        });
+
+        // Now we need to remove the name of the file from the gitignore file
+        const doesExist = await fse.pathExists(path.join(directory, '.gitignore'));
+        if (doesExist) {
+            const gitignoreContent = await fse.readFile(path.join(directory, '.gitignore'), 'utf-8');
+            const gitignoreContentarr = gitignoreContent.split('\n');
+            for (let i = 0; i < gitignoreContentarr.length; i += 1) {
+                for (let j = 0; j < files.length; j += 1) {
+                    if (gitignoreContentarr[i] === `/${files[j]}`) {
+                        gitignoreContentarr.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (let i = 0; i < files.length; i += 1) {
+            let gitignoreDir = files[i].split('/');
+            gitignoreDir[gitignoreDir.length - 1] = '.gitignore';
+            gitignoreDir = gitignoreDir.join('/');
+            let gitignoreContent = fse.readFileSync(path.join(directory, gitignoreDir), 'utf-8');
+            const gitignoreContentarr = gitignoreContent.split('\n');
+            for (let j = 0; j < gitignoreContent.length; j += 1) {
+                if (gitignoreContentarr[i] === `/${files[j]}`) {
+                    gitignoreContentarr.splice(i, 1);
+                    break;
+                }
+            }
+
+            // Now we write the new string into the gitignore
+            gitignoreContent = gitignoreContentarr.join('\n');
+            fse.writeFileSync(path.join(directory, '.gitignore'), gitignoreContent);
+        }
+    }
+
+    getDvcDiff(directory) {
+        const result = execSync('dvc diff', { cwd: directory, encoding: 'utf8' });
+
+        // Split the result into lines
+        const lines = result.split('\n');
+
+        const added = [];
+        const modified = [];
+        const deleted = [];
+
+        let currentCategory = null;
+
+        lines.forEach(line => {
+            const trimmedLine = line.trim();
+
+            if (trimmedLine.startsWith('files summary')) {
+                return; // Skip the "files summary" line
+            }
+
+            if (trimmedLine === 'Added:') {
+                currentCategory = 'added';
+            }
+            else if (trimmedLine === 'Modified:') {
+                currentCategory = 'modified';
+            }
+            else if (trimmedLine === 'Deleted:') {
+                currentCategory = 'deleted';
+            }
+            else if (currentCategory && trimmedLine) {
+                switch (currentCategory) {
+                    case 'added':
+                        added.push(trimmedLine);
+                        break;
+                    case 'modified':
+                        modified.push(trimmedLine);
+                        break;
+                    case 'deleted':
+                        deleted.push(trimmedLine);
+                        break;
+                        // no default
+                }
+            }
+        });
+
+        return {
+            added,
+            modified,
+            deleted
+        };
+    }
+
     async commitJobDs({ repository, versionDescription }) {
+        const { modified, deleted } = this.getDvcDiff(repository.cwd);
+
+        if (deleted.length > 0) {
+            await this.handleDeletedFiles(deleted, repository.cwd, repository);
+        }
+
+        if (modified.length > 0) {
+            await this.handleModifiedFiles(modified, repository.cwd, repository);
+        }
+
         await this.handleUntrackedFiles(repository, repository.cwd);
         await repository.gitClient.add('data').catch(error => {
             return error;

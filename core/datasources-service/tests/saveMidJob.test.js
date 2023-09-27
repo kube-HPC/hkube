@@ -36,7 +36,7 @@ describe('Save Mid Pipeline', () => {
         await fse.remove(rootDir);
     });
 
-    it.only('should add new file to the dvc track', async () => {
+    it('should add new file to the dvc track', async () => {
         const name = uuid()
         const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
@@ -73,7 +73,7 @@ describe('Save Mid Pipeline', () => {
         expect(aFile[0].meta).to.eq('');
         
     })
-    it.only('should fail with ActionNotAllowed error', async () => {
+    it('should fail with ActionNotAllowed error', async () => {
         const name = uuid()
         const {body: dataSource} = await createDataSource(name, {
             fileNames: ['logo.svg', 'logo.svg.meta'],
@@ -124,6 +124,91 @@ describe('Save Mid Pipeline', () => {
             expect(response.response.statusCode).to.eq(400);
             expect(response.body).to.eq('Mid pipeline saving is an action reserved to working on latest version of a DataSource')
 
+
+        })
+
+        it('modify file and should save', async () => {
+            const name = uuid()
+        const {body: dataSource} = await createDataSource(name, {
+            fileNames: ['logo.svg', 'logo.svg.meta'],
+        })
+        let job = await createJob({ dataSource });
+        const { jobId, nodeName, taskId } = job.data;
+        let dsPath = pathLib.join(rootDir, jobId, name, 'complete');
+        let newFilePath = pathLib.join(dsPath, 'data', 'a.txt');
+        let triesCount = 0;
+        while( true ){
+            if (await fse.pathExists(pathLib.join(dsPath, 'data'))){
+                break;
+            }
+            else{
+                await sleep(1000);
+                triesCount+=1;
+            }
+            if (triesCount > 10){
+                throw Error(`path ${dsPath} is not being created by job`)
+            }
+        };
+        await fse.outputFile(newFilePath, 'testing');
+        let options = {
+            uri: `${restUrl}/datasource/${jobId}/${name}/${nodeName}`,
+            method: 'POST'};
+        let response = await request(options);
+        let firstSizeObj = +response.body.files.map(file =>  [file.name, file.size]).filter(item => item[0] === 'a.txt')[0][1];
+
+        let fileContent = await fse.readFile(newFilePath);
+        fileContent += ' another test'
+        await fse.writeFile(newFilePath, fileContent);
+        options = {
+            uri: `${restUrl}/datasource/${jobId}/${name}/${nodeName}`,
+            method: 'POST'}
+        response = await request(options);
+        let secondSizeObj = +response.body.files.map(file =>  [file.name, file.size]).filter(item => item[0] === 'a.txt')[0][1];
+
+        expect(response.response.statusCode).to.eq(200);
+        expect(response.body).to.be.an('object');
+        expect(response.body.name).to.eq(name);
+        expect(response.body.files).to.be.an('array');
+        const nameList = response.body.files.map(file => file.name);
+        expect(nameList).to.include('a.txt');
+        expect(secondSizeObj).to.be.greaterThan(firstSizeObj);
+        const aFile = response.body.files.filter(file => file.name === 'a.txt');
+        expect(aFile[0].meta).to.eq('');
+
+        })
+
+        it('delete file and should save', async () => {
+            const name = uuid()
+        const {body: dataSource} = await createDataSource(name, {
+            fileNames: ['logo.svg', 'logo.svg.meta'],
+        })
+        const job = await createJob({ dataSource });
+        const { jobId, nodeName } = job.data;
+        const dsPath = pathLib.join(rootDir, jobId, name, 'complete');
+        let triesCount = 0;
+        while( true ){
+            if (await fse.pathExists(pathLib.join(dsPath, 'data'))){
+                break;
+            }
+            else{
+                await sleep(1000);
+                triesCount+=1;
+            }
+            if (triesCount > 10){
+                throw Error(`path ${dsPath} is not being created by job`)
+            }
+        }
+
+        await fse.remove(pathLib.join(dsPath, 'data', 'logo.svg'))
+        const options = {
+            uri: `${restUrl}/datasource/${jobId}/${name}/${nodeName}`,
+            method: 'POST'}
+        const response = await request(options);
+        expect(response.response.statusCode).to.eq(200);
+        expect(response.body).to.be.an('object');
+        expect(response.body.name).to.eq(name);
+        expect(response.body.files).to.be.an('array');
+        expect(response.body.files.length).to.eq(0);
 
         })
 
