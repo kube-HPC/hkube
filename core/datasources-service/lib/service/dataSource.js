@@ -4,13 +4,18 @@ const {
     createFileMeta,
 } = require('@hkube/datasource-utils');
 const { StatusCodes } = require('http-status-codes');
+const { execSync } = require('child_process');
+const path = require('path');
+const { extractRelativePath } = require('@hkube/datasource-utils/lib/filePath');
+const yaml = require('js-yaml');
 const Repository = require('../utils/Repository');
 const validator = require('../validation');
 const dbConnection = require('../db');
 const normalize = require('../utils/normalize');
-const { ResourceNotFoundError } = require('../errors');
+const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 const { Github } = require('../utils/GitRemoteClient');
 const gitToken = require('./gitToken');
+const { getDatasourcesInUseFolder } = require('../utils/pathUtils');
 
 const convertWhiteSpace = (str, to) => str.split(' ').join(to);
 const metaRegex = new RegExp('.meta');
@@ -170,6 +175,136 @@ class DataSource {
             touchedFileIds,
             metaFilesByPath,
         };
+    }
+
+    // this function creates an object that can be give info to the object that is pushed into the db about the dvc file created
+    async dvcFileObj(directory, file) {
+        const dvcObj = {};
+        const dvcFile = (await fse.readFile(path.join(directory, `${file}.dvc`))).toString('utf-8');
+        const fileName = file.split('/').pop();
+        dvcObj.originalname = fileName;
+        const fileNameEnd = path.extname(file).slice(1);
+        dvcObj.mimetype = `text/${fileNameEnd}`;
+        // console.log(dvcFile);
+        const arrFile = dvcFile.split('\n');
+        for (let i = 0; i < arrFile.length; i += 1) {
+            arrFile[i] = arrFile[i].split(': ');
+            for (let j = 0; j < arrFile[i].length; j += 1) {
+                arrFile[i][j] = arrFile[i][j].trim();
+            }
+        }
+        for (let i = 0; i < arrFile.length; i += 1) {
+            if (arrFile[i][0] === 'size') {
+                const [, size] = arrFile[i];
+                // const [size] = arr2;
+                dvcObj.size = size;
+            }
+        }
+
+        const rPath = extractRelativePath(file); // replace with file
+
+        return { fileObj: dvcObj, relativePath: rPath };
+    }
+
+    async getDvcFileAsYaml(filePath) {
+        const dvcContent = await fse.readFile(`${filePath}.dvc`, 'utf-8');
+        const dvcObj = yaml.load(dvcContent);
+        return dvcObj;
+    }
+
+    async handleUntrackedFiles(repository, directory) {
+        // const addedFiles = [];
+        // Get the list of untracked files from Git
+        const result = execSync('git ls-files --others --exclude-standard', { cwd: path.join(directory, 'data'), encoding: 'utf8' }).toString();
+
+        // Split the result into an array of filenames
+        const untrackedFiles = result.trim().split('\n');
+
+        // Filter the .gitignore
+        const dataFiles = untrackedFiles.filter(file => !file.endsWith('.gitignore'));
+
+        // Run `dvc add` on these files
+
+        // in this functiom within the map the file variable is the raw data file but all the
+        // functions here are operated on the dvc file
+        await Promise.all(dataFiles.map(async (file) => {
+            if (file) {
+                // execSync(`dvc add data/${file}`, { cwd: directory, encoding: 'utf8' });
+                await repository.dvc.add(`data/${file}`);
+                // execSync(`git add data/${file}.dvc`, { cwd: directory, encoding: 'utf8' });
+                const { fileObj, relativePath } = await this.dvcFileObj(directory, `data/${file}`);
+                const metaObj = createFileMeta(fileObj, relativePath);
+                const dvcObj = await this.getDvcFileAsYaml(path.join(directory, `data/${file}`));
+                await repository.dvc.enrichMeta(path.join('data', file), dvcObj, 'hkube', metaObj);
+
+                // repository.gitClient.add(`data/${file}.dvc`);
+                // addedFiles.push(this.dvcFileObj(directory, `data/${file}`));
+            }
+        }));
+    }
+
+    async commitJobDs({ repository, versionDescription }) {
+        await this.handleUntrackedFiles(repository, repository.cwd);
+        await repository.gitClient.add('data').catch(error => {
+            return error;
+        });
+        const { commit } = await repository.gitClient.commit(versionDescription);
+
+        await repository.push();
+        const finalMapping = await repository.scanDir();
+        return {
+            commitHash: commit,
+            files: finalMapping
+        };
+    }
+
+    async saveJobDs({ name, jobId, nodeName }) {
+        const versionDescription = `${jobId}, ${nodeName}`;
+
+        const createdVersion = await this.db.dataSources.createVersion({
+            versionDescription,
+            name,
+        });
+
+        const repository = new Repository(
+            name,
+            this.config,
+            path.join(getDatasourcesInUseFolder(this.config), jobId, name),
+            createdVersion.git,
+            createdVersion.storage,
+            createdVersion._credentials,
+            'complete'
+        );
+
+        if (!repository.gitClient) {
+            try {
+                repository.initGitClient();
+            }
+            catch (error) {
+                return error;
+            }
+        }
+        const headHash = execSync('git rev-parse HEAD', { cwd: repository.cwd, encoding: 'utf8' }).toString();
+        const masterHash = execSync('git rev-parse origin/master', { cwd: repository.cwd, encoding: 'utf8' }).toString();
+
+        if (headHash === masterHash) {
+            await repository.gitClient.checkout('master');
+            // .then(async () => {
+            await repository.gitClient.fetch('origin', 'master');
+            // });
+        }
+        else {
+            throw new ActionNotAllowed('Mid pipeline saving is an action reserved for working on latest version of a DataSource');
+        }
+
+        const { commitHash, files } = await this.commitJobDs({ repository, versionDescription });
+
+        await this.db.dataSources.updateFiles({
+            name,
+            files,
+            commitHash,
+        });
+        return { name, files, commitHash };
     }
 
     async commitChange({

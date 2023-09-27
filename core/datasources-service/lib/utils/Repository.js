@@ -113,6 +113,10 @@ class Repository extends RepositoryBase {
         throw new InvalidDataError('invalid git kind');
     }
 
+    initGitClient() {
+        this.gitClient = simpleGit({ baseDir: this.cwd });
+    }
+
     async _setupDvcRepository() {
         await this.dvc.init();
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
