@@ -105,7 +105,7 @@ describe('Executions', () => {
             const optionsPipeline = {
                 uri: restPath,
                 body: {
-                    pipelineName: 'flow'
+                    pipelineName: 'flow3'
                 }
             };
             const optionsTimeFrame = {
@@ -113,8 +113,8 @@ describe('Executions', () => {
                 body: {
                     pipelineName: 'flow1',
                     startTime: {
-                        from: "2022-03-11T14:30:00",
-                        to: "2022-04-11T14:30:00"
+                        from: "2021-03-11T14:30:00",
+                        to: "2021-04-11T14:30:00"
                     }
                 }
             };
@@ -139,7 +139,7 @@ describe('Executions', () => {
             const optionsPipeline = {
                 uri: restPath,
                 body: {
-                    pipelineName: 'flow'
+                    pipelineName: 'flow4'
                 }
             };
             const responsePipeline = await request(optionsPipeline);

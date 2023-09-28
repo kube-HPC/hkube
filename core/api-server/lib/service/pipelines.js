@@ -117,13 +117,60 @@ class PipelineService {
         });
     }
 
-    async insertPipeline(options) {
-        validator.pipelines.validateUpdatePipeline(options);
-        await validator.algorithms.validateAlgorithmExists(options);
-        validator.gateways.validateGatewayNodes(options.nodes);
+    async insertPipeline(options, failOnError = true) {
+        try {
+            validator.pipelines.validateUpdatePipeline(options);
+            await validator.algorithms.validateAlgorithmExists(options);
+            validator.gateways.validateGatewayNodes(options.nodes);
+        }
+        catch (error) {
+            if (error.code === 409) {
+                if (failOnError) {
+                    throw new ResourceExistsError('pipeline', options.name);
+                }
+                return {
+                    error: {
+                        code: 409,
+                        message: error.message,
+                    },
+                };
+            }
+            if (error.status === 404) {
+                const errorMessage = error.message;
+                if (failOnError) {
+                    const notFoundError = new Error(errorMessage);
+                    notFoundError.status = 404;
+                    throw notFoundError;
+                }
+                return {
+                    error: {
+                        code: 404,
+                        message: error.message,
+                    },
+                };
+            }
+            if (failOnError) {
+                throw new InvalidDataError(error.message);
+            }
+            return {
+                error: {
+                    name: options.name,
+                    code: 400,
+                    message: error.message,
+                },
+            };
+        }
         const pipeline = await stateManager.getPipeline(options);
         if (pipeline) {
-            throw new ResourceExistsError('pipeline', options.name);
+            if (failOnError) {
+                throw new ResourceExistsError('pipeline', options.name);
+            }
+            return {
+                error: {
+                    code: 409,
+                    message: `pipeline ${options.name} already exists`,
+                },
+            };
         }
         const newPipeline = {
             modified: Date.now(),
@@ -133,5 +180,4 @@ class PipelineService {
         return options;
     }
 }
-
 module.exports = new PipelineService();
