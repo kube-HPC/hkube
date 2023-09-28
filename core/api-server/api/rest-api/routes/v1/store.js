@@ -31,8 +31,20 @@ const routes = (option) => {
     });
 
     router.post('/pipelines', async (req, res) => {
-        const response = await pipelineStore.insertPipeline(req.body);
-        res.status(HttpStatus.CREATED).json(response);
+        if (Array.isArray(req.body)) {
+            const failOnError = false;
+            const returnPipelineList = await Promise.all(
+                req.body.map(async (pipelineData) => {
+                    // eslint-disable-next-line no-return-await
+                    return await pipelineStore.insertPipeline(pipelineData, failOnError);
+                })
+            );
+            res.status(HttpStatus.CREATED).json(returnPipelineList);
+        }
+        else {
+            const response = await pipelineStore.insertPipeline(req.body);
+            res.status(HttpStatus.CREATED).json(response);
+        }
     });
     router.put('/pipelines', async (req, res) => {
         const response = await pipelineStore.updatePipeline(req.body);

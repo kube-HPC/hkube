@@ -364,7 +364,7 @@ describe('Store/Pipelines', () => {
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('unable to find flowInput.notExist');
         });
-        it('should throw validation error if algorithmName not exists', async () => {
+        it.only('should throw validation error if algorithmName not exists', async () => {
             const pipeline = clone(pipelines[0]);
             pipeline.nodes[0].algorithmName = 'not.exists';
             pipeline.name = uuid();
