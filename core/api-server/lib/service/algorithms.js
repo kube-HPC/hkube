@@ -115,7 +115,6 @@ class AlgorithmStore {
             }
         }
         try {
-
             const { algorithm } = await this.applyAlgorithm({ payload: options });
             return algorithm;
         }
