@@ -80,5 +80,25 @@ module.exports = [
             type: 'gpu-extreme',
             max: 'bound'
         }
+    },
+    {
+        name: 'selector-multi-values',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 1,
+        mem: '128Mi',
+        gpu: 0,
+        nodeSelector: {
+            "kubernetes.io/hostname": ["node1", "node2", "node3"]
+        }
+    },
+    {
+        name: 'selector-multi-values-node4',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 1,
+        mem: '128Mi',
+        gpu: 0,
+        nodeSelector: {
+            "kubernetes.io/hostname": ["node1", "node2", "node4"]
+        }
     }
 ];
