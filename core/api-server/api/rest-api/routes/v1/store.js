@@ -63,11 +63,11 @@ const routes = (option) => {
     });
     router.post('/algorithms', async (req, res) => {
         if (Array.isArray(req.body)) {
-            const listFlag = true;
+            const failOnError = false;
             const returnAlgoList = await Promise.all(
                 req.body.map(async (algorithmData) => {
                     // eslint-disable-next-line no-return-await
-                    return await algorithmStore.insertAlgorithm(algorithmData, listFlag);
+                    return await algorithmStore.insertAlgorithm(algorithmData, failOnError);
                 })
             );
             res.status(HttpStatus.CREATED).json(returnAlgoList);
