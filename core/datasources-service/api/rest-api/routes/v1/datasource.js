@@ -226,6 +226,18 @@ const routes = ({ directories }) => {
         res.status(201).json(createdVersion);
     });
 
+    router.post('/:jobId/:name/:nodeName', async (req, res) => {
+        const { jobId, name, nodeName } = req.params;
+
+        try {
+            const resObj = await dataSource.saveJobDs({ name, jobId, nodeName });
+            res.status(200).json(resObj);
+        }
+        catch (error) {
+            res.status(error.status).send(error.message);
+        }
+    });
+
     router.use(dbErrorsMiddleware);
     return router;
 };

@@ -715,6 +715,7 @@ describe('Store/Pipelines', () => {
                         {
                             nodeName: 'A',
                             kind: 'gateway',
+                            stateType: 'stateless'
                         },
                         {
                             nodeName: 'B',
@@ -736,6 +737,146 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('Gateway node A stateType must be "stateful". Got stateless');
+        });
+        it('should throw validation error for minStatelessCount', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'string1',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType:'stateful',
+                            minStatelessCount: 1
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response1 = await request(options);
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('Nodes which are not stateType=stateless cant have minStatelessCount or maxStatelessCount'
+            );
+        });
+        it('should throw validation error for maxStatelessCount', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'string2',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType:'stateful',
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            maxStatelessCount: 1,
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response1 = await request(options);
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('Nodes which are not stateType=stateless cant have minStatelessCount or maxStatelessCount'
+            );
+        });
+        it('should throw validation error when maxStatelessCount larger than min', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'maxstateless',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType:'stateful',
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            stateType:'stateless',
+                            maxStatelessCount: 3,
+                            minStatelessCount : 5,
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            // const response1 = await request(options);
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.response.statusCode).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('maxStatelessCount must be greater or equal to minStatelessCount');
+        });
+        it('should successfully store pipeline with min and max stateless count', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'maxstateless',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType:'stateful',
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            stateType:'stateless',
+                            maxStatelessCount: 7,
+                            minStatelessCount : 5,
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('streaming');
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
         });
     });
 });

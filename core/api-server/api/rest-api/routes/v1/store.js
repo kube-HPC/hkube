@@ -32,11 +32,10 @@ const routes = (option) => {
 
     router.post('/pipelines', async (req, res) => {
         if (Array.isArray(req.body)) {
-            const listFlag = true;
             const returnPipelineList = await Promise.all(
                 req.body.map(async (pipelineData) => {
                     // eslint-disable-next-line no-return-await
-                    return await pipelineStore.insertPipeline(pipelineData, listFlag);
+                    return await pipelineStore.insertPipeline(pipelineData, false);
                 })
             );
             res.status(HttpStatus.CREATED).json(returnPipelineList);
@@ -75,11 +74,10 @@ const routes = (option) => {
     });
     router.post('/algorithms', async (req, res) => {
         if (Array.isArray(req.body)) {
-            const listFlag = true;
             const returnAlgoList = await Promise.all(
                 req.body.map(async (algorithmData) => {
                     // eslint-disable-next-line no-return-await
-                    return await algorithmStore.insertAlgorithm(algorithmData, listFlag);
+                    return await algorithmStore.insertAlgorithm(algorithmData, false);
                 })
             );
             res.status(HttpStatus.CREATED).json(returnAlgoList);
