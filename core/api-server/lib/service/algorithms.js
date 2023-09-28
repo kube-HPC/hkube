@@ -82,43 +82,38 @@ class AlgorithmStore {
         return stateManager.searchAlgorithms({ name, kind, algorithmImage: algorithmImageBoolean, pending, cursor, page, sort, limit, fields: createQueryObjectFromString(fields) });
     }
 
-    // eslint-disable-next-line consistent-return
-    async insertAlgorithm(options, failOnError = true) {
-        try {
+    async insertAlgorithm(options, listFlag = false) {
+        if (!listFlag) {
             validator.algorithms.validateAlgorithmName(options);
-        }
-        catch (error) {
-            if (failOnError) {
-                throw new InvalidDataError(error.message);
-            }
-            else {
-                return {
-                    error: {
-                        name: options.name,
-                        code: 400,
-                        message: error.message
-                    }
-                };
-            }
-        }
-
-        const alg = await stateManager.getAlgorithm(options);
-        if (alg) {
-            if (failOnError) {
+            const alg = await stateManager.getAlgorithm(options);
+            if (alg) {
                 throw new ResourceExistsError('algorithm', options.name);
             }
-            else {
-                return { error: {
-                    code: 409,
-                    message: `algorithm ${options.name} already exists`
-                } };
-            }
+            const { algorithm } = await this.applyAlgorithm({ payload: options });
+            return algorithm;
         }
         try {
+            validator.algorithms.validateAlgorithmName(options);
+            const alg = await stateManager.getAlgorithm(options);
+            if (alg) {
+                // eslint-disable-next-line no-throw-literal
+                throw {
+                    code: 409,
+                    message: `algorithm ${options.name} already exists`,
+                };
+            }
             const { algorithm } = await this.applyAlgorithm({ payload: options });
             return algorithm;
         }
         catch (error) {
+            if (error.code === 409) {
+                return {
+                    error: {
+                        code: 409,
+                        message: error.message,
+                    },
+                };
+            }
             return {
                 error: {
                     name: options.name,
