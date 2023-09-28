@@ -293,6 +293,140 @@ class PipelineCreator {
         };
     }
 
+    async buildStreamingFlowGraph({ pipeline }) {
+        // , jobId, algorithms
+
+        const flows = pipeline.streaming?.flows;
+        let defaultFlow = pipeline.streaming?.defaultFlow;
+        //   let gateways;
+
+        if (pipeline.kind === pipelineKind.Batch) {
+            if (flows) {
+                throw new InvalidDataError(`streaming flow is only allowed in ${pipelineKind.Stream} pipeline`);
+            }
+            return pipeline;
+        }
+        if (!flows || Object.keys(flows).length === 0) {
+            throw new InvalidDataError('please specify a stream flow');
+        }
+        if (!defaultFlow) {
+            const flowNames = Object.keys(flows);
+            if (flowNames.length > 1) {
+                throw new InvalidDataError('please specify a default stream flow');
+            }
+            [defaultFlow] = flowNames;
+        }
+
+        /*  for (const node of pipeline.nodes) { // eslint-disable-line
+            const algorithm = algorithms.get(node.algorithmName);
+            if (algorithm && !node.stateType) {
+                node.stateType = algorithm.streamKind || stateType.Stateless;
+            }
+            const type = node.stateType || stateType.Stateless;
+            node.retry = StreamRetryPolicy[type];
+
+            if (node.kind === nodeKind.Gateway) {
+                if (!gateways) {
+                    gateways = [];
+                }
+                const { nodeName, spec, stateType: nodeStateType } = node;
+                if (nodeStateType && nodeStateType !== stateType.Stateful) {
+                    throw new InvalidDataError(`Gateway node ${nodeName} stateType must be "stateful". Got ${nodeStateType}`);
+                }
+                const { algorithmName, url, streamKind} = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
+                node.stateType = streamKind;
+                node.algorithmName = algorithmName;
+                gateways.push({ nodeName, url });
+            }
+        } */
+
+        const parsedFlow = {};
+        const edges = [];
+
+        Object.entries(flows).forEach(([k, v]) => {
+            if (!v) {
+                throw new InvalidDataError(`invalid stream flow ${k}`);
+            }
+            const flow = [];
+            const flowEdges = {};
+            const expressions = v.replace(/\s/g, '').split(SEPARATORS.EXPRESSION);
+            expressions.forEach((e) => {
+                const parts = e.split(SEPARATORS.RELATION);
+                if (parts.length === 1) {
+                    throw new InvalidDataError(`stream flow ${k} should have valid flow, example: A >> B`);
+                }
+                parts.forEach((p, i) => {
+                    const source = p;
+                    const target = parts[i + 1];
+                    if (target?.length === 0) {
+                        throw new InvalidDataError(`invalid node name after ${source}`);
+                    }
+                    const sources = source.split(SEPARATORS.AND);
+                    const targets = target?.split(SEPARATORS.AND);
+                    sources.forEach((s) => {
+                        const node = pipeline.nodes.find(n => n.nodeName === s || n.origName === s);
+                        if (!node) {
+                            throw new InvalidDataError(`invalid node ${s} in stream flow ${k}`);
+                        }
+                        if (targets?.length) {
+                            targets.forEach((t) => {
+                                const edgeKey = `${s} >> ${t}`;
+                                if (s === t) {
+                                    throw new InvalidDataError(`invalid relation found ${edgeKey} in flow ${k}`);
+                                }
+                                const flowEdge = flowEdges[edgeKey];
+                                if (flowEdge) {
+                                    throw new InvalidDataError(`duplicate relation found ${edgeKey} in flow ${k}`);
+                                }
+                                const edgeValue = { source: s, target: t, types: [consts.relations.CUSTOM_STREAM] };
+                                flowEdges[edgeKey] = edgeValue;
+
+                                const edge = edges.find(d => d.source === s && d.target === t);
+                                if (!edge) {
+                                    edges.push(edgeValue);
+                                }
+                                const fl = flow.find(f => f.source === s);
+                                if (fl) {
+                                    fl.next.push(t);
+                                }
+                                else {
+                                    flow.push({ source: s, next: [t] });
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+            parsedFlow[k] = flow;
+        });
+
+        const dag = new DAG({});
+        edges.forEach(e => dag.setEdge(e.source, e.target));
+        const nodeNames = new Set(dag.getNodeNames());
+        const node = pipeline.nodes.find(n => !nodeNames.has(n.nodeName || n.origName));
+        if (node) {
+            throw new InvalidDataError(`node "${node.nodeName}" does not belong to any flow`);
+        }
+
+        const sources = dag.getSources().map(s => pipeline.nodes.find(n => n.nodeName === s));
+        const statelessNodes = sources.filter(s => s.stateType === stateType.Stateless);
+        if (statelessNodes.length > 0) {
+            throw new InvalidDataError(`entry node "${statelessNodes[0].nodeName}" cannot be ${stateType.Stateless} on ${pipeline.kind} pipeline`);
+        }
+
+        return {
+           // ...pipeline,
+           nodes: pipeline.nodes,
+            edges
+          /*  streaming: {
+                ...pipeline.streaming,
+                gateways,
+                parsedFlow,
+                defaultFlow
+            }  */
+        };
+    }
+
     _mapNodes(node, pipelines) {
         if (node.spec?.name) {
             const pipeline = pipelines.find(p => p.name === node.spec.name);
