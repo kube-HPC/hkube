@@ -136,8 +136,11 @@ class PipelineService {
                 };
             }
             if (error.status === 404) {
+                const errorMessage = error.message;
                 if (failOnError) {
-                    throw new ResourceNotFoundError('algorithm');
+                    const notFoundError = new Error(errorMessage);
+                    notFoundError.status = 404;
+                    throw notFoundError;
                 }
                 return {
                     error: {
