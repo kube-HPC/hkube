@@ -342,8 +342,15 @@ class PipelineCreator {
 
         const parsedFlow = {};
         const edges = [];
-        const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow : 0;
-        Object.entries(flows[showFlow]).forEach(([k, v]) => {
+
+        const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow :  Object.keys(flows)[0];
+        for (let key in flows) {
+            if (key !== showFlow) {
+            delete flows[key];
+            }
+        }
+
+        Object.entries(flows).forEach(([k, v]) => {
             if (!v) {
                 throw new InvalidDataError(`invalid stream flow ${k}`);
             }
