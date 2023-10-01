@@ -293,7 +293,7 @@ class PipelineCreator {
         };
     }
 
-    async buildStreamingFlowGraph({ pipeline }) {
+    async buildStreamingFlowGraph({ pipeline, keyFlow }) {
         // , jobId, algorithms
 
         const flows = pipeline.streaming?.flows;
@@ -342,8 +342,8 @@ class PipelineCreator {
 
         const parsedFlow = {};
         const edges = [];
-
-        Object.entries(flows).forEach(([k, v]) => {
+        const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow : 0;
+        Object.entries(flows[showFlow]).forEach(([k, v]) => {
             if (!v) {
                 throw new InvalidDataError(`invalid stream flow ${k}`);
             }
