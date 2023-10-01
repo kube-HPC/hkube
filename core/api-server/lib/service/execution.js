@@ -162,7 +162,7 @@ class ExecutionService {
         //  const { pipeline, rootJobId, options, parentSpan, types } = payload;
         //  const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
         //    const { validateNodes } = options || {};
-        let extendedPipeline = payload; // restPipeline;
+        let extendedPipeline = payload.pipeline; // restPipeline;
         //     const userPipeline = cloneDeep(extendedPipeline);
 
         //    validator.executions.addPipelineDefaults(extendedPipeline);
@@ -179,7 +179,7 @@ class ExecutionService {
             //  extendedPipeline = await pipelineCreator.updateOptimize(extendedPipeline, jobId);
             //  const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
 
-            extendedPipeline = await pipelineCreator.buildStreamingFlowGraph(extendedPipeline); // , jobId, algorithms
+            extendedPipeline = await pipelineCreator.buildStreamingFlowGraph({pipeline : payload.pipeline, keyFlow : payload.keyFlow}); // , jobId, algorithms
 
             const modifiedEdges = extendedPipeline.edges.map((obj) => ({
                 from: obj.source,
