@@ -69,7 +69,7 @@ class ExecutionService {
       //  }
     //    console.log('job >>>>>>>>', job);
      //   const types = [...job.types, pipelineTypes.RERUN];
-        return this._getGraphByStreamingFlow({ pipeline: options }); // job.userPipeline, types, options: { validateNodes: false } });
+        return this._getGraphByStreamingFlow({pipeline : options.pipeline, keyFlow : options.keyFlow}); // job.userPipeline, types, options: { validateNodes: false } });
     }
 
     async runAlgorithm(options) {
@@ -179,7 +179,7 @@ class ExecutionService {
             //  extendedPipeline = await pipelineCreator.updateOptimize(extendedPipeline, jobId);
             //  const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
 
-            extendedPipeline = await pipelineCreator.buildStreamingFlowGraph({pipeline : payload.pipeline, keyFlow : payload.keyFlow}); // , jobId, algorithms
+            extendedPipeline = await pipelineCreator.buildStreamingFlowGraph(payload); // , jobId, algorithms
 
             const modifiedEdges = extendedPipeline.edges.map((obj) => ({
                 from: obj.source,
