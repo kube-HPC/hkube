@@ -309,6 +309,8 @@ class PipelineCreator {
         if (!flows || Object.keys(flows).length === 0) {
             throw new InvalidDataError('please specify a stream flow');
         }
+
+        /*
         if (!defaultFlow) {
             const flowNames = Object.keys(flows);
             if (flowNames.length > 1) {
@@ -316,7 +318,7 @@ class PipelineCreator {
             }
             [defaultFlow] = flowNames;
         }
-
+*/
         /*  for (const node of pipeline.nodes) { // eslint-disable-line
             const algorithm = algorithms.get(node.algorithmName);
             if (algorithm && !node.stateType) {
