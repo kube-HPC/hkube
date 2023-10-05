@@ -61,15 +61,7 @@ class ExecutionService {
     }
 
     async getGraphByStreamingFlow(options) {
-     //   validator.executions.validateRerun(options);
-      //  const { jobId } = options;
-      //  const job = await stateManager.getJob({ jobId, fields: { types: 'pipeline.types', userPipeline: true } });
-      //  if (!job) {
-     //       throw new ResourceNotFoundError('jobId', jobId);
-      //  }
-    //    console.log('job >>>>>>>>', job);
-     //   const types = [...job.types, pipelineTypes.RERUN];
-        return this._getGraphByStreamingFlow({pipeline : options.pipeline, keyFlow : options.keyFlow}); // job.userPipeline, types, options: { validateNodes: false } });
+           return this._getGraphByStreamingFlow({pipeline : options.pipeline, keyFlow : options.keyFlow}); // job.userPipeline, types, options: { validateNodes: false } });
     }
 
     async runAlgorithm(options) {
@@ -159,27 +151,12 @@ class ExecutionService {
     }
 
     async _getGraphByStreamingFlow(payload) {
-        //  const { pipeline, rootJobId, options, parentSpan, types } = payload;
-        //  const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
-        //    const { validateNodes } = options || {};
-        let extendedPipeline = payload.pipeline; // restPipeline;
-        //     const userPipeline = cloneDeep(extendedPipeline);
-
-        //    validator.executions.addPipelineDefaults(extendedPipeline);
-        //     const jobId = this._createJobID();
-        //      const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: extendedPipeline.name }, parent: parentSpan });
-
+      
+        let extendedPipeline = payload.pipeline; 
+     
         // eslint-disable-next-line no-useless-catch
         try {
-            //  validator.pipelines.validatePipelineNodes(extendedPipeline);
-            // const maxExceeded = await validator.executions.validateConcurrentPipelines(extendedPipeline);
-            // extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(extendedPipeline);
-            // extendedPipeline = await pipelineCreator.updateDebug(extendedPipeline);
-            // extendedPipeline = await pipelineCreator.updateOutput(extendedPipeline, jobId);
-            //  extendedPipeline = await pipelineCreator.updateOptimize(extendedPipeline, jobId);
-            //  const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
-
-            extendedPipeline = await pipelineCreator.buildStreamingFlowGraph(payload); // , jobId, algorithms
+            extendedPipeline = await pipelineCreator.buildStreamingFlowGraph(payload);
 
             const modifiedEdges = extendedPipeline.edges.map((obj) => ({
                 from: obj.source,
@@ -187,39 +164,11 @@ class ExecutionService {
             }));
 
             extendedPipeline.edges = modifiedEdges;
-
             return extendedPipeline;
-
-            /* const shouldValidateNodes = validateNodes ?? true;
-            validator.executions.validatePipeline({ ...extendedPipeline, flowInput: extendedPipeline.flowInput || flowInput }, { validateNodes: shouldValidateNodes });
-            await validator.experiments.validateExperimentExists(extendedPipeline);
-            extendedPipeline = await validator.dataSources.validate(extendedPipeline);
-
-            const pipeTypes = this._addTypesByAlgorithms(algorithms, types);
-            let pipeFlowInputMetadata = flowInputMetadata;
-
-            if (flowInput && Object.keys(flowInput).length && !pipeFlowInputMetadata) {
-                const metadata = parser.replaceFlowInput({ ...extendedPipeline, flowInput });
-                const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
-                pipeFlowInputMetadata = { metadata, storageInfo };
-            }
-            userPipeline.flowInput = null;
-            userPipeline.flowInputMetadata = pipeFlowInputMetadata;
-            extendedPipeline.flowInput = null;
-            extendedPipeline.flowInputMetadata = pipeFlowInputMetadata;
-            const lastRunResult = await this._getLastPipeline(extendedPipeline);
-            const pipelineObject = { ...extendedPipeline, maxExceeded, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
-            const statusObject = { timestamp: Date.now(), pipeline: extendedPipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
-            await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
-            await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject, completion: false });
-            await producer.createJob({ jobId, parentSpan: span.context() });
-            span.finish();
-            return { jobId, gateways: extendedPipeline.streaming?.gateways }; */
+       
         }
         catch (error) {
-            //  gatewayService.deleteGateways({ pipeline: extendedPipeline });
-            //  debugService.updateLastUsed({ pipeline: extendedPipeline });
-            //  span.finish(error);
+        
             throw error;
         }
     }

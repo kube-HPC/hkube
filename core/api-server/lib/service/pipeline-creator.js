@@ -294,7 +294,6 @@ class PipelineCreator {
     }
 
     async buildStreamingFlowGraph({ pipeline, keyFlow }) {
-        // , jobId, algorithms
 
         const flows = pipeline.streaming?.flows;
         let defaultFlow = pipeline.streaming?.defaultFlow;
@@ -310,38 +309,7 @@ class PipelineCreator {
             throw new InvalidDataError('please specify a stream flow');
         }
 
-        /*
-        if (!defaultFlow) {
-            const flowNames = Object.keys(flows);
-            if (flowNames.length > 1) {
-                throw new InvalidDataError('please specify a default stream flow');
-            }
-            [defaultFlow] = flowNames;
-        }
-*/
-        /*  for (const node of pipeline.nodes) { // eslint-disable-line
-            const algorithm = algorithms.get(node.algorithmName);
-            if (algorithm && !node.stateType) {
-                node.stateType = algorithm.streamKind || stateType.Stateless;
-            }
-            const type = node.stateType || stateType.Stateless;
-            node.retry = StreamRetryPolicy[type];
-
-            if (node.kind === nodeKind.Gateway) {
-                if (!gateways) {
-                    gateways = [];
-                }
-                const { nodeName, spec, stateType: nodeStateType } = node;
-                if (nodeStateType && nodeStateType !== stateType.Stateful) {
-                    throw new InvalidDataError(`Gateway node ${nodeName} stateType must be "stateful". Got ${nodeStateType}`);
-                }
-                const { algorithmName, url, streamKind} = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
-                node.stateType = streamKind;
-                node.algorithmName = algorithmName;
-                gateways.push({ nodeName, url });
-            }
-        } */
-
+      
         const parsedFlow = {};
         const edges = [];
 
@@ -424,15 +392,10 @@ class PipelineCreator {
         }
 
         return {
-           // ...pipeline,
+        
            nodes: pipeline.nodes,
             edges
-          /*  streaming: {
-                ...pipeline.streaming,
-                gateways,
-                parsedFlow,
-                defaultFlow
-            }  */
+         
         };
     }
 
