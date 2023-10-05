@@ -55,11 +55,20 @@ class PipelineService {
     }
 
     async getPipelineGraph(options) {
-        validator.pipelines.validatePipelineName(options.name);
-        const pipeline = await stateManager.getPipeline(options);
-        if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', options.name);
+        let pipeline;
+        if(options.name===null)
+        {
+            validator.pipelines.validatePipelineName(options.name);
+            pipeline = await stateManager.getPipeline(options);
+            if (!pipeline) {
+                throw new ResourceNotFoundError('pipeline', options.name);
+            }
         }
+        else
+        {
+            pipeline = options.pipeline;
+        }
+        
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
 
         const extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(restPipeline);
