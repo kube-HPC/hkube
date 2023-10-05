@@ -56,7 +56,7 @@ class PipelineService {
 
     async getPipelineGraph(options) {
         let pipeline;
-        if(options.name===null)
+        if(options.name!==null)
         {
             validator.pipelines.validatePipelineName(options.name);
             pipeline = await stateManager.getPipeline(options);
