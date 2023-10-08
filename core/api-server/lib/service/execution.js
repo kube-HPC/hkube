@@ -61,7 +61,7 @@ class ExecutionService {
     }
 
     async getGraphByStreamingFlow(options) {
-           return this._getGraphByStreamingFlow({pipeline : options.pipeline, keyFlow : options.keyFlow}); // job.userPipeline, types, options: { validateNodes: false } });
+           return this._getGraphByStreamingFlow({pipeline : options.pipeline, keyFlow : options.keyFlow,isBuildAllFlows:options.isBuildAllFlows}); 
     }
 
     async runAlgorithm(options) {

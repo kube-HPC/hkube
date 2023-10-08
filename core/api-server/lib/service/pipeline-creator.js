@@ -293,9 +293,9 @@ class PipelineCreator {
         };
     }
 
-    async buildStreamingFlowGraph({ pipeline, keyFlow }) {
+    async buildStreamingFlowGraph({ pipeline, keyFlow , isBuildAllFlows }) {
 
-        const flows = pipeline.streaming?.flows;
+        let flows = pipeline.streaming?.flows;
         let defaultFlow = pipeline.streaming?.defaultFlow;
         //   let gateways;
 
@@ -313,10 +313,17 @@ class PipelineCreator {
         const parsedFlow = {};
         const edges = [];
 
-        const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow :  Object.keys(flows)[0];
-        for (let key in flows) {
-            if (key !== showFlow) {
-            delete flows[key];
+        if(isBuildAllFlows)
+        {
+            flows = [Object.values(flows).join('|')];
+        }
+        else
+        {
+            const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow :  Object.keys(flows)[0];
+            for (let key in flows) {
+                if (key !== showFlow) {
+                delete flows[key];
+                }
             }
         }
 
