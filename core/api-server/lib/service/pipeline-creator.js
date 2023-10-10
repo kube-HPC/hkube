@@ -397,9 +397,8 @@ class PipelineCreator {
         }
         else
         {
-            const nodesTmp = pipeline.nodes
-            nodesTmp.filter(n => n.nodeName !== node.nodeName);
-            pipeline.nodes = nodesTmp;
+            pipeline.nodes = pipeline.nodes.filter(n => n.nodeName !== node.nodeName);
+   
         }
 
         const sources = dag.getSources().map(s => pipeline.nodes.find(n => n.nodeName === s));
