@@ -388,8 +388,18 @@ class PipelineCreator {
         edges.forEach(e => dag.setEdge(e.source, e.target));
         const nodeNames = new Set(dag.getNodeNames());
         const node = pipeline.nodes.find(n => !nodeNames.has(n.nodeName || n.origName));
-        if (isBuildAllFlows && node) {
-            throw new InvalidDataError(`node "${node.nodeName}" does not belong to any flow`);
+        
+        if(isBuildAllFlows)
+        {
+            if (node) {
+                    throw new InvalidDataError(`node "${node.nodeName}" does not belong to any flow`);
+                }
+        }
+        else
+        {
+            const nodesTmp = pipeline.nodes
+            nodesTmp.filter(n => n.nodeName !== node.nodeName);
+            pipeline.nodes = nodesTmp;
         }
 
         const sources = dag.getSources().map(s => pipeline.nodes.find(n => n.nodeName === s));
