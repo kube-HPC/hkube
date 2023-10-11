@@ -397,8 +397,8 @@ class PipelineCreator {
         }
         else
         {
-            const nodeName = n?.nodeName || n?.origName || "";
-            pipeline.nodes = pipeline.nodes.filter(n => nodeName !== node.nodeName);
+            const nodeName = node?.nodeName || node?.origName || "";
+            pipeline.nodes = pipeline.nodes.filter(n => n.nodeName !== nodeName);
    
         }
 
