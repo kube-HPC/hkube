@@ -313,19 +313,13 @@ class PipelineCreator {
         const parsedFlow = {};
         const edges = [];
 
-        if(isBuildAllFlows)
-        {
-            flows = [Object.values(flows).join(' | ')];
-        }
-        else
-        {
             const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow :  Object.keys(flows)[0];
             for (let key in flows) {
                 if (key !== showFlow) {
                 delete flows[key];
                 }
             }
-        }
+        
 
         Object.entries(flows).forEach(([k, v]) => {
             if (!v) {
