@@ -294,10 +294,10 @@ class PipelineCreator {
     }
 
     async buildStreamingFlowGraph({ pipeline, keyFlow , isBuildAllFlows }) {
-
-        let flows = pipeline.streaming?.flows;
+        
         let defaultFlow = pipeline.streaming?.defaultFlow;
-        //   let gateways;
+        const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow :  Object.keys(flows)[0];
+        let flows = pipeline.streaming?.flows.find(obj => obj.key === showFlow); 
 
         if (pipeline.kind === pipelineKind.Batch) {
             if (flows) {
@@ -308,18 +308,9 @@ class PipelineCreator {
         if (!flows || Object.keys(flows).length === 0) {
             throw new InvalidDataError('please specify a stream flow');
         }
-
       
         const parsedFlow = {};
         const edges = [];
-
-            const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow :  Object.keys(flows)[0];
-            for (let key in flows) {
-                if (key !== showFlow) {
-                delete flows[key];
-                }
-            }
-        
 
         Object.entries(flows).forEach(([k, v]) => {
             if (!v) {
