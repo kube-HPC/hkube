@@ -295,9 +295,12 @@ class PipelineCreator {
 
     async buildStreamingFlowGraph({ pipeline, keyFlow , isBuildAllFlows }) {
         
-        let defaultFlow = pipeline.streaming?.defaultFlow;
+        const flows = pipeline.streaming?.flows;
+        const defaultFlow = pipeline.streaming?.defaultFlow;
         const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow :  Object.keys(flows)[0];
-        let flows = pipeline.streaming?.flows[showFlow]; 
+        const flowView = pipeline.streaming?.flows[showFlow]; 
+        const parsedFlow = {};
+        const edges = [];
 
         if (pipeline.kind === pipelineKind.Batch) {
             if (flows) {
@@ -308,11 +311,12 @@ class PipelineCreator {
         if (!flows || Object.keys(flows).length === 0) {
             throw new InvalidDataError('please specify a stream flow');
         }
-      
-        const parsedFlow = {};
-        const edges = [];
 
-        Object.entries(flows).forEach(([k, v]) => {
+      //  Object.entries(flows).forEach(([k, v]) => {
+
+            const k = keyFlow;
+            const v = flowView;
+            
             if (!v) {
                 throw new InvalidDataError(`invalid stream flow ${k}`);
             }
@@ -367,7 +371,7 @@ class PipelineCreator {
                 });
             });
             parsedFlow[k] = flow;
-        });
+      //  });
 
         const dag = new DAG({});
         edges.forEach(e => dag.setEdge(e.source, e.target));
