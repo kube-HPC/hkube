@@ -297,7 +297,7 @@ class PipelineCreator {
         
         let defaultFlow = pipeline.streaming?.defaultFlow;
         const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow :  Object.keys(flows)[0];
-        let flows = pipeline.streaming?.flows.find(obj => obj.key === showFlow); 
+        let flows = pipeline.streaming?.flows[showFlow]; 
 
         if (pipeline.kind === pipelineKind.Batch) {
             if (flows) {
