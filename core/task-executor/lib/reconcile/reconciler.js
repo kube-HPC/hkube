@@ -120,7 +120,6 @@ const _processAllRequests = (
             scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
-
         const pendingWorkerIndex = pendingWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (pendingWorkerIndex !== -1) {
             // there is a pending worker.
@@ -148,9 +147,8 @@ const _processAllRequests = (
         const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
         const resourceRequests = createContainerResource(algorithmTemplate);
         const workerResourceRequests = createContainerResource(workerResources);
-
         const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector, entryPoint, options: algorithmOptions, reservedMemory, mounts, env } = algorithmTemplate;
-
+        const { sideCars } = algorithmTemplate;
         createDetails.push({
             numberOfNewJobs: 1,
             jobDetails: {
@@ -172,7 +170,8 @@ const _processAllRequests = (
                 clusterOptions,
                 algorithmOptions,
                 mounts,
-                reservedMemory
+                reservedMemory,
+                sideCars
             }
         });
         if (!reconcileResult[algorithmName]) {

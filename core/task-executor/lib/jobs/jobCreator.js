@@ -316,40 +316,48 @@ const applyAnnotations = (spec, keyVal) => {
     spec = applyKeyVal(spec, keyVal, 'annotation', 'metadata.annotations');
     return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
 };
-
-const applySidecars = (inputSpec, clusterOptions = {}) => {
+const applySidecar = ({ container: sideCarContiners, volumes, volumeMounts, environments }, spec) => {
+    spec.spec.template.spec.containers.push(...sideCarContiners);
+    if (volumes) {
+        // eslint-disable-next-line no-loop-func
+        volumes.forEach(v => {
+            spec = applyVolumes(spec, v);
+        });
+    }
+    if (volumeMounts) {
+        // eslint-disable-next-line no-loop-func
+        volumeMounts.forEach(v => {
+            sideCarContiners.forEach(container => {
+                spec = applyVolumeMounts(spec, container.name, v);
+            });
+        });
+    }
+    if (environments) {
+        // eslint-disable-next-line no-loop-func
+        environments.forEach(v => {
+            sideCarContiners.forEach(container => {
+                spec = applyEnvToContainer(spec, container.name, { [v.name]: v.value });
+            });
+        });
+    }
+    return spec;
+};
+const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
     let spec = clonedeep(inputSpec);
     for (const sidecar of settings.sidecars) {
-        const { name, container, volumes, volumeMounts, environments } = sidecar;
+        const { name, container: scContainers, volumes, volumeMounts, environments } = sidecar;
         if (!clusterOptions[`${name}SidecarEnabled`]) {
             continue;
         }
-        spec.spec.template.spec.containers.push(...container);
-        if (volumes) {
-            // eslint-disable-next-line no-loop-func
-            volumes.forEach(v => {
-                spec = applyVolumes(spec, v);
-            });
-        }
-        if (volumeMounts) {
-            // eslint-disable-next-line no-loop-func
-            volumeMounts.forEach(v => {
-                spec = applyVolumeMounts(spec, CONTAINERS.WORKER, v);
-            });
-        }
-        if (environments) {
-            // eslint-disable-next-line no-loop-func
-            environments.forEach(v => {
-                spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { [v.name]: v.value });
-            });
-        }
+        spec = applySidecar({ container: scContainers, volumes, volumeMounts, environments }, spec);
     }
-
+    customSideCars.forEach(sideCar => {
+        spec = applySidecar(sideCar, spec);
+    });
     return spec;
 };
-
 const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env, sideCars }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -401,7 +409,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     }
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
-    spec = applySidecars(spec, clusterOptions);
+    spec = applySidecars(spec, sideCars, clusterOptions);
     return spec;
 };
 
