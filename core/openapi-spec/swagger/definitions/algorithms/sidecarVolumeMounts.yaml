@@ -6,3 +6,6 @@ properties:
   mountPath:
     type: string
     description: volume mount path
+required:
+  - name
+  - mountPath
