@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.4.3",
+    "version": "2.4.4",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6901,6 +6901,118 @@
                       "type": "string",
                       "nullable": true,
                       "description": "the extension name that will be attached to a file when downloading algorithm result"
+                    },
+                    "sideCars": {
+                      "type": "array",
+                      "nullable": true,
+                      "description": "a list of sideCars for the algorithm",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "description": "name of the sidecar"
+                          },
+                          "container": {
+                            "type": "array",
+                            "description": "keyvalye pairs of names and images for containers",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "container name"
+                                },
+                                "image": {
+                                  "type": "string",
+                                  "description": "container image"
+                                }
+                              }
+                            }
+                          },
+                          "volumes": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "volume name"
+                                },
+                                "additionalProperties": {
+                                  "type": "string",
+                                  "description": "emptyDir, configmap, etc."
+                                }
+                              }
+                            }
+                          },
+                          "volumeMounts": {
+                            "type": "array",
+                            "description": "keyvalye pairs of names and mountPaths",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "volume name"
+                                },
+                                "mountPath": {
+                                  "type": "string",
+                                  "description": "volume mount path"
+                                }
+                              }
+                            }
+                          },
+                          "environments": {
+                            "type": "array",
+                            "description": "keyvalye pairs of names and values",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "environment variable name"
+                                },
+                                "mountPath": {
+                                  "type": "string",
+                                  "description": "environment variable value"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "uniqueItems": true,
+                      "example": [
+                        {
+                          "name": "my-sidecar",
+                          "container": [
+                            {
+                              "name": "c1",
+                              "image": "hkube/my-image\""
+                            }
+                          ],
+                          "volumes": [
+                            {
+                              "name": "v1",
+                              "emptyDir": {}
+                            }
+                          ],
+                          "volumeMounts": [
+                            {
+                              "name": "v2",
+                              "mountPath": "/tmp/foo"
+                            }
+                          ],
+                          "environments": [
+                            {
+                              "name": "env1",
+                              "value": "val1"
+                            }
+                          ]
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -7401,6 +7513,118 @@
                         "type": "string",
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      },
+                      "sideCars": {
+                        "type": "array",
+                        "nullable": true,
+                        "description": "a list of sideCars for the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "name of the sidecar"
+                            },
+                            "container": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and images for containers",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "container name"
+                                  },
+                                  "image": {
+                                    "type": "string",
+                                    "description": "container image"
+                                  }
+                                }
+                              }
+                            },
+                            "volumes": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "volume name"
+                                  },
+                                  "additionalProperties": {
+                                    "type": "string",
+                                    "description": "emptyDir, configmap, etc."
+                                  }
+                                }
+                              }
+                            },
+                            "volumeMounts": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and mountPaths",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "volume name"
+                                  },
+                                  "mountPath": {
+                                    "type": "string",
+                                    "description": "volume mount path"
+                                  }
+                                }
+                              }
+                            },
+                            "environments": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and values",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "environment variable name"
+                                  },
+                                  "mountPath": {
+                                    "type": "string",
+                                    "description": "environment variable value"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "uniqueItems": true,
+                        "example": [
+                          {
+                            "name": "my-sidecar",
+                            "container": [
+                              {
+                                "name": "c1",
+                                "image": "hkube/my-image\""
+                              }
+                            ],
+                            "volumes": [
+                              {
+                                "name": "v1",
+                                "emptyDir": {}
+                              }
+                            ],
+                            "volumeMounts": [
+                              {
+                                "name": "v2",
+                                "mountPath": "/tmp/foo"
+                              }
+                            ],
+                            "environments": [
+                              {
+                                "name": "env1",
+                                "value": "val1"
+                              }
+                            ]
+                          }
+                        ]
                       }
                     },
                     "required": [
@@ -7707,6 +7931,118 @@
                         "type": "string",
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      },
+                      "sideCars": {
+                        "type": "array",
+                        "nullable": true,
+                        "description": "a list of sideCars for the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "name of the sidecar"
+                            },
+                            "container": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and images for containers",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "container name"
+                                  },
+                                  "image": {
+                                    "type": "string",
+                                    "description": "container image"
+                                  }
+                                }
+                              }
+                            },
+                            "volumes": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "volume name"
+                                  },
+                                  "additionalProperties": {
+                                    "type": "string",
+                                    "description": "emptyDir, configmap, etc."
+                                  }
+                                }
+                              }
+                            },
+                            "volumeMounts": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and mountPaths",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "volume name"
+                                  },
+                                  "mountPath": {
+                                    "type": "string",
+                                    "description": "volume mount path"
+                                  }
+                                }
+                              }
+                            },
+                            "environments": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and values",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "environment variable name"
+                                  },
+                                  "mountPath": {
+                                    "type": "string",
+                                    "description": "environment variable value"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "uniqueItems": true,
+                        "example": [
+                          {
+                            "name": "my-sidecar",
+                            "container": [
+                              {
+                                "name": "c1",
+                                "image": "hkube/my-image\""
+                              }
+                            ],
+                            "volumes": [
+                              {
+                                "name": "v1",
+                                "emptyDir": {}
+                              }
+                            ],
+                            "volumeMounts": [
+                              {
+                                "name": "v2",
+                                "mountPath": "/tmp/foo"
+                              }
+                            ],
+                            "environments": [
+                              {
+                                "name": "env1",
+                                "value": "val1"
+                              }
+                            ]
+                          }
+                        ]
                       }
                     },
                     "required": [
@@ -7998,6 +8334,118 @@
                     "type": "string",
                     "nullable": true,
                     "description": "the extension name that will be attached to a file when downloading algorithm result"
+                  },
+                  "sideCars": {
+                    "type": "array",
+                    "nullable": true,
+                    "description": "a list of sideCars for the algorithm",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "name of the sidecar"
+                        },
+                        "container": {
+                          "type": "array",
+                          "description": "keyvalye pairs of names and images for containers",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "container name"
+                              },
+                              "image": {
+                                "type": "string",
+                                "description": "container image"
+                              }
+                            }
+                          }
+                        },
+                        "volumes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "volume name"
+                              },
+                              "additionalProperties": {
+                                "type": "string",
+                                "description": "emptyDir, configmap, etc."
+                              }
+                            }
+                          }
+                        },
+                        "volumeMounts": {
+                          "type": "array",
+                          "description": "keyvalye pairs of names and mountPaths",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "volume name"
+                              },
+                              "mountPath": {
+                                "type": "string",
+                                "description": "volume mount path"
+                              }
+                            }
+                          }
+                        },
+                        "environments": {
+                          "type": "array",
+                          "description": "keyvalye pairs of names and values",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "environment variable name"
+                              },
+                              "mountPath": {
+                                "type": "string",
+                                "description": "environment variable value"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "uniqueItems": true,
+                    "example": [
+                      {
+                        "name": "my-sidecar",
+                        "container": [
+                          {
+                            "name": "c1",
+                            "image": "hkube/my-image\""
+                          }
+                        ],
+                        "volumes": [
+                          {
+                            "name": "v1",
+                            "emptyDir": {}
+                          }
+                        ],
+                        "volumeMounts": [
+                          {
+                            "name": "v2",
+                            "mountPath": "/tmp/foo"
+                          }
+                        ],
+                        "environments": [
+                          {
+                            "name": "env1",
+                            "value": "val1"
+                          }
+                        ]
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -8344,6 +8792,118 @@
                     "type": "string",
                     "nullable": true,
                     "description": "the extension name that will be attached to a file when downloading algorithm result"
+                  },
+                  "sideCars": {
+                    "type": "array",
+                    "nullable": true,
+                    "description": "a list of sideCars for the algorithm",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "name of the sidecar"
+                        },
+                        "container": {
+                          "type": "array",
+                          "description": "keyvalye pairs of names and images for containers",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "container name"
+                              },
+                              "image": {
+                                "type": "string",
+                                "description": "container image"
+                              }
+                            }
+                          }
+                        },
+                        "volumes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "volume name"
+                              },
+                              "additionalProperties": {
+                                "type": "string",
+                                "description": "emptyDir, configmap, etc."
+                              }
+                            }
+                          }
+                        },
+                        "volumeMounts": {
+                          "type": "array",
+                          "description": "keyvalye pairs of names and mountPaths",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "volume name"
+                              },
+                              "mountPath": {
+                                "type": "string",
+                                "description": "volume mount path"
+                              }
+                            }
+                          }
+                        },
+                        "environments": {
+                          "type": "array",
+                          "description": "keyvalye pairs of names and values",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "environment variable name"
+                              },
+                              "mountPath": {
+                                "type": "string",
+                                "description": "environment variable value"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "uniqueItems": true,
+                    "example": [
+                      {
+                        "name": "my-sidecar",
+                        "container": [
+                          {
+                            "name": "c1",
+                            "image": "hkube/my-image\""
+                          }
+                        ],
+                        "volumes": [
+                          {
+                            "name": "v1",
+                            "emptyDir": {}
+                          }
+                        ],
+                        "volumeMounts": [
+                          {
+                            "name": "v2",
+                            "mountPath": "/tmp/foo"
+                          }
+                        ],
+                        "environments": [
+                          {
+                            "name": "env1",
+                            "value": "val1"
+                          }
+                        ]
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -8676,6 +9236,118 @@
                         "type": "string",
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      },
+                      "sideCars": {
+                        "type": "array",
+                        "nullable": true,
+                        "description": "a list of sideCars for the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "name of the sidecar"
+                            },
+                            "container": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and images for containers",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "container name"
+                                  },
+                                  "image": {
+                                    "type": "string",
+                                    "description": "container image"
+                                  }
+                                }
+                              }
+                            },
+                            "volumes": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "volume name"
+                                  },
+                                  "additionalProperties": {
+                                    "type": "string",
+                                    "description": "emptyDir, configmap, etc."
+                                  }
+                                }
+                              }
+                            },
+                            "volumeMounts": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and mountPaths",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "volume name"
+                                  },
+                                  "mountPath": {
+                                    "type": "string",
+                                    "description": "volume mount path"
+                                  }
+                                }
+                              }
+                            },
+                            "environments": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and values",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "environment variable name"
+                                  },
+                                  "mountPath": {
+                                    "type": "string",
+                                    "description": "environment variable value"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "uniqueItems": true,
+                        "example": [
+                          {
+                            "name": "my-sidecar",
+                            "container": [
+                              {
+                                "name": "c1",
+                                "image": "hkube/my-image\""
+                              }
+                            ],
+                            "volumes": [
+                              {
+                                "name": "v1",
+                                "emptyDir": {}
+                              }
+                            ],
+                            "volumeMounts": [
+                              {
+                                "name": "v2",
+                                "mountPath": "/tmp/foo"
+                              }
+                            ],
+                            "environments": [
+                              {
+                                "name": "env1",
+                                "value": "val1"
+                              }
+                            ]
+                          }
+                        ]
                       }
                     },
                     "required": [
@@ -8972,6 +9644,118 @@
                           "type": "string",
                           "nullable": true,
                           "description": "the extension name that will be attached to a file when downloading algorithm result"
+                        },
+                        "sideCars": {
+                          "type": "array",
+                          "nullable": true,
+                          "description": "a list of sideCars for the algorithm",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "name of the sidecar"
+                              },
+                              "container": {
+                                "type": "array",
+                                "description": "keyvalye pairs of names and images for containers",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "container name"
+                                    },
+                                    "image": {
+                                      "type": "string",
+                                      "description": "container image"
+                                    }
+                                  }
+                                }
+                              },
+                              "volumes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "volume name"
+                                    },
+                                    "additionalProperties": {
+                                      "type": "string",
+                                      "description": "emptyDir, configmap, etc."
+                                    }
+                                  }
+                                }
+                              },
+                              "volumeMounts": {
+                                "type": "array",
+                                "description": "keyvalye pairs of names and mountPaths",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "volume name"
+                                    },
+                                    "mountPath": {
+                                      "type": "string",
+                                      "description": "volume mount path"
+                                    }
+                                  }
+                                }
+                              },
+                              "environments": {
+                                "type": "array",
+                                "description": "keyvalye pairs of names and values",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "environment variable name"
+                                    },
+                                    "mountPath": {
+                                      "type": "string",
+                                      "description": "environment variable value"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "uniqueItems": true,
+                          "example": [
+                            {
+                              "name": "my-sidecar",
+                              "container": [
+                                {
+                                  "name": "c1",
+                                  "image": "hkube/my-image\""
+                                }
+                              ],
+                              "volumes": [
+                                {
+                                  "name": "v1",
+                                  "emptyDir": {}
+                                }
+                              ],
+                              "volumeMounts": [
+                                {
+                                  "name": "v2",
+                                  "mountPath": "/tmp/foo"
+                                }
+                              ],
+                              "environments": [
+                                {
+                                  "name": "env1",
+                                  "value": "val1"
+                                }
+                              ]
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -15582,6 +16366,118 @@
                         "type": "string",
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      },
+                      "sideCars": {
+                        "type": "array",
+                        "nullable": true,
+                        "description": "a list of sideCars for the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "name of the sidecar"
+                            },
+                            "container": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and images for containers",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "container name"
+                                  },
+                                  "image": {
+                                    "type": "string",
+                                    "description": "container image"
+                                  }
+                                }
+                              }
+                            },
+                            "volumes": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "volume name"
+                                  },
+                                  "additionalProperties": {
+                                    "type": "string",
+                                    "description": "emptyDir, configmap, etc."
+                                  }
+                                }
+                              }
+                            },
+                            "volumeMounts": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and mountPaths",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "volume name"
+                                  },
+                                  "mountPath": {
+                                    "type": "string",
+                                    "description": "volume mount path"
+                                  }
+                                }
+                              }
+                            },
+                            "environments": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and values",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "environment variable name"
+                                  },
+                                  "mountPath": {
+                                    "type": "string",
+                                    "description": "environment variable value"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "uniqueItems": true,
+                        "example": [
+                          {
+                            "name": "my-sidecar",
+                            "container": [
+                              {
+                                "name": "c1",
+                                "image": "hkube/my-image\""
+                              }
+                            ],
+                            "volumes": [
+                              {
+                                "name": "v1",
+                                "emptyDir": {}
+                              }
+                            ],
+                            "volumeMounts": [
+                              {
+                                "name": "v2",
+                                "mountPath": "/tmp/foo"
+                              }
+                            ],
+                            "environments": [
+                              {
+                                "name": "env1",
+                                "value": "val1"
+                              }
+                            ]
+                          }
+                        ]
                       }
                     },
                     "required": [
@@ -15941,6 +16837,118 @@
                         "type": "string",
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      },
+                      "sideCars": {
+                        "type": "array",
+                        "nullable": true,
+                        "description": "a list of sideCars for the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "name of the sidecar"
+                            },
+                            "container": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and images for containers",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "container name"
+                                  },
+                                  "image": {
+                                    "type": "string",
+                                    "description": "container image"
+                                  }
+                                }
+                              }
+                            },
+                            "volumes": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "volume name"
+                                  },
+                                  "additionalProperties": {
+                                    "type": "string",
+                                    "description": "emptyDir, configmap, etc."
+                                  }
+                                }
+                              }
+                            },
+                            "volumeMounts": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and mountPaths",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "volume name"
+                                  },
+                                  "mountPath": {
+                                    "type": "string",
+                                    "description": "volume mount path"
+                                  }
+                                }
+                              }
+                            },
+                            "environments": {
+                              "type": "array",
+                              "description": "keyvalye pairs of names and values",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "environment variable name"
+                                  },
+                                  "mountPath": {
+                                    "type": "string",
+                                    "description": "environment variable value"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "uniqueItems": true,
+                        "example": [
+                          {
+                            "name": "my-sidecar",
+                            "container": [
+                              {
+                                "name": "c1",
+                                "image": "hkube/my-image\""
+                              }
+                            ],
+                            "volumes": [
+                              {
+                                "name": "v1",
+                                "emptyDir": {}
+                              }
+                            ],
+                            "volumeMounts": [
+                              {
+                                "name": "v2",
+                                "mountPath": "/tmp/foo"
+                              }
+                            ],
+                            "environments": [
+                              {
+                                "name": "env1",
+                                "value": "val1"
+                              }
+                            ]
+                          }
+                        ]
                       }
                     },
                     "required": [
@@ -18930,6 +19938,118 @@
             "type": "string",
             "nullable": true,
             "description": "the extension name that will be attached to a file when downloading algorithm result"
+          },
+          "sideCars": {
+            "type": "array",
+            "nullable": true,
+            "description": "a list of sideCars for the algorithm",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "name of the sidecar"
+                },
+                "container": {
+                  "type": "array",
+                  "description": "keyvalye pairs of names and images for containers",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "container name"
+                      },
+                      "image": {
+                        "type": "string",
+                        "description": "container image"
+                      }
+                    }
+                  }
+                },
+                "volumes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "volume name"
+                      },
+                      "additionalProperties": {
+                        "type": "string",
+                        "description": "emptyDir, configmap, etc."
+                      }
+                    }
+                  }
+                },
+                "volumeMounts": {
+                  "type": "array",
+                  "description": "keyvalye pairs of names and mountPaths",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "volume name"
+                      },
+                      "mountPath": {
+                        "type": "string",
+                        "description": "volume mount path"
+                      }
+                    }
+                  }
+                },
+                "environments": {
+                  "type": "array",
+                  "description": "keyvalye pairs of names and values",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "environment variable name"
+                      },
+                      "mountPath": {
+                        "type": "string",
+                        "description": "environment variable value"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "uniqueItems": true,
+            "example": [
+              {
+                "name": "my-sidecar",
+                "container": [
+                  {
+                    "name": "c1",
+                    "image": "hkube/my-image\""
+                  }
+                ],
+                "volumes": [
+                  {
+                    "name": "v1",
+                    "emptyDir": {}
+                  }
+                ],
+                "volumeMounts": [
+                  {
+                    "name": "v2",
+                    "mountPath": "/tmp/foo"
+                  }
+                ],
+                "environments": [
+                  {
+                    "name": "env1",
+                    "value": "val1"
+                  }
+                ]
+              }
+            ]
           }
         },
         "required": [
@@ -19376,6 +20496,118 @@
                 "type": "string",
                 "nullable": true,
                 "description": "the extension name that will be attached to a file when downloading algorithm result"
+              },
+              "sideCars": {
+                "type": "array",
+                "nullable": true,
+                "description": "a list of sideCars for the algorithm",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "name of the sidecar"
+                    },
+                    "container": {
+                      "type": "array",
+                      "description": "keyvalye pairs of names and images for containers",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "container name"
+                          },
+                          "image": {
+                            "type": "string",
+                            "description": "container image"
+                          }
+                        }
+                      }
+                    },
+                    "volumes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "volume name"
+                          },
+                          "additionalProperties": {
+                            "type": "string",
+                            "description": "emptyDir, configmap, etc."
+                          }
+                        }
+                      }
+                    },
+                    "volumeMounts": {
+                      "type": "array",
+                      "description": "keyvalye pairs of names and mountPaths",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "volume name"
+                          },
+                          "mountPath": {
+                            "type": "string",
+                            "description": "volume mount path"
+                          }
+                        }
+                      }
+                    },
+                    "environments": {
+                      "type": "array",
+                      "description": "keyvalye pairs of names and values",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "environment variable name"
+                          },
+                          "mountPath": {
+                            "type": "string",
+                            "description": "environment variable value"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "uniqueItems": true,
+                "example": [
+                  {
+                    "name": "my-sidecar",
+                    "container": [
+                      {
+                        "name": "c1",
+                        "image": "hkube/my-image\""
+                      }
+                    ],
+                    "volumes": [
+                      {
+                        "name": "v1",
+                        "emptyDir": {}
+                      }
+                    ],
+                    "volumeMounts": [
+                      {
+                        "name": "v2",
+                        "mountPath": "/tmp/foo"
+                      }
+                    ],
+                    "environments": [
+                      {
+                        "name": "env1",
+                        "value": "val1"
+                      }
+                    ]
+                  }
+                ]
               }
             },
             "required": [
@@ -19421,6 +20653,135 @@
           "resourceFieldRef",
           "secretKeyRef"
         ]
+      },
+      "sideCars": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "name of the sidecar"
+          },
+          "container": {
+            "type": "array",
+            "description": "keyvalye pairs of names and images for containers",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "container name"
+                },
+                "image": {
+                  "type": "string",
+                  "description": "container image"
+                }
+              }
+            }
+          },
+          "volumes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "volume name"
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "emptyDir, configmap, etc."
+                }
+              }
+            }
+          },
+          "volumeMounts": {
+            "type": "array",
+            "description": "keyvalye pairs of names and mountPaths",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "volume name"
+                },
+                "mountPath": {
+                  "type": "string",
+                  "description": "volume mount path"
+                }
+              }
+            }
+          },
+          "environments": {
+            "type": "array",
+            "description": "keyvalye pairs of names and values",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "environment variable name"
+                },
+                "mountPath": {
+                  "type": "string",
+                  "description": "environment variable value"
+                }
+              }
+            }
+          }
+        }
+      },
+      "sidecarContainer": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "container name"
+          },
+          "image": {
+            "type": "string",
+            "description": "container image"
+          }
+        }
+      },
+      "sidecarVolumeMounts": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "volume name"
+          },
+          "mountPath": {
+            "type": "string",
+            "description": "volume mount path"
+          }
+        }
+      },
+      "sidecarEnvVars": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "environment variable name"
+          },
+          "mountPath": {
+            "type": "string",
+            "description": "environment variable value"
+          }
+        }
+      },
+      "sidecarVolume": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "volume name"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "description": "emptyDir, configmap, etc."
+          }
+        }
       },
       "createBoardRequest": {
         "type": "object",

@@ -1,0 +1,8 @@
+type: object
+properties:
+  name:
+    type: string
+    description: environment variable name
+  mountPath:
+    type: string
+    description: environment variable value
