@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.4.4",
+    "version": "2.4.5",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6928,7 +6928,11 @@
                                   "type": "string",
                                   "description": "container image"
                                 }
-                              }
+                              },
+                              "required": [
+                                "name",
+                                "image"
+                              ]
                             }
                           },
                           "volumes": {
@@ -6944,7 +6948,10 @@
                                   "type": "string",
                                   "description": "emptyDir, configmap, etc."
                                 }
-                              }
+                              },
+                              "required": [
+                                "name"
+                              ]
                             }
                           },
                           "volumeMounts": {
@@ -6961,7 +6968,11 @@
                                   "type": "string",
                                   "description": "volume mount path"
                                 }
-                              }
+                              },
+                              "required": [
+                                "name",
+                                "mountPath"
+                              ]
                             }
                           },
                           "environments": {
@@ -6974,11 +6985,15 @@
                                   "type": "string",
                                   "description": "environment variable name"
                                 },
-                                "mountPath": {
+                                "value": {
                                   "type": "string",
                                   "description": "environment variable value"
                                 }
-                              }
+                              },
+                              "required": [
+                                "name",
+                                "value"
+                              ]
                             }
                           }
                         }
@@ -7540,7 +7555,11 @@
                                     "type": "string",
                                     "description": "container image"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "image"
+                                ]
                               }
                             },
                             "volumes": {
@@ -7556,7 +7575,10 @@
                                     "type": "string",
                                     "description": "emptyDir, configmap, etc."
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name"
+                                ]
                               }
                             },
                             "volumeMounts": {
@@ -7573,7 +7595,11 @@
                                     "type": "string",
                                     "description": "volume mount path"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "mountPath"
+                                ]
                               }
                             },
                             "environments": {
@@ -7586,11 +7612,15 @@
                                     "type": "string",
                                     "description": "environment variable name"
                                   },
-                                  "mountPath": {
+                                  "value": {
                                     "type": "string",
                                     "description": "environment variable value"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "value"
+                                ]
                               }
                             }
                           }
@@ -7958,7 +7988,11 @@
                                     "type": "string",
                                     "description": "container image"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "image"
+                                ]
                               }
                             },
                             "volumes": {
@@ -7974,7 +8008,10 @@
                                     "type": "string",
                                     "description": "emptyDir, configmap, etc."
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name"
+                                ]
                               }
                             },
                             "volumeMounts": {
@@ -7991,7 +8028,11 @@
                                     "type": "string",
                                     "description": "volume mount path"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "mountPath"
+                                ]
                               }
                             },
                             "environments": {
@@ -8004,11 +8045,15 @@
                                     "type": "string",
                                     "description": "environment variable name"
                                   },
-                                  "mountPath": {
+                                  "value": {
                                     "type": "string",
                                     "description": "environment variable value"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "value"
+                                ]
                               }
                             }
                           }
@@ -8361,7 +8406,11 @@
                                 "type": "string",
                                 "description": "container image"
                               }
-                            }
+                            },
+                            "required": [
+                              "name",
+                              "image"
+                            ]
                           }
                         },
                         "volumes": {
@@ -8377,7 +8426,10 @@
                                 "type": "string",
                                 "description": "emptyDir, configmap, etc."
                               }
-                            }
+                            },
+                            "required": [
+                              "name"
+                            ]
                           }
                         },
                         "volumeMounts": {
@@ -8394,7 +8446,11 @@
                                 "type": "string",
                                 "description": "volume mount path"
                               }
-                            }
+                            },
+                            "required": [
+                              "name",
+                              "mountPath"
+                            ]
                           }
                         },
                         "environments": {
@@ -8407,11 +8463,15 @@
                                 "type": "string",
                                 "description": "environment variable name"
                               },
-                              "mountPath": {
+                              "value": {
                                 "type": "string",
                                 "description": "environment variable value"
                               }
-                            }
+                            },
+                            "required": [
+                              "name",
+                              "value"
+                            ]
                           }
                         }
                       }
@@ -8819,7 +8879,11 @@
                                 "type": "string",
                                 "description": "container image"
                               }
-                            }
+                            },
+                            "required": [
+                              "name",
+                              "image"
+                            ]
                           }
                         },
                         "volumes": {
@@ -8835,7 +8899,10 @@
                                 "type": "string",
                                 "description": "emptyDir, configmap, etc."
                               }
-                            }
+                            },
+                            "required": [
+                              "name"
+                            ]
                           }
                         },
                         "volumeMounts": {
@@ -8852,7 +8919,11 @@
                                 "type": "string",
                                 "description": "volume mount path"
                               }
-                            }
+                            },
+                            "required": [
+                              "name",
+                              "mountPath"
+                            ]
                           }
                         },
                         "environments": {
@@ -8865,11 +8936,15 @@
                                 "type": "string",
                                 "description": "environment variable name"
                               },
-                              "mountPath": {
+                              "value": {
                                 "type": "string",
                                 "description": "environment variable value"
                               }
-                            }
+                            },
+                            "required": [
+                              "name",
+                              "value"
+                            ]
                           }
                         }
                       }
@@ -9263,7 +9338,11 @@
                                     "type": "string",
                                     "description": "container image"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "image"
+                                ]
                               }
                             },
                             "volumes": {
@@ -9279,7 +9358,10 @@
                                     "type": "string",
                                     "description": "emptyDir, configmap, etc."
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name"
+                                ]
                               }
                             },
                             "volumeMounts": {
@@ -9296,7 +9378,11 @@
                                     "type": "string",
                                     "description": "volume mount path"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "mountPath"
+                                ]
                               }
                             },
                             "environments": {
@@ -9309,11 +9395,15 @@
                                     "type": "string",
                                     "description": "environment variable name"
                                   },
-                                  "mountPath": {
+                                  "value": {
                                     "type": "string",
                                     "description": "environment variable value"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "value"
+                                ]
                               }
                             }
                           }
@@ -9671,7 +9761,11 @@
                                       "type": "string",
                                       "description": "container image"
                                     }
-                                  }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "image"
+                                  ]
                                 }
                               },
                               "volumes": {
@@ -9687,7 +9781,10 @@
                                       "type": "string",
                                       "description": "emptyDir, configmap, etc."
                                     }
-                                  }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
                                 }
                               },
                               "volumeMounts": {
@@ -9704,7 +9801,11 @@
                                       "type": "string",
                                       "description": "volume mount path"
                                     }
-                                  }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "mountPath"
+                                  ]
                                 }
                               },
                               "environments": {
@@ -9717,11 +9818,15 @@
                                       "type": "string",
                                       "description": "environment variable name"
                                     },
-                                    "mountPath": {
+                                    "value": {
                                       "type": "string",
                                       "description": "environment variable value"
                                     }
-                                  }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "value"
+                                  ]
                                 }
                               }
                             }
@@ -16393,7 +16498,11 @@
                                     "type": "string",
                                     "description": "container image"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "image"
+                                ]
                               }
                             },
                             "volumes": {
@@ -16409,7 +16518,10 @@
                                     "type": "string",
                                     "description": "emptyDir, configmap, etc."
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name"
+                                ]
                               }
                             },
                             "volumeMounts": {
@@ -16426,7 +16538,11 @@
                                     "type": "string",
                                     "description": "volume mount path"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "mountPath"
+                                ]
                               }
                             },
                             "environments": {
@@ -16439,11 +16555,15 @@
                                     "type": "string",
                                     "description": "environment variable name"
                                   },
-                                  "mountPath": {
+                                  "value": {
                                     "type": "string",
                                     "description": "environment variable value"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "value"
+                                ]
                               }
                             }
                           }
@@ -16864,7 +16984,11 @@
                                     "type": "string",
                                     "description": "container image"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "image"
+                                ]
                               }
                             },
                             "volumes": {
@@ -16880,7 +17004,10 @@
                                     "type": "string",
                                     "description": "emptyDir, configmap, etc."
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name"
+                                ]
                               }
                             },
                             "volumeMounts": {
@@ -16897,7 +17024,11 @@
                                     "type": "string",
                                     "description": "volume mount path"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "mountPath"
+                                ]
                               }
                             },
                             "environments": {
@@ -16910,11 +17041,15 @@
                                     "type": "string",
                                     "description": "environment variable name"
                                   },
-                                  "mountPath": {
+                                  "value": {
                                     "type": "string",
                                     "description": "environment variable value"
                                   }
-                                }
+                                },
+                                "required": [
+                                  "name",
+                                  "value"
+                                ]
                               }
                             }
                           }
@@ -19965,7 +20100,11 @@
                         "type": "string",
                         "description": "container image"
                       }
-                    }
+                    },
+                    "required": [
+                      "name",
+                      "image"
+                    ]
                   }
                 },
                 "volumes": {
@@ -19981,7 +20120,10 @@
                         "type": "string",
                         "description": "emptyDir, configmap, etc."
                       }
-                    }
+                    },
+                    "required": [
+                      "name"
+                    ]
                   }
                 },
                 "volumeMounts": {
@@ -19998,7 +20140,11 @@
                         "type": "string",
                         "description": "volume mount path"
                       }
-                    }
+                    },
+                    "required": [
+                      "name",
+                      "mountPath"
+                    ]
                   }
                 },
                 "environments": {
@@ -20011,11 +20157,15 @@
                         "type": "string",
                         "description": "environment variable name"
                       },
-                      "mountPath": {
+                      "value": {
                         "type": "string",
                         "description": "environment variable value"
                       }
-                    }
+                    },
+                    "required": [
+                      "name",
+                      "value"
+                    ]
                   }
                 }
               }
@@ -20523,7 +20673,11 @@
                             "type": "string",
                             "description": "container image"
                           }
-                        }
+                        },
+                        "required": [
+                          "name",
+                          "image"
+                        ]
                       }
                     },
                     "volumes": {
@@ -20539,7 +20693,10 @@
                             "type": "string",
                             "description": "emptyDir, configmap, etc."
                           }
-                        }
+                        },
+                        "required": [
+                          "name"
+                        ]
                       }
                     },
                     "volumeMounts": {
@@ -20556,7 +20713,11 @@
                             "type": "string",
                             "description": "volume mount path"
                           }
-                        }
+                        },
+                        "required": [
+                          "name",
+                          "mountPath"
+                        ]
                       }
                     },
                     "environments": {
@@ -20569,11 +20730,15 @@
                             "type": "string",
                             "description": "environment variable name"
                           },
-                          "mountPath": {
+                          "value": {
                             "type": "string",
                             "description": "environment variable value"
                           }
-                        }
+                        },
+                        "required": [
+                          "name",
+                          "value"
+                        ]
                       }
                     }
                   }
@@ -20676,7 +20841,11 @@
                   "type": "string",
                   "description": "container image"
                 }
-              }
+              },
+              "required": [
+                "name",
+                "image"
+              ]
             }
           },
           "volumes": {
@@ -20692,7 +20861,10 @@
                   "type": "string",
                   "description": "emptyDir, configmap, etc."
                 }
-              }
+              },
+              "required": [
+                "name"
+              ]
             }
           },
           "volumeMounts": {
@@ -20709,7 +20881,11 @@
                   "type": "string",
                   "description": "volume mount path"
                 }
-              }
+              },
+              "required": [
+                "name",
+                "mountPath"
+              ]
             }
           },
           "environments": {
@@ -20722,11 +20898,15 @@
                   "type": "string",
                   "description": "environment variable name"
                 },
-                "mountPath": {
+                "value": {
                   "type": "string",
                   "description": "environment variable value"
                 }
-              }
+              },
+              "required": [
+                "name",
+                "value"
+              ]
             }
           }
         }
@@ -20742,7 +20922,11 @@
             "type": "string",
             "description": "container image"
           }
-        }
+        },
+        "required": [
+          "name",
+          "image"
+        ]
       },
       "sidecarVolumeMounts": {
         "type": "object",
@@ -20755,7 +20939,11 @@
             "type": "string",
             "description": "volume mount path"
           }
-        }
+        },
+        "required": [
+          "name",
+          "mountPath"
+        ]
       },
       "sidecarEnvVars": {
         "type": "object",
@@ -20764,11 +20952,15 @@
             "type": "string",
             "description": "environment variable name"
           },
-          "mountPath": {
+          "value": {
             "type": "string",
             "description": "environment variable value"
           }
-        }
+        },
+        "required": [
+          "name",
+          "value"
+        ]
       },
       "sidecarVolume": {
         "type": "object",
@@ -20781,7 +20973,10 @@
             "type": "string",
             "description": "emptyDir, configmap, etc."
           }
-        }
+        },
+        "required": [
+          "name"
+        ]
       },
       "createBoardRequest": {
         "type": "object",

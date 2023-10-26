@@ -3,6 +3,9 @@ properties:
   name:
     type: string
     description: environment variable name
-  mountPath:
+  value:
     type: string
     description: environment variable value
+required:
+  - name
+  - value

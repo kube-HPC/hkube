@@ -6,3 +6,6 @@ properties:
   image:
     type: string
     description: container image
+required:
+  - name
+  - image

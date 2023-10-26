@@ -6,3 +6,5 @@ properties:
   additionalProperties:
     type: string
     description: emptyDir, configmap, etc.
+required:
+  - name
