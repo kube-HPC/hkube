@@ -61,7 +61,7 @@ class ExecutionService {
     }
 
     async getGraphByStreamingFlow(options) {
-           return this._getGraphByStreamingFlow({pipeline : options.pipeline, keyFlow : options.keyFlow,isBuildAllFlows:options.isBuildAllFlows}); 
+        return this._getGraphByStreamingFlow({ pipeline: options.pipeline, keyFlow: options.keyFlow, isBuildAllFlows: options.isBuildAllFlows });
     }
 
     async runAlgorithm(options) {
@@ -151,9 +151,8 @@ class ExecutionService {
     }
 
     async _getGraphByStreamingFlow(payload) {
-      
-        let extendedPipeline = payload.pipeline; 
-     
+        let extendedPipeline = payload.pipeline;
+
         // eslint-disable-next-line no-useless-catch
         try {
             extendedPipeline = await pipelineCreator.buildStreamingFlowGraph(payload);
@@ -165,10 +164,8 @@ class ExecutionService {
 
             extendedPipeline.edges = modifiedEdges;
             return extendedPipeline;
-       
         }
         catch (error) {
-        
             throw error;
         }
     }

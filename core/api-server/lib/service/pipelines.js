@@ -56,21 +56,17 @@ class PipelineService {
 
     async getPipelineGraph(options) {
         let pipeline;
-        if(options.name!==null)
-        {
+        if (options.name !== null) {
             validator.pipelines.validatePipelineName(options.name);
             pipeline = await stateManager.getPipeline(options);
             if (!pipeline) {
                 throw new ResourceNotFoundError('pipeline', options.name);
             }
         }
-        else
-        {
+        else {
             pipeline = options.pipeline;
         }
-        
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
-
         const extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(restPipeline);
         const nodes = new NodesMap(extendedPipeline, { validateNodesRelations: true });
         const graph = nodes.getJSONGraph();

@@ -1,0 +1,12 @@
+type: object
+properties:
+  nodes:
+    type: array
+    description: Array of nodes
+    items:
+      $ref: "#/components/schemas/pipelineNode"
+  edges:
+    type: array
+    description: edges define relation between nodes
+    items: {}
+    example: [{ source: A, target: B }]

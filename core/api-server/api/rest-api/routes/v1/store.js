@@ -31,8 +31,7 @@ const routes = (option) => {
     });
 
     router.post('/pipelines/graph', async (req, res) => {
-        const { name } = req.params;
-        const response = await pipelineStore.getPipelineGraph({name : null,pipeline : req.body.pipeline});
+        const response = await pipelineStore.getPipelineGraph({ name: null, pipeline: req.body.pipeline });
         res.json(response);
     });
 

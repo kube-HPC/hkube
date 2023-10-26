@@ -31,7 +31,9 @@
   $ref: ./exec/tree.yaml
 /exec/flowInput/{jobId}:
   $ref: ./exec/flowInput.yaml  
-
+/exec/getGraphByStreamingFlow:
+  $ref: ./exec/getGraphByStreamingFlow.yaml
+  
 # pipelines
 /pipelines/results:
   $ref: ./pipelines/results.yaml

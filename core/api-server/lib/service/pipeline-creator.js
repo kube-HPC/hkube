@@ -293,12 +293,11 @@ class PipelineCreator {
         };
     }
 
-    async buildStreamingFlowGraph({ pipeline, keyFlow , isBuildAllFlows }) {
-        
+    async buildStreamingFlowGraph({ pipeline, keyFlow, isBuildAllFlows }) {
         const flows = pipeline.streaming?.flows;
         const defaultFlow = pipeline.streaming?.defaultFlow;
-        const showFlow = keyFlow ? keyFlow : defaultFlow ? defaultFlow :  Object.keys(flows)[0];
-        const flowView = pipeline.streaming?.flows[showFlow]; 
+        const showFlow = keyFlow || (defaultFlow || Object.keys(flows)[0]);
+        const flowView = pipeline.streaming?.flows[showFlow];
         const parsedFlow = {};
         const edges = [];
 
@@ -312,83 +311,79 @@ class PipelineCreator {
             throw new InvalidDataError('please specify a stream flow');
         }
 
-      //  Object.entries(flows).forEach(([k, v]) => {
+        const k = keyFlow;
+        const v = flowView;
 
-            const k = keyFlow;
-            const v = flowView;
-            
-            if (!v) {
-                throw new InvalidDataError(`invalid stream flow ${k}`);
+        if (!v) {
+            throw new InvalidDataError(`invalid stream flow ${k}`);
+        }
+        const flow = [];
+        const flowEdges = {};
+        const expressions = v.replace(/\s/g, '').split(SEPARATORS.EXPRESSION);
+        expressions.forEach((e) => {
+            const parts = e.split(SEPARATORS.RELATION);
+            if (parts.length === 1) {
+                throw new InvalidDataError(`stream flow ${k} should have valid flow, example: A >> B`);
             }
-            const flow = [];
-            const flowEdges = {};
-            const expressions = v.replace(/\s/g, '').split(SEPARATORS.EXPRESSION);
-            expressions.forEach((e) => {
-                const parts = e.split(SEPARATORS.RELATION);
-                if (parts.length === 1) {
-                    throw new InvalidDataError(`stream flow ${k} should have valid flow, example: A >> B`);
+            parts.forEach((p, i) => {
+                const source = p;
+                const target = parts[i + 1];
+                if (target?.length === 0) {
+                    throw new InvalidDataError(`invalid node name after ${source}`);
                 }
-                parts.forEach((p, i) => {
-                    const source = p;
-                    const target = parts[i + 1];
-                    if (target?.length === 0) {
-                        throw new InvalidDataError(`invalid node name after ${source}`);
+                const sources = source.split(SEPARATORS.AND);
+                const targets = target?.split(SEPARATORS.AND);
+                sources.forEach((s) => {
+                    const node = pipeline.nodes.find(n => n.nodeName === s || n.origName === s);
+                    if (!node) {
+                        throw new InvalidDataError(`invalid node ${s} in stream flow ${k}`);
                     }
-                    const sources = source.split(SEPARATORS.AND);
-                    const targets = target?.split(SEPARATORS.AND);
-                    sources.forEach((s) => {
-                        const node = pipeline.nodes.find(n => n.nodeName === s || n.origName === s);
-                        if (!node) {
-                            throw new InvalidDataError(`invalid node ${s} in stream flow ${k}`);
-                        }
-                        if (targets?.length) {
-                            targets.forEach((t) => {
-                                const edgeKey = `${s} >> ${t}`;
-                                if (s === t) {
-                                    throw new InvalidDataError(`invalid relation found ${edgeKey} in flow ${k}`);
-                                }
-                                const flowEdge = flowEdges[edgeKey];
-                                if (flowEdge) {
-                                    throw new InvalidDataError(`duplicate relation found ${edgeKey} in flow ${k}`);
-                                }
-                                const edgeValue = { source: s, target: t, types: [consts.relations.CUSTOM_STREAM] };
-                                flowEdges[edgeKey] = edgeValue;
+                    if (targets?.length) {
+                        targets.forEach((t) => {
+                            const edgeKey = `${s} >> ${t}`;
+                            if (s === t) {
+                                throw new InvalidDataError(`invalid relation found ${edgeKey} in flow ${k}`);
+                            }
+                            const flowEdge = flowEdges[edgeKey];
+                            if (flowEdge) {
+                                throw new InvalidDataError(`duplicate relation found ${edgeKey} in flow ${k}`);
+                            }
+                            const edgeValue = { source: s, target: t, types: [consts.relations.CUSTOM_STREAM] };
+                            flowEdges[edgeKey] = edgeValue;
 
-                                const edge = edges.find(d => d.source === s && d.target === t);
-                                if (!edge) {
-                                    edges.push(edgeValue);
-                                }
-                                const fl = flow.find(f => f.source === s);
-                                if (fl) {
-                                    fl.next.push(t);
-                                }
-                                else {
-                                    flow.push({ source: s, next: [t] });
-                                }
-                            });
-                        }
-                    });
+                            const edge = edges.find(d => d.source === s && d.target === t);
+                            if (!edge) {
+                                edges.push(edgeValue);
+                            }
+                            const fl = flow.find(f => f.source === s);
+                            if (fl) {
+                                fl.next.push(t);
+                            }
+                            else {
+                                flow.push({ source: s, next: [t] });
+                            }
+                        });
+                    }
                 });
             });
-            parsedFlow[k] = flow;
-      //  });
+        });
+        parsedFlow[k] = flow;
+        //  });
 
         const dag = new DAG({});
         edges.forEach(e => dag.setEdge(e.source, e.target));
         const nodeNames = new Set(dag.getNodeNames());
         const node = pipeline.nodes.find(n => !nodeNames.has(n.nodeName || n.origName));
-        
-        if(isBuildAllFlows)
-        {
+
+        if (isBuildAllFlows) {
             if (node) {
-                    throw new InvalidDataError(`node "${node.nodeName}" does not belong to any flow`);
-                }
+                throw new InvalidDataError(`node "${node.nodeName}" does not belong to any flow`);
+            }
         }
-        else
-        {
-            const nodeName = node?.nodeName || node?.origName || "";
+        else {
+            const nodeName = node?.nodeName || node?.origName || '';
+            // eslint-disable-next-line no-param-reassign
             pipeline.nodes = pipeline.nodes.filter(n => n.nodeName !== nodeName);
-   
         }
 
         const sources = dag.getSources().map(s => pipeline.nodes.find(n => n.nodeName === s));
@@ -398,10 +393,10 @@ class PipelineCreator {
         }
 
         return {
-        
-           nodes: pipeline.nodes,
+
+            nodes: pipeline.nodes,
             edges
-         
+
         };
     }
 
