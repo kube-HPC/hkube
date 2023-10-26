@@ -448,7 +448,7 @@ describe('jobCreator', () => {
             });
             expect(res.spec.template.spec.containers).to.have.lengthOf(2)
         });
-        it.only('should apply sidecar if enabled', () => {
+        it('should apply sidecar if enabled', () => {
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
                 algorithmName: 'myalgo1',
