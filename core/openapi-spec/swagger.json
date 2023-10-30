@@ -7042,6 +7042,15 @@
                               "mountPath": "/tmp/foo"
                             }
                           ],
+                          "resourceRequests": {
+                            "limits": {
+                              "cpu": "200m",
+                              "nvidia.com/gpu": 1
+                            },
+                            "requests": {
+                              "cpu": "100m"
+                            }
+                          },
                           "environments": [
                             {
                               "name": "env1",
@@ -7691,6 +7700,15 @@
                                 "mountPath": "/tmp/foo"
                               }
                             ],
+                            "resourceRequests": {
+                              "limits": {
+                                "cpu": "200m",
+                                "nvidia.com/gpu": 1
+                              },
+                              "requests": {
+                                "cpu": "100m"
+                              }
+                            },
                             "environments": [
                               {
                                 "name": "env1",
@@ -8146,6 +8164,15 @@
                                 "mountPath": "/tmp/foo"
                               }
                             ],
+                            "resourceRequests": {
+                              "limits": {
+                                "cpu": "200m",
+                                "nvidia.com/gpu": 1
+                              },
+                              "requests": {
+                                "cpu": "100m"
+                              }
+                            },
                             "environments": [
                               {
                                 "name": "env1",
@@ -8586,6 +8613,15 @@
                             "mountPath": "/tmp/foo"
                           }
                         ],
+                        "resourceRequests": {
+                          "limits": {
+                            "cpu": "200m",
+                            "nvidia.com/gpu": 1
+                          },
+                          "requests": {
+                            "cpu": "100m"
+                          }
+                        },
                         "environments": [
                           {
                             "name": "env1",
@@ -9081,6 +9117,15 @@
                             "mountPath": "/tmp/foo"
                           }
                         ],
+                        "resourceRequests": {
+                          "limits": {
+                            "cpu": "200m",
+                            "nvidia.com/gpu": 1
+                          },
+                          "requests": {
+                            "cpu": "100m"
+                          }
+                        },
                         "environments": [
                           {
                             "name": "env1",
@@ -9562,6 +9607,15 @@
                                 "mountPath": "/tmp/foo"
                               }
                             ],
+                            "resourceRequests": {
+                              "limits": {
+                                "cpu": "200m",
+                                "nvidia.com/gpu": 1
+                              },
+                              "requests": {
+                                "cpu": "100m"
+                              }
+                            },
                             "environments": [
                               {
                                 "name": "env1",
@@ -10007,6 +10061,15 @@
                                   "mountPath": "/tmp/foo"
                                 }
                               ],
+                              "resourceRequests": {
+                                "limits": {
+                                  "cpu": "200m",
+                                  "nvidia.com/gpu": 1
+                                },
+                                "requests": {
+                                  "cpu": "100m"
+                                }
+                              },
                               "environments": [
                                 {
                                   "name": "env1",
@@ -16766,6 +16829,15 @@
                                 "mountPath": "/tmp/foo"
                               }
                             ],
+                            "resourceRequests": {
+                              "limits": {
+                                "cpu": "200m",
+                                "nvidia.com/gpu": 1
+                              },
+                              "requests": {
+                                "cpu": "100m"
+                              }
+                            },
                             "environments": [
                               {
                                 "name": "env1",
@@ -17274,6 +17346,15 @@
                                 "mountPath": "/tmp/foo"
                               }
                             ],
+                            "resourceRequests": {
+                              "limits": {
+                                "cpu": "200m",
+                                "nvidia.com/gpu": 1
+                              },
+                              "requests": {
+                                "cpu": "100m"
+                              }
+                            },
                             "environments": [
                               {
                                 "name": "env1",
@@ -20412,6 +20493,15 @@
                     "mountPath": "/tmp/foo"
                   }
                 ],
+                "resourceRequests": {
+                  "limits": {
+                    "cpu": "200m",
+                    "nvidia.com/gpu": 1
+                  },
+                  "requests": {
+                    "cpu": "100m"
+                  }
+                },
                 "environments": [
                   {
                     "name": "env1",
@@ -21007,6 +21097,15 @@
                         "mountPath": "/tmp/foo"
                       }
                     ],
+                    "resourceRequests": {
+                      "limits": {
+                        "cpu": "200m",
+                        "nvidia.com/gpu": 1
+                      },
+                      "requests": {
+                        "cpu": "100m"
+                      }
+                    },
                     "environments": [
                       {
                         "name": "env1",
