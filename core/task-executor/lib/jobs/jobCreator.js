@@ -316,7 +316,7 @@ const applyAnnotations = (spec, keyVal) => {
     spec = applyKeyVal(spec, keyVal, 'annotation', 'metadata.annotations');
     return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
 };
-const applySidecar = ({ container: sideCarContiners, volumes, volumeMounts, environments }, spec) => {
+const applySidecar = ({ container: sideCarContiners, volumes, volumeMounts, environments, resourceRequests }, spec) => {
     spec.spec.template.spec.containers.push(...sideCarContiners);
     if (volumes) {
         // eslint-disable-next-line no-loop-func
@@ -340,16 +340,23 @@ const applySidecar = ({ container: sideCarContiners, volumes, volumeMounts, envi
             });
         });
     }
+    if (resourceRequests) {
+        sideCarContiners.forEach(container => {
+            spec = applyResourceRequests(spec, resourceRequests, container.name);
+        });
+    }
     return spec;
 };
 const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
     let spec = clonedeep(inputSpec);
     for (const sidecar of settings.sidecars) {
-        const { name, container: scContainers, volumes, volumeMounts, environments } = sidecar;
+        const { name, container: scContainers, volumes, volumeMounts, environments, resourceRequests } = sidecar;
         if (!clusterOptions[`${name}SidecarEnabled`]) {
             continue;
         }
-        spec = applySidecar({ container: scContainers, volumes, volumeMounts, environments }, spec);
+        spec = applySidecar({
+            container: scContainers, volumes, volumeMounts, environments, resourceRequests
+        }, spec);
     }
     customSideCars.forEach(sideCar => {
         spec = applySidecar(sideCar, spec);

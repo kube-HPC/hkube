@@ -396,6 +396,18 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[1].resources).to.deep.include({ limits: { cpu: '500m', memory: '200M' } });
             expect(res.spec.template.spec.containers[0].resources).to.deep.include({ limits: { cpu: '200m', memory: '100Mi' } });
         });
+        it('should apply nodeSelector', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', nodeSelector: { name: "node1" }, options });
+            expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values).to.eql(['node1']);
+        });
+        it('should apply nodeSelector multiple values in same type', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', nodeSelector: { name: ["node1", "node2"] }, options });
+            expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values).to.eql(['node1', 'node2']);
+        });
+        it('should apply nodeSelector multiple values in multiple types', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', nodeSelector: { name: ["node1", "node2"], gpu: "max-gpu", "kubernetes.io/arch": ["amd64", "intel"] }, options });
+            expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions.length).to.eql(3);
+        });
     });
     describe('sidecars', () => {
         before(() => {
@@ -466,6 +478,63 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[2].env).to.deep.include(globalSettings.sidecars[0].environments[1])
             expect(res.spec.template.spec.containers[1].env).to.not.deep.include(globalSettings.sidecars[0].environments[0])
         });
+        it('should apply algorithm with sidecar', () => {
+            const res = createJobSpec({
+                algorithmImage: 'myImage1',
+                algorithmName: 'myalgo1',
+                sideCars: [{
+                    name: 'my-sidecar',
+                    container: [
+                        { name: 'c1', image: 'foo/bar' }
+                    ],
+                    volumes: [
+                        {
+                            name: "v1",
+                            emptyDir: {}
+                        },
+                        {
+                            name: "v2",
+                            configMap: {
+                                name: "cm2"
+                            }
+                        }
+                    ],
+                    volumeMounts: [
+                        {
+                            name: "v2",
+                            mountPath: '/tmp/foo'
+                        }
+
+                    ],
+                    resourceRequests: {
+
+                        limits: {
+                            cpu: "200m",
+                            memory: "616Mi",
+                            "nvidia.com/gpu": 1
+                        },
+                        requests: {
+                            "nvidia.com/gpu": 1
+                        }
+                    },
+                    environments: [
+                        {
+                            name: "env1",
+                            value: "val1"
+                        },
+                        {
+                            name: "env2",
+                            value: "val2"
+                        }
+                    ]
+
+                }],
+                options
+            });;
+            expect(res.spec.template.spec.containers).to.have.lengthOf(3)
+            expect(res.spec.template.spec.containers[2].name).to.eql('c1')
+            expect(res.spec.template.spec.containers[2].resources.limits["nvidia.com/gpu"]).eql(1)
+        })
         it('should not apply sidecar if no sidecar configmap', () => {
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
