@@ -18,6 +18,11 @@ properties:
     description: keyvalye pairs of names and mountPaths
     items:
       $ref: "#/components/schemas/sidecarVolumeMounts"
+  resourceRequests:
+    type: object
+    description: limits and requests
+    items:
+      $ref: "#/components/schemas/sidecarResourceRequests"
   environments:
     type: array
     description: keyvalye pairs of names and values

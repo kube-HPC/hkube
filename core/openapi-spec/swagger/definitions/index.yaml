@@ -41,6 +41,12 @@ sidecarEnvVars:
   $ref: ./algorithms/sidecarEnvVars.yaml 
 sidecarVolume: 
   $ref: ./algorithms/sidecarVolume.yaml
+sidecarResourceRequests:
+  $ref: ./algorithms/sidecarResourceRequests.yaml
+sidecarLimits:
+  $ref: ./algorithms/sidecarLimits.yaml
+sidecarRequests:
+  $ref: ./algorithms/sidecarRequests.yaml
 
 # boards
 createBoardRequest:

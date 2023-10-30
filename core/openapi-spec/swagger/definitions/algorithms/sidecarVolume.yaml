@@ -3,8 +3,6 @@ properties:
   name:
     type: string
     description: volume name
-  additionalProperties:
-    type: string
-    description: emptyDir, configmap, etc.
+additionalProperties: true
 required:
   - name

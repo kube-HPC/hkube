@@ -6943,12 +6943,9 @@
                                 "name": {
                                   "type": "string",
                                   "description": "volume name"
-                                },
-                                "additionalProperties": {
-                                  "type": "string",
-                                  "description": "emptyDir, configmap, etc."
                                 }
                               },
+                              "additionalProperties": true,
                               "required": [
                                 "name"
                               ]
@@ -6973,6 +6970,31 @@
                                 "name",
                                 "mountPath"
                               ]
+                            }
+                          },
+                          "resourceRequests": {
+                            "type": "object",
+                            "description": "limits and requests",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "limits": {
+                                  "type": "object",
+                                  "description": "cpu, memory, gpu tags, etc.",
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                  }
+                                },
+                                "requests": {
+                                  "type": "object",
+                                  "description": "cpu, memory, gpu tags, etc.",
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                  }
+                                }
+                              }
                             }
                           },
                           "environments": {
@@ -7570,12 +7592,9 @@
                                   "name": {
                                     "type": "string",
                                     "description": "volume name"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string",
-                                    "description": "emptyDir, configmap, etc."
                                   }
                                 },
+                                "additionalProperties": true,
                                 "required": [
                                   "name"
                                 ]
@@ -7600,6 +7619,31 @@
                                   "name",
                                   "mountPath"
                                 ]
+                              }
+                            },
+                            "resourceRequests": {
+                              "type": "object",
+                              "description": "limits and requests",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "limits": {
+                                    "type": "object",
+                                    "description": "cpu, memory, gpu tags, etc.",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true
+                                    }
+                                  },
+                                  "requests": {
+                                    "type": "object",
+                                    "description": "cpu, memory, gpu tags, etc.",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true
+                                    }
+                                  }
+                                }
                               }
                             },
                             "environments": {
@@ -8003,12 +8047,9 @@
                                   "name": {
                                     "type": "string",
                                     "description": "volume name"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string",
-                                    "description": "emptyDir, configmap, etc."
                                   }
                                 },
+                                "additionalProperties": true,
                                 "required": [
                                   "name"
                                 ]
@@ -8033,6 +8074,31 @@
                                   "name",
                                   "mountPath"
                                 ]
+                              }
+                            },
+                            "resourceRequests": {
+                              "type": "object",
+                              "description": "limits and requests",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "limits": {
+                                    "type": "object",
+                                    "description": "cpu, memory, gpu tags, etc.",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true
+                                    }
+                                  },
+                                  "requests": {
+                                    "type": "object",
+                                    "description": "cpu, memory, gpu tags, etc.",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true
+                                    }
+                                  }
+                                }
                               }
                             },
                             "environments": {
@@ -8421,12 +8487,9 @@
                               "name": {
                                 "type": "string",
                                 "description": "volume name"
-                              },
-                              "additionalProperties": {
-                                "type": "string",
-                                "description": "emptyDir, configmap, etc."
                               }
                             },
+                            "additionalProperties": true,
                             "required": [
                               "name"
                             ]
@@ -8451,6 +8514,31 @@
                               "name",
                               "mountPath"
                             ]
+                          }
+                        },
+                        "resourceRequests": {
+                          "type": "object",
+                          "description": "limits and requests",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "limits": {
+                                "type": "object",
+                                "description": "cpu, memory, gpu tags, etc.",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                }
+                              },
+                              "requests": {
+                                "type": "object",
+                                "description": "cpu, memory, gpu tags, etc.",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                }
+                              }
+                            }
                           }
                         },
                         "environments": {
@@ -8894,12 +8982,9 @@
                               "name": {
                                 "type": "string",
                                 "description": "volume name"
-                              },
-                              "additionalProperties": {
-                                "type": "string",
-                                "description": "emptyDir, configmap, etc."
                               }
                             },
+                            "additionalProperties": true,
                             "required": [
                               "name"
                             ]
@@ -8924,6 +9009,31 @@
                               "name",
                               "mountPath"
                             ]
+                          }
+                        },
+                        "resourceRequests": {
+                          "type": "object",
+                          "description": "limits and requests",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "limits": {
+                                "type": "object",
+                                "description": "cpu, memory, gpu tags, etc.",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                }
+                              },
+                              "requests": {
+                                "type": "object",
+                                "description": "cpu, memory, gpu tags, etc.",
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": true
+                                }
+                              }
+                            }
                           }
                         },
                         "environments": {
@@ -9353,12 +9463,9 @@
                                   "name": {
                                     "type": "string",
                                     "description": "volume name"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string",
-                                    "description": "emptyDir, configmap, etc."
                                   }
                                 },
+                                "additionalProperties": true,
                                 "required": [
                                   "name"
                                 ]
@@ -9383,6 +9490,31 @@
                                   "name",
                                   "mountPath"
                                 ]
+                              }
+                            },
+                            "resourceRequests": {
+                              "type": "object",
+                              "description": "limits and requests",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "limits": {
+                                    "type": "object",
+                                    "description": "cpu, memory, gpu tags, etc.",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true
+                                    }
+                                  },
+                                  "requests": {
+                                    "type": "object",
+                                    "description": "cpu, memory, gpu tags, etc.",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true
+                                    }
+                                  }
+                                }
                               }
                             },
                             "environments": {
@@ -9776,12 +9908,9 @@
                                     "name": {
                                       "type": "string",
                                       "description": "volume name"
-                                    },
-                                    "additionalProperties": {
-                                      "type": "string",
-                                      "description": "emptyDir, configmap, etc."
                                     }
                                   },
+                                  "additionalProperties": true,
                                   "required": [
                                     "name"
                                   ]
@@ -9806,6 +9935,31 @@
                                     "name",
                                     "mountPath"
                                   ]
+                                }
+                              },
+                              "resourceRequests": {
+                                "type": "object",
+                                "description": "limits and requests",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "limits": {
+                                      "type": "object",
+                                      "description": "cpu, memory, gpu tags, etc.",
+                                      "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                      }
+                                    },
+                                    "requests": {
+                                      "type": "object",
+                                      "description": "cpu, memory, gpu tags, etc.",
+                                      "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                      }
+                                    }
+                                  }
                                 }
                               },
                               "environments": {
@@ -16513,12 +16667,9 @@
                                   "name": {
                                     "type": "string",
                                     "description": "volume name"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string",
-                                    "description": "emptyDir, configmap, etc."
                                   }
                                 },
+                                "additionalProperties": true,
                                 "required": [
                                   "name"
                                 ]
@@ -16543,6 +16694,31 @@
                                   "name",
                                   "mountPath"
                                 ]
+                              }
+                            },
+                            "resourceRequests": {
+                              "type": "object",
+                              "description": "limits and requests",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "limits": {
+                                    "type": "object",
+                                    "description": "cpu, memory, gpu tags, etc.",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true
+                                    }
+                                  },
+                                  "requests": {
+                                    "type": "object",
+                                    "description": "cpu, memory, gpu tags, etc.",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true
+                                    }
+                                  }
+                                }
                               }
                             },
                             "environments": {
@@ -16999,12 +17175,9 @@
                                   "name": {
                                     "type": "string",
                                     "description": "volume name"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string",
-                                    "description": "emptyDir, configmap, etc."
                                   }
                                 },
+                                "additionalProperties": true,
                                 "required": [
                                   "name"
                                 ]
@@ -17029,6 +17202,31 @@
                                   "name",
                                   "mountPath"
                                 ]
+                              }
+                            },
+                            "resourceRequests": {
+                              "type": "object",
+                              "description": "limits and requests",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "limits": {
+                                    "type": "object",
+                                    "description": "cpu, memory, gpu tags, etc.",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true
+                                    }
+                                  },
+                                  "requests": {
+                                    "type": "object",
+                                    "description": "cpu, memory, gpu tags, etc.",
+                                    "items": {
+                                      "type": "object",
+                                      "additionalProperties": true
+                                    }
+                                  }
+                                }
                               }
                             },
                             "environments": {
@@ -20115,12 +20313,9 @@
                       "name": {
                         "type": "string",
                         "description": "volume name"
-                      },
-                      "additionalProperties": {
-                        "type": "string",
-                        "description": "emptyDir, configmap, etc."
                       }
                     },
+                    "additionalProperties": true,
                     "required": [
                       "name"
                     ]
@@ -20145,6 +20340,31 @@
                       "name",
                       "mountPath"
                     ]
+                  }
+                },
+                "resourceRequests": {
+                  "type": "object",
+                  "description": "limits and requests",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "limits": {
+                        "type": "object",
+                        "description": "cpu, memory, gpu tags, etc.",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": true
+                        }
+                      },
+                      "requests": {
+                        "type": "object",
+                        "description": "cpu, memory, gpu tags, etc.",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": true
+                        }
+                      }
+                    }
                   }
                 },
                 "environments": {
@@ -20688,12 +20908,9 @@
                           "name": {
                             "type": "string",
                             "description": "volume name"
-                          },
-                          "additionalProperties": {
-                            "type": "string",
-                            "description": "emptyDir, configmap, etc."
                           }
                         },
+                        "additionalProperties": true,
                         "required": [
                           "name"
                         ]
@@ -20718,6 +20935,31 @@
                           "name",
                           "mountPath"
                         ]
+                      }
+                    },
+                    "resourceRequests": {
+                      "type": "object",
+                      "description": "limits and requests",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "limits": {
+                            "type": "object",
+                            "description": "cpu, memory, gpu tags, etc.",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": true
+                            }
+                          },
+                          "requests": {
+                            "type": "object",
+                            "description": "cpu, memory, gpu tags, etc.",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": true
+                            }
+                          }
+                        }
                       }
                     },
                     "environments": {
@@ -20856,12 +21098,9 @@
                 "name": {
                   "type": "string",
                   "description": "volume name"
-                },
-                "additionalProperties": {
-                  "type": "string",
-                  "description": "emptyDir, configmap, etc."
                 }
               },
+              "additionalProperties": true,
               "required": [
                 "name"
               ]
@@ -20886,6 +21125,31 @@
                 "name",
                 "mountPath"
               ]
+            }
+          },
+          "resourceRequests": {
+            "type": "object",
+            "description": "limits and requests",
+            "items": {
+              "type": "object",
+              "properties": {
+                "limits": {
+                  "type": "object",
+                  "description": "cpu, memory, gpu tags, etc.",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "requests": {
+                  "type": "object",
+                  "description": "cpu, memory, gpu tags, etc.",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
             }
           },
           "environments": {
@@ -20968,15 +21232,41 @@
           "name": {
             "type": "string",
             "description": "volume name"
-          },
-          "additionalProperties": {
-            "type": "string",
-            "description": "emptyDir, configmap, etc."
           }
         },
+        "additionalProperties": true,
         "required": [
           "name"
         ]
+      },
+      "sidecarResourceRequests": {
+        "type": "object",
+        "properties": {
+          "limits": {
+            "type": "object",
+            "description": "cpu, memory, gpu tags, etc.",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "requests": {
+            "type": "object",
+            "description": "cpu, memory, gpu tags, etc.",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "sidecarLimits": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "sidecarRequests": {
+        "type": "object",
+        "additionalProperties": true
       },
       "createBoardRequest": {
         "type": "object",

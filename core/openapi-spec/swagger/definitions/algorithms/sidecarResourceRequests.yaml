@@ -1,0 +1,12 @@
+type: object
+properties:
+  limits:
+    type: object
+    description: cpu, memory, gpu tags, etc.
+    items:
+      $ref: "#/components/schemas/sidecarLimits"
+  requests:
+    type: object
+    description: cpu, memory, gpu tags, etc.
+    items:
+      $ref: "#/components/schemas/sidecarRequests"
