@@ -7027,7 +7027,7 @@
                           "container": [
                             {
                               "name": "c1",
-                              "image": "hkube/my-image\""
+                              "image": "hkube/my-image"
                             }
                           ],
                           "volumes": [
@@ -7685,7 +7685,7 @@
                             "container": [
                               {
                                 "name": "c1",
-                                "image": "hkube/my-image\""
+                                "image": "hkube/my-image"
                               }
                             ],
                             "volumes": [
@@ -8149,7 +8149,7 @@
                             "container": [
                               {
                                 "name": "c1",
-                                "image": "hkube/my-image\""
+                                "image": "hkube/my-image"
                               }
                             ],
                             "volumes": [
@@ -8598,7 +8598,7 @@
                         "container": [
                           {
                             "name": "c1",
-                            "image": "hkube/my-image\""
+                            "image": "hkube/my-image"
                           }
                         ],
                         "volumes": [
@@ -9102,7 +9102,7 @@
                         "container": [
                           {
                             "name": "c1",
-                            "image": "hkube/my-image\""
+                            "image": "hkube/my-image"
                           }
                         ],
                         "volumes": [
@@ -9592,7 +9592,7 @@
                             "container": [
                               {
                                 "name": "c1",
-                                "image": "hkube/my-image\""
+                                "image": "hkube/my-image"
                               }
                             ],
                             "volumes": [
@@ -10046,7 +10046,7 @@
                               "container": [
                                 {
                                   "name": "c1",
-                                  "image": "hkube/my-image\""
+                                  "image": "hkube/my-image"
                                 }
                               ],
                               "volumes": [
@@ -16814,7 +16814,7 @@
                             "container": [
                               {
                                 "name": "c1",
-                                "image": "hkube/my-image\""
+                                "image": "hkube/my-image"
                               }
                             ],
                             "volumes": [
@@ -17331,7 +17331,7 @@
                             "container": [
                               {
                                 "name": "c1",
-                                "image": "hkube/my-image\""
+                                "image": "hkube/my-image"
                               }
                             ],
                             "volumes": [
@@ -20478,7 +20478,7 @@
                 "container": [
                   {
                     "name": "c1",
-                    "image": "hkube/my-image\""
+                    "image": "hkube/my-image"
                   }
                 ],
                 "volumes": [
@@ -21082,7 +21082,7 @@
                     "container": [
                       {
                         "name": "c1",
-                        "image": "hkube/my-image\""
+                        "image": "hkube/my-image"
                       }
                     ],
                     "volumes": [

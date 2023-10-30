@@ -170,6 +170,6 @@ properties:
     items:
       $ref: "#/components/schemas/sideCars"
     uniqueItems: true
-    example: [{"name":"my-sidecar","container":[{"name":"c1","image":hkube/my-image"}],"volumes":[{"name":"v1","emptyDir":{}}],"volumeMounts":[{"name":"v2","mountPath":"/tmp/foo"}],"resourceRequests":{"limits":{"cpu":"200m","nvidia.com/gpu":1},"requests":{"cpu":"100m"}},"environments":[{"name":"env1","value":"val1"}]}]
+    example: [{"name":"my-sidecar","container":[{"name":"c1","image":"hkube/my-image"}],"volumes":[{"name":"v1","emptyDir":{}}],"volumeMounts":[{"name":"v2","mountPath":"/tmp/foo"}],"resourceRequests":{"limits":{"cpu":"200m","nvidia.com/gpu":1},"requests":{"cpu":"100m"}},"environments":[{"name":"env1","value":"val1"}]}]
 required:
   - name
