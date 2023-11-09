@@ -181,8 +181,7 @@ searchJobsResponse:
   $ref: ./exec/searchJobsResponse.yaml
 rerun:
   $ref: ./exec/rerun.yaml
-graphPreview:
-  $ref: ./exec/graphPreview.yaml
+
 # experiment
 experiment:
   $ref: ./experiment/experiment.yaml
@@ -224,6 +223,8 @@ graphResponse:
   $ref: ./graph/graphResponse.yaml
 graphPreviewResponse:
   $ref: ./graph/graphPreviewResponse.yaml
+graphPreview:
+  $ref: ./graph/graphPreview.yaml
 
 # pipelines
 options:

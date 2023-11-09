@@ -1,8 +1,8 @@
 post:
   tags:
-    - Execution
+    - StorePipelines
   summary: Get graph to preview
-  description: get graph to preview by stream flow, only pipeline type streaming
+  description: get graph to preview
   requestBody:
     content:
       application/json:

@@ -60,10 +60,6 @@ class ExecutionService {
         return this._runPipeline({ pipeline: job.userPipeline, types, options: { validateNodes: false } });
     }
 
-    async getGraphByStreamingFlow(options) {
-        return this._getGraphByStreamingFlow({ pipeline: options.pipeline, keyFlow: options.keyFlow, isBuildAllFlows: options.isBuildAllFlows });
-    }
-
     async runAlgorithm(options) {
         validator.executions.validateExecAlgorithmRequest(options);
         const { name, input, debug } = options;

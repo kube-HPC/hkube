@@ -31,8 +31,6 @@
   $ref: ./exec/tree.yaml
 /exec/flowInput/{jobId}:
   $ref: ./exec/flowInput.yaml  
-/exec/getGraphByStreamingFlow:
-  $ref: ./exec/getGraphByStreamingFlow.yaml
   
 # pipelines
 /pipelines/results:
@@ -91,6 +89,8 @@
   $ref: ./store/pipelines_name.yaml
 /store/pipelines/graph/{name}:
   $ref: ./store/pipeline_graph.yaml  
+/store/pipelines/graph:
+  $ref: ./store/pipeline_graph_object.yaml 
 /store/pipelines:
   $ref: ./store/pipelines.yaml
 
