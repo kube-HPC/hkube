@@ -86,7 +86,7 @@ class PipelineService {
         let pipeline = null;
         let response = null;
 
-        if (payload.name !== null) {
+        if (payload.name) {
             validator.pipelines.validatePipelineName(payload.name);
             pipeline = await stateManager.getPipeline(payload.pipeline);
             if (!pipeline) {
