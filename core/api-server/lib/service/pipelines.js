@@ -86,11 +86,10 @@ class PipelineService {
         let pipeline = null;
         let response = null;
         let keyFlow = null;
-        let isBuildAllFlows = null;
+        let isBuildAllFlows = false;
         if (payload.name) {
             validator.pipelines.validatePipelineName(payload.name);
             pipeline = await stateManager.getPipeline(payload.name);
-            isBuildAllFlows = true;
             if (!pipeline) {
                 throw new ResourceNotFoundError('pipeline', payload.name);
             }
