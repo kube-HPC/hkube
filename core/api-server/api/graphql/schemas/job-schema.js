@@ -81,6 +81,7 @@ type  Batch {
       algorithmName: String
       input:[Object]
       kind: String
+      stateType: String
   }
 
   type BatchInfo {
