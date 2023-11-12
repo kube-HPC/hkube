@@ -88,7 +88,7 @@ class PipelineService {
 
         if (payload.name) {
             validator.pipelines.validatePipelineName(payload.name);
-            pipeline = await stateManager.getPipeline(payload.pipeline);
+            pipeline = await stateManager.getPipeline(payload.name);
             if (!pipeline) {
                 throw new ResourceNotFoundError('pipeline', payload.name);
             }
