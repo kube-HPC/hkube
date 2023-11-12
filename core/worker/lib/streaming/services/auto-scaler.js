@@ -256,6 +256,7 @@ class AutoScaler {
         // scale down based on stop streaming
         else if (idleScaleDown.scale && currentSize > 0 && canScaleDown) {
             required = 0;
+            required = this._capScaleByLimits(required, this._limitActionType.minStateless);
         }
         // scale down based on rate
         else if (!idleScaleDown.scale && currentSize > requiredByDuration && canScaleDown) {
