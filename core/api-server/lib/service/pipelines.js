@@ -85,20 +85,24 @@ class PipelineService {
     async getGraphByKindOrName(payload) {
         let pipeline = null;
         let response = null;
-
+        let keyFlow = null;
+        let isBuildAllFlows = null;
         if (payload.name) {
             validator.pipelines.validatePipelineName(payload.name);
             pipeline = await stateManager.getPipeline(payload.name);
+            isBuildAllFlows = true;
             if (!pipeline) {
                 throw new ResourceNotFoundError('pipeline', payload.name);
             }
         }
         else {
             pipeline = payload.pipeline;
+            keyFlow = payload.keyFlow;
+            isBuildAllFlows = payload.isBuildAllFlows;
         }
 
-        if (payload.pipeline.kind === 'stream') {
-            response = await this.getGraphByStreamingFlow({ pipeline, keyFlow: payload.keyFlow, isBuildAllFlows: payload.isBuildAllFlows });
+        if (pipeline.kind === 'stream') {
+            response = await this.getGraphByStreamingFlow({ pipeline, keyFlow, isBuildAllFlows });
         }
         else {
             response = await this.getPipelineGraph(pipeline);
