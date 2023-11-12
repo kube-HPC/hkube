@@ -56,6 +56,7 @@ type  Batch {
     podName: String
     status: String
     startTime: Float
+    stateType:String
     endTime: Float
     batchOperation:String
     ttl:Int
@@ -80,6 +81,7 @@ type  Batch {
       algorithmName: String
       input:[Object]
       kind: String
+      stateType: String
   }
 
   type BatchInfo {

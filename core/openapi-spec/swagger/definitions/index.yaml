@@ -221,6 +221,10 @@ graphQuery:
   $ref: ./graph/graphQuery.yaml
 graphResponse:
   $ref: ./graph/graphResponse.yaml
+graphPreviewResponse:
+  $ref: ./graph/graphPreviewResponse.yaml
+graphPreview:
+  $ref: ./graph/graphPreview.yaml
 
 # pipelines
 options:

@@ -26,9 +26,20 @@ const routes = (option) => {
 
     router.get('/pipelines/graph/:name', async (req, res) => {
         const { name } = req.params;
-        const response = await pipelineStore.getPipelineGraph({ name });
+        req.body.name = name;
+        const response = await pipelineStore.getGraphByKindOrName(req.body);
         res.json(response);
     });
+
+    router.post('/pipelines/graph', async (req, res) => {
+        const response = await pipelineStore.getGraphByKindOrName(req.body);
+        res.json(response);
+    });
+
+    /*  router.post('/pipelines/graph', async (req, res) => {
+        const response = await pipelineStore.getPipelineGraph({ name: null, pipeline: req.body.pipeline });
+        res.json(response);
+    }); */
 
     router.post('/pipelines', async (req, res) => {
         if (Array.isArray(req.body)) {
