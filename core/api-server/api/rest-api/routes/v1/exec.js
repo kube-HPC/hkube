@@ -36,6 +36,10 @@ const routes = (options) => {
         const { jobId, gateways } = await Execution.rerun(req.body);
         res.json({ jobId, gateways });
     });
+    router.post('/getGraphByStreamingFlow', async (req, res) => {
+        const { nodes, edges } = await Execution.getGraphByStreamingFlow(req.body);
+        res.json({ nodes, edges });
+    });
     router.post('/stop', async (req, res) => {
         const { jobId, pipelineName, startTime } = req.body;
         let datesRange;

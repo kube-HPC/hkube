@@ -54,18 +54,60 @@ class PipelineService {
         return pipeline;
     }
 
-    async getPipelineGraph(options) {
-        validator.pipelines.validatePipelineName(options.name);
-        const pipeline = await stateManager.getPipeline(options);
-        if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', options.name);
-        }
-        const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
+    async getGraphByStreamingFlow(payload) {
+        let extendedPipeline = payload.pipeline;
 
+        // eslint-disable-next-line no-useless-catch
+        try {
+            extendedPipeline = await pipelineCreator.buildStreamingFlowGraph(payload);
+
+            const modifiedEdges = extendedPipeline.edges.map((obj) => ({
+                from: obj.source,
+                to: obj.target,
+            }));
+
+            extendedPipeline.edges = modifiedEdges;
+            return extendedPipeline;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+
+    async getPipelineGraph(pipeline) {
+        const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
         const extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(restPipeline);
         const nodes = new NodesMap(extendedPipeline, { validateNodesRelations: true });
         const graph = nodes.getJSONGraph();
         return graphBuilder._filterData(graph);
+    }
+
+    async getGraphByKindOrName(payload) {
+        let pipeline = null;
+        let response = null;
+        let keyFlow = null;
+        let isBuildAllFlows = false;
+        if (payload.name) {
+            validator.pipelines.validatePipelineName(payload.name);
+            pipeline = await stateManager.getPipeline(payload.name);
+            if (!pipeline) {
+                throw new ResourceNotFoundError('pipeline', payload.name);
+            }
+        }
+        else {
+            pipeline = payload.pipeline;
+            keyFlow = payload.keyFlow;
+            isBuildAllFlows = payload.isBuildAllFlows;
+        }
+
+        if (pipeline.kind === 'stream') {
+            response = await this.getGraphByStreamingFlow({ pipeline, keyFlow, isBuildAllFlows });
+        }
+        else {
+            response = await this.getPipelineGraph(pipeline);
+        }
+
+        return response;
     }
 
     async getPipelines() {
