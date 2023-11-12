@@ -146,6 +146,26 @@ class ExecutionService {
         }
     }
 
+    async _getGraphByStreamingFlow(payload) {
+        let extendedPipeline = payload.pipeline;
+
+        // eslint-disable-next-line no-useless-catch
+        try {
+            extendedPipeline = await pipelineCreator.buildStreamingFlowGraph(payload);
+
+            const modifiedEdges = extendedPipeline.edges.map((obj) => ({
+                from: obj.source,
+                to: obj.target,
+            }));
+
+            extendedPipeline.edges = modifiedEdges;
+            return extendedPipeline;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+
     async search(options) {
         validator.executions.validateSearch(options);
         return stateManager.searchJobsAPI(options);

@@ -43,15 +43,16 @@ const query = gql`{
           status
           startTime
           endTime
+          stateType
           level
           batch {
-          taskId
-          podName
-          status
-          batchIndex
-          startTime
-          endTime
-        }
+              taskId
+              podName
+              status
+              batchIndex
+              startTime
+              endTime
+          }
           boards
           output {
             taskId
