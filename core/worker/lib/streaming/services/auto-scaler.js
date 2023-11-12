@@ -255,6 +255,7 @@ class AutoScaler {
 
         // scale down based on stop streaming
         else if (idleScaleDown.scale && currentSize > 0 && canScaleDown) {
+            log.info(`scaling down from idleScaleDown - ${idleScaleDown.scale}`, { component });
             required = 0;
         }
         // scale down based on rate
@@ -266,6 +267,7 @@ class AutoScaler {
             }
         }
         if (required !== null) {
+            log.info(`scaling down from last 'if required' - ${required}`, { component });
             this._scaler.updateRequired(required);
         }
         return result;
