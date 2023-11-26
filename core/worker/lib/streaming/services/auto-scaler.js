@@ -218,6 +218,7 @@ class AutoScaler {
 
     _scalingInterventionLog(action, required, allowed, customMessage = '') {
         const currentTime = Date.now();
+        let sizeMessage = '';
         // Log-spam prevention
         if (this._interventionLogCallTrack.timeStamp) {
             if (this._interventionLogCallTrack.action === action
@@ -230,7 +231,9 @@ class AutoScaler {
         }
         this._interventionLogCallTrack = { timeStamp: currentTime, action, required, allowed };
         if (action === this._limitActionType.both) {
-            log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required}. ${customMessage}`, { component });
+            if (allowed?.size?.min) sizeMessage += `min-${allowed.size.min},`;
+            if (allowed?.size?.max) sizeMessage += `max-${allowed.size.max},`;
+            log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required}. ${sizeMessage} ${customMessage}`, { component });
             return;
         } // custom message for first intervention that handles required in both limits.
         log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type}:${allowed.size}. ${customMessage}`, { component });
@@ -279,6 +282,7 @@ class AutoScaler {
     _capScaleByLimits(required, type, customMessage = '') {
         // eslint-disable-next-line no-unused-vars
         let decision = required;
+        const sizes = {};
         if (type === this._limitActionType.maxStateless && this._statelessCountLimits.maxStateless) {
             if (required > this._statelessCountLimits.maxStateless) {
                 this._scalingInterventionLog('up', required, { type: this._limitActionType.maxStateless, size: this._statelessCountLimits.maxStateless }, customMessage);
@@ -292,9 +296,15 @@ class AutoScaler {
             }
         }
         else if (type === this._limitActionType.both) {
-            if (this._statelessCountLimits.minStateless) decision = Math.max(decision, this._statelessCountLimits.minStateless);
-            if (this._statelessCountLimits.maxStateless) decision = Math.min(decision, this._statelessCountLimits.maxStateless);
-            this._scalingInterventionLog(this._limitActionType.both, required, { type: this._limitActionType.both, size: undefined }, customMessage);
+            if (this._statelessCountLimits.minStateless) {
+                decision = Math.max(decision, this._statelessCountLimits.minStateless);
+                sizes.min = this._statelessCountLimits.minStateless;
+            }
+            if (this._statelessCountLimits.maxStateless) {
+                decision = Math.min(decision, this._statelessCountLimits.maxStateless);
+                sizes.max = this._statelessCountLimits.maxStateless;
+            }
+            this._scalingInterventionLog(this._limitActionType.both, required, { type: this._limitActionType.both, size: sizes }, customMessage);
         } // Govern both limits
         return decision;
     }

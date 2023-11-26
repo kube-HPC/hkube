@@ -56,7 +56,8 @@ const pipeline = {
             algorithmName: "eval-alg",
             input: [],
             stateType: "stateless",
-            maxStatelessCount: 3
+            maxStatelessCount: 3,
+            minStatelessCount: 1
         }
     ],
     edges: [
@@ -647,7 +648,7 @@ describe('Streaming', () => {
             streamService.reportStats(data);
             streamService.reportStats(data);
             streamService.reportStats(data);
-            streamService.reportStats(data);
+            streamService.reportStats(data)
             streamService.reportStats(data);
             streamService.reportStats(data);
             let masters = getMasters();
