@@ -648,7 +648,7 @@ describe('Streaming', () => {
             streamService.reportStats(data);
             streamService.reportStats(data);
             streamService.reportStats(data);
-            streamService.reportStats(data)
+            streamService.reportStats(data);
             streamService.reportStats(data);
             streamService.reportStats(data);
             let masters = getMasters();
