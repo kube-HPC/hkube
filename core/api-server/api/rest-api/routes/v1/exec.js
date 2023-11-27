@@ -41,7 +41,7 @@ const routes = (options) => {
         res.json({ nodes, edges });
     });
     router.post('/stop', async (req, res) => {
-        const { jobId, pipelineName, startTime } = req.body;
+        const { jobId, pipelineName, startTime, reason } = req.body;
         let datesRange;
         let search;
         let errormsg;
@@ -56,7 +56,7 @@ const routes = (options) => {
             search.query.pipelineName = jobId;
         }
         const searchResponse = await Execution.search({ ...search });
-        const jobsToStop = searchResponse.hits.filter(j => j.status.status === 'active' || j.status.status === 'pending');
+        const jobsToStop = searchResponse.hits.filter(j => j.status.status === 'active' || j.status.status === 'pending' || j.status.status === 'pause');
         if (jobsToStop.length === 0) {
             if (jobId) {
                 errormsg = `jobId ${jobId} Not Found`;
@@ -78,7 +78,7 @@ const routes = (options) => {
             });
         }
         await Promise.all(jobsToStop.map(async job => {
-            await Execution.stopJob({ job });
+            await Execution.stopJob({ job, reason });
         }));
         return res.json({ message: 'OK' });
     });
