@@ -1,4 +1,5 @@
 const RestServer = require('@hkube/rest-server');
+const { pipelineStatuses } = require('@hkube/consts');
 const Execution = require('../../../../lib/service/execution');
 const methods = require('../../middlewares/methods');
 const formatter = require('../../../../lib/utils/formatters');
@@ -56,7 +57,7 @@ const routes = (options) => {
             search.query.pipelineName = jobId;
         }
         const searchResponse = await Execution.search({ ...search });
-        const jobsToStop = searchResponse.hits.filter(j => j.status.status === 'active' || j.status.status === 'pending' || j.status.status === 'pause');
+        const jobsToStop = searchResponse.hits.filter(j => j.status.status === pipelineStatuses.ACTIVE || j.status.status === pipelineStatuses.PENDING || j.status.status === pipelineStatuses.PAUSED);
         if (jobsToStop.length === 0) {
             if (jobId) {
                 errormsg = `jobId ${jobId} Not Found`;
