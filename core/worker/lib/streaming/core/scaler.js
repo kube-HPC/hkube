@@ -39,6 +39,7 @@ class Scaler {
         this._scale = false;
         this._status = SCALE_STATUS.IDLE;
         this._startInterval();
+        this._minStatelessCount = minStatelessCount;
     }
 
     stop() {
@@ -139,7 +140,11 @@ class Scaler {
 
     _shouldScaleDown(currentSize) {
         let shouldScaleDown = false;
-        if (currentSize > this._required
+        let limitScaleDown = false;
+        if ((this.minStatelessCount > 0)) {
+            limitScaleDown = (this._minStatelessCount >= this._required);
+        }
+        if (currentSize > this._required && !limitScaleDown
             && (!this._lastScaleUpTime || Date.now() - this._lastScaleUpTime > this._minTimeBetweenScales)) {
             if (this._desired >= currentSize) {
                 shouldScaleDown = true;
