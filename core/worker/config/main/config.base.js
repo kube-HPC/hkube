@@ -45,7 +45,7 @@ config.streaming = {
             minTimeQueueEmptyBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_QUEUE_EMPTY, 60000),
         },
         scaleIntervention: {
-            throttleMs : process.env.SCALE_INTERVENTION_LOG_THROTTLE_TIME || 200
+            throttleMs : formatters.parseInt(process.env.SCALE_INTERVENTION_LOG_THROTTLE_TIME, 200)
         }
     },
     election: {

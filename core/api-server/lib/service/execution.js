@@ -282,8 +282,8 @@ class ExecutionService {
     }
 
     async stopJob(options) {
-        let { jobId } = options;
-        const { reason } = 'stopped due to request';
+        let { jobId, reason } = options;
+        reason = reason || 'stopped due to request';
         let pipeline;
         let status;
         let result;
