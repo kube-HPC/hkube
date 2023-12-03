@@ -368,7 +368,7 @@ class AutoScaler {
         const result = parser.parse(parse);
         for (let i = 0; i < replicas; i += 1) {
             const taskId = producer.createTaskID();
-            const task = { taskId, input: result.input, storage: result.storage, batchIndex: i + 1 };
+            const task = { taskId, input: result.input, storage: result.storage, batchIndex: (i + 1) + 1 };
             tasks.push(task);
         }
         const job = {
