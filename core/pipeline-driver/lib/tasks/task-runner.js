@@ -657,7 +657,8 @@ class TaskRunner {
                 ...nodeStateless,
                 status: taskStatuses.CREATING,
                 storage: options.storage,
-                input: options.input
+                input: options.input,
+                statelessIndex: i + 1
             });
             this._nodes.setNode(stateless);
             this._setTaskState(stateless);
