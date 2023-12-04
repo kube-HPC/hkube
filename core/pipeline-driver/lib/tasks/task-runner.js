@@ -844,10 +844,6 @@ class TaskRunner {
             if (status === taskStatuses.ACTIVE) {
                 this._nodes.addTaskToBatch(task);
             }
-            // else {
-            //     this._nodes.removeTaskFromBatch(task);
-            //     taskRemoved = true;
-            // }
         }
         if (!taskRemoved) {
             this._updateTaskState(taskId, task);
