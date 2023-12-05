@@ -237,14 +237,14 @@ class TaskRunner {
         }
         this._active = false;
         try {
-            if (this._pipeline && this._pipeline?.lastRunResult?.status === pipelineStatuses.STOPPED) {
-                const nodes = this._nodes?._getNodesAsFlat();
-                nodes?.forEach((n) => {
-                    if (activeTaskStates.includes(n.status)) {
-                        n.status = pipelineStatuses.STOPPED;
-                    }
-                });
-            }
+            // if (this._pipeline && this._pipeline?.lastRunResult?.status === pipelineStatuses.STOPPED) {
+            //     const nodes = this._nodes?._getNodesAsFlat();
+            //     nodes?.forEach((n) => {
+            //         if (activeTaskStates.includes(n.status)) {
+            //             n.status = pipelineStatuses.STOPPED;
+            //         }
+            //     });
+            // }
             if (shouldStop) {
                 await this._stopPipeline(error, nodeName);
             }
@@ -259,7 +259,7 @@ class TaskRunner {
             if (shouldDeleteTasks) {
                 await this._deleteTasks();
             }
-            await this._unWatchJob();
+            // await this._unWatchJob();
             await this._deleteStreamingStats();
             await this._cleanJob(error);
         }
