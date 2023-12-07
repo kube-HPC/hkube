@@ -121,6 +121,10 @@ class StateAdapter extends EventEmitter {
         }
     }
 
+    async updateEtcdTask({ jobId, taskId, status, error, retries }) {
+        return this._etcd.jobs.tasks.update({ jobId, taskId, status, error, retries });
+    }
+
     /**
      * This method watch for job result changes.
      * In case the watch already has job result, we are emit an event
