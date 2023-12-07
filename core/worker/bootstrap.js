@@ -9,6 +9,7 @@ const monitor = require('@hkube/redis-utils').Monitor;
 const storageManager = require('@hkube/storage-manager');
 const component = require('./lib/consts').Components.MAIN;
 const worker = require('./lib/worker');
+const { STALLED } = require('@hkube/consts/lib/pipeline-statuses');
 
 const modules = [
     require('./lib/metrics/metrics.js'),
@@ -37,7 +38,13 @@ class Bootstrap {
             monitor.on('ready', (data) => {
                 log.info((data.message).green, { component });
             });
-            monitor.on('close', (data) => {
+            monitor.on('close', async (data) => {
+                const jobConsumer = require('./lib/consumer/JobConsumer.js');
+                if (jobConsumer._taskId) {
+                    const error = data.error.message;
+
+                    etcd.updateTask({ jobId: jobConsumer._jobId, taskId: jobConsumer._taskId, STALLED, error, retries: 0 });
+                }
                 log.error(data.error.message, { component });
                 worker.handleExit(1);
             });
