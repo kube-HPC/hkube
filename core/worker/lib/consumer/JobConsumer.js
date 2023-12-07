@@ -313,6 +313,8 @@ class JobConsumer extends EventEmitter {
         if (!this._jobId) {
             return null;
         }
+        const { status } = data;
+        log.info(`updateing status to ${status}`);
         return stateAdapter.updateTask({ ...this._getState(), ...data });
     }
 

@@ -43,7 +43,8 @@ class Bootstrap {
                 if (jobConsumer._taskId) {
                     const error = data.error.message;
                     const stateAdapter = require('./lib/states/stateAdapter.js');
-                    stateAdapter.updateEtcdTask({ jobId: jobConsumer._jobId, taskId: jobConsumer._taskId, STALLED, error, retries: 0 });
+                    log.info("update to stalled");
+                    stateAdapter.updateEtcdTask({ jobId: jobConsumer._jobId, taskId: jobConsumer._taskId, status: STALLED, error, retries: 0 });
                 }
                 log.error(data.error.message, { component });
                 worker.handleExit(1);
