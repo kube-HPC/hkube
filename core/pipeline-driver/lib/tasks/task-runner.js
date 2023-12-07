@@ -359,16 +359,21 @@ class TaskRunner {
         graph.edges.forEach((e) => {
             this._nodes.setEdge(e.from, e.to, e.value);
         });
-        graph.nodes.forEach((n) => {
+        graph.nodes.forEach(async (n) => {
             const pNode = this.pipeline.nodes.find(p => p.nodeName === n.nodeName);
+            let task = await stateManager._etcd.jobs.tasks.get({ jobId: this._jobId, taskId: n.taskId });
+            n.status = task?.status || n.status;
             const node = {
                 ...n,
                 ...pNode,
                 batch: n.batch || [],
                 input: n.input,
-                result: n.output
+                result: n.output,
+                status: n.status
             };
             node.batch.forEach(b => {
+                task = stateManager._etcd.jobs.tasks.get({ jobId: this._jobId, taskId: b.taskId });
+                b.status = task?.status || b.status;
                 b.result = b.output;
             });
             this._nodes._graph.setNode(node.nodeName, node);
@@ -732,11 +737,13 @@ class TaskRunner {
         Object.entries(streamingEdgeMetricToPropMap).forEach(([key, val]) => {
             if ((metric[val.propName] !== 0) || val.registerZeroValue) {
                 pipelineMetrics.setStreamingEdgeGaugeMetric(
-                    { value: metric[val.propName],
+                    {
+                        value: metric[val.propName],
                         pipelineName: this._pipeline.name,
                         jobId: this._pipeline.jobId,
                         source: metric.source,
-                        target: metric.target },
+                        target: metric.target
+                    },
                     key
                 );
             }
@@ -748,10 +755,12 @@ class TaskRunner {
             isStateless = targetNode[0].stateType === 'stateless';
             if (isStateless && ((metric[val.propName] !== 0) || val.registerZeroValue)) {
                 pipelineMetrics.setStreamingGeneralMetric(
-                    { value: metric[val.propName],
+                    {
+                        value: metric[val.propName],
                         pipelineName: this._pipeline.name,
                         jobId: this._pipeline.jobId,
-                        node: metric.target },
+                        node: metric.target
+                    },
                     key
                 );
             }
