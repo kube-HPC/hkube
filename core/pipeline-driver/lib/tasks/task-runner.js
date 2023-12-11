@@ -257,7 +257,7 @@ class TaskRunner {
         }
         finally {
             if (shouldDeleteTasks) {
-                await this._deleteTasks();
+                // await this._deleteTasks();
             }
             // await this._unWatchJob();
             await this._deleteStreamingStats();
