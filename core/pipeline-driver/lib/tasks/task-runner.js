@@ -248,6 +248,8 @@ class TaskRunner {
             log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
         }
         finally {
+            let tasks = stateManager.getTasks({ jobId: this._jobId });
+            tasks.forEach(t => this.handleTaskEvent(t));
             if (shouldDeleteTasks) {
                 await this._deleteTasks();
             }

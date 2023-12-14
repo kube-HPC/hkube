@@ -244,7 +244,7 @@ class StateManager {
     }
 
     async setJobStatus(options) {
-        return this._etcd.jobs.status.update(options, async (oldItem) => {
+        return (options, async (oldItem) => {
             if (this._isActiveStatus(oldItem.status)) {
                 const data = { ...oldItem, ...options };
                 await db.updateStatus(data, true);
@@ -255,6 +255,18 @@ class StateManager {
             log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
             this._exitOnEtcdProblem(e);
         });
+    }
+
+    async getTasks(options) {
+        let error;
+        try {
+            return this._etcd.jobs.tasks.get({ options });
+        }
+        catch (e) {
+            error = e.message;
+            this._exitOnEtcdProblem(e);
+        }
+        return error;
     }
 
     calcTimeTook({ activeTime, startTime } = {}) {
