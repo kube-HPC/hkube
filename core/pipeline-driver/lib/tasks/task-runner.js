@@ -659,7 +659,8 @@ class TaskRunner {
                 ...nodeStateless,
                 status: taskStatuses.CREATING,
                 storage: options.storage,
-                input: options.input
+                input: options.input,
+                statelessIndex: i + 1
             });
             this._nodes.setNode(stateless);
             this._setTaskState(stateless);
@@ -844,10 +845,6 @@ class TaskRunner {
         else if (isScaled) {
             if (status === taskStatuses.ACTIVE) {
                 this._nodes.addTaskToBatch(task);
-            }
-            else {
-                this._nodes.removeTaskFromBatch(task);
-                taskRemoved = true;
             }
         }
         if (!taskRemoved) {
