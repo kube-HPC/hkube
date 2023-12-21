@@ -105,6 +105,13 @@ config.cleanerSettings = {
                 builds: formatter.parseFloat(process.env.BUILDS_MAX_AGE, 1 * 60 * 24),
             }
         }
+    },
+    taskStatus: {
+        cron: process.env.TASKSTATUS_CRON || '*/2 * * * *',
+        enabled: formatter.parseBool(process.env.TASKSTATUS_ENABLED, true),
+        settings: {
+            
+        }
     }
 };
 
