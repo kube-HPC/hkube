@@ -25,8 +25,12 @@ class StoreManager {
     }
 
     async getRunningJobsGraphs() {
-        // jsdhkjdshdshhsdhsdohsd
-
+        return this._db.jobs.search({
+            hasResult: false,
+            fields: {
+                graph: 'graph'
+            },
+        });
     }
 
     async getInvalidStatusJobs() {
