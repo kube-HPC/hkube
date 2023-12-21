@@ -24,6 +24,11 @@ class StoreManager {
         });
     }
 
+    async getRunningJobsGraphs() {
+        // jsdhkjdshdshhsdhsdohsd
+
+    }
+
     async getInvalidStatusJobs() {
         return this._db.jobs.fetchAll({
             query: {
