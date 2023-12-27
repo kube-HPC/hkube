@@ -33,6 +33,8 @@ class TaskRunner {
         this._nodeRuns = new Set();
         this._preScheduledNodes = new Set();
         this._schedulingWarningTimeoutMs = options.unScheduledAlgorithms.warningTimeoutMs;
+        this._statusDelay = options.tasks.statusCollectionDelayMs;
+        this._stopping = false;
     }
 
     getGraphStore() {
@@ -57,47 +59,47 @@ class TaskRunner {
         };
     }
 
-    handleTaskEvent(task) {
+    handleTaskEvent(task, updateOnlyActive = true) {
         switch (task.status) {
             case taskStatuses.STALLED: {
                 const { error, ...rest } = task;
                 const warning = error;
-                this._setTaskState({ warning, ...rest });
+                this._setTaskState({ warning, ...rest }, updateOnlyActive);
                 break;
             }
             case taskStatuses.CRASHED: {
                 const data = { ...task, endTime: Date.now(), status: taskStatuses.FAILED };
-                this._setTaskState(data);
+                this._setTaskState(data, updateOnlyActive);
                 this._onTaskError(task);
                 break;
             }
             case taskStatuses.WARNING: {
-                this._setTaskState(task);
+                this._setTaskState(task, updateOnlyActive);
                 break;
             }
             case taskStatuses.CREATING: {
                 if (task.execId) {
-                    this._setTaskState(task);
+                    this._setTaskState(task, updateOnlyActive);
                 }
                 break;
             }
             case taskStatuses.ACTIVE:
-                this._setTaskState(task);
+                this._setTaskState(task, updateOnlyActive);
                 break;
             case taskStatuses.STORING:
-                this._setTaskState(task);
+                this._setTaskState(task, updateOnlyActive);
                 this._onStoring(task);
                 break;
             case taskStatuses.FAILED:
-                this._setTaskState(task);
+                this._setTaskState(task, updateOnlyActive);
                 this._onTaskError(task);
                 break;
             case taskStatuses.SUCCEED:
-                this._setTaskState(task);
+                this._setTaskState(task, updateOnlyActive);
                 this._onTaskComplete(task);
                 break;
             case taskStatuses.THROUGHPUT:
-                this._onStreamingMetrics(task);
+                this._onStreamingMetrics(task, updateOnlyActive);
                 break;
             default:
                 log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
@@ -248,8 +250,19 @@ class TaskRunner {
             log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
         }
         finally {
-            let tasks = stateManager.getTasks({ jobId: this._jobId });
-            tasks.forEach(t => this.handleTaskEvent(t));
+            const startTime = new Date();
+            let anyActive; let elapsedTime;
+            this._stopping = true;
+            do {
+                // eslint-disable-next-line no-await-in-loop
+                let tasks = await stateManager.getTasks({ jobId: this._jobId });
+                anyActive = tasks.some(task => task.status === taskStatuses.ACTIVE);
+                tasks.forEach(task => {
+                    this.handleTaskEvent(task, false); // force updating mongo for progress even when stopping
+                });
+                elapsedTime = new Date() - startTime;
+            } while (anyActive && (elapsedTime < this._statusDelay));
+            this.stopping = false;
             if (shouldDeleteTasks) {
                 await this._deleteTasks();
             }
@@ -833,9 +846,11 @@ class TaskRunner {
         return err;
     }
 
-    _setTaskState(task) {
+    _setTaskState(task, updateOnlyActive = false) {
         if (!this._active) {
-            return;
+            if (!this._stopping) {
+                return;
+            }
         }
         const { taskId, execId, isScaled, status, error } = task;
         let taskRemoved = false;
@@ -852,7 +867,7 @@ class TaskRunner {
         }
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
-        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
+        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE }, updateOnlyActive);
         this._boards.update(task);
     }
 

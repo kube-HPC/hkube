@@ -244,10 +244,12 @@ class StateManager {
     }
 
     async setJobStatus(options) {
-        return (options, async (oldItem) => {
+        const { updateOnlyActive, ...restOptions } = options;
+        return this._etcd.jobs.status.update(restOptions, async (oldItem) => {
             if (this._isActiveStatus(oldItem.status)) {
-                const data = { ...oldItem, ...options };
-                await db.updateStatus(data, true);
+                if (updateOnlyActive === false) delete restOptions.status; // If ariving from post-stop code, don't update pipeline status
+                const data = { ...oldItem, ...restOptions };
+                await db.updateStatus(data, updateOnlyActive);
                 return data;
             }
             return null;
@@ -260,7 +262,7 @@ class StateManager {
     async getTasks(options) {
         let error;
         try {
-            return this._etcd.jobs.tasks.get({ options });
+            return this._etcd.jobs.tasks.list({ ...options, limit: 1000 });
         }
         catch (e) {
             error = e.message;
@@ -282,20 +284,23 @@ class StateManager {
     }
 
     _isActiveStatus(status) {
-        return status !== DriverStates.STOPPED && status !== DriverStates.PAUSED;
+        return status !== DriverStates.PAUSED;
     }
 
     getJobStatus(options) {
         return db.fetchStatus(options);
     }
 
-    async tasksList(options) {
+    async tasksList(options, map = true) {
         const list = await this._etcd.jobs.tasks.list({ ...options, limit: 100000 });
-        const results = new Map();
-        list.forEach((v) => {
-            results.set(v.taskId, v);
-        });
-        return results;
+        if (map) {
+            const results = new Map();
+            list.forEach((v) => {
+                results.set(v.taskId, v);
+            });
+            return results;
+        }
+        return list;
     }
 
     getExecution(options) {
