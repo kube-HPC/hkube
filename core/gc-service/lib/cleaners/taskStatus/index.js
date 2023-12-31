@@ -9,50 +9,26 @@ class TaskStatusCleaner extends BaseCleaner {
         // const fixednormal = await this.handleNormal(normal);
 
         // checking a new idea
+        const graphs = await storeManager.getRunningJobsGraphs();
+        const filteredGraphsList = graphs.filter(graph => Date.now() - graph.pdIntervalTimestamp >= 8000);
+        if (filteredGraphsList.length === 0) {
+            return;
+        }
 
-        const graphs = storeManager.getRunningJobsGraphs();
-
-        // subject to change because on moday i will make it so that the methods return a list of objects that
-        // have jobId taskId and warning message and these objects will be of the tasks that have new warnings
-        // eslint-disable-next-line no-unused-vars
-        const warningGraphs = this.checkWarnings(graphs);
+        await this.handleWarnings(graphs);
     }
 
-    // //old
-    // async getGraphs() {
-    //     const graphs = await storeManager.getRunningJobsGraphs();
-    //     const batch = [];
-    //     const normal = [];
-    //     let flag = true;
-    //     for (let i = 0; i < graphs.length; i += 1) {
-    //         for (let j = 0; j < graphs[i].nodes.length; i += 1) {
-    //             if ('batch' in graphs[i].nodes[j]) {
-    //                 batch.push(graphs[i]);
-    //                 flag = false;
-    //                 break;
-    //             }
-    //         }
-    //         if (flag) {
-    //             normal.push(graphs[i]);
-    //         }
-
-    //         flag = true;
-    //     }
-    //     return { batch, normal };
-    // }
-
     // new
-    async checkWarnings(graphs = []) {
-        const warningGraphs = [];
-        for (let i = 0; i < graphs.length; i += 1) {
-            const { jobId } = graphs[i];
-            let warningExist = false;
+    async handleWarnings(graphs = []) {
+        const warningGraphs = [...graphs];
+        for (let i = 0; i < warningGraphs.length; i += 1) {
+            const { jobId } = warningGraphs[i];
 
             // eslint-disable-next-line no-await-in-loop
-            await Promise.all(graphs[i].nodes.map(async (node) => {
+            await Promise.all(warningGraphs[i].nodes.map(async (node) => {
                 if ('batch' in node) {
                     // eslint-disable-next-line no-param-reassign
-                    ({ batch: node.batch, warningExist } = this.handleBatch(node.batch, jobId));
+                    node.batch = await this.handleBatch(node.batch, jobId);
                 }
                 const { taskId } = node;
                 const path = `/jobs/tasks/${jobId}/${taskId}`;
@@ -61,62 +37,27 @@ class TaskStatusCleaner extends BaseCleaner {
                 if (obj.status === 'warning') {
                     // eslint-disable-next-line no-param-reassign
                     node.status = 'warning';
-                    warningExist = true;
                 }
             }));
 
-            if (warningExist === true) {
-                warningGraphs.push(graphs[i]);
-            }
+            // eslint-disable-next-line no-await-in-loop
+            await storeManager._db.Jobs.updateGraph({ jobId, graph: warningGraphs[i] });
         }
-
-        return warningGraphs;
     }
 
-    // new
     async handleBatch(batch = [], jobId) {
-        let warningExist = false;
         await Promise.all(batch.map(async (task) => {
             const { taskId } = task;
             const path = `/jobs/tasks/${jobId}/${taskId}`;
             const data = await etcdStore.getKeys(path);
             const obj = tryParseJson(data[0]);
             if (obj.status === 'warning') {
-                warningExist = true;
                 // eslint-disable-next-line no-param-reassign
                 task.status = 'warning';
             }
         }));
-        return { batch, warningExist };
+        return batch;
     }
-
-    // // old
-    // async handleNormal(graphs = []) {
-    //     const warningGraphs = [];
-    //     for (let i = 0; i < graphs.length; i += 1) {
-    //         const { jobId } = graphs[i];
-    //         let warningExist = false;
-
-    //         // eslint-disable-next-line no-await-in-loop
-    //         await Promise.all(graphs[i].nodes.map(async (node) => {
-    //             const { taskId } = node;
-    //             const path = `/jobs/tasks/${jobId}/${taskId}`;
-    //             const data = await etcdStore.getKeys(path);
-    //             const obj = tryParseJson(data[0]);
-    //             if (obj.status === 'warning') {
-    //                 // eslint-disable-next-line no-param-reassign
-    //                 node.status = 'warning';
-    //                 warningExist = true;
-    //             }
-    //         }));
-
-    //         if (warningExist === true) {
-    //             warningGraphs.push(graphs[i]);
-    //         }
-    //     }
-
-    //     return warningGraphs;
-    // }
 }
 
 module.exports = TaskStatusCleaner;
