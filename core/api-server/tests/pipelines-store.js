@@ -472,6 +472,176 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
         });
+        //POST array of pipelines
+        it('should succeed to store an array of pipelines', async () => {
+            const pipelinesList = [
+                {
+                    name: 'pipeline1',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+                {
+                    name: 'pipeline2',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                }
+            ];
+            const options = {
+                uri: restPath,
+                body: pipelinesList
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(2);
+            expect(response.body[0]).to.have.property('name');
+            expect(response.body[1]).to.have.property('name');
+        });
+        it('should succeed creating an array containing a pipeline with a 400 Bad Request status and error message for invalid data', async () => {
+            const pipelinesList = [
+                {
+                    name: ' Pipeline1 - !invalid',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+                {
+                    name: 'newpipeline',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+            ]
+            const options = {
+                uri: restPath,
+                body: pipelinesList
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(2);
+            expect(response.body[0]).to.have.property('error');
+            expect(response.body[0].error.message).to.include('pipeline name must contain only alphanumeric, dash, dot or underscore');
+            expect(response.body[1]).to.have.property('name');
+        });
+        it('should succeed creating an array containing a pipeline with a 404 algorithm Not Found status', async () => {
+            const pipelinesList = [
+                {
+                    name: 'pipeline3',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'func1-complex',
+                            input: ['args']
+                        }
+                    ]
+                },
+                {
+                    name: 'pipeline4',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+            ]
+            const options = {
+                uri: restPath,
+                body: pipelinesList
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(2);
+            expect(response.body[0]).to.have.property('error');
+            expect(response.body[0].error.code).to.equal(StatusCodes.NOT_FOUND);
+            expect(response.body[0].error.message).to.include('algorithm func1-complex Not Found');
+            expect(response.body[1]).to.have.property('name');
+        });
+        it('should succeed creating an array containing a pipeline with a conflict of pipeline already exists', async () => {
+            const existingPipeline = {
+                    name: 'pipeline6',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+            };
+            const options1 = {
+                uri: restPath,
+                body: existingPipeline
+            };
+            await request(options1);
+
+            const pipelinesList = [
+                {
+                    name: 'pipeline6',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+                {
+                    name: 'pipeline3',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+            ]
+            const options2 = {
+                uri: restPath,
+                body: pipelinesList
+            };
+            const response = await request(options2);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(2);
+            expect(response.body[0]).to.have.property('error');
+            expect(response.body[0].error.code).to.equal(StatusCodes.CONFLICT);
+            expect(response.body[0].error.message).to.include('pipeline pipeline6 already exists');
+            expect(response.body[1]).to.have.property('name');
+        });
+        it('should return a 201 Created status and an empty array for an empty request body', async () => {
+            const emptyArray = [];
+            const emptyData = {
+                uri: restPath,
+                body: emptyArray
+            }
+        
+            const response = await request(emptyData)
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(0);
+          });
         it('should throw validation error gateway stateType', async () => {
             const options = {
                 uri: restPath,
