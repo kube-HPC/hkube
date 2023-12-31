@@ -1,4 +1,5 @@
 const RestServer = require('@hkube/rest-server');
+const { pipelineStatuses } = require('@hkube/consts');
 const Execution = require('../../../../lib/service/execution');
 const methods = require('../../middlewares/methods');
 const formatter = require('../../../../lib/utils/formatters');
@@ -36,8 +37,12 @@ const routes = (options) => {
         const { jobId, gateways } = await Execution.rerun(req.body);
         res.json({ jobId, gateways });
     });
+    router.post('/getGraphByStreamingFlow', async (req, res) => {
+        const { nodes, edges } = await Execution.getGraphByStreamingFlow(req.body);
+        res.json({ nodes, edges });
+    });
     router.post('/stop', async (req, res) => {
-        const { jobId, pipelineName, startTime } = req.body;
+        const { jobId, pipelineName, startTime, reason } = req.body;
         let datesRange;
         let search;
         let errormsg;
@@ -52,7 +57,7 @@ const routes = (options) => {
             search.query.pipelineName = jobId;
         }
         const searchResponse = await Execution.search({ ...search });
-        const jobsToStop = searchResponse.hits.filter(j => j.status.status === 'active' || j.status.status === 'pending');
+        const jobsToStop = searchResponse.hits.filter(j => j.status.status === pipelineStatuses.ACTIVE || j.status.status === pipelineStatuses.PENDING || j.status.status === pipelineStatuses.PAUSED);
         if (jobsToStop.length === 0) {
             if (jobId) {
                 errormsg = `jobId ${jobId} Not Found`;
@@ -74,7 +79,7 @@ const routes = (options) => {
             });
         }
         await Promise.all(jobsToStop.map(async job => {
-            await Execution.stopJob({ job });
+            await Execution.stopJob({ job, reason });
         }));
         return res.json({ message: 'OK' });
     });

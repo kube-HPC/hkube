@@ -1,6 +1,6 @@
 {
     "name": "algorithm-hyperparams-tuner",
-    "version": "2.6.0",
+    "version": "2.7.0",
     "description": "algorithm-hyperparams-tuner",
     "main": "app.js",
     "scripts": {

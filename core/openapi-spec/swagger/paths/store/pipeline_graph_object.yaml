@@ -1,0 +1,31 @@
+post:
+  tags:
+    - StorePipelines
+  summary: Get graph to preview
+  description: get graph to preview
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/graphPreview"
+    description: an object representing all information needed for pipeline execution
+    required: true
+  responses:
+    "200":
+      description: graph preview
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/graphPreviewResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
