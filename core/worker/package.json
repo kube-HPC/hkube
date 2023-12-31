@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "2.6.1",
+    "version": "2.7.4",
     "description": "worker process",
     "main": "app.js",
     "scripts": {
@@ -20,7 +20,7 @@
     "license": "MIT",
     "dependencies": {
         "@hkube/config": "^2.0.11",
-        "@hkube/consts": "^1.0.35",
+        "@hkube/consts": "^1.0.49",
         "@hkube/dag": "^2.1.16",
         "@hkube/db": "^1.0.32",
         "@hkube/encoding": "^2.0.1",

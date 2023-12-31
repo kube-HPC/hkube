@@ -1,0 +1,10 @@
+type: object
+properties:
+  pipeline:
+    $ref: "#/components/schemas/pipeline"
+  keyFlow:
+    type: string
+    description: key flow need to preview
+  isBuildAllFlows:
+    type: boolean
+    description: preview all flows

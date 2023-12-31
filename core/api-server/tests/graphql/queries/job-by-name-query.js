@@ -40,6 +40,7 @@ const query = gql`{
         taskId
         podName
         status
+        stateType
         startTime
         endTime
         level

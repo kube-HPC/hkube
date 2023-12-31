@@ -41,7 +41,7 @@ class ApiValidator {
                     throw new InvalidDataError(`Nodes which are not stateType=${stateType.Stateless} cant have minStatelessCount or maxStatelessCount`);
                 }
             });
-            const statelessNodes = pipeline.nodes.filter(n => n?.stateType === stateType.Stateless && n?.maxStatelessCount);
+            const statelessNodes = pipeline.nodes.filter(n => n?.stateType === stateType.Stateless && n?.maxStatelessCount >= 0);
             statelessNodes.forEach((node) => {
                 if (node.minStatelessCount > node.maxStatelessCount) {
                     throw new InvalidDataError('maxStatelessCount must be greater or equal to minStatelessCount');
