@@ -252,17 +252,19 @@ class TaskRunner {
         finally {
             const startTime = new Date();
             let anyActive; let elapsedTime;
-            this._stopping = true;
-            do {
-                // eslint-disable-next-line no-await-in-loop
-                let tasks = await stateManager.getTasks({ jobId: this._jobId });
-                anyActive = tasks.some(task => task.status === taskStatuses.ACTIVE);
-                tasks.forEach(task => {
-                    this.handleTaskEvent(task, false); // force updating mongo for progress even when stopping
-                });
-                elapsedTime = new Date() - startTime;
-            } while (anyActive && (elapsedTime < this._statusDelay));
-            this.stopping = false;
+            if (!shouldStop) {
+                this._stopping = true;
+                do {
+                    // eslint-disable-next-line no-await-in-loop
+                    let tasks = await stateManager.getTasks({ jobId: this._jobId });
+                    anyActive = tasks.some(task => task.status === taskStatuses.ACTIVE);
+                    tasks.forEach(task => {
+                        this.handleTaskEvent(task, false); // force updating mongo for progress even when stopping
+                    });
+                    elapsedTime = new Date() - startTime;
+                } while (anyActive && (elapsedTime < this._statusDelay));
+                this._stopping = false;
+            }
             if (shouldDeleteTasks) {
                 await this._deleteTasks();
             }
