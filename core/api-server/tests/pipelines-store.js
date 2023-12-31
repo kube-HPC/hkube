@@ -507,7 +507,7 @@ describe('Store/Pipelines', () => {
             expect(response.body[0]).to.have.property('name');
             expect(response.body[1]).to.have.property('name');
         });
-        it('should secceed creating an array containing a pipeline with a 400 Bad Request status and error message for invalid data', async () => {
+        it('should succeed creating an array containing a pipeline with a 400 Bad Request status and error message for invalid data', async () => {
             const pipelinesList = [
                 {
                     name: ' Pipeline1 - !invalid',
@@ -542,7 +542,7 @@ describe('Store/Pipelines', () => {
             expect(response.body[0].error.message).to.include('pipeline name must contain only alphanumeric, dash, dot or underscore');
             expect(response.body[1]).to.have.property('name');
         });
-        it('should secceed creating an array containing a pipeline with a 404 algorithm Not Found status', async () => {
+        it('should succeed creating an array containing a pipeline with a 404 algorithm Not Found status', async () => {
             const pipelinesList = [
                 {
                     name: 'pipeline3',
@@ -578,7 +578,7 @@ describe('Store/Pipelines', () => {
             expect(response.body[0].error.message).to.include('algorithm func1-complex Not Found');
             expect(response.body[1]).to.have.property('name');
         });
-        it('should secceed creating an array containing a pipeline with a conflict of pipeline already exists', async () => {
+        it('should succeed creating an array containing a pipeline with a conflict of pipeline already exists', async () => {
             const existingPipeline = {
                     name: 'pipeline6',
                     nodes: [
