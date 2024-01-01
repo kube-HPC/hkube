@@ -20,7 +20,7 @@
     "license": "MIT",
     "dependencies": {
         "@hkube/config": "^2.0.11",
-        "@hkube/consts": "^1.0.49",
+        "@hkube/consts": "^1.0.50",
         "@hkube/dag": "^2.1.16",
         "@hkube/db": "^1.0.32",
         "@hkube/encoding": "^2.0.1",

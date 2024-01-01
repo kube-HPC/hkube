@@ -30,6 +30,7 @@ class Worker {
         this._shouldCheckAlgorithmStatus = true;
         this._algorunnerStatusFailAttempts = 0;
         this._checkAlgorithmStatus = this._checkAlgorithmStatus.bind(this);
+        this._visitedStop = false;
     }
 
     preInit(options) {
@@ -589,7 +590,7 @@ class Worker {
                     this._handleTtlEnd();
                     reason = `parent algorithm entered state ${state}`;
                     await this._stopAllPipelinesAndExecutions({ jobId, reason });
-                    await jobConsumer.finishJob(result, isTtlExpired);
+                    await jobConsumer.finishJob(result, isTtlExpired, this._visitedStop);
                     pendingTransition = this._isConnected && stateManager.cleanup.bind(stateManager);
                     break;
                 case workerStates.ready:
@@ -621,6 +622,7 @@ class Worker {
                 case workerStates.stop:
                     if (!this._stopTimeout) {
                         this._stoppingTime = Date.now();
+                        this._visitedStop = true;
                         this._handleTtlEnd();
                         this._stopTimeout = setTimeout(() => this._onStopTimeOut(), this._stopTimeoutMs);
                         algoRunnerCommunication.send({

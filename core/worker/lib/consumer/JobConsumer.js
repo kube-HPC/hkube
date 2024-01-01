@@ -223,6 +223,9 @@ class JobConsumer extends EventEmitter {
             error = logMessages.algorithmTtlExpired;
             status = taskStatuses.FAILED;
         }
+        if (data.visitedStop) {
+            status = taskStatuses.STOPPED;
+        }
         const resultData = results && results.data;
         return {
             workerStatus,
@@ -249,7 +252,7 @@ class JobConsumer extends EventEmitter {
         };
     }
 
-    async finishJob(data = {}, isTtlExpired) {
+    async finishJob(data = {}, isTtlExpired, visitedStop = false) {
         if (this._inFinishState) {
             return;
         }
@@ -263,7 +266,7 @@ class JobConsumer extends EventEmitter {
             if (this._execId) {
                 await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
             }
-            const { resultData, status, error, isImagePullErr, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
+            const { resultData, status, error, isImagePullErr, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired, visitedStop });
 
             if (shouldCompleteJob) {
                 let storageResult;
