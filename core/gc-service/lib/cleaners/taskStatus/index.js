@@ -1,3 +1,4 @@
+const log = require('@hkube/logger').GetLogFromContainer();
 const BaseCleaner = require('../../core/base-cleaner');
 const storeManager = require('../../helpers/store-manager');
 const etcdStore = require('../../helpers/etcd');
@@ -5,10 +6,15 @@ const tryParseJson = require('../../utils/tryParseJson');
 
 class TaskStatusCleaner extends BaseCleaner {
     async clean() {
-        // const { batch, normal } = await this.getGraphs();
-        // const fixednormal = await this.handleNormal(normal);
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        log.debug('starting first run of taskStatus Cleaner in the current cycle');
+        this.oneCheckCycle();
+        await sleep(30000);
+        log.debug('starting second run of taskStatus Cleaner in the current cycle');
+        await this.oneCheckCycle();
+    }
 
-        // checking a new idea
+    async oneCheckCycle() {
         const graphs = await storeManager.getRunningJobsGraphs();
         const filteredGraphsList = graphs.filter(graph => Date.now() - graph.pdIntervalTimestamp >= 8000);
         if (filteredGraphsList.length === 0) {

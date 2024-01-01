@@ -107,7 +107,7 @@ config.cleanerSettings = {
         }
     },
     taskStatus: {
-        cron: process.env.TASKSTATUS_CRON || '*/2 * * * *',
+        cron: process.env.TASKSTATUS_CRON || '* * * * *',
         enabled: formatter.parseBool(process.env.TASKSTATUS_ENABLED, true),
         settings: {
             
