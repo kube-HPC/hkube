@@ -45,7 +45,7 @@ class JobProducer extends EventEmitter {
                 tasks = batch.map(b => ({ taskId: b.taskId, status: b.status, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
             }
             else if (statelessList) {
-                tasks = statelessList.map(s => ({ taskId: s.taskId, status: s.status, input: s.input, storage: s.storage }));
+                tasks = statelessList.map(s => ({ taskId: s.taskId, status: s.status, input: s.input, storage: s.storage, isScaled: true, batchIndex: s.statelessIndex }));
             }
             else {
                 tasks.push({ taskId: options.node.taskId, status: options.node.status, input: options.node.input, storage: options.storage });
