@@ -16,12 +16,20 @@ class TaskStatusCleaner extends BaseCleaner {
 
     async oneCheckCycle() {
         const graphs = await storeManager.getRunningJobsGraphs();
-        const filteredGraphsList = graphs.filter(graph => Date.now() - graph.pdIntervalTimestamp >= 8000);
+        const graphsList = [];
+        graphs.forEach(graph => {
+            graphsList.push(graph.graph);
+            graphsList[graphsList.length - 1].pdIntervalTimestamp = graph.pdIntervalTimestamp;
+        });
+        const filteredGraphsList = graphsList.filter(graph => Date.now() - graph.pdIntervalTimestamp >= 8000);
         if (filteredGraphsList.length === 0) {
             return;
         }
-
-        await this.handleWarnings(graphs);
+        graphsList.forEach(graph => {
+            // eslint-disable-next-line no-param-reassign
+            delete graph.pdIntervalTimestamp;
+        });
+        await this.handleWarnings(graphsList);
     }
 
     // new

@@ -28,6 +28,7 @@ class StoreManager {
         return this._db.jobs.search({
             hasResult: false,
             fields: {
+                pdIntervalTimestamp: 'pdIntervalTimestamp',
                 graph: 'graph'
             },
         });
