@@ -35,8 +35,8 @@ class ProgressManager {
         return this._progress(levels.TRACE.name, data);
     }
 
-    debug(data, updateOnlyActive) {
-        return this._progress(levels.DEBUG.name, data, updateOnlyActive);
+    debug(data) {
+        return this._progress(levels.DEBUG.name, data);
     }
 
     info(data) {
@@ -55,8 +55,8 @@ class ProgressManager {
         return this._progress(levels.CRITICAL.name, data);
     }
 
-    _progress(level, options, updateOnlyActive = true) {
-        return this._throttleProgress({ ...options, level, updateOnlyActive }).catch(e => log.warning(`failed to write progress ${e.message}`));
+    _progress(level, options) {
+        return this._throttleProgress({ ...options, level }).catch(e => log.warning(`failed to write progress ${e.message}`));
     }
 
     _queueProgress(options) {

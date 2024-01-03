@@ -244,12 +244,11 @@ class StateManager {
     }
 
     async setJobStatus(options) {
-        const { updateOnlyActive, ...restOptions } = options;
-        return this._etcd.jobs.status.update(restOptions, async (oldItem) => {
+        return this._etcd.jobs.status.update(options, async (oldItem) => {
             if (this._isActiveStatus(oldItem.status)) {
-                if (oldItem.status === DriverStates.STOPPED || oldItem.status === DriverStates.COMPLETED) delete restOptions.status; // If ariving from post-stop code, don't update pipeline status
-                const data = { ...oldItem, ...restOptions };
-                await db.updateStatus(data, updateOnlyActive);
+                if (oldItem.status === DriverStates.STOPPED || oldItem.status === DriverStates.COMPLETED) delete options.status; // If ariving from post-stop code, don't update pipeline status
+                const data = { ...oldItem, ...options };
+                await db.updateStatus(data);
                 return data;
             }
             return null;

@@ -59,47 +59,47 @@ class TaskRunner {
         };
     }
 
-    handleTaskEvent(task, updateOnlyActive = true) {
+    handleTaskEvent(task) {
         switch (task.status) {
             case taskStatuses.STALLED: {
                 const { error, ...rest } = task;
                 const warning = error;
-                this._setTaskState({ warning, ...rest }, updateOnlyActive);
+                this._setTaskState({ warning, ...rest });
                 break;
             }
             case taskStatuses.CRASHED: {
                 const data = { ...task, endTime: Date.now(), status: taskStatuses.FAILED };
-                this._setTaskState(data, updateOnlyActive);
+                this._setTaskState(data);
                 this._onTaskError(task);
                 break;
             }
             case taskStatuses.WARNING: {
-                this._setTaskState(task, updateOnlyActive);
+                this._setTaskState(task);
                 break;
             }
             case taskStatuses.CREATING: {
                 if (task.execId) {
-                    this._setTaskState(task, updateOnlyActive);
+                    this._setTaskState(task);
                 }
                 break;
             }
             case taskStatuses.ACTIVE:
-                this._setTaskState(task, updateOnlyActive);
+                this._setTaskState(task);
                 break;
             case taskStatuses.STORING:
-                this._setTaskState(task, updateOnlyActive);
+                this._setTaskState(task);
                 this._onStoring(task);
                 break;
             case taskStatuses.FAILED:
-                this._setTaskState(task, updateOnlyActive);
+                this._setTaskState(task);
                 this._onTaskError(task);
                 break;
             case taskStatuses.SUCCEED:
-                this._setTaskState(task, updateOnlyActive);
+                this._setTaskState(task);
                 this._onTaskComplete(task);
                 break;
             case taskStatuses.THROUGHPUT:
-                this._onStreamingMetrics(task, updateOnlyActive);
+                this._onStreamingMetrics(task);
                 break;
             default:
                 log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
@@ -259,7 +259,7 @@ class TaskRunner {
                     let tasks = await stateManager.getTasks({ jobId: this._jobId });
                     anyActive = tasks.some(task => task.status === taskStatuses.ACTIVE);
                     tasks.forEach(task => {
-                        this.handleTaskEvent(task, false); // force updating mongo for progress even when stopping
+                        this.handleTaskEvent(task); // force updating mongo for progress even when stopping
                     });
                     elapsedTime = new Date() - startTime;
                 } while (anyActive && (elapsedTime < this._statusDelay));
@@ -848,7 +848,7 @@ class TaskRunner {
         return err;
     }
 
-    _setTaskState(task, updateOnlyActive = false) {
+    _setTaskState(task) {
         if (!this._active) {
             if (!this._stopping) {
                 return;
@@ -869,7 +869,7 @@ class TaskRunner {
         }
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
-        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE }, updateOnlyActive);
+        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
         this._boards.update(task);
     }
 
