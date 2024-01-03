@@ -1,10 +1,10 @@
 [
     {
-        "jobId": "mgwxiwwutafu",
+        "jobId": "job-1",
         "taskId": "so7bw5d9",
-        "nodeName": "stayup4",
-        "algorithmName": "stayup",
-        "podName": "stayup-5a611-9rkc5",
+        "nodeName": "green",
+        "algorithmName": "green-alg",
+        "podName": "green-5a611-9rkc5",
         "batchIndex": 0,
         "isStateful": false,
         "status": "active",
@@ -12,11 +12,11 @@
         "data": {}
     },
     {
-        "jobId": "6rk6vuy9fa3h",
+        "jobId": "job-2",
         "taskId": "6ahx4qad",
-        "nodeName": "stayup",
-        "algorithmName": "stayup",
-        "podName": "stayup-ygzyl-hlgtk",
+        "nodeName": "green",
+        "algorithmName": "green-alg",
+        "podName": "green-ygzyl-hlgtk",
         "batchIndex": 0,
         "isStateful": false,
         "status": "warning",
@@ -24,11 +24,11 @@
         "data": {}
     },
     {
-        "jobId": "kez7s5xl5gfm",
+        "jobId": "job-3",
         "taskId": "q8sismx6",
-        "nodeName": "stayup3",
-        "algorithmName": "stayup",
-        "podName": "stayup-rn7ph-24q9k",
+        "nodeName": "green",
+        "algorithmName": "green-alg",
+        "podName": "green-rn7ph-24q9k",
         "batchIndex": 0,
         "isStateful": false,
         "status": "active",
@@ -36,11 +36,11 @@
         "data": {}
     },
     {
-        "jobId": "h9sgsskbgbmr",
+        "jobId": "job-4",
         "taskId": "337w0qdo",
-        "nodeName": "stayup2",
-        "algorithmName": "stayup",
-        "podName": "stayup-nfbz8-ntvnc",
+        "nodeName": "green",
+        "algorithmName": "green-alg",
+        "podName": "green-nfbz8-ntvnc",
         "batchIndex": 0,
         "isStateful": false,
         "status": "warning",
