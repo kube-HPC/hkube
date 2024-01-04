@@ -50,12 +50,17 @@ class TaskStatusCleaner extends BaseCleaner {
         const updatedJobIds = [];
         for (let i = 0; i < warningGraphs.length; i += 1) {
             const { jobId } = warningGraphs[i];
+            let warningExist = false;
+            let warningExistTmp = false;
 
             // eslint-disable-next-line no-await-in-loop
             await Promise.all(warningGraphs[i].nodes.map(async (node) => {
                 if ('batch' in node) {
                     // eslint-disable-next-line no-param-reassign
-                    node.batch = await this.handleBatch(node.batch, jobId);
+                    ({ batch: node.batch, warningExist: warningExistTmp } = await this.handleBatch(node.batch, jobId));
+                    if (warningExistTmp) {
+                        warningExist = warningExistTmp;
+                    }
                 }
                 else {
                     const { taskId } = node;
@@ -65,18 +70,22 @@ class TaskStatusCleaner extends BaseCleaner {
                     if (obj.status === 'warning') {
                     // eslint-disable-next-line no-param-reassign
                         node.status = 'warning';
+                        warningExist = true;
                     }
                 }
             }));
 
             // eslint-disable-next-line no-await-in-loop
             await storeManager._db.Jobs.updateGraph({ jobId, graph: warningGraphs[i] });
-            updatedJobIds.push(jobId);
+            if (warningExist) {
+                updatedJobIds.push(jobId);
+            }
         }
         return updatedJobIds;
     }
 
     async handleBatch(batch = [], jobId) {
+        let warningExist = false;
         await Promise.all(batch.map(async (task) => {
             const { taskId } = task;
             const path = `/jobs/tasks/${jobId}/${taskId}`;
@@ -85,9 +94,10 @@ class TaskStatusCleaner extends BaseCleaner {
             if (obj.status === 'warning') {
                 // eslint-disable-next-line no-param-reassign
                 task.status = 'warning';
+                warningExist = true;
             }
         }));
-        return batch;
+        return { batch, warningExist };
     }
 }
 
