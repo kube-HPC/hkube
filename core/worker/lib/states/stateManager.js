@@ -22,7 +22,7 @@ class StateManager extends EventEmitter {
         this._isTtlExpired = false;
         this._forceStop = true;
         this._inactiveTimer = null;
-        this._stopEnvoked = false;
+        this._stopInvoked = false;
     }
 
     async init(config) {
@@ -62,7 +62,7 @@ class StateManager extends EventEmitter {
             }
         });
         this._stateMachine.observe('onBeforeTransition', (state) => {
-            log.info(`before entered state: ${state.from} -> ${state.to}`, { component });
+            log.debug(`before entered state: ${state.from} -> ${state.to}`, { component });
         });
 
         this._stateMachine.observe('onEnterState', (state) => {
@@ -112,7 +112,7 @@ class StateManager extends EventEmitter {
                 ...this.results && { results: this.results },
                 isTtlExpired: this._isTtlExpired,
                 forceStop: this._forceStop,
-                stopInvoked: this._stopEnvoked
+                stopInvoked: this._stopInvoked
             };
 
             this.emit(stateEvents.stateEntered, data);
@@ -171,7 +171,7 @@ class StateManager extends EventEmitter {
         try {
             this._isTtlExpired = isTtlExpired;
             this._forceStop = forceStop;
-            this._stopEnvoked = true;
+            this._stopInvoked = true;
             this._stateMachine.stop();
         }
         catch (error) {
