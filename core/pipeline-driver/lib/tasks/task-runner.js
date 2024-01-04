@@ -98,6 +98,9 @@ class TaskRunner {
                 this._setTaskState(task);
                 this._onTaskComplete(task);
                 break;
+            case taskStatuses.STOPPED:
+                this._setTaskState(task);
+                break;
             case taskStatuses.THROUGHPUT:
                 this._onStreamingMetrics(task);
                 break;
