@@ -260,7 +260,7 @@ class TaskRunner {
                 do {
                     // eslint-disable-next-line no-await-in-loop
                     let tasks = await stateManager.getTasks({ jobId: this._jobId });
-                    anyActive = tasks.some(task => task.status === taskStatuses.ACTIVE);
+                    anyActive = tasks.some(task => task.status === taskStatuses.ACTIVE || task.status === taskStatuses.THROUGHPUT);
                     tasks.forEach(task => {
                         this.handleTaskEvent(task); // force updating mongo for progress even when stopping
                     });

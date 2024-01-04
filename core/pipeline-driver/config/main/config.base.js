@@ -117,5 +117,5 @@ config.logging = {
 };
 
 config.tasks = {
-    statusCollectionDelayMs: process.env.STATUS_DELAY_MS || 15000
+    statusCollectionDelayMs: process.env.STATUS_DELAY_MS || 25000
 }
