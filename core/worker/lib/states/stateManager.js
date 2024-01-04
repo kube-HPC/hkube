@@ -62,7 +62,7 @@ class StateManager extends EventEmitter {
             }
         });
         this._stateMachine.observe('onBeforeTransition', (state) => {
-            log.debug(`before entered state: ${state.from} -> ${state.to}`, { component });
+            log.info(`before entered state: ${state.from} -> ${state.to}`, { component });
         });
 
         this._stateMachine.observe('onEnterState', (state) => {
