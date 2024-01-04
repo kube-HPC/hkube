@@ -9,6 +9,15 @@ config.fs = {
 config.healthchecks = {
     enabled: false
 };
+config.cleanerSettings = {
+    taskStatus:{
+        cron: process.env.TASKSTATUS_CRON || '* * * * *',
+        // enabled: formatter.parseBool(process.env.TASKSTATUS_ENABLED, true),
+        settings:{
+        maxInterval: 3600000  
+        }
+    }
+}
 
 module.exports = config;
 
