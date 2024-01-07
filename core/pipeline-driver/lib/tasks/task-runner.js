@@ -33,6 +33,8 @@ class TaskRunner {
         this._nodeRuns = new Set();
         this._preScheduledNodes = new Set();
         this._schedulingWarningTimeoutMs = options.unScheduledAlgorithms.warningTimeoutMs;
+        this._statusDelay = options.tasks.statusCollectionDelayMs;
+        this._stopping = false;
     }
 
     getGraphStore() {
@@ -95,6 +97,9 @@ class TaskRunner {
             case taskStatuses.SUCCEED:
                 this._setTaskState(task);
                 this._onTaskComplete(task);
+                break;
+            case taskStatuses.STOPPED:
+                this._setTaskState(task);
                 break;
             case taskStatuses.THROUGHPUT:
                 this._onStreamingMetrics(task);
@@ -248,6 +253,21 @@ class TaskRunner {
             log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
         }
         finally {
+            const startTime = new Date();
+            let anyActive; let elapsedTime;
+            if (!shouldStop) {
+                this._stopping = true;
+                do {
+                    // eslint-disable-next-line no-await-in-loop
+                    let tasks = await stateManager.getTasks({ jobId: this._jobId });
+                    anyActive = tasks.some(task => task.status === taskStatuses.ACTIVE || task.status === taskStatuses.THROUGHPUT);
+                    tasks.forEach(task => {
+                        this.handleTaskEvent(task); // force updating mongo for progress even when stopping
+                    });
+                    elapsedTime = new Date() - startTime;
+                } while (anyActive && (elapsedTime < this._statusDelay));
+                this._stopping = false;
+            }
             if (shouldDeleteTasks) {
                 await this._deleteTasks();
             }
@@ -833,7 +853,9 @@ class TaskRunner {
 
     _setTaskState(task) {
         if (!this._active) {
-            return;
+            if (!this._stopping) {
+                return;
+            }
         }
         const { taskId, execId, isScaled, status, error } = task;
         let taskRemoved = false;

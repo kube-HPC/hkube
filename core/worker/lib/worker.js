@@ -570,7 +570,7 @@ class Worker {
     }
 
     _registerToStateEvents() {
-        stateManager.on(stateEvents.stateEntered, async ({ job, state, results, isTtlExpired, forceStop }) => {
+        stateManager.on(stateEvents.stateEntered, async ({ job, state, results, isTtlExpired, forceStop, stopInvoked }) => {
             const { jobId } = jobConsumer.jobData;
             let pendingTransition = null;
             let reason = null;
@@ -589,7 +589,7 @@ class Worker {
                     this._handleTtlEnd();
                     reason = `parent algorithm entered state ${state}`;
                     await this._stopAllPipelinesAndExecutions({ jobId, reason });
-                    await jobConsumer.finishJob(result, isTtlExpired);
+                    await jobConsumer.finishJob(result, isTtlExpired, stopInvoked);
                     pendingTransition = this._isConnected && stateManager.cleanup.bind(stateManager);
                     break;
                 case workerStates.ready:
