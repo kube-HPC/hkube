@@ -223,7 +223,7 @@ class JobConsumer extends EventEmitter {
             error = logMessages.algorithmTtlExpired;
             status = taskStatuses.FAILED;
         }
-        if (stopInvoked) {
+        if (stopInvoked && status !== taskStatuses.FAILED) {
             status = taskStatuses.STOPPED;
         }
         const resultData = results && results.data;
