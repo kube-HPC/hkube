@@ -11,6 +11,18 @@ class StateManager {
         if (this.deleteInvoked) {
             return []
         }
+        if (path.includes("/jobs/tasks")){
+            const jobTasksJson = require('../../taskStatus/mocks/etcdStore.json')
+            const returnList = [];
+                for (let i =0; i<jobTasksJson.length; i+=1){
+                    if(path.includes(jobTasksJson[i].taskId )){
+                        returnList.push(JSON.stringify(jobTasksJson[i]));
+                        return returnList;
+                    }
+                }
+            }
+        
+            
         switch (path) {
             case "/webhooks":
                 const webhooks = require('./webhooks.json');

@@ -11,13 +11,16 @@ class TaskStatusCleaner extends BaseCleaner {
         this.INTERVAL = config.config.settings.maxInterval;
     }
 
-    async clean() {
+    async clean(sleepTime = 30000) {
         const updatedJobIds = [];
         let tmpList = [];
         const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         log.debug('starting first run of taskStatus Cleaner in the current cycle');
-        tmpList = this.oneCheckCycle();
-        await sleep(30000);
+        [tmpList] = await Promise.all([
+            this.oneCheckCycle(),
+            sleep(sleepTime)
+        ]);
+
         log.debug('starting second run of taskStatus Cleaner in the current cycle');
         updatedJobIds.push(...(await this.oneCheckCycle()));
         updatedJobIds.push(...tmpList);
@@ -26,16 +29,12 @@ class TaskStatusCleaner extends BaseCleaner {
 
     async oneCheckCycle() {
         const graphs = await storeManager.getRunningJobsGraphs();
-        const filteredGraphsList = graphs.filter(graph => Date.now() - graph.pdIntervalTimestamp >= this.INTERVAL);
+        const filteredGraphsList = graphs.filter(element => Date.now() - element.pdIntervalTimestamp >= this.INTERVAL);
         if (filteredGraphsList.length === 0) {
             return [];
         }
-        graphs.forEach(element => {
-            // eslint-disable-next-line no-param-reassign
-            delete element.pdIntervalTimestamp;
-        });
         const graphsList = [];
-        graphs.array.forEach(element => {
+        filteredGraphsList.forEach(element => {
             graphsList.push(element.graph);
         });
 
@@ -57,7 +56,7 @@ class TaskStatusCleaner extends BaseCleaner {
             await Promise.all(warningGraphs[i].nodes.map(async (node) => {
                 if ('batch' in node) {
                     // eslint-disable-next-line no-param-reassign
-                    ({ batch: node.batch, warningExist: warningExistTmp } = await this.handleBatch(node.batch, jobId));
+                    ({ batch: node.batch, warningExistTmp } = await this.handleBatch(node.batch, jobId));
                     if (warningExistTmp) {
                         warningExist = warningExistTmp;
                     }
@@ -67,7 +66,7 @@ class TaskStatusCleaner extends BaseCleaner {
                     const path = `/jobs/tasks/${jobId}/${taskId}`;
                     const data = await etcdStore.getKeys(path);
                     const obj = tryParseJson(data[0]);
-                    if (obj.status === 'warning') {
+                    if (obj.status === 'warning' && node.status !== 'warning') {
                     // eslint-disable-next-line no-param-reassign
                         node.status = 'warning';
                         warningExist = true;
@@ -75,9 +74,9 @@ class TaskStatusCleaner extends BaseCleaner {
                 }
             }));
 
-            // eslint-disable-next-line no-await-in-loop
-            await storeManager._db.Jobs.updateGraph({ jobId, graph: warningGraphs[i] });
             if (warningExist) {
+                // eslint-disable-next-line no-await-in-loop
+                await storeManager._db.jobs.updateGraph({ jobId, graph: warningGraphs[i] });
                 updatedJobIds.push(jobId);
             }
         }
