@@ -10,12 +10,6 @@ class TaskStatusCleaner extends BaseCleaner {
         this.INTERVAL = config.config.settings.maxInterval;
     }
 
-    // async clean() {
-    //     const updatedJobIds = [];
-    //     updatedJobIds.push(...(await this.cleanCycle()));
-    //     return updatedJobIds;
-    // }
-
     async clean() {
         const graphs = await storeManager.getRunningJobsGraphs();
         const filteredGraphsList = graphs.filter(element => Date.now() - element.pdIntervalTimestamp >= this.INTERVAL);
