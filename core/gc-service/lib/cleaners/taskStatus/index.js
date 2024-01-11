@@ -1,4 +1,3 @@
-const log = require('@hkube/logger').GetLogFromContainer();
 const BaseCleaner = require('../../core/base-cleaner');
 const storeManager = require('../../helpers/store-manager');
 const etcdStore = require('../../helpers/etcd');
@@ -11,23 +10,13 @@ class TaskStatusCleaner extends BaseCleaner {
         this.INTERVAL = config.config.settings.maxInterval;
     }
 
-    async clean(sleepTime = 30000) {
-        const updatedJobIds = [];
-        let tmpList = [];
-        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-        log.debug('starting first run of taskStatus Cleaner in the current cycle');
-        [tmpList] = await Promise.all([
-            this.oneCheckCycle(),
-            sleep(sleepTime)
-        ]);
+    // async clean() {
+    //     const updatedJobIds = [];
+    //     updatedJobIds.push(...(await this.cleanCycle()));
+    //     return updatedJobIds;
+    // }
 
-        log.debug('starting second run of taskStatus Cleaner in the current cycle');
-        updatedJobIds.push(...(await this.oneCheckCycle()));
-        updatedJobIds.push(...tmpList);
-        return updatedJobIds;
-    }
-
-    async oneCheckCycle() {
+    async clean() {
         const graphs = await storeManager.getRunningJobsGraphs();
         const filteredGraphsList = graphs.filter(element => Date.now() - element.pdIntervalTimestamp >= this.INTERVAL);
         if (filteredGraphsList.length === 0) {

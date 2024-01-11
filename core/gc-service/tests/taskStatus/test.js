@@ -18,7 +18,7 @@ describe('Task Status', () => {
     });
     it('should change status to warning in db', async () => {
         etcdMock.reset();
-        jobIds = await cleaner.clean(1000);
+        jobIds = await cleaner.clean();
         expect(jobIds.length).to.equal(2);
         
     })
