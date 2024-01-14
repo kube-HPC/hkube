@@ -20,6 +20,7 @@
         "batchIndex": 0,
         "isStateful": false,
         "status": "warning",
+        "warning": "unable to connect redis at 100.70.85.112:26379",
         "startTime": 1532506623299,
         "data": {}
     },
@@ -44,6 +45,7 @@
         "batchIndex": 0,
         "isStateful": false,
         "status": "warning",
+        "warning": "unable to connect redis at 100.70.85.112:26379",
         "startTime": 1704180132719,
         "data": {}
     },

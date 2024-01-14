@@ -52,6 +52,8 @@ class TaskStatusCleaner extends BaseCleaner {
                     if (obj.status === 'warning' && node.status !== 'warning') {
                     // eslint-disable-next-line no-param-reassign
                         node.status = 'warning';
+                        // eslint-disable-next-line no-param-reassign
+                        node.warning = obj.warning;
                         warningExist = true;
                     }
                 }
