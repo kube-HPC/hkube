@@ -48,7 +48,7 @@ class TaskRunner {
 
     async onPause(data) {
         log.info(`pipeline ${data.status} ${this._jobId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-        await this.stop({ shouldStop: false, shouldDeleteTasks: false });
+        await this.stop({ shouldStop: false, shouldDeleteTasks: false, isPaused: true });
     }
 
     getStatus() {
@@ -236,7 +236,7 @@ class TaskRunner {
         return result;
     }
 
-    async stop({ error, nodeName, shouldStop = true, shouldDeleteTasks = true } = {}) {
+    async stop({ error, nodeName, shouldStop = true, shouldDeleteTasks = true, isPaused = false } = {}) {
         if (!this._active) {
             return;
         }
@@ -253,7 +253,7 @@ class TaskRunner {
             log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
         }
         finally {
-            if (!shouldStop && this._jobStatus !== pipelineStatuses.PAUSED) {
+            if (!shouldStop && !isPaused) {
                 const startTime = new Date();
                 let anyActive; let elapsedTime;
                 this._stopping = true;
