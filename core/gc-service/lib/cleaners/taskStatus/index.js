@@ -48,7 +48,7 @@ class TaskStatusCleaner extends BaseCleaner {
                     const { taskId } = node;
                     const path = `/jobs/tasks/${jobId}/${taskId}`;
                     const data = await etcdStore.getKeys(path);
-                    const obj = tryParseJson(data[0]);
+                    const obj = tryParseJson(data.path);
                     if (obj.status === 'warning' && node.status !== 'warning') {
                     // eslint-disable-next-line no-param-reassign
                         node.status = 'warning';
