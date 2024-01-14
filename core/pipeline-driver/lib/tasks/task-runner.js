@@ -48,7 +48,7 @@ class TaskRunner {
 
     async onPause(data) {
         log.info(`pipeline ${data.status} ${this._jobId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-        await this.stop({ shouldStop: false, shouldDeleteTasks: false });
+        await this.stop({ shouldStop: false, shouldDeleteTasks: false, isPaused: true });
     }
 
     getStatus() {
@@ -236,7 +236,7 @@ class TaskRunner {
         return result;
     }
 
-    async stop({ error, nodeName, shouldStop = true, shouldDeleteTasks = true } = {}) {
+    async stop({ error, nodeName, shouldStop = true, shouldDeleteTasks = true, isPaused = false } = {}) {
         if (!this._active) {
             return;
         }
@@ -253,14 +253,14 @@ class TaskRunner {
             log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
         }
         finally {
-            const startTime = new Date();
-            let anyActive; let elapsedTime;
-            if (!shouldStop) {
+            if (!shouldStop && !isPaused) {
+                const startTime = new Date();
+                let anyActive; let elapsedTime;
                 this._stopping = true;
                 do {
                     // eslint-disable-next-line no-await-in-loop
                     let tasks = await stateManager.getTasks({ jobId: this._jobId });
-                    anyActive = tasks.some(task => task.status === taskStatuses.ACTIVE || task.status === taskStatuses.THROUGHPUT);
+                    anyActive = tasks.some(task => task.status === taskStatuses.ACTIVE || task.status === taskStatuses.THROUGHPUT || task.status === taskStatuses.STORING);
                     tasks.forEach(task => {
                         this.handleTaskEvent(task); // force updating mongo for progress even when stopping
                     });
@@ -752,11 +752,13 @@ class TaskRunner {
         Object.entries(streamingEdgeMetricToPropMap).forEach(([key, val]) => {
             if ((metric[val.propName] !== 0) || val.registerZeroValue) {
                 pipelineMetrics.setStreamingEdgeGaugeMetric(
-                    { value: metric[val.propName],
+                    {
+                        value: metric[val.propName],
                         pipelineName: this._pipeline.name,
                         jobId: this._pipeline.jobId,
                         source: metric.source,
-                        target: metric.target },
+                        target: metric.target
+                    },
                     key
                 );
             }
@@ -768,10 +770,12 @@ class TaskRunner {
             isStateless = targetNode[0].stateType === 'stateless';
             if (isStateless && ((metric[val.propName] !== 0) || val.registerZeroValue)) {
                 pipelineMetrics.setStreamingGeneralMetric(
-                    { value: metric[val.propName],
+                    {
+                        value: metric[val.propName],
                         pipelineName: this._pipeline.name,
                         jobId: this._pipeline.jobId,
-                        node: metric.target },
+                        node: metric.target
+                    },
                     key
                 );
             }
