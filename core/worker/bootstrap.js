@@ -41,7 +41,6 @@ class Bootstrap {
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
                 jobConsumer.sendWarning(data.error.message);
-                log.info('The status has been changed to warning')
                 worker.handleExit(1);
             });
             await monitor.check(main.redis);
