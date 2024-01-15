@@ -110,7 +110,7 @@ config.cleanerSettings = {
         cron: process.env.TASKSTATUS_CRON || '* * * * *',
         enabled: formatter.parseBool(process.env.TASKSTATUS_ENABLED, true),
         settings: {
-            maxInterval:12000
+            pdIntervalBreach:12000
         }
     }
 };

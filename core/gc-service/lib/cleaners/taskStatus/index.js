@@ -7,37 +7,38 @@ class TaskStatusCleaner extends BaseCleaner {
     // eslint-disable-next-line no-useless-constructor
     constructor(config) {
         super(config);
-        this.INTERVAL = config.config.settings.maxInterval;
+        this.pdIntervalBreach = config.config.settings.pdIntervalBreach;
     }
 
     async clean() {
         const graphs = await storeManager.getRunningJobsGraphs();
-        const filteredGraphsList = graphs.filter(element => Date.now() - element.pdIntervalTimestamp >= this.INTERVAL);
+        const filteredGraphsList = graphs.filter(element => Date.now() - element.pdIntervalTimestamp >= this.pdIntervalBreach);
         if (filteredGraphsList.length === 0) {
             return [];
         }
         const graphsList = [];
-        filteredGraphsList.forEach(element => {
-            graphsList.push(element.graph);
+
+        filteredGraphsList.map(element => {
+            return graphsList.push(element.graph);
         });
 
-        const updatedJobIds = await this.handleWarnings(graphsList);
+        const updatedJobIds = await this.synchDBWithEtcdWarnings(graphsList);
 
         return updatedJobIds;
     }
 
     // new
-    async handleWarnings(graphs = []) {
+    async synchDBWithEtcdWarnings(graphs = []) {
         const warningGraphs = [...graphs];
         const updatedJobIds = [];
         for (let i = 0; i < warningGraphs.length; i += 1) {
             const { jobId } = warningGraphs[i];
             let warningExist = false;
-            let warningExistTmp = false;
 
             // eslint-disable-next-line no-await-in-loop
             await Promise.all(warningGraphs[i].nodes.map(async (node) => {
                 if ('batch' in node) {
+                    let warningExistTmp = false;
                     // eslint-disable-next-line no-param-reassign
                     ({ batch: node.batch, warningExistTmp } = await this.handleBatch(node.batch, jobId));
                     if (warningExistTmp) {

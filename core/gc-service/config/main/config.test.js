@@ -12,9 +12,8 @@ config.healthchecks = {
 config.cleanerSettings = {
     taskStatus:{
         cron: process.env.TASKSTATUS_CRON || '* * * * *',
-        // enabled: formatter.parseBool(process.env.TASKSTATUS_ENABLED, true),
         settings:{
-        maxInterval: 3600000  
+            pdIntervalBreach: 3600000  
         }
     }
 }

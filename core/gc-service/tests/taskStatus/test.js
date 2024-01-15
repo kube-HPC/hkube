@@ -20,6 +20,12 @@ describe('Task Status', () => {
         etcdMock.reset();
         jobIds = await cleaner.clean();
         expect(jobIds.length).to.equal(2);
+               jobIds.forEach(async (job) => {
+            const graph = await storeManager._db.jobs.fetchGraph({jobId: job})
+            expect(graph.nodes[0].status).to.eql('warning');
+                
+        })
+
         
     })
 })
