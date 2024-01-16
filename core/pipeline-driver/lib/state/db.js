@@ -28,8 +28,8 @@ class DB {
         return this._db.jobs.updateResult(options);
     }
 
-    async updateStatus(options, updateOnlyActive) {
-        return this._db.jobs.updateStatus(options, updateOnlyActive);
+    async updateStatus(options) {
+        return this._db.jobs.updateStatus(options);
     }
 
     async fetchStatus(options) {

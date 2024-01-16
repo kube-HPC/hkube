@@ -43,6 +43,15 @@ describe('state machine', () => {
         stateMachine.cleanup();
         expect(stateMachine.state).to.eql(workerStates.ready);
     });
+    it('should have marked itself stopped and then clear it', () => {
+        stateMachine.bootstrap();
+        stateMachine.prepare();
+        stateMachine.start();
+        stateMachine.stop();
+        expect(stateMachine._stopInvoked).to.eql(true);
+        stateMachine.cleanup();
+        expect(stateMachine._stopInvoked).to.eql(false);
+    });
     it('should raise event on state enter', () => {
         stateMachine.bootstrap();
         const spy = sinon.spy();
