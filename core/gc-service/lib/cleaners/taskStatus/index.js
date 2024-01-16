@@ -16,10 +16,8 @@ class TaskStatusCleaner extends BaseCleaner {
         if (filteredGraphsList.length === 0) {
             return [];
         }
-        const graphsList = [];
-
-        filteredGraphsList.map(element => {
-            return graphsList.push(element.graph);
+        const graphsList = filteredGraphsList.map(element => {
+            return element.graph;
         });
 
         const updatedJobIds = await this.synchDBWithEtcdWarnings(graphsList);
@@ -29,14 +27,13 @@ class TaskStatusCleaner extends BaseCleaner {
 
     // new
     async synchDBWithEtcdWarnings(graphs = []) {
-        const warningGraphs = [...graphs];
         const updatedJobIds = [];
-        for (let i = 0; i < warningGraphs.length; i += 1) {
-            const { jobId } = warningGraphs[i];
+        for (let i = 0; i < graphs.length; i += 1) {
+            const { jobId } = graphs[i];
             let warningExist = false;
 
             // eslint-disable-next-line no-await-in-loop
-            await Promise.all(warningGraphs[i].nodes.map(async (node) => {
+            await Promise.all(graphs[i].nodes.map(async (node) => {
                 if ('batch' in node) {
                     let warningExistTmp = false;
                     // eslint-disable-next-line no-param-reassign
@@ -62,7 +59,7 @@ class TaskStatusCleaner extends BaseCleaner {
 
             if (warningExist) {
                 // eslint-disable-next-line no-await-in-loop
-                await storeManager._db.jobs.updateGraph({ jobId, graph: warningGraphs[i] });
+                await storeManager._db.jobs.updateGraph({ jobId, graph: graphs[i] });
                 updatedJobIds.push(jobId);
             }
         }
