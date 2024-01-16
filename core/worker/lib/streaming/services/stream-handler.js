@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const streamService = require('./stream-service');
 const discovery = require('./service-discovery');
 const { streamingEvents } = require('../../consts');
+const stateAdapter = require('../../states/stateAdapter');
 
 /**
  * This class is the main and only point for
@@ -24,6 +25,10 @@ class StreamHandler extends EventEmitter {
     }
 
     async start(options) {
+        const { jobId } = options;
+        const pipeline = await stateAdapter.getJobPipeline({ jobId });
+        // eslint-disable-next-line no-console
+        console.log(`streaming pipeline: ${JSON.stringify(pipeline)}`);
         await streamService.start(options);
         await discovery.start(options);
     }
