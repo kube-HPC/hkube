@@ -28,7 +28,7 @@ const modules = [
     require('./lib/storage/storage.js'),
     require('./lib/streaming/services/stream-handler.js'),
 ];
-// testing git husky precommit hooks 
+
 class Bootstrap {
     async init() {
         try {
