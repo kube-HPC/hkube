@@ -16,7 +16,7 @@ const modules = [
     require('./lib/datastore/graph-store'),
     require('./lib/consumer/jobs-consumer')
 ];
-
+// testing git husky precommit hook
 class Bootstrap {
     async init() {
         try {
