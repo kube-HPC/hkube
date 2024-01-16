@@ -149,6 +149,7 @@ class Worker {
         if (this._isScalingDown) {
             return;
         }
+        log.info(reason, { component });
         log.info('scaling down... stop algorithm and then exit', { component });
         const { jobId } = jobConsumer.jobData;
         if (jobId) {
@@ -167,8 +168,10 @@ class Worker {
             });
         });
         streamHandler.on(streamingEvents.DISCOVERY_PARENTS_DOWN, () => {
-            const reason = 'service discovery detected all parents down';
-            this._scaleDown({ reason });
+            if (!streamHandler._isMinStateless) {
+                const reason = 'service discovery detected all parents down';
+                this._scaleDown({ reason });
+            }
         });
         streamHandler.on(streamingEvents.METRICS_CHANGED, (metrics) => {
             jobConsumer.updateMetrics(metrics);

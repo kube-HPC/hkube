@@ -9,6 +9,11 @@ const stateAdapter = require('../../states/stateAdapter');
  * communicate with the streaming module.
  */
 class StreamHandler extends EventEmitter {
+    constructor() {
+        super();
+        this._isMinStateless = null;
+    }
+
     async init(options) {
         await streamService.init(options);
         await discovery.init(options);
@@ -27,8 +32,8 @@ class StreamHandler extends EventEmitter {
     async start(options) {
         const { jobId } = options;
         const pipeline = await stateAdapter.getJobPipeline({ jobId });
-        // eslint-disable-next-line no-console
-        console.log(`streaming pipeline: ${JSON.stringify(pipeline)}`);
+        const currentNode = pipeline.nodes.find(n => n.nodeName === options.nodeName);
+        this._isMinStateless = currentNode?.minStatelessCount > 0;
         await streamService.start(options);
         await discovery.start(options);
     }
