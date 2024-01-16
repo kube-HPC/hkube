@@ -22,7 +22,9 @@ class StreamHandler extends EventEmitter {
             this.emit(streamingEvents.DISCOVERY_CHANGED, changed);
         });
         discovery.on(streamingEvents.DISCOVERY_PARENTS_DOWN, (changed) => {
-            this.emit(streamingEvents.DISCOVERY_PARENTS_DOWN, changed);
+            if (!this._isMinStateless) {
+                this.emit(streamingEvents.DISCOVERY_PARENTS_DOWN, changed);
+            }
         });
         streamService.on(streamingEvents.METRICS_CHANGED, (changed) => {
             this.emit(streamingEvents.METRICS_CHANGED, changed);

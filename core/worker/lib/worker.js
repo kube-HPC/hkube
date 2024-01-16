@@ -168,10 +168,8 @@ class Worker {
             });
         });
         streamHandler.on(streamingEvents.DISCOVERY_PARENTS_DOWN, () => {
-            if (!streamHandler._isMinStateless) {
-                const reason = 'service discovery detected all parents down';
-                this._scaleDown({ reason });
-            }
+            const reason = 'service discovery detected all parents down';
+            this._scaleDown({ reason });
         });
         streamHandler.on(streamingEvents.METRICS_CHANGED, (metrics) => {
             jobConsumer.updateMetrics(metrics);
