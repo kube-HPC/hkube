@@ -5,6 +5,7 @@ const flatten = require('flat');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { Persistency } = require('@hkube/dag');
 const { taskStatuses } = require('@hkube/consts');
+const db = require('../state/db');
 const components = require('../consts/componentNames');
 const INTERVAL = 4000;
 const persistency = new Persistency();
@@ -58,6 +59,7 @@ class GraphStore {
             if (this._nodesMap) {
                 const graph = this._nodesMap.getJSONGraph();
                 await this._updateGraph(graph);
+                await db.updatePdIntervalTimestamp(this._jobId);
             }
         }
         catch (error) {
