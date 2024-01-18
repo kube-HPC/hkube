@@ -149,6 +149,7 @@ class Worker {
         if (this._isScalingDown) {
             return;
         }
+        log.info(reason, { component });
         log.info('scaling down... stop algorithm and then exit', { component });
         const { jobId } = jobConsumer.jobData;
         if (jobId) {
