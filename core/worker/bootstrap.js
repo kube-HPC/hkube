@@ -9,6 +9,7 @@ const monitor = require('@hkube/redis-utils').Monitor;
 const storageManager = require('@hkube/storage-manager');
 const component = require('./lib/consts').Components.MAIN;
 const worker = require('./lib/worker');
+const jobConsumer = require('./lib/consumer/JobConsumer.js');
 
 const modules = [
     require('./lib/metrics/metrics.js'),
@@ -39,6 +40,7 @@ class Bootstrap {
             });
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
+                jobConsumer.sendWarning(data.error.message);
                 worker.handleExit(1);
             });
             await monitor.check(main.redis);

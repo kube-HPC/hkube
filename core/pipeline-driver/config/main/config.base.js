@@ -115,3 +115,7 @@ config.storageAdapters = {
 config.logging = {
     tasks: formatter.parseBool(process.env.LOG_TASKS, true)
 };
+
+config.tasks = {
+    statusCollectionDelayMs: process.env.STATUS_DELAY_MS || 25000
+}

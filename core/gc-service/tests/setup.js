@@ -22,7 +22,13 @@ before(async function () {
     const storeManager = require('../lib/helpers/store-manager');
     await storeManager._db.db.dropDatabase();
     await storeManager._db.init();
-    await storeManager._db.jobs.createMany(executions.map((e, i) => ({ jobId: `job-${i}`, pipeline: e })));
+    await storeManager._db.jobs.createMany(executions.map((e, i) => (
+        { 
+            jobId: `job-${i}`,
+            pipeline: e.pipeline,
+            pdIntervalTimestamp: e.pdIntervalTimestamp,
+            graph: e.graph 
+        })));
 
     global.testParams = {
         config

@@ -246,8 +246,9 @@ class StateManager {
     async setJobStatus(options) {
         return this._etcd.jobs.status.update(options, async (oldItem) => {
             if (this._isActiveStatus(oldItem.status)) {
+                if (oldItem.status === DriverStates.STOPPED || oldItem.status === DriverStates.COMPLETED) delete options.status; // If ariving from post-stop code, don't update pipeline status
                 const data = { ...oldItem, ...options };
-                await db.updateStatus(data, true);
+                await db.updateStatus(data);
                 return data;
             }
             return null;
@@ -255,6 +256,18 @@ class StateManager {
             log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
             this._exitOnEtcdProblem(e);
         });
+    }
+
+    async getTasks(options) {
+        let error;
+        try {
+            return this._etcd.jobs.tasks.list({ ...options, limit: 1000 });
+        }
+        catch (e) {
+            error = e.message;
+            this._exitOnEtcdProblem(e);
+        }
+        return error;
     }
 
     calcTimeTook({ activeTime, startTime } = {}) {
@@ -270,20 +283,23 @@ class StateManager {
     }
 
     _isActiveStatus(status) {
-        return status !== DriverStates.STOPPED && status !== DriverStates.PAUSED;
+        return status !== DriverStates.PAUSED; // !== DriverStates.STOPPED && status
     }
 
     getJobStatus(options) {
         return db.fetchStatus(options);
     }
 
-    async tasksList(options) {
+    async tasksList(options, map = true) {
         const list = await this._etcd.jobs.tasks.list({ ...options, limit: 100000 });
-        const results = new Map();
-        list.forEach((v) => {
-            results.set(v.taskId, v);
-        });
-        return results;
+        if (map) {
+            const results = new Map();
+            list.forEach((v) => {
+                results.set(v.taskId, v);
+            });
+            return results;
+        }
+        return list;
     }
 
     getExecution(options) {
