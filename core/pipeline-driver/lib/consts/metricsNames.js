@@ -8,6 +8,8 @@ module.exports = {
         streaming_edge_throughput: 'pipeline_driver_streaming_edge_throughput',
         streaming_edge_queueTimeMs: 'pipeline_driver_streaming_edge_queue_time',
         streaming_edge_processingTimeMs: 'pipeline_driver_streaming_edge_processing_time',
+        streaming_edge_resRate: 'pipeline_driver_streaming_edge_res_rate',
+        streaming_edge_reqRate: 'pipeline_driver_streaming_edge_req_rate',
 
         streaming_pods_per_node: 'pipeline_driver_streaming_pods_per_node',
     },
@@ -27,6 +29,14 @@ module.exports = {
         processing_time: {
             propName: 'processingTimeMs',
             registerZeroValue: false
+        },
+        res_rate: {
+            propName: 'resRate',
+            registerZeroValue: true
+        },
+        req_rate: {
+            propName: 'reqRate',
+            registerZeroValue: true
         },
     },
     streamingGeneralMetricToPropMap: {

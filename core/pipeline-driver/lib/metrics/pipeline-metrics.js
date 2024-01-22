@@ -44,6 +44,16 @@ class PipelineMetrics {
             labels: ['pipelineName', 'jobId', 'source', 'target'],
         });
         metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_resRate,
+            description: 'Response rate',
+            labels: ['pipelineName', 'jobId', 'source', 'target'],
+        });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_reqRate,
+            description: 'Request rate',
+            labels: ['pipelineName', 'jobId', 'source', 'target'],
+        });
+        metrics.addGaugeMeasure({
             name: metricsNames.streaming_pods_per_node,
             description: 'Pod count per node',
             labels: ['pipelineName', 'jobId', 'node'],
