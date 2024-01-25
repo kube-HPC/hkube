@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.6.4",
+    "version": "2.7.1",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -7787,6 +7787,16 @@
         ],
         "summary": "Insert algorithm",
         "description": "Insert new algorithm to store if not exists",
+        "parameters": [
+          {
+            "name": "overwrite",
+            "in": "query",
+            "example": "false",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
