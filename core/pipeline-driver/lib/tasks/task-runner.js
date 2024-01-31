@@ -242,6 +242,9 @@ class TaskRunner {
         }
         this._active = false;
         try {
+            if (!isPaused) {
+                pipelineMetrics.metricsCleanup({ labelName: 'jobId', labelValue: this._jobId });
+            }
             if (shouldStop) {
                 await this._stopPipeline(error, nodeName);
             }
