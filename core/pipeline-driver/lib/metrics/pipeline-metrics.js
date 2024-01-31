@@ -140,16 +140,16 @@ class PipelineMetrics {
     }
 
     // Holds an array of metrics that retain the last value and need to be cleaned
-    _getMetricsToRemove() {
+    _getJobIdMetrics() {
         return [metricsNames.streaming_edge_queueSize, metricsNames.streaming_edge_processingTimeMs,
             metricsNames.streaming_edge_throughput, metricsNames.streaming_edge_queueTimeMs,
             metricsNames.streaming_edge_resRate, metricsNames.streaming_edge_reqRate,
             metricsNames.streaming_pods_per_node];
     }
 
-    // Called when we decide we will not send any more metrics associated to a certain jobId
+    // Called when we decide we will not send any more metrics associated to a certain label
     metricsCleanup(labelName, labelValue) {
-        const metricsToRemove = this._getMetricsToRemove();
+        const metricsToRemove = this._getJobIdMetrics(); // concat any future getters to the list of metrics to remove
         metrics.removeMeasureEntries({ labelName, labelValue, metricsToRemove });
     }
 }
