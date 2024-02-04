@@ -76,13 +76,13 @@ class Metrics {
         });
     }
 
-    summarizeMetrics({ status, taskId, jobId }) {
+    summarizeMetrics({ status, taskId, jobId, pipelineName }) {
         try {
-            log.info(`summarizeMetrics -  taskId: ${taskId}, jobId: ${jobId}, pipelineName: ${this._pipelineName}, algorithmName: ${this.algorithmName}`);
+            log.info(`summarizeMetrics -  taskId: ${taskId}, jobId: ${jobId}, pipelineName: ${pipelineName}, algorithmName: ${this.algorithmName}`);
             if (status === jobStatus.FAILED) {
                 metrics.get(metricsNames.worker_failed).inc({
                     labelValues: {
-                        pipeline_name: this._pipelineName,
+                        pipeline_name: pipelineName,
                         algorithm_name: this.algorithmName,
                         jobId
                     }
@@ -91,7 +91,7 @@ class Metrics {
             else if (status === jobStatus.SUCCEED) {
                 metrics.get(metricsNames.worker_succeeded).inc({
                     labelValues: {
-                        pipeline_name: this._pipelineName,
+                        pipeline_name: pipelineName,
                         algorithm_name: this.algorithmName,
                         jobId
                     }
@@ -100,7 +100,7 @@ class Metrics {
             metrics.get(metricsNames.worker_net).end({
                 id: taskId,
                 labelValues: {
-                    pipeline_name: this._pipelineName,
+                    pipeline_name: pipelineName,
                     jobId,
                     status
                 }
@@ -108,7 +108,7 @@ class Metrics {
             metrics.get(metricsNames.worker_runtime).end({
                 id: taskId,
                 labelValues: {
-                    pipeline_name: this._pipelineName,
+                    pipeline_name: pipelineName,
                     jobId,
                     status
                 }
