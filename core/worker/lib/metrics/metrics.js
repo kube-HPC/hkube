@@ -50,7 +50,6 @@ class Metrics {
 
     initMetrics(job) {
         const { pipelineName } = job.data;
-        log.info(`initMetrics - pipelineName: ${pipelineName}, jobId: ${job.data.jobId}`, { component });
         metrics.get(metricsNames.worker_started).inc({
             labelValues: {
                 pipeline_name: pipelineName,
@@ -78,7 +77,6 @@ class Metrics {
 
     summarizeMetrics({ status, taskId, jobId, pipelineName }) {
         try {
-            log.info(`summarizeMetrics -  taskId: ${taskId}, jobId: ${jobId}, pipelineName: ${pipelineName}, algorithmName: ${this.algorithmName}`);
             if (status === jobStatus.FAILED) {
                 metrics.get(metricsNames.worker_failed).inc({
                     labelValues: {
