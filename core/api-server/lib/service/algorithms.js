@@ -104,7 +104,7 @@ class AlgorithmStore {
         const alg = await stateManager.getAlgorithm(options);
         if (alg) {
             if (allowOverwrite === 'true') {
-                const updatedAlgorithm = await this.updateAlgorithm(options);
+                const updatedAlgorithm = await this.updateAlgorithm(options, { forceUpdate: true });
                 return updatedAlgorithm;
             }
             if (failOnError) {
@@ -120,7 +120,7 @@ class AlgorithmStore {
         try {
             const { algorithm } = await this.applyAlgorithm({ payload: options });
             return algorithm;
-            }
+        }
         catch (error) {
             return {
                 error: {
@@ -132,13 +132,13 @@ class AlgorithmStore {
         }
     }
 
-    async updateAlgorithm(options) {
-        validator.algorithms.validateAlgorithmName(options);
-        const alg = await stateManager.getAlgorithm(options);
+    async updateAlgorithm(payload, options = {}) {
+        validator.algorithms.validateAlgorithmName(payload);
+        const alg = await stateManager.getAlgorithm(payload);
         if (!alg) {
-            throw new ResourceNotFoundError('algorithm', options.name);
+            throw new ResourceNotFoundError('algorithm', payload.name);
         }
-        const { algorithm } = await this.applyAlgorithm({ payload: options });
+        const { algorithm } = await this.applyAlgorithm({ payload, options });
         return algorithm;
     }
 
