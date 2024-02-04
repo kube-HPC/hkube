@@ -24,6 +24,16 @@ class StoreManager {
         });
     }
 
+    async getRunningJobsGraphs() {
+        return this._db.jobs.search({
+            hasResult: false,
+            fields: {
+                pdIntervalTimestamp: 'pdIntervalTimestamp',
+                graph: 'graph'
+            },
+        });
+    }
+
     async getInvalidStatusJobs() {
         return this._db.jobs.fetchAll({
             query: {
