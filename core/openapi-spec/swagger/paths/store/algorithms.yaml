@@ -28,6 +28,12 @@ post:
     - StoreAlgorithms
   summary: Insert algorithm
   description: Insert new algorithm to store if not exists
+  parameters:
+    - name: overwrite
+      in: query
+      example: 'false'
+      schema:
+        type: string
   requestBody:
     content:
       application/json:

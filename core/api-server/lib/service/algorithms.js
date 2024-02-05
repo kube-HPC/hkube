@@ -83,7 +83,7 @@ class AlgorithmStore {
     }
 
     // eslint-disable-next-line consistent-return
-    async insertAlgorithm(options, failOnError = true) {
+    async insertAlgorithm(options, failOnError = true, allowOverwrite) {
         try {
             validator.algorithms.validateAlgorithmName(options);
         }
@@ -101,18 +101,21 @@ class AlgorithmStore {
                 };
             }
         }
-
         const alg = await stateManager.getAlgorithm(options);
         if (alg) {
+            if (allowOverwrite === 'true') {
+                const updatedAlgorithm = await this.updateAlgorithm(options, { forceUpdate: true });
+                return updatedAlgorithm;
+            }
             if (failOnError) {
                 throw new ResourceExistsError('algorithm', options.name);
             }
-            else {
-                return { error: {
+            return {
+                error: {
                     code: 409,
                     message: `algorithm ${options.name} already exists`
-                } };
-            }
+                }
+            };
         }
         try {
             const { algorithm } = await this.applyAlgorithm({ payload: options });
@@ -129,13 +132,13 @@ class AlgorithmStore {
         }
     }
 
-    async updateAlgorithm(options) {
-        validator.algorithms.validateAlgorithmName(options);
-        const alg = await stateManager.getAlgorithm(options);
+    async updateAlgorithm(payload, options = {}) {
+        validator.algorithms.validateAlgorithmName(payload);
+        const alg = await stateManager.getAlgorithm(payload);
         if (!alg) {
-            throw new ResourceNotFoundError('algorithm', options.name);
+            throw new ResourceNotFoundError('algorithm', payload.name);
         }
-        const { algorithm } = await this.applyAlgorithm({ payload: options });
+        const { algorithm } = await this.applyAlgorithm({ payload, options });
         return algorithm;
     }
 
