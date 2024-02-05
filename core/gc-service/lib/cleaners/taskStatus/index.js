@@ -18,7 +18,7 @@ class TaskStatusCleaner extends BaseCleaner {
         }
         const graphsList = filteredGraphsList.map(element => {
             return element.graph;
-        });
+        }).filter(graph => graph !== undefined);
 
         const updatedJobIds = await this.synchDBWithEtcdWarnings(graphsList);
 
@@ -48,7 +48,7 @@ class TaskStatusCleaner extends BaseCleaner {
                     const data = await etcdStore.getKeys(path);
                     const obj = tryParseJson(Object.values(data)[0]);
                     if (obj.status === 'warning' && node.status !== 'warning') {
-                    // eslint-disable-next-line no-param-reassign
+                        // eslint-disable-next-line no-param-reassign
                         node.status = 'warning';
                         // eslint-disable-next-line no-param-reassign
                         node.warning = obj.warning;
