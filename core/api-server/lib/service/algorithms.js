@@ -104,8 +104,19 @@ class AlgorithmStore {
         const alg = await stateManager.getAlgorithm(options);
         if (alg) {
             if (allowOverwrite === 'true') {
-                const updatedAlgorithm = await this.updateAlgorithm(options, { forceUpdate: true });
-                return updatedAlgorithm;
+                try {
+                    const updatedAlgorithm = await this.updateAlgorithm(options, { forceUpdate: true });
+                    return updatedAlgorithm;
+                }
+                catch (error) {
+                    return {
+                        error: {
+                            name: options.name,
+                            code: 400,
+                            message: error.message
+                        }
+                    };
+                }
             }
             if (failOnError) {
                 throw new ResourceExistsError('algorithm', options.name);
