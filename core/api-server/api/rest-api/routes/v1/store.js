@@ -42,11 +42,12 @@ const routes = (option) => {
     }); */
 
     router.post('/pipelines', async (req, res) => {
+        const allowOverwrite = req.query.overwrite;
         if (Array.isArray(req.body)) {
             const returnPipelineList = await Promise.all(
                 req.body.map(async (pipelineData) => {
                     // eslint-disable-next-line no-return-await
-                    return await pipelineStore.insertPipeline(pipelineData, false);
+                    return await pipelineStore.insertPipeline(pipelineData, false, allowOverwrite);
                 })
             );
             res.status(HttpStatus.CREATED).json(returnPipelineList);

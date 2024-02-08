@@ -159,7 +159,7 @@ class PipelineService {
         });
     }
 
-    async insertPipeline(options, failOnError = true) {
+    async insertPipeline(options, failOnError = true, allowOverwrite = false) {
         try {
             validator.pipelines.validateUpdatePipeline(options);
             await validator.algorithms.validateAlgorithmExists(options);
@@ -204,6 +204,21 @@ class PipelineService {
         }
         const pipeline = await stateManager.getPipeline(options);
         if (pipeline) {
+            if (allowOverwrite === 'true') {
+                try {
+                    const updatedPipeline = await this.updatePipeline(options);
+                    return updatedPipeline;
+                }
+                catch (error) {
+                    return {
+                        error: {
+                            name: options.name,
+                            code: 400,
+                            message: `Error updating ${options.name} ${error.message}`
+                        }
+                    };
+                }
+            }
             if (failOnError) {
                 throw new ResourceExistsError('pipeline', options.name);
             }
