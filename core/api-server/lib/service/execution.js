@@ -24,7 +24,7 @@ class ExecutionService {
 
     async runStored(options) {
         validator.executions.validateRunStoredPipeline(options);
-        return this._runStored({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.STORED] });
+        return this._runStored({ pipeline: options, parentSpan: options.spanId, externalId: options.externalId, types: [pipelineTypes.STORED] });
     }
 
     async runCaching(options) {
