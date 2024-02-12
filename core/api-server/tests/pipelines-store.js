@@ -630,6 +630,55 @@ describe('Store/Pipelines', () => {
             expect(response.body[0].error.message).to.include('pipeline pipeline6 already exists');
             expect(response.body[1]).to.have.property('name');
         });
+        it('should add pipeline from array, due to overwrite===true flag', async () => {
+            const existingPipeline = {
+                    name: 'pipeline6',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+            };
+            const options1 = {
+                uri: restPath,
+                body: existingPipeline
+            };
+            await request(options1);
+
+            const pipelinesList = [
+                {
+                    name: 'pipeline6',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+                {
+                    name: 'pipeline3',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+            ]
+            const options2 = {
+                uri: restPath+ '?overwrite=true',
+                body: pipelinesList
+            };
+            const response = await request(options2);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(2);
+            expect(response.body[0]).to.not.have.property('error');
+        });
         it('should return a 201 Created status and an empty array for an empty request body', async () => {
             const emptyArray = [];
             const emptyData = {

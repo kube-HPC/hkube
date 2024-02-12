@@ -113,7 +113,7 @@ class AlgorithmStore {
                         error: {
                             name: options.name,
                             code: 400,
-                            message: `Error updateing ${options.name} ${error.message}`
+                            message: `Error updating ${options.name} ${error.message}`
                         }
                     };
                 }

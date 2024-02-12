@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.7.1",
+    "version": "2.7.2",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -11025,6 +11025,16 @@
         ],
         "summary": "Insert pipeline",
         "description": "Insert new pipeline to store if not exist",
+        "parameters": [
+          {
+            "name": "overwrite",
+            "in": "query",
+            "example": "true",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
