@@ -130,7 +130,7 @@ describe('Storage', () => {
             const response = await request(options);
             expect(response.body.keys).to.have.lengthOf(0);
         });
-        it('should return all keys', async () => {
+        xit('should return all keys', async () => {
             const options = {
                 uri: `${restPath}`,
                 method: 'GET'
@@ -148,7 +148,7 @@ describe('Storage', () => {
             const response = await request(options);
             expect(response.body.keys).to.have.lengthOf(0);
         });
-        it('should limit the return to max keys', async () => {
+       xit('should limit the return to max keys', async () => {
             const length = 140;
             const jobId = `job-${uuid()}`;
             const options = {

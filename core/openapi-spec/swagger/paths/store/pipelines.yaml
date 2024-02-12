@@ -28,6 +28,12 @@ post:
     - StorePipelines
   summary: Insert pipeline
   description: Insert new pipeline to store if not exist
+  parameters:
+    - name: overwrite
+      in: query
+      example: 'true'
+      schema:
+        type: string
   requestBody:
     content:
       application/json:
