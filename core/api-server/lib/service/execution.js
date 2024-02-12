@@ -77,7 +77,7 @@ class ExecutionService {
     }
 
     async _runStored(options) {
-        const { pipeline, jobId, rootJobId, parentSpan, types, mergeFlowInput } = options;
+        const { pipeline, jobId, rootJobId, parentSpan, types, mergeFlowInput, externalId } = options;
         const storedPipeline = await stateManager.getPipeline({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
@@ -89,11 +89,11 @@ class ExecutionService {
             }
             return undefined;
         });
-        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, parentSpan, types });
+        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, parentSpan, types, externalId });
     }
 
     async _runPipeline(payload) {
-        const { pipeline, rootJobId, options, parentSpan, types } = payload;
+        const { pipeline, rootJobId, options, parentSpan, types, externalId } = payload;
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
         const { validateNodes } = options || {};
         let extendedPipeline = restPipeline;
@@ -133,7 +133,7 @@ class ExecutionService {
             const pipelineObject = { ...extendedPipeline, maxExceeded, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
             const statusObject = { timestamp: Date.now(), pipeline: extendedPipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
-            await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject, completion: false });
+            await stateManager.createJob({ jobId, userPipeline, externalId, pipeline: pipelineObject, status: statusObject, completion: false });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return { jobId, gateways: extendedPipeline.streaming?.gateways };
