@@ -156,6 +156,7 @@ type  Batch {
     }
 
   type Job { key: String
+    externalId:String
     results: Results
     graph: Graph
     status: Status

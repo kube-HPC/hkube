@@ -315,8 +315,8 @@ class StateManager extends EventEmitter {
         });
     }
 
-    async createJob({ jobId, userPipeline, pipeline, status, completion }) {
-        await this._db.jobs.create({ jobId, userPipeline, pipeline, status, completion });
+    async createJob({ jobId, externalId, userPipeline, pipeline, status, completion }) {
+        await this._db.jobs.create({ jobId, externalId, userPipeline, pipeline, status, completion });
         await this._etcd.jobs.status.set({ jobId, ...status });
     }
 
