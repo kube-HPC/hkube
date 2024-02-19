@@ -162,12 +162,16 @@ const applyOpengl = (inputSpec, options, algorithmOptions = {}) => {
 };
 
 const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, clusterOptions = {} }) => {
-    const { devMode } = algorithmOptions;
+    const { devMode, devFolder } = algorithmOptions;
+    let devMountPath = '/hkube/algorithm-runner/algorithm_unique_folder';
     if (!devMode) {
         return inputSpec;
     }
     if (!clusterOptions.devModeEnabled) {
         return inputSpec;
+    }
+    if (devFolder) {
+        devMountPath = devFolder;
     }
     let spec = clonedeep(inputSpec);
     objectPath.set(spec, 'spec.template.spec.restartPolicy', 'OnFailure');
@@ -175,7 +179,7 @@ const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, cluster
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { DEV_MODE: 'true' });
     spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
         name: 'hkube-dev-sources',
-        mountPath: '/hkube/algorithm-runner/algorithm_unique_folder',
+        mountPath: devMountPath,
         subPath: `algorithms/${algorithmName}`
     });
     spec = applyVolumes(spec, {

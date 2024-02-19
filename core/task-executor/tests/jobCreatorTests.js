@@ -513,6 +513,29 @@ describe('jobCreator', () => {
                 }
             );
         });
+        it('should apply with custom mount path when "devMode" and "devFolder" are present', () => {
+            const res = createJobSpec({
+                algorithmImage: 'myImage1',
+                algorithmName: 'myalgo1',
+                options,
+                algorithmOptions: { devMode: true, devFolder: '/myFolder/mySecondFolder' },
+                clusterOptions: { devModeEnabled: true }
+            });
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DEV_MODE', value: 'true' });
+            expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
+                {
+                    name: 'hkube-dev-sources',
+                    mountPath: '/myFolder/mySecondFolder',
+                    subPath: 'algorithms/myalgo1'
+                }
+            );
+            expect(res.spec.template.spec.volumes).to.deep.include(
+                {
+                    name: 'hkube-dev-sources',
+                    persistentVolumeClaim: { claimName: 'hkube-dev-sources-pvc' }
+                }
+            );
+        });
         it('should not add devMode if cluster disabled', () => {
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
