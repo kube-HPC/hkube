@@ -35,17 +35,28 @@ const debugService = ({ algorithmName }) => ({
 
 const debugIngress = ({ algorithmName, debugName }, { ingressHost, ingressPrefix = '', ingressUseRegex = false, ingressClass = 'nginx' } = {}) => {
     const { apiVersion, backend, pathType } = getIngressParams(`service-debug-${algorithmName}`, 80);
+    let rewriteTarget;
+    let sslRedirect;
+    const annotations = {};
+    if (ingressClass === 'haproxy') {
+        annotations['haproxy.router.openshift.io/proxy-body-size'] = '500m';
+        rewriteTarget = 'haproxy.router.openshift.io/rewrite-target';
+        sslRedirect = 'haproxy.router.openshift.io/ssl-redirect';
+    }
+    else {
+        annotations['nginx.ingress.kubernetes.io/proxy-read-timeout'] = '50000';
+        annotations['kubernetes.io/ingress.class'] = ingressClass;
+        rewriteTarget = 'nginx.ingress.kubernetes.io/rewrite-target';
+        sslRedirect = 'nginx.ingress.kubernetes.io/ssl-redirect';
+    }
+    annotations[rewriteTarget] = ingressUseRegex ? '/$2' : '/';
+    annotations[sslRedirect] = 'false';
     const ret = {
         apiVersion,
         kind: 'Ingress',
         metadata: {
             name: `ingress-debug-${algorithmName}`,
-            annotations: {
-                'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
-                'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
-                'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000',
-                'kubernetes.io/ingress.class': ingressClass
-            },
+            annotations,
             labels: {
                 app: `ingress-${nodeKind.Debug}`,
                 core: 'true',
