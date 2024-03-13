@@ -879,8 +879,13 @@ class TaskRunner {
         }
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
-        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
-        this._boards.update(task);
+        try {
+            this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
+            this._boards.update(task);
+        }
+        catch (e) {
+            log.error(`jobId: ${this._jobId}, pipeline name: ${this.pipeline.name}, ${e.message}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
+        }
     }
 
     // TODO: MAKE THIS THROW
@@ -891,7 +896,7 @@ class TaskRunner {
             this._nodes.updateTaskState(taskId, state);
         }
         catch (e) {
-            log.error(`jobId: ${this._jobId}, ${e.message}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
+            log.error(`jobId: ${this._jobId}, pipeline name: ${this.pipeline.name}, ${e.message}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
         }
     }
 
