@@ -887,7 +887,12 @@ class TaskRunner {
     _updateTaskState(taskId, task) {
         const { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath } = task;
         const state = { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath };
-        this._nodes.updateTaskState(taskId, state);
+        try {
+            this._nodes.updateTaskState(taskId, state);
+        }
+        catch (e) {
+            log.error(`jobId: ${this._jobId}, ${e.message}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
+        }
     }
 
     async _createJob(options, batch, statelessList) {
