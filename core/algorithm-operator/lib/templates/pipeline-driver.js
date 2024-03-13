@@ -91,6 +91,15 @@ const template = {
                                 }
                             },
                             {
+                                name: 'STATUS_DELAY_MS',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'pipeline-driver-configmap',
+                                        key: 'STATUS_DELAY_MS'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {
