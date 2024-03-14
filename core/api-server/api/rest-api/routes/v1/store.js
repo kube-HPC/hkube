@@ -134,7 +134,7 @@ const routes = (option) => {
         let message;
         let { selector } = req.query;
         if (!selector) {
-            selector = 'algorithm-name=';
+            selector = `algorithm-name=${algName}`;
         } // default selector
         try {
             message = kubernetes._getPods(algName, selector);
