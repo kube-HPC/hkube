@@ -116,6 +116,16 @@ class KubernetesLogs {
     _formatRaw(line) {
         return { message: line };
     }
+
+    _getPods(podName, labelSelector, useNamespace = false) {
+        const res = this._client.pods.get({ podName, labelSelector, useNamespace });
+        return res;
+    }
+
+    _deletePods(podNames) {
+        const res = this._client.pods.delete({ podNames });
+        return res;
+    }
 }
 
 module.exports = new KubernetesLogs();
