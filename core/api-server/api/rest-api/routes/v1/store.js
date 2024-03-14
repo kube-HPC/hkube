@@ -137,7 +137,7 @@ const routes = (option) => {
             selector = `algorithm-name=${algName}`;
         } // default selector
         try {
-            pods = await kubernetes._getPods(algName, selector);
+            pods = await kubernetes._getPods(selector);
             message = await kubernetes._deletePods(pods);
         }
         catch (error) {
