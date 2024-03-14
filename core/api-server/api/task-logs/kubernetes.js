@@ -117,13 +117,13 @@ class KubernetesLogs {
         return { message: line };
     }
 
-    _getPods(podName, labelSelector, useNamespace = true) {
-        const res = this._client.pods.get({ podName, labelSelector, useNamespace });
+    async _getPods(podName, labelSelector, useNamespace = true) {
+        const res = await this._client.pods.get({ podName, labelSelector, useNamespace });
         return res;
     }
 
-    _deletePods(podNames) {
-        const res = this._client.pods.delete({ podNames });
+    async _deletePods(podNames) {
+        const res = await this._client.pods.delete({ podNames });
         return res;
     }
 }
