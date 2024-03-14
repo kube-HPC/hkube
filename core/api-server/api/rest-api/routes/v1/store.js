@@ -131,14 +131,17 @@ const routes = (option) => {
     });
     router.delete('/algorithms/pods/:algName', async (req, res) => {
         const { algName } = req.params;
-        let message; let pods;
+        let message; let pods; let podName;
         let { selector } = req.query;
         if (!selector) {
             selector = `algorithm-name=${algName}`;
         } // default selector
         try {
             pods = await kubernetes._getPods(selector);
-            message = await kubernetes._deletePods(pods);
+            pods.body.items.forEach(pod => {
+                podName = pod.metadata.name;
+                kubernetes._deletePods(podName);
+            });
         }
         catch (error) {
             message = error.message;
