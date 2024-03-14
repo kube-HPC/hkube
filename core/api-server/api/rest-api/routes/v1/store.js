@@ -129,7 +129,7 @@ const routes = (option) => {
             }
         }
     });
-    router.delete('/algorithms/pods:algName', async (req, res) => {
+    router.delete('/algorithms/pods/:algName', async (req, res) => {
         const { algName } = req.params;
         let message;
         let { selector } = req.query;
