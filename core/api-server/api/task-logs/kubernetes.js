@@ -117,7 +117,7 @@ class KubernetesLogs {
         return { message: line };
     }
 
-    _getPods(podName, labelSelector, useNamespace = false) {
+    _getPods(podName, labelSelector, useNamespace = true) {
         const res = this._client.pods.get({ podName, labelSelector, useNamespace });
         return res;
     }
