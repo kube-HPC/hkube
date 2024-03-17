@@ -122,8 +122,8 @@ class KubernetesLogs {
         return res;
     }
 
-    async _deletePods(podNames) {
-        const res = await this._client.pods.delete({ podNames });
+    async _deletePods(podName) {
+        const res = await this._client.pods.delete({ podName });
         return res;
     }
 }
