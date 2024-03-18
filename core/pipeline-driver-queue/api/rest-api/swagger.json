@@ -19652,7 +19652,7 @@
           "Kubernetes"
         ],
         "summary": "Delete all of an algorithm's pods",
-        "description": "Delete algorithm pods using algName and a default selector of algorithm-name=algName",
+        "description": "Delete algorithm pods using algName and a default selector of algorithm-name={algName}",
         "parameters": [
           {
             "name": "algName",
@@ -19666,7 +19666,7 @@
           {
             "name": "selector",
             "in": "query",
-            "description": "label-selector",
+            "description": "Optional label selector, default being algorithm-name={algName}",
             "required": false,
             "schema": {
               "type": "string"
