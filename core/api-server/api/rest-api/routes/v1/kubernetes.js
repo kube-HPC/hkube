@@ -6,7 +6,7 @@ const routes = () => {
     const router = RestServer.router();
     router.delete('/algorithms/pods/:algName', async (req, res) => {
         const { algName } = req.params;
-        let message; let pods; let podName;
+        const message = []; let pods; let podName;
         let { selector } = req.query;
         if (!selector) {
             selector = `algorithm-name=${algName}`;
