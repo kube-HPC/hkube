@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.7.2",
+    "version": "2.7.3",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -19624,6 +19624,109 @@
         "summary": "Get resource status for all unscheduled algorithms",
         "description": "Gets missing resources(cpu, memory, gpu) per available node, conditions(nodeSelector), and requests over node capacity",
         "responses": {
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/kubernetes/algorithms/pods/{algName}": {
+      "delete": {
+        "tags": [
+          "Kubernetes"
+        ],
+        "summary": "Delete all of an algorithm's pods",
+        "description": "Delete algorithm pods using algName and a default selector of algorithm-name={algName}",
+        "parameters": [
+          {
+            "name": "algName",
+            "in": "path",
+            "description": "Pods associated to the algName will be deleted",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "selector",
+            "in": "query",
+            "description": "Optional label selector, default being algorithm-name={algName}",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No pods found with selector",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "default": {
             "description": "Unexpected error",
             "content": {

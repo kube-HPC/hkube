@@ -116,6 +116,16 @@ class KubernetesLogs {
     _formatRaw(line) {
         return { message: line };
     }
+
+    async _getPods(labelSelector) {
+        const res = await this._client.pods.get({ labelSelector });
+        return res;
+    }
+
+    async _deletePods(podName) {
+        const res = await this._client.pods.delete({ podName });
+        return res;
+    }
 }
 
 module.exports = new KubernetesLogs();
