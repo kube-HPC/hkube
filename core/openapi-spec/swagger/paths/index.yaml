@@ -230,3 +230,7 @@
    $ref: ./resources/unscheduledalgorithms.yaml
 /resources/unscheduledalgorithms/{algorithmName}:
    $ref: ./resources/unscheduledalgorithms_algorithmName.yaml
+
+#kubernetes
+/kubernetes/algorithms/pods/{algName}:
+   $ref: ./kubernetes/algorithms_pods_algname.yaml

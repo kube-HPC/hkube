@@ -6,7 +6,7 @@ const routes = () => {
     const router = RestServer.router();
     router.delete('/algorithms/pods/:algName', async (req, res) => {
         const { algName } = req.params;
-        let message = 'Deleting pod(s)): '; let pods; let podName;
+        let message; let pods; let podName;
         let { selector } = req.query;
         if (!selector) {
             selector = `algorithm-name=${algName}`;
@@ -14,13 +14,13 @@ const routes = () => {
         try {
             pods = await kubernetes._getPods(selector);
             if (pods.body.items.length === 0) {
-                res.json(`No pods found with selector ${selector}`);
+                res.status(HttpStatus.NOT_FOUND).json(`No pods found with selector ${selector}`);
                 return;
             }
             pods.body.items.forEach(pod => {
                 podName = pod.metadata.name;
                 kubernetes._deletePods(podName);
-                message += `${podName} ,`;
+                message.push(podName);
             });
         }
         catch (error) {
