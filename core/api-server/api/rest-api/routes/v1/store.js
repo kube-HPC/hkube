@@ -5,7 +5,6 @@ const HttpStatus = require('http-status-codes');
 const pipelineStore = require('../../../../lib/service/pipelines');
 const algorithmStore = require('../../../../lib/service/algorithms');
 const upload = multer({ dest: 'uploads/zipped/' });
-const kubernetes = require('../../../task-logs/kubernetes');
 
 const routes = (option) => {
     const router = RestServer.router();
@@ -129,28 +128,7 @@ const routes = (option) => {
             }
         }
     });
-    router.delete('/algorithms/pods/:algName', async (req, res) => {
-        const { algName } = req.params;
-        let message; // let pods; let podName;
-        let { selector } = req.query;
-        if (!selector) {
-            selector = `algorithm-name=${algName}`;
-        } // default selector
-        try {
-            kubernetes._deletePods(selector);
-            // pods = await kubernetes._getPods(selector);
-            // pods.body.items.forEach(pod => {
-            //     podName = pod.metadata.name;
-            //     kubernetes._deletePods(podName);
-            // });
-        }
-        catch (error) {
-            message = error.message;
-        }
-        res.json({ message });
-    });
     // algorithms
-
     return router;
 };
 
