@@ -12,7 +12,7 @@ class KindCleaner {
         let result = [];
         if (algorithms.length > 0) {
             const jobs = await storeManager.getRunningJobs();
-            const runningAlgorithms = new Set(jobs.map(job => job.nodes.map(n => n.algorithmName)).flat());
+            const runningAlgorithms = new Set(jobs.map(job => job.nodes?.map(n => n.algorithmName)).flat());
             result = algorithms.filter(a => isTimeBefore(a.modified, maxAge) && !runningAlgorithms.has(a.name)).map(a => a.name);
         }
         return result;
