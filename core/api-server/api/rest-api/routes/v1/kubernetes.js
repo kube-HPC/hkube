@@ -28,6 +28,30 @@ const routes = () => {
         }
         res.status(HttpStatus.OK).json({ message });
     });
+    router.delete('/algorithms/jobs/:algName', async (req, res) => {
+        const { algName } = req.params;
+        const message = []; let jobs; let jobName;
+        let { selector } = req.query;
+        if (!selector) {
+            selector = `algorithm-name=${algName}`;
+        } // default selector - the common label for all algorithms
+        try {
+            jobs = await kubernetes._getJobs(selector);
+            if (jobs.body.items.length === 0) {
+                res.status(HttpStatus.NOT_FOUND).json(`No jobs found with selector ${selector}`);
+                return;
+            }
+            jobs.body.items.forEach(pod => {
+                jobName = pod.metadata.name;
+                kubernetes._deleteJobs(jobName);
+                message.push(jobName);
+            });
+        }
+        catch (error) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
+        }
+        res.status(HttpStatus.OK).json({ message });
+    });
     // end algorithms
     return router;
 };
