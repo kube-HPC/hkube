@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.7.3",
+    "version": "2.8.0",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -19691,6 +19691,109 @@
           },
           "404": {
             "description": "No pods found with selector",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/kubernetes/algorithms/jobs/{algName}": {
+      "delete": {
+        "tags": [
+          "Kubernetes"
+        ],
+        "summary": "Delete all of an algorithm's jobs",
+        "description": "Delete algorithm jobs using algName and a default selector of algorithm-name={algName}",
+        "parameters": [
+          {
+            "name": "algName",
+            "in": "path",
+            "description": "Jobs associated to the algName will be deleted",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "selector",
+            "in": "query",
+            "description": "Optional label selector, default being algorithm-name={algName}",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No jobs found with selector",
             "content": {
               "application/json": {
                 "schema": {

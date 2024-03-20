@@ -234,3 +234,5 @@
 #kubernetes
 /kubernetes/algorithms/pods/{algName}:
    $ref: ./kubernetes/algorithms_pods_algname.yaml
+/kubernetes/algorithms/jobs/{algName}:
+   $ref: ./kubernetes/algorithms_jobs_algname.yaml
