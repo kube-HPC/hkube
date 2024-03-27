@@ -24,6 +24,7 @@ class StateAdapter extends EventEmitter {
         if (options.cacheResults.enabled) {
             this.getExistingAlgorithms = cacheResults(this.getExistingAlgorithms.bind(this), options.cacheResults.updateFrequency);
         }
+        this._heartBeatTTL = options.etcd.heartBeatTTL;
         log = Logger.GetLogFromContainer();
         this._dataSourcesVolume = getDatasourcesInUseFolder(options);
         this._etcd = new Etcd(options.etcd);
@@ -40,7 +41,7 @@ class StateAdapter extends EventEmitter {
         this._tasksQueue = asyncQueue((task, callback) => {
             this._etcd.jobs.tasks.set(task).then(r => callback(null, r)).catch(e => callback(e));
         }, 1);
-        await this._etcd.discovery.register({ data: this._discoveryInfo });
+        await this._etcd.discovery.register({ data: this._discoveryInfo, ttl: this._heartBeatTTL });
         log.info(`initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
         log.info(`registering worker discovery for id ${this._workerId}`, { component });
         await this.watchWorkerStates();
