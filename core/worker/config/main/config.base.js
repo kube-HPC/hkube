@@ -45,7 +45,7 @@ config.streaming = {
             minTimeQueueEmptyBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_QUEUE_EMPTY, 60000),
         },
         scaleIntervention: {
-            throttleMs : formatters.parseInt(process.env.SCALE_INTERVENTION_LOG_THROTTLE_TIME, 200)
+            throttleMs: formatters.parseInt(process.env.SCALE_INTERVENTION_LOG_THROTTLE_TIME, 200)
         }
     },
     election: {
@@ -74,7 +74,8 @@ config.etcd = {
     protocol: 'http',
     host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
-    serviceName: config.serviceName
+    serviceName: config.serviceName,
+    heartBeatTTL: process.env.ETCD_HEART_BEAT_TTL || 10
 };
 
 config.db = {
