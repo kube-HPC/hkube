@@ -63,12 +63,7 @@ config.resources = {
         'limits.memory': process.env.DEFAULT_QUOTA_MEM || '20Gi',
         'requests.nvidia.com/gpu': process.env.DEFAULT_QUOTA_GPU || 0
     },
-    useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false),
-    ratioPressure: {
-        cpu : parseFloat(process.env.CPU_RATIO_PRESSURE) || 0.9,
-        memory : parseFloat(process.env.MEMORY_RATIO_PRESSURE) || 0.8
-    }
-
+    useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false)
 }
 
 config.healthchecks = {
