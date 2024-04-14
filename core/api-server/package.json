@@ -58,7 +58,7 @@
         "requestretry": "^6.0.0",
         "semver": "^7.3.5",
         "string-template": "^1.0.0",
-        "subscriptions-transport-ws": "^0.9.19"
+        "subscriptions-transport-ws": "^0.11.0"
     },
     "devDependencies": {
         "@hkube/encoding": "^2.0.1",
