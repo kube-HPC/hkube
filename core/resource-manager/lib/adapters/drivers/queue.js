@@ -9,7 +9,12 @@ class PipelineDriversQueueAdapter extends Adapter {
     async _getData() {
         const queue = await stateManager.getPipelineDriverQueue();
         queue.forEach(al => {
-            al.data = al.data.map(a => ({ name: al.name, score: a }));
+            // eslint-disable-next-line array-callback-return, consistent-return
+            al.data = al.data.map((a, index) => {
+                if ((al.maxExceeded) && (!al.maxExceeded[index])) { // concurrent algorithms that can't run won't spam queue
+                    return { name: al.name, score: a };
+                }
+            });
         });
         const combined = [{ name: combinedQueue, data: [] }];
         queue.forEach(al => {
