@@ -31,6 +31,21 @@ const configMap = {
     recommendationMode: 'map'
 }
 
+const countNotMaxExceededPipes = (queue) => {
+    const count = queue.reduce((totalCount, item) => {
+        if (Array.isArray(item.maxExceeded)) {
+            const trueCount = item.maxExceeded.reduce((acc, value) => {
+                return value ? acc : acc +1;
+            }, 0);
+            return totalCount + trueCount;
+        } else {
+            // If 'max' array doesn't exist, accumulate the length of the 'data' array
+            return totalCount + (Array.isArray(item.data) ? item.data.length : 0);
+        }
+    }, 0);
+
+    return count;
+}
 describe('Test', function () {
     before(async function () {
         mockery.enable({
@@ -180,7 +195,8 @@ describe('Test', function () {
                 expect(adapter.mandatory).to.equal(false);
                 expect(adapterKeys).to.have.lengthOf(1);
                 expect(adapterKeys[0]).to.equal(adapterName);
-                expect(result.data[0].data).to.have.length(driversQueueMock[0].data.length + driversQueueMock[1].data.length);
+                const count = countNotMaxExceededPipes(driversQueueMock);
+                expect(result.data[0].data).to.have.length(count); // driversQueueMock[0].data.length + driversQueueMock[1].data.length
             });
         });
         describe('K8s', function () {
