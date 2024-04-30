@@ -102,7 +102,7 @@ class JobConsumer extends EventEmitter {
             }
         }
         catch (error) {
-            log.error(`Failed to remove pending jobs for jobId ${jobId}`, { component }, error);
+            log.info(`Failed to remove pending jobs for jobId ${jobId}, error - ${error.message} `, { component }, error);
         }
     }
 
