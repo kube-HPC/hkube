@@ -21,10 +21,10 @@ class JobsMessageQueue {
         return map;
     }
 
-    async _getWaitingCount(algorithm) {
+    async _getWaitingCount(algorithmName) {
         let count = 0;
         try {
-            const queue = this._producer._createQueue(algorithm);
+            const queue = this._producer._createQueue(algorithmName);
             count = await queue.getWaitingCount();
         }
         catch {
