@@ -17,4 +17,4 @@ RUN chgrp -R 0 /hkube-logs && chmod -R g=u /hkube-logs
 COPY . /hkube/algorithm-debug
 COPY --from=install /hkube/algorithm-debug/node_modules /hkube/algorithm-debug/node_modules
 WORKDIR /hkube/algorithm-debug
-CMD ["/bin/sh", "-c", "mkfifo /tmp/pipe; (tee -a /hkube-logs/stdout.log < /tmp/pipe & ) ; exec npm start > /tmp/pipe 2>&1"]
+CMD ["/bin/sh", "-c", "mkfifo /tmp/pipe; (tee -a /hkube-logs/stdout.log < /tmp/pipe & ) ; exec node app > /tmp/pipe 2>&1"]
