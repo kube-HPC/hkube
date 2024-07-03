@@ -21,7 +21,7 @@
     "@hkube/healthchecks": "^1.0.2",
     "@hkube/kubernetes-client": "^2.0.4",
     "@hkube/logger": "^2.0.2",
-    "@hkube/producer-consumer": "^1.0.50",
+    "@hkube/producer-consumer": "^1.0.53",
     "@hkube/uid": "^1.0.4",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isequalwith": "^4.4.0",
