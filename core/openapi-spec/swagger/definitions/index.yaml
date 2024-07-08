@@ -36,7 +36,7 @@ kubernetesValueFrom:
 createBoardRequest:
   $ref: ./boards/createBoardRequest.yaml
 createOptunaboardRequest:
-  $ref: ./boards/createOptunaboardRequest.yaml  
+  $ref: ./boards/createOptunaboardRequest.yaml
 createBoardResponse:
   $ref: ./boards/createBoardResponse.yaml
 getBoardResponse:
@@ -198,13 +198,13 @@ output:
   $ref: ./output/output.yaml
 
 hyperparamsTuner:
-  $ref: ./hyperparamsTuner/hyperparamsTuner.yaml  
+  $ref: ./hyperparamsTuner/hyperparamsTuner.yaml
 hyperparamsTunerName:
-  $ref: ./hyperparamsTuner/hyperparamsTunerName.yaml  
+  $ref: ./hyperparamsTuner/hyperparamsTunerName.yaml
 hyperparamsTunerSpec:
-  $ref: ./hyperparamsTuner/hyperparamsTunerSpec.yaml      
+  $ref: ./hyperparamsTuner/hyperparamsTunerSpec.yaml
 hyperParams:
-  $ref: ./hyperparamsTuner/hyperParam.yaml  
+  $ref: ./hyperparamsTuner/hyperParam.yaml
 sampler:
   $ref: ./hyperparamsTuner/sampler.yaml
 
@@ -272,3 +272,8 @@ complexResourceDescriptor:
 nodes:
   $ref: ./resources/nodes.yaml
 
+# auth
+loginResponse:
+  $ref: ./auth/loginResponse.yaml
+loginRequest:
+  $ref: ./auth/loginRequest.yaml
