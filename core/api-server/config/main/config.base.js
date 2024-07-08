@@ -212,5 +212,12 @@ config.graphql = {
     introspection: formatter.parseBool(process.env.GRAPHQL_INTROSPECTION, true),
     useIntervalForStatistics: formatter.parseBool(process.env.GRAPHQL_USE_INTERVAL_FOR_STATISTICS, false),
 }
+config.keycloak = {
+    realm: process.env.KL_REALM || 'master',
+    clientId: 'api-server',
+    clientSecret: process.env.KL_CLIENT_SECRET || '5mAAqUXMsFWAGCnhvhrGPVVYuZLWy7Am',
+    authServerUrl: process.env.KL_URL || 'http://hkube-keycloak/hkube/keycloak'
+
+}
 
 module.exports = config;

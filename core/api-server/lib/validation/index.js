@@ -13,6 +13,7 @@ const DataSources = require('./data-sources');
 const Gateways = require('./gateways');
 const Outputs = require('./outputs');
 const HyperparamsTuner = require('./hyperparams-tuners');
+const Auth = require('./auth');
 
 module.exports = {
     Algorithms,
@@ -29,5 +30,6 @@ module.exports = {
     Pipelines,
     DataSources,
     Outputs,
-    HyperparamsTuner
+    HyperparamsTuner,
+    Auth
 };

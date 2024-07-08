@@ -1,0 +1,31 @@
+post:
+  tags:
+    - Login
+  summary: Login
+  description: "Obtain token by loggin"
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/loginRequest"
+    description: algorithm descriptor to be added to the store
+    required: true
+  responses:
+    "200":
+      description: login successfull
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/loginResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
