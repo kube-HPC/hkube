@@ -290,7 +290,12 @@ class JobConsumer extends EventEmitter {
             }
             await storage.finish({ kind: this._kind });
             metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId, pipelineName: this._pipelineName });
-            log.info(`finishJob - status: ${status}, error: ${error}`, { component });
+            if (status !== taskStatuses.FAILED) {
+                log.info(`finishJob - status: ${status}, error: ${error}`, { component });
+            }
+            else {
+                log.error(`finishJob - status: ${status}, error: ${error}`, { component });
+            }
         }
         finally {
             this._inFinishState = false;
