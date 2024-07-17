@@ -111,13 +111,25 @@ class StateManager extends EventEmitter {
     }
 
     async getAlgorithms({ name, names, kind, sort, limit } = {}) {
-        return this._db.algorithms.search({
+        const allAlgorithms = await this._db.algorithms.search({
             name,
             names,
             kind,
             sort: { created: sort },
             limit
         });
+        // This section handles algorithms that are not satisfied, which may occur under the following conditions:
+        // 1 - Insufficient CPU/GPU/Memory for a hot worker to start.
+        // 2 - When a job is running, there are not enough resources for the worker to run the algorithm.
+        const taskExecuter = await this.getSystemResources();
+        const updatedAlgorithms = allAlgorithms.map(algo => {
+            if (taskExecuter && taskExecuter[0] && taskExecuter[0].ignoredUnScheduledAlgorithms) {
+                const isIgnored = taskExecuter[0].ignoredUnScheduledAlgorithms[algo.name] !== undefined;
+                return { ...algo, isSatisfied: !isIgnored };
+            }
+            return { ...algo, isSatisfied: true };
+        });
+        return updatedAlgorithms;
     }
 
     async searchAlgorithms({ name, kind, algorithmImage, pending, cursor, page, sort, limit, fields } = {}) {
