@@ -123,8 +123,9 @@ class StateManager extends EventEmitter {
         // 2 - When a job is running, there are not enough resources for the worker to run the algorithm.
         const taskExecuter = await this.getSystemResources();
         const updatedAlgorithms = allAlgorithms.map(algo => {
-            if (taskExecuter && taskExecuter[0] && taskExecuter[0].ignoredUnScheduledAlgorithms) {
-                const isIgnored = taskExecuter[0].ignoredUnScheduledAlgorithms[algo.name] !== undefined;
+            if (taskExecuter && taskExecuter[0] && taskExecuter[0].ignoredUnScheduledAlgorithms && taskExecuter[0].unScheduledAlgorithms) {
+                const unScheduledAndIgnored = { ...taskExecuter[0].unScheduledAlgorithms, ...taskExecuter[0].ignoredUnScheduledAlgorithms };
+                const isIgnored = unScheduledAndIgnored[algo.name] !== undefined;
                 return { ...algo, isSatisfied: !isIgnored };
             }
             return { ...algo, isSatisfied: true };
