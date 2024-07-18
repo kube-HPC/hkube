@@ -41,6 +41,8 @@ class ApiValidator {
         this._validator.validate(this._validator.definitions.algorithmDelete, algorithm, true);
     }
 
+    // This method checks if the given algorithm can run on a node with sufficient resources.
+    // Note: The availability of free resources is not guaranteed.
     async validateAlgorithmResources(algorithm) {
         const resources = await stateManager.getSystemResources();
         if (resources && resources[0] && resources[0].nodes) {

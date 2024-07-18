@@ -16,6 +16,7 @@ type GitRepository { gitKind: String
 type Algorithm { 
  
   name: String
+  isSatisfied: Boolean
   cpu: String
   created: Float
   entryPoint: String
