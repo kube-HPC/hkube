@@ -127,7 +127,7 @@ const jobTypeDefs = gql`
     skipped: Int
     stalled: Int
     warning: Int
-    FailedScheduling: Int
+    failedScheduling: Int
   }
 
   type Data {
