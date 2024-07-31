@@ -122,13 +122,13 @@ class StateManager extends EventEmitter {
         // 1 - Insufficient CPU/GPU/Memory for a hot worker to start.
         // 2 - When a job is running, there are not enough resources for the worker to run the algorithm.
         const taskExecuter = await this.getSystemResources();
+        const unScheduledAndIgnored = taskExecuter ? {
+            ...taskExecuter[0]?.unScheduledAlgorithms,
+            ...taskExecuter[0]?.ignoredUnScheduledAlgorithms
+        } : {};
         const updatedAlgorithms = allAlgorithms.map(algo => {
-            if (taskExecuter && taskExecuter[0] && taskExecuter[0].ignoredUnScheduledAlgorithms && taskExecuter[0].unScheduledAlgorithms) {
-                const unScheduledAndIgnored = { ...taskExecuter[0].unScheduledAlgorithms, ...taskExecuter[0].ignoredUnScheduledAlgorithms };
-                const isIgnored = unScheduledAndIgnored[algo.name] !== undefined;
-                return { ...algo, isSatisfied: !isIgnored };
-            }
-            return { ...algo, isSatisfied: true };
+            const isIgnored = unScheduledAndIgnored[algo.name] !== undefined;
+            return { ...algo, isSatisfied: !isIgnored };
         });
         return updatedAlgorithms;
     }
