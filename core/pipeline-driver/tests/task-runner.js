@@ -277,7 +277,7 @@ describe('TaskRunner', function () {
                 [algorithmName]: {
                     algorithmName: algorithmName,
                     type: "warning",
-                    reason: "FailedScheduling",
+                    reason: "failedScheduling",
                     hasMaxCapacity: false,
                     message: "Insufficient mem (4)",
                     timestamp: 1593926212391,
@@ -345,7 +345,7 @@ describe('TaskRunner', function () {
                 [algorithmName]: {
                     algorithmName: algorithmName,
                     type: 'warning',
-                    reason: 'FailedScheduling',
+                    reason: 'failedScheduling',
                     hasMaxCapacity: true,
                     message: 'Maximum capacity exceeded cpu (4)',
                     timestamp: Date.now(),
@@ -428,7 +428,7 @@ describe('TaskRunner', function () {
                 [algorithmName]: {
                     algorithmName: algorithmName,
                     type: 'warning',
-                    reason: 'FailedScheduling',
+                    reason: 'failedScheduling',
                     hasMaxCapacity: true,
                     message: 'Maximum capacity exceeded cpu (4)',
                     timestamp: Date.now(),
