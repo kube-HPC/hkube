@@ -805,7 +805,7 @@ describe('Store/Algorithms', () => {
                 };
                 const res = await request(options);
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes)`);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu(node1:15, node2:16, node3:17, node4:18)`);
             });
             it('should throw validation error of maximum mem capacity exceeded', async () => {
                 const body = {
@@ -820,7 +820,7 @@ describe('Store/Algorithms', () => {
                 };
                 const res = await request(options);
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.eql(`maximum capacity exceeded mem (4 nodes)`);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded mem(node1:40805, node2:50805, node3:60805, node4:70805)`);
             });
             it('should throw validation error of maximum capacity exceeded all', async () => {
                 const body = {
@@ -835,7 +835,7 @@ describe('Store/Algorithms', () => {
                 };
                 const res = await request(options);
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu(node1:15, node2:16, node3:17, node4:18), mem(node1:40805, node2:50805, node3:60805, node4:70805), gpu(node1:0, node2:1, node3:2, node4:3)`);
             });
             it('should delete nullable properties', async () => {
                 const algorithmName = uuid();
