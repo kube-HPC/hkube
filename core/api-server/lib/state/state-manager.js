@@ -127,8 +127,8 @@ class StateManager extends EventEmitter {
             ...taskExecuter[0]?.ignoredUnScheduledAlgorithms
         } : {};
         const updatedAlgorithms = allAlgorithms.map(algo => {
-            const message = unScheduledAndIgnored[algo.name] ? unScheduledAndIgnored[algo.name].message : undefined;
-            return { ...algo, message };
+            const unscheduledReason = unScheduledAndIgnored[algo.name] ? unScheduledAndIgnored[algo.name].message : undefined;
+            return { ...algo, unscheduledReason };
         });
         return updatedAlgorithms;
     }
