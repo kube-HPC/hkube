@@ -59,19 +59,25 @@ class ApiValidator {
 
     _createAlgorithmResourcesError(nodes) {
         const maxCapacityMap = Object.create(null);
-
+        let nodeNumber = 0;
         nodes.forEach(n => {
+            const nodeTotal = n.node.total;
             Object.entries(n.details)
                 .filter(([, v]) => v === false)
                 .forEach(([k]) => {
                     if (!maxCapacityMap[k]) {
-                        maxCapacityMap[k] = 0;
+                        maxCapacityMap[k] = Object.create(null);
                     }
-                    maxCapacityMap[k] += 1;
+                    maxCapacityMap[k][nodeNumber] = nodeTotal[k];
                 });
+            nodeNumber += 1;
         });
-
-        const maxCapacity = Object.entries(maxCapacityMap).map(([k, v]) => `${k} (${v} nodes)`);
+        const maxCapacity = Object.entries(maxCapacityMap).map(([resourceType, nodeData]) => {
+            const nodeDetails = Object.entries(nodeData)
+                .map(([nodeIndex, capacity]) => `node${+nodeIndex + 1}:${capacity}`)
+                .join(', ');
+            return `${resourceType}(${nodeDetails})`;
+        });
         const error = `maximum capacity exceeded ${maxCapacity.join(', ')}`;
         return error;
     }
