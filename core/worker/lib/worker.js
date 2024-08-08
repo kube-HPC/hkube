@@ -30,6 +30,17 @@ class Worker {
         this._shouldCheckAlgorithmStatus = true;
         this._algorunnerStatusFailAttempts = 0;
         this._checkAlgorithmStatus = this._checkAlgorithmStatus.bind(this);
+        this._wrapperAlive = {};
+    }
+
+    _initWrapperSettings({
+        isRunning = false,
+        timeoutDuration = 10000
+    } = {}) {
+        this._wrapperAlive = {
+            isRunning,
+            timeoutDuration
+        };
     }
 
     preInit(options) {
@@ -41,6 +52,7 @@ class Worker {
         this._servingReportInterval = options.servingReportInterval;
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
         this._stoppingTimeoutMs = options.timeouts.stoppingTimeoutMs;
+        this._initWrapperSettings();
     }
 
     async init() {
@@ -314,6 +326,8 @@ class Worker {
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);
+            this._wrapperAlive.isRunning = false;
+            clearTimeout(this._wrapperAlive.inactiveTime);
         });
         algoRunnerCommunication.on(messages.incomming.stopped, (message) => {
             if (this._stopTimeout) {
@@ -377,6 +391,9 @@ class Worker {
                     error
                 },
             });
+        });
+        algoRunnerCommunication.on(messages.incomming.alive, () => {
+            this._handleWrapperIsAlive();
         });
     }
 
@@ -543,6 +560,22 @@ class Worker {
         }
     }
 
+    /**
+     * Sets or resets a timeout to check if the wrapper is still alive.
+     * The timeout duration is defined by `this._wrapperAlive.inactiveTime`.
+     */
+    _handleWrapperIsAlive() {
+        if (this._wrapperAlive.isRunning) {
+            if (this._wrapperAlive.inactiveTime) {
+                clearTimeout(this._wrapperAlive.inactiveTime);
+            }
+            this._wrapperAlive.inactiveTime = setTimeout(() => {
+                log.info(`No response from wrapper for more than ${this._wrapperAlive.timeoutDuration / 1000} seconds.`, { component });
+                stateManager.error();
+            }, this._wrapperAlive.timeoutDuration);
+        }
+    }
+
     _handleTimeout(state) {
         if (state === workerStates.ready) {
             this._clearInactiveTimeout();
@@ -603,6 +636,8 @@ class Worker {
                             command: messages.outgoing.initialize,
                             data: { ...data, spanId }
                         });
+                        this._wrapperAlive.isRunning = true;
+                        this._handleWrapperIsAlive();
                     }
                     break;
                 }
