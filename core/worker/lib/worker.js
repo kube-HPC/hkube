@@ -324,7 +324,7 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);
             this._wrapperAlive.isRunning = false;
-            clearTimeout(this._wrapperAlive.inactiveTime);
+            clearTimeout(this._wrapperAlive.inactiveTimer);
         });
         algoRunnerCommunication.on(messages.incomming.stopped, (message) => {
             if (this._stopTimeout) {
@@ -559,14 +559,14 @@ class Worker {
 
     /**
      * Sets or resets a timeout to check if the wrapper is still alive.
-     * The timeout duration is defined by `this._wrapperAlive.inactiveTime`.
+     * The timeout duration is defined by `this._wrapperAlive.inactiveTimer`.
      */
     _handleWrapperIsAlive() {
         if (this._wrapperAlive.isRunning) {
-            if (this._wrapperAlive.inactiveTime) {
-                clearTimeout(this._wrapperAlive.inactiveTime);
+            if (this._wrapperAlive.inactiveTimer) {
+                clearTimeout(this._wrapperAlive.inactiveTimer);
             }
-            this._wrapperAlive.inactiveTime = setTimeout(() => {
+            this._wrapperAlive.inactiveTimer = setTimeout(() => {
                 log.info(`No response from wrapper for more than ${this._wrapperAlive.timeoutDuration / 1000} seconds.`, { component });
                 stateManager.error();
             }, this._wrapperAlive.timeoutDuration);
