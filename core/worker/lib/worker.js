@@ -567,7 +567,7 @@ class Worker {
                 clearTimeout(this._wrapperAlive.inactiveTimer);
             }
             this._wrapperAlive.inactiveTimer = setTimeout(() => {
-                log.info(`No response from wrapper for more than ${this._wrapperAlive.timeoutDuration / 1000} seconds.`, { component });
+                log.error(`No response from wrapper for more than ${this._wrapperAlive.timeoutDuration / 1000} seconds.`, { component });
                 stateManager.error();
             }, this._wrapperAlive.timeoutDuration);
         }
