@@ -33,13 +33,6 @@ class Worker {
         this._wrapperAlive = {};
     }
 
-    _initWrapperSettings(timeoutDuration = 10000) {
-        this._wrapperAlive = {
-            isRunning: false,
-            timeoutDuration
-        };
-    }
-
     preInit(options) {
         log = Logger.GetLogFromContainer();
         this._registerToConnectionEvents();
@@ -59,6 +52,13 @@ class Worker {
         this._registerToAutoScalerChangesEvents();
         this._setInactiveTimeout();
         this._doTheBootstrap();
+    }
+
+    _initWrapperSettings(timeoutDuration) {
+        this._wrapperAlive = {
+            isRunning: false,
+            timeoutDuration
+        };
     }
 
     _initAlgorithmSettings() {
