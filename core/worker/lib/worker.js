@@ -33,12 +33,9 @@ class Worker {
         this._wrapperAlive = {};
     }
 
-    _initWrapperSettings({
-        isRunning = false,
-        timeoutDuration = 10000
-    } = {}) {
+    _initWrapperSettings(timeoutDuration = 10000) {
         this._wrapperAlive = {
-            isRunning,
+            isRunning: false,
             timeoutDuration
         };
     }
@@ -52,7 +49,7 @@ class Worker {
         this._servingReportInterval = options.servingReportInterval;
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
         this._stoppingTimeoutMs = options.timeouts.stoppingTimeoutMs;
-        this._initWrapperSettings();
+        this._initWrapperSettings(options.wrapperTimeoutDuration);
     }
 
     async init() {
