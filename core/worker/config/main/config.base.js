@@ -197,4 +197,6 @@ config.cacheResults = {
 config.disableCache = formatters.parseBool(process.env.DISABLE_WORKER_CACHE, false);
 config.algoMetricsDir = process.env.ALGO_METRICS_DIR || '/var/metrics/';
 
+config.wrapperTimeoutDuration = 10000;
+
 module.exports = config;
