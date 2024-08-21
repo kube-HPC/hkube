@@ -54,6 +54,13 @@ class Worker {
         this._doTheBootstrap();
     }
 
+    _initWrapperSettings(timeoutDuration) {
+        this._wrapperAlive = {
+            isRunning: false,
+            timeoutDuration
+        };
+    }
+
     _initAlgorithmSettings() {
         const { storage: algorithmStorage, encoding: algorithmEncoding } = this._algorithmSettings;
         const storage = algorithmStorage || this._options.defaultStorageProtocol;
@@ -632,6 +639,8 @@ class Worker {
                             command: messages.outgoing.initialize,
                             data: { ...data, spanId }
                         });
+                        this._wrapperAlive.isRunning = true;
+                        this._handleWrapperIsAlive();
                     }
                     break;
                 }
