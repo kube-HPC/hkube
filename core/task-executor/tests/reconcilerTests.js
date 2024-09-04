@@ -1394,7 +1394,7 @@ describe('reconciler', () => {
             });
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
-            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Insufficient cpu (4)');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.cpu).to.eql('1.18');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[1].amountsMissing.cpu).to.eql('1.23');
@@ -1424,7 +1424,7 @@ describe('reconciler', () => {
             });
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
-            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Insufficient mem (4)');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.mem).to.eql('11929.60');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[1].amountsMissing.mem).to.eql('12057.60');
@@ -1469,7 +1469,7 @@ describe('reconciler', () => {
             });
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
-            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Insufficient gpu (4)');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.gpu).to.eql('3.00');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[1].amountsMissing.gpu).to.eql('4.00');
@@ -1492,7 +1492,7 @@ describe('reconciler', () => {
             });
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
-            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded cpu (4)');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.cpu).to.eql('18.18');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].requestsOverMaxCapacity[0]).to.eql(['cpu',true]);
@@ -1513,7 +1513,7 @@ describe('reconciler', () => {
             });
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
-            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded mem (4)');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.mem).to.eql('25241.60');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].requestsOverMaxCapacity[0]).to.eql(['mem',true]);
@@ -1534,7 +1534,7 @@ describe('reconciler', () => {
             });
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
-            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded gpu (4)');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].amountsMissing.gpu).to.eql('7.00');
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].requestsOverMaxCapacity[0]).to.eql(['gpu',true]);
@@ -1555,7 +1555,7 @@ describe('reconciler', () => {
             });
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
-            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
             expect(algorithms[algorithm.name].message).to.eql(`No nodes available for scheduling due to selector condition - 'type=cpu-extreme'`);
             expect(algorithms[algorithm.name].complexResourceDescriptor.numUnmatchedNodesBySelector).to.eql(4);
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes).to.eql([]);
@@ -1576,7 +1576,7 @@ describe('reconciler', () => {
             });
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
-            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
             expect(algorithms[algorithm.name].message).to.eql(`Maximum capacity exceeded cpu (1) mem (1) gpu (1)`);
             expect(algorithms[algorithm.name].complexResourceDescriptor.numUnmatchedNodesBySelector).to.eql(3);
             expect(algorithms[algorithm.name].complexResourceDescriptor.nodes[0].nodeName).to.eql('node4');
@@ -1604,7 +1604,7 @@ describe('reconciler', () => {
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             const res2 = await reconciler.reconcile(reconcile2);
-            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
             expect(algorithms[algorithm.name].message).to.eql('Maximum capacity exceeded cpu (4)');
             expect(res1).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
             expect(res2).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: data.length, skipped: 0, resumed: 0 } });
@@ -1624,7 +1624,7 @@ describe('reconciler', () => {
             });
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
-            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
             expect(algorithms[algorithm.name].message).to.eql("No nodes available for scheduling due to selector condition - 'kubernetes.io/hostname=node1,node2,node3'");
             expect(algorithms[algorithm.name].complexResourceDescriptor.numUnmatchedNodesBySelector).to.eql(4);
             expect(algorithms[algorithm.name].complexResourceDescriptor.requestedSelectors).to.eql(["kubernetes.io/hostname=node1,node2,node3"]);

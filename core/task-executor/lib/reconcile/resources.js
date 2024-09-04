@@ -144,7 +144,7 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
     const warning = {
         algorithmName: jobDetails.algorithmName,
         type: 'warning',
-        reason: 'FailedScheduling',
+        reason: 'failedScheduling',
         hasMaxCapacity,
         message: messages.join(', '),
         timestamp: Date.now(),

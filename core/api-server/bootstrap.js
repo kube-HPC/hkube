@@ -21,6 +21,7 @@ const modules = [
     require('./lib/service/storage'),
     require('./lib/service/gateway'),
     require('./lib/service/debug'),
+    require('./lib/service/auth'),
     require('./api/graphql/queries/database-querier'),
     require('./api/graphql/queries/prefered-querier'),
     require('./api/graphql/queries/dataSource-querier'),

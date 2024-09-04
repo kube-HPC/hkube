@@ -30,6 +30,7 @@ class Worker {
         this._shouldCheckAlgorithmStatus = true;
         this._algorunnerStatusFailAttempts = 0;
         this._checkAlgorithmStatus = this._checkAlgorithmStatus.bind(this);
+        this._wrapperAlive = {};
     }
 
     preInit(options) {
@@ -41,6 +42,7 @@ class Worker {
         this._servingReportInterval = options.servingReportInterval;
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
         this._stoppingTimeoutMs = options.timeouts.stoppingTimeoutMs;
+        this._wrapperAlive = { timeoutDuration: options.wrapperTimeoutDuration };
     }
 
     async init() {
@@ -50,6 +52,13 @@ class Worker {
         this._registerToAutoScalerChangesEvents();
         this._setInactiveTimeout();
         this._doTheBootstrap();
+    }
+
+    _initWrapperSettings(timeoutDuration) {
+        this._wrapperAlive = {
+            isRunning: false,
+            timeoutDuration
+        };
     }
 
     _initAlgorithmSettings() {
@@ -314,8 +323,10 @@ class Worker {
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);
+            this._handleWrapperIsAlive(false);
         });
         algoRunnerCommunication.on(messages.incomming.stopped, (message) => {
+            this._handleWrapperIsAlive(false);
             if (this._stopTimeout) {
                 clearTimeout(this._stopTimeout);
                 this._stopTimeout = null;
@@ -331,6 +342,7 @@ class Worker {
             }
         });
         algoRunnerCommunication.on(messages.incomming.stopping, () => {
+            this._handleWrapperIsAlive(false);
             const timeElapsed = Date.now() - this._stoppingTime > this._stoppingTimeoutMs;
             if (!timeElapsed) {
                 if (this._stopTimeout) {
@@ -346,6 +358,7 @@ class Worker {
             }
         });
         algoRunnerCommunication.on(messages.incomming.error, async (data) => {
+            this._handleWrapperIsAlive(false);
             const message = data?.error?.message || 'unknown error';
             log.info(`got error from algorithm: ${message}`, { component });
             await this._handleRetry({ error: { message }, isAlgorithmError: true });
@@ -377,6 +390,10 @@ class Worker {
                     error
                 },
             });
+        });
+        // Signal from wrapper indicating it's still running
+        algoRunnerCommunication.on(messages.incomming.alive, () => {
+            this._handleWrapperIsAlive(true);
         });
     }
 
@@ -543,6 +560,25 @@ class Worker {
         }
     }
 
+    /**
+     * Sets or resets a timeout to check if the wrapper is still alive.
+     * The timeout duration is defined by `this._wrapperAlive.inactiveTimer`.
+     */
+    _handleWrapperIsAlive(isRunning) {
+        if (isRunning) {
+            if (this._wrapperAlive.inactiveTimer) {
+                clearTimeout(this._wrapperAlive.inactiveTimer);
+            }
+            this._wrapperAlive.inactiveTimer = setTimeout(() => {
+                log.error(`No response from wrapper for more than ${this._wrapperAlive.timeoutDuration / 1000} seconds.`, { component });
+                stateManager.error();
+            }, this._wrapperAlive.timeoutDuration);
+        }
+        else if (this._wrapperAlive.inactiveTimer) {
+            clearTimeout(this._wrapperAlive.inactiveTimer);
+        }
+    }
+
     _handleTimeout(state) {
         if (state === workerStates.ready) {
             this._clearInactiveTimeout();
@@ -603,6 +639,8 @@ class Worker {
                             command: messages.outgoing.initialize,
                             data: { ...data, spanId }
                         });
+                        this._wrapperAlive.isRunning = true;
+                        this._handleWrapperIsAlive();
                     }
                     break;
                 }

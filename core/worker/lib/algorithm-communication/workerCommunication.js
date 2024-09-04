@@ -41,7 +41,8 @@ class WorkerCommunication extends EventEmitter {
         this.adapter = new AdapterClass();
         this._printThrottleMessages = {
             [messages.incomming.stopping]: { delay: 10000, lastPrint: null },
-            [messages.incomming.streamingStatistics]: { delay: 30000, lastPrint: null }
+            [messages.incomming.streamingStatistics]: { delay: 30000, lastPrint: null },
+            [messages.incomming.alive]: { delay: 10000 * 30, lastPrint: null }
         };
         Object.entries({ ...messages.incomming, connection: 'connection', disconnect: 'disconnect' }).forEach(([, topic]) => {
             log.debug(`registering for topic ${topic}`, { component });
@@ -55,20 +56,16 @@ class WorkerCommunication extends EventEmitter {
 
     _printThrottle(topic, message) {
         const setting = this._printThrottleMessages[topic];
-        let shouldPrint = true;
         if (setting) {
             const { delay, lastPrint } = setting;
             if (lastPrint === null || Date.now() - lastPrint > delay) {
-                shouldPrint = true;
                 setting.lastPrint = Date.now();
             }
             else {
-                shouldPrint = false;
+                return;
             }
         }
-        if (shouldPrint) {
-            log.info(`got message on topic ${topic}, command: ${message && message.command}`, { component });
-        }
+        log.info(`got message on topic ${topic}, command: ${message && message.command}`, { component });
     }
 
     setEncodingType(type) {

@@ -271,13 +271,21 @@ const _calcStats = (data) => {
         if (!acc[cur.algorithmName]) {
             acc[cur.algorithmName] = {
                 algorithmName: cur.algorithmName,
+                count: 0,
+                init: 0,
+                ready: 0,
+                working: 0,
+                exit: 0,
+                hot: 0
             };
         }
-        acc[cur.algorithmName].count = (acc[cur.algorithmName].count || 0) + 1;
-
-        acc[cur.algorithmName][cur.workerStatus] = (acc[cur.algorithmName][cur.workerStatus] || 0) + 1;
+        acc[cur.algorithmName].count += 1;
+        if (cur.workerStatus === undefined) {
+            acc[cur.algorithmName].redundant = (acc[cur.algorithmName].redundant || 0) + 1;
+        }
+        else acc[cur.algorithmName][cur.workerStatus] += 1;
         if (cur.hotWorker) {
-            acc[cur.algorithmName].hot = (acc[cur.algorithmName].hot || 0) + 1;
+            acc[cur.algorithmName].hot += 1;
         }
         return acc;
     }, {}));
