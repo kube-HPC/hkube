@@ -26,43 +26,43 @@ class AggregationMetricsFactory {
         this.timeInQueue = metrics.addTimeMeasure({
             name: metricsName.TIME_IN_QUEUE,
             description: 'Histogram of task time spent in queue',
-            labels: ['pipeline_name', 'algorithm_name', 'node_name'],
+            labels: ['pipeline_name', 'algorithm_name', 'node_name', 'jobId'],
             buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
         });
         this.totalScore = metrics.addTimeMeasure({
             name: metricsName.TOTAL_SCORE,
             description: 'Histogram of queued tasks total score',
-            labels: ['pipeline_name', 'algorithm_name', 'node_name'],
+            labels: ['pipeline_name', 'algorithm_name', 'node_name', 'jobId'],
             buckets: [...Array(100).keys()]
         });
         this.batchScore = metrics.addTimeMeasure({
             name: metricsName.BATCH_SCORE,
             description: 'Histogram of queued tasks batch score',
-            labels: ['pipeline_name', 'algorithm_name', 'node_name'],
+            labels: ['pipeline_name', 'algorithm_name', 'node_name', 'jobId'],
             buckets: [...Array(100).keys()]
         });
         this.timeScore = metrics.addTimeMeasure({
             name: metricsName.TIME_SCORE,
             description: 'Histogram of queued tasks time score',
-            labels: ['pipeline_name', 'algorithm_name', 'node_name'],
+            labels: ['pipeline_name', 'algorithm_name', 'node_name', 'jobId'],
             buckets: [...Array(100).keys()]
         });
         this.priorityScore = metrics.addTimeMeasure({
             name: metricsName.PRIORITY_SCORE,
             description: 'Histogram of queued tasks priority score',
-            labels: ['pipeline_name', 'algorithm_name', 'node_name'],
+            labels: ['pipeline_name', 'algorithm_name', 'node_name', 'jobId'],
             buckets: [...Array(100).keys()]
         });
 
         this.queueAmount = metrics.addGaugeMeasure({
             name: metricsName.QUEUE_AMOUNT,
             description: 'Tasks queue size',
-            labels: ['pipeline_name', 'algorithm_name', 'node_name'],
+            labels: ['pipeline_name', 'algorithm_name', 'node_name', 'jobId'],
         });
         this.queueCounter = metrics.addCounterMeasure({
             name: metricsName.QUEUE_COUNTER,
             description: 'Total number of tasks pushed to queue',
-            labels: ['pipeline_name', 'algorithm_name', 'nodeName'],
+            labels: ['pipeline_name', 'algorithm_name', 'nodeName', 'jobId'],
         });
         this._metrics = {
             score: {
@@ -164,7 +164,8 @@ class AggregationMetricsFactory {
             labelValues: {
                 pipeline_name: task.pipelineName,
                 algorithm_name: task.algorithmName,
-                node_name: task.nodeName
+                node_name: task.nodeName,
+                jobId: task.jobId
             }
         };
         try {
@@ -196,7 +197,8 @@ class AggregationMetricsFactory {
             labelValues: {
                 pipeline_name: task.pipelineName,
                 algorithm_name: task.algorithmName,
-                node_name: task.nodeName
+                node_name: task.nodeName,
+                jobId: task.jobId
             }
         };
         if (metricOperation === metricsTypes.GAUGE_OPERATION.increase) {
@@ -219,7 +221,8 @@ class AggregationMetricsFactory {
             labelValues: {
                 pipeline_name: task.pipelineName,
                 algorithm_name: task.algorithmName,
-                node_name: task.nodeName
+                node_name: task.nodeName,
+                jobId: task.jobId
             }
         };
         if (metricOperation === metricsTypes.COUNTER_OPERATION.increase) {

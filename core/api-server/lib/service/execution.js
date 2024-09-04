@@ -24,7 +24,7 @@ class ExecutionService {
 
     async runStored(options) {
         validator.executions.validateRunStoredPipeline(options);
-        return this._runStored({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.STORED] });
+        return this._runStored({ pipeline: options, parentSpan: options.spanId, externalId: options.externalId, types: [pipelineTypes.STORED] });
     }
 
     async runCaching(options) {
@@ -77,7 +77,7 @@ class ExecutionService {
     }
 
     async _runStored(options) {
-        const { pipeline, jobId, rootJobId, parentSpan, types, mergeFlowInput } = options;
+        const { pipeline, jobId, rootJobId, parentSpan, types, mergeFlowInput, externalId } = options;
         const storedPipeline = await stateManager.getPipeline({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
@@ -89,11 +89,11 @@ class ExecutionService {
             }
             return undefined;
         });
-        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, parentSpan, types });
+        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, parentSpan, types, externalId });
     }
 
     async _runPipeline(payload) {
-        const { pipeline, rootJobId, options, parentSpan, types } = payload;
+        const { pipeline, rootJobId, options, parentSpan, types, externalId } = payload;
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
         const { validateNodes } = options || {};
         let extendedPipeline = restPipeline;
@@ -133,7 +133,7 @@ class ExecutionService {
             const pipelineObject = { ...extendedPipeline, maxExceeded, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
             const statusObject = { timestamp: Date.now(), pipeline: extendedPipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
-            await stateManager.createJob({ jobId, userPipeline, pipeline: pipelineObject, status: statusObject, completion: false });
+            await stateManager.createJob({ jobId, userPipeline, externalId, pipeline: pipelineObject, status: statusObject, completion: false });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return { jobId, gateways: extendedPipeline.streaming?.gateways };
@@ -142,6 +142,26 @@ class ExecutionService {
             gatewayService.deleteGateways({ pipeline: extendedPipeline });
             debugService.updateLastUsed({ pipeline: extendedPipeline });
             span.finish(error);
+            throw error;
+        }
+    }
+
+    async _getGraphByStreamingFlow(payload) {
+        let extendedPipeline = payload.pipeline;
+
+        // eslint-disable-next-line no-useless-catch
+        try {
+            extendedPipeline = await pipelineCreator.buildStreamingFlowGraph(payload);
+
+            const modifiedEdges = extendedPipeline.edges.map((obj) => ({
+                from: obj.source,
+                to: obj.target,
+            }));
+
+            extendedPipeline.edges = modifiedEdges;
+            return extendedPipeline;
+        }
+        catch (error) {
             throw error;
         }
     }
@@ -262,18 +282,27 @@ class ExecutionService {
     }
 
     async stopJob(options) {
-        validator.executions.validateStopPipeline(options);
-        const { jobId, reason } = options;
-        const job = await stateManager.getJob({ jobId, fields: { status: true, result: true, pipeline: true } });
-        const { status, result, pipeline } = job || {};
-        if (!status) {
-            throw new ResourceNotFoundError('jobId', jobId);
-        }
-        // we only want to stop jobs that have no result
-        if (result) {
-            throw new InvalidDataError(`unable to stop pipeline ${status.pipeline} because its in ${status.status} status`);
-        }
+        let { jobId, reason } = options;
+        reason = reason || 'stopped due to request';
+        let pipeline;
+        let status;
+        let result;
+        if (jobId) {
+            validator.executions.validateStopPipeline(options);
+            const job = await stateManager.getJob({ jobId, fields: { status: true, result: true, pipeline: true } });
+            ({ status, result, pipeline } = job || {});
+            if (!status) {
+                throw new ResourceNotFoundError('jobId', jobId);
+            }
 
+            if (result) {
+                throw new InvalidDataError(`unable to stop pipeline ${pipeline} because it's in ${status} status`);
+            }
+        }
+        else if (options.job) {
+            ({ jobId } = options.job || {});
+            ({ status, pipeline } = options.job || {});
+        }
         const statusObject = { jobId, status: pipelineStatuses.STOPPED, reason, level: levels.INFO.name };
         const resultObject = { jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status: pipelineStatuses.STOPPED };
         await stateManager.updateJobStatus(statusObject);

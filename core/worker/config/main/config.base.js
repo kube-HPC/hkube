@@ -43,6 +43,9 @@ config.streaming = {
             minTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 60000),
             minQueueSizeBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_QUEUE_SIZE_BEFORE_SCALE_DOWN, 0),
             minTimeQueueEmptyBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_QUEUE_EMPTY, 60000),
+        },
+        scaleIntervention: {
+            throttleMs: formatters.parseInt(process.env.SCALE_INTERVENTION_LOG_THROTTLE_TIME, 200)
         }
     },
     election: {
@@ -71,7 +74,8 @@ config.etcd = {
     protocol: 'http',
     host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
-    serviceName: config.serviceName
+    serviceName: config.serviceName,
+    heartBeatTTL: process.env.ETCD_HEART_BEAT_TTL || 10
 };
 
 config.db = {
@@ -192,5 +196,7 @@ config.cacheResults = {
 };
 config.disableCache = formatters.parseBool(process.env.DISABLE_WORKER_CACHE, false);
 config.algoMetricsDir = process.env.ALGO_METRICS_DIR || '/var/metrics/';
+
+config.wrapperTimeoutDuration = process.env.WRAPPER_TIMEOUT_DURATION || 10000;
 
 module.exports = config;

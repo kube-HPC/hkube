@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 const { parser } = require('@hkube/parsers');
 const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
@@ -14,7 +15,7 @@ const GraphStore = require('../datastore/graph-store');
 const cachePipeline = require('./cache-pipeline');
 const uniqueDiscovery = require('../helpers/discovery');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
-const { Node, Batch } = NodeTypes;
+const { Node, Batch, Stateless } = NodeTypes;
 const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
 const activeTaskStates = [taskStatuses.CREATING, taskStatuses.ACTIVE, taskStatuses.PRESCHEDULE];
 const { streamingEdgeMetricToPropMap, streamingGeneralMetricToPropMap } = require('../consts/metricsNames');
@@ -32,6 +33,8 @@ class TaskRunner {
         this._nodeRuns = new Set();
         this._preScheduledNodes = new Set();
         this._schedulingWarningTimeoutMs = options.unScheduledAlgorithms.warningTimeoutMs;
+        this._statusDelay = options.tasks.statusCollectionDelayMs;
+        this._stopping = false;
     }
 
     getGraphStore() {
@@ -45,7 +48,7 @@ class TaskRunner {
 
     async onPause(data) {
         log.info(`pipeline ${data.status} ${this._jobId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-        await this.stop({ shouldStop: false, shouldDeleteTasks: false });
+        await this.stop({ shouldStop: false, shouldDeleteTasks: false, isPaused: true });
     }
 
     getStatus() {
@@ -94,6 +97,9 @@ class TaskRunner {
             case taskStatuses.SUCCEED:
                 this._setTaskState(task);
                 this._onTaskComplete(task);
+                break;
+            case taskStatuses.STOPPED:
+                this._setTaskState(task);
                 break;
             case taskStatuses.THROUGHPUT:
                 this._onStreamingMetrics(task);
@@ -230,12 +236,15 @@ class TaskRunner {
         return result;
     }
 
-    async stop({ error, nodeName, shouldStop = true, shouldDeleteTasks = true } = {}) {
+    async stop({ error, nodeName, shouldStop = true, shouldDeleteTasks = true, isPaused = false } = {}) {
         if (!this._active) {
             return;
         }
         this._active = false;
         try {
+            if (!isPaused) {
+                pipelineMetrics.metricsCleanup({ labelName: 'jobId', labelValue: this._jobId });
+            }
             if (shouldStop) {
                 await this._stopPipeline(error, nodeName);
             }
@@ -247,6 +256,21 @@ class TaskRunner {
             log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
         }
         finally {
+            if (!shouldStop && !isPaused) {
+                const startTime = new Date();
+                let anyActive; let elapsedTime;
+                this._stopping = true;
+                do {
+                    // eslint-disable-next-line no-await-in-loop
+                    let tasks = await stateManager.getTasks({ jobId: this._jobId });
+                    anyActive = tasks.some(task => task.status === taskStatuses.ACTIVE || task.status === taskStatuses.THROUGHPUT || task.status === taskStatuses.STORING);
+                    tasks.forEach(task => {
+                        this.handleTaskEvent(task); // force updating mongo for progress even when stopping
+                    });
+                    elapsedTime = new Date() - startTime;
+                } while (anyActive && (elapsedTime < this._statusDelay));
+                this._stopping = false;
+            }
             if (shouldDeleteTasks) {
                 await this._deleteTasks();
             }
@@ -414,7 +438,8 @@ class TaskRunner {
     _findEntryNodes() {
         const sourceNodes = this._nodes.getSources();
         const statefulNodes = this._nodes.getAllNodes().filter(n => n.stateType === stateType.Stateful).map(n => n.nodeName);
-        return [...new Set([...sourceNodes, ...statefulNodes])];
+        const minStatelessNodes = this._nodes.getAllNodes().filter(n => this._checkMinStateless(n)).map(n => n.nodeName);
+        return [...new Set([...sourceNodes, ...statefulNodes, ...minStatelessNodes])];
     }
 
     get _currentProgress() {
@@ -512,34 +537,15 @@ class TaskRunner {
             log.info(`node ${nodeName} is ready to run`, { component });
             this._checkPreSchedule(nodeName);
 
-            const parse = {
-                flowInputMetadata: this.pipeline.flowInputMetadata,
-                nodeInput: node.input,
-                parentOutput: node.parentOutput || parentOutput,
-                batchOperation: node.batchOperation,
-                ignoreParentResult: node.stateType === stateType.Stateful,
-                index
-            };
-            const result = parser.parse(parse);
-            const paths = this._nodes.extractPaths(nodeName);
-            const parents = this._nodes._parents(nodeName);
-            const childs = this._nodes._childs(nodeName);
-
-            const options = {
-                node,
-                index,
-                paths,
-                parents,
-                childs,
-                input: result.input,
-                storage: result.storage
-            };
+            const { options, result } = this._gatherNodeOptions(nodeName, node, index, parentOutput);
 
             if (!this._isCachedPipeline) {
                 uniqueDiscovery(result.storage);
             }
-
-            if (result.batch) {
+            if (this._checkMinStateless(node)) {
+                await this._runNodeStateless(options);
+            }
+            else if (result.batch) {
                 await this._runNodeBatch(options);
             }
             else if (index) {
@@ -554,9 +560,41 @@ class TaskRunner {
         }
     }
 
+    _gatherNodeOptions(nodeName, node, index, parentOutput) {
+        const parse = {
+            flowInputMetadata: this.pipeline.flowInputMetadata,
+            nodeInput: node.input,
+            parentOutput: node.parentOutput || parentOutput,
+            batchOperation: node.batchOperation,
+            ignoreParentResult: node.stateType === stateType.Stateful,
+            index
+        };
+
+        const result = parser.parse(parse);
+        const paths = this._nodes.extractPaths(nodeName);
+        const parents = this._nodes._parents(nodeName);
+        const childs = this._nodes._childs(nodeName);
+
+        const options = {
+            node,
+            index,
+            paths,
+            parents,
+            childs,
+            input: result.input,
+            storage: result.storage
+        };
+
+        return { options, result };
+    }
+
     async _checkPreSchedule(nodeName) {
         const childs = this._nodes._childs(nodeName);
         await Promise.all(childs.map(c => this._sendPreSchedule(c)));
+    }
+
+    _checkMinStateless(node) {
+        return (node.stateType && node.stateType === stateType.Stateless && node.minStatelessCount > 0);
     }
 
     async _sendPreSchedule(nodeName) {
@@ -631,6 +669,29 @@ class TaskRunner {
         }
     }
 
+    async _runNodeStateless(options) {
+        const statelessList = [];
+        // remove taskId from node so the new stateless will generate new ids
+        const { taskId, ...nodeStateless } = options.node;
+        log.info(`node ${nodeStateless.nodeName} is ready to run`, { component });
+        // eslint-disable-next-line no-plusplus
+        for (let i = 0; i < nodeStateless.minStatelessCount; i++) {
+            const stateless = new Stateless({
+                ...nodeStateless,
+                status: taskStatuses.CREATING,
+                storage: options.storage,
+                input: options.input,
+                statelessIndex: i + 1
+            });
+            this._nodes.setNode(stateless);
+            this._setTaskState(stateless);
+            statelessList.push(stateless);
+        }
+        this._nodes.addBatchList(nodeStateless.nodeName, statelessList);
+        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
+        await this._createJob(options, undefined, statelessList);
+    }
+
     _skipBatchNode(options) {
         const node = new Batch({
             ...options.node,
@@ -694,26 +755,30 @@ class TaskRunner {
         Object.entries(streamingEdgeMetricToPropMap).forEach(([key, val]) => {
             if ((metric[val.propName] !== 0) || val.registerZeroValue) {
                 pipelineMetrics.setStreamingEdgeGaugeMetric(
-                    { value: metric[val.propName],
+                    {
+                        value: metric[val.propName],
                         pipelineName: this._pipeline.name,
                         jobId: this._pipeline.jobId,
                         source: metric.source,
-                        target: metric.target },
+                        target: metric.target
+                    },
                     key
                 );
             }
         });
         Object.entries(streamingGeneralMetricToPropMap).forEach(([key, val]) => {
-            // register a node only if it is stateless, also filter by zero value desicion based on the property.
+            // register a node only if it is stateless, also filter by zero value decision based on the property.
             // TODO for future Metrics in 'streamingGeneralMetricToPropMap', seperate to a function
             const targetNode = this._pipeline.nodes.filter(n => n.nodeName === metric.target);
             isStateless = targetNode[0].stateType === 'stateless';
             if (isStateless && ((metric[val.propName] !== 0) || val.registerZeroValue)) {
                 pipelineMetrics.setStreamingGeneralMetric(
-                    { value: metric[val.propName],
+                    {
+                        value: metric[val.propName],
                         pipelineName: this._pipeline.name,
                         jobId: this._pipeline.jobId,
-                        node: metric.target },
+                        node: metric.target
+                    },
                     key
                 );
             }
@@ -795,7 +860,9 @@ class TaskRunner {
 
     _setTaskState(task) {
         if (!this._active) {
-            return;
+            if (!this._stopping) {
+                return;
+            }
         }
         const { taskId, execId, isScaled, status, error } = task;
         let taskRemoved = false;
@@ -806,29 +873,35 @@ class TaskRunner {
             if (status === taskStatuses.ACTIVE) {
                 this._nodes.addTaskToBatch(task);
             }
-            else {
-                this._nodes.removeTaskFromBatch(task);
-                taskRemoved = true;
-            }
         }
         if (!taskRemoved) {
             this._updateTaskState(taskId, task);
         }
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
-        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
-        this._boards.update(task);
+        try {
+            this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
+            this._boards.update(task);
+        }
+        catch (e) {
+            log.error(`jobId: ${this._jobId}, pipeline name: ${this.pipeline.name}, ${e.message}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
+        }
     }
 
     // TODO: MAKE THIS THROW
     _updateTaskState(taskId, task) {
         const { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath } = task;
         const state = { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath };
-        this._nodes.updateTaskState(taskId, state);
+        try {
+            this._nodes.updateTaskState(taskId, state);
+        }
+        catch (e) {
+            log.error(`jobId: ${this._jobId}, pipeline name: ${this.pipeline.name}, ${e.message}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
+        }
     }
 
-    async _createJob(options, batch) {
-        return producer.createJob({ jobId: this._jobId, pipeline: this.pipeline, options, batch });
+    async _createJob(options, batch, statelessList) {
+        return producer.createJob({ jobId: this._jobId, pipeline: this.pipeline, options, batch, statelessList });
     }
 }
 

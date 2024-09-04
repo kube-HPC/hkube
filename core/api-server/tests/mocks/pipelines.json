@@ -96,6 +96,7 @@
                 "nodeName": "green",
                 "algorithmName": "green-alg",
                 "kind": "algorithm",
+                "minStatelessCount": 0,
                 "input": [
                     "#@flowInput.files.links"
                 ]
@@ -104,6 +105,7 @@
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "kind": "algorithm",
+                "minStatelessCount": 0,
                 "input": [
                     "#@flowInput.files.links"
                 ]
@@ -112,6 +114,7 @@
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "kind": "algorithm",
+                "minStatelessCount": 0,
                 "input": [
                     "#@flowInput.files.links"
                 ]

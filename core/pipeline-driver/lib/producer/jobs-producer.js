@@ -25,7 +25,7 @@ class JobProducer extends EventEmitter {
         this._queueLogging = options.logging;
     }
 
-    async createJob({ jobId, pipeline, options, batch }) {
+    async createJob({ jobId, pipeline, options, batch, statelessList }) {
         if (options.node.kind === nodeKind.DataSource) {
             const jobOptions = {
                 prefix: this._options.producerDataSources.prefix,
@@ -43,6 +43,9 @@ class JobProducer extends EventEmitter {
             let tasks = [];
             if (batch) {
                 tasks = batch.map(b => ({ taskId: b.taskId, status: b.status, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
+            }
+            else if (statelessList) {
+                tasks = statelessList.map(s => ({ taskId: s.taskId, status: s.status, input: s.input, storage: s.storage, isScaled: true, batchIndex: s.statelessIndex }));
             }
             else {
                 tasks.push({ taskId: options.node.taskId, status: options.node.status, input: options.node.input, storage: options.storage });

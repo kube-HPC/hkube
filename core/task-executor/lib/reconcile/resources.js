@@ -68,7 +68,10 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
         return false;
     }
     Object.entries(nodeSelector).forEach(([k, v]) => {
-        if (labels[k] !== v) {
+        if (Array.isArray(v)) {
+            matched = v.includes(labels[k]);
+        }
+        else if (labels[k] !== v) {
             matched = false;
         }
     });
@@ -141,7 +144,7 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
     const warning = {
         algorithmName: jobDetails.algorithmName,
         type: 'warning',
-        reason: 'FailedScheduling',
+        reason: 'failedScheduling',
         hasMaxCapacity,
         message: messages.join(', '),
         timestamp: Date.now(),

@@ -31,12 +31,13 @@ let log;
  * responses and there are no replicas so we scale-up 1 replica (first scale)
  * Scaling up is done by sending jobs to the Algorithm-Queue
  * and then do not scale-up until desired replicas are fulfilled.
+ * If node is stateless, and has maxStatelessCount > 0, never scale above it
  *
  * --Scale-Down--
  * another condition to scale down is when there are no requests and no
  * responses for x time, it will scale-down the current size to zero.
  * Scaling down is done by sending commands to the workers.
- *
+ * If node is stateless, and has minStatelessCount > 0, never scale below it.
  */
 class AutoScaler {
     constructor(options, onSourceRemove) {
@@ -46,6 +47,9 @@ class AutoScaler {
         this._options = options;
         this._config = options.config;
         this._isStateful = options.node.stateType === stateType.Stateful;
+        this._statelessCountLimits = { minStateless: options.node.minStatelessCount, maxStateless: options.node.maxStatelessCount };
+        this._limitActionType = { minStateless: 'minStatelessCount', maxStateless: 'maxStatelessCount', both: 'bothLimits' };
+        this._interventionLogCallTrack = { action: null, required: null, allowed: null, timeStamp: null };
         this._onSourceRemove = onSourceRemove;
         this.reset();
     }
@@ -62,7 +66,7 @@ class AutoScaler {
             if (this._options.node.kind === nodeKind.Debug) {
                 conf = { ...this._config, scaleUp: { ...this._config.scaleUp, maxScaleUpReplicasPerNode: 1 } };
             }
-            this._scaler = new Scaler(conf, {
+            this._scaler = new Scaler(conf, this._statelessCountLimits.minStateless, {
                 getCurrentSize: () => {
                     return discovery.countInstances(this._nodeName);
                 },
@@ -212,6 +216,29 @@ class AutoScaler {
         log.info(`scaling ${action} ${replicas} replicas for node ${this._nodeName} from ${currentSize} to ${scaleTo} replicas`, { component });
     }
 
+    _scalingInterventionLog(action, required, allowed, customMessage = '') {
+        const currentTime = Date.now();
+        let sizeMessage = '';
+        // Log-spam prevention
+        if (this._interventionLogCallTrack.timeStamp) {
+            if (this._interventionLogCallTrack.action === action
+                && this._interventionLogCallTrack.required === required
+                && this._interventionLogCallTrack.allowed.type === allowed.type
+                && this._interventionLogCallTrack.allowed.size === allowed.size
+                && currentTime - this._interventionLogCallTrack.timeStamp < this._config.scaleIntervention.throttleMs) {
+                return;
+            }
+        }
+        this._interventionLogCallTrack = { timeStamp: currentTime, action, required, allowed };
+        if (action === this._limitActionType.both) {
+            if (allowed?.size?.min) sizeMessage += `min-${allowed.size.min},`;
+            if (allowed?.size?.max) sizeMessage += `max-${allowed.size.max},`;
+            log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required}. ${sizeMessage} ${customMessage}`, { component });
+            return;
+        } // custom message for first intervention that handles required in both limits.
+        log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type}:${allowed.size}. ${customMessage}`, { component });
+    }
+
     _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, queueSize, avgQueueSize, currentSize }) {
         const result = { up: 0, down: 0 };
         const requiredByDurationRate = calcRatio(reqRate, durationsRate);
@@ -225,27 +252,61 @@ class AutoScaler {
         // first scale up
         if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
             required = this._config.scaleUp.replicasOnFirstScale;
+            required = this._capScaleByLimits(required, this._limitActionType.both, 'Based on total requests, with initial size 0');
         }
         // scale up based on durations
         else if (totalRequests > 0 && currentSize < requiredByDuration) {
             required = requiredByDuration;
+            required = this._capScaleByLimits(required, this._limitActionType.both, 'Based on total requests by duration');
         }
 
         // scale down based on stop streaming
         else if (idleScaleDown.scale && currentSize > 0 && canScaleDown) {
             required = 0;
+            required = this._capScaleByLimits(required, this._limitActionType.minStateless, 'Based on idle scaledown, canScaleDown');
         }
         // scale down based on rate
         else if (!idleScaleDown.scale && currentSize > requiredByDuration && canScaleDown) {
             const diff = relDiff(requiredByDuration, this._scaler.required);
             if (diff > this._config.scaleDown.tolerance && requiredByDuration > 0) {
                 required = requiredByDuration;
+                required = this._capScaleByLimits(required, this._limitActionType.minStateless, 'Based on rate');
             }
         }
         if (required !== null) {
             this._scaler.updateRequired(required);
         }
         return result;
+    }
+
+    _capScaleByLimits(required, type, customMessage = '') {
+        // eslint-disable-next-line no-unused-vars
+        let decision = required;
+        const sizes = {};
+        if (type === this._limitActionType.maxStateless && this._statelessCountLimits.maxStateless) {
+            if (required > this._statelessCountLimits.maxStateless) {
+                this._scalingInterventionLog('up', required, { type: this._limitActionType.maxStateless, size: this._statelessCountLimits.maxStateless }, customMessage);
+                return this._statelessCountLimits.maxStateless;
+            }
+        }
+        else if (type === this._limitActionType.minStateless && this._statelessCountLimits.minStateless) {
+            if (required < this._statelessCountLimits.minStateless) {
+                this._scalingInterventionLog('down', required, { type: this._limitActionType.minStateless, size: this._statelessCountLimits.minStateless }, customMessage);
+                return this._statelessCountLimits.minStateless;
+            }
+        }
+        else if (type === this._limitActionType.both) {
+            if (this._statelessCountLimits.minStateless) {
+                decision = Math.max(decision, this._statelessCountLimits.minStateless);
+                sizes.min = this._statelessCountLimits.minStateless;
+            }
+            if (this._statelessCountLimits.maxStateless) {
+                decision = Math.min(decision, this._statelessCountLimits.maxStateless);
+                sizes.max = this._statelessCountLimits.maxStateless;
+            }
+            this._scalingInterventionLog(this._limitActionType.both, required, { type: this._limitActionType.both, size: sizes }, customMessage);
+        } // Govern both limits
+        return decision;
     }
 
     _addExtraReplicas(requiredByDurationRate, requiredByQueueSize) {
@@ -330,7 +391,7 @@ class AutoScaler {
             return null;
         }
         this._logScaling({ action: 'down', ...scale });
-        const { replicas, scaleTo } = scale;
+        const { replicas, scaleTo } = scale; // currentSize
         const discoveryWorkers = discovery.getInstances(this._nodeName);
         // we will prefer not to scale-down masters, unless we scaling down to zero
         const instances = scaleTo === 0 ? discoveryWorkers : discoveryWorkers.filter(d => !d.isMaster);

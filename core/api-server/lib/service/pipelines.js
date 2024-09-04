@@ -54,18 +54,60 @@ class PipelineService {
         return pipeline;
     }
 
-    async getPipelineGraph(options) {
-        validator.pipelines.validatePipelineName(options.name);
-        const pipeline = await stateManager.getPipeline(options);
-        if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', options.name);
-        }
-        const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
+    async getGraphByStreamingFlow(payload) {
+        let extendedPipeline = payload.pipeline;
 
+        // eslint-disable-next-line no-useless-catch
+        try {
+            extendedPipeline = await pipelineCreator.buildStreamingFlowGraph(payload);
+
+            const modifiedEdges = extendedPipeline.edges.map((obj) => ({
+                from: obj.source,
+                to: obj.target,
+            }));
+
+            extendedPipeline.edges = modifiedEdges;
+            return extendedPipeline;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+
+    async getPipelineGraph(pipeline) {
+        const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
         const extendedPipeline = await pipelineCreator.buildPipelineOfPipelines(restPipeline);
         const nodes = new NodesMap(extendedPipeline, { validateNodesRelations: true });
         const graph = nodes.getJSONGraph();
         return graphBuilder._filterData(graph);
+    }
+
+    async getGraphByKindOrName(payload) {
+        let pipeline = null;
+        let response = null;
+        let keyFlow = null;
+        let isBuildAllFlows = false;
+        if (payload.name) {
+            validator.pipelines.validatePipelineName(payload.name);
+            pipeline = await stateManager.getPipeline(payload.name);
+            if (!pipeline) {
+                throw new ResourceNotFoundError('pipeline', payload.name);
+            }
+        }
+        else {
+            pipeline = payload.pipeline;
+            keyFlow = payload.keyFlow;
+            isBuildAllFlows = payload.isBuildAllFlows;
+        }
+
+        if (pipeline.kind === 'stream') {
+            response = await this.getGraphByStreamingFlow({ pipeline, keyFlow, isBuildAllFlows });
+        }
+        else {
+            response = await this.getPipelineGraph(pipeline);
+        }
+
+        return response;
     }
 
     async getPipelines() {
@@ -117,13 +159,75 @@ class PipelineService {
         });
     }
 
-    async insertPipeline(options) {
-        validator.pipelines.validateUpdatePipeline(options);
-        await validator.algorithms.validateAlgorithmExists(options);
-        validator.gateways.validateGatewayNodes(options.nodes);
+    async insertPipeline(options, failOnError = true, allowOverwrite = false) {
+        try {
+            validator.pipelines.validateUpdatePipeline(options);
+            await validator.algorithms.validateAlgorithmExists(options);
+            validator.gateways.validateGatewayNodes(options.nodes);
+        }
+        catch (error) {
+            if (error.code === 409) {
+                if (failOnError) {
+                    throw new ResourceExistsError('pipeline', options.name);
+                }
+                return {
+                    error: {
+                        code: 409,
+                        message: error.message,
+                    },
+                };
+            }
+            if (error.status === 404) {
+                const errorMessage = error.message;
+                if (failOnError) {
+                    const notFoundError = new Error(errorMessage);
+                    notFoundError.status = 404;
+                    throw notFoundError;
+                }
+                return {
+                    error: {
+                        code: 404,
+                        message: error.message,
+                    },
+                };
+            }
+            if (failOnError) {
+                throw new InvalidDataError(error.message);
+            }
+            return {
+                error: {
+                    name: options.name,
+                    code: 400,
+                    message: error.message,
+                },
+            };
+        }
         const pipeline = await stateManager.getPipeline(options);
         if (pipeline) {
-            throw new ResourceExistsError('pipeline', options.name);
+            if (allowOverwrite === 'true') {
+                try {
+                    const updatedPipeline = await this.updatePipeline(options);
+                    return updatedPipeline;
+                }
+                catch (error) {
+                    return {
+                        error: {
+                            name: options.name,
+                            code: 400,
+                            message: `Error updating ${options.name} ${error.message}`
+                        }
+                    };
+                }
+            }
+            if (failOnError) {
+                throw new ResourceExistsError('pipeline', options.name);
+            }
+            return {
+                error: {
+                    code: 409,
+                    message: `pipeline ${options.name} already exists`,
+                },
+            };
         }
         const newPipeline = {
             modified: Date.now(),
@@ -133,5 +237,4 @@ class PipelineService {
         return options;
     }
 }
-
 module.exports = new PipelineService();

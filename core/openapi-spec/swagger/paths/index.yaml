@@ -30,7 +30,7 @@
 /exec/tree/{jobId}:
   $ref: ./exec/tree.yaml
 /exec/flowInput/{jobId}:
-  $ref: ./exec/flowInput.yaml  
+  $ref: ./exec/flowInput.yaml
 
 # pipelines
 /pipelines/results:
@@ -88,7 +88,9 @@
 /store/pipelines/{name}:
   $ref: ./store/pipelines_name.yaml
 /store/pipelines/graph/{name}:
-  $ref: ./store/pipeline_graph.yaml  
+  $ref: ./store/pipeline_graph.yaml
+/store/pipelines/graph:
+  $ref: ./store/pipeline_graph_object.yaml
 /store/pipelines:
   $ref: ./store/pipelines.yaml
 
@@ -112,7 +114,7 @@
 /boards/optunas/{id}:
   $ref: ./boards/optunaboard_single.yaml
 /boards/optunas/:
-  $ref: ./boards/optunaboard_list.yaml  
+  $ref: ./boards/optunaboard_list.yaml
 
 # preferred
 /queue/preferred:
@@ -129,11 +131,11 @@
 /queue/managed/aggregation/tag:
   $ref: ./aggregation/managed.yaml
 /queue/managed/:
-  $ref: ./managed/list.yaml  
+  $ref: ./managed/list.yaml
 
 # queue
 /queue/count:
-  $ref: ./queue/count.yaml   
+  $ref: ./queue/count.yaml
 
 # builds
 /builds/status/{buildId}:
@@ -225,6 +227,16 @@
 
 #resource
 /resources/unscheduledalgorithms/:
-   $ref: ./resources/unscheduledalgorithms.yaml
+  $ref: ./resources/unscheduledalgorithms.yaml
 /resources/unscheduledalgorithms/{algorithmName}:
-   $ref: ./resources/unscheduledalgorithms_algorithmName.yaml
+  $ref: ./resources/unscheduledalgorithms_algorithmName.yaml
+
+#kubernetes
+/kubernetes/algorithms/pods/{algName}:
+  $ref: ./kubernetes/algorithms_pods_algname.yaml
+/kubernetes/algorithms/jobs/{algName}:
+  $ref: ./kubernetes/algorithms_jobs_algname.yaml
+
+#auth
+/auth/login:
+  $ref: ./auth/login.yaml

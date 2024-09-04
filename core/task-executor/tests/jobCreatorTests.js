@@ -396,6 +396,18 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[1].resources).to.deep.include({ limits: { cpu: '500m', memory: '200M' } });
             expect(res.spec.template.spec.containers[0].resources).to.deep.include({ limits: { cpu: '200m', memory: '100Mi' } });
         });
+        it('should apply nodeSelector', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1',nodeSelector: {name: "node1"} , options });
+            expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values).to.eql(['node1']);
+        });
+        it('should apply nodeSelector multiple values in same type', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1',nodeSelector: {name: ["node1","node2"]} , options });
+            expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values).to.eql(['node1','node2']);
+        });
+        it('should apply nodeSelector multiple values in multiple types', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1',nodeSelector: {name: ["node1","node2"], gpu: "max-gpu", "kubernetes.io/arch": ["amd64","intel"]} , options });
+            expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions.length).to.eql(3);
+        });
     });
     describe('sidecars', () => {
         before(() => {
@@ -491,6 +503,29 @@ describe('jobCreator', () => {
                 {
                     name: 'hkube-dev-sources',
                     mountPath: '/hkube/algorithm-runner/algorithm_unique_folder',
+                    subPath: 'algorithms/myalgo1'
+                }
+            );
+            expect(res.spec.template.spec.volumes).to.deep.include(
+                {
+                    name: 'hkube-dev-sources',
+                    persistentVolumeClaim: { claimName: 'hkube-dev-sources-pvc' }
+                }
+            );
+        });
+        it('should apply with custom mount path when "devMode" and "devFolder" are present', () => {
+            const res = createJobSpec({
+                algorithmImage: 'myImage1',
+                algorithmName: 'myalgo1',
+                options,
+                algorithmOptions: { devMode: true, devFolder: '/myFolder/mySecondFolder' },
+                clusterOptions: { devModeEnabled: true }
+            });
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DEV_MODE', value: 'true' });
+            expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
+                {
+                    name: 'hkube-dev-sources',
+                    mountPath: '/myFolder/mySecondFolder',
                     subPath: 'algorithms/myalgo1'
                 }
             );

@@ -70,10 +70,11 @@ class JobConsumer {
 
         let dataSource;
         let resolvedSnapshot;
+        let snapshot;
 
         try {
             if (dataSourceDescriptor.snapshot) {
-                const { snapshot } = dataSourceDescriptor;
+                ({ snapshot } = dataSourceDescriptor);
                 resolvedSnapshot = await this.db.snapshots.fetchDataSourceWithCredentials(
                     {
                         snapshotName: snapshot.name,
@@ -98,17 +99,19 @@ class JobConsumer {
             return this.handleFail({ ...job, error: e.message });
         }
 
-        let { id: cloneId } = dataSource;
-        if (resolvedSnapshot) {
-            cloneId = resolvedSnapshot.id;
-        }
+        // let { id: cloneId } = dataSource;
+        // if (resolvedSnapshot) {
+        //     cloneId = resolvedSnapshot.id;
+        // }
+
         const repository = new Repository(
             dataSource.name,
             this.config,
-            pathLib.join(this.rootDir, dataSource.name, cloneId),
+            pathLib.join(this.rootDir, job.jobId, dataSource.name),
             dataSource.git,
             dataSource.storage,
-            dataSource._credentials
+            dataSource._credentials,
+            resolvedSnapshot ? snapshot.name : 'complete'
         );
 
         try {
@@ -116,7 +119,12 @@ class JobConsumer {
                 component,
                 taskId,
             });
-            await repository.ensureClone(dataSource.commitHash);
+            if (resolvedSnapshot) {
+                await repository.ensureClone(dataSource.commitHash, true, snapshot.name);
+            }
+            else {
+                await repository.ensureClone(dataSource.commitHash);
+            }
             await repository.pullFiles();
         }
         catch (e) {

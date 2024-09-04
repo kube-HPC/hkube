@@ -20,12 +20,16 @@ class DB {
         return error;
     }
 
+    async updatePdIntervalTimestamp(jobId) {
+        await this._db.jobs.updatePdIntervalTimestamp(jobId);
+    }
+
     async updateResult(options) {
         return this._db.jobs.updateResult(options);
     }
 
-    async updateStatus(options, updateOnlyActive) {
-        return this._db.jobs.updateStatus(options, updateOnlyActive);
+    async updateStatus(options) {
+        return this._db.jobs.updateStatus(options);
     }
 
     async fetchStatus(options) {
@@ -49,7 +53,7 @@ class DB {
     }
 
     _wrapJobsService() {
-        ['updateResult', 'updateStatus', 'fetchStatus', 'fetchPipeline', 'updatePipeline', 'createJob'].forEach(propertyName => {
+        ['updateResult', 'updateStatus', 'fetchStatus', 'fetchPipeline', 'updatePipeline', 'createJob', 'updatePdIntervalTimestamp'].forEach(propertyName => {
             if (typeof this._db.jobs[propertyName] === 'function') {
                 this[propertyName] = this._wrapperForDBProblem(this[propertyName]);
             }

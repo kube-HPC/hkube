@@ -26,13 +26,36 @@ const routes = (option) => {
 
     router.get('/pipelines/graph/:name', async (req, res) => {
         const { name } = req.params;
-        const response = await pipelineStore.getPipelineGraph({ name });
+        req.body.name = name;
+        const response = await pipelineStore.getGraphByKindOrName(req.body);
         res.json(response);
     });
 
+    router.post('/pipelines/graph', async (req, res) => {
+        const response = await pipelineStore.getGraphByKindOrName(req.body);
+        res.json(response);
+    });
+
+    /*  router.post('/pipelines/graph', async (req, res) => {
+        const response = await pipelineStore.getPipelineGraph({ name: null, pipeline: req.body.pipeline });
+        res.json(response);
+    }); */
+
     router.post('/pipelines', async (req, res) => {
-        const response = await pipelineStore.insertPipeline(req.body);
-        res.status(HttpStatus.CREATED).json(response);
+        const allowOverwrite = req.query.overwrite;
+        if (Array.isArray(req.body)) {
+            const returnPipelineList = await Promise.all(
+                req.body.map(async (pipelineData) => {
+                    // eslint-disable-next-line no-return-await
+                    return await pipelineStore.insertPipeline(pipelineData, false, allowOverwrite);
+                })
+            );
+            res.status(HttpStatus.CREATED).json(returnPipelineList);
+        }
+        else {
+            const response = await pipelineStore.insertPipeline(req.body);
+            res.status(HttpStatus.CREATED).json(response);
+        }
     });
     router.put('/pipelines', async (req, res) => {
         const response = await pipelineStore.updatePipeline(req.body);
@@ -62,8 +85,21 @@ const routes = (option) => {
         res.json(response);
     });
     router.post('/algorithms', async (req, res) => {
-        const response = await algorithmStore.insertAlgorithm(req.body);
-        res.status(HttpStatus.CREATED).json(response);
+        const allowOverwrite = req.query.overwrite;
+        if (Array.isArray(req.body)) {
+            const returnAlgoList = await Promise.all(
+                req.body.map(async (algorithmData) => {
+                    // eslint-disable-next-line no-return-await
+                    return await algorithmStore.insertAlgorithm(algorithmData, false, allowOverwrite);
+                })
+            );
+            res.status(HttpStatus.CREATED).json(returnAlgoList);
+        }
+        else {
+            // If req.body is not an array, process it as a single algorithm
+            const response = await algorithmStore.insertAlgorithm(req.body, true, allowOverwrite);
+            res.status(HttpStatus.CREATED).json(response);
+        }
     });
     router.put('/algorithms', async (req, res) => {
         const response = await algorithmStore.updateAlgorithm(req.body);
@@ -93,7 +129,6 @@ const routes = (option) => {
         }
     });
     // algorithms
-
     return router;
 };
 

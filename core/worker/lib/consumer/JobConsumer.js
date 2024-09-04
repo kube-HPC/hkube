@@ -207,7 +207,7 @@ class JobConsumer extends EventEmitter {
     }
 
     _getStatus(data) {
-        const { state, results, isTtlExpired } = data;
+        const { state, results, isTtlExpired, stopInvoked } = data;
         const workerStatus = state;
         let status = state === jobStatus.WORKING ? taskStatuses.ACTIVE : state;
         let error = null;
@@ -222,6 +222,9 @@ class JobConsumer extends EventEmitter {
         if (isTtlExpired) {
             error = logMessages.algorithmTtlExpired;
             status = taskStatuses.FAILED;
+        }
+        if (stopInvoked && status !== taskStatuses.FAILED) {
+            status = taskStatuses.STOPPED;
         }
         const resultData = results && results.data;
         return {
@@ -249,7 +252,7 @@ class JobConsumer extends EventEmitter {
         };
     }
 
-    async finishJob(data = {}, isTtlExpired) {
+    async finishJob(data = {}, isTtlExpired, stopInvoked) {
         if (this._inFinishState) {
             return;
         }
@@ -263,7 +266,7 @@ class JobConsumer extends EventEmitter {
             if (this._execId) {
                 await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
             }
-            const { resultData, status, error, isImagePullErr, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
+            const { resultData, status, error, isImagePullErr, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired, stopInvoked });
 
             if (shouldCompleteJob) {
                 let storageResult;
@@ -286,8 +289,13 @@ class JobConsumer extends EventEmitter {
                 log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
             }
             await storage.finish({ kind: this._kind });
-            metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId });
-            log.info(`finishJob - status: ${status}, error: ${error}`, { component });
+            metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId, pipelineName: this._pipelineName });
+            if (status !== taskStatuses.FAILED) {
+                log.info(`finishJob - status: ${status}, error: ${error}`, { component });
+            }
+            else {
+                log.error(`finishJob - status: ${status}, error: ${error}`, { component });
+            }
         }
         finally {
             this._inFinishState = false;

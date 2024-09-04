@@ -249,7 +249,7 @@ const podsGpu = {
                 metadata: {
                     name: 'one container with resources',
                     labels: {
-
+                        "kubernetes.io/hostname": "node1"
                     }
                 },
                 spec: {
@@ -316,7 +316,8 @@ const nodeWithLabels = {
         name: 'node4',
         labels: {
             type: 'gpu-extreme',
-            max: 'bound'
+            max: 'bound',
+            "kubernetes.io/hostname": "node4"
         }
     },
     status: {

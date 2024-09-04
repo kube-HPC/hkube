@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "2.6.0",
+  "version": "2.8.1",
   "description": "pipeline execution based on DAG",
   "main": "app.js",
   "directories": {
@@ -9,12 +9,12 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/consts": "^1.0.38",
-    "@hkube/dag": "^2.1.21",
-    "@hkube/db": "^2.0.12",
+    "@hkube/consts": "^1.0.51",
+    "@hkube/dag": "^2.2.2",
+    "@hkube/db": "^2.0.14",
     "@hkube/etcd": "^5.1.9",
     "@hkube/logger": "^2.0.2",
-    "@hkube/metrics": "^1.0.42",
+    "@hkube/metrics": "^1.0.43",
     "@hkube/parsers": "^2.1.9",
     "@hkube/producer-consumer": "^1.0.50",
     "@hkube/redis-utils": "^1.0.3",
@@ -46,7 +46,7 @@
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "pretest": "npm run lint",
-    "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --timeout=10000 --colors --recursive --exit",
+    "test": "STATUS_DELAY_MS=1 NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --timeout=10000 --colors --recursive --exit",
     "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --exclude=bootstrap.js --reporter=html --reporter=text --reporter=lcov mocha tests --timeout=10000 --colors --recursive --exit",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",

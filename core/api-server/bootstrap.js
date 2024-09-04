@@ -11,7 +11,6 @@ const log = new Logger(config.serviceName, logger);
 
 const modules = [
     require('./lib/state/state-manager'),
-    require('./api/app-server'),
     require('./lib/producer/jobs-producer'),
     require('./lib/examples/pipelines-updater'),
     require('./lib/webhook/webhooks-handler'),
@@ -22,6 +21,7 @@ const modules = [
     require('./lib/service/storage'),
     require('./lib/service/gateway'),
     require('./lib/service/debug'),
+    require('./lib/service/auth'),
     require('./api/graphql/queries/database-querier'),
     require('./api/graphql/queries/prefered-querier'),
     require('./api/graphql/queries/dataSource-querier'),
@@ -30,6 +30,7 @@ const modules = [
     require('./api/task-logs/logs'),
     require('./lib/service/output'),
     require('./lib/service/hyperparams-tuner'),
+    require('./api/app-server')
 ];
 
 class Bootstrap {

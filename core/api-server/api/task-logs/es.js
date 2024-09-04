@@ -105,7 +105,7 @@ class EsLogs {
             body
         });
         if (this._structuredPrefix) {
-            logs.hits = logs.hit.map(line => ({
+            logs.hits = logs.hits.map(line => ({
                 ...line, ...line[this._structuredPrefixAtrributeName]
             }));
         }

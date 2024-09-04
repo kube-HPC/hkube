@@ -1,0 +1,43 @@
+delete:
+  tags:
+    - Kubernetes
+  summary: Delete all of an algorithm's pods
+  description: Delete algorithm pods using algName and a default selector of algorithm-name={algName}
+  parameters:
+    - name: algName
+      in: path
+      description: Pods associated to the algName will be deleted
+      required: true
+      schema:
+        type: string
+    - name: selector
+      in: query
+      description: Optional label selector, default being algorithm-name={algName}
+      required: false
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summary
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "404":
+      description: No pods found with selector
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "500":
+      description: internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

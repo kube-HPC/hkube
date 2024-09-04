@@ -454,6 +454,169 @@ describe('Store/Algorithms', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(algorithm).to.eql(merge({}, defaultProps, body));
         });
+        it('should secceed to create algorithms when provided with an array of valid data', async () => {
+            const body = [
+                {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                },
+                {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                },
+            ];
+            const options = {
+                uri: restPath,
+                body
+            };
+
+            const response = await request(options);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(body.length);
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+        });
+        it('should succeed creating an array containing a 409 Conflict status and error message for existing algorithms', async () => {
+            const existingAlgorithm = {
+                name: 'existing-algorithm',
+                algorithmImage: 'image',
+                mem: '50Mi',
+                cpu: 1,
+                type: 'Image',
+            }
+            const existingAlgOption = {
+                uri: restPath,
+                body: existingAlgorithm
+            };
+            const responseOfExists = await request(existingAlgOption)
+
+            const algorithmsList = [
+                {
+                    ...existingAlgorithm
+                },
+                {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                },
+            ];
+
+            const algorithmData = {
+                uri: restPath,
+                body: algorithmsList
+            }
+
+            const response = await request(algorithmData)
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(algorithmsList.length);
+            expect(response.body[1].error).to.not.exist;
+            expect(response.body[0].error.code).to.equal(HttpStatus.CONFLICT)
+            expect(response.body[0].error.message).to.include('algorithm existing-algorithm already exists');
+        });
+
+
+        it('should succeed to overwrith existing algorithms', async () => {
+            const existingAlgorithm = {
+                name: 'existing-algorithm2',
+                algorithmImage: 'image',
+                mem: '50Mi',
+                cpu: 1,
+                type: 'Image',
+            }
+            const existingAlgOption = {
+                uri: restPath,
+                body: existingAlgorithm
+            };
+            const responseOfExists = await request(existingAlgOption)
+            existingAlgorithm.mem = '40Mi'
+            const algorithmsList = [
+                {
+                    ...existingAlgorithm
+                },
+                {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                },
+            ];
+
+            const algorithmData = {
+                uri: restPath + '?overwrite=true',
+                body: algorithmsList
+            }
+
+            const response = await request(algorithmData)
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(algorithmsList.length);
+            expect(response.body[1].error).to.not.exist;
+
+            const optionsGet = {
+                uri: `${restPath}/existing-algorithm2`,
+                method: 'GET'
+            };
+            const alg = await request(optionsGet);
+            expect(alg.body.mem).to.eq('40Mi');
+
+
+        });
+
+
+        it('should secceed creating an array containing a 400 Bad Request status and error message for invalid data', async () => {
+            // Define some algorithm data objects, including one with invalid data
+            const invalidAlgorithmData = [
+                {
+                    name: 'Invalid Algorithm NAME-',
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                },
+                {
+                    name: 'valid-algorithm-name',
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                },
+            ];
+
+            const algorithmData = {
+                uri: restPath,
+                body: invalidAlgorithmData
+            }
+
+            const response = await request(algorithmData)
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(invalidAlgorithmData.length);
+            expect(response.body[1].error).to.not.exist;
+            expect(response.body[0].error.code).to.equal(HttpStatus.BAD_REQUEST)
+            expect(response.body[0].error.name).to.equal('Invalid Algorithm NAME-')
+            expect(response.body[0].error.message).to.include('algorithm name must contain only lower-case alphanumeric, dash or dot');
+        });
+        it('should return a 201 Created status and an empty array for an empty request body', async () => {
+            const emptyArray = [];
+            const emptyData = {
+                uri: restPath,
+                body: emptyArray
+            }
+
+            const response = await request(emptyData)
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(0);
+        });
     });
     describe('/store/algorithms/apply POST', () => {
         describe('Validation', () => {
@@ -642,7 +805,7 @@ describe('Store/Algorithms', () => {
                 };
                 const res = await request(options);
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes)`);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu(node1:15, node2:16, node3:17, node4:18)`);
             });
             it('should throw validation error of maximum mem capacity exceeded', async () => {
                 const body = {
@@ -657,7 +820,7 @@ describe('Store/Algorithms', () => {
                 };
                 const res = await request(options);
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.eql(`maximum capacity exceeded mem (4 nodes)`);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded mem(node1:40805, node2:50805, node3:60805, node4:70805)`);
             });
             it('should throw validation error of maximum capacity exceeded all', async () => {
                 const body = {
@@ -672,7 +835,7 @@ describe('Store/Algorithms', () => {
                 };
                 const res = await request(options);
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu(node1:15, node2:16, node3:17, node4:18), mem(node1:40805, node2:50805, node3:60805, node4:70805), gpu(node1:0, node2:1, node3:2, node4:3)`);
             });
             it('should delete nullable properties', async () => {
                 const algorithmName = uuid();

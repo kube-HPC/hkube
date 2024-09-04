@@ -20,9 +20,10 @@ class Repository extends RepositoryBase {
         rootDir,
         gitConfig,
         storageConfig,
-        credentials
+        credentials,
+        dirName = null
     ) {
-        super(repositoryName, rootDir, repositoryName);
+        super(repositoryName, rootDir, dirName);
         this.config = config;
         this.rawRepositoryUrl = gitConfig.repositoryUrl;
         this.rawStorageConfig = storageConfig;
@@ -112,6 +113,10 @@ class Repository extends RepositoryBase {
         throw new InvalidDataError('invalid git kind');
     }
 
+    initGitClient() {
+        this.gitClient = simpleGit({ baseDir: this.cwd });
+    }
+
     async _setupDvcRepository() {
         await this.dvc.init();
         await this.dvc.config(this.generateDvcConfig(this.repositoryName));
@@ -188,16 +193,23 @@ class Repository extends RepositoryBase {
         return response;
     }
 
-    async ensureClone(commitHash, shouldConfigDvc = true) {
+    async ensureClone(commitHash, shouldConfigDvc = true, snapShotName = null) {
+        let currentDir;
         await fse.ensureDir(this.cwd);
         const hasClone = await fse.pathExists(`${this.cwd}/.git`);
         if (!hasClone) {
             try {
+                // const repositoryName = pathLib.parse(this.repositoryUrl).name;
+                if (snapShotName) {
+                    currentDir = pathLib.join(this.rootDir, snapShotName);
+                }
+                else {
+                    currentDir = pathLib.join(this.rootDir, 'complete');
+                }
                 await simpleGit({ baseDir: this.rootDir })
                     .env('GIT_TERMINAL_PROMPT', '0')
-                    .clone(this.repositoryUrl);
-                const repositoryName = pathLib.parse(this.repositoryUrl).name;
-                const currentDir = pathLib.join(this.rootDir, repositoryName);
+                    .clone(this.repositoryUrl, currentDir);
+
                 fse.rename(currentDir, this.cwd);
             }
             catch (error) {

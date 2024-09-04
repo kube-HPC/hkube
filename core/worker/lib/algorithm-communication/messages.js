@@ -17,7 +17,8 @@ module.exports = {
         stopAlgorithmExecution: 'stopAlgorithmExecution',
         streamingStatistics: 'streamingStatistics',
         storing: 'storing',
-        done: 'done'
+        done: 'done',
+        alive: 'alive'
     },
     outgoing: {
         initialize: 'initialize',

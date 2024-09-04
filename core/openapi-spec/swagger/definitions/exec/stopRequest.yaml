@@ -2,9 +2,15 @@ type: object
 properties:
   jobId:
     $ref: "#/components/schemas/jobId"
-  reason:
+  pipelineName:
     type: string
-    default: requested by user
-    description: reason for stop pipeline
-required:
-  - jobId
+    description: pipeline name to stop
+  startTime:
+    type: object
+    properties:
+      from:
+        type: string
+        example: "2021-03-11T14:30:00"
+      to:
+        type: string
+        example: "2021-03-11T14:30:00"

@@ -472,6 +472,225 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
         });
+        //POST array of pipelines
+        it('should succeed to store an array of pipelines', async () => {
+            const pipelinesList = [
+                {
+                    name: 'pipeline1',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+                {
+                    name: 'pipeline2',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                }
+            ];
+            const options = {
+                uri: restPath,
+                body: pipelinesList
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(2);
+            expect(response.body[0]).to.have.property('name');
+            expect(response.body[1]).to.have.property('name');
+        });
+        it('should succeed creating an array containing a pipeline with a 400 Bad Request status and error message for invalid data', async () => {
+            const pipelinesList = [
+                {
+                    name: ' Pipeline1 - !invalid',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+                {
+                    name: 'newpipeline',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+            ]
+            const options = {
+                uri: restPath,
+                body: pipelinesList
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(2);
+            expect(response.body[0]).to.have.property('error');
+            expect(response.body[0].error.message).to.include('pipeline name must contain only alphanumeric, dash, dot or underscore');
+            expect(response.body[1]).to.have.property('name');
+        });
+        it('should succeed creating an array containing a pipeline with a 404 algorithm Not Found status', async () => {
+            const pipelinesList = [
+                {
+                    name: 'pipeline3',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'func1-complex',
+                            input: ['args']
+                        }
+                    ]
+                },
+                {
+                    name: 'pipeline4',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+            ]
+            const options = {
+                uri: restPath,
+                body: pipelinesList
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(2);
+            expect(response.body[0]).to.have.property('error');
+            expect(response.body[0].error.code).to.equal(StatusCodes.NOT_FOUND);
+            expect(response.body[0].error.message).to.include('algorithm func1-complex Not Found');
+            expect(response.body[1]).to.have.property('name');
+        });
+        it('should succeed creating an array containing a pipeline with a conflict of pipeline already exists', async () => {
+            const existingPipeline = {
+                    name: 'pipeline6',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+            };
+            const options1 = {
+                uri: restPath,
+                body: existingPipeline
+            };
+            await request(options1);
+
+            const pipelinesList = [
+                {
+                    name: 'pipeline6',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+                {
+                    name: 'pipeline3',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+            ]
+            const options2 = {
+                uri: restPath,
+                body: pipelinesList
+            };
+            const response = await request(options2);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(2);
+            expect(response.body[0]).to.have.property('error');
+            expect(response.body[0].error.code).to.equal(StatusCodes.CONFLICT);
+            expect(response.body[0].error.message).to.include('pipeline pipeline6 already exists');
+            expect(response.body[1]).to.have.property('name');
+        });
+        it('should add pipeline from array, due to overwrite===true flag', async () => {
+            const existingPipeline = {
+                    name: 'pipeline6',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+            };
+            const options1 = {
+                uri: restPath,
+                body: existingPipeline
+            };
+            await request(options1);
+
+            const pipelinesList = [
+                {
+                    name: 'pipeline6',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+                {
+                    name: 'pipeline3',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: ['args']
+                        }
+                    ]
+                },
+            ]
+            const options2 = {
+                uri: restPath+ '?overwrite=true',
+                body: pipelinesList
+            };
+            const response = await request(options2);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(2);
+            expect(response.body[0]).to.not.have.property('error');
+        });
+        it('should return a 201 Created status and an empty array for an empty request body', async () => {
+            const emptyArray = [];
+            const emptyData = {
+                uri: restPath,
+                body: emptyArray
+            }
+        
+            const response = await request(emptyData)
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            expect(response.body).to.be.an('array');
+            expect(response.body).to.have.lengthOf(0);
+          });
         it('should throw validation error gateway stateType', async () => {
             const options = {
                 uri: restPath,
@@ -545,6 +764,7 @@ describe('Store/Pipelines', () => {
                         {
                             nodeName: 'A',
                             kind: 'gateway',
+                            stateType: 'stateless'
                         },
                         {
                             nodeName: 'B',
@@ -566,6 +786,146 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('Gateway node A stateType must be "stateful". Got stateless');
+        });
+        it('should throw validation error for minStatelessCount', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'string1',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType:'stateful',
+                            minStatelessCount: 1
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response1 = await request(options);
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('Nodes which are not stateType=stateless cant have minStatelessCount or maxStatelessCount'
+            );
+        });
+        it('should throw validation error for maxStatelessCount', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'string2',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType:'stateful',
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            maxStatelessCount: 1,
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response1 = await request(options);
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('Nodes which are not stateType=stateless cant have minStatelessCount or maxStatelessCount'
+            );
+        });
+        it('should throw validation error when maxStatelessCount larger than min', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'maxstateless',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType:'stateful',
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            stateType:'stateless',
+                            maxStatelessCount: 3,
+                            minStatelessCount : 5,
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            // const response1 = await request(options);
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.response.statusCode).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('maxStatelessCount must be greater or equal to minStatelessCount');
+        });
+        it('should successfully store pipeline with min and max stateless count', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'maxstateless',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType:'stateful',
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            stateType:'stateless',
+                            maxStatelessCount: 7,
+                            minStatelessCount : 5,
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('streaming');
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
         });
     });
 });

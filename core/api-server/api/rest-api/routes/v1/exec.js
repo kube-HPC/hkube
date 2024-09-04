@@ -1,4 +1,5 @@
 const RestServer = require('@hkube/rest-server');
+const { pipelineStatuses } = require('@hkube/consts');
 const Execution = require('../../../../lib/service/execution');
 const methods = require('../../middlewares/methods');
 const formatter = require('../../../../lib/utils/formatters');
@@ -36,10 +37,51 @@ const routes = (options) => {
         const { jobId, gateways } = await Execution.rerun(req.body);
         res.json({ jobId, gateways });
     });
+    router.post('/getGraphByStreamingFlow', async (req, res) => {
+        const { nodes, edges } = await Execution.getGraphByStreamingFlow(req.body);
+        res.json({ nodes, edges });
+    });
     router.post('/stop', async (req, res) => {
-        const { jobId, reason } = req.body;
-        await Execution.stopJob({ jobId, reason });
-        res.json({ message: 'OK' });
+        const { jobId, pipelineName, startTime, reason } = req.body;
+        let datesRange;
+        let search;
+        let errormsg;
+        if (startTime !== undefined && startTime !== {}) {
+            datesRange = { from: startTime.from, to: startTime.to };
+            search = { query: { jobId, pipelineName, datesRange } };
+        }
+        else {
+            search = { query: { jobId, pipelineName } };
+        }
+        if (jobId) {
+            search.query.pipelineName = jobId;
+        }
+        const searchResponse = await Execution.search({ ...search });
+        const jobsToStop = searchResponse.hits.filter(j => j.status.status === pipelineStatuses.ACTIVE || j.status.status === pipelineStatuses.PENDING || j.status.status === pipelineStatuses.PAUSED);
+        if (jobsToStop.length === 0) {
+            if (jobId) {
+                errormsg = `jobId ${jobId} Not Found`;
+            }
+            else if (pipelineName && !datesRange) {
+                errormsg = `No running jobs of ${pipelineName} to stop`;
+            }
+            else if (pipelineName) {
+                errormsg = `No running jobs of ${pipelineName} which started between ${datesRange.from} to ${datesRange.to} to stop`;
+            }
+            else if (datesRange) {
+                errormsg = `No Jobs Found between ${datesRange.from} to ${datesRange.to}`;
+            }
+            return res.status(404).json({
+                error: {
+                    code: 404,
+                    message: errormsg
+                }
+            });
+        }
+        await Promise.all(jobsToStop.map(async job => {
+            await Execution.stopJob({ job, reason });
+        }));
+        return res.json({ message: 'OK' });
     });
     router.post('/pause', async (req, res) => {
         const { jobId } = req.body;
