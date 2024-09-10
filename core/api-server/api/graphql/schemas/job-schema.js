@@ -174,6 +174,8 @@ const jobTypeDefs = gql`
   type Options {
     batchTolerance: Int
     progressVerbosityLevel: String
+    devMode: Boolean
+    devFolder: String
     ttl: Int
   }
 

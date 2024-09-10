@@ -16,6 +16,8 @@ type Options { batchTolerance: Int
   progressVerbosityLevel: String
   concurrentPipelines: ConcurrentPipelines 
   activeTtl: Int
+  devMode: Boolean
+  devFolder: String
 }
 
 type Metrics { tensorboard: Boolean }

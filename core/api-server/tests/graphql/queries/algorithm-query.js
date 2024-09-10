@@ -20,6 +20,8 @@ const query = gql`{
           pending
           batchTolerance
           progressVerbosityLevel
+          devMode
+          devFolder
           ttl
           concurrentPipelines {
             amount
