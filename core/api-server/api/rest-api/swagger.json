@@ -8141,6 +8141,17 @@
         ],
         "summary": "Update algorithm",
         "description": "Update existing algorithm",
+        "parameters": [
+          {
+            "name": "forceStopAndApplyVersion",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Flag to force stop and apply the updated algorithm version for the next run."
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
