@@ -246,7 +246,7 @@ class AutoScaler {
         const canScaleDown = this._markQueueSize(avgQueueSize);
         const requiredByQueueSize = this._scaledQueueSize({ durationsRate, queueSize });
         const requiredByDuration = this._addExtraReplicas(requiredByDurationRate, requiredByQueueSize);
-        log.info(`Scale details: requiredByQueueSize=${requiredByQueueSize}, requiredByDurationRate=${requiredByDurationRate}, requiredByDuration=${requiredByDuration}`);
+        log.info(`Scale details: requiredByQueueSize=${requiredByQueueSize}, requiredByDurationRate=${requiredByDurationRate},queue+duration+extra_replicas=${requiredByDuration}`);
         let required = null;
 
         // first scale up
@@ -371,6 +371,7 @@ class AutoScaler {
             const task = { taskId, input: result.input, storage: result.storage, batchIndex: i + 1 };
             tasks.push(task);
         }
+        log.info(`Replicas #: ${tasks.length} added as tasks`);
         const job = {
             ...this._options.node,
             jobId: this._options.jobId,
