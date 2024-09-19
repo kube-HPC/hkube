@@ -102,7 +102,8 @@ const routes = (option) => {
         }
     });
     router.put('/algorithms', async (req, res) => {
-        const response = await algorithmStore.updateAlgorithm(req.body);
+        const forceUpdate = req.query.forceStopAndApplyVersion === 'true';
+        const response = await algorithmStore.updateAlgorithm(req.body, { forceUpdate });
         res.json(response);
     });
     router.delete('/algorithms/:name', async (req, res) => {
