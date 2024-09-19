@@ -88,7 +88,7 @@ jobs:
           prNumber: ${{ github.event.deployment.payload.prNumber }}
           branchName: ${{ github.event.ref }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: values.yaml
           path: $HOME/helm/hkube/values.yaml
@@ -115,7 +115,7 @@ jobs:
           cd $HOME/helm/hkube
           $HOME/helm3 package . --app-version=${{ steps.build_changed.outputs.version}} --version=${{ steps.build_changed.outputs.version}} -d /tmp/
           mv /tmp/hkube-${{ steps.build_changed.outputs.version}}.tgz /tmp/chart.tgz
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: chart.tgz
           path: /tmp/chart.tgz
@@ -126,7 +126,7 @@ jobs:
         env:
           DOCKER_BUILD_PUSH_PASSWORD: ${{ secrets.DOCKER_BUILD_PUSH_PASSWORD }}
           DOCKER_BUILD_PUSH_USERNAME: ${{ secrets.DOCKER_BUILD_PUSH_USERNAME }}
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: dev1.yml
           path: /tmp/dev1.yml
@@ -192,11 +192,11 @@ jobs:
           TEST_URL: ${{ secrets.TEST_KUBERNETES_MASTER_IP }}
           TEST_KUBE_CONFIG_DATA: ${{ secrets.TEST_KUBECONFIG }}
       - name: download chart
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build_job.outputs.chart }}
       - name: download values
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ needs.build_job.outputs.values }}
       - name: verify kubectl
