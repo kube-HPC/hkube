@@ -1,6 +1,6 @@
 const RestServer = require('@hkube/rest-server');
 const HttpStatus = require('http-status-codes');
-const versionsService = require('../../../../lib/service/versions');
+const versionsService = require('../../../../lib/service/algorithm-versions');
 
 const routes = (options) => {
     const router = RestServer.router();

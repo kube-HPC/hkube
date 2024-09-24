@@ -6,7 +6,7 @@ const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
 const experiments = require('./experiments.json');
 const stateManager = require('../state/state-manager');
-const versionsService = require('../../lib/service/versions');
+const versionsService = require('../../lib/service/algorithm-versions');
 
 class PipelinesUpdater {
     async init(options) {
