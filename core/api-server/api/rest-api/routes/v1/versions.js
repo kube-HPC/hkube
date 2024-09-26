@@ -21,11 +21,11 @@ const routes = (options) => {
     });
     router.post('/algorithms/apply', async (req, res) => {
         const response = await algoVersionsService.applyVersion(req.body);
-        res.status(HttpStatus.CREATED).json(response);
+        res.status(HttpStatus.StatusCodes.CREATED).json(response);
     });
     router.post('/algorithms/tag', async (req, res) => {
         const response = await algoVersionsService.tagVersion(req.body);
-        res.status(HttpStatus.CREATED).json(response);
+        res.status(HttpStatus.StatusCodes.CREATED).json(response);
     });
     router.delete('/algorithms/:name/:version', async (req, res) => {
         const response = await algoVersionsService.deleteVersion(req.params);
