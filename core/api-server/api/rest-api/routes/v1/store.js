@@ -50,11 +50,11 @@ const routes = (option) => {
                     return await pipelineStore.insertPipeline(pipelineData, false, allowOverwrite);
                 })
             );
-            res.status(HttpStatus.CREATED).json(returnPipelineList);
+            res.status(HttpStatus.StatusCodes.CREATED).json(returnPipelineList);
         }
         else {
             const response = await pipelineStore.insertPipeline(req.body);
-            res.status(HttpStatus.CREATED).json(response);
+            res.status(HttpStatus.StatusCodes.CREATED).json(response);
         }
     });
     router.put('/pipelines', async (req, res) => {
@@ -93,12 +93,12 @@ const routes = (option) => {
                     return await algorithmStore.insertAlgorithm(algorithmData, false, allowOverwrite);
                 })
             );
-            res.status(HttpStatus.CREATED).json(returnAlgoList);
+            res.status(HttpStatus.StatusCodes.CREATED).json(returnAlgoList);
         }
         else {
             // If req.body is not an array, process it as a single algorithm
             const response = await algorithmStore.insertAlgorithm(req.body, true, allowOverwrite);
-            res.status(HttpStatus.CREATED).json(response);
+            res.status(HttpStatus.StatusCodes.CREATED).json(response);
         }
     });
     router.put('/algorithms', async (req, res) => {
