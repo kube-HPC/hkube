@@ -1,3 +1,4 @@
+const isEqual = require('lodash.isequal');
 const graphlib = require('graphlib');
 const { pipelineTypes } = require('@hkube/consts');
 const { NodesMap } = require('@hkube/dag');
@@ -12,13 +13,18 @@ const versionsService = require('./pipeline-versions');
 class PipelineService {
     async updatePipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
-        await this.getPipeline(options);
+        const oldPipeLine = await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
         validator.gateways.validateGatewayNodes(options.nodes);
         const newPipeline = {
             modified: Date.now(),
             ...options,
         };
+        const hasDiff = this._comparePipelines(newPipeline, oldPipeLine);
+        const newVersion = await this._versioning(hasDiff, newPipeline);
+        if (newVersion) {
+            newPipeline.version = newVersion;
+        }
         await stateManager.replacePipeline(newPipeline);
         return options;
     }
@@ -239,6 +245,13 @@ class PipelineService {
         newPipeline.version = version;
         await stateManager.insertPipeline(newPipeline);
         return options;
+    }
+
+    _comparePipelines(oldPipeline, newPipeline) {
+        if (!oldPipeline) {
+            return true;
+        }
+        return !isEqual(oldPipeline, newPipeline);
     }
 
     async _versioning(hasDiff, pipeline) {
