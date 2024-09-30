@@ -236,5 +236,13 @@ class PipelineService {
         await stateManager.insertPipeline(newPipeline);
         return options;
     }
+
+    async _versioning(hasDiff, pipeline) {
+        let version;
+        if (hasDiff) {
+            version = await versionsService.createVersion(pipeline);
+        }
+        return version;
+    }
 }
 module.exports = new PipelineService();
