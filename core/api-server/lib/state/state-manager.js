@@ -155,14 +155,14 @@ class StateManager extends EventEmitter {
     // Versions of algorithms and pipelines
     async createVersions(list, isPipeline = false) {
         if (isPipeline) {
-            return this._db.pipeline.versions.createMany(list);
+            return this._db.pipelines.versions.createMany(list);
         }
         return this._db.algorithms.versions.createMany(list);
     }
 
     async getVersion(version, isPipeline = false) {
         if (isPipeline) {
-            return this._db.pipeline.versions.fetch(version);
+            return this._db.pipelines.versions.fetch(version);
         }
         return this._db.algorithms.versions.fetch(version);
     }
@@ -175,28 +175,28 @@ class StateManager extends EventEmitter {
             fields
         };
         if (isPipeline) {
-            return this._db.pipeline.versions.search(argument);
+            return this._db.pipelines.versions.search(argument);
         }
         return this._db.algorithms.versions.search(argument);
     }
 
     async updateVersion(version, isPipeline = false) {
         if (isPipeline) {
-            return this._db.pipeline.versions.update(version);
+            return this._db.pipelines.versions.update(version);
         }
         return this._db.algorithms.versions.update(version);
     }
 
     async deleteVersion(version, isPipeline = false) {
         if (isPipeline) {
-            return this._db.pipeline.versions.delete(version);
+            return this._db.pipelines.versions.delete(version);
         }
         return this._db.algorithms.versions.delete(version);
     }
 
     async createVersion(version, isPipeline = false) {
         if (isPipeline) {
-            return this._db.pipeline.versions.delete(version);
+            return this._db.pipelines.versions.create(version);
         }
         return this._db.algorithms.versions.create(version);
     }
