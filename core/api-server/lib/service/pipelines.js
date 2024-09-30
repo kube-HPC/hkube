@@ -7,6 +7,8 @@ const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors');
 const pipelineCreator = require('./pipeline-creator');
 const graphBuilder = require('../utils/graph-builder');
+const versionsService = require('./pipeline-versions');
+
 class PipelineService {
     async updatePipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
@@ -233,6 +235,8 @@ class PipelineService {
             modified: Date.now(),
             ...options,
         };
+        const version = await this._versioning(true, newPipeline);
+        newPipeline.version = version;
         await stateManager.insertPipeline(newPipeline);
         return options;
     }
