@@ -43,18 +43,6 @@ const routes = (options) => {
         const response = await pipelineVersionsService.getVersion(req.params);
         res.json(response);
     });
-    router.post('/pipelines/apply', async (req, res) => {
-        const response = await pipelineVersionsService.applyVersion(req.body);
-        res.status(HttpStatus.StatusCodes.CREATED).json(response);
-    });
-    router.post('/pipelines/tag', async (req, res) => {
-        const response = await pipelineVersionsService.tagVersion(req.body);
-        res.status(HttpStatus.StatusCodesCREATED).json(response);
-    });
-    router.delete('/pipelines/:name/:version', async (req, res) => {
-        const response = await pipelineVersionsService.deleteVersion(req.params);
-        res.json(response);
-    });
 
     return router;
 };
