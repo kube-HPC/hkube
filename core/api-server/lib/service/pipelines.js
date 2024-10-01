@@ -30,7 +30,7 @@ class PipelineService {
     }
 
     async deletePipeline(options) {
-        const { name } = options;
+        const { name, keepOldVersions } = options;
         validator.pipelines.validatePipelineName(name);
         await this.getPipeline(options);
         let summary = `pipeline ${name} successfully deleted from store`;
@@ -39,7 +39,7 @@ class PipelineService {
             const stopped = result.filter(r => r.status === 'fulfilled');
             summary += `, stopped related running pipelines ${stopped.length}/${result.length}`;
         }
-        await stateManager.deletePipeline({ name });
+        await stateManager.deletePipeline({ name, keepOldVersions });
         return summary;
     }
 

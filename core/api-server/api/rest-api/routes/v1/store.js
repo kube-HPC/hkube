@@ -63,7 +63,8 @@ const routes = (option) => {
     });
     router.delete('/pipelines/:name', async (req, res) => {
         const { name } = req.params;
-        const message = await pipelineStore.deletePipeline({ name });
+        const keepOldVersions = req?.query?.keepOldVersions !== 'false';
+        const message = await pipelineStore.deletePipeline({ name, keepOldVersions });
         res.json({ message });
     });
     // pipelines

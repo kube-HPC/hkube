@@ -266,8 +266,8 @@ class StateManager extends EventEmitter {
         return this._db.pipelines.replace(options);
     }
 
-    async deletePipeline({ name }) {
-        return this._db.pipelines.delete({ name });
+    async deletePipeline({ name, keepOldVersions }) {
+        return this._db.pipelines.delete({ name, keepOldVersions });
     }
 
     async getPipeline(options) {
