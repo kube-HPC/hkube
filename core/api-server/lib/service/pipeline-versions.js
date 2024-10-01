@@ -3,7 +3,7 @@ const asyncQueue = require('async.queue');
 const { uid } = require('@hkube/uid');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
+const { ResourceNotFoundError } = require('../errors');
 
 const SETTINGS = {
     SEMVER: {
@@ -41,25 +41,6 @@ class PipelineVersions {
             throw new ResourceNotFoundError('version', version);
         }
         return pipelineVersion;
-    }
-
-    async deleteVersion(options) {
-        const { version, name } = options;
-        validator.pipelines.validatePipelineVersion({ name, version });
-        const pipeline = await stateManager.getPipeline({ name });
-        if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', name);
-        }
-        if (pipeline.version === version) {
-            throw new ActionNotAllowed('unable to remove used version');
-        }
-        const pipelineVersion = await this._getVersion({ version });
-        if (!pipelineVersion) {
-            throw new ResourceNotFoundError('version', version);
-        }
-        const res = await stateManager.deleteVersion({ name, version }, true);
-        const deleted = parseInt(res.deleted, 10);
-        return { deleted };
     }
 
     /**
