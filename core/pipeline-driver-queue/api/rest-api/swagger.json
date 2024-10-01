@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.8.1",
+    "version": "2.8.2",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -8141,6 +8141,18 @@
         ],
         "summary": "Update algorithm",
         "description": "Update existing algorithm",
+        "parameters": [
+          {
+            "name": "forceStopAndApplyVersion",
+            "in": "query",
+            "example": "false",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Flag to force stop and apply the updated algorithm version for the next run."
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
