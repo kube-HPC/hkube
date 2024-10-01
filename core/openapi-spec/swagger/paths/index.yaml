@@ -157,15 +157,18 @@
 /readme/pipelines/{name}:
   $ref: ./readme/pipelines.yaml
 
-# versions
+# algorithms versions
 /versions/algorithms/{name}:
-  $ref: ./versions/version.yaml
+  $ref: ./versions/algorithms/version.yaml
 /versions/algorithms/{name}/{version}:
-  $ref: ./versions/version_id.yaml
+  $ref: ./versions/algorithms/version_id.yaml
 /versions/algorithms/apply:
-  $ref: ./versions/apply.yaml
+  $ref: ./versions/algorithms/apply.yaml
 /versions/algorithms/tag:
-  $ref: ./versions/tag.yaml
+  $ref: ./versions/algorithms/tag.yaml
+
+# pipelines versions
+# ...
 
 # experiment
 /experiment/{name}:

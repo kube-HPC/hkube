@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.8.1",
+    "version": "2.8.2",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -16146,7 +16146,7 @@
     "/versions/algorithms/{name}": {
       "get": {
         "tags": [
-          "Versions"
+          "Algorithm Versions"
         ],
         "summary": "Get algorithm versions",
         "description": "returns list of algorithm versions.",
