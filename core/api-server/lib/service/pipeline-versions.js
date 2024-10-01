@@ -43,31 +43,6 @@ class PipelineVersions {
         return pipelineVersion;
     }
 
-    async tagVersion(options) {
-        const { name, version, pinned, tags } = options;
-        validator.pipelines.validatePipelineTag(options);
-        const ver = await this.getVersion({ name, version });
-        await stateManager.updateVersion({ version, pinned, tags }, true);
-        return ver;
-    }
-
-    async applyVersion(options) {
-        const { name, version, force } = options;
-        validator.pipelines.validatePipelineVersion(options);
-        const pipelineVersion = await this.getVersion({ name, version });
-
-        // check if running pipelines
-        if (!force) {
-            const runningPipelines = await stateManager.searchJobs({ pipelineName: name, hasResult: false, fields: { jobId: true } });
-            if (runningPipelines.length > 0) {
-                throw new ActionNotAllowed(`The pipeline "${name}" is currently running`, runningPipelines.map(p => p.jobId));
-            }
-        }
-
-        await stateManager.updatePipeline(pipelineVersion.pipeline);
-        return pipelineVersion;
-    }
-
     async deleteVersion(options) {
         const { version, name } = options;
         validator.pipelines.validatePipelineVersion({ name, version });
