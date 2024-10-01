@@ -1,6 +1,6 @@
 get:
   tags:
-    - Versions
+    - Algorithm Versions
   summary: Get algorithm versions
   description: returns list of algorithm versions.
   parameters:
