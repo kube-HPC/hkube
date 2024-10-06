@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.8.1",
+    "version": "2.8.2",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
