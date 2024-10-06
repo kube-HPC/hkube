@@ -12,7 +12,6 @@ const log = new Logger(config.serviceName, logger);
 const modules = [
     require('./lib/state/state-manager'),
     require('./lib/producer/jobs-producer'),
-    require('./lib/examples/pipelines-updater'),
     require('./lib/webhook/webhooks-handler'),
     require('./lib/service/graph'),
     require('./lib/service/builds'),
@@ -30,7 +29,8 @@ const modules = [
     require('./api/task-logs/logs'),
     require('./lib/service/output'),
     require('./lib/service/hyperparams-tuner'),
-    require('./api/app-server')
+    require('./api/app-server'),
+    require('./lib/examples/pipelines-updater')
 ];
 
 class Bootstrap {

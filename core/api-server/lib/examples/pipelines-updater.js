@@ -141,7 +141,7 @@ class PipelinesUpdater {
             await this._deleteStoragePrefix(type);
         }
         finally {
-            //Incase algorithms already exsit in db, still check a new version needs to be added
+            // In case algorithms already exist in db, check if a new version needs to be added
             await this._syncAlgorithmsData(list);
         }
     }
@@ -199,6 +199,37 @@ class PipelinesUpdater {
         await stateManager.createPipelines(list);
         await this._deleteEtcdPrefix('pipelines', '/pipelines/store');
         await this._deleteStoragePrefix(type);
+        await this._syncPipelinesData(list);
+    }
+
+    async _syncPipelinesData(list) {
+        let versionsCount = 0;
+        let buildsCount = 0;
+        const limit = 1000;
+
+        for (const algorithm of algorithmList) {
+            const versions = await stateManager._etcd.algorithms.versions.list({ name: algorithm.name, limit });
+
+            if (versions.length) {
+                versionsCount += versions.length;
+                await stateManager.createVersions(versions);
+            }
+            else {
+                // Add versions only to algorithms with no versions.
+                const existingVersion = await versionsService._getLatestSemver(algorithm);
+                if (!existingVersion) {
+                    const newVersion = await versionsService.createVersion(algorithm);
+                    await versionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
+                }
+            }
+
+            const builds = await stateManager._etcd.algorithms.builds.list({ name: algorithm.name, limit });
+            if (builds.length) {
+                buildsCount += builds.length;
+                await stateManager.createBuilds(builds);
+            }
+        }
+        log.info(`algorithms: synced ${versionsCount} versions and ${buildsCount} builds to sync from storage to db`);
     }
 
     async _createExperiments(type, list) {
