@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { StatusCodes: HttpStatus } = require('http-status-codes');
+const HttpStatus = require('http-status-codes');
 const { uid } = require('@hkube/uid');
 const { request } = require('./utils');
 const gatewayService = require('../lib/service/gateway');
