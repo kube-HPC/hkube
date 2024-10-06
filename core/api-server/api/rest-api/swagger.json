@@ -8145,7 +8145,6 @@
           {
             "name": "forceStopAndApplyVersion",
             "in": "query",
-            "example": "false",
             "schema": {
               "type": "boolean",
               "default": false
