@@ -6,7 +6,8 @@ const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
 const experiments = require('./experiments.json');
 const stateManager = require('../state/state-manager');
-const versionsService = require('../../lib/service/algorithm-versions');
+const algorithmsVersionsService = require('../../lib/service/algorithm-versions');
+const pipelinesVersionsService = require('../../lib/service/pipeline-versions');
 
 class PipelinesUpdater {
     async init(options) {
@@ -160,10 +161,10 @@ class PipelinesUpdater {
             }
             else {
                 // Add versions only to algorithms with no versions.
-                const existingVersion = await versionsService._getLatestSemver(algorithm);
+                const existingVersion = await algorithmsVersionsService._getLatestSemver(algorithm);
                 if (!existingVersion) {
-                    const newVersion = await versionsService.createVersion(algorithm);
-                    await versionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
+                    const newVersion = await algorithmsVersionsService.createVersion(algorithm);
+                    await algorithmsVersionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
                 }
             }
 
@@ -196,40 +197,39 @@ class PipelinesUpdater {
     }
 
     async _createPipelines(type, list) {
-        await stateManager.createPipelines(list);
-        await this._deleteEtcdPrefix('pipelines', '/pipelines/store');
-        await this._deleteStoragePrefix(type);
-        await this._syncPipelinesData(list);
+        try {
+            await stateManager.createPipelines(list);
+            await this._deleteEtcdPrefix('pipelines', '/pipelines/store');
+            await this._deleteStoragePrefix(type);
+        }
+        finally {
+            // In case pipelines exist in db, createPipelines will fail but syncing is needed any case.
+            await this._syncPipelinesData(list);
+        }
     }
 
-    async _syncPipelinesData(list) {
-        let versionsCount = 0;
-        let buildsCount = 0;
+    async _syncPipelinesData(pipelineList) {
+        let versionsCount = z0;
+        let addedVersionsCount = 0;
         const limit = 1000;
 
-        for (const algorithm of algorithmList) {
-            const versions = await stateManager._etcd.algorithms.versions.list({ name: algorithm.name, limit });
+        for (const pipeline of pipelineList) {
+            const name = pipeline.name;
+            const versions = await stateManager.getVersions({ name, limit }, true);
 
             if (versions.length) {
                 versionsCount += versions.length;
-                await stateManager.createVersions(versions);
             }
             else {
-                // Add versions only to algorithms with no versions.
-                const existingVersion = await versionsService._getLatestSemver(algorithm);
+                // Add versions only to pipelines with no versions.
+                const existingVersion = await pipelinesVersionsService._getLatestSemver(pipeline);
                 if (!existingVersion) {
-                    const newVersion = await versionsService.createVersion(algorithm);
-                    await versionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
+                    const newVersion = await pipelinesVersionsService.createVersion(pipeline);
+                    addedVersionsCount++;
                 }
             }
-
-            const builds = await stateManager._etcd.algorithms.builds.list({ name: algorithm.name, limit });
-            if (builds.length) {
-                buildsCount += builds.length;
-                await stateManager.createBuilds(builds);
-            }
         }
-        log.info(`algorithms: synced ${versionsCount} versions and ${buildsCount} builds to sync from storage to db`);
+        log.info(`pipelines: synced ${versionsCount} versions and added ${addedVersionsCount} builds to sync from storage to db`);
     }
 
     async _createExperiments(type, list) {
