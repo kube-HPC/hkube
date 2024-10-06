@@ -1,24 +1,13 @@
-const semverLib = require('semver');
 const asyncQueue = require('async.queue');
-const { uid } = require('@hkube/uid');
+const versioning = require('./versioning');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError } = require('../errors');
 
-const SETTINGS = {
-    SEMVER: {
-        FIRST: '1.0.0',
-        MAX_PATCH: 500,
-        MAX_MINOR: 500,
-        MAX_MAJOR: 500
-    },
-    VERSION_LENGTH: 10
-};
-
 class PipelineVersions {
     constructor() {
         this._versionsQueue = asyncQueue((task, callback) => {
-            this._createVersion(task)
+            versioning.createVersion(task, true)
                 .then(r => callback(null, r))
                 .catch(e => callback(e));
         }, 1);
@@ -26,9 +15,7 @@ class PipelineVersions {
 
     async getVersions(options) {
         validator.pipelines.validatePipelineName(options);
-        const { name } = options;
-        const versions = await stateManager.getVersions({ name }, true);
-        return versions;
+        return versioning.getVersions(options, true);
     }
 
     async getVersion({ name, version }) {
@@ -36,7 +23,7 @@ class PipelineVersions {
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', name);
         }
-        const pipelineVersion = await this._getVersion({ version });
+        const pipelineVersion = await versioning.getVersion({ version });
         if (!pipelineVersion) {
             throw new ResourceNotFoundError('version', version);
         }
@@ -68,57 +55,8 @@ class PipelineVersions {
         });
     }
 
-    async _createVersion({ pipeline }) {
-        const { name } = pipeline;
-        const version = uid({ length: SETTINGS.VERSION_LENGTH });
-        const latestSemver = await this._getLatestSemver({ name });
-        const semver = this._incSemver(latestSemver);
-        const newVersion = {
-            version,
-            semver,
-            created: Date.now(),
-            name,
-            pipeline: { ...pipeline, version }
-        };
-        await stateManager.createVersion(newVersion, true);
-        return version;
-    }
-
-    async _getLatestSemver({ name }) {
-        const versions = await stateManager.getVersions({ name, limit: 1 }, true);
-        return versions?.[0]?.semver;
-    }
-
-    async _getVersion({ version }) {
-        const algorithmVersion = await stateManager.getVersion({ version }, true);
-        return algorithmVersion;
-    }
-
-    _incSemver(oldVersion) {
-        let version;
-
-        if (!oldVersion) {
-            version = SETTINGS.SEMVER.FIRST;
-        }
-        else {
-            const ver = semverLib.valid(oldVersion);
-            if (!ver) {
-                version = oldVersion;
-            }
-            else {
-                const { patch, minor, major } = semverLib.parse(oldVersion);
-                if (patch < SETTINGS.SEMVER.MAX_PATCH) {
-                    version = semverLib.inc(oldVersion, 'patch');
-                }
-                else if (minor < SETTINGS.SEMVER.MAX_MINOR) {
-                    version = semverLib.inc(oldVersion, 'minor');
-                }
-                else if (major < SETTINGS.SEMVER.MAX_MAJOR) {
-                    version = semverLib.inc(oldVersion, 'major');
-                }
-            }
-        }
-        return version;
+    async getLatestSemver({ name }) {
+        return versioning.getLatestSemver({ name }, true);
     }
 }
 

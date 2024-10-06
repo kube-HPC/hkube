@@ -161,7 +161,7 @@ class PipelinesUpdater {
             }
             else {
                 // Add versions only to algorithms with no versions.
-                const existingVersion = await algorithmsVersionsService._getLatestSemver(algorithm);
+                const existingVersion = await algorithmsVersionsService.getLatestSemver(algorithm);
                 if (!existingVersion) {
                     const newVersion = await algorithmsVersionsService.createVersion(algorithm);
                     await algorithmsVersionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
@@ -209,7 +209,7 @@ class PipelinesUpdater {
     }
 
     async _syncPipelinesData(pipelineList) {
-        let versionsCount = z0;
+        let versionsCount = 0;
         let addedVersionsCount = 0;
         const limit = 1000;
 
@@ -222,7 +222,7 @@ class PipelinesUpdater {
             }
             else {
                 // Add versions only to pipelines with no versions.
-                const existingVersion = await pipelinesVersionsService._getLatestSemver(pipeline);
+                const existingVersion = await pipelinesVersionsService.getLatestSemver(pipeline);
                 if (!existingVersion) {
                     const newVersion = await pipelinesVersionsService.createVersion(pipeline);
                     addedVersionsCount++;
