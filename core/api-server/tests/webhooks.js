@@ -34,7 +34,7 @@ describe('Webhooks', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.webhooks.result should match format "url"');
         });
         it('should throw webhooks validation error of progress should match format "url', async () => {
@@ -56,7 +56,7 @@ describe('Webhooks', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.webhooks.progress should match format "url"');
         });
         it('should throw webhooks validation error of NOT have additional properties', async () => {
@@ -78,7 +78,7 @@ describe('Webhooks', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties (no_such_prop)');
         });
     });
@@ -228,7 +228,7 @@ describe('Webhooks', () => {
                 uri: `${restUrl}/webhooks/results/no_such`
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('webhook no_such Not Found');
         });
         it('should succeed to send webhook and get results', async () => {
@@ -443,7 +443,7 @@ describe('Webhooks', () => {
                 uri: `${restUrl}/webhooks/status/no_such`
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('webhook no_such Not Found');
         });
         it('should throw error when no such jobId', async () => {
@@ -452,7 +452,7 @@ describe('Webhooks', () => {
                 uri: `${restUrl}/webhooks/list/no_such`
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('webhook no_such Not Found');
         });
         it('should succeed and return webhooks progress', async () => {

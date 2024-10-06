@@ -18,7 +18,7 @@ describe('Executions', () => {
                 body: { jobId: 'no_such_id' }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('jobId no_such_id Not Found');
         });
         it('should throw validation error of data.name should be string', async () => {
@@ -27,7 +27,7 @@ describe('Executions', () => {
                 body: { jobId: 'no_such_id' }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('jobId no_such_id Not Found');
         });
         it('should succeed to stop jobs without startTime filter', async () => {
@@ -90,7 +90,7 @@ describe('Executions', () => {
                 }
             };
             const response = await request(optionsStop);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`No Jobs Found between 2021-03-11T14:30:00 to 2021-04-11T14:30:00`)
         }
         );
@@ -124,10 +124,10 @@ describe('Executions', () => {
             const responseTimeFrame = await request(optionsTimeFrame);
         
             // Check if both responses contain a "not found" error
-            expect(responsePipeline.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(responsePipeline.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(responsePipeline.body.error.message).to.equal(`No running jobs of ${optionsPipeline.body.pipelineName} to stop`);
         
-            expect(responseTimeFrame.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(responseTimeFrame.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(responseTimeFrame.body.error.message).to.equal(`No running jobs of ${optionsTimeFrame.body.pipelineName} which started between ${optionsTimeFrame.body.startTime.from} to ${optionsTimeFrame.body.startTime.to} to stop`);
         });
         it('should throw a "not found" error when no jobs of a certain pipeline are found', async () => {
@@ -143,7 +143,7 @@ describe('Executions', () => {
                 }
             };
             const responsePipeline = await request(optionsPipeline);
-            expect(responsePipeline.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(responsePipeline.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(responsePipeline.body.error.message).to.equal(`No running jobs of ${optionsPipeline.body.pipelineName} to stop`);
         }); 
     });

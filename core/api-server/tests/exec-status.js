@@ -18,7 +18,7 @@ describe('Executions', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('status no_such_id Not Found');
         });
         it('should throw validation error of required property execution id', async () => {
@@ -27,7 +27,7 @@ describe('Executions', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'jobId'");
         });
         it('should succeed to get status', async () => {
@@ -43,7 +43,7 @@ describe('Executions', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body).to.have.property('jobId');
             expect(response.body).to.have.property('level');
             expect(response.body).to.have.property('pipeline');

@@ -18,7 +18,7 @@ const routes = () => {
         const { name } = req.params;
         const data = req.file.buffer.toString();
         await readme.insertPipeline({ name, data });
-        res.status(HttpStatus.CREATED).json({ message: 'OK' });
+        res.status(HttpStatus.StatusCodes.CREATED).json({ message: 'OK' });
     });
     router.put('/pipelines/:name', fileMiddleware, async (req, res) => {
         const { name } = req.params;
@@ -41,7 +41,7 @@ const routes = () => {
         const { name } = req.params;
         const data = req.file.buffer.toString();
         await readme.insertAlgorithm({ name, data });
-        res.status(HttpStatus.CREATED).json({ message: 'OK' });
+        res.status(HttpStatus.StatusCodes.CREATED).json({ message: 'OK' });
     });
     router.put('/algorithms/:name', fileMiddleware, async (req, res) => {
         const { name } = req.params;
