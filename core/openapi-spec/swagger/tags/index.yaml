@@ -4,7 +4,7 @@
   description: Query the pipeline graph
 - name: Builds
   description: status, rerun and stop builds
-- name: Versions
+- name: Algorithm Versions
   description: Versioning for algorithms
 - name: Cron
   description: Get pipelines cron result and status
