@@ -6,6 +6,8 @@
   description: status, rerun and stop builds
 - name: Algorithm Versions
   description: Versioning for algorithms
+- name: Pipeline Versions
+  description: Versioning for pipelines
 - name: Cron
   description: Get pipelines cron result and status
 - name: DataSource
