@@ -241,6 +241,7 @@ class AutoScaler {
 
     _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, queueSize, avgQueueSize, currentSize }) {
         const result = { up: 0, down: 0 };
+        const requiredByFirstRoundTrip = this._firstRoundTripReplicas(durationsRate, reqRate);
         const requiredByDurationRate = calcRatio(reqRate, durationsRate);
         const idleScaleDown = this._shouldIdleScaleDown({ reqRate, resRate });
         const canScaleDown = this._markQueueSize(avgQueueSize);
@@ -253,6 +254,11 @@ class AutoScaler {
         if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
             required = this._config.scaleUp.replicasOnFirstScale;
             required = this._capScaleByLimits(required, this._limitActionType.both, 'Based on total requests, with initial size 0');
+        }
+        // scale up based on initial round trip estimation
+        else if (totalRequests > 0 && currentSize === this._config.scaleUp.replicasOnFirstScale) {
+            required = requiredByFirstRoundTrip;
+            required = this._capScaleByLimits(required, this._limitActionType.both, 'Based on round trip, after initial scale');
         }
         // scale up based on durations
         else if (totalRequests > 0 && currentSize < requiredByDuration) {
@@ -307,6 +313,15 @@ class AutoScaler {
             this._scalingInterventionLog(this._limitActionType.both, required, { type: this._limitActionType.both, size: sizes }, customMessage);
         } // Govern both limits
         return decision;
+    }
+
+    _firstRoundTripReplicas(durationRate, reqRate) {
+        if (!reqRate || !durationRate) {
+            return 0;
+        }
+        const resPerSecond = 1000 / durationRate; // in ms
+        const replicasOnRoundTrip = Math.ceil(reqRate / resPerSecond);
+        return replicasOnRoundTrip;
     }
 
     _addExtraReplicas(requiredByDurationRate, requiredByQueueSize) {
