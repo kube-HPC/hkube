@@ -1,6 +1,6 @@
 post:
   tags:
-    - Versions
+    - Algorithm Versions
   summary: Apply algorithm version
   description: Change the current algorithm version
   requestBody:

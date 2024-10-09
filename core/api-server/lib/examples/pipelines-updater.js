@@ -6,7 +6,8 @@ const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
 const experiments = require('./experiments.json');
 const stateManager = require('../state/state-manager');
-const versionsService = require('../../lib/service/versions');
+const algorithmsVersionsService = require('../../lib/service/algorithm-versions');
+const pipelinesVersionsService = require('../../lib/service/pipeline-versions');
 
 class PipelinesUpdater {
     async init(options) {
@@ -141,7 +142,7 @@ class PipelinesUpdater {
             await this._deleteStoragePrefix(type);
         }
         finally {
-            //Incase algorithms already exsit in db, still check a new version needs to be added
+            // In case algorithms already exist in db, check if a new version needs to be added
             await this._syncAlgorithmsData(list);
         }
     }
@@ -160,10 +161,10 @@ class PipelinesUpdater {
             }
             else {
                 // Add versions only to algorithms with no versions.
-                const existingVersion = await versionsService._getLatestSemver(algorithm);
+                const existingVersion = await algorithmsVersionsService.getLatestSemver(algorithm);
                 if (!existingVersion) {
-                    const newVersion = await versionsService.createVersion(algorithm);
-                    await versionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
+                    const newVersion = await algorithmsVersionsService.createVersion(algorithm);
+                    await algorithmsVersionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
                 }
             }
 
@@ -196,9 +197,39 @@ class PipelinesUpdater {
     }
 
     async _createPipelines(type, list) {
-        await stateManager.createPipelines(list);
-        await this._deleteEtcdPrefix('pipelines', '/pipelines/store');
-        await this._deleteStoragePrefix(type);
+        try {
+            await stateManager.createPipelines(list);
+            await this._deleteEtcdPrefix('pipelines', '/pipelines/store');
+            await this._deleteStoragePrefix(type);
+        }
+        finally {
+            // In case pipelines exist in db, createPipelines will fail but syncing is needed any case.
+            await this._syncPipelinesData(list);
+        }
+    }
+
+    async _syncPipelinesData(pipelineList) {
+        let versionsCount = 0;
+        let addedVersionsCount = 0;
+        const limit = 1000;
+
+        for (const pipeline of pipelineList) {
+            const name = pipeline.name;
+            const versions = await stateManager.getVersions({ name, limit }, true);
+
+            if (versions.length) {
+                versionsCount += versions.length;
+            }
+            else {
+                // Add versions only to pipelines with no versions.
+                const existingVersion = await pipelinesVersionsService.getLatestSemver(pipeline);
+                if (!existingVersion) {
+                    const newVersion = await pipelinesVersionsService.createVersion(pipeline);
+                    addedVersionsCount++;
+                }
+            }
+        }
+        log.info(`pipelines: synced ${versionsCount} versions and added ${addedVersionsCount} builds to sync from storage to db`);
     }
 
     async _createExperiments(type, list) {

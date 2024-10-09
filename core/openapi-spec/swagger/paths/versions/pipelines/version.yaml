@@ -1,15 +1,15 @@
 get:
   tags:
-    - Versions
-  summary: Get algorithm versions
-  description: returns list of algorithm versions.
+    - Pipeline Versions
+  summary: Get pipeline versions
+  description: returns list of pipeline versions.
   parameters:
     - name: name
       in: path
-      description: algorithm name
+      description: pipeline name
       required: true
       schema:
-        $ref: "#/components/schemas/algorithmName"
+        $ref: "#/components/schemas/pipelineName"
     - name: sort
       in: query
       description: sort by asc or desc
@@ -33,7 +33,7 @@ get:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/algorithm"
+              $ref: "#/components/schemas/pipeline"
     "400":
       description: bad request
       content:

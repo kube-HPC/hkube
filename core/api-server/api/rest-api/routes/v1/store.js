@@ -50,11 +50,11 @@ const routes = (option) => {
                     return await pipelineStore.insertPipeline(pipelineData, false, allowOverwrite);
                 })
             );
-            res.status(HttpStatus.CREATED).json(returnPipelineList);
+            res.status(HttpStatus.StatusCodes.CREATED).json(returnPipelineList);
         }
         else {
             const response = await pipelineStore.insertPipeline(req.body);
-            res.status(HttpStatus.CREATED).json(response);
+            res.status(HttpStatus.StatusCodes.CREATED).json(response);
         }
     });
     router.put('/pipelines', async (req, res) => {
@@ -63,7 +63,8 @@ const routes = (option) => {
     });
     router.delete('/pipelines/:name', async (req, res) => {
         const { name } = req.params;
-        const message = await pipelineStore.deletePipeline({ name });
+        const keepOldVersions = req?.query?.keepOldVersions !== 'false';
+        const message = await pipelineStore.deletePipeline({ name, keepOldVersions });
         res.json({ message });
     });
     // pipelines
@@ -93,16 +94,16 @@ const routes = (option) => {
                     return await algorithmStore.insertAlgorithm(algorithmData, false, allowOverwrite);
                 })
             );
-            res.status(HttpStatus.CREATED).json(returnAlgoList);
+            res.status(HttpStatus.StatusCodes.CREATED).json(returnAlgoList);
         }
         else {
             // If req.body is not an array, process it as a single algorithm
             const response = await algorithmStore.insertAlgorithm(req.body, true, allowOverwrite);
-            res.status(HttpStatus.CREATED).json(response);
+            res.status(HttpStatus.StatusCodes.CREATED).json(response);
         }
     });
     router.put('/algorithms', async (req, res) => {
-        const forceUpdate = req.query.forceStopAndApplyVersion === 'true';
+        const forceUpdate = req?.query?.forceStopAndApplyVersion === 'true';
         const response = await algorithmStore.updateAlgorithm(req.body, { forceUpdate });
         res.json(response);
     });

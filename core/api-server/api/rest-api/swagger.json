@@ -26,8 +26,12 @@
       "description": "status, rerun and stop builds"
     },
     {
-      "name": "Versions",
+      "name": "Algorithm Versions",
       "description": "Versioning for algorithms"
+    },
+    {
+      "name": "Pipeline Versions",
+      "description": "Versioning for pipelines"
     },
     {
       "name": "Cron",
@@ -8141,17 +8145,6 @@
         ],
         "summary": "Update algorithm",
         "description": "Update existing algorithm",
-        "parameters": [
-          {
-            "name": "forceStopAndApplyVersion",
-            "in": "query",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            },
-            "description": "Flag to force stop and apply the updated algorithm version for the next run."
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -16157,7 +16150,7 @@
     "/versions/algorithms/{name}": {
       "get": {
         "tags": [
-          "Versions"
+          "Algorithm Versions"
         ],
         "summary": "Get algorithm versions",
         "description": "returns list of algorithm versions.",
@@ -16529,7 +16522,7 @@
     "/versions/algorithms/{name}/{version}": {
       "get": {
         "tags": [
-          "Versions"
+          "Algorithm Versions"
         ],
         "summary": "Get version",
         "description": "returns algorithm version",
@@ -16884,7 +16877,7 @@
       },
       "delete": {
         "tags": [
-          "Versions"
+          "Algorithm Versions"
         ],
         "summary": "Delete version",
         "description": "Delete existing algorithm version.",
@@ -16991,7 +16984,7 @@
     "/versions/algorithms/apply": {
       "post": {
         "tags": [
-          "Versions"
+          "Algorithm Versions"
         ],
         "summary": "Apply algorithm version",
         "description": "Change the current algorithm version",
@@ -17109,7 +17102,7 @@
     "/versions/algorithms/tag": {
       "post": {
         "tags": [
-          "Versions"
+          "Algorithm Versions"
         ],
         "summary": "Tag algorithm version",
         "description": "Tag algorithm version with pinned and tags",
@@ -17195,6 +17188,1085 @@
           },
           "404": {
             "description": "jobId Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/versions/pipelines/{name}": {
+      "get": {
+        "tags": [
+          "Pipeline Versions"
+        ],
+        "summary": "Get pipeline versions",
+        "description": "returns list of pipeline versions.",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "pipeline name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique identifier representing a specific pipeline",
+              "minLength": 1,
+              "format": "pipeline-name"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "sort by asc or desc",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "order by",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific pipeline",
+                        "minLength": 1,
+                        "format": "pipeline-name"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "default": "batch",
+                        "example": "batch",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
+                      "experimentName": {
+                        "type": "string",
+                        "description": "experiment name",
+                        "default": "main",
+                        "minLength": 1,
+                        "maxLength": 32,
+                        "format": "experiment-name"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "pipeline description"
+                      },
+                      "nodes": {
+                        "type": "array",
+                        "description": "Array of nodes",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "nodeName": {
+                              "type": "string",
+                              "description": "Unique node identifier",
+                              "minLength": 1
+                            },
+                            "algorithmName": {
+                              "type": "string",
+                              "description": "Unique identifier representing a specific algorithm",
+                              "minLength": 1,
+                              "maxLength": 32,
+                              "format": "algorithm-name"
+                            },
+                            "input": {
+                              "type": "array",
+                              "description": "The input for the algorithm",
+                              "items": {},
+                              "default": []
+                            },
+                            "ttl": {
+                              "type": "integer",
+                              "description": "Algorithm execution time to live in seconds. 0 to disable",
+                              "minimum": 0,
+                              "example": 0
+                            },
+                            "includeInResult": {
+                              "type": "boolean"
+                            },
+                            "metrics": {
+                              "type": "object",
+                              "properties": {
+                                "tensorboard": {
+                                  "type": "boolean",
+                                  "description": "Should tensorboard metrics be collected."
+                                }
+                              }
+                            },
+                            "retry": {
+                              "type": "object",
+                              "properties": {
+                                "policy": {
+                                  "type": "string",
+                                  "default": "OnCrash",
+                                  "enum": [
+                                    "Never",
+                                    "Always",
+                                    "OnError",
+                                    "OnCrash"
+                                  ]
+                                },
+                                "limit": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "default": 3,
+                                  "example": 1
+                                }
+                              }
+                            },
+                            "batchOperation": {
+                              "type": "string",
+                              "enum": [
+                                "indexed",
+                                "cartesian"
+                              ]
+                            },
+                            "kind": {
+                              "type": "string",
+                              "default": "algorithm",
+                              "enum": [
+                                "algorithm",
+                                "pipeline",
+                                "debug",
+                                "dataSource",
+                                "gateway",
+                                "output",
+                                "hyperparamsTuner"
+                              ]
+                            },
+                            "minStatelessCount": {
+                              "type": "integer",
+                              "description": "Minimum number of stateless nodes to create during pipeline initiation.",
+                              "minimum": 0,
+                              "default": 0
+                            },
+                            "maxStatelessCount": {
+                              "type": "integer",
+                              "description": "Maximum number of stateless nodes to scale up to.",
+                              "minimum": 0
+                            },
+                            "spec": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "Unique identifier representing a specific pipeline",
+                                      "minLength": 1,
+                                      "format": "pipeline-name"
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "gateway name",
+                                      "minLength": 1,
+                                      "maxLength": 32,
+                                      "format": "gateway-name"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the gateway"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for streaming gateway",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    },
+                                    "cpu": {
+                                      "type": "number",
+                                      "description": "Cpu allocated for streaming gateway",
+                                      "default": 0.5
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "id"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "snapshot": {
+                                      "type": "object",
+                                      "properties": {
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "snapshot"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the output"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for output",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "gateway name",
+                                      "minLength": 1,
+                                      "maxLength": 32,
+                                      "format": "gateway-name"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the gateway"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for streaming gateway",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    },
+                                    "cpu": {
+                                      "type": "number",
+                                      "description": "Cpu allocated for streaming gateway",
+                                      "default": 0.5
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "nodeName"
+                          ]
+                        }
+                      },
+                      "flowInput": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "input object"
+                      },
+                      "webhooks": {
+                        "type": "object",
+                        "properties": {
+                          "progress": {
+                            "type": "string",
+                            "format": "url",
+                            "minLength": 1,
+                            "description": "url to activate upon progress",
+                            "example": "http://my-url-to-progress"
+                          },
+                          "result": {
+                            "type": "string",
+                            "format": "url",
+                            "minLength": 1,
+                            "description": "url to activate upon result",
+                            "example": "http://my-url-to-result"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "options": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "ttl": {
+                            "type": "integer",
+                            "description": "pipeline time to live in seconds (including pending and active states)",
+                            "default": 3600,
+                            "example": 3600
+                          },
+                          "activeTtl": {
+                            "type": "integer",
+                            "description": "pipeline active time to live in seconds (only active state)",
+                            "nullable": true,
+                            "minimum": 1,
+                            "example": 3600
+                          },
+                          "batchTolerance": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "default": 80,
+                            "example": 80
+                          },
+                          "concurrentPipelines": {
+                            "type": "object",
+                            "properties": {
+                              "amount": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 10000,
+                                "example": 1
+                              },
+                              "rejectOnFailure": {
+                                "type": "boolean",
+                                "default": true
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "progressVerbosityLevel": {
+                            "type": "string",
+                            "default": "info",
+                            "example": "info",
+                            "enum": [
+                              "trace",
+                              "debug",
+                              "info",
+                              "warn",
+                              "error",
+                              "critical"
+                            ]
+                          },
+                          "debugOverride": {
+                            "type": "array",
+                            "description": "A list of algorithms to debug in this execution",
+                            "items": {
+                              "type": "string"
+                            },
+                            "uniqueItems": true
+                          }
+                        },
+                        "description": "optional properties"
+                      },
+                      "priority": {
+                        "default": 3,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 5,
+                        "example": 3
+                      },
+                      "triggers": {
+                        "type": "object",
+                        "properties": {
+                          "pipelines": {
+                            "type": "array",
+                            "description": "pipelines to activate upon result",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uniqueItems": true
+                          },
+                          "cron": {
+                            "type": "object",
+                            "properties": {
+                              "pattern": {
+                                "type": "string",
+                                "description": "cron job",
+                                "minLength": 1,
+                                "format": "cron"
+                              },
+                              "enabled": {
+                                "type": "boolean",
+                                "description": "enable or disable cron job",
+                                "default": false
+                              }
+                            }
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "tags": {
+                        "type": "array",
+                        "description": "Array of tags",
+                        "items": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific tag",
+                          "minLength": 1,
+                          "maxLength": 32
+                        }
+                      },
+                      "rootJobId": {
+                        "type": "string",
+                        "description": "the root job id of the current tree"
+                      },
+                      "streaming": {
+                        "type": "object",
+                        "description": "streaming options",
+                        "properties": {
+                          "defaultFlow": {
+                            "type": "string",
+                            "description": "the name of the default stream flow"
+                          },
+                          "flows": {
+                            "type": "object",
+                            "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
+                            "example": {
+                              "main": "A >> B&C | B >> D | C >> E",
+                              "second": "A >> B >> C"
+                            }
+                          }
+                        }
+                      },
+                      "edges": {
+                        "type": "array",
+                        "description": "edges define relation between nodes",
+                        "items": {},
+                        "example": [
+                          {
+                            "source": "A",
+                            "target": "B"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "algorithm Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/versions/pipelines/{name}/{version}": {
+      "get": {
+        "tags": [
+          "Pipeline Versions"
+        ],
+        "summary": "Get version",
+        "description": "returns pipeline version",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "pipeline name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique identifier representing a specific pipeline",
+              "minLength": 1,
+              "format": "pipeline-name"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "pipeline version",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific pipeline",
+                        "minLength": 1,
+                        "format": "pipeline-name"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "default": "batch",
+                        "example": "batch",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
+                      "experimentName": {
+                        "type": "string",
+                        "description": "experiment name",
+                        "default": "main",
+                        "minLength": 1,
+                        "maxLength": 32,
+                        "format": "experiment-name"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "pipeline description"
+                      },
+                      "nodes": {
+                        "type": "array",
+                        "description": "Array of nodes",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "nodeName": {
+                              "type": "string",
+                              "description": "Unique node identifier",
+                              "minLength": 1
+                            },
+                            "algorithmName": {
+                              "type": "string",
+                              "description": "Unique identifier representing a specific algorithm",
+                              "minLength": 1,
+                              "maxLength": 32,
+                              "format": "algorithm-name"
+                            },
+                            "input": {
+                              "type": "array",
+                              "description": "The input for the algorithm",
+                              "items": {},
+                              "default": []
+                            },
+                            "ttl": {
+                              "type": "integer",
+                              "description": "Algorithm execution time to live in seconds. 0 to disable",
+                              "minimum": 0,
+                              "example": 0
+                            },
+                            "includeInResult": {
+                              "type": "boolean"
+                            },
+                            "metrics": {
+                              "type": "object",
+                              "properties": {
+                                "tensorboard": {
+                                  "type": "boolean",
+                                  "description": "Should tensorboard metrics be collected."
+                                }
+                              }
+                            },
+                            "retry": {
+                              "type": "object",
+                              "properties": {
+                                "policy": {
+                                  "type": "string",
+                                  "default": "OnCrash",
+                                  "enum": [
+                                    "Never",
+                                    "Always",
+                                    "OnError",
+                                    "OnCrash"
+                                  ]
+                                },
+                                "limit": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "default": 3,
+                                  "example": 1
+                                }
+                              }
+                            },
+                            "batchOperation": {
+                              "type": "string",
+                              "enum": [
+                                "indexed",
+                                "cartesian"
+                              ]
+                            },
+                            "kind": {
+                              "type": "string",
+                              "default": "algorithm",
+                              "enum": [
+                                "algorithm",
+                                "pipeline",
+                                "debug",
+                                "dataSource",
+                                "gateway",
+                                "output",
+                                "hyperparamsTuner"
+                              ]
+                            },
+                            "minStatelessCount": {
+                              "type": "integer",
+                              "description": "Minimum number of stateless nodes to create during pipeline initiation.",
+                              "minimum": 0,
+                              "default": 0
+                            },
+                            "maxStatelessCount": {
+                              "type": "integer",
+                              "description": "Maximum number of stateless nodes to scale up to.",
+                              "minimum": 0
+                            },
+                            "spec": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "Unique identifier representing a specific pipeline",
+                                      "minLength": 1,
+                                      "format": "pipeline-name"
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "gateway name",
+                                      "minLength": 1,
+                                      "maxLength": 32,
+                                      "format": "gateway-name"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the gateway"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for streaming gateway",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    },
+                                    "cpu": {
+                                      "type": "number",
+                                      "description": "Cpu allocated for streaming gateway",
+                                      "default": 0.5
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "id"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "snapshot": {
+                                      "type": "object",
+                                      "properties": {
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "snapshot"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the output"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for output",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "gateway name",
+                                      "minLength": 1,
+                                      "maxLength": 32,
+                                      "format": "gateway-name"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "description": "describe the gateway"
+                                    },
+                                    "mem": {
+                                      "type": "string",
+                                      "description": "Memory allocated for streaming gateway",
+                                      "format": "algorithm-memory",
+                                      "default": "512Mi"
+                                    },
+                                    "cpu": {
+                                      "type": "number",
+                                      "description": "Cpu allocated for streaming gateway",
+                                      "default": 0.5
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "nodeName"
+                          ]
+                        }
+                      },
+                      "flowInput": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "input object"
+                      },
+                      "webhooks": {
+                        "type": "object",
+                        "properties": {
+                          "progress": {
+                            "type": "string",
+                            "format": "url",
+                            "minLength": 1,
+                            "description": "url to activate upon progress",
+                            "example": "http://my-url-to-progress"
+                          },
+                          "result": {
+                            "type": "string",
+                            "format": "url",
+                            "minLength": 1,
+                            "description": "url to activate upon result",
+                            "example": "http://my-url-to-result"
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "options": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "ttl": {
+                            "type": "integer",
+                            "description": "pipeline time to live in seconds (including pending and active states)",
+                            "default": 3600,
+                            "example": 3600
+                          },
+                          "activeTtl": {
+                            "type": "integer",
+                            "description": "pipeline active time to live in seconds (only active state)",
+                            "nullable": true,
+                            "minimum": 1,
+                            "example": 3600
+                          },
+                          "batchTolerance": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "default": 80,
+                            "example": 80
+                          },
+                          "concurrentPipelines": {
+                            "type": "object",
+                            "properties": {
+                              "amount": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 10000,
+                                "example": 1
+                              },
+                              "rejectOnFailure": {
+                                "type": "boolean",
+                                "default": true
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "progressVerbosityLevel": {
+                            "type": "string",
+                            "default": "info",
+                            "example": "info",
+                            "enum": [
+                              "trace",
+                              "debug",
+                              "info",
+                              "warn",
+                              "error",
+                              "critical"
+                            ]
+                          },
+                          "debugOverride": {
+                            "type": "array",
+                            "description": "A list of algorithms to debug in this execution",
+                            "items": {
+                              "type": "string"
+                            },
+                            "uniqueItems": true
+                          }
+                        },
+                        "description": "optional properties"
+                      },
+                      "priority": {
+                        "default": 3,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 5,
+                        "example": 3
+                      },
+                      "triggers": {
+                        "type": "object",
+                        "properties": {
+                          "pipelines": {
+                            "type": "array",
+                            "description": "pipelines to activate upon result",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uniqueItems": true
+                          },
+                          "cron": {
+                            "type": "object",
+                            "properties": {
+                              "pattern": {
+                                "type": "string",
+                                "description": "cron job",
+                                "minLength": 1,
+                                "format": "cron"
+                              },
+                              "enabled": {
+                                "type": "boolean",
+                                "description": "enable or disable cron job",
+                                "default": false
+                              }
+                            }
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "tags": {
+                        "type": "array",
+                        "description": "Array of tags",
+                        "items": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific tag",
+                          "minLength": 1,
+                          "maxLength": 32
+                        }
+                      },
+                      "rootJobId": {
+                        "type": "string",
+                        "description": "the root job id of the current tree"
+                      },
+                      "streaming": {
+                        "type": "object",
+                        "description": "streaming options",
+                        "properties": {
+                          "defaultFlow": {
+                            "type": "string",
+                            "description": "the name of the default stream flow"
+                          },
+                          "flows": {
+                            "type": "object",
+                            "description": "define streaming flows in simple syntax\nexample: node A stream to B and C, node B stream to D.\nit will be: A >> B&C | B >> D\n",
+                            "example": {
+                              "main": "A >> B&C | B >> D | C >> E",
+                              "second": "A >> B >> C"
+                            }
+                          }
+                        }
+                      },
+                      "edges": {
+                        "type": "array",
+                        "description": "edges define relation between nodes",
+                        "items": {},
+                        "example": [
+                          {
+                            "source": "A",
+                            "target": "B"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
             "content": {
               "application/json": {
                 "schema": {
