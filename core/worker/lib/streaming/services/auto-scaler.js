@@ -194,6 +194,9 @@ class AutoScaler {
             if (durationsRate) {
                 totals.durationsRate.push(durationsRate);
             }
+            if (roundTripTimeMs) {
+                totals.roundTripTimeMs.push(roundTripTimeMs);
+            }
         });
 
         const windowSize = mean(totals.windowSize);
@@ -239,9 +242,9 @@ class AutoScaler {
         log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type}:${allowed.size}. ${customMessage}`, { component });
     }
 
-    _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, queueSize, avgQueueSize, currentSize }) {
+    _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, queueSize, avgQueueSize, currentSize, roundTripTimeMs }) {
         const result = { up: 0, down: 0 };
-        const requiredByFirstRoundTrip = this._firstRoundTripReplicas(durationsRate, reqRate);
+        const requiredByFirstRoundTrip = this._firstRoundTripReplicas(roundTripTimeMs, reqRate);
         const requiredByDurationRate = calcRatio(reqRate, durationsRate);
         const idleScaleDown = this._shouldIdleScaleDown({ reqRate, resRate });
         const canScaleDown = this._markQueueSize(avgQueueSize);
@@ -315,11 +318,11 @@ class AutoScaler {
         return decision;
     }
 
-    _firstRoundTripReplicas(durationRate, reqRate) {
-        if (!reqRate || !durationRate) {
+    _firstRoundTripReplicas(roundTripTimeMs, reqRate) {
+        if (!reqRate || !roundTripTimeMs) {
             return 0;
         }
-        const resPerSecond = 1000 / durationRate; // in ms
+        const resPerSecond = 1000 / roundTripTimeMs; // in ms
         const replicasOnRoundTrip = Math.ceil(reqRate / resPerSecond);
         return replicasOnRoundTrip;
     }
