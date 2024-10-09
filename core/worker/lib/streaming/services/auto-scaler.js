@@ -319,7 +319,7 @@ class AutoScaler {
     }
 
     _firstRoundTripReplicas(roundTripTimeMs, reqRate) {
-        if (!reqRate || !roundTripTimeMs) {
+        if (!reqRate && !roundTripTimeMs) {
             return 0;
         }
         const resPerSecond = 1000 / roundTripTimeMs; // in ms
