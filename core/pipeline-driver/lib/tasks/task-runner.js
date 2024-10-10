@@ -305,6 +305,7 @@ class TaskRunner {
         pipeline.nodes = await Promise.all(pipeline.nodes.map(async node => {
             const algorithm = await stateManager.getAlgorithmsByName(node.algorithmName);
             node.algorithmVersion = algorithm?.version;
+            node.devMode = algorithm.options.devMode;
             return node;
         }));
 
