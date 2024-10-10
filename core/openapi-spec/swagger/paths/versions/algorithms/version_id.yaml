@@ -1,6 +1,6 @@
 get:
   tags:
-    - Versions
+    - Algorithm Versions
   summary: Get version
   description: returns algorithm version
   parameters:
@@ -45,7 +45,7 @@ get:
             $ref: "#/components/schemas/error"
 delete:
   tags:
-    - Versions
+    - Algorithm Versions
   summary: Delete version
   description: Delete existing algorithm version.
   parameters:

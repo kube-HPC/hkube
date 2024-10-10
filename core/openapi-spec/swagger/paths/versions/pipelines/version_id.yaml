@@ -1,0 +1,45 @@
+get:
+  tags:
+    - Pipeline Versions
+  summary: Get version
+  description: returns pipeline version
+  parameters:
+    - name: name
+      in: path
+      description: pipeline name
+      required: true
+      schema:
+        $ref: "#/components/schemas/pipelineName"
+    - name: version
+      in: path
+      description: pipeline version
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summary
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/pipeline"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: pipeline Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
