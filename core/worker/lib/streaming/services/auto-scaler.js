@@ -142,7 +142,8 @@ class AutoScaler {
             durationsRate: [],
             windowSize: [],
             totalRequests: 0,
-            totalResponses: 0
+            totalResponses: 0,
+            roundTripTimeMs: 0
         };
 
         let hasMaxSizeWindow = true;
