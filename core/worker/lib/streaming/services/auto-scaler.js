@@ -4,8 +4,8 @@ const { sum, mean } = require('@hkube/stats');
 const { stateType, nodeKind } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
 const { Statistics, Scaler, Metrics, TimeMarker } = require('../core');
-// const { calcRates, calcRatio, formatNumber, relDiff } = Metrics;
-const { calcRates, formatNumber } = Metrics;
+const { calcRates, calcRatio, formatNumber, relDiff } = Metrics;
+// const { calcRates, formatNumber } = Metrics;
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
 const { Components } = require('../../consts');
@@ -244,61 +244,46 @@ class AutoScaler {
         log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type}:${allowed.size}. ${customMessage}`, { component });
     }
 
-    // _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, queueSize, avgQueueSize, currentSize, roundTripTimeMs }) {
-    _getScaleDetails({ reqRate, queueSize, roundTripTimeMs }) {
-        // const requiredByFirstRoundTrip = this._firstRoundTripReplicas(roundTripTimeMs, reqRate); // In first iteration - what Golan suggested
-        // const requiredByDurationRate = calcRatio(reqRate, durationsRate); // reqRate / durationRate, ceil
-        // // const idleScaleDown = this._shouldIdleScaleDown({ reqRate, resRate }); // Scaling down in case no response or request rate.
-        // // const canScaleDown = this._markQueueSize(avgQueueSize);
-        // const requiredByQueueSize = this._scaledQueueSize({ durationsRate, queueSize });
-        // const requiredByDuration = this._addExtraReplicas(requiredByDurationRate, requiredByQueueSize);
-        // log.info(`CYCLE: worker Scale details: requiredByQueueSize=${requiredByQueueSize}, requiredByDurationRate=${requiredByDurationRate},
-        //     queue+duration+extra_replicas=${requiredByDuration}, roundTripTimeMs=${roundTripTimeMs}`);
-        // let required = null;
+    _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, queueSize, avgQueueSize, currentSize, roundTripTimeMs }) {
+        const requiredByDurationRate = calcRatio(reqRate, durationsRate); // reqRate / durationRate, ceil
+        const idleScaleDown = this._shouldIdleScaleDown({ reqRate, resRate }); // Scaling down in case no response or request rate.
+        const canScaleDown = this._markQueueSize(avgQueueSize);
+        const requiredByQueueSize = this._scaledQueueSize({ durationsRate, queueSize });
+        const requiredByDuration = this._addExtraReplicas(requiredByDurationRate, requiredByQueueSize);
+        log.info(`CYCLE: worker Scale details: requiredByQueueSize=${requiredByQueueSize}, requiredByDurationRate=${requiredByDurationRate},
+            queue+duration+extra_replicas=${requiredByDuration}, roundTripTimeMs=${roundTripTimeMs}`);
+        let neededPods = null;
 
-        // // first scale up
-        // if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
-        //     required = this._config.scaleUp.replicasOnFirstScale;
-        //     required = this._capScaleByLimits(required, this._limitActionType.both, 'Based on total requests, with initial size 0');
-        // }
-        // // scale up based on initial round trip estimation
-        // else if (totalRequests > 0 && currentSize === this._config.scaleUp.replicasOnFirstScale) {
-        //     required = requiredByFirstRoundTrip;
-        //     required = this._capScaleByLimits(required, this._limitActionType.both, 'Based on round trip, after initial scale');
-        // }
+        // first scale up
+        if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
+            const { replicasOnFirstScale } = this._config.scaleUp; // =1
+            neededPods = this._capScaleByLimits(replicasOnFirstScale, this._limitActionType.both, 'Based on total requests, with initial size 0');
+        }
+        // scale up based on initial round trip estimation
+        else if (totalRequests > 0 && currentSize >= this._config.scaleUp.replicasOnFirstScale) {
+            const requiredByFirstRoundTrip = this._roundTripReplicas(queueSize, roundTripTimeMs, reqRate);
+            neededPods = this._capScaleByLimits(requiredByFirstRoundTrip, this._limitActionType.both, 'Based on round trip, after initial scale');
+        }
         // // scale up based on durations
         // else if (totalRequests > 0 && currentSize < requiredByDuration) {
         //     required = requiredByDuration;
         //     required = this._capScaleByLimits(required, this._limitActionType.both, 'Based on total requests by duration');
         // }
 
-        // // scale down based on stop streaming
-        // else if (idleScaleDown.scale && currentSize > 0 && canScaleDown) {
-        //     required = 0;
-        //     required = this._capScaleByLimits(required, this._limitActionType.minStateless, 'Based on idle scaledown, canScaleDown');
-        // }
-        // // scale down based on rate
-        // else if (!idleScaleDown.scale && currentSize > requiredByDuration && canScaleDown) {
-        //     const diff = relDiff(requiredByDuration, this._scaler.required);
-        //     if (diff > this._config.scaleDown.tolerance && requiredByDuration > 0) {
-        //         required = requiredByDuration;
-        //         required = this._capScaleByLimits(required, this._limitActionType.minStateless, 'Based on rate');
-        //     }
-        // }
-        // if (required === 'a') {
-        //     this._scaler.updateRequired(required);
-        // }
-
-        let neededPods;
-        if (roundTripTimeMs) {
-            const podRate = 1000 / roundTripTimeMs;
-            const TIME_TO_COMPELETE = 30; // secounds
-            neededPods = Math.ceil((queueSize + reqRate * TIME_TO_COMPELETE) / (TIME_TO_COMPELETE * podRate));
+        // scale down based on stop streaming
+        else if (idleScaleDown.scale && currentSize > 0 && canScaleDown) {
+            neededPods = this._capScaleByLimits(0, this._limitActionType.minStateless, 'Based on idle scaledown, canScaleDown');
         }
-        else {
-            neededPods = reqRate === 0 && queueSize === 0 ? 0 : 1;
+        // scale down based on rate
+        else if (!idleScaleDown.scale && currentSize > requiredByDuration && canScaleDown) {
+            const diff = relDiff(requiredByDuration, this._scaler.required);
+            if (diff > this._config.scaleDown.tolerance && requiredByDuration > 0) {
+                neededPods = this._capScaleByLimits(requiredByDuration, this._limitActionType.minStateless, 'Based on rate');
+            }
         }
-        this._scaler.updateRequired(neededPods);
+        if (neededPods) {
+            this._scaler.updateRequired(neededPods);
+        }
     }
 
     _capScaleByLimits(required, type, customMessage = '') {
@@ -331,13 +316,14 @@ class AutoScaler {
         return decision;
     }
 
-    _firstRoundTripReplicas(roundTripTimeMs, reqRate) {
+    _roundTripReplicas(queueSize, roundTripTimeMs, reqRate) {
         if (!reqRate && !roundTripTimeMs) {
             return 0;
         }
-        const resPerSecond = 1000 / roundTripTimeMs; // in ms
-        const replicasOnRoundTrip = Math.ceil(reqRate / resPerSecond);
-        return replicasOnRoundTrip;
+        const podRate = 1000 / roundTripTimeMs; // pod responses per second
+        const timeToComplete = this._config.scaleUp.minTimeToCleanUpQueue; // secounds
+        const neededPods = Math.ceil((queueSize + reqRate * timeToComplete) / (timeToComplete * podRate));
+        return neededPods;
     }
 
     _addExtraReplicas(requiredByDurationRate, requiredByQueueSize) {
