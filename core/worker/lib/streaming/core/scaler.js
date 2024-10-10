@@ -112,8 +112,10 @@ class Scaler {
     }
 
     updateRequired(required) {
-        this._scale = true;
-        this._required = Math.min(required, this._maxScaleUpReplicasPerNode);
+        if (required !== this._required) {
+            this._scale = true;
+            this._required = Math.min(required, this._maxScaleUpReplicasPerNode);
+        }
     }
 
     _shouldScaleUp(currentSize) {
