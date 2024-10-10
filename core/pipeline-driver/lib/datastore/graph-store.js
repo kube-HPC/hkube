@@ -121,6 +121,7 @@ class GraphStore {
             nodeName: n.nodeName,
             algorithmName: n.algorithmName,
             algorithmVersion: n.algorithmVersion,
+            devMode: n.devMode,
             ...this._mapTask(n)
         };
         return node;
