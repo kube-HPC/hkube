@@ -192,9 +192,9 @@ class AutoScaler {
             totals.totalResponses += totalResponses;
             totals.windowSize.push(avgWindowSize);
 
-            if (durationsRate) {
-                totals.durationsRate.push(durationsRate);
-            }
+            // if (durationsRate) {
+            //     totals.durationsRate.push(durationsRate);
+            // }
             if (roundTripTimeMs) {
                 totals.roundTripTimeMs.push(roundTripTimeMs);
             }
@@ -209,9 +209,9 @@ class AutoScaler {
         const newScaleStats = currentSize > 0 && !hasMaxSizeWindow;
 
         if (!this._isStateful && !newScaleStats) {
-            const avgQueueSize = Math.round(mean(totals.avgQueueSize));
-            const durationsRate = mean(totals.durationsRate);
-            this._getScaleDetails({ ...totals, avgQueueSize, durationsRate, currentSize });
+            // const avgQueueSize = Math.round(mean(totals.avgQueueSize));
+            // const durationsRate = mean(totals.durationsRate);
+            this._getScaleDetails({ ...totals, currentSize });
         }
         this._metrics = { metrics, uidMetrics };
     }
