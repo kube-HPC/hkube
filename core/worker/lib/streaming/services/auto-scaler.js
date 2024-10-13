@@ -4,7 +4,7 @@ const { sum, mean } = require('@hkube/stats');
 const { stateType, nodeKind } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
 const { Statistics, Scaler, Metrics, TimeMarker } = require('../core');
-const { calcRates, formatNumber } = Metrics;
+const { calcRates, calcRatio, formatNumber } = Metrics;
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
 const { Components } = require('../../consts');
@@ -243,7 +243,14 @@ class AutoScaler {
         log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type}:${allowed.size}. ${customMessage}`, { component });
     }
 
-    _getScaleDetails({ reqRate, totalRequests, totalResponses, queueSize, currentSize, roundTripTimeMs }) {
+    _getScaleDetails({ reqRate, totalRequests, totalResponses, durationsRate, queueSize, currentSize, roundTripTimeMs }) {
+        // START FOR LOGGING
+        const requiredByDurationRate = calcRatio(reqRate, durationsRate); // reqRate / durationRate, ceil
+        const requiredByQueueSize = this._scaledQueueSize({ durationsRate, queueSize });
+        const requiredByDuration = this._addExtraReplicas(requiredByDurationRate, requiredByQueueSize);
+        log.info(`CYCLE: worker Scale details: requiredByQueueSize=${requiredByQueueSize}, requiredByDurationRate=${requiredByDurationRate},
+            queue+duration+extra_replicas=${requiredByDuration}, roundTripTimeMs=${roundTripTimeMs}`);
+        // END FOR LOGGING
         let neededPods = null;
         const { replicasOnFirstScale } = this._config.scaleUp; // =1
         // first scale up
