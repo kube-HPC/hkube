@@ -4,7 +4,7 @@ const { sum, mean } = require('@hkube/stats');
 const { stateType, nodeKind } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
 const { Statistics, Scaler, Metrics, TimeMarker } = require('../core');
-const { calcRates, calcRatio, formatNumber, relDiff } = Metrics;
+const { calcRates, formatNumber } = Metrics;
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
 const { Components } = require('../../consts');
@@ -243,42 +243,17 @@ class AutoScaler {
         log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type}:${allowed.size}. ${customMessage}`, { component });
     }
 
-    _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, queueSize, avgQueueSize, currentSize, roundTripTimeMs }) {
-        const requiredByDurationRate = calcRatio(reqRate, durationsRate); // reqRate / durationRate, ceil
-        const idleScaleDown = this._shouldIdleScaleDown({ reqRate, resRate }); // Scaling down in case no response or request rate.
-        const canScaleDown = this._markQueueSize(avgQueueSize);
-        const requiredByQueueSize = this._scaledQueueSize({ durationsRate, queueSize });
-        const requiredByDuration = this._addExtraReplicas(requiredByDurationRate, requiredByQueueSize);
-        log.info(`CYCLE: worker Scale details: requiredByQueueSize=${requiredByQueueSize}, requiredByDurationRate=${requiredByDurationRate},
-            queue+duration+extra_replicas=${requiredByDuration}, roundTripTimeMs=${roundTripTimeMs}`);
+    _getScaleDetails({ reqRate, totalRequests, totalResponses, queueSize, currentSize, roundTripTimeMs }) {
         let neededPods = null;
-
+        const { replicasOnFirstScale } = this._config.scaleUp; // =1
         // first scale up
         if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
-            const { replicasOnFirstScale } = this._config.scaleUp; // =1
             neededPods = this._capScaleByLimits(replicasOnFirstScale, this._limitActionType.both, 'Based on total requests, with initial size 0');
         }
-        // scale up based on initial round trip estimation
-        else if (totalRequests > 0 && currentSize >= this._config.scaleUp.replicasOnFirstScale) {
-            const requiredByFirstRoundTrip = this._roundTripReplicas(queueSize, roundTripTimeMs, reqRate);
-            neededPods = this._capScaleByLimits(requiredByFirstRoundTrip, this._limitActionType.both, 'Based on round trip, after initial scale');
-        }
-        // // scale up based on durations
-        // else if (totalRequests > 0 && currentSize < requiredByDuration) {
-        //     required = requiredByDuration;
-        //     required = this._capScaleByLimits(required, this._limitActionType.both, 'Based on total requests by duration');
-        // }
-
-        // scale down based on stop streaming
-        else if (idleScaleDown.scale && currentSize > 0 && canScaleDown) {
-            neededPods = this._capScaleByLimits(0, this._limitActionType.minStateless, 'Based on idle scaledown, canScaleDown');
-        }
-        // scale down based on rate
-        else if (!idleScaleDown.scale && currentSize > requiredByDuration && canScaleDown) {
-            const diff = relDiff(requiredByDuration, this._scaler.required);
-            if (diff > this._config.scaleDown.tolerance && requiredByDuration > 0) {
-                neededPods = this._capScaleByLimits(requiredByDuration, this._limitActionType.minStateless, 'Based on rate');
-            }
+        // scale up or down according to roundTrip
+        else if (totalRequests > 0 && currentSize >= replicasOnFirstScale) {
+            const requiredByRoundTrip = this._roundTripReplicas(queueSize, roundTripTimeMs, reqRate);
+            neededPods = this._capScaleByLimits(requiredByRoundTrip, this._limitActionType.both, 'Based on round trip');
         }
         if (neededPods) {
             this._scaler.updateRequired(neededPods);
