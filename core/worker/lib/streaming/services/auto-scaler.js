@@ -138,7 +138,7 @@ class AutoScaler {
             resRate: 0,
             queueSize: 0,
             avgQueueSize: [],
-            durationsRate: [],
+            // durationsRate: [],
             windowSize: [],
             totalRequests: 0,
             totalResponses: 0,
