@@ -243,6 +243,16 @@ class AutoScaler {
         log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type}:${allowed.size}. ${customMessage}`, { component });
     }
 
+    /**
+     * Calculates and updates the required number of pods based on the current request metrics.
+     *
+     * @param {number} params.reqRate - The rate of incoming requests per second.
+     * @param {number} params.totalRequests - The total number of requests received.
+     * @param {number} params.totalResponses - The total number of responses sent.
+     * @param {number} params.queueSize - The current size of the request queue.
+     * @param {number} params.currentSize - The current number of pods.
+     * @param {number} params.roundTripTimeMs - The average round trip time for a request in milliseconds.
+     */
     _getScaleDetails({ reqRate, totalRequests, totalResponses, queueSize, currentSize, roundTripTimeMs }) {
         let neededPods = null;
         const { replicasOnFirstScale } = this._config.scaleUp;
@@ -253,13 +263,21 @@ class AutoScaler {
         // scale up or down according to roundTrip, queue size and request rate
         else if (totalRequests > 0 && currentSize >= replicasOnFirstScale) {
             const requiredByRoundTrip = this._roundTripReplicas(queueSize, roundTripTimeMs, reqRate);
-            neededPods = this._capScaleByLimits(requiredByRoundTrip, this._limitActionType.both, 'Based on round trip');
+            neededPods = this._capScaleByLimits(requiredByRoundTrip, this._limitActionType.both, 'Based on round trip and predicted queue size');
         }
         if (neededPods !== null) {
             this._scaler.updateRequired(neededPods);
         }
     }
 
+    /**
+     * Caps the scaling of resources based on minimum and maximum limits.
+     *
+     * @param {number} required - The required number of resources.
+     * @param {string} type - The limit type (`maxStateless`, `minStateless`, or `both`).
+     * @param {string} [customMessage=''] - Optional custom message for logging.
+     * @returns {number} - The adjusted scaling decision based on the limits.
+     */
     _capScaleByLimits(required, type, customMessage = '') {
         let decision = required;
         const sizes = {};
