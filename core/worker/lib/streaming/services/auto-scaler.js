@@ -262,11 +262,7 @@ class AutoScaler {
             const requiredByRoundTrip = this._roundTripReplicas(queueSize, roundTripTimeMs, reqRate);
             neededPods = this._capScaleByLimits(requiredByRoundTrip, this._limitActionType.both, 'Based on round trip');
         }
-        // scale down to 0 in case no requests needed to be handled
-        else if (reqRate === 0 && queueSize === 0 && currentSize !== 0) {
-            neededPods = 0;
-        }
-        if (neededPods) {
+        if (neededPods !== null) {
             this._scaler.updateRequired(neededPods);
         }
     }
