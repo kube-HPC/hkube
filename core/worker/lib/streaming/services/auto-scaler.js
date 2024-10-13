@@ -257,7 +257,7 @@ class AutoScaler {
         if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
             neededPods = this._capScaleByLimits(replicasOnFirstScale, this._limitActionType.both, 'Based on total requests, with initial size 0');
         }
-        // scale up or down according to roundTrip
+        // scale up or down according to roundTrip, queue size and request rate
         else if (totalRequests > 0 && currentSize >= replicasOnFirstScale) {
             const requiredByRoundTrip = this._roundTripReplicas(queueSize, roundTripTimeMs, reqRate);
             neededPods = this._capScaleByLimits(requiredByRoundTrip, this._limitActionType.both, 'Based on round trip');
@@ -297,12 +297,23 @@ class AutoScaler {
         return decision;
     }
 
+    /**
+     * Calculates the number of pods needed for scaling based on the current queue size,
+     * round trip time, and request rate. Calculates estimated queue size.
+     *
+     * @param queueSize         the current size of the queue (number of requests waiting to be processed).
+     * @param roundTripTimeMs   the average round trip time for a request in milliseconds.
+     * @param reqRate           the rate of incoming requests per second.
+     * @return                  the calculated number of pods required to handle the current queue size
+     *                          and incoming request rate. Returns 1 if round trip time is zero; otherwise,
+     *                          it calculates based on the queue size and request rate.
+     */
     _roundTripReplicas(queueSize, roundTripTimeMs, reqRate) {
         if (!reqRate && !roundTripTimeMs) {
             return 0;
         }
-        const podRate = 1000 / roundTripTimeMs; // pod responses per second
-        const timeToComplete = this._config.scaleUp.minTimeToCleanUpQueue; // secounds
+        const podRate = 1000 / roundTripTimeMs; // pod response rate per second
+        const timeToComplete = this._config.scaleUp.minTimeToCleanUpQueue; // in secounds
         const neededPods = Math.ceil((queueSize + reqRate * timeToComplete) / (timeToComplete * podRate));
         return neededPods;
     }
