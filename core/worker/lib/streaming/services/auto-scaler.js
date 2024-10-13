@@ -3,8 +3,8 @@ const Logger = require('@hkube/logger');
 const { sum, mean } = require('@hkube/stats');
 const { stateType, nodeKind } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
-const { Statistics, Scaler, Metrics, TimeMarker } = require('../core');
-const { calcRates, calcRatio, formatNumber } = Metrics;
+const { Statistics, Scaler, Metrics } = require('../core');
+const { calcRates, formatNumber } = Metrics;
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
 const { Components } = require('../../consts');
@@ -59,8 +59,8 @@ class AutoScaler {
         this._statistics = new Statistics(this._config, this._onSourceRemove);
 
         if (!this._isStateful) {
-            this._queueSizeTime = new TimeMarker(this._config.scaleDown.minTimeQueueEmptyBeforeScaleDown);
-            this._timeForDown = new TimeMarker(this._config.scaleDown.minTimeIdleBeforeReplicaDown);
+            // this._queueSizeTime = new TimeMarker(this._config.scaleDown.minTimeQueueEmptyBeforeScaleDown);
+            // this._timeForDown = new TimeMarker(this._config.scaleDown.minTimeIdleBeforeReplicaDown);
             this._scaler?.stop();
             let conf = this._config;
             if (this._options.node.kind === nodeKind.Debug) {
@@ -243,14 +243,7 @@ class AutoScaler {
         log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type}:${allowed.size}. ${customMessage}`, { component });
     }
 
-    _getScaleDetails({ reqRate, totalRequests, totalResponses, durationsRate, queueSize, currentSize, roundTripTimeMs }) {
-        // START FOR LOGGING
-        const requiredByDurationRate = calcRatio(reqRate, durationsRate); // reqRate / durationRate, ceil
-        const requiredByQueueSize = this._scaledQueueSize({ durationsRate, queueSize });
-        const requiredByDuration = this._addExtraReplicas(requiredByDurationRate, requiredByQueueSize);
-        log.info(`CYCLE: worker Scale details: requiredByQueueSize=${requiredByQueueSize}, requiredByDurationRate=${requiredByDurationRate},
-            queue+duration+extra_replicas=${requiredByDuration}, roundTripTimeMs=${roundTripTimeMs}`);
-        // END FOR LOGGING
+    _getScaleDetails({ reqRate, totalRequests, totalResponses, queueSize, currentSize, roundTripTimeMs }) {
         let neededPods = null;
         const { replicasOnFirstScale } = this._config.scaleUp;
         // first scale up
@@ -326,49 +319,49 @@ class AutoScaler {
         return neededPods;
     }
 
-    _addExtraReplicas(requiredByDurationRate, requiredByQueueSize) {
-        const required = requiredByDurationRate + requiredByQueueSize;
-        const totalRequired = required + Math.ceil(required * this._config.scaleUp.replicasExtra);
-        return totalRequired;
-    }
+    // _addExtraReplicas(requiredByDurationRate, requiredByQueueSize) {
+    //     const required = requiredByDurationRate + requiredByQueueSize;
+    //     const totalRequired = required + Math.ceil(required * this._config.scaleUp.replicasExtra);
+    //     return totalRequired;
+    // }
 
-    _scaledQueueSize({ durationsRate, queueSize }) {
-        if (!queueSize) {
-            return 0;
-        }
-        if (!durationsRate) {
-            return this._config.scaleUp.replicasOnFirstScale;
-        }
-        const msgCleanUp = Math.ceil(durationsRate * this._config.scaleUp.minTimeToCleanUpQueue);
-        const requiredByQueueSize = Math.ceil(queueSize / msgCleanUp);
-        return requiredByQueueSize;
-    }
+    // _scaledQueueSize({ durationsRate, queueSize }) {
+    //     if (!queueSize) {
+    //         return 0;
+    //     }
+    //     if (!durationsRate) {
+    //         return this._config.scaleUp.replicasOnFirstScale;
+    //     }
+    //     const msgCleanUp = Math.ceil(durationsRate * this._config.scaleUp.minTimeToCleanUpQueue);
+    //     const requiredByQueueSize = Math.ceil(queueSize / msgCleanUp);
+    //     return requiredByQueueSize;
+    // }
 
-    _markQueueSize(avgQueueSize) {
-        let canScaleDown = false;
-        if (avgQueueSize <= this._config.scaleDown.minQueueSizeBeforeScaleDown) {
-            const marker = this._queueSizeTime.mark();
-            canScaleDown = marker.result;
-        }
-        else {
-            this._queueSizeTime.unMark();
-        }
-        return canScaleDown;
-    }
+    // _markQueueSize(avgQueueSize) {
+    //     let canScaleDown = false;
+    //     if (avgQueueSize <= this._config.scaleDown.minQueueSizeBeforeScaleDown) {
+    //         const marker = this._queueSizeTime.mark();
+    //         canScaleDown = marker.result;
+    //     }
+    //     else {
+    //         this._queueSizeTime.unMark();
+    //     }
+    //     return canScaleDown;
+    // }
 
-    _shouldIdleScaleDown({ reqRate, resRate }) {
-        let time;
-        let scale = false;
-        if (!reqRate && !resRate) {
-            const response = this._timeForDown.mark();
-            if (response.result) {
-                scale = true;
-                time = response.time;
-                this._timeForDown.unMark();
-            }
-        }
-        return { scale, time };
-    }
+    // _shouldIdleScaleDown({ reqRate, resRate }) {
+    //     let time;
+    //     let scale = false;
+    //     if (!reqRate && !resRate) {
+    //         const response = this._timeForDown.mark();
+    //         if (response.result) {
+    //             scale = true;
+    //             time = response.time;
+    //             this._timeForDown.unMark();
+    //         }
+    //     }
+    //     return { scale, time };
+    // }
 
     _scaleUp(scale) {
         if (!scale) {
