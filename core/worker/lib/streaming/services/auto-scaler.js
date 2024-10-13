@@ -268,32 +268,40 @@ class AutoScaler {
     }
 
     _capScaleByLimits(required, type, customMessage = '') {
-        // eslint-disable-next-line no-unused-vars
         let decision = required;
         const sizes = {};
-        if (type === this._limitActionType.maxStateless && this._statelessCountLimits.maxStateless) {
-            if (required > this._statelessCountLimits.maxStateless) {
-                this._scalingInterventionLog('up', required, { type: this._limitActionType.maxStateless, size: this._statelessCountLimits.maxStateless }, customMessage);
-                return this._statelessCountLimits.maxStateless;
-            }
+        const { minStateless, maxStateless } = this._statelessCountLimits;
+
+        switch (type) {
+            case this._limitActionType.maxStateless:
+                if (maxStateless && required > maxStateless) {
+                    this._scalingInterventionLog('up', required, { type: this._limitActionType.maxStateless, size: maxStateless }, customMessage);
+                    return maxStateless;
+                }
+                break;
+
+            case this._limitActionType.minStateless:
+                if (minStateless && required < minStateless) {
+                    this._scalingInterventionLog('down', required, { type: this._limitActionType.minStateless, size: minStateless }, customMessage);
+                    return minStateless;
+                }
+                break;
+
+            case this._limitActionType.both:
+                if (minStateless) {
+                    decision = Math.max(decision, minStateless);
+                    sizes.min = minStateless;
+                }
+                if (maxStateless) {
+                    decision = Math.min(decision, maxStateless);
+                    sizes.max = maxStateless;
+                }
+                this._scalingInterventionLog(this._limitActionType.both, required, { type: this._limitActionType.both, size: sizes }, customMessage);
+                break;
+
+            default:
+                break;
         }
-        else if (type === this._limitActionType.minStateless && this._statelessCountLimits.minStateless) {
-            if (required < this._statelessCountLimits.minStateless) {
-                this._scalingInterventionLog('down', required, { type: this._limitActionType.minStateless, size: this._statelessCountLimits.minStateless }, customMessage);
-                return this._statelessCountLimits.minStateless;
-            }
-        }
-        else if (type === this._limitActionType.both) {
-            if (this._statelessCountLimits.minStateless) {
-                decision = Math.max(decision, this._statelessCountLimits.minStateless);
-                sizes.min = this._statelessCountLimits.minStateless;
-            }
-            if (this._statelessCountLimits.maxStateless) {
-                decision = Math.min(decision, this._statelessCountLimits.maxStateless);
-                sizes.max = this._statelessCountLimits.maxStateless;
-            }
-            this._scalingInterventionLog(this._limitActionType.both, required, { type: this._limitActionType.both, size: sizes }, customMessage);
-        } // Govern both limits
         return decision;
     }
 
