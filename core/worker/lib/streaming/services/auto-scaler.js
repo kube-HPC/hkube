@@ -258,10 +258,10 @@ class AutoScaler {
         const { replicasOnFirstScale } = this._config.scaleUp;
         // first scale up
         if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
-            neededPods = this._capScaleByLimits(replicasOnFirstScale, this._limitActionType.both, 'Based on total requests, with initial size 0');
+            neededPods = this._capScaleByLimits(replicasOnFirstScale, this._limitActionType.both, 'Based on config file, when starting');
         }
         // scale up or down according to roundTrip, queue size and request rate
-        else if (totalRequests > 0 && currentSize >= replicasOnFirstScale) {
+        else if (queueSize > 0) {
             const requiredByRoundTrip = this._roundTripReplicas(queueSize, roundTripTimeMs, reqRate);
             neededPods = this._capScaleByLimits(requiredByRoundTrip, this._limitActionType.both, 'Based on round trip and predicted queue size');
         }
