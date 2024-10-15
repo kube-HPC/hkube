@@ -80,7 +80,9 @@ class Scaler {
 
         if (shouldScaleUp) {
             const required = this._required - currentSize;
+            log.info(`CYCLE: worker shouldScaleUp required#: ${required}`);
             const replicas = Math.min(required, this._maxScaleUpReplicasPerTick);
+            log.info(`CYCLE: worker shouldScaleUp required# after maxPerTick: ${replicas}`);
             const scaleTo = replicas + currentSize;
             this._desired = this._required;
             this._lastScaleUpTime = Date.now();
@@ -110,8 +112,10 @@ class Scaler {
     }
 
     updateRequired(required) {
-        this._scale = true;
-        this._required = Math.min(required, this._maxScaleUpReplicasPerNode);
+        if (required !== this._required) {
+            this._scale = true;
+            this._required = Math.min(required, this._maxScaleUpReplicasPerNode);
+        }
     }
 
     _shouldScaleUp(currentSize) {
