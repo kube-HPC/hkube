@@ -30,7 +30,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should throw validation error of data.name should be string', async () => {
@@ -42,7 +42,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should be string');
         });
         it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
@@ -54,7 +54,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
         });
         it('should throw validation error of required property nodes', async () => {
@@ -66,7 +66,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('pipeline must have at least one node');
         });
         it('should throw validation error of required property nodes.nodeName', async () => {
@@ -84,7 +84,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.eql("data.nodes[0] should have required property 'nodeName'");
         });
         it('should throw validation error of required property nodes.algorithmName', async () => {
@@ -101,7 +101,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.contain('please provide algorithm name');
         });
         it('should throw validation error of nodes.input should be array', async () => {
@@ -120,7 +120,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
         });
         it('should not throw validation error of data should NOT have additional properties', async () => {
             const options = {
@@ -164,7 +164,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('found duplicate node "dup"');
         });
         it('should throw validation error priority range', async () => {
@@ -184,7 +184,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.priority should be <= 5');
         });
         const invalidStartAndEndChars = ['/', '*', '#', '"', '%'];
@@ -205,7 +205,7 @@ describe('Executions', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal(validationMessages.PIPELINE_NAME_FORMAT);
             });
             it(`should throw validation error pipeline name start with ${v}`, async () => {
@@ -224,7 +224,7 @@ describe('Executions', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal(validationMessages.PIPELINE_NAME_FORMAT);
             });
         });
@@ -249,7 +249,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('missing image for algorithm no-image-alg');
         });
         it('should succeed and return job id', async () => {

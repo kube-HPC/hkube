@@ -17,7 +17,7 @@ const hkubeRepo = '/repos/kube-HPC/hkube-green/commits';
 describe('Builds', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
-        nock(baseApi).persist().get(hkubeRepo).query(true).reply(HttpStatus.OK, commit.data);
+        nock(baseApi).persist().get(hkubeRepo).query(true).reply(HttpStatus.StatusCodes.OK, commit.data);
     });
     describe('webhhoks/gitlab', () => {
         let restPath = null;
@@ -48,7 +48,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('build no_such_id Not Found');
         });
         it('should throw validation error of required property buildId', async () => {
@@ -57,7 +57,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'buildId'");
         });
         it('should succeed to get build status', async () => {
@@ -83,7 +83,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body).to.have.property('status');
             expect(response.body).to.have.property('startTime');
             expect(response.body).to.not.have.property('baseImage');
@@ -113,7 +113,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body.baseImage).to.equal('userOwnBaseImage');
         });
         it('should succeed to get dependencyInstallCmd', async () => {
@@ -141,7 +141,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body.dependencyInstallCmd).to.equal('install.sh');
         });
         it('should work without dependencyInstallCmd', async () => {
@@ -167,7 +167,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body.dependencyInstallCmd).to.not.exist;
         });
     });
@@ -184,7 +184,7 @@ describe('Builds', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('build no_such_id Not Found');
         });
         it('should throw validation error of required property buildId', async () => {
@@ -192,7 +192,7 @@ describe('Builds', () => {
                 uri: restPath
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'buildId'");
         });
         it('should succeed to stop build', async () => {
@@ -218,7 +218,7 @@ describe('Builds', () => {
                 body: { buildId: res.body.buildId }
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body.message).to.equal('OK');
         });
     });
@@ -235,7 +235,7 @@ describe('Builds', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('build no_such_id Not Found');
         });
         it('should throw validation error of required property buildId', async () => {
@@ -243,7 +243,7 @@ describe('Builds', () => {
                 uri: restPath
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'buildId'");
         });
         it('should succeed to rerun build', async () => {
@@ -269,7 +269,7 @@ describe('Builds', () => {
                 body: { buildId: res.body.buildId }
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('unable to rerun build because its in pending status');
         });
     });
@@ -285,7 +285,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.contain('data.sort should be equal to one of the allowed values');
         });
         it('should throw validation error of limit should be >= 1', async () => {
@@ -295,7 +295,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.limit should be >= 1');
         });
         it('should throw validation error of limit should be integer', async () => {
@@ -305,7 +305,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.limit should be integer');
         });
         it('should succeed to get build list', async () => {
@@ -346,7 +346,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body).to.have.lengthOf(limit);
             expect(response.body[0]).to.have.property('status');
             expect(response.body[0]).to.have.property('startTime');

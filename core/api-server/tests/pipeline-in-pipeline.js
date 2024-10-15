@@ -21,7 +21,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should throw node must have spec with name', async () => {
@@ -39,7 +39,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('node A must have spec with name');
         });
         it('should succeed to execute pipeline depend on pipeline', async () => {

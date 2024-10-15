@@ -24,7 +24,7 @@ describe('Boards', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('board no_such_id Not Found');
         });
     });
@@ -59,13 +59,13 @@ describe('Boards', () => {
                 }
             };
             let response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             options = {
                 uri: `${restBoardPath}/${response.body.id}`,
                 method: 'GET'
             };
             response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body.status).to.equal(boardStatuses.PENDING);
         });
         it('starting task board should fail if no such task', async () => {
@@ -94,7 +94,7 @@ describe('Boards', () => {
                 }
             };
             let response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`No task no_such_task in job ${response1.body.jobId} undefined Not Found`);
         });
         it('starting node board should succeed', async () => {
@@ -107,13 +107,13 @@ describe('Boards', () => {
                 }
             };
             let response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             options = {
                 uri: `${restBoardPath}/${response.body.id}`,
                 method: 'GET'
             };
             response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body.status).to.equal(boardStatuses.PENDING);
         });
         it('starting board should fail if name exists', async () => {
@@ -142,9 +142,9 @@ describe('Boards', () => {
                 }
             };
             let response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('board: already started');
         });
         it('starting board should fail if no such node', async () => {
@@ -173,7 +173,7 @@ describe('Boards', () => {
                 }
             };
             let response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`node no_such_node for job ${response1.body.jobId} Not Found`);
         });
         it('starting board should fail if no such job', async () => {
@@ -187,7 +187,7 @@ describe('Boards', () => {
                 }
             };
             let response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline no_such_job Not Found');
         });
     });
@@ -202,7 +202,7 @@ describe('Boards', () => {
                 method: 'DELETE'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('board no_such_id Not Found');
         });
         it('should succeed to stop', async () => {
@@ -215,19 +215,19 @@ describe('Boards', () => {
                 }
             };
             let response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             options = {
                 uri: restPath + '/' + response.body.id,
                 method: 'DELETE'
             };
             response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             options = {
                 uri: `${restBoardPath}/${response.body.id}`,
                 method: 'GET'
             };
             response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
         });
     });
 });

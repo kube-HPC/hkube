@@ -21,7 +21,7 @@ describe('Cron', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('cron results no_such_id Not Found');
         });
         it('should throw validation error of sort property', async () => {
@@ -31,7 +31,7 @@ describe('Cron', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.contain('data.sort should be equal to one of the allowed values');
         });
         it('should throw validation error of limit should be >= 1', async () => {
@@ -41,7 +41,7 @@ describe('Cron', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.limit should be >= 1');
         });
         it('should throw validation error of limit should be integer', async () => {
@@ -51,7 +51,7 @@ describe('Cron', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.limit should be integer');
         });
         it('should succeed to get cron results', async () => {
@@ -86,7 +86,7 @@ describe('Cron', () => {
             };
             const response = await request(options);
             const result = response.body.map((r) => r.data).sort();
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(result).to.deep.equal(data);
             expect(response.body[0]).to.have.property('jobId');
             expect(response.body[0]).to.have.property('data');
@@ -107,7 +107,7 @@ describe('Cron', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('cron status no_such_id Not Found');
         });
         it('should throw validation error of sort property', async () => {
@@ -117,7 +117,7 @@ describe('Cron', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.contain('data.sort should be equal to one of the allowed values');
         });
         it('should throw validation error of limit should be >= 1', async () => {
@@ -127,7 +127,7 @@ describe('Cron', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.limit should be >= 1');
         });
         it('should throw validation error of limit should be integer', async () => {
@@ -137,7 +137,7 @@ describe('Cron', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.limit should be integer');
         });
         it('should succeed to get cron status', async () => {
@@ -157,7 +157,7 @@ describe('Cron', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body[0]).to.have.property('jobId');
             expect(response.body[0]).to.have.property('level');
             expect(response.body[0]).to.have.property('pipeline');
@@ -178,7 +178,7 @@ describe('Cron', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline no_such_name Not Found');
         });
         it('should throw validation error of required property name', async () => {
@@ -186,7 +186,7 @@ describe('Cron', () => {
                 uri: restPath
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`data should have required property 'name'`);
         });
         it('should throw validation error of invalid cron', async () => {
@@ -198,7 +198,7 @@ describe('Cron', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`data.pattern should match format "cron"`);
         });
         it('should success to start cron', async () => {
@@ -254,7 +254,7 @@ describe('Cron', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline no_such_name Not Found');
         });
         it('should throw validation error of required property name', async () => {
@@ -263,7 +263,7 @@ describe('Cron', () => {
                 method
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`data should have required property 'name'`);
         });
         it('should success to stop cron', async () => {

@@ -14,7 +14,7 @@ const routes = () => {
         try {
             pods = await kubernetes._getPods(selector);
             if (pods.body.items.length === 0) {
-                res.status(HttpStatus.NOT_FOUND).json(`No pods found with selector ${selector}`);
+                res.status(HttpStatus.StatusCodes.NOT_FOUND).json(`No pods found with selector ${selector}`);
                 return;
             }
             pods.body.items.forEach(pod => {
@@ -24,9 +24,9 @@ const routes = () => {
             });
         }
         catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
+            res.status(HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR).json(error.message);
         }
-        res.status(HttpStatus.OK).json({ message });
+        res.status(HttpStatus.StatusCodes.OK).json({ message });
     });
     router.delete('/algorithms/jobs/:algName', async (req, res) => {
         const { algName } = req.params;
@@ -38,7 +38,7 @@ const routes = () => {
         try {
             jobs = await kubernetes._getJobs(selector);
             if (jobs.body.items.length === 0) {
-                res.status(HttpStatus.NOT_FOUND).json(`No jobs found with selector ${selector}`);
+                res.status(HttpStatus.StatusCodes.NOT_FOUND).json(`No jobs found with selector ${selector}`);
                 return;
             }
             jobs.body.items.forEach(pod => {
@@ -48,9 +48,9 @@ const routes = () => {
             });
         }
         catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(error.message);
+            res.status(HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR).json(error.message);
         }
-        res.status(HttpStatus.OK).json({ message });
+        res.status(HttpStatus.StatusCodes.OK).json({ message });
     });
     // end algorithms
     return router;

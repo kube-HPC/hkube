@@ -83,7 +83,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline not_exists Not Found');
         });
         it('should throw validation error if algorithmName not exists', async () => {
@@ -103,7 +103,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm dummy Not Found');
         });
         it('should throw validation error if numberOfTrials not exists hyperparams-tuner spec', async () => {

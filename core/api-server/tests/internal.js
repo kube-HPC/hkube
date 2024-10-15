@@ -134,7 +134,7 @@ describe('Internal', () => {
                 method: 'GET'
             };
             const response = await request(opt);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.body).to.have.lengthOf(limit);
             expect(response.body[0]).to.have.property('jobId');
             expect(response.body[0]).to.have.property('data');
@@ -309,7 +309,7 @@ describe('Internal', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
         });
     });
     describe('SubPipeline', () => {
