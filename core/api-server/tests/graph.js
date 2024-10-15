@@ -22,7 +22,7 @@ describe('Graph', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('graph no_such_id Not Found');
         });
         it('should throw validation error of required property jobId', async () => {
@@ -31,7 +31,7 @@ describe('Graph', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'jobId'");
         });
         it('should success to get graph', async () => {
@@ -54,7 +54,7 @@ describe('Graph', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'jobId'");
         });
         it('should throw graph Not Found', async () => {
@@ -63,7 +63,7 @@ describe('Graph', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('graph no_such_id Not Found');
         });
         it('should throw node Not Found', async () => {
@@ -73,7 +73,7 @@ describe('Graph', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('node no_such_id Not Found');
         });
         it('should success to get graph', async () => {

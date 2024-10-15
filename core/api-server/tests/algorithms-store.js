@@ -5,7 +5,7 @@ const HttpStatus = require('http-status-codes');
 const merge = require('lodash.merge');
 const { uid: uuid } = require('@hkube/uid');
 const stateManager = require('../lib/state/state-manager');
-const versionsService = require('../lib/service/versions');
+const versionsService = require('../lib/service/algorithm-versions');
 const buildsService = require('../lib/service/builds');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { MESSAGES } = require('../lib/consts/builds');
@@ -27,9 +27,9 @@ describe('Store/Algorithms', () => {
         restPath = `${restUrl}/store/algorithms`;
         applyPath = `${restPath}/apply`;
         versionsPath = `${restUrl}/versions/algorithms`;
-        nock(baseApi).persist().get(emptyGit).query(true).reply(HttpStatus.BAD_REQUEST, 'Git Repository is empty');
-        nock(baseApi).persist().get(fullGit).query(true).reply(HttpStatus.OK, commit.data);
-        nock(baseApi).persist().get(hkubeRepo).query(true).reply(HttpStatus.OK, commit.data);
+        nock(baseApi).persist().get(emptyGit).query(true).reply(HttpStatus.StatusCodes.BAD_REQUEST, 'Git Repository is empty');
+        nock(baseApi).persist().get(fullGit).query(true).reply(HttpStatus.StatusCodes.OK, commit.data);
+        nock(baseApi).persist().get(hkubeRepo).query(true).reply(HttpStatus.StatusCodes.OK, commit.data);
     });
     describe('/store/algorithms:name GET', () => {
         it('should throw error algorithm not found', async () => {
@@ -39,7 +39,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm notexists Not Found');
         });
         it('should return specific algorithm', async () => {
@@ -64,7 +64,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`algorithm ${algorithmName} Not Found`);
         });
         it('should throw error on related data', async () => {
@@ -111,7 +111,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(optionsDelete);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`algorithm ${algorithmName} is stored in 1 pipelines (${pipelineName}), 1 executions (${jobId}). you must first delete all related data or use the force flag`);
         });
         it('should delete algorithm with related data with force', async () => {
@@ -212,7 +212,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should throw validation error of long algorithm name', async () => {
@@ -224,7 +224,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should NOT be longer than 32 characters');
         });
         it('should throw validation error of data.name should be string', async () => {
@@ -236,7 +236,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should be string');
         });
         it('should throw validation error of memory min 4 Mi', async () => {
@@ -252,7 +252,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
         });
         it('should throw conflict error', async () => {
@@ -281,7 +281,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
             });
         });
@@ -297,7 +297,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
             });
             it(`should throw invalid if algorithm name if end with ${v}`, async () => {
@@ -310,7 +310,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
             });
         });
@@ -319,7 +319,7 @@ describe('Store/Algorithms', () => {
             const options = { uri: restPath, body };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should failed to store algorithm with no image', async () => {
@@ -329,7 +329,7 @@ describe('Store/Algorithms', () => {
             const options = { uri: restPath, body };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
         });
         it('should failed to store algorithm with end whitespace image name', async () => {
@@ -340,7 +340,7 @@ describe('Store/Algorithms', () => {
             const options = { uri: restPath, body };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
         });
         it('should failed to store algorithm with start whitespace image name', async () => {
@@ -351,7 +351,7 @@ describe('Store/Algorithms', () => {
             const options = { uri: restPath, body };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
         });
         it('should failed to store algorithm with middle whitespace image name', async () => {
@@ -362,7 +362,7 @@ describe('Store/Algorithms', () => {
             const options = { uri: restPath, body };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
         });
         it('should succeed to store algorithm with name of 32 characters', async () => {
@@ -375,7 +375,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             const { version, created, modified, reservedMemory, ...algorithm } = response.body;
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...options.body });
         });
         it('should succeed to store algorithm name (www.example.com)', async () => {
@@ -391,7 +391,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             const { version, created, modified, reservedMemory, ...algorithm } = response.body;
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...body });
         });
         it('should succeed to parallel store and get multiple algorithms', async function () {
@@ -431,7 +431,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             const { version, created, modified, reservedMemory, ...algorithm } = response.body;
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...body });
         });
         it('should succeed to store algorithm with devMode', async () => {
@@ -451,7 +451,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             const { version, created, modified, reservedMemory, ...algorithm } = response.body;
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql(merge({}, defaultProps, body));
         });
         it('should secceed to create algorithms when provided with an array of valid data', async () => {
@@ -479,7 +479,7 @@ describe('Store/Algorithms', () => {
             const response = await request(options);
             expect(response.body).to.be.an('array');
             expect(response.body).to.have.lengthOf(body.length);
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
         });
         it('should succeed creating an array containing a 409 Conflict status and error message for existing algorithms', async () => {
             const existingAlgorithm = {
@@ -514,11 +514,11 @@ describe('Store/Algorithms', () => {
             }
 
             const response = await request(algorithmData)
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(response.body).to.be.an('array');
             expect(response.body).to.have.lengthOf(algorithmsList.length);
             expect(response.body[1].error).to.not.exist;
-            expect(response.body[0].error.code).to.equal(HttpStatus.CONFLICT)
+            expect(response.body[0].error.code).to.equal(HttpStatus.StatusCodes.CONFLICT)
             expect(response.body[0].error.message).to.include('algorithm existing-algorithm already exists');
         });
 
@@ -556,7 +556,7 @@ describe('Store/Algorithms', () => {
             }
 
             const response = await request(algorithmData)
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(response.body).to.be.an('array');
             expect(response.body).to.have.lengthOf(algorithmsList.length);
             expect(response.body[1].error).to.not.exist;
@@ -597,11 +597,11 @@ describe('Store/Algorithms', () => {
             }
 
             const response = await request(algorithmData)
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(response.body).to.be.an('array');
             expect(response.body).to.have.lengthOf(invalidAlgorithmData.length);
             expect(response.body[1].error).to.not.exist;
-            expect(response.body[0].error.code).to.equal(HttpStatus.BAD_REQUEST)
+            expect(response.body[0].error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST)
             expect(response.body[0].error.name).to.equal('Invalid Algorithm NAME-')
             expect(response.body[0].error.message).to.include('algorithm name must contain only lower-case alphanumeric, dash or dot');
         });
@@ -613,7 +613,7 @@ describe('Store/Algorithms', () => {
             }
 
             const response = await request(emptyData)
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(response.body).to.be.an('array');
             expect(response.body).to.have.lengthOf(0);
         });
@@ -631,7 +631,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('algorithm should have required property "name"');
             });
             it('should throw validation error of data.name should be string', async () => {
@@ -642,7 +642,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('data.name should be string');
             });
             it('should throw validation error of memory min 4 Mi', async () => {
@@ -659,7 +659,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
             });
             it('should throw validation error of invalid reservedMemory', async () => {
@@ -675,7 +675,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('memory unit must be one of Ki,M,Mi,Gi,m,K,G,T,Ti');
             });
             it('should throw validation invalid env', async () => {
@@ -693,7 +693,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.contain('data.env should be equal to one of the allowed values');
             });
             it('should throw validation invalid fileExt', async () => {
@@ -712,9 +712,9 @@ describe('Store/Algorithms', () => {
                     formData
                 };
                 const response = await request(options);
-                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.contain('data.fileExt should be equal to one of the allowed values');
             });
             it('should throw error of missing image and file', async () => {
@@ -732,7 +732,7 @@ describe('Store/Algorithms', () => {
                 };
 
                 const response = await request(options);
-                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal(MESSAGES.APPLY_ERROR);
             });
             it('should not throw error when git repo was not supplied', async () => {
@@ -746,7 +746,7 @@ describe('Store/Algorithms', () => {
                 const uri = applyPath;
                 const req = { uri, formData: { payload: JSON.stringify(apply) } };
                 const res = await request(req);
-                expect(res.response.statusCode).to.equal(HttpStatus.OK);
+                expect(res.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
                 expect(res.body).to.not.have.property('buildId');
             });
             it('should not throw error when file was not supplied', async () => {
@@ -760,7 +760,7 @@ describe('Store/Algorithms', () => {
                 const uri = applyPath;
                 const req = { uri, formData: { payload: JSON.stringify(apply) } };
                 const res = await request(req);
-                expect(res.response.statusCode).to.equal(HttpStatus.OK);
+                expect(res.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
                 expect(res.body).to.not.have.property('buildId');
             });
             it('should throw validation error of algorithm type cannot be changed', async () => {
@@ -789,7 +789,7 @@ describe('Store/Algorithms', () => {
                 const res2 = await request(options2);
                 expect(res1.body).to.have.property('buildId');
                 expect(res2.body).to.have.property('error');
-                expect(res2.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res2.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(res2.body.error.message).to.contain(`algorithm type cannot be changed from "${body1.type}" to "${body2.type}"`);
             });
             it('should throw validation error of maximum cpu capacity exceeded', async () => {
@@ -804,8 +804,8 @@ describe('Store/Algorithms', () => {
                     body: { payload: JSON.stringify(body) }
                 };
                 const res = await request(options);
-                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu(node1:15, node2:16, node3:17, node4:18)`);
+                expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu(node1: 15, node2: 16, node3: 17, node4: 18)`);
             });
             it('should throw validation error of maximum mem capacity exceeded', async () => {
                 const body = {
@@ -819,8 +819,8 @@ describe('Store/Algorithms', () => {
                     body: { payload: JSON.stringify(body) }
                 };
                 const res = await request(options);
-                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.eql(`maximum capacity exceeded mem(node1:40805, node2:50805, node3:60805, node4:70805)`);
+                expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded mem(node1: 40805, node2: 50805, node3: 60805, node4: 70805)`);
             });
             it('should throw validation error of maximum capacity exceeded all', async () => {
                 const body = {
@@ -834,8 +834,8 @@ describe('Store/Algorithms', () => {
                     body: { payload: JSON.stringify(body) }
                 };
                 const res = await request(options);
-                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu(node1:15, node2:16, node3:17, node4:18), mem(node1:40805, node2:50805, node3:60805, node4:70805), gpu(node1:0, node2:1, node3:2, node4:3)`);
+                expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu(node1: 15, node2: 16, node3: 17, node4: 18), mem(node1: 40805, node2: 50805, node3: 60805, node4: 70805), gpu(node1: 0, node2: 1, node3: 2, node4: 3)`);
             });
             it('should delete nullable properties', async () => {
                 const algorithmName = uuid();
@@ -923,7 +923,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('labels key must be a valid string');
             });
             it('should not throw validation error if empty label value', async () => {
@@ -955,7 +955,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('labels key name must be a valid string');
             });
             it('should throw validation error if invalid label key name', async () => {
@@ -972,7 +972,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.contains('labels key name must beginning and ending with an alphanumeric character with dashes');
             });
             it('should not throw validation error if empty label value', async () => {
@@ -1004,7 +1004,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.contains('labels value must beginning and ending with an alphanumeric character with dashes');
             });
             it('should throw validation error of invalid annotation key', async () => {
@@ -1021,7 +1021,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('annotations key must be a valid string');
             });
             it('should not throw validation error if empty annotation value', async () => {
@@ -1053,7 +1053,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('annotations key name must be a valid string');
             });
             it('should throw validation error if invalid annotation key name', async () => {
@@ -1070,7 +1070,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.contains('annotations key name must beginning and ending with an alphanumeric character with dashes');
             });
             it('should not throw validation error if empty annotation value', async () => {
@@ -1103,7 +1103,7 @@ describe('Store/Algorithms', () => {
                     body: { payload }
                 };
                 const res = await request(options);
-                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(res.body.error.message).to.equal(`data.gitRepository should have required property 'url'`);
             });
             it('should throw error of match format url', async () => {
@@ -1121,7 +1121,7 @@ describe('Store/Algorithms', () => {
                     body: { payload }
                 };
                 const res = await request(options);
-                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(res.body.error.message).to.equal(`data.gitRepository.url should match format "url"`);
             });
             it('should throw error of url not found', async () => {
@@ -1139,7 +1139,7 @@ describe('Store/Algorithms', () => {
                     body: { payload }
                 };
                 const res = await request(options);
-                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(res.body.error.message).to.equal(`invalid url 'http://no_such_url'`);
             });
             it('should throw error of branch not found', async () => {
@@ -1158,7 +1158,7 @@ describe('Store/Algorithms', () => {
                     body: { payload }
                 };
                 const res = await request(options);
-                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(res.body.error.message).to.equal(`invalid url 'http://no_such_url'`);
             });
             it('should throw error of git repository is empty', async () => {
@@ -1177,7 +1177,7 @@ describe('Store/Algorithms', () => {
                     body: { payload }
                 };
                 const res = await request(options);
-                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(res.body.error.message).to.equal(`Git Repository is empty (${url})`);
             });
             it('should apply twice and create one build', async () => {
@@ -1329,7 +1329,7 @@ describe('Store/Algorithms', () => {
                     formData
                 };
                 const response = await request(options);
-                expect(response.response.statusCode).to.equal(HttpStatus.OK);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
                 expect(response.body).to.have.property('buildId');
                 expect(response.body).to.have.property('messages');
                 expect(response.body.messages[0]).to.equal(MESSAGES.FIRST_BUILD);
@@ -1377,7 +1377,7 @@ describe('Store/Algorithms', () => {
                 };
                 await request(options1);
                 const response = await request(options2);
-                expect(response.response.statusCode).to.equal(HttpStatus.OK);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
                 expect(response.body).to.not.have.property('buildId');
                 expect(response.body.messages[0]).to.equal(MESSAGES.NO_TRIGGER_FOR_BUILD);
             });
@@ -1470,7 +1470,7 @@ describe('Store/Algorithms', () => {
                 await request(options1);
 
                 const response = await request(options2);
-                expect(response.response.statusCode).to.equal(HttpStatus.OK);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
                 expect(response.body).to.have.property('buildId');
                 expect(response.body.messages[0]).to.contains('a build was triggered due to change in env');
             });
@@ -1591,7 +1591,7 @@ describe('Store/Algorithms', () => {
                 };
                 await request(options1);
                 const response = await request(options2);
-                expect(response.response.statusCode).to.equal(HttpStatus.OK);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
                 expect(response.body).to.not.have.property('buildId');
             });
             it('should succeed to apply algorithm with force build', async () => {
@@ -2222,7 +2222,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
         });
         it('should succeed to update algorithm', async () => {
@@ -2245,7 +2245,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
         });
         it('should succeed to update algorithm image', async () => {

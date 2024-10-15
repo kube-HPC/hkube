@@ -410,6 +410,8 @@ describe('Store/Pipelines', () => {
             });
             const actual = storedPipeline.body;
             delete actual.modified;
+            expect(actual).to.have.property('version');
+            delete actual.version;
             expect(actual).to.eql(pipeline);
         });
         it('should succeed to store pipeline and add defaults', async () => {

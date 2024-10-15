@@ -1,3 +1,4 @@
+const isEqual = require('lodash.isequal');
 const graphlib = require('graphlib');
 const { pipelineTypes } = require('@hkube/consts');
 const { NodesMap } = require('@hkube/dag');
@@ -7,22 +8,29 @@ const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors');
 const pipelineCreator = require('./pipeline-creator');
 const graphBuilder = require('../utils/graph-builder');
+const versionsService = require('./pipeline-versions');
+
 class PipelineService {
     async updatePipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
-        await this.getPipeline(options);
+        const oldPipeLine = await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
         validator.gateways.validateGatewayNodes(options.nodes);
         const newPipeline = {
             modified: Date.now(),
             ...options,
         };
+        const hasDiff = this._comparePipelines(newPipeline, oldPipeLine);
+        const newVersion = await this._versioning(hasDiff, newPipeline);
+        if (newVersion) {
+            newPipeline.version = newVersion;
+        }
         await stateManager.replacePipeline(newPipeline);
         return options;
     }
 
     async deletePipeline(options) {
-        const { name } = options;
+        const { name, keepOldVersions } = options;
         validator.pipelines.validatePipelineName(name);
         await this.getPipeline(options);
         let summary = `pipeline ${name} successfully deleted from store`;
@@ -31,7 +39,7 @@ class PipelineService {
             const stopped = result.filter(r => r.status === 'fulfilled');
             summary += `, stopped related running pipelines ${stopped.length}/${result.length}`;
         }
-        await stateManager.deletePipeline({ name });
+        await stateManager.deletePipeline({ name, keepOldVersions });
         return summary;
     }
 
@@ -233,8 +241,25 @@ class PipelineService {
             modified: Date.now(),
             ...options,
         };
+        const version = await this._versioning(true, newPipeline);
+        newPipeline.version = version;
         await stateManager.insertPipeline(newPipeline);
         return options;
+    }
+
+    _comparePipelines(oldPipeline, newPipeline) {
+        if (!oldPipeline) {
+            return true;
+        }
+        return !isEqual(oldPipeline, newPipeline);
+    }
+
+    async _versioning(hasDiff, pipeline) {
+        let version;
+        if (hasDiff) {
+            version = await versionsService.createVersion(pipeline);
+        }
+        return version;
     }
 }
 module.exports = new PipelineService();

@@ -21,7 +21,7 @@ describe('ReadMe', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`readme ${pipelines[0].name} Not Found`);
         });
         it('should success to insert readme', async () => {
@@ -36,7 +36,7 @@ describe('ReadMe', () => {
             };
             const response1 = await request(options1);
             expect(response1.body).to.eql({ message: 'OK' });
-            expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response1.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
 
             const options2 = {
                 uri,
@@ -62,7 +62,7 @@ describe('ReadMe', () => {
             };
             const response1 = await request(insert);
             expect(response1.body).to.eql({ message: 'OK' });
-            expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response1.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
 
             const put = {
                 uri,
@@ -71,7 +71,7 @@ describe('ReadMe', () => {
             };
             const response2 = await request(put);
             expect(response2.body).to.eql({ message: 'OK' });
-            expect(response2.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response2.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
 
             const get = {
                 uri,
@@ -94,7 +94,7 @@ describe('ReadMe', () => {
             };
             const response1 = await request(insert);
             expect(response1.body).to.eql({ message: 'OK' });
-            expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response1.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
 
             const options2 = {
                 uri,
@@ -110,7 +110,7 @@ describe('ReadMe', () => {
             };
             const response3 = await request(get);
             expect(response3.body).to.have.property('error');
-            expect(response3.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response3.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response3.body.error.message).to.equal(`readme ${pipelines[0].name} Not Found`);
         });
     });
@@ -126,7 +126,7 @@ describe('ReadMe', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`readme ${algorithms[0].name} Not Found`);
         });
         it('should success to insert readme', async () => {
@@ -141,7 +141,7 @@ describe('ReadMe', () => {
             };
             const response1 = await request(options1);
             expect(response1.body).to.eql({ message: 'OK' });
-            expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response1.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
 
             const options2 = {
                 uri,
@@ -167,7 +167,7 @@ describe('ReadMe', () => {
             };
             const response1 = await request(insert);
             expect(response1.body).to.eql({ message: 'OK' });
-            expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response1.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
 
             const put = {
                 uri,
@@ -176,7 +176,7 @@ describe('ReadMe', () => {
             };
             const response2 = await request(put);
             expect(response2.body).to.eql({ message: 'OK' });
-            expect(response2.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response2.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
 
             const get = {
                 uri,
@@ -199,7 +199,7 @@ describe('ReadMe', () => {
             };
             const response1 = await request(insert);
             expect(response1.body).to.eql({ message: 'OK' });
-            expect(response1.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response1.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
 
             const options2 = {
                 uri,
@@ -215,7 +215,7 @@ describe('ReadMe', () => {
             };
             const response3 = await request(get);
             expect(response3.body).to.have.property('error');
-            expect(response3.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response3.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response3.body.error.message).to.equal(`readme ${algorithms[0].name} Not Found`);
         });
     });

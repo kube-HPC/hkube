@@ -19,7 +19,7 @@ describe('Executions', () => {
                 body: {}
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'jobId'");
         });
         it('should throw validation error of jobId Not Found', async () => {
@@ -28,7 +28,7 @@ describe('Executions', () => {
                 body: { jobId: 'no_such_id' }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('jobId no_such_id Not Found');
         });
         it('should not succeed to pause completed pipeline', async () => {
@@ -43,7 +43,7 @@ describe('Executions', () => {
             await stateManager.updateJobStatus({ jobId, status });
             await stateManager.updateJobResult({ jobId, status });
             const response = await request({ uri: restPath, body: { jobId } });
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal(`unable to pause pipeline ${pipeline} because its in ${status} status`);
         });
         it('should succeed to pause', async () => {

@@ -88,9 +88,9 @@ describe('Common', () => {
                     body: {}
                 };
                 const response = await request(options);
-                if (response.body.error && response.body.error.code === HttpStatus.METHOD_NOT_ALLOWED) {
+                if (response.body.error && response.body.error.code === HttpStatus.StatusCodes.METHOD_NOT_ALLOWED) {
                     expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(HttpStatus.METHOD_NOT_ALLOWED);
+                    expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.METHOD_NOT_ALLOWED);
                     expect(response.body.error.message).to.equal('Method Not Allowed');
                 }
             });
@@ -118,9 +118,9 @@ describe('Common', () => {
                     }
                 };
                 const response = await request(options);
-                if (response.body.error && response.body.error.code === HttpStatus.BAD_REQUEST) {
+                if (response.body.error && response.body.error.code === HttpStatus.StatusCodes.BAD_REQUEST) {
                     expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                    expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 }
             });
         });

@@ -2,7 +2,7 @@ const { nodeKind, buildTypes } = require('@hkube/consts');
 const { InvalidDataError } = require('../errors');
 const stateManager = require('../state/state-manager');
 const AlgorithmBase = require('./algorithmBase');
-const versionsService = require('./versions');
+const versionsService = require('./algorithm-versions');
 
 class Debug extends AlgorithmBase {
     init(config) {

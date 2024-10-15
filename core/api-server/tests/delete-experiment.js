@@ -21,7 +21,7 @@ describe('Experiment', () => {
                 method: 'DELETE'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('main experiment cannot be deleted');
         });
         it('should get experiment list', async () => {

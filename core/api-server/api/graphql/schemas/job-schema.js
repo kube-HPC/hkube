@@ -59,6 +59,7 @@ const jobTypeDefs = gql`
     nodeName: String
     algorithmName: String
     algorithmVersion: String
+    devMode: Boolean
     taskId: String
     podName: String
     status: String

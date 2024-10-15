@@ -57,7 +57,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('prefix no_such_prefix Not Found');
         });
         it('should return two prefixes', async () => {
@@ -96,7 +96,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
         });
     });
     describe('/keys/:path', () => {
@@ -110,7 +110,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal('key no_such_key Not Found');
         });
         it('should not return specific keys', async () => {
@@ -120,7 +120,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
         });
         it('should return zero keys', async () => {
             const options = {
@@ -174,7 +174,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`value ${value} Not Found`);
         });
         it('should return specific value', async () => {
@@ -199,7 +199,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`stream ${value} Not Found`);
         });
         it('should return specific stream', async () => {
@@ -209,7 +209,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
         });
     });
     describe('/stream/custom:path', () => {
@@ -224,7 +224,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`stream ${value} Not Found`);
         });
         it('should stream with custom encode: false and value: null', async () => {
@@ -320,7 +320,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`stream ${value} Not Found`);
         });
         it('should return specific download', async () => {
@@ -330,7 +330,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
         });
     });
     describe('/download/custom/:path', () => {
@@ -345,7 +345,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(response.body.error.message).to.equal(`stream ${value} Not Found`);
         });
         it('should download with file extension', async () => {
@@ -469,7 +469,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
             expect(response.response.headers['content-disposition']).to.contains("attachment; filename=hkube-result");
             expect(response.response.headers['content-disposition']).to.contains(".zip");
             expect(response.body).to.contains('metadata.json');

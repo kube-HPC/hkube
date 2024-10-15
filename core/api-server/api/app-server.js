@@ -17,7 +17,7 @@ class AppServer {
             const error = data.error || data.message || {};
             const { route, jobId, pipelineName } = (data.res && data.res._internalMetadata) || {};
             const status = data.status || data.code;
-            if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+            if (status >= HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR) {
                 log.error(`Error response, status=${status}, message=${error}`, { component, route, jobId, pipelineName, httpStatus: status });
             }
             else {

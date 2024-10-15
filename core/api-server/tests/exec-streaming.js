@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { StatusCodes: HttpStatus } = require('http-status-codes');
+const HttpStatus = require('http-status-codes');
 const { uid } = require('@hkube/uid');
 const { request } = require('./utils');
 const gatewayService = require('../lib/service/gateway');
@@ -53,7 +53,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('please specify a stream flow');
         });
         it('should throw specify a stream flow', async () => {
@@ -69,7 +69,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('please specify a stream flow');
         });
         it('should throw invalid node in stream flow', async () => {
@@ -87,7 +87,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('invalid node Z in stream flow analyze');
         });
         it('should throw invalid stream flow', async () => {
@@ -105,7 +105,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('invalid stream flow analyze');
         });
         it('should throw not valid flow', async () => {
@@ -123,7 +123,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('stream flow analyze should have valid flow, example: A >> B');
         });
         it('should throw not valid flow format', async () => {
@@ -141,7 +141,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('stream flow analyze should have valid flow, example: A >> B');
         });
         it('should throw stream flow only allowed in stream pipeline', async () => {
@@ -159,7 +159,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('streaming flow is only allowed in stream pipeline');
         });
         it('should throw specify default stream flow', async () => {
@@ -178,7 +178,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('please specify a default stream flow');
         });
         it('should throw duplicate flow relation found', async () => {
@@ -196,7 +196,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('duplicate relation found A >> B in flow analyze');
         });
         it('should throw invalid relation found', async () => {
@@ -214,7 +214,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('invalid relation found A >> A in flow analyze');
         });
         it('should throw invalid node name', async () => {
@@ -232,7 +232,7 @@ describe('Streaming', () => {
                 }
             };
             const res = await request(options);
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('invalid node name after A');
         });
         it('should succeed to execute with multi nodes', async () => {
@@ -360,7 +360,7 @@ describe('Streaming', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('node "E" does not belong to any flow');
         });
         it('should not throw invalid relation found', async () => {
@@ -472,7 +472,7 @@ describe('Streaming', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal('entry node "A" cannot be stateless on stream pipeline');
         });
         it('should succeed to run stored streaming', async () => {
@@ -518,7 +518,7 @@ describe('Streaming', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.contain(`gateway ${name}-gateway already exists`);
         });
         it('should insert two gateway nodes', async () => {
@@ -641,7 +641,7 @@ describe('Streaming', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.eq('Gateway node A stateType must be "stateful". Got stateless');
         });
         it('should insert gateway without spec', async () => {
@@ -706,7 +706,7 @@ describe('Streaming', () => {
             expect(res1.body.gatewayName).to.eql(gatewayName);
             await gatewayService.deleteAlgorithms({ jobId: res.body.jobId });
             const res2 = await request({ uri: `${restUrl}/gateway/${gatewayName}`, method: 'GET' });
-            expect(res2.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(res2.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(res2.body.error.message).to.contain(`gateway ${gatewayName} Not Found`);
         });
         it('should insert gateway with full spec', async () => {
@@ -849,7 +849,7 @@ describe('Streaming', () => {
                 body: pipeline
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(response.body).to.deep.equal(pipeline);
         });
     });
