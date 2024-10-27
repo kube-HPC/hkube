@@ -791,7 +791,7 @@ describe('Streaming', () => {
 
             expect(metrics.map(t => t.source).sort()).to.eql(['A', 'B', 'C']);
             expect(metrics).to.have.lengthOf(3);
-        }).timeout(1000000000000000);
+        });
         it('should start and finish correctly', async () => {
             expect(streamService._jobData).to.be.not.null;
             expect(streamService._election).to.be.not.null;
