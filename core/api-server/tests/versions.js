@@ -63,7 +63,7 @@ describe('Versions/Algorithms', () => {
             const res = await request(deleteReq);
 
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('unable to remove used version');
         });
         it('should succeed to delete specific version', async () => {
@@ -97,7 +97,7 @@ describe('Versions/Algorithms', () => {
             const req = { uri: `${restPath}/apply`, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should throw validation error of required property version', async () => {
@@ -107,7 +107,7 @@ describe('Versions/Algorithms', () => {
             const req = { uri: `${restPath}/apply`, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal("data should have required property 'version'");
         });
         it('should throw validation error of data.name should be string', async () => {
@@ -117,7 +117,7 @@ describe('Versions/Algorithms', () => {
             const req = { uri: `${restPath}/apply`, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('data.name should be string');
         });
         it('should throw validation error of data.version should be string', async () => {
@@ -128,7 +128,7 @@ describe('Versions/Algorithms', () => {
             const req = { uri: `${restPath}/apply`, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('data.version should be string');
         });
         it('should throw validation error of algorithm Not Found', async () => {
@@ -139,7 +139,7 @@ describe('Versions/Algorithms', () => {
             const req = { uri: `${restPath}/apply`, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(res.body.error.message).to.equal(`algorithm ${body.name} Not Found`);
         });
         it('should throw error of running pipelines dependent on algorithm', async () => {
@@ -169,7 +169,7 @@ describe('Versions/Algorithms', () => {
             await request(exeRawPayload);
             const res2 = await request(versionReq);
             expect(res2.body).to.have.property('error');
-            expect(res2.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res2.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res2.body.error.message).to.equal(`there are 1 running pipelines which dependent on "${name}" algorithm`);
         });
         it('should not throw error of running pipelines dependent on algorithm', async () => {
@@ -238,7 +238,7 @@ describe('Versions/Algorithms', () => {
             const req = { uri, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should throw validation error of required property version', async () => {
@@ -248,7 +248,7 @@ describe('Versions/Algorithms', () => {
             const req = { uri, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal("data should have required property 'version'");
         });
         it('should throw validation error of data.name should be string', async () => {
@@ -258,7 +258,7 @@ describe('Versions/Algorithms', () => {
             const req = { uri, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('data.name should be string');
         });
         it('should throw validation error of data.version should be string', async () => {
@@ -269,7 +269,7 @@ describe('Versions/Algorithms', () => {
             const req = { uri, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(res.body.error.message).to.equal('data.version should be string');
         });
         it('should throw validation error of algorithm Not Found', async () => {
@@ -280,7 +280,7 @@ describe('Versions/Algorithms', () => {
             const req = { uri, body };
             const res = await request(req);
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(res.body.error.message).to.equal(`algorithm ${body.name} Not Found`);
         });
         it('should throw validation error of version Not Found', async () => {
@@ -289,7 +289,7 @@ describe('Versions/Algorithms', () => {
             await request({ uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify({ name, algorithmImage }) } });
             const res = await request({ uri, body: { version: 'no-such', name } });
             expect(res.body).to.have.property('error');
-            expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
             expect(res.body.error.message).to.equal(`version no-such Not Found`);
         });
         it('should succeed to add tags to version', async () => {

@@ -152,33 +152,52 @@ class StateManager extends EventEmitter {
         return algorithmsMap;
     }
 
-    // Versions
-    async createVersions(list) {
+    // Versions of algorithms and pipelines
+    async createVersions(list, isPipeline = false) {
+        if (isPipeline) {
+            return this._db.pipelines.versions.createMany(list);
+        }
         return this._db.algorithms.versions.createMany(list);
     }
 
-    async getVersion(version) {
+    async getVersion(version, isPipeline = false) {
+        if (isPipeline) {
+            return this._db.pipelines.versions.fetch(version);
+        }
         return this._db.algorithms.versions.fetch(version);
     }
 
-    async getVersions({ name, limit, fields }) {
-        return this._db.algorithms.versions.search({
+    async getVersions({ name, limit, fields }, isPipeline = false) {
+        const argument = {
             name,
             sort: { created: 'desc' },
             limit,
             fields
-        });
+        };
+        if (isPipeline) {
+            return this._db.pipelines.versions.search(argument);
+        }
+        return this._db.algorithms.versions.search(argument);
     }
 
-    async updateVersion(version) {
+    async updateVersion(version, isPipeline = false) {
+        if (isPipeline) {
+            return this._db.pipelines.versions.update(version);
+        }
         return this._db.algorithms.versions.update(version);
     }
 
-    async deleteVersion(version) {
+    async deleteVersion(version, isPipeline = false) {
+        if (isPipeline) {
+            return this._db.pipelines.versions.delete(version);
+        }
         return this._db.algorithms.versions.delete(version);
     }
 
-    async createVersion(version) {
+    async createVersion(version, isPipeline = false) {
+        if (isPipeline) {
+            return this._db.pipelines.versions.create(version);
+        }
         return this._db.algorithms.versions.create(version);
     }
 
@@ -247,8 +266,8 @@ class StateManager extends EventEmitter {
         return this._db.pipelines.replace(options);
     }
 
-    async deletePipeline({ name }) {
-        return this._db.pipelines.delete({ name });
+    async deletePipeline({ name, keepOldVersions }) {
+        return this._db.pipelines.delete({ name, keepOldVersions });
     }
 
     async getPipeline(options) {

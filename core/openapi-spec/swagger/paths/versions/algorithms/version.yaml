@@ -1,0 +1,54 @@
+get:
+  tags:
+    - Algorithm Versions
+  summary: Get algorithm versions
+  description: returns list of algorithm versions.
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name
+      required: true
+      schema:
+        $ref: "#/components/schemas/algorithmName"
+    - name: sort
+      in: query
+      description: sort by asc or desc
+      schema:
+        type: string
+    - name: order
+      in: query
+      description: order by
+      schema:
+        type: string
+    - name: limit
+      in: query
+      description: limit
+      schema:
+        type: integer
+  responses:
+    "200":
+      description: action summary
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/algorithm"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: algorithm Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

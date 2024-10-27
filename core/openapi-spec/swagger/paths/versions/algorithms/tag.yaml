@@ -1,6 +1,6 @@
 post:
   tags:
-    - Versions
+    - Algorithm Versions
   summary: Tag algorithm version
   description: Tag algorithm version with pinned and tags
   requestBody:

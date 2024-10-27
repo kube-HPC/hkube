@@ -74,7 +74,7 @@ class ApiValidator {
         });
         const maxCapacity = Object.entries(maxCapacityMap).map(([resourceType, nodeData]) => {
             const nodeDetails = Object.entries(nodeData)
-                .map(([nodeIndex, capacity]) => `node${+nodeIndex + 1}:${capacity}`)
+                .map(([nodeIndex, capacity]) => `node${+nodeIndex + 1}: ${capacity}`)
                 .join(', ');
             return `${resourceType}(${nodeDetails})`;
         });

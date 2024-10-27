@@ -50,7 +50,7 @@ describe('Search', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data.limit should be <= 100");
         });
         it('GET: should succeed to search jobs', async () => {

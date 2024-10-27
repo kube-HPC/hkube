@@ -4,7 +4,7 @@ class ActionNotAllowed extends Error {
     constructor(message, details) {
         super(message);
         this.details = details;
-        this.status = HttpStatus.BAD_REQUEST;
+        this.status = HttpStatus.StatusCodes.BAD_REQUEST;
     }
 }
 
