@@ -58,24 +58,24 @@ class Scaler {
             return;
         }
 
-        let pendingUp = false;
+        // let pendingUp = false;
         this._status = SCALE_STATUS.IDLE;
         const unScheduledAlgorithm = await this._getUnScheduledAlgorithm();
 
         if (unScheduledAlgorithm) {
             this._status = `${SCALE_STATUS.UNABLE_SCALE} ${unScheduledAlgorithm.message}`;
-            pendingUp = true;
+            // pendingUp = true;
         }
         else {
             const queue = await this._getQueue();
             if (queue) {
                 this._status = SCALE_STATUS.PENDING_QUEUE;
-                pendingUp = true;
+                // pendingUp = true;
             }
         }
 
         const currentSize = this._getCurrentSize();
-        const shouldScaleUp = pendingUp ? false : this._shouldScaleUp(currentSize);
+        const shouldScaleUp = this._shouldScaleUp(currentSize);
         const shouldScaleDown = this._shouldScaleDown(currentSize);
 
         if (shouldScaleUp) {
