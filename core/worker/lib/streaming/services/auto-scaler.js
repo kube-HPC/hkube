@@ -386,7 +386,7 @@ class AutoScaler {
             return null;
         }
         this._logScaling({ action: 'up', ...scale });
-        const { replicas } = scale;
+        const { scaleTo } = scale;
         const tasks = [];
         const parse = {
             flowInputMetadata: this._options.pipeline.flowInputMetadata,
@@ -394,7 +394,7 @@ class AutoScaler {
             ignoreParentResult: true
         };
         const result = parser.parse(parse);
-        for (let i = 0; i < replicas; i += 1) {
+        for (let i = 0; i < scaleTo; i += 1) {
             const taskId = producer.createTaskID();
             const task = { taskId, input: result.input, storage: result.storage, batchIndex: i + 1 };
             tasks.push(task);
