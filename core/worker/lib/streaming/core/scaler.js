@@ -120,7 +120,7 @@ class Scaler {
 
     _shouldScaleUp(currentSize) {
         let shouldScaleUp = false;
-        if (currentSize < this._required && this._desired <= this._required
+        if (currentSize < this._required && this._desired < this._required
             && (!this._lastScaleDownTime || Date.now() - this._lastScaleDownTime > this._minTimeBetweenScales)) {
             if (this._desired <= currentSize) {
                 shouldScaleUp = true;
