@@ -59,8 +59,6 @@ class AutoScaler {
         this._statistics = new Statistics(this._config, this._onSourceRemove);
 
         if (!this._isStateful) {
-            // this._queueSizeTime = new TimeMarker(this._config.scaleDown.minTimeQueueEmptyBeforeScaleDown);
-            // this._timeForDown = new TimeMarker(this._config.scaleDown.minTimeIdleBeforeReplicaDown);
             this._scaler?.stop();
             let conf = this._config;
             if (this._options.node.kind === nodeKind.Debug) {
@@ -138,7 +136,6 @@ class AutoScaler {
             resRate: 0,
             queueSize: 0,
             avgQueueSize: [],
-            // durationsRate: [],
             windowSize: [],
             totalRequests: 0,
             totalResponses: 0,
@@ -192,9 +189,6 @@ class AutoScaler {
             totals.totalResponses += totalResponses;
             totals.windowSize.push(avgWindowSize);
 
-            // if (durationsRate) {
-            //     totals.durationsRate.push(durationsRate);
-            // }
             if (roundTripTimeMs) {
                 totals.roundTripTimeMs.push(roundTripTimeMs);
             }
@@ -209,8 +203,6 @@ class AutoScaler {
         const newScaleStats = currentSize > 0 && !hasMaxSizeWindow;
 
         if (!this._isStateful && !newScaleStats) {
-            // const avgQueueSize = Math.round(mean(totals.avgQueueSize));
-            // const durationsRate = mean(totals.durationsRate);
             this._getScaleDetails({ ...totals, currentSize });
         }
         this._metrics = { metrics, uidMetrics };
@@ -336,50 +328,6 @@ class AutoScaler {
         const neededPods = Math.ceil((queueSize + reqRate * timeToComplete) / (timeToComplete * podRate));
         return neededPods;
     }
-
-    // _addExtraReplicas(requiredByDurationRate, requiredByQueueSize) {
-    //     const required = requiredByDurationRate + requiredByQueueSize;
-    //     const totalRequired = required + Math.ceil(required * this._config.scaleUp.replicasExtra);
-    //     return totalRequired;
-    // }
-
-    // _scaledQueueSize({ durationsRate, queueSize }) {
-    //     if (!queueSize) {
-    //         return 0;
-    //     }
-    //     if (!durationsRate) {
-    //         return this._config.scaleUp.replicasOnFirstScale;
-    //     }
-    //     const msgCleanUp = Math.ceil(durationsRate * this._config.scaleUp.minTimeToCleanUpQueue);
-    //     const requiredByQueueSize = Math.ceil(queueSize / msgCleanUp);
-    //     return requiredByQueueSize;
-    // }
-
-    // _markQueueSize(avgQueueSize) {
-    //     let canScaleDown = false;
-    //     if (avgQueueSize <= this._config.scaleDown.minQueueSizeBeforeScaleDown) {
-    //         const marker = this._queueSizeTime.mark();
-    //         canScaleDown = marker.result;
-    //     }
-    //     else {
-    //         this._queueSizeTime.unMark();
-    //     }
-    //     return canScaleDown;
-    // }
-
-    // _shouldIdleScaleDown({ reqRate, resRate }) {
-    //     let time;
-    //     let scale = false;
-    //     if (!reqRate && !resRate) {
-    //         const response = this._timeForDown.mark();
-    //         if (response.result) {
-    //             scale = true;
-    //             time = response.time;
-    //             this._timeForDown.unMark();
-    //         }
-    //     }
-    //     return { scale, time };
-    // }
 
     _scaleUp(scale) {
         if (!scale) {
