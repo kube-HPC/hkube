@@ -58,19 +58,16 @@ class Scaler {
             return;
         }
 
-        // let pendingUp = false;
         this._status = SCALE_STATUS.IDLE;
         const unScheduledAlgorithm = await this._getUnScheduledAlgorithm();
 
         if (unScheduledAlgorithm) {
             this._status = `${SCALE_STATUS.UNABLE_SCALE} ${unScheduledAlgorithm.message}`;
-            // pendingUp = true;
         }
         else {
             const queue = await this._getQueue();
             if (queue) {
                 this._status = SCALE_STATUS.PENDING_QUEUE;
-                // pendingUp = true;
             }
         }
 
