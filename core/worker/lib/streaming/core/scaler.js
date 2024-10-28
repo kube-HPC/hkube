@@ -91,6 +91,7 @@ class Scaler {
         if (shouldScaleDown) {
             const replicas = currentSize - this._required;
             const scaleTo = this._required;
+            log.info(`CYCLE: worker shouldScaleDown scaleTo: ${scaleTo}, replicas: ${replicas}, desired: ${this._desired}, currentSize: ${currentSize}`);
             this._desired = this._required;
             this._lastScaleDownTime = Date.now();
             this._status = SCALE_STATUS.SCALING_DOWN;
