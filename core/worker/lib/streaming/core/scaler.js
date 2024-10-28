@@ -143,11 +143,7 @@ class Scaler {
 
     _shouldScaleDown(currentSize) {
         let shouldScaleDown = false;
-        let limitScaleDown = false;
-        if (this._minStatelessCount > 0) {
-            limitScaleDown = (this._minStatelessCount >= this._required);
-        }
-        if (currentSize > this._required && !limitScaleDown
+        if (currentSize > this._required
             && (!this._lastScaleUpTime || Date.now() - this._lastScaleUpTime > this._minTimeBetweenScales)) {
             if (this._desired >= currentSize) {
                 shouldScaleDown = true;
