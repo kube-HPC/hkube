@@ -323,7 +323,7 @@ class AutoScaler {
         if (!roundTripTimeMs) {
             return this._config.scaleUp;
         }
-        const podRate = 1000 / roundTripTimeMs; // pod response rate per second
+        const podRate = 1000 / mean(roundTripTimeMs); // pod response rate per second
         const timeToComplete = this._config.scaleUp.minTimeToCleanUpQueue; // in secounds
         const neededPods = Math.ceil((queueSize + reqRate * timeToComplete) / (timeToComplete * podRate));
         return neededPods;
