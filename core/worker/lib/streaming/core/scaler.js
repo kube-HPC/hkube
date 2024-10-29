@@ -80,7 +80,7 @@ class Scaler {
             const replicas = Math.min(required, this._maxScaleUpReplicasPerTick);
             log.info(`CYCLE: worker shouldScaleUp required: ${required}, replicas: ${replicas}, desired: ${this._desired}, currentSize: ${currentSize}`);
             const scaleTo = replicas + currentSize;
-            this._desired = this._required;
+            this._desired += replicas;
             this._lastScaleUpTime = Date.now();
             this._status = SCALE_STATUS.SCALING_UP;
             this._scaleUp({ replicas, currentSize, scaleTo });
