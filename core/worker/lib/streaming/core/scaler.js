@@ -74,7 +74,7 @@ class Scaler {
 
         const currentSize = this._getCurrentSize();
         const shouldScaleUp = this._shouldScaleUp(currentSize);
-        const shouldScaleDown = this._isQueueEmpty && this._shouldScaleDown(currentSize);
+        const shouldScaleDown = this._shouldScaleDown(currentSize);
 
         if (shouldScaleUp) {
             const required = this._required - this._desired;
