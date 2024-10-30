@@ -135,7 +135,8 @@ class AutoScaler {
                 source: stat.source,
                 durations: newMaxWindowSize,
                 grossDurations: newMaxWindowSize,
-                queueDurations: newMaxWindowSize });
+                queueDurations: newMaxWindowSize
+            });
         });
 
         const totals = {
