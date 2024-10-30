@@ -129,6 +129,13 @@ class AutoScaler {
             });
             stats[source].windowSize.push(windowSize);
             stats[source].rates.push(rates);
+
+            const newMaxWindowSize = rates.resRate * 2;
+            this._statistics.updateMaxWindowSize({
+                source: stat.source,
+                durations: newMaxWindowSize,
+                grossDurations: newMaxWindowSize,
+                queueDurations: newMaxWindowSize });
         });
 
         const totals = {
