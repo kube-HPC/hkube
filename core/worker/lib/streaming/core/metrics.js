@@ -9,7 +9,7 @@ const _calcRate = (list) => {
     const last = list[list.length - 1];
 
     const log = Logger.GetLogFromContainer();
-    log.info(`STATISTICS: first value: ${first}, last value: ${last}`);
+    log.info(`STATISTICS: first value: ${first.count}, last value: ${last.count}, time diff: ${last.time - first.time} ms`);
 
     const timeDiff = (last.time - first.time) / 1000;
     const countDiff = last.count - first.count;
