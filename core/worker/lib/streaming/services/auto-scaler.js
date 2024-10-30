@@ -130,7 +130,7 @@ class AutoScaler {
             stats[source].windowSize.push(windowSize);
             stats[source].rates.push(rates);
 
-            const newMaxWindowSize = rates.resRate * 2;
+            const newMaxWindowSize = Math.ceil(rates.resRate * 2);
             this._statistics.updateMaxWindowSize({
                 source: stat.source,
                 durations: newMaxWindowSize,
