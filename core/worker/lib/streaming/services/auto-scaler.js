@@ -266,7 +266,7 @@ class AutoScaler {
             neededPods = this._capScaleByLimits(requiredByRoundTrip, this._limitActionType.both, 'Based on round trip and predicted queue size');
         }
         if (neededPods !== null) {
-            this._scaler.updateRequired(neededPods);
+            this._scaler.updateRequired(neededPods, queueSize === 0);
         }
     }
 

@@ -40,6 +40,7 @@ class Scaler {
         this._status = SCALE_STATUS.IDLE;
         this._startInterval();
         this._minStatelessCount = minStatelessCount;
+        this._isQueueEmpty = true;
     }
 
     stop() {
@@ -73,7 +74,7 @@ class Scaler {
 
         const currentSize = this._getCurrentSize();
         const shouldScaleUp = this._shouldScaleUp(currentSize);
-        const shouldScaleDown = this._shouldScaleDown(currentSize);
+        const shouldScaleDown = this._isQueueEmpty && this._shouldScaleDown(currentSize);
 
         if (shouldScaleUp) {
             const required = this._required - this._desired;
@@ -108,7 +109,8 @@ class Scaler {
         return this._status;
     }
 
-    updateRequired(required) {
+    updateRequired(required, isQueueEmpty) {
+        this._isQueueEmpty = isQueueEmpty;
         if (required !== this._required) {
             this._scale = true;
             this._required = Math.min(required, this._maxScaleUpReplicasPerNode);
