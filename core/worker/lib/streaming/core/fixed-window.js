@@ -11,8 +11,8 @@ class FixedWindow {
     }
 
     add(data) {
-        if (this._array.length >= this._maxSize) {
-            this._array.splice(0, this._array.length - this._maxSize + 1);
+        if (this._array.length === this._maxSize) {
+            this._array.shift();
         }
         this._array.push(data);
     }
