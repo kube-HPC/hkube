@@ -130,19 +130,6 @@ class AutoScaler {
             });
             stats[source].windowSize.push(windowSize);
             stats[source].rates.push(rates);
-            if (this._config.adirDebugUse.windowSizeChange) { // remove it when done, used for checking behaviours. (just if)
-                const newMaxWindowSize = Math.ceil(rates.resRate * 2);
-                this._statistics.updateMaxWindowSize({
-                    source: stat.source,
-                    durations: newMaxWindowSize,
-                    grossDurations: newMaxWindowSize,
-                    queueDurations: newMaxWindowSize
-                });
-                if (this.adirtemp) {
-                    log.info('window change is active');
-                    this.adirtemp = false;
-                }
-            }
         });
 
         const totals = {

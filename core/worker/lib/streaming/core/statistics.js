@@ -52,18 +52,6 @@ class Statistics {
         return stats;
     }
 
-    updateMaxWindowSize(data) {
-        const { source } = data;
-        const { requests, responses, durations, grossDurations, queueDurations } = data;
-        if (this._data[source]) {
-            this._data[source].requests.setMaxSize(requests);
-            this._data[source].responses.setMaxSize(responses);
-            this._data[source].durations.setMaxSize(durations);
-            this._data[source].grossDurations.setMaxSize(grossDurations);
-            this._data[source].queueDurations.setMaxSize(queueDurations);
-        }
-    }
-
     _createItem(count) {
         return { time: Date.now(), count };
     }

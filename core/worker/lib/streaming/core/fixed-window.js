@@ -7,7 +7,6 @@ class FixedWindow {
     constructor(maxSize) {
         this._array = [];
         this._maxSize = maxSize;
-        this._minSizeForMaxSize = maxSize;
     }
 
     add(data) {
@@ -21,12 +20,6 @@ class FixedWindow {
         if (array.length) {
             this._array.push(...array);
             this._array = this._array.slice(-this._maxSize);
-        }
-    }
-
-    setMaxSize(maxSize) {
-        if (maxSize) {
-            this._maxSize = Math.max(this._minSizeForMaxSize, maxSize);
         }
     }
 
