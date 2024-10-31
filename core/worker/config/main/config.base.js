@@ -38,7 +38,6 @@ config.streaming = {
             minTimeToCleanUpQueue: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_CLEAN_QUEUE, 30),
         },
         scaleDown: {
-            tolerance: formatters.parseInt(process.env.AUTO_SCALER_SCALE_DOWN_TOLERANCE, 0.4),
             minTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_DOWN, 60000),
             minTimeQueueEmptyBeforeScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_QUEUE_EMPTY, 60000),
         },
