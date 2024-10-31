@@ -44,6 +44,10 @@ config.streaming = {
         },
         scaleIntervention: {
             throttleMs: formatters.parseInt(process.env.SCALE_INTERVENTION_LOG_THROTTLE_TIME, 200)
+        },
+        adirDebugUse: { // remove it when done, used for checking behaviours.
+            windowSizeChange: true,
+            emptyQueueChange: true
         }
     },
     election: {
