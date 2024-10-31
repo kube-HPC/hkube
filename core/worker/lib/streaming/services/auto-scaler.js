@@ -328,7 +328,7 @@ class AutoScaler {
      */
     _roundTripReplicas(queueSize, roundTripTimeMs, reqRate) {
         if (!roundTripTimeMs) {
-            return this._config.scaleUp;
+            return this._config.scaleUp.replicasOnFirstScale;
         }
         const podRate = 1000 / mean(roundTripTimeMs); // pod response rate per second
         const timeToComplete = this._config.scaleUp.minTimeToCleanUpQueue; // in secounds
