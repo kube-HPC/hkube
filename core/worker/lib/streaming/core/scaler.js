@@ -42,6 +42,7 @@ class Scaler {
         this._minStatelessCount = minStatelessCount;
         this._isQueueEmpty = true;
         this._adirtemp = true; // remove it when done, used for checking behaviours.
+        this._adirEmptyQueueUsage = config.adirDebugUse.emptyQueueChange; // remove it when done, used for checking behaviours.
     }
 
     stop() {
@@ -77,7 +78,7 @@ class Scaler {
         const shouldScaleUp = this._shouldScaleUp(currentSize);
         // const shouldScaleDown = this._isQueueEmpty && this._shouldScaleDown(currentSize);
         let shouldScaleDown;
-        if (this._config.adirDebugUse.emptyQueueChange) { // remove when done checking
+        if (this._adirEmptyQueueUsage) { // remove when done checking
             if (this._adirtemp) {
                 log.info('queue empty check is active');
                 this._adirtemp = false;
