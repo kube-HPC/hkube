@@ -52,6 +52,7 @@ class AutoScaler {
         this._interventionLogCallTrack = { action: null, required: null, allowed: null, timeStamp: null };
         this._onSourceRemove = onSourceRemove;
         this.reset();
+        this.adirtemp = true; // remove used for logging temp
     }
 
     reset() {
@@ -137,6 +138,10 @@ class AutoScaler {
                     grossDurations: newMaxWindowSize,
                     queueDurations: newMaxWindowSize
                 });
+                if (this.adirtemp) {
+                    log.info('window change is active');
+                    this.adirtemp = false;
+                }
             }
         });
 
