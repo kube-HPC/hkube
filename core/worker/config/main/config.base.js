@@ -28,7 +28,7 @@ config.streaming = {
         minTimeBetweenScales: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_BETWEEN_SCALE, 30000),
         minTimeWaitBeforeRetryScale: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_BEFORE_RETRY, 60000),
         statistics: {
-            maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 30),
+            maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 10),
             minTimeNonStatsReport: formatters.parseInt(process.env.AUTO_SCALER_NON_STATS_REPORT, 10000),
         },
         scaleUp: {

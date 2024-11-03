@@ -660,7 +660,7 @@ describe('Streaming', () => {
             const maxSizeWindow = testParams.config.streaming.autoScaler.statistics.maxSizeWindow;
             expect(requests.items).to.have.lengthOf(maxSizeWindow);
             expect(responses.items).to.have.lengthOf(maxSizeWindow);
-            expect(durations.items).to.have.lengthOf(maxSizeWindow);
+            expect(durations.items).to.have.lengthOf(maxSizeWindow * 10);
         });
     });
     describe('metrics', () => {
