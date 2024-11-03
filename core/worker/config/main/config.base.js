@@ -39,11 +39,7 @@ config.streaming = {
         },
         scaleIntervention: {
             throttleMs: formatters.parseInt(process.env.SCALE_INTERVENTION_LOG_THROTTLE_TIME, 200)
-        },
-        adirDebugUse: { // Remove this section when debugging is complete.
-            emptyQueueChange: process.env.EMPTY_QUEUE_CHANGE === 'true'
         }
-        
     },
     election: {
         interval: formatters.parseInt(process.env.ELECTION_INTERVAL, 10000),
