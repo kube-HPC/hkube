@@ -182,9 +182,7 @@ class AutoScaler {
             };
             metrics.push(metric);
             totals.reqRate += reqRate;
-            totals.resRate += resRate;
             totals.queueSize += queueSize;
-            totals.avgQueueSize.push(avgQueueSize);
             totals.totalRequests += totalRequests;
             totals.totalResponses += totalResponses;
             totals.windowSize.push(avgWindowSize);
