@@ -14,7 +14,7 @@ class PipelineVersions {
     }
 
     async getVersions(options) {
-        validator.pipelines.validatePipelineName(options);
+        validator.pipelines.validatePipelineName(options.name);
         return versioning.getVersions(options, true);
     }
 
