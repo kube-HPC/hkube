@@ -23,7 +23,7 @@ class PipelineVersions {
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', name);
         }
-        const pipelineVersion = await versioning.getVersion({ version });
+        const pipelineVersion = await versioning.getVersion({ version }, true);
         if (!pipelineVersion) {
             throw new ResourceNotFoundError('version', version);
         }

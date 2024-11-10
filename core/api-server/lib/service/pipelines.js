@@ -244,7 +244,7 @@ class PipelineService {
         const version = await this._versioning(true, newPipeline);
         newPipeline.version = version;
         await stateManager.insertPipeline(newPipeline);
-        return options;
+        return newPipeline;
     }
 
     _comparePipelines(oldPipeline, newPipeline) {
