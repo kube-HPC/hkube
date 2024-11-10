@@ -17,7 +17,7 @@ class Versioning {
         const extractedObject = isPipeline ? object.pipeline : object.algorithm;
         const { name } = extractedObject;
         const version = uid({ length: SETTINGS.VERSION_LENGTH });
-        const latestSemver = await this.getLatestSemver({ name });
+        const latestSemver = await this.getLatestSemver({ name }, isPipeline);
         const semver = this.incSemver(latestSemver);
         const newVersion = {
             version,
