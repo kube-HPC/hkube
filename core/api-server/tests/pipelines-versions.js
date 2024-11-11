@@ -66,6 +66,7 @@ describe('Versions/Pipelines', () => {
             expect(semver).to.eql(['1.0.1', '1.0.0']);
             expect(oldVersion).to.be.not.equal(newVersion);
             expect(newVersion).to.be.equal(versionsList[0].version);
+            expect(versionsList[0].semver).to.be.equal('1.0.1');
         });
     });
 
