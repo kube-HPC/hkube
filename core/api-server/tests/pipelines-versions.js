@@ -21,7 +21,8 @@ describe('Versions/Pipelines', () => {
 
     const updatePipeline = async (pipeline) => {
         const updateRequest = { uri: `${restUrl}/store/pipelines`, method: 'PUT', body: pipeline };
-        await request(updateRequest);
+        const res = await request(updateRequest);
+        return res.body.version;
     }
 
     const getAllVersions = async (name) => {
@@ -54,15 +55,17 @@ describe('Versions/Pipelines', () => {
             expect(specificVersion).to.eql(version);
         });
         
-        it('should succeed to get versions', async () => {
-            const { name } = await addPipeline(pipeline);
+        it.only('should succeed to get versions and change version to latest', async () => {
+            const { name, version: oldVersion } = await addPipeline(pipeline);
             const pipeline2 = clone(pipeline);
             pipeline2.options.ttl = 6666;
-            await updatePipeline(pipeline2);
+            const newVersion = await updatePipeline(pipeline2);
             const versionsList = await getAllVersions(name)
             const semver = versionsList.map((v) => v.semver);
             expect(versionsList).to.have.lengthOf(2);
             expect(semver).to.eql(['1.0.1', '1.0.0']);
+            expect(oldVersion).to.be.not.equal(newVersion);
+            expect(newVersion).to.be.equal(versionsList[0].version);
         });
     });
 
