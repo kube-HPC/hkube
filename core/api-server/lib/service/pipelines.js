@@ -13,9 +13,9 @@ const versionsService = require('./pipeline-versions');
 class PipelineService {
     async updatePipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
-        const oldPipeLine = await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
         validator.gateways.validateGatewayNodes(options.nodes);
+        const oldPipeLine = await this.getPipeline(options);
         const newPipeline = {
             modified: Date.now(),
             ...options,
