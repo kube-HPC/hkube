@@ -1,7 +1,5 @@
 const { expect } = require('chai');
-const { StatusCodes } = require('http-status-codes');
 const clone = require('clone');
-const { pipelineStatuses, nodeKind } = require('@hkube/consts');
 const { uid: uuid } = require('@hkube/uid');
 const { pipelines: [pipeline] } = require('./mocks');
 const { request } = require('./utils');
@@ -97,11 +95,19 @@ describe.only('Versions/Pipelines', () => {
         });
     });
 
-    describe.skip('versions when pipeline is deleted', () => {
+    describe('versions when pipeline is deleted', () => {
         it('should return empty list after pipeline deleted', async () => {
             const { name } = await addPipeline(pipeline);
             await stateManager.deletePipeline({ name, keepOldVersions: false });
-            
-        })
+            const versionsList = await getAllVersions(name);
+            expect(versionsList).to.have.lengthOf(0);
+        });
+
+        it('should return the versions of the deleted pipeline', async () => {
+            const { name } = await addPipeline(pipeline);
+            await stateManager.deletePipeline({ name, keepOldVersions: true });
+            const versionsList = await getAllVersions(name);
+            expect(versionsList).to.have.lengthOf(1);
+        });
     });
 });
