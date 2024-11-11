@@ -10,6 +10,8 @@ module.exports = {
         streaming_edge_processingTimeMs: 'pipeline_driver_streaming_edge_processing_time',
         streaming_edge_resRate: 'pipeline_driver_streaming_edge_res_rate',
         streaming_edge_reqRate: 'pipeline_driver_streaming_edge_req_rate',
+        streaming_edge_roundTripTimeMs: 'pipeline_driver_streaming_edge_round_trip',
+        streaming_edge_required: 'pipeline_driver_streaming_edge_required',
 
         streaming_pods_per_node: 'pipeline_driver_streaming_pods_per_node',
     },
@@ -38,6 +40,14 @@ module.exports = {
             propName: 'reqRate',
             registerZeroValue: true
         },
+        round_trip: {
+            propName: 'roundTripTimeMs',
+            registerZeroValue: false
+        },
+        required: {
+            propName: 'required',
+            registerZeroValue: true
+        }
     },
     streamingGeneralMetricToPropMap: {
         pods_per_node: {
