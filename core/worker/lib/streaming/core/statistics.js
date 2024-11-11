@@ -58,11 +58,11 @@ class Statistics {
 
     _createStatData({ maxSize }) {
         return {
-            requests: new FixedWindow(maxSize),
+            requests: new FixedWindow(maxSize), // Brings one value every 2 seconds, meaning for a window_size of 10 we will consider reports of last 20 seconds.
             responses: new FixedWindow(maxSize),
-            durations: new FixedWindow(maxSize),
-            grossDurations: new FixedWindow(maxSize),
-            queueDurations: new FixedWindow(maxSize),
+            durations: new FixedWindow(maxSize * 10), // Brings window_size values every 2 seconds, so for a window_size multiplied by 10 we will consider values that occured in the last 20 seconds.
+            grossDurations: new FixedWindow(maxSize * 10),
+            queueDurations: new FixedWindow(maxSize * 10),
         };
     }
 }

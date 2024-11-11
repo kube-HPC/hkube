@@ -682,6 +682,15 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
                 required: 0
             };
         }
+        const _created = reconcileResult[algorithmName].created;
+        const _skipped = reconcileResult[algorithmName].skipped;
+        const { paused, resumed, required } = reconcileResult[algorithmName];
+        const total = _created + _skipped + paused + resumed + required;
+        if (total !== 0) {
+            log.info(`CYCLE: task-executor: algo: ${algorithmName} created: ${_created}, 
+                skipped: ${_skipped}, paused: ${paused}, 
+                resumed: ${resumed}, required: ${required}.`);
+        }
         reconcileResult[algorithmName].active = ws.count;
     });
     return reconcileResult;

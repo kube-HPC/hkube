@@ -40,6 +40,7 @@ class Scaler {
         this._status = SCALE_STATUS.IDLE;
         this._startInterval();
         this._minStatelessCount = minStatelessCount;
+        this._isQueueEmpty = true;
     }
 
     stop() {
@@ -58,31 +59,29 @@ class Scaler {
             return;
         }
 
-        let pendingUp = false;
         this._status = SCALE_STATUS.IDLE;
         const unScheduledAlgorithm = await this._getUnScheduledAlgorithm();
 
         if (unScheduledAlgorithm) {
             this._status = `${SCALE_STATUS.UNABLE_SCALE} ${unScheduledAlgorithm.message}`;
-            pendingUp = true;
         }
         else {
             const queue = await this._getQueue();
             if (queue) {
                 this._status = SCALE_STATUS.PENDING_QUEUE;
-                pendingUp = true;
             }
         }
 
         const currentSize = this._getCurrentSize();
-        const shouldScaleUp = pendingUp ? false : this._shouldScaleUp(currentSize);
-        const shouldScaleDown = this._shouldScaleDown(currentSize);
+        const shouldScaleUp = this._shouldScaleUp(currentSize);
+        const shouldScaleDown = this._isQueueEmpty && this._shouldScaleDown(currentSize);
 
         if (shouldScaleUp) {
-            const required = this._required - currentSize;
+            const required = this._required - this._desired;
             const replicas = Math.min(required, this._maxScaleUpReplicasPerTick);
+            log.info(`CYCLE: worker shouldScaleUp required: ${required}, replicas: ${replicas}, desired: ${this._desired}, currentSize: ${currentSize}`);
             const scaleTo = replicas + currentSize;
-            this._desired = this._required;
+            this._desired += replicas;
             this._lastScaleUpTime = Date.now();
             this._status = SCALE_STATUS.SCALING_UP;
             this._scaleUp({ replicas, currentSize, scaleTo });
@@ -90,6 +89,7 @@ class Scaler {
         if (shouldScaleDown) {
             const replicas = currentSize - this._required;
             const scaleTo = this._required;
+            log.info(`CYCLE: worker shouldScaleDown scaleTo: ${scaleTo}, replicas: ${replicas}, desired: ${this._desired}, currentSize: ${currentSize}`);
             this._desired = this._required;
             this._lastScaleDownTime = Date.now();
             this._status = SCALE_STATUS.SCALING_DOWN;
@@ -109,14 +109,17 @@ class Scaler {
         return this._status;
     }
 
-    updateRequired(required) {
-        this._scale = true;
-        this._required = Math.min(required, this._maxScaleUpReplicasPerNode);
+    updateRequired(required, isQueueEmpty) {
+        this._isQueueEmpty = isQueueEmpty;
+        if (required !== this._required) {
+            this._scale = true;
+            this._required = Math.min(required, this._maxScaleUpReplicasPerNode);
+        }
     }
 
     _shouldScaleUp(currentSize) {
         let shouldScaleUp = false;
-        if (currentSize < this._required
+        if (currentSize < this._required && this._desired < this._required
             && (!this._lastScaleDownTime || Date.now() - this._lastScaleDownTime > this._minTimeBetweenScales)) {
             if (this._desired <= currentSize) {
                 shouldScaleUp = true;
@@ -140,11 +143,7 @@ class Scaler {
 
     _shouldScaleDown(currentSize) {
         let shouldScaleDown = false;
-        let limitScaleDown = false;
-        if ((this.minStatelessCount > 0)) {
-            limitScaleDown = (this._minStatelessCount >= this._required);
-        }
-        if (currentSize > this._required && !limitScaleDown
+        if (currentSize > this._required
             && (!this._lastScaleUpTime || Date.now() - this._lastScaleUpTime > this._minTimeBetweenScales)) {
             if (this._desired >= currentSize) {
                 shouldScaleDown = true;
