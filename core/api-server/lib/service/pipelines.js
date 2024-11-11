@@ -26,7 +26,7 @@ class PipelineService {
             newPipeline.version = newVersion;
         }
         await stateManager.replacePipeline(newPipeline);
-        return options;
+        return newPipeline;
     }
 
     async deletePipeline(options) {

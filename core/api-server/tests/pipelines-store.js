@@ -743,6 +743,10 @@ describe('Store/Pipelines', () => {
                 body: pipeline
             };
             const response = await request(options);
+            expect(response.body).to.have.property('modified');
+            expect(response.body).to.have.property('version');
+            delete response.body.version;
+            delete response.body.modified;
             expect(response.body).to.deep.equal(pipeline);
         });
         it('should throw validation error if algorithmName not exists', async () => {
