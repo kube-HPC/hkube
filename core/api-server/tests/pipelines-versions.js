@@ -1,13 +1,14 @@
 const { expect } = require('chai');
 const clone = require('clone');
 const { uid: uuid } = require('@hkube/uid');
-const { pipelines: [pipeline] } = require('./mocks');
+const { pipelines } = require('./mocks');
 const { request } = require('./utils');
 const stateManager = require('../lib/state/state-manager');
 let restUrl, restPath;
 
-describe.only('Versions/Pipelines', () => {
-    const pipeList = [];
+
+describe('Versions/Pipelines', () => {
+    const pipeline = clone(pipelines[0]);
 
     const addPipeline = async (pipeline) => {
         const name = `pipe-test-${uuid()}`;
@@ -15,7 +16,6 @@ describe.only('Versions/Pipelines', () => {
         const addRequest = { uri: `${restUrl}/store/pipelines`, method: 'POST', body: pipeline };
         pipeline.name = name;
         const res = await request(addRequest);
-        pipeList.push(name);
         return { name, version: res.body.version };
     }
 
@@ -39,35 +39,6 @@ describe.only('Versions/Pipelines', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/versions/pipelines`;
-    });
-
-    beforeEach(function () {
-        console.log('\n-----------------------------------------------\n');
-    });
-
-    after(async function () {
-        this.timeout(2 * 60 * 1000);
-        console.log("pipeList = " + pipeList);
-        j = 0;
-        z = 3;
-
-        while (j < pipeList.length) {
-            delPipe = pipeList.slice(j, z);
-            const del = delPipe.map((e) => {
-                return stateManager.deletePipelines(delPipe);
-            })
-            console.log("delPipe-", JSON.stringify(delPipe, null, 2));
-            const delResult = await Promise.all(del);
-            delResult.forEach(result => {
-                if (result && result.text) {
-                    console.log("Delete Result Message:", result.text);
-                }
-            });
-            j += 3;
-            z += 3;
-            console.log("j=" + j + ",z=" + z);
-        }
-        console.log("----------------------- end -----------------------");
     });
 
     describe('get', () => {
