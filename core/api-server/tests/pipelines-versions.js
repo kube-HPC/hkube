@@ -55,7 +55,7 @@ describe('Versions/Pipelines', () => {
             expect(specificVersion).to.eql(version);
         });
         
-        it.only('should succeed to get versions and change version to latest', async () => {
+        it('should succeed to get versions and change version to latest', async () => {
             const { name, version: oldVersion } = await addPipeline(pipeline);
             const pipeline2 = clone(pipeline);
             pipeline2.options.ttl = 6666;
