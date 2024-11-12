@@ -58,6 +58,16 @@ class PipelineMetrics {
             description: 'Pod count per node',
             labels: ['pipelineName', 'jobId', 'node'],
         });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_roundTripTimeMs,
+            description: 'Round Trip in ms',
+            labels: ['pipelineName', 'jobId', 'source', 'target']
+        });
+        metrics.addGaugeMeasure({
+            name: metricsNames.streaming_edge_required,
+            description: 'Required Pods',
+            labels: ['pipelineName', 'jobId', 'source', 'target']
+        });
     }
 
     startMetrics(options) {
