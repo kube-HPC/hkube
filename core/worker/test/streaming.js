@@ -49,7 +49,7 @@ const createJob = (jobId) => {
         algorithmName: 'my-alg',
         pipelineName: 'my-pipe',
         parents: [],
-        childs: ['D','F', 'G'],
+        childs: ['D', 'E', 'F'],
     };
     return job;
 };
@@ -143,7 +143,7 @@ describe('Streaming', () => {
                 streamService.reportStats([data]);
             }
 
-            const nodeName = 'G';
+            const nodeName = 'E';
             const list = {
                 nodeName,
                 queueSize: 1,
@@ -156,8 +156,22 @@ describe('Streaming', () => {
             expect(required).to.be.equal(min, `required=${required}, suppose to be ${min}`);
         });
 
-        it.only('should init scale and a queue', async () => {
+        it('should init scale and not pass maximum requirement, when there is a queue', async () => {
+            const scale = async (data) => {
+                streamService.reportStats([data]);
+            }
 
+            const nodeName = 'F';
+            const list = {
+                nodeName,
+                queueSize: 1,
+                netDurations
+            };
+
+            await scale(list);
+            const { required } = autoScale(list.nodeName);
+            const max = pipeline.nodes.filter((node) => nodeName === node.nodeName)[0].maxStatelessCount;
+            expect(required).to.be.equal(max, `required=${required}, suppose to be ${max}`);
         });
 
         // it.only('should scale based on all params', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP (NOT GIVEN HERE)

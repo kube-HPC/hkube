@@ -9,7 +9,8 @@
                 "@flowInput.arraySize",
                 "@flowInput.bufferSize"
             ],
-            "stateType": "stateful"
+            "stateType": "stateful",
+            "maxStatelessCount": 0
         },
         {
             "nodeName": "B",
@@ -39,22 +40,16 @@
             "nodeName": "E",
             "algorithmName": "eval-alg",
             "input": [],
-            "stateType": "stateless"
+            "stateType": "stateless",
+            "minStatelessCount": 3
         },
         {
             "nodeName": "F",
             "algorithmName": "eval-alg",
             "input": [],
             "stateType": "stateless",
-            "maxStatelessCount": 3,
-            "minStatelessCount": 1
-        },
-        {
-            "nodeName": "G",
-            "algorithmName": "eval-alg",
-            "input": [],
-            "stateType": "stateless",
-            "minStatelessCount": 3
+            "minStatelessCount": 3,
+            "maxStatelessCount": 2
         }
     ],
     "edges": [
