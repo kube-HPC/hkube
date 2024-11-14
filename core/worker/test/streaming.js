@@ -6,82 +6,8 @@ const streamHandler = require('../lib/streaming/services/stream-handler');
 const streamService = require('../lib/streaming/services/stream-service');
 const discovery = require('../lib/streaming/services/service-discovery');
 const SlaveAdapter = require('../lib/streaming/adapters/slave-adapter');
+const pipeline = require('./mocks/pipeline.json');
 const SEC = 1000;
-
-const pipeline = {
-    name: "stream",
-    kind: "stream",
-    nodes: [
-        {
-            nodeName: "A",
-            algorithmName: "eval-alg",
-            input: [
-                "@flowInput.arraySize",
-                "@flowInput.bufferSize"
-            ],
-            stateType: "stateful"
-        },
-        {
-            nodeName: "B",
-            algorithmName: "eval-alg",
-            input: [
-                "@flowInput.arraySize",
-                "@flowInput.bufferSize"
-            ],
-            stateType: "stateful"
-        },
-        {
-            nodeName: "C",
-            algorithmName: "eval-alg",
-            input: [
-                "@flowInput.arraySize",
-                "@flowInput.bufferSize"
-            ],
-            stateType: "stateful"
-        },
-        {
-            nodeName: "D",
-            algorithmName: "eval-alg",
-            input: [],
-            stateType: "stateless"
-        },
-        {
-            nodeName: "E",
-            algorithmName: "eval-alg",
-            input: [],
-            stateType: "stateless"
-        },
-        {
-            nodeName: "F",
-            algorithmName: "eval-alg",
-            input: [],
-            stateType: "stateless",
-            maxStatelessCount: 3,
-            minStatelessCount: 1
-        }
-    ],
-    edges: [
-        { source: "A", target: "D" },
-        { source: "B", target: "D" },
-        { source: "C", target: "D" },
-        { source: "A", target: "E" },
-        { source: "B", target: "E" },
-        { source: "C", target: "F" }
-    ],
-    flowInputMetadata: {
-        metadata: {
-            "flowInput.arraySize": {
-                "type": "number"
-            },
-            "flowInput.bufferSize": {
-                "type": "number"
-            }
-        },
-        storageInfo: {
-            "path": "local-hkube/main:streaming:9dy12jfh/main:streaming:9dy12jfh"
-        }
-    }
-}
 
 const streamingDiscovery = {
     host: process.env.POD_IP || '127.0.0.1',
