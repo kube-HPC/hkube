@@ -1,16 +1,10 @@
 const { mean } = require('@hkube/stats');
-const Logger = require('@hkube/logger');
-
 const _calcRate = (list) => {
     let first = list[0];
     if (list.length === 1) {
         first = { time: first.time - 2000, count: 0 };
     }
     const last = list[list.length - 1];
-
-    const log = Logger.GetLogFromContainer();
-    log.info(`STATISTICS: first value: ${first.count}, last value: ${last.count}, time diff: ${last.time - first.time} ms`);
-
     const timeDiff = (last.time - first.time) / 1000;
     const countDiff = last.count - first.count;
     let rate = 0;
