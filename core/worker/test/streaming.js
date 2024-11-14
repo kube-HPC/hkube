@@ -72,6 +72,7 @@ const checkMetrics = () => {
 const msgPerSec = 30;
 const duration = SEC / msgPerSec;
 const netDurations = Array.from(Array(10).fill(duration));
+const durations = Array.from(Array(10).fill(duration));
 
 describe('Streaming', () => {
 
@@ -85,239 +86,122 @@ describe('Streaming', () => {
         masters.map(m => m.reset());
     })
 
+    /**
+     * Adjusts the `data` object by adding rate-related statistics from the `reqRateInfo`
+     * parameter, then reports the updated statistics via `streamService` and introduces a delay.
+     * The operation is repeated `repeatCount` times.
+     * 
+     * Note - `reqRate` is calculated as Δ count / Δ time, meaning `(queueSize + sent) / delayTime`.
+     * When `delayTime` is 1000 (1 second), this gives the exact `reqRate`.
+     * 
+    * @async
+    * @param {Object} data - The data object holding current statistics, to be updated.
+    * @param {Object} [reqRateInfo={}] - Rate-related information to be added to `data`.
+    * @param {number} [reqRateInfo.queueSize=0] - The number of items in the request queue to be added.
+    * @param {number} [reqRateInfo.sent=0] - The number of requests sent, to be added to `data.sent`.
+    * @param {number} [reqRateInfo.delayTime=0] - The delay time (in milliseconds) to wait after each report.
+    * @param {number} [repeatCount=1] - The number of times to repeat the scaling and reporting operation.
+    * 
+    * @returns {Promise<void>} - Resolves after completing the specified number of repetitions.
+    */
+    const scale = async (data, reqRateInfo = {}, repeatCount = 1) => {
+        const { queueSize = 0, sent = 0, delayTime = 0 } = reqRateInfo;
+        for (let i = 0; i < repeatCount; i++) {
+            data.queueSize !== undefined && (data.queueSize += queueSize);
+            data.sent !== undefined && (data.sent += sent);
+            streamService.reportStats([data]);
+            
+            if (delayTime > 0) {
+                await delay(delayTime);
+            }
+        }
+    };
+
     describe.only('scale-up', () => {
         const replicasOnFirstScale = require('../config/main/config.base.js').streaming.autoScaler.scaleUp.replicasOnFirstScale;
 
         it('should not scale based on no data', async () => {
-            const scale = async (data) => {
-                streamService.reportStats([data]);
-            }
-
-            const list = {
+            const data = {
                 nodeName: 'D',
             };
 
-            await scale(list);
-            const { required } = autoScale(list.nodeName);
+            await scale(data);
+            const { required } = autoScale(data.nodeName);
             expect(required).to.equal(0, `required=${required}, suppose to be 0`);
         });
 
         it('should init scale when there is a queue', async () => {
-            const scale = async (data) => {
-                streamService.reportStats([data]);
-            }
-
-            const list = {
+            const data = {
                 nodeName: 'D',
                 queueSize: 1,
                 netDurations
             };
 
-            await scale(list);
-            const { required } = autoScale(list.nodeName);
+            await scale(data);
+            const { required } = autoScale(data.nodeName);
             expect(required).to.equal(replicasOnFirstScale, `required=${required}, suppose to be ${replicasOnFirstScale}`);
         });
 
         it('should init scale when there is request rate', async () => {
-            const scale = async (data) => {
-                data.sent += 10;
-                streamService.reportStats([data]);
-                await delay(100);
-            }
-
-            const list = {
+            const data = {
                 nodeName: 'D',
                 sent: 10,
                 queueSize: 0,
                 netDurations
             };
+            const reqRateInfo = {
+                sent: 10,
+                delayTime: 100
+            }
 
-            await scale(list);
-            await scale(list);
-            const { required } = autoScale(list.nodeName);
+            await scale(data, reqRateInfo, 2);
+            const { required } = autoScale(data.nodeName);
             expect(required).to.equal(replicasOnFirstScale, `required=${required}, suppose to be ${replicasOnFirstScale}`);
         });
 
         it('should init scale to minimum requirement, when there is a queue', async () => {
-            const scale = async (data) => {
-                streamService.reportStats([data]);
-            }
-
-            const nodeName = 'E';
-            const list = {
-                nodeName,
+            const data = {
+                nodeName: 'E',
                 queueSize: 1,
                 netDurations
             };
 
-            await scale(list);
-            const { required } = autoScale(list.nodeName);
-            const min = pipeline.nodes.filter((node) => nodeName === node.nodeName)[0].minStatelessCount;
+            await scale(data);
+            const { required } = autoScale(data.nodeName);
+            const min = pipeline.nodes.filter((node) => data.nodeName === node.nodeName)[0].minStatelessCount;
             expect(required).to.be.equal(min, `required=${required}, suppose to be ${min}`);
         });
 
         it('should init scale and not pass maximum requirement, when there is a queue', async () => {
-            const scale = async (data) => {
-                streamService.reportStats([data]);
-            }
-
-            const nodeName = 'F';
-            const list = {
-                nodeName,
+            const data = {
+                nodeName: 'F',
                 queueSize: 1,
                 netDurations
             };
 
-            await scale(list);
-            const { required } = autoScale(list.nodeName);
-            const max = pipeline.nodes.filter((node) => nodeName === node.nodeName)[0].maxStatelessCount;
+            await scale(data);
+            const { required } = autoScale(data.nodeName);
+            const max = pipeline.nodes.filter((node) => data.nodeName === node.nodeName)[0].maxStatelessCount;
             expect(required).to.be.equal(max, `required=${required}, suppose to be ${max}`);
         });
 
-        // it.only('should scale based on all params', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP (NOT GIVEN HERE)
-        //     const queueSize = 0;
-        //     const responses = 0;
-        //     const currentSize = 0;
+        it('should scale based on roundTrip, queueSize, currentSize', async () => {
+            const data = {
+                nodeName: 'D',
+                queueSize: 0,
+                currentSize: 1,
+                durations
+            };
+            const reqRateInfo = {
+                queueSize: 200,
+                delayTime: 500
+            }
 
-        //     const scale = async (data) => {
-        //         data[0].queueSize += 200;
-        //         data[0].responses += 1;
-        //         streamService.reportStats(data);
-        //         await delay(50);
-        //     }
-        //     const list = [{
-        //         nodeName: 'D',
-        //         queueSize,
-        //         currentSize,
-        //         netDurations,
-        //         responses
-        //     }];
-        //     await scale(list);
-        //     await scale(list);
-        //     await scale(list);
-        //     await scale(list);
-        //     const scale1 = autoScale(list[0].nodeName);
-        //     const scale2 = autoScale(list[0].nodeName);
-        //     const scale3 = autoScale(list[0].nodeName);
-        //     expect(scale1.required).to.gte(20);
-        //     expect(scale2.required).to.gte(20);
-        //     expect(scale3.required).to.gte(20);
-        // }).timeout(1000000000000);
-        // it('should scale based on queueSize and responses only', async () => {  // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP
-        //     const scale = async (data) => {
-        //         streamService.reportStats(data);
-        //     }
-        //     const list = [{
-        //         nodeName: 'D',
-        //         queueSize: 500,
-        //         responses: 100,
-        //         netDurations
-        //     }];
-        //     await scale(list);
-        //     const { required } = autoScale(list[0].nodeName);
-        //     expect(required).to.gte(2);
-        // });
-        // it.only('should scale up based on high req/res rate', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP
-        //     const nodeName = 'D';
-        //     const requests = async (data) => {
-        //         data[0].currentSize = 0;
-        //         data[0].queueSize += 200;
-        //         data[0].responses = 100;
-        //         streamService.reportStats(data);
-        //         await delay(100);
-        //     }
-        //     const list = [{
-        //         nodeName,
-        //         sent: 0,
-        //         queueSize: 0,
-        //         responses: 0,
-        //         netDurations
-        //     }];
-        //     await requests(list);
-        //     await requests(list);
-        //     await requests(list);
-        //     const { required } = autoScale(list[0].nodeName);
-        //     expect(required).to.gte(30);
-        // });
-        // it('should scale based on high durations', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP
-        //     const scale = async (data) => {
-        //         data[0].sent += 400;
-        //         data[0].responses += 30;
-        //         streamService.reportStats(data);
-        //         await delay(100);
-        //     }
-        //     const list = [{
-        //         nodeName: 'D',
-        //         sent: 0,
-        //         responses: 0,
-        //         netDurations
-        //     }];
-        //     await scale(list);
-        //     await scale(list);
-        //     await scale(list);
-        //     const { required } = autoScale(list[0].nodeName);
-        //     expect(required).to.gte(10);
-        // });
-        // it('should scale based on low durations', async () => {  // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP
-        //     const scale = async (data) => {
-        //         data[0].sent += 100;
-        //         data[0].responses += 0;
-        //         streamService.reportStats(data);
-        //         await delay(100);
-        //     }
-        //     const list = [{
-        //         nodeName: 'D',
-        //         sent: 0,
-        //         responses: 0,
-        //         netDurations
-        //     }];
-        //     await scale(list);
-        //     await scale(list);
-        //     await scale(list);
-        //     const { required } = autoScale(list[0].nodeName);
-        //     expect(required).to.gte(1);
-        // });
-        // it('should scale only up based on req/res rate', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP 
-        //     const scale = async (data) => {
-        //         data[0].sent += 10;
-        //         data[0].responses += 3;
-        //         streamService.reportStats(data);
-        //         await delay(50);
-        //     }
-        //     const increaseSize = async (data) => {
-        //         data[0].responses += 1;
-        //         data[0].currentSize += 2;
-        //         streamService.reportStats(data);
-        //         await delay(50);
-        //     }
-        //     const list = [{
-        //         nodeName: 'D',
-        //         sent: 10,
-        //         queueSize: 0,
-        //         currentSize: 0,
-        //         netDurations,
-        //         responses: 3
-        //     }];
-        //     await scale(list);
-        //     await scale(list);
-        //     const jobs1 = autoScale(list[0].nodeName);
-        //     await increaseSize(list);
-        //     const jobs2 = autoScale(list[0].nodeName);
-        //     await increaseSize(list);
-        //     autoScale(list[0].nodeName);
-        //     const jobs3 = autoScale(list[0].nodeName);
-        //     await scale(list);
-        //     await scale(list);
-        //     const jobs4 = autoScale(list[0].nodeName);
-        //     const jobs5 = autoScale(list[0].nodeName);
-        //     const jobs6 = autoScale(list[0].nodeName);
-        //     expect(jobs1.required).to.gte(4);
-        //     expect(jobs2.required).to.gte(4);
-        //     expect(jobs3.required).to.gte(4);
-        //     expect(jobs4.required).to.gte(4);
-        //     expect(jobs5.required).to.gte(4);
-        //     expect(jobs6.required).to.gte(4);
-        // });
+            await scale(data, reqRateInfo, 4);
+            const { required } = autoScale(data.nodeName);
+            expect(required).to.equal(15, `required is ${required}, suppose to be 15`);
+        });
+
         // it('should scale only up based on req/res rate with a maxStatelessCount limit', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP
         //     const scale = async (data) => {
         //         data[0].sent += 10;
