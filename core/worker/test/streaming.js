@@ -71,10 +71,9 @@ const checkMetrics = () => {
 
 const msgPerSec = 30;
 const duration = SEC / msgPerSec;
-const netDurations = Array.from(Array(10).fill(duration));
 const durations = Array.from(Array(10).fill(duration));
 
-describe('Streaming', () => {
+describe.only('Streaming', () => {
 
     before(async () => {
         await stateAdapter._db.jobs.create({ pipeline, jobId });
@@ -117,7 +116,7 @@ describe('Streaming', () => {
         }
     };
 
-    describe.only('scale-up', () => {
+    describe('scale-up', () => {
         const replicasOnFirstScale = require('../config/main/config.base.js').streaming.autoScaler.scaleUp.replicasOnFirstScale;
 
         it('should not scale based on no data', async () => {
@@ -133,8 +132,7 @@ describe('Streaming', () => {
         it('should init scale when there is a queue', async () => {
             const data = {
                 nodeName: 'D',
-                queueSize: 1,
-                netDurations
+                queueSize: 1
             };
 
             await scale(data);
@@ -146,8 +144,7 @@ describe('Streaming', () => {
             const data = {
                 nodeName: 'D',
                 sent: 10,
-                queueSize: 0,
-                netDurations
+                queueSize: 0
             };
             const reqRateInfo = {
                 sent: 10,
@@ -162,8 +159,7 @@ describe('Streaming', () => {
         it('should init scale to minimum requirement, when there is a queue', async () => {
             const data = {
                 nodeName: 'E',
-                queueSize: 1,
-                netDurations
+                queueSize: 1
             };
 
             await scale(data);
@@ -175,8 +171,7 @@ describe('Streaming', () => {
         it('should init scale and not pass maximum requirement, when there is a queue', async () => {
             const data = {
                 nodeName: 'F',
-                queueSize: 1,
-                netDurations
+                queueSize: 1
             };
 
             await scale(data);
@@ -459,7 +454,7 @@ describe('Streaming', () => {
             const data = [{
                 nodeName,
                 queueSize: 10,
-                netDurations
+                durations
             }];
             streamService.reportStats(data);
             streamService.reportStats(data);
@@ -472,11 +467,11 @@ describe('Streaming', () => {
             const statsData = masters[0]._autoScaler._statistics._data;
             const key = Object.keys(statsData)[0];
             const stats = statsData[key];
-            const { requests, responses, durations } = stats;
+            const { requests, responses, grossDurations } = stats;
             const maxSizeWindow = testParams.config.streaming.autoScaler.statistics.maxSizeWindow;
             expect(requests.items).to.have.lengthOf(maxSizeWindow);
             expect(responses.items).to.have.lengthOf(maxSizeWindow);
-            expect(durations.items).to.have.lengthOf(maxSizeWindow * 10);
+            expect(grossDurations.items).to.have.lengthOf(maxSizeWindow * 10);
         });
     });
     describe('metrics', () => {
@@ -569,9 +564,9 @@ describe('Streaming', () => {
                 await delay(20);
             }
             const currentSize = 0;
-            const list = [{ nodeName, queueSize: 150, responses: 30, netDurations, currentSize }];
-            const list1 = { nodeName, queueSize: 300, responses: 80, netDurations, currentSize };
-            const list2 = { nodeName, queueSize: 450, responses: 140, netDurations, currentSize };
+            const list = [{ nodeName, queueSize: 150, responses: 30, currentSize }];
+            const list1 = { nodeName, queueSize: 300, responses: 80, currentSize };
+            const list2 = { nodeName, queueSize: 450, responses: 140, currentSize };
             const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
             const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
             const slave3 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
