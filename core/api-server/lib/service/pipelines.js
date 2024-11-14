@@ -13,9 +13,9 @@ const versionsService = require('./pipeline-versions');
 class PipelineService {
     async updatePipeline(options) {
         validator.pipelines.validateUpdatePipeline(options);
-        const oldPipeLine = await this.getPipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
         validator.gateways.validateGatewayNodes(options.nodes);
+        const oldPipeLine = await this.getPipeline(options);
         const newPipeline = {
             modified: Date.now(),
             ...options,
@@ -26,7 +26,7 @@ class PipelineService {
             newPipeline.version = newVersion;
         }
         await stateManager.replacePipeline(newPipeline);
-        return options;
+        return newPipeline;
     }
 
     async deletePipeline(options) {
@@ -244,7 +244,7 @@ class PipelineService {
         const version = await this._versioning(true, newPipeline);
         newPipeline.version = version;
         await stateManager.insertPipeline(newPipeline);
-        return options;
+        return newPipeline;
     }
 
     _comparePipelines(oldPipeline, newPipeline) {
