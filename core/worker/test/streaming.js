@@ -49,7 +49,7 @@ const createJob = (jobId) => {
         algorithmName: 'my-alg',
         pipelineName: 'my-pipe',
         parents: [],
-        childs: ['D','F'],
+        childs: ['D','F', 'G'],
     };
     return job;
 };
@@ -74,6 +74,7 @@ const duration = SEC / msgPerSec;
 const netDurations = Array.from(Array(10).fill(duration));
 
 describe('Streaming', () => {
+
     before(async () => {
         await stateAdapter._db.jobs.create({ pipeline, jobId });
         await streamHandler.start(job);
@@ -91,26 +92,30 @@ describe('Streaming', () => {
             const scale = async (data) => {
                 streamService.reportStats([data]);
             }
+
             const list = {
                 nodeName: 'D',
             };
+
             await scale(list);
             const { required } = autoScale(list.nodeName);
-            expect(required).to.equal(0);
+            expect(required).to.equal(0, `required=${required}, suppose to be 0`);
         });
 
         it('should init scale when there is a queue', async () => {
             const scale = async (data) => {
                 streamService.reportStats([data]);
             }
+
             const list = {
                 nodeName: 'D',
                 queueSize: 1,
                 netDurations
             };
+
             await scale(list);
             const { required } = autoScale(list.nodeName);
-            expect(required).to.equal(replicasOnFirstScale);
+            expect(required).to.equal(replicasOnFirstScale, `required=${required}, suppose to be ${replicasOnFirstScale}`);
         });
 
         it('should init scale when there is request rate', async () => {
@@ -119,19 +124,39 @@ describe('Streaming', () => {
                 streamService.reportStats([data]);
                 await delay(100);
             }
+
             const list = {
                 nodeName: 'D',
                 sent: 10,
                 queueSize: 0,
                 netDurations
             };
+
             await scale(list);
             await scale(list);
             const { required } = autoScale(list.nodeName);
-            expect(required).to.equal(replicasOnFirstScale);
+            expect(required).to.equal(replicasOnFirstScale, `required=${required}, suppose to be ${replicasOnFirstScale}`);
         });
 
-        it('should init scale when there is minimum requirement, and a queue', async () => {
+        it('should init scale to minimum requirement, when there is a queue', async () => {
+            const scale = async (data) => {
+                streamService.reportStats([data]);
+            }
+
+            const nodeName = 'G';
+            const list = {
+                nodeName,
+                queueSize: 1,
+                netDurations
+            };
+
+            await scale(list);
+            const { required } = autoScale(list.nodeName);
+            const min = pipeline.nodes.filter((node) => nodeName === node.nodeName)[0].minStatelessCount;
+            expect(required).to.be.equal(min, `required=${required}, suppose to be ${min}`);
+        });
+
+        it.only('should init scale and a queue', async () => {
 
         });
 

@@ -48,6 +48,13 @@
             "stateType": "stateless",
             "maxStatelessCount": 3,
             "minStatelessCount": 1
+        },
+        {
+            "nodeName": "G",
+            "algorithmName": "eval-alg",
+            "input": [],
+            "stateType": "stateless",
+            "minStatelessCount": 3
         }
     ],
     "edges": [
