@@ -3,8 +3,8 @@ const Logger = require('@hkube/logger');
 const { sum, mean } = require('@hkube/stats');
 const { stateType, nodeKind } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
-const { Statistics, Scaler, Metrics, TimeMarker } = require('../core');
-const { calcRates, calcRatio, formatNumber, relDiff } = Metrics;
+const { Statistics, Scaler, Metrics } = require('../core');
+const { calcRates, formatNumber } = Metrics;
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
 const { Components } = require('../../consts');
@@ -59,8 +59,6 @@ class AutoScaler {
         this._statistics = new Statistics(this._config, this._onSourceRemove);
 
         if (!this._isStateful) {
-            this._queueSizeTime = new TimeMarker(this._config.scaleDown.minTimeQueueEmptyBeforeScaleDown);
-            this._timeForDown = new TimeMarker(this._config.scaleDown.minTimeIdleBeforeReplicaDown);
             this._scaler?.stop();
             let conf = this._config;
             if (this._options.node.kind === nodeKind.Debug) {
@@ -138,10 +136,10 @@ class AutoScaler {
             resRate: 0,
             queueSize: 0,
             avgQueueSize: [],
-            durationsRate: [],
             windowSize: [],
             totalRequests: 0,
-            totalResponses: 0
+            totalResponses: 0,
+            roundTripTimeMs: []
         };
 
         let hasMaxSizeWindow = true;
@@ -184,15 +182,13 @@ class AutoScaler {
             };
             metrics.push(metric);
             totals.reqRate += reqRate;
-            totals.resRate += resRate;
             totals.queueSize += queueSize;
-            totals.avgQueueSize.push(avgQueueSize);
             totals.totalRequests += totalRequests;
             totals.totalResponses += totalResponses;
             totals.windowSize.push(avgWindowSize);
 
-            if (durationsRate) {
-                totals.durationsRate.push(durationsRate);
+            if (roundTripTimeMs) {
+                totals.roundTripTimeMs.push(roundTripTimeMs);
             }
         });
 
@@ -205,9 +201,7 @@ class AutoScaler {
         const newScaleStats = currentSize > 0 && !hasMaxSizeWindow;
 
         if (!this._isStateful && !newScaleStats) {
-            const avgQueueSize = Math.round(mean(totals.avgQueueSize));
-            const durationsRate = mean(totals.durationsRate);
-            this._getScaleDetails({ ...totals, avgQueueSize, durationsRate, currentSize });
+            this._getScaleDetails({ ...totals, currentSize });
         }
         this._metrics = { metrics, uidMetrics };
     }
@@ -239,118 +233,98 @@ class AutoScaler {
         log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type}:${allowed.size}. ${customMessage}`, { component });
     }
 
-    _getScaleDetails({ reqRate, resRate, totalRequests, totalResponses, durationsRate, queueSize, avgQueueSize, currentSize }) {
-        const result = { up: 0, down: 0 };
-        const requiredByDurationRate = calcRatio(reqRate, durationsRate);
-        const idleScaleDown = this._shouldIdleScaleDown({ reqRate, resRate });
-        const canScaleDown = this._markQueueSize(avgQueueSize);
-        const requiredByQueueSize = this._scaledQueueSize({ durationsRate, queueSize });
-        const requiredByDuration = this._addExtraReplicas(requiredByDurationRate, requiredByQueueSize);
-
-        let required = null;
-
+    /**
+     * Calculates and updates the required number of pods based on the current request metrics.
+     *
+     * @param {number} params.reqRate - The rate of incoming requests per second.
+     * @param {number} params.totalRequests - The total number of requests received.
+     * @param {number} params.totalResponses - The total number of responses sent.
+     * @param {number} params.queueSize - The current size of the request queue.
+     * @param {number} params.currentSize - The current number of pods.
+     * @param {number} params.roundTripTimeMs - The average round trip time for a request in milliseconds.
+     */
+    _getScaleDetails({ reqRate, totalRequests, totalResponses, queueSize, currentSize, roundTripTimeMs }) {
+        let neededPods = null;
+        const { replicasOnFirstScale } = this._config.scaleUp;
         // first scale up
         if (totalRequests > 0 && totalResponses === 0 && currentSize === 0) {
-            required = this._config.scaleUp.replicasOnFirstScale;
-            required = this._capScaleByLimits(required, this._limitActionType.both, 'Based on total requests, with initial size 0');
+            neededPods = this._capScaleByLimits(replicasOnFirstScale, this._limitActionType.both, 'Based on config file, when starting');
         }
-        // scale up based on durations
-        else if (totalRequests > 0 && currentSize < requiredByDuration) {
-            required = requiredByDuration;
-            required = this._capScaleByLimits(required, this._limitActionType.both, 'Based on total requests by duration');
+        // scale up or down according to roundTrip, queue size and request rate
+        else if (currentSize > 0 || queueSize > 0) {
+            const requiredByRoundTrip = this._roundTripReplicas(queueSize, roundTripTimeMs, reqRate);
+            neededPods = this._capScaleByLimits(requiredByRoundTrip, this._limitActionType.both, 'Based on round trip and predicted queue size');
         }
-
-        // scale down based on stop streaming
-        else if (idleScaleDown.scale && currentSize > 0 && canScaleDown) {
-            required = 0;
-            required = this._capScaleByLimits(required, this._limitActionType.minStateless, 'Based on idle scaledown, canScaleDown');
+        if (neededPods !== null) {
+            this._scaler.updateRequired(neededPods, queueSize <= reqRate);
         }
-        // scale down based on rate
-        else if (!idleScaleDown.scale && currentSize > requiredByDuration && canScaleDown) {
-            const diff = relDiff(requiredByDuration, this._scaler.required);
-            if (diff > this._config.scaleDown.tolerance && requiredByDuration > 0) {
-                required = requiredByDuration;
-                required = this._capScaleByLimits(required, this._limitActionType.minStateless, 'Based on rate');
-            }
-        }
-        if (required !== null) {
-            this._scaler.updateRequired(required);
-        }
-        return result;
     }
 
+    /**
+     * Caps the scaling of resources based on minimum and maximum limits.
+     *
+     * @param {number} required - The required number of resources.
+     * @param {string} type - The limit type (`maxStateless`, `minStateless`, or `both`).
+     * @param {string} [customMessage=''] - Optional custom message for logging.
+     * @returns {number} - The adjusted scaling decision based on the limits.
+     */
     _capScaleByLimits(required, type, customMessage = '') {
-        // eslint-disable-next-line no-unused-vars
         let decision = required;
         const sizes = {};
-        if (type === this._limitActionType.maxStateless && this._statelessCountLimits.maxStateless) {
-            if (required > this._statelessCountLimits.maxStateless) {
-                this._scalingInterventionLog('up', required, { type: this._limitActionType.maxStateless, size: this._statelessCountLimits.maxStateless }, customMessage);
-                return this._statelessCountLimits.maxStateless;
-            }
+        const { minStateless, maxStateless } = this._statelessCountLimits;
+
+        switch (type) {
+            case this._limitActionType.maxStateless:
+                if (maxStateless && required > maxStateless) {
+                    this._scalingInterventionLog('up', required, { type: this._limitActionType.maxStateless, size: maxStateless }, customMessage);
+                    return maxStateless;
+                }
+                break;
+
+            case this._limitActionType.minStateless:
+                if (minStateless && required < minStateless) {
+                    this._scalingInterventionLog('down', required, { type: this._limitActionType.minStateless, size: minStateless }, customMessage);
+                    return minStateless;
+                }
+                break;
+
+            case this._limitActionType.both:
+                if (minStateless) {
+                    decision = Math.max(decision, minStateless);
+                    sizes.min = minStateless;
+                }
+                if (maxStateless) {
+                    decision = Math.min(decision, maxStateless);
+                    sizes.max = maxStateless;
+                }
+                this._scalingInterventionLog(this._limitActionType.both, required, { type: this._limitActionType.both, size: sizes }, customMessage);
+                break;
+
+            default:
+                break;
         }
-        else if (type === this._limitActionType.minStateless && this._statelessCountLimits.minStateless) {
-            if (required < this._statelessCountLimits.minStateless) {
-                this._scalingInterventionLog('down', required, { type: this._limitActionType.minStateless, size: this._statelessCountLimits.minStateless }, customMessage);
-                return this._statelessCountLimits.minStateless;
-            }
-        }
-        else if (type === this._limitActionType.both) {
-            if (this._statelessCountLimits.minStateless) {
-                decision = Math.max(decision, this._statelessCountLimits.minStateless);
-                sizes.min = this._statelessCountLimits.minStateless;
-            }
-            if (this._statelessCountLimits.maxStateless) {
-                decision = Math.min(decision, this._statelessCountLimits.maxStateless);
-                sizes.max = this._statelessCountLimits.maxStateless;
-            }
-            this._scalingInterventionLog(this._limitActionType.both, required, { type: this._limitActionType.both, size: sizes }, customMessage);
-        } // Govern both limits
         return decision;
     }
 
-    _addExtraReplicas(requiredByDurationRate, requiredByQueueSize) {
-        const required = requiredByDurationRate + requiredByQueueSize;
-        const totalRequired = required + Math.ceil(required * this._config.scaleUp.replicasExtra);
-        return totalRequired;
-    }
-
-    _scaledQueueSize({ durationsRate, queueSize }) {
-        if (!queueSize) {
-            return 0;
-        }
-        if (!durationsRate) {
+    /**
+     * Calculates the number of pods needed for scaling based on the current queue size,
+     * round trip time, and request rate. Calculates estimated queue size.
+     *
+     * @param queueSize         the current size of the queue (number of requests waiting to be processed).
+     * @param roundTripTimeMs   the average round trip time for a request in milliseconds.
+     * @param reqRate           the rate of incoming requests per second.
+     * @return                  the calculated number of pods required to handle the current queue size
+     *                          and incoming request rate. Returns 1 if round trip time is zero; otherwise,
+     *                          it calculates based on the queue size and request rate.
+     */
+    _roundTripReplicas(queueSize, roundTripTimeMs, reqRate) {
+        if (!roundTripTimeMs) {
             return this._config.scaleUp.replicasOnFirstScale;
         }
-        const msgCleanUp = Math.ceil(durationsRate * this._config.scaleUp.minTimeToCleanUpQueue);
-        const requiredByQueueSize = Math.ceil(queueSize / msgCleanUp);
-        return requiredByQueueSize;
-    }
-
-    _markQueueSize(avgQueueSize) {
-        let canScaleDown = false;
-        if (avgQueueSize <= this._config.scaleDown.minQueueSizeBeforeScaleDown) {
-            const marker = this._queueSizeTime.mark();
-            canScaleDown = marker.result;
-        }
-        else {
-            this._queueSizeTime.unMark();
-        }
-        return canScaleDown;
-    }
-
-    _shouldIdleScaleDown({ reqRate, resRate }) {
-        let time;
-        let scale = false;
-        if (!reqRate && !resRate) {
-            const response = this._timeForDown.mark();
-            if (response.result) {
-                scale = true;
-                time = response.time;
-                this._timeForDown.unMark();
-            }
-        }
-        return { scale, time };
+        const podRate = 1000 / mean(roundTripTimeMs); // pod response rate per second
+        const timeToComplete = this._config.scaleUp.minTimeToCleanUpQueue; // in secounds
+        const neededPods = Math.ceil((queueSize + reqRate * timeToComplete) / (timeToComplete * podRate));
+        return neededPods;
     }
 
     _scaleUp(scale) {
@@ -371,6 +345,7 @@ class AutoScaler {
             const task = { taskId, input: result.input, storage: result.storage, batchIndex: i + 1 };
             tasks.push(task);
         }
+        log.info(`CYCLE: worker Replicas #: ${tasks.length} added as tasks`);
         const job = {
             ...this._options.node,
             jobId: this._options.jobId,
