@@ -1,0 +1,25 @@
+type: object
+properties:
+  name:
+    type: string
+    minLength: 1
+    description: name of the sidecar
+  container:
+    type: array
+    description: keyvalye pairs of names and images for containers
+    items:
+      $ref: "#/components/schemas/sidecarContainer"
+  volumes:
+    type: array
+    items:
+      $ref: "#/components/schemas/sidecarVolume"
+  volumeMounts:
+    type: array
+    description: keyvalye pairs of names and mountPaths
+    items:
+      $ref: "#/components/schemas/sidecarVolumeMounts"
+  environments:
+    type: array
+    description: keyvalye pairs of names and values
+    items:
+      $ref: "#/components/schemas/sidecarEnvVars"

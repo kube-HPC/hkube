@@ -1,0 +1,10 @@
+type: object
+properties:
+  name:
+    type: string
+    description: volume name
+  additionalProperties:
+    type: string
+    description: emptyDir, configmap, etc.
+required:
+  - name
