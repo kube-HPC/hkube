@@ -27,7 +27,7 @@ class Statistics {
         stats.requests.add(this._createItem(requests));
         stats.responses.add(this._createItem(responses));
         stats.durations.addRange(netDurations);
-        stats.grossDurations.addRange(durations);
+        stats.grossDurations.addRange(durations); // used to calculate round trip
         stats.queueDurations.addRange(queueDurations);
 
         this._data[source] = {

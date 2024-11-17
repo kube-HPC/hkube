@@ -1,0 +1,77 @@
+{
+    "name": "stream",
+    "kind": "stream",
+    "nodes": [
+        {
+            "nodeName": "A",
+            "algorithmName": "eval-alg",
+            "input": [
+                "@flowInput.arraySize",
+                "@flowInput.bufferSize"
+            ],
+            "stateType": "stateful",
+            "maxStatelessCount": 0
+        },
+        {
+            "nodeName": "B",
+            "algorithmName": "eval-alg",
+            "input": [
+                "@flowInput.arraySize",
+                "@flowInput.bufferSize"
+            ],
+            "stateType": "stateful"
+        },
+        {
+            "nodeName": "C",
+            "algorithmName": "eval-alg",
+            "input": [
+                "@flowInput.arraySize",
+                "@flowInput.bufferSize"
+            ],
+            "stateType": "stateful"
+        },
+        {
+            "nodeName": "D",
+            "algorithmName": "eval-alg",
+            "input": [],
+            "stateType": "stateless"
+        },
+        {
+            "nodeName": "E",
+            "algorithmName": "eval-alg",
+            "input": [],
+            "stateType": "stateless",
+            "minStatelessCount": 10
+        },
+        {
+            "nodeName": "F",
+            "algorithmName": "eval-alg",
+            "input": [],
+            "stateType": "stateless",
+            "minStatelessCount": 3,
+            "maxStatelessCount": 2
+        }
+    ],
+    "edges": [
+        { "source": "A", "target": "D" },
+        { "source": "B", "target": "D" },
+        { "source": "C", "target": "D" },
+        { "source": "A", "target": "E" },
+        { "source": "B", "target": "E" },
+        { "source": "C", "target": "F" }
+    ],
+    "flowInputMetadata": {
+        "metadata": {
+            "flowInput.arraySize": {
+                "type": "number"
+            },
+            "flowInput.bufferSize": {
+                "type": "number"
+            }
+        },
+        "storageInfo": {
+            "path": "local-hkube/main:streaming:9dy12jfh/main:streaming:9dy12jfh"
+        }
+    }
+}
+
