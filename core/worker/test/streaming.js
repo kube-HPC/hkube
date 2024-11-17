@@ -269,126 +269,57 @@ describe('Streaming', () => {
     });
     
     describe('scale-down', () => {
-        // it('should scale up and down based on durations', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP
-        //     const nodeName = 'D';
-        //     const requestsUp = async (data) => {
-        //         data[0].queueSize += 100;
-        //         streamService.reportStats(data);
-        //         await delay(100);
-        //     }
-        //     const responsesUp = async (data) => {
-        //         data[0].responses += 100;
-        //         data[0].sent = 200;
-        //         data[0].queueSize = 0;
-        //         data[0].currentSize += 1;
-        //         streamService.reportStats(data);
-        //         await delay(100);
-        //     }
-        //     const list = [{
-        //         nodeName,
-        //         currentSize: 0,
-        //         sent: 0,
-        //         queueSize: 0,
-        //         responses: 0,
-        //         netDurations
-        //     }];
-        //     await requestsUp(list);
-        //     await requestsUp(list);
-        //     const jobs1 = autoScale(list[0].nodeName);
-        //     const jobs2 = autoScale(list[0].nodeName);
-        //     await delay(200)
-        //     await responsesUp(list);
-        //     await responsesUp(list);
-        //     const jobs3 = autoScale(list[0].nodeName);
-        //     const jobs4 = autoScale(list[0].nodeName);
-        //     expect(jobs1.required).to.gte(1);
-        //     expect(jobs2.required).to.gte(1);
-        //     expect(jobs3.required).to.gte(7);
-        //     expect(jobs4.required).to.gte(7);
-        // });
-        // it('should scale up and down based on no requests and no responses', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP 
-        //     const nodeName = 'D';
-        //     const requestsUp = async (data) => {
-        //         data[0].sent = 100;
-        //         data[0].responses = 100;
-        //         streamService.reportStats(data);
-        //         await delay(100);
-        //     }
-        //     const list = [{
-        //         nodeName,
-        //         currentSize: 0,
-        //         sent: 0,
-        //         responses: 0,
-        //         netDurations
-        //     }];
-        //     await requestsUp(list);
-        //     await requestsUp(list);
-        //     await requestsUp(list);
-        //     await requestsUp(list);
-        //     const scale = autoScale(list[0].nodeName);
-        //     expect(scale.required).to.eql(0);
-        // });
-        // it('should scale down based on zero ratio', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP
-        //     const nodeName = 'D';
-        //     const requests = async (data) => {
-        //         data[0].queueSize = 100;
-        //         data[0].responses = 100;
-        //         streamService.reportStats(data);
-        //         await delay(100);
-        //     }
-        //     const list = [{
-        //         nodeName,
-        //         sent: 0,
-        //         currentSize: 5,
-        //         queueSize: 0,
-        //         responses: 0
-        //     }];
-        //     await requests(list);
-        //     await requests(list);
-        //     await requests(list);
-        //     await requests(list);
-        //     const scale = autoScale(list[0].nodeName);
-        //     expect(scale.required).to.eql(0);
-        // });
-        // it('should not scale down based on responses', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP
-        //     const nodeName = 'D';
-        //     const requests = async (data) => {
-        //         data[0].currentSize = 5;
-        //         data[0].responses += 100;
-        //         streamService.reportStats(data);
-        //         await delay(100);
-        //     }
-        //     const list = [{
-        //         nodeName,
-        //         responses: 0
-        //     }];
-        //     await requests(list);
-        //     await requests(list);
-        //     await requests(list);
-        //     const scale = autoScale(list[0].nodeName);
-        //     expect(scale.required).to.eql(0);
-        // });
-        // it('should not scale down based on currentSize', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP
-        //     const nodeName = 'D';
-        //     const requests = async (data) => {
-        //         data[0].currentSize = 1;
-        //         data[0].queueSize = 0;
-        //         data[0].responses += 100;
-        //         streamService.reportStats(data);
-        //         await delay(100);
-        //     }
-        //     const list = [{
-        //         nodeName,
-        //         sent: 0,
-        //         queueSize: 0,
-        //         responses: 0
-        //     }];
-        //     await requests(list);
-        //     await requests(list);
-        //     await requests(list);
-        //     const scale = autoScale(list[0].nodeName);
-        //     expect(scale.required).to.eql(0);
-        // });
+        it('should scale down based on roundTrip, queueSize, currentSize', async () => {
+            const data = {
+                nodeName: 'D',
+                currentSize: 100,
+                durations
+            }
+            const reqRateInfo = {
+                queueSize: 200,
+                delayTime: 500
+            }
+
+            await scale(data, reqRateInfo, 4);
+            const { required } = autoScale(data.nodeName);
+            expect(required).to.equal(9, `required is ${required}, suppose to be 9`);
+        });
+
+        it('should scale down based on all params', async () => {
+            const data = {
+                nodeName: 'D',
+                currentSize: 100,
+                durations
+            }
+            const reqRateInfo = {
+                queueSize: 150,
+                sent: 50,
+                delayTime: 500
+            }
+
+            await scale(data, reqRateInfo, 4);
+            const { required } = autoScale(data.nodeName);
+            expect(required).to.equal(9, `required is ${required}, suppose to be 9`);
+        });
+
+        it('should scale up based on all params, and there are responses already, and have min stateless', async () => {
+            const data = {
+                nodeName: 'E',
+                currentSize: 20,
+                durations,
+                responses: 1
+            }
+            const reqRateInfo = {
+                queueSize: 1,
+                sent: 1,
+                delayTime: 500
+            }
+
+            await scale(data, reqRateInfo, 4);
+            const { required } = autoScale(data.nodeName);
+            const min = pipeline.nodes.filter((node) => data.nodeName === node.nodeName)[0].minStatelessCount;
+            expect(required).to.equal(min, `required is ${required}, suppose to be ${min}`);
+        });
     });
     describe('scale-conflicts', () => {
         // it('should only scale up based on master', async () => {
