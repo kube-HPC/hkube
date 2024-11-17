@@ -41,7 +41,7 @@
             "algorithmName": "eval-alg",
             "input": [],
             "stateType": "stateless",
-            "minStatelessCount": 3
+            "minStatelessCount": 10
         },
         {
             "nodeName": "F",
