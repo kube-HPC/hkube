@@ -69,11 +69,41 @@ const checkMetrics = () => {
     return streamService._metrics._checkMetrics() || [];
 }
 
+/**
+ * Adjusts the `data` object by adding rate-related statistics from the `reqRateInfo`
+ * parameter, then reports the updated statistics via `streamService` and introduces a delay.
+ * The operation is repeated `repeatCount` times.
+ * 
+ * Note - `reqRate` is calculated as Δ count / Δ time, meaning `(queueSize + sent) / delayTime`.
+ * When `delayTime` is 1000 (1 second), this gives the exact `reqRate`.
+ * 
+* @async
+* @param {Object} data - The data object holding current statistics, to be updated.
+* @param {Object} [reqRateInfo={}] - Rate-related information to be added to `data`.
+* @param {number} [reqRateInfo.queueSize=0] - The number of items in the request queue to be added.
+* @param {number} [reqRateInfo.sent=0] - The number of requests sent, to be added to `data.sent`.
+* @param {number} [reqRateInfo.delayTime=0] - The delay time (in milliseconds) to wait after each report.
+* @param {number} [repeatCount=1] - The number of times to repeat the scaling and reporting operation.
+* 
+* @returns {Promise<void>} - Resolves after completing the specified number of repetitions.
+*/
+const scale = async (data, reqRateInfo = {}, repeatCount = 1, slave) => {
+    const { queueSize = 0, sent = 0, delayTime = 0 } = reqRateInfo;
+    for (let i = 0; i < repeatCount; i++) {
+        data.queueSize = (data.queueSize || 0) + queueSize;
+        data.sent = (data.sent || 0) +  sent;
+        slave ? slave.report(data) : streamService.reportStats([data]);
+        if (delayTime > 0) {
+            await delay(delayTime);
+        }
+    }
+};
+
 const msgPerSec = 50; // Equals pod rate
 const duration = SEC / msgPerSec;
 const durations = Array.from(Array(10).fill(duration));
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
 
     before(async () => {
         await stateAdapter._db.jobs.create({ pipeline, jobId });
@@ -85,38 +115,7 @@ describe.only('Streaming', () => {
         masters.map(m => m.reset());
     })
 
-    /**
-     * Adjusts the `data` object by adding rate-related statistics from the `reqRateInfo`
-     * parameter, then reports the updated statistics via `streamService` and introduces a delay.
-     * The operation is repeated `repeatCount` times.
-     * 
-     * Note - `reqRate` is calculated as Δ count / Δ time, meaning `(queueSize + sent) / delayTime`.
-     * When `delayTime` is 1000 (1 second), this gives the exact `reqRate`.
-     * 
-    * @async
-    * @param {Object} data - The data object holding current statistics, to be updated.
-    * @param {Object} [reqRateInfo={}] - Rate-related information to be added to `data`.
-    * @param {number} [reqRateInfo.queueSize=0] - The number of items in the request queue to be added.
-    * @param {number} [reqRateInfo.sent=0] - The number of requests sent, to be added to `data.sent`.
-    * @param {number} [reqRateInfo.delayTime=0] - The delay time (in milliseconds) to wait after each report.
-    * @param {number} [repeatCount=1] - The number of times to repeat the scaling and reporting operation.
-    * 
-    * @returns {Promise<void>} - Resolves after completing the specified number of repetitions.
-    */
-    const scale = async (data, reqRateInfo = {}, repeatCount = 1) => {
-        const { queueSize = 0, sent = 0, delayTime = 0 } = reqRateInfo;
-        for (let i = 0; i < repeatCount; i++) {
-            data.queueSize = (data.queueSize || 0) + queueSize;
-            data.sent = (data.sent || 0) +  sent;
-            streamService.reportStats([data]);
-            
-            if (delayTime > 0) {
-                await delay(delayTime);
-            }
-        }
-    };
-
-    describe.only('scale-up', () => {
+    describe('scale-up', () => {
         const replicasOnFirstScale = require('../config/main/config.base.js').streaming.autoScaler.scaleUp.replicasOnFirstScale;
 
         it('should not scale based on no data', async () => {
@@ -179,7 +178,7 @@ describe.only('Streaming', () => {
             expect(required).to.be.equal(max, `required=${required}, suppose to be ${max}`);
         });
 
-        it('should scale based on roundTrip, queueSize, currentSize', async () => {
+        it('should scale up based on roundTrip, queueSize, currentSize', async () => {
             const data = {
                 nodeName: 'D',
                 currentSize: 1,
@@ -195,7 +194,7 @@ describe.only('Streaming', () => {
             expect(required).to.equal(9, `required is ${required}, suppose to be 9`);
         });
 
-        it('should scale based on all params', async () => {
+        it('should scale up based on all params', async () => {
             const data = {
                 nodeName: 'D',
                 currentSize: 1,
@@ -212,7 +211,7 @@ describe.only('Streaming', () => {
             expect(required).to.equal(9, `required is ${required}, suppose to be 9`);
         });
 
-        it('should scale based on all params, when currentSize is 0 and there are responses already', async () => {
+        it('should scale up based on all params, when currentSize is 0 and there are responses already', async () => {
             const data = {
                 nodeName: 'D',
                 currentSize: 0,
@@ -230,7 +229,7 @@ describe.only('Streaming', () => {
             expect(required).to.equal(9, `required is ${required}, suppose to be 9`);
         });
 
-        it('should scale based on all params, and there are responses already, and not pass max stateless', async () => {
+        it('should scale up based on all params, and there are responses already, and not exceeding max stateless', async () => {
             const data = {
                 nodeName: 'F',
                 currentSize: 1,
@@ -249,7 +248,7 @@ describe.only('Streaming', () => {
             expect(required).to.equal(max, `required is ${required}, suppose to be ${max}`);
         });
 
-        it('should scale based on all params, and there are responses already, and have min stateless', async () => {
+        it('should scale up based on all params, and there are responses already, and have min stateless', async () => {
             const data = {
                 nodeName: 'E',
                 currentSize: 1,
@@ -267,49 +266,6 @@ describe.only('Streaming', () => {
             const min = pipeline.nodes.filter((node) => data.nodeName === node.nodeName)[0].minStatelessCount;
             expect(required).to.equal(min, `required is ${required}, suppose to be ${min}`);
         });
-
-        // it('should scale only up based on req/res rate with a maxStatelessCount limit', async () => { // COMMENT SINCE SCALING LOGIC CHANGED, NOW BASED ON ROUND TRIP
-        //     const scale = async (data) => {
-        //         data[0].sent += 10;
-        //         data[0].responses += 3;
-        //         streamService.reportStats(data);
-        //         await delay(50);
-        //     }
-        //     const increaseSize = async (data) => {
-        //         data[0].responses += 1;
-        //         data[0].currentSize += 2;
-        //         streamService.reportStats(data);
-        //         await delay(50);
-        //     }
-        //     const list = [{
-        //         nodeName: 'F',
-        //         sent: 10,
-        //         queueSize: 0,
-        //         currentSize: 0,
-        //         netDurations,
-        //         responses: 3
-        //     }];
-        //     const scaledNode = pipeline.nodes[5]
-        //     await scale(list);
-        //     await scale(list);
-        //     const jobs1 = autoScale(list[0].nodeName);
-        //     await increaseSize(list);
-        //     const jobs2 = autoScale(list[0].nodeName);
-        //     await increaseSize(list);
-        //     autoScale(list[0].nodeName);
-        //     const jobs3 = autoScale(list[0].nodeName);
-        //     await scale(list);
-        //     await scale(list);
-        //     const jobs4 = autoScale(list[0].nodeName);
-        //     const jobs5 = autoScale(list[0].nodeName);
-        //     const jobs6 = autoScale(list[0].nodeName);
-        //     expect(jobs1.required).to.eql(scaledNode.maxStatelessCount);
-        //     expect(jobs2.required).to.eql(scaledNode.maxStatelessCount);
-        //     expect(jobs3.required).to.eql(scaledNode.maxStatelessCount);
-        //     expect(jobs4.required).to.eql(scaledNode.maxStatelessCount);
-        //     expect(jobs5.required).to.eql(scaledNode.maxStatelessCount);
-        //     expect(jobs6.required).to.eql(scaledNode.maxStatelessCount);
-        // });
     });
     
     describe('scale-down', () => {
