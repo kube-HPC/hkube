@@ -426,33 +426,24 @@ describe('Streaming', () => {
 
     describe('no-scale', () => {
         it('should not scale when no relevant data', async () => {
-            const reportStats = async (data) => {
-                streamService.reportStats(data);
-                await delay(100);
-            }
-            const list = [{
+            const data = {
                 nodeName: 'D'
-            }];
-            await reportStats(list);
-            await reportStats(list);
-            await reportStats(list);
-            const scale = autoScale(list[0].nodeName);
-            expect(scale.required).to.eql(0);
+            };
+
+            await scale(data, { delayTime: 100 }, 3);
+            const { required } = autoScale(data.nodeName);
+            expect(required).to.eql(0);
         });
 
         it('should not over the maxSizeWindow', async () => {
             const nodeName = 'D';
-            const data = [{
+            const data = {
                 nodeName,
                 queueSize: 10,
                 durations
-            }];
-            streamService.reportStats(data);
-            streamService.reportStats(data);
-            streamService.reportStats(data);
-            streamService.reportStats(data);
-            streamService.reportStats(data);
-            streamService.reportStats(data);
+            };
+
+            await scale(data, {}, 14);
             let masters = getMasters();
             masters = masters.filter(m => m.nodeName === nodeName);
             const statsData = masters[0]._autoScaler._statistics._data;
@@ -520,6 +511,7 @@ describe('Streaming', () => {
             expect(metricsUid3.totalDropped).to.eql(dropped * 3);
         });
     });
+
     describe('master-slaves', () => {
         it('should get slaves', async () => {
             const nodeName = 'D';
@@ -541,6 +533,7 @@ describe('Streaming', () => {
             const slaves = masters[0].slaves();
             expect(slaves.sort()).to.deep.equal([slave1.source, slave2.source])
         });
+
         it('metrics test', async () => {
             const nodeName = 'D';
             const requests = async (data) => {
@@ -563,29 +556,14 @@ describe('Streaming', () => {
             const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
             const slave3 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
             const slave4 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
-            await requests(list);
-            await requests(list);
-            await requests(list);
-            await requests(list);
-            await reportSlave(slave1, list1);
-            await reportSlave(slave1, list1);
-            await reportSlave(slave1, list1);
-            await reportSlave(slave1, list1);
+            for ( i = 0; i < 4; i++) { await requests(list); }
+            for ( i = 0; i < 4; i++) { await reportSlave(slave1, list1); }
 
-            await reportSlave(slave2, list1);
-            await reportSlave(slave2, list1);
-            await reportSlave(slave2, list1);
-            await reportSlave(slave2, list1);
+            for ( i = 0; i < 4; i++) { await reportSlave(slave2, list1); }
 
-            await reportSlave(slave3, list1);
-            await reportSlave(slave3, list1);
-            await reportSlave(slave3, list1);
-            await reportSlave(slave3, list1);
+            for ( i = 0; i < 4; i++) { await reportSlave(slave3, list1); }
 
-            await reportSlave(slave4, list2);
-            await reportSlave(slave4, list2);
-            await reportSlave(slave4, list2);
-            await reportSlave(slave4, list2);
+            for ( i = 0; i < 4; i++) { await reportSlave(slave4, list2); }
             await delay(200);
 
             autoScale(nodeName);
@@ -595,6 +573,7 @@ describe('Streaming', () => {
             expect(metrics.map(t => t.source).sort()).to.eql(['A', 'B', 'C']);
             expect(metrics).to.have.lengthOf(3);
         });
+
         it('should start and finish correctly', async () => {
             expect(streamService._jobData).to.be.not.null;
             expect(streamService._election).to.be.not.null;
@@ -611,10 +590,12 @@ describe('Streaming', () => {
             await streamService.start(job);
         });
     });
+
     describe('discovery', () => {
         beforeEach(() => {
             discovery._discoveryMap = Object.create(null);
         });
+
         it('should add discovery and get right changes', async () => {
             const jobId = uid();
             const nodeName = uid();
@@ -626,6 +607,7 @@ describe('Streaming', () => {
             expect(changes2[0].type).to.eql('Add');
             expect(changes2[0].nodeName).to.eql(nodeName);
         });
+
         it('should add discovery multiple times and get right changes', async () => {
             const jobId = uid();
             const nodeName1 = uid();
@@ -647,6 +629,7 @@ describe('Streaming', () => {
             expect(changes2[0].nodeName).to.eql(nodeName2);
             expect(changes2[1].nodeName).to.eql(nodeName1);
         });
+
         it('should add and delete discovery and get right changes', async () => {
             const jobId = uid();
             const nodeName = uid();
@@ -662,6 +645,7 @@ describe('Streaming', () => {
             expect(changes2[0].type).to.eql('Del');
             expect(changes2[1].type).to.eql('Del');
         });
+        
         it('should add discovery and get right changes', async () => {
             const jobId = uid();
             const nodeName1 = uid();
