@@ -152,6 +152,7 @@ const _processAllRequests = (
 
         const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector, entryPoint, options: algorithmOptions, reservedMemory, mounts, env } = algorithmTemplate;
 
+        const { sideCars } = algorithmTemplate;
         createDetails.push({
             numberOfNewJobs: 1,
             jobDetails: {
@@ -173,7 +174,8 @@ const _processAllRequests = (
                 clusterOptions,
                 algorithmOptions,
                 mounts,
-                reservedMemory
+                reservedMemory,
+                sideCars
             }
         });
         if (!reconcileResult[algorithmName]) {
