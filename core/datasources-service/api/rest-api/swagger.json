@@ -6967,7 +6967,7 @@
                           },
                           "container": {
                             "type": "array",
-                            "description": "keyvalye pairs of names and images for containers",
+                            "description": "key-value pairs of names and images for containers",
                             "items": {
                               "type": "object",
                               "properties": {
@@ -7007,7 +7007,7 @@
                           },
                           "volumeMounts": {
                             "type": "array",
-                            "description": "keyvalye pairs of names and mountPaths",
+                            "description": "key-value pairs of names and mountPaths",
                             "items": {
                               "type": "object",
                               "properties": {
@@ -7028,7 +7028,7 @@
                           },
                           "environments": {
                             "type": "array",
-                            "description": "keyvalye pairs of names and values",
+                            "description": "key-value pairs of names and values",
                             "items": {
                               "type": "object",
                               "properties": {
@@ -7592,7 +7592,7 @@
                             },
                             "container": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and images for containers",
+                              "description": "key-value pairs of names and images for containers",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -7632,7 +7632,7 @@
                             },
                             "volumeMounts": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and mountPaths",
+                              "description": "key-value pairs of names and mountPaths",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -7653,7 +7653,7 @@
                             },
                             "environments": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and values",
+                              "description": "key-value pairs of names and values",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -8023,7 +8023,7 @@
                             },
                             "container": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and images for containers",
+                              "description": "key-value pairs of names and images for containers",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -8063,7 +8063,7 @@
                             },
                             "volumeMounts": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and mountPaths",
+                              "description": "key-value pairs of names and mountPaths",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -8084,7 +8084,7 @@
                             },
                             "environments": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and values",
+                              "description": "key-value pairs of names and values",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -8449,7 +8449,7 @@
                         },
                         "container": {
                           "type": "array",
-                          "description": "keyvalye pairs of names and images for containers",
+                          "description": "key-value pairs of names and images for containers",
                           "items": {
                             "type": "object",
                             "properties": {
@@ -8489,7 +8489,7 @@
                         },
                         "volumeMounts": {
                           "type": "array",
-                          "description": "keyvalye pairs of names and mountPaths",
+                          "description": "key-value pairs of names and mountPaths",
                           "items": {
                             "type": "object",
                             "properties": {
@@ -8510,7 +8510,7 @@
                         },
                         "environments": {
                           "type": "array",
-                          "description": "keyvalye pairs of names and values",
+                          "description": "key-value pairs of names and values",
                           "items": {
                             "type": "object",
                             "properties": {
@@ -8931,7 +8931,7 @@
                         },
                         "container": {
                           "type": "array",
-                          "description": "keyvalye pairs of names and images for containers",
+                          "description": "key-value pairs of names and images for containers",
                           "items": {
                             "type": "object",
                             "properties": {
@@ -8971,7 +8971,7 @@
                         },
                         "volumeMounts": {
                           "type": "array",
-                          "description": "keyvalye pairs of names and mountPaths",
+                          "description": "key-value pairs of names and mountPaths",
                           "items": {
                             "type": "object",
                             "properties": {
@@ -8992,7 +8992,7 @@
                         },
                         "environments": {
                           "type": "array",
-                          "description": "keyvalye pairs of names and values",
+                          "description": "key-value pairs of names and values",
                           "items": {
                             "type": "object",
                             "properties": {
@@ -9388,7 +9388,7 @@
                             },
                             "container": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and images for containers",
+                              "description": "key-value pairs of names and images for containers",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -9428,7 +9428,7 @@
                             },
                             "volumeMounts": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and mountPaths",
+                              "description": "key-value pairs of names and mountPaths",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -9449,7 +9449,7 @@
                             },
                             "environments": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and values",
+                              "description": "key-value pairs of names and values",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -9809,7 +9809,7 @@
                               },
                               "container": {
                                 "type": "array",
-                                "description": "keyvalye pairs of names and images for containers",
+                                "description": "key-value pairs of names and images for containers",
                                 "items": {
                                   "type": "object",
                                   "properties": {
@@ -9849,7 +9849,7 @@
                               },
                               "volumeMounts": {
                                 "type": "array",
-                                "description": "keyvalye pairs of names and mountPaths",
+                                "description": "key-value pairs of names and mountPaths",
                                 "items": {
                                   "type": "object",
                                   "properties": {
@@ -9870,7 +9870,7 @@
                               },
                               "environments": {
                                 "type": "array",
-                                "description": "keyvalye pairs of names and values",
+                                "description": "key-value pairs of names and values",
                                 "items": {
                                   "type": "object",
                                   "properties": {
@@ -17364,7 +17364,7 @@
                             },
                             "container": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and images for containers",
+                              "description": "key-value pairs of names and images for containers",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -17404,7 +17404,7 @@
                             },
                             "volumeMounts": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and mountPaths",
+                              "description": "key-value pairs of names and mountPaths",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -17425,7 +17425,7 @@
                             },
                             "environments": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and values",
+                              "description": "key-value pairs of names and values",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -17848,7 +17848,7 @@
                             },
                             "container": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and images for containers",
+                              "description": "key-value pairs of names and images for containers",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -17888,7 +17888,7 @@
                             },
                             "volumeMounts": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and mountPaths",
+                              "description": "key-value pairs of names and mountPaths",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -17909,7 +17909,7 @@
                             },
                             "environments": {
                               "type": "array",
-                              "description": "keyvalye pairs of names and values",
+                              "description": "key-value pairs of names and values",
                               "items": {
                                 "type": "object",
                                 "properties": {
@@ -22443,7 +22443,7 @@
                 },
                 "container": {
                   "type": "array",
-                  "description": "keyvalye pairs of names and images for containers",
+                  "description": "key-value pairs of names and images for containers",
                   "items": {
                     "type": "object",
                     "properties": {
@@ -22483,7 +22483,7 @@
                 },
                 "volumeMounts": {
                   "type": "array",
-                  "description": "keyvalye pairs of names and mountPaths",
+                  "description": "key-value pairs of names and mountPaths",
                   "items": {
                     "type": "object",
                     "properties": {
@@ -22504,7 +22504,7 @@
                 },
                 "environments": {
                   "type": "array",
-                  "description": "keyvalye pairs of names and values",
+                  "description": "key-value pairs of names and values",
                   "items": {
                     "type": "object",
                     "properties": {
@@ -23014,7 +23014,7 @@
                     },
                     "container": {
                       "type": "array",
-                      "description": "keyvalye pairs of names and images for containers",
+                      "description": "key-value pairs of names and images for containers",
                       "items": {
                         "type": "object",
                         "properties": {
@@ -23054,7 +23054,7 @@
                     },
                     "volumeMounts": {
                       "type": "array",
-                      "description": "keyvalye pairs of names and mountPaths",
+                      "description": "key-value pairs of names and mountPaths",
                       "items": {
                         "type": "object",
                         "properties": {
@@ -23075,7 +23075,7 @@
                     },
                     "environments": {
                       "type": "array",
-                      "description": "keyvalye pairs of names and values",
+                      "description": "key-value pairs of names and values",
                       "items": {
                         "type": "object",
                         "properties": {
@@ -23182,7 +23182,7 @@
           },
           "container": {
             "type": "array",
-            "description": "keyvalye pairs of names and images for containers",
+            "description": "key-value pairs of names and images for containers",
             "items": {
               "type": "object",
               "properties": {
@@ -23222,7 +23222,7 @@
           },
           "volumeMounts": {
             "type": "array",
-            "description": "keyvalye pairs of names and mountPaths",
+            "description": "key-value pairs of names and mountPaths",
             "items": {
               "type": "object",
               "properties": {
@@ -23243,7 +23243,7 @@
           },
           "environments": {
             "type": "array",
-            "description": "keyvalye pairs of names and values",
+            "description": "key-value pairs of names and values",
             "items": {
               "type": "object",
               "properties": {

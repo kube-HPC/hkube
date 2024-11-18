@@ -6,7 +6,7 @@ properties:
     description: name of the sidecar
   container:
     type: array
-    description: keyvalye pairs of names and images for containers
+    description: key-value pairs of names and images for containers
     items:
       $ref: "#/components/schemas/sidecarContainer"
   volumes:
@@ -15,11 +15,11 @@ properties:
       $ref: "#/components/schemas/sidecarVolume"
   volumeMounts:
     type: array
-    description: keyvalye pairs of names and mountPaths
+    description: key-value pairs of names and mountPaths
     items:
       $ref: "#/components/schemas/sidecarVolumeMounts"
   environments:
     type: array
-    description: keyvalye pairs of names and values
+    description: key-value pairs of names and values
     items:
       $ref: "#/components/schemas/sidecarEnvVars"
