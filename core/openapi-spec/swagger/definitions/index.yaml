@@ -36,9 +36,9 @@ sideCars:
 sidecarContainer:
   $ref: ./algorithms/sidecarContainer.yaml
 sidecarVolumeMounts:
-  $ref: ./algorithms/sidecarVolumeMounts.yaml  
+  $ref: ./algorithms/sidecarVolumeMounts.yaml
 sidecarEnvVars:
-  $ref: ./algorithms/sidecarEnvVars.yaml 
+  $ref: ./algorithms/sidecarEnvVars.yaml
 sidecarVolume: 
   $ref: ./algorithms/sidecarVolume.yaml
 

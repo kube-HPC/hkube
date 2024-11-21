@@ -2,9 +2,35 @@ type: object
 properties:
   name:
     type: string
-    description: volume name
-  additionalProperties:
-    type: string
-    description: emptyDir, configmap, etc.
+    description: Volume name
+  emptyDir:
+    type: object
+    description: Configuration for an emptyDir volume
+  persistentVolumeClaim:
+    type: object
+    properties:
+      claimName:
+        type: string
+        description: The name of the PersistentVolumeClaim
+    required:
+      - claimName
+  configMap:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of the ConfigMap
+  secret:
+    type: object
+    properties:
+      secretName:
+        type: string
+        description: The name of the Secret
+oneOf:
+  - required: ["emptyDir"]
+  - required: ["persistentVolumeClaim"]
+  - required: ["configMap"]
+  - required: ["secret"]
+
 required:
   - name
