@@ -7056,7 +7056,7 @@
                           "container": [
                             {
                               "name": "c1",
-                              "image": "hkube/my-image\""
+                              "image": "hkube/my-image"
                             }
                           ],
                           "volumes": [
@@ -7067,7 +7067,7 @@
                           ],
                           "volumeMounts": [
                             {
-                              "name": "v2",
+                              "name": "v1",
                               "mountPath": "/tmp/foo"
                             }
                           ],
@@ -7681,7 +7681,7 @@
                             "container": [
                               {
                                 "name": "c1",
-                                "image": "hkube/my-image\""
+                                "image": "hkube/my-image"
                               }
                             ],
                             "volumes": [
@@ -7692,7 +7692,7 @@
                             ],
                             "volumeMounts": [
                               {
-                                "name": "v2",
+                                "name": "v1",
                                 "mountPath": "/tmp/foo"
                               }
                             ],
@@ -8112,7 +8112,7 @@
                             "container": [
                               {
                                 "name": "c1",
-                                "image": "hkube/my-image\""
+                                "image": "hkube/my-image"
                               }
                             ],
                             "volumes": [
@@ -8123,7 +8123,7 @@
                             ],
                             "volumeMounts": [
                               {
-                                "name": "v2",
+                                "name": "v1",
                                 "mountPath": "/tmp/foo"
                               }
                             ],
@@ -8538,7 +8538,7 @@
                         "container": [
                           {
                             "name": "c1",
-                            "image": "hkube/my-image\""
+                            "image": "hkube/my-image"
                           }
                         ],
                         "volumes": [
@@ -8549,7 +8549,7 @@
                         ],
                         "volumeMounts": [
                           {
-                            "name": "v2",
+                            "name": "v1",
                             "mountPath": "/tmp/foo"
                           }
                         ],
@@ -9020,7 +9020,7 @@
                         "container": [
                           {
                             "name": "c1",
-                            "image": "hkube/my-image\""
+                            "image": "hkube/my-image"
                           }
                         ],
                         "volumes": [
@@ -9031,7 +9031,7 @@
                         ],
                         "volumeMounts": [
                           {
-                            "name": "v2",
+                            "name": "v1",
                             "mountPath": "/tmp/foo"
                           }
                         ],
@@ -9477,7 +9477,7 @@
                             "container": [
                               {
                                 "name": "c1",
-                                "image": "hkube/my-image\""
+                                "image": "hkube/my-image"
                               }
                             ],
                             "volumes": [
@@ -9488,7 +9488,7 @@
                             ],
                             "volumeMounts": [
                               {
-                                "name": "v2",
+                                "name": "v1",
                                 "mountPath": "/tmp/foo"
                               }
                             ],
@@ -9898,7 +9898,7 @@
                               "container": [
                                 {
                                   "name": "c1",
-                                  "image": "hkube/my-image\""
+                                  "image": "hkube/my-image"
                                 }
                               ],
                               "volumes": [
@@ -9909,7 +9909,7 @@
                               ],
                               "volumeMounts": [
                                 {
-                                  "name": "v2",
+                                  "name": "v1",
                                   "mountPath": "/tmp/foo"
                                 }
                               ],
@@ -17453,7 +17453,7 @@
                             "container": [
                               {
                                 "name": "c1",
-                                "image": "hkube/my-image\""
+                                "image": "hkube/my-image"
                               }
                             ],
                             "volumes": [
@@ -17464,7 +17464,7 @@
                             ],
                             "volumeMounts": [
                               {
-                                "name": "v2",
+                                "name": "v1",
                                 "mountPath": "/tmp/foo"
                               }
                             ],
@@ -17937,7 +17937,7 @@
                             "container": [
                               {
                                 "name": "c1",
-                                "image": "hkube/my-image\""
+                                "image": "hkube/my-image"
                               }
                             ],
                             "volumes": [
@@ -17948,7 +17948,7 @@
                             ],
                             "volumeMounts": [
                               {
-                                "name": "v2",
+                                "name": "v1",
                                 "mountPath": "/tmp/foo"
                               }
                             ],
@@ -22532,7 +22532,7 @@
                 "container": [
                   {
                     "name": "c1",
-                    "image": "hkube/my-image\""
+                    "image": "hkube/my-image"
                   }
                 ],
                 "volumes": [
@@ -22543,7 +22543,7 @@
                 ],
                 "volumeMounts": [
                   {
-                    "name": "v2",
+                    "name": "v1",
                     "mountPath": "/tmp/foo"
                   }
                 ],
@@ -23103,7 +23103,7 @@
                     "container": [
                       {
                         "name": "c1",
-                        "image": "hkube/my-image\""
+                        "image": "hkube/my-image"
                       }
                     ],
                     "volumes": [
@@ -23114,7 +23114,7 @@
                     ],
                     "volumeMounts": [
                       {
-                        "name": "v2",
+                        "name": "v1",
                         "mountPath": "/tmp/foo"
                       }
                     ],
