@@ -754,7 +754,7 @@ class TaskRunner {
     _setStreamingMetric(metric) {
         let isStateless;
         Object.entries(streamingEdgeMetricToPropMap).forEach(([key, val]) => {
-            if ((metric[val.propName] !== 0) || val.registerZeroValue) {
+            if (metric[val.propName] && ((metric[val.propName] !== 0) || val.registerZeroValue)) {
                 pipelineMetrics.setStreamingEdgeGaugeMetric(
                     {
                         value: metric[val.propName],
