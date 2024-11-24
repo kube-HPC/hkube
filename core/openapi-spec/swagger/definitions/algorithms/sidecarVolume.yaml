@@ -3,9 +3,11 @@ properties:
   name:
     type: string
     description: Volume name
+
   emptyDir:
     type: object
     description: Configuration for an emptyDir volume
+
   persistentVolumeClaim:
     type: object
     properties:
@@ -14,23 +16,26 @@ properties:
         description: The name of the PersistentVolumeClaim
     required:
       - claimName
+
   configMap:
     type: object
     properties:
       name:
         type: string
         description: The name of the ConfigMap
+
   secret:
     type: object
     properties:
       secretName:
         type: string
         description: The name of the Secret
+
+required:
+  - name
+
 oneOf:
   - required: ["emptyDir"]
   - required: ["persistentVolumeClaim"]
   - required: ["configMap"]
   - required: ["secret"]
-
-required:
-  - name

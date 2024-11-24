@@ -162,9 +162,9 @@ class Logs {
             }
             catch (error) {
                 const errorLog = [{
-                    message: `Error fetching logs for ${containerName}: ${error.message || error}`,
+                    message: `Error fetching logs for ${containerName}: ${error.message || error || ''}`,
                     level: 'error',
-                    timestamp: new Date().toISOString()
+                    timestamp: Date.now()
                 }];
                 return errorLog;
             }

@@ -7030,6 +7030,9 @@
                                   }
                                 }
                               },
+                              "required": [
+                                "name"
+                              ],
                               "oneOf": [
                                 {
                                   "required": [
@@ -7051,9 +7054,6 @@
                                     "secret"
                                   ]
                                 }
-                              ],
-                              "required": [
-                                "name"
                               ]
                             }
                           },
@@ -7707,6 +7707,9 @@
                                     }
                                   }
                                 },
+                                "required": [
+                                  "name"
+                                ],
                                 "oneOf": [
                                   {
                                     "required": [
@@ -7728,9 +7731,6 @@
                                       "secret"
                                     ]
                                   }
-                                ],
-                                "required": [
-                                  "name"
                                 ]
                               }
                             },
@@ -8190,6 +8190,9 @@
                                     }
                                   }
                                 },
+                                "required": [
+                                  "name"
+                                ],
                                 "oneOf": [
                                   {
                                     "required": [
@@ -8211,9 +8214,6 @@
                                       "secret"
                                     ]
                                   }
-                                ],
-                                "required": [
-                                  "name"
                                 ]
                               }
                             },
@@ -8668,6 +8668,9 @@
                                 }
                               }
                             },
+                            "required": [
+                              "name"
+                            ],
                             "oneOf": [
                               {
                                 "required": [
@@ -8689,9 +8692,6 @@
                                   "secret"
                                 ]
                               }
-                            ],
-                            "required": [
-                              "name"
                             ]
                           }
                         },
@@ -9202,6 +9202,9 @@
                                 }
                               }
                             },
+                            "required": [
+                              "name"
+                            ],
                             "oneOf": [
                               {
                                 "required": [
@@ -9223,9 +9226,6 @@
                                   "secret"
                                 ]
                               }
-                            ],
-                            "required": [
-                              "name"
                             ]
                           }
                         },
@@ -9711,6 +9711,9 @@
                                     }
                                   }
                                 },
+                                "required": [
+                                  "name"
+                                ],
                                 "oneOf": [
                                   {
                                     "required": [
@@ -9732,9 +9735,6 @@
                                       "secret"
                                     ]
                                   }
-                                ],
-                                "required": [
-                                  "name"
                                 ]
                               }
                             },
@@ -10184,6 +10184,9 @@
                                       }
                                     }
                                   },
+                                  "required": [
+                                    "name"
+                                  ],
                                   "oneOf": [
                                     {
                                       "required": [
@@ -10205,9 +10208,6 @@
                                         "secret"
                                       ]
                                     }
-                                  ],
-                                  "required": [
-                                    "name"
                                   ]
                                 }
                               },
@@ -17791,6 +17791,9 @@
                                     }
                                   }
                                 },
+                                "required": [
+                                  "name"
+                                ],
                                 "oneOf": [
                                   {
                                     "required": [
@@ -17812,9 +17815,6 @@
                                       "secret"
                                     ]
                                   }
-                                ],
-                                "required": [
-                                  "name"
                                 ]
                               }
                             },
@@ -18327,6 +18327,9 @@
                                     }
                                   }
                                 },
+                                "required": [
+                                  "name"
+                                ],
                                 "oneOf": [
                                   {
                                     "required": [
@@ -18348,9 +18351,6 @@
                                       "secret"
                                     ]
                                   }
-                                ],
-                                "required": [
-                                  "name"
                                 ]
                               }
                             },
@@ -22974,6 +22974,9 @@
                         }
                       }
                     },
+                    "required": [
+                      "name"
+                    ],
                     "oneOf": [
                       {
                         "required": [
@@ -22995,9 +22998,6 @@
                           "secret"
                         ]
                       }
-                    ],
-                    "required": [
-                      "name"
                     ]
                   }
                 },
@@ -23597,6 +23597,9 @@
                             }
                           }
                         },
+                        "required": [
+                          "name"
+                        ],
                         "oneOf": [
                           {
                             "required": [
@@ -23618,9 +23621,6 @@
                               "secret"
                             ]
                           }
-                        ],
-                        "required": [
-                          "name"
                         ]
                       }
                     },
@@ -23817,6 +23817,9 @@
                   }
                 }
               },
+              "required": [
+                "name"
+              ],
               "oneOf": [
                 {
                   "required": [
@@ -23838,9 +23841,6 @@
                     "secret"
                   ]
                 }
-              ],
-              "required": [
-                "name"
               ]
             }
           },
@@ -23981,6 +23981,9 @@
             }
           }
         },
+        "required": [
+          "name"
+        ],
         "oneOf": [
           {
             "required": [
@@ -24002,9 +24005,6 @@
               "secret"
             ]
           }
-        ],
-        "required": [
-          "name"
         ]
       },
       "createBoardRequest": {
