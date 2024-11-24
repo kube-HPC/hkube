@@ -151,13 +151,23 @@ class Logs {
     async _getSideCarLogs(containerNames, logSource, args) {
         const logPromises = containerNames.map(async (containerName) => {
             const currArgs = { ...args, containerName };
-            let currLogs = await logSource.getLogs(currArgs);
-            currLogs = currLogs.map(logLine => {
-                const formattedLog = this._format(logLine);
-                formattedLog.message = `K8S (${containerName}): ${log.message}`;
-                return formattedLog;
-            });
-            return currLogs;
+            try {
+                let currLogs = await logSource.getLogs(currArgs);
+                currLogs = currLogs.map(logLine => {
+                    const formattedLog = this._format(logLine);
+                    formattedLog.message = `K8S (${containerName}): ${log.message}`;
+                    return formattedLog;
+                });
+                return currLogs;
+            }
+            catch (error) {
+                const errorLog = [{
+                    message: `Error fetching logs for ${containerName}: ${error.message || error}`,
+                    level: 'error',
+                    timestamp: new Date().toISOString()
+                }];
+                return errorLog;
+            }
         });
         return Promise.all(logPromises);
     }
