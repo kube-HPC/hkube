@@ -169,7 +169,7 @@ class Logs {
                 return errorLog;
             }
         });
-        return Promise.all(logPromises);
+        return Promise.all(logPromises).then(results => results.flat());
     }
 
     _format(line) {
