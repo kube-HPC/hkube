@@ -46,6 +46,7 @@ class ExecutionService {
             restPipeline.options.debugOverride = debugOverrides;
         }
         const types = [...pipeline.types, pipelineTypes.NODE];
+        restPipeline.name += `-${options.nodeName}`;
         return this._runPipeline({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types, debugNode });
     }
 
