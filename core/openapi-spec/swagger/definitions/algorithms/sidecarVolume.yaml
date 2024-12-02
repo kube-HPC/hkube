@@ -5,7 +5,7 @@ properties:
     description: Volume name
   volumeType:
     type: object
-    description: Specify the type of volume
+    description: Specify the type of volume (instead volumeType use one of the following) -
     oneOf:
       - properties:
           emptyDir:
