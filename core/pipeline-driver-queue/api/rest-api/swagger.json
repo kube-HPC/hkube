@@ -7001,7 +7001,8 @@
                                   "properties": {
                                     "emptyDir": {
                                       "type": "object",
-                                      "description": "Configuration for an emptyDir volume"
+                                      "description": "Configuration for an emptyDir volume",
+                                      "additionalProperties": false
                                     }
                                   },
                                   "required": [
@@ -7018,6 +7019,7 @@
                                           "description": "The name of the PersistentVolumeClaim"
                                         }
                                       },
+                                      "additionalProperties": false,
                                       "required": [
                                         "claimName"
                                       ]
@@ -7034,8 +7036,9 @@
                                           "description": "The name of the ConfigMap"
                                         }
                                       },
+                                      "additionalProperties": false,
                                       "required": [
-                                        "configMap"
+                                        "name"
                                       ]
                                     }
                                   }
@@ -7050,8 +7053,9 @@
                                           "description": "The name of the Secret"
                                         }
                                       },
+                                      "additionalProperties": false,
                                       "required": [
-                                        "secret"
+                                        "secretName"
                                       ]
                                     }
                                   }
@@ -7683,7 +7687,8 @@
                                     "properties": {
                                       "emptyDir": {
                                         "type": "object",
-                                        "description": "Configuration for an emptyDir volume"
+                                        "description": "Configuration for an emptyDir volume",
+                                        "additionalProperties": false
                                       }
                                     },
                                     "required": [
@@ -7700,6 +7705,7 @@
                                             "description": "The name of the PersistentVolumeClaim"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
                                           "claimName"
                                         ]
@@ -7716,8 +7722,9 @@
                                             "description": "The name of the ConfigMap"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
-                                          "configMap"
+                                          "name"
                                         ]
                                       }
                                     }
@@ -7732,8 +7739,9 @@
                                             "description": "The name of the Secret"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
-                                          "secret"
+                                          "secretName"
                                         ]
                                       }
                                     }
@@ -8171,7 +8179,8 @@
                                     "properties": {
                                       "emptyDir": {
                                         "type": "object",
-                                        "description": "Configuration for an emptyDir volume"
+                                        "description": "Configuration for an emptyDir volume",
+                                        "additionalProperties": false
                                       }
                                     },
                                     "required": [
@@ -8188,6 +8197,7 @@
                                             "description": "The name of the PersistentVolumeClaim"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
                                           "claimName"
                                         ]
@@ -8204,8 +8214,9 @@
                                             "description": "The name of the ConfigMap"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
-                                          "configMap"
+                                          "name"
                                         ]
                                       }
                                     }
@@ -8220,8 +8231,9 @@
                                             "description": "The name of the Secret"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
-                                          "secret"
+                                          "secretName"
                                         ]
                                       }
                                     }
@@ -8654,7 +8666,8 @@
                                 "properties": {
                                   "emptyDir": {
                                     "type": "object",
-                                    "description": "Configuration for an emptyDir volume"
+                                    "description": "Configuration for an emptyDir volume",
+                                    "additionalProperties": false
                                   }
                                 },
                                 "required": [
@@ -8671,6 +8684,7 @@
                                         "description": "The name of the PersistentVolumeClaim"
                                       }
                                     },
+                                    "additionalProperties": false,
                                     "required": [
                                       "claimName"
                                     ]
@@ -8687,8 +8701,9 @@
                                         "description": "The name of the ConfigMap"
                                       }
                                     },
+                                    "additionalProperties": false,
                                     "required": [
-                                      "configMap"
+                                      "name"
                                     ]
                                   }
                                 }
@@ -8703,8 +8718,9 @@
                                         "description": "The name of the Secret"
                                       }
                                     },
+                                    "additionalProperties": false,
                                     "required": [
-                                      "secret"
+                                      "secretName"
                                     ]
                                   }
                                 }
@@ -9193,7 +9209,8 @@
                                 "properties": {
                                   "emptyDir": {
                                     "type": "object",
-                                    "description": "Configuration for an emptyDir volume"
+                                    "description": "Configuration for an emptyDir volume",
+                                    "additionalProperties": false
                                   }
                                 },
                                 "required": [
@@ -9210,6 +9227,7 @@
                                         "description": "The name of the PersistentVolumeClaim"
                                       }
                                     },
+                                    "additionalProperties": false,
                                     "required": [
                                       "claimName"
                                     ]
@@ -9226,8 +9244,9 @@
                                         "description": "The name of the ConfigMap"
                                       }
                                     },
+                                    "additionalProperties": false,
                                     "required": [
-                                      "configMap"
+                                      "name"
                                     ]
                                   }
                                 }
@@ -9242,8 +9261,9 @@
                                         "description": "The name of the Secret"
                                       }
                                     },
+                                    "additionalProperties": false,
                                     "required": [
-                                      "secret"
+                                      "secretName"
                                     ]
                                   }
                                 }
@@ -9707,7 +9727,8 @@
                                     "properties": {
                                       "emptyDir": {
                                         "type": "object",
-                                        "description": "Configuration for an emptyDir volume"
+                                        "description": "Configuration for an emptyDir volume",
+                                        "additionalProperties": false
                                       }
                                     },
                                     "required": [
@@ -9724,6 +9745,7 @@
                                             "description": "The name of the PersistentVolumeClaim"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
                                           "claimName"
                                         ]
@@ -9740,8 +9762,9 @@
                                             "description": "The name of the ConfigMap"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
-                                          "configMap"
+                                          "name"
                                         ]
                                       }
                                     }
@@ -9756,8 +9779,9 @@
                                             "description": "The name of the Secret"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
-                                          "secret"
+                                          "secretName"
                                         ]
                                       }
                                     }
@@ -10185,7 +10209,8 @@
                                       "properties": {
                                         "emptyDir": {
                                           "type": "object",
-                                          "description": "Configuration for an emptyDir volume"
+                                          "description": "Configuration for an emptyDir volume",
+                                          "additionalProperties": false
                                         }
                                       },
                                       "required": [
@@ -10202,6 +10227,7 @@
                                               "description": "The name of the PersistentVolumeClaim"
                                             }
                                           },
+                                          "additionalProperties": false,
                                           "required": [
                                             "claimName"
                                           ]
@@ -10218,8 +10244,9 @@
                                               "description": "The name of the ConfigMap"
                                             }
                                           },
+                                          "additionalProperties": false,
                                           "required": [
-                                            "configMap"
+                                            "name"
                                           ]
                                         }
                                       }
@@ -10234,8 +10261,9 @@
                                               "description": "The name of the Secret"
                                             }
                                           },
+                                          "additionalProperties": false,
                                           "required": [
-                                            "secret"
+                                            "secretName"
                                           ]
                                         }
                                       }
@@ -17797,7 +17825,8 @@
                                     "properties": {
                                       "emptyDir": {
                                         "type": "object",
-                                        "description": "Configuration for an emptyDir volume"
+                                        "description": "Configuration for an emptyDir volume",
+                                        "additionalProperties": false
                                       }
                                     },
                                     "required": [
@@ -17814,6 +17843,7 @@
                                             "description": "The name of the PersistentVolumeClaim"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
                                           "claimName"
                                         ]
@@ -17830,8 +17860,9 @@
                                             "description": "The name of the ConfigMap"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
-                                          "configMap"
+                                          "name"
                                         ]
                                       }
                                     }
@@ -17846,8 +17877,9 @@
                                             "description": "The name of the Secret"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
-                                          "secret"
+                                          "secretName"
                                         ]
                                       }
                                     }
@@ -18338,7 +18370,8 @@
                                     "properties": {
                                       "emptyDir": {
                                         "type": "object",
-                                        "description": "Configuration for an emptyDir volume"
+                                        "description": "Configuration for an emptyDir volume",
+                                        "additionalProperties": false
                                       }
                                     },
                                     "required": [
@@ -18355,6 +18388,7 @@
                                             "description": "The name of the PersistentVolumeClaim"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
                                           "claimName"
                                         ]
@@ -18371,8 +18405,9 @@
                                             "description": "The name of the ConfigMap"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
-                                          "configMap"
+                                          "name"
                                         ]
                                       }
                                     }
@@ -18387,8 +18422,9 @@
                                             "description": "The name of the Secret"
                                           }
                                         },
+                                        "additionalProperties": false,
                                         "required": [
-                                          "secret"
+                                          "secretName"
                                         ]
                                       }
                                     }
@@ -22990,7 +23026,8 @@
                         "properties": {
                           "emptyDir": {
                             "type": "object",
-                            "description": "Configuration for an emptyDir volume"
+                            "description": "Configuration for an emptyDir volume",
+                            "additionalProperties": false
                           }
                         },
                         "required": [
@@ -23007,6 +23044,7 @@
                                 "description": "The name of the PersistentVolumeClaim"
                               }
                             },
+                            "additionalProperties": false,
                             "required": [
                               "claimName"
                             ]
@@ -23023,8 +23061,9 @@
                                 "description": "The name of the ConfigMap"
                               }
                             },
+                            "additionalProperties": false,
                             "required": [
-                              "configMap"
+                              "name"
                             ]
                           }
                         }
@@ -23039,8 +23078,9 @@
                                 "description": "The name of the Secret"
                               }
                             },
+                            "additionalProperties": false,
                             "required": [
-                              "secret"
+                              "secretName"
                             ]
                           }
                         }
@@ -23618,7 +23658,8 @@
                             "properties": {
                               "emptyDir": {
                                 "type": "object",
-                                "description": "Configuration for an emptyDir volume"
+                                "description": "Configuration for an emptyDir volume",
+                                "additionalProperties": false
                               }
                             },
                             "required": [
@@ -23635,6 +23676,7 @@
                                     "description": "The name of the PersistentVolumeClaim"
                                   }
                                 },
+                                "additionalProperties": false,
                                 "required": [
                                   "claimName"
                                 ]
@@ -23651,8 +23693,9 @@
                                     "description": "The name of the ConfigMap"
                                   }
                                 },
+                                "additionalProperties": false,
                                 "required": [
-                                  "configMap"
+                                  "name"
                                 ]
                               }
                             }
@@ -23667,8 +23710,9 @@
                                     "description": "The name of the Secret"
                                   }
                                 },
+                                "additionalProperties": false,
                                 "required": [
-                                  "secret"
+                                  "secretName"
                                 ]
                               }
                             }
@@ -23843,7 +23887,8 @@
                   "properties": {
                     "emptyDir": {
                       "type": "object",
-                      "description": "Configuration for an emptyDir volume"
+                      "description": "Configuration for an emptyDir volume",
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -23860,6 +23905,7 @@
                           "description": "The name of the PersistentVolumeClaim"
                         }
                       },
+                      "additionalProperties": false,
                       "required": [
                         "claimName"
                       ]
@@ -23876,8 +23922,9 @@
                           "description": "The name of the ConfigMap"
                         }
                       },
+                      "additionalProperties": false,
                       "required": [
-                        "configMap"
+                        "name"
                       ]
                     }
                   }
@@ -23892,8 +23939,9 @@
                           "description": "The name of the Secret"
                         }
                       },
+                      "additionalProperties": false,
                       "required": [
-                        "secret"
+                        "secretName"
                       ]
                     }
                   }
@@ -24012,7 +24060,8 @@
             "properties": {
               "emptyDir": {
                 "type": "object",
-                "description": "Configuration for an emptyDir volume"
+                "description": "Configuration for an emptyDir volume",
+                "additionalProperties": false
               }
             },
             "required": [
@@ -24029,6 +24078,7 @@
                     "description": "The name of the PersistentVolumeClaim"
                   }
                 },
+                "additionalProperties": false,
                 "required": [
                   "claimName"
                 ]
@@ -24045,8 +24095,9 @@
                     "description": "The name of the ConfigMap"
                   }
                 },
+                "additionalProperties": false,
                 "required": [
-                  "configMap"
+                  "name"
                 ]
               }
             }
@@ -24061,8 +24112,9 @@
                     "description": "The name of the Secret"
                   }
                 },
+                "additionalProperties": false,
                 "required": [
-                  "secret"
+                  "secretName"
                 ]
               }
             }
