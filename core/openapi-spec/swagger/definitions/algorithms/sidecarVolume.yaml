@@ -26,7 +26,7 @@ properties:
         description: The name of the Secret
 required:
   - name
-anyOf:  # Use `anyOf` instead of `oneOf`, but don't make it required
+anyOf:
   - required: ["emptyDir"]
   - required: ["persistentVolumeClaim"]
   - required: ["configMap"]
