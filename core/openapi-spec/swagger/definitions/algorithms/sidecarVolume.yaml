@@ -3,40 +3,35 @@ properties:
   name:
     type: string
     description: Volume name
-  volumeType:
-    type: object
-    description: Specify the type of volume (instead volumeType use one of the following) -
-    oneOf:
-      - properties:
-          emptyDir:
-            type: object
-            description: Configuration for an emptyDir volume
-        required: ["emptyDir"]
-      - properties:
-          persistentVolumeClaim:
-            type: object
-            properties:
-              claimName:
-                type: string
-                description: The name of the PersistentVolumeClaim
-            required: ["claimName"]
-        required: ["persistentVolumeClaim"]
-      - properties:
-          configMap:
-            type: object
-            properties:
-              name:
-                type: string
-                description: The name of the ConfigMap
+oneOf:
+  - properties:
+      emptyDir:
+        type: object
+        description: Configuration for an emptyDir volume
+    required: ["emptyDir"]
+  - properties:
+      persistentVolumeClaim:
+        type: object
+        properties:
+          claimName:
+            type: string
+            description: The name of the PersistentVolumeClaim
+        required: ["claimName"]
+  - properties:
+      configMap:
+        type: object
+        properties:
+          name:
+            type: string
+            description: The name of the ConfigMap
         required: ["configMap"]
-      - properties:
-          secret:
-            type: object
-            properties:
-              secretName:
-                type: string
-                description: The name of the Secret
+  - properties:
+      secret:
+        type: object
+        properties:
+          secretName:
+            type: string
+            description: The name of the Secret
         required: ["secret"]
 required:
   - name
-  - volumeType
