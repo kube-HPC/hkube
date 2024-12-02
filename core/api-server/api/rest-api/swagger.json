@@ -6994,75 +6994,63 @@
                                 "name": {
                                   "type": "string",
                                   "description": "Volume name"
+                                },
+                                "emptyDir": {
+                                  "type": "object",
+                                  "description": "Configuration for an emptyDir volume"
+                                },
+                                "persistentVolumeClaim": {
+                                  "type": "object",
+                                  "properties": {
+                                    "claimName": {
+                                      "type": "string",
+                                      "description": "The name of the PersistentVolumeClaim"
+                                    }
+                                  }
+                                },
+                                "configMap": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string",
+                                      "description": "The name of the ConfigMap"
+                                    }
+                                  }
+                                },
+                                "secret": {
+                                  "type": "object",
+                                  "properties": {
+                                    "secretName": {
+                                      "type": "string",
+                                      "description": "The name of the Secret"
+                                    }
+                                  }
                                 }
                               },
-                              "oneOf": [
+                              "required": [
+                                "name"
+                              ],
+                              "anyOf": [
                                 {
-                                  "properties": {
-                                    "emptyDir": {
-                                      "type": "object",
-                                      "description": "Configuration for an emptyDir volume",
-                                      "additionalProperties": false
-                                    }
-                                  },
                                   "required": [
                                     "emptyDir"
                                   ]
                                 },
                                 {
-                                  "properties": {
-                                    "persistentVolumeClaim": {
-                                      "type": "object",
-                                      "properties": {
-                                        "claimName": {
-                                          "type": "string",
-                                          "description": "The name of the PersistentVolumeClaim"
-                                        }
-                                      },
-                                      "additionalProperties": false,
-                                      "required": [
-                                        "claimName"
-                                      ]
-                                    }
-                                  }
+                                  "required": [
+                                    "persistentVolumeClaim"
+                                  ]
                                 },
                                 {
-                                  "properties": {
-                                    "configMap": {
-                                      "type": "object",
-                                      "properties": {
-                                        "name": {
-                                          "type": "string",
-                                          "description": "The name of the ConfigMap"
-                                        }
-                                      },
-                                      "additionalProperties": false,
-                                      "required": [
-                                        "name"
-                                      ]
-                                    }
-                                  }
+                                  "required": [
+                                    "configMap"
+                                  ]
                                 },
                                 {
-                                  "properties": {
-                                    "secret": {
-                                      "type": "object",
-                                      "properties": {
-                                        "secretName": {
-                                          "type": "string",
-                                          "description": "The name of the Secret"
-                                        }
-                                      },
-                                      "additionalProperties": false,
-                                      "required": [
-                                        "secretName"
-                                      ]
-                                    }
-                                  }
+                                  "required": [
+                                    "secret"
+                                  ]
                                 }
-                              ],
-                              "required": [
-                                "name"
                               ]
                             }
                           },
@@ -7680,75 +7668,63 @@
                                   "name": {
                                     "type": "string",
                                     "description": "Volume name"
+                                  },
+                                  "emptyDir": {
+                                    "type": "object",
+                                    "description": "Configuration for an emptyDir volume"
+                                  },
+                                  "persistentVolumeClaim": {
+                                    "type": "object",
+                                    "properties": {
+                                      "claimName": {
+                                        "type": "string",
+                                        "description": "The name of the PersistentVolumeClaim"
+                                      }
+                                    }
+                                  },
+                                  "configMap": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "description": "The name of the ConfigMap"
+                                      }
+                                    }
+                                  },
+                                  "secret": {
+                                    "type": "object",
+                                    "properties": {
+                                      "secretName": {
+                                        "type": "string",
+                                        "description": "The name of the Secret"
+                                      }
+                                    }
                                   }
                                 },
-                                "oneOf": [
+                                "required": [
+                                  "name"
+                                ],
+                                "anyOf": [
                                   {
-                                    "properties": {
-                                      "emptyDir": {
-                                        "type": "object",
-                                        "description": "Configuration for an emptyDir volume",
-                                        "additionalProperties": false
-                                      }
-                                    },
                                     "required": [
                                       "emptyDir"
                                     ]
                                   },
                                   {
-                                    "properties": {
-                                      "persistentVolumeClaim": {
-                                        "type": "object",
-                                        "properties": {
-                                          "claimName": {
-                                            "type": "string",
-                                            "description": "The name of the PersistentVolumeClaim"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "claimName"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "persistentVolumeClaim"
+                                    ]
                                   },
                                   {
-                                    "properties": {
-                                      "configMap": {
-                                        "type": "object",
-                                        "properties": {
-                                          "name": {
-                                            "type": "string",
-                                            "description": "The name of the ConfigMap"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "name"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "configMap"
+                                    ]
                                   },
                                   {
-                                    "properties": {
-                                      "secret": {
-                                        "type": "object",
-                                        "properties": {
-                                          "secretName": {
-                                            "type": "string",
-                                            "description": "The name of the Secret"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "secretName"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "secret"
+                                    ]
                                   }
-                                ],
-                                "required": [
-                                  "name"
                                 ]
                               }
                             },
@@ -8172,75 +8148,63 @@
                                   "name": {
                                     "type": "string",
                                     "description": "Volume name"
+                                  },
+                                  "emptyDir": {
+                                    "type": "object",
+                                    "description": "Configuration for an emptyDir volume"
+                                  },
+                                  "persistentVolumeClaim": {
+                                    "type": "object",
+                                    "properties": {
+                                      "claimName": {
+                                        "type": "string",
+                                        "description": "The name of the PersistentVolumeClaim"
+                                      }
+                                    }
+                                  },
+                                  "configMap": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "description": "The name of the ConfigMap"
+                                      }
+                                    }
+                                  },
+                                  "secret": {
+                                    "type": "object",
+                                    "properties": {
+                                      "secretName": {
+                                        "type": "string",
+                                        "description": "The name of the Secret"
+                                      }
+                                    }
                                   }
                                 },
-                                "oneOf": [
+                                "required": [
+                                  "name"
+                                ],
+                                "anyOf": [
                                   {
-                                    "properties": {
-                                      "emptyDir": {
-                                        "type": "object",
-                                        "description": "Configuration for an emptyDir volume",
-                                        "additionalProperties": false
-                                      }
-                                    },
                                     "required": [
                                       "emptyDir"
                                     ]
                                   },
                                   {
-                                    "properties": {
-                                      "persistentVolumeClaim": {
-                                        "type": "object",
-                                        "properties": {
-                                          "claimName": {
-                                            "type": "string",
-                                            "description": "The name of the PersistentVolumeClaim"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "claimName"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "persistentVolumeClaim"
+                                    ]
                                   },
                                   {
-                                    "properties": {
-                                      "configMap": {
-                                        "type": "object",
-                                        "properties": {
-                                          "name": {
-                                            "type": "string",
-                                            "description": "The name of the ConfigMap"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "name"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "configMap"
+                                    ]
                                   },
                                   {
-                                    "properties": {
-                                      "secret": {
-                                        "type": "object",
-                                        "properties": {
-                                          "secretName": {
-                                            "type": "string",
-                                            "description": "The name of the Secret"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "secretName"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "secret"
+                                    ]
                                   }
-                                ],
-                                "required": [
-                                  "name"
                                 ]
                               }
                             },
@@ -8659,75 +8623,63 @@
                               "name": {
                                 "type": "string",
                                 "description": "Volume name"
+                              },
+                              "emptyDir": {
+                                "type": "object",
+                                "description": "Configuration for an emptyDir volume"
+                              },
+                              "persistentVolumeClaim": {
+                                "type": "object",
+                                "properties": {
+                                  "claimName": {
+                                    "type": "string",
+                                    "description": "The name of the PersistentVolumeClaim"
+                                  }
+                                }
+                              },
+                              "configMap": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "The name of the ConfigMap"
+                                  }
+                                }
+                              },
+                              "secret": {
+                                "type": "object",
+                                "properties": {
+                                  "secretName": {
+                                    "type": "string",
+                                    "description": "The name of the Secret"
+                                  }
+                                }
                               }
                             },
-                            "oneOf": [
+                            "required": [
+                              "name"
+                            ],
+                            "anyOf": [
                               {
-                                "properties": {
-                                  "emptyDir": {
-                                    "type": "object",
-                                    "description": "Configuration for an emptyDir volume",
-                                    "additionalProperties": false
-                                  }
-                                },
                                 "required": [
                                   "emptyDir"
                                 ]
                               },
                               {
-                                "properties": {
-                                  "persistentVolumeClaim": {
-                                    "type": "object",
-                                    "properties": {
-                                      "claimName": {
-                                        "type": "string",
-                                        "description": "The name of the PersistentVolumeClaim"
-                                      }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                      "claimName"
-                                    ]
-                                  }
-                                }
+                                "required": [
+                                  "persistentVolumeClaim"
+                                ]
                               },
                               {
-                                "properties": {
-                                  "configMap": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "description": "The name of the ConfigMap"
-                                      }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                      "name"
-                                    ]
-                                  }
-                                }
+                                "required": [
+                                  "configMap"
+                                ]
                               },
                               {
-                                "properties": {
-                                  "secret": {
-                                    "type": "object",
-                                    "properties": {
-                                      "secretName": {
-                                        "type": "string",
-                                        "description": "The name of the Secret"
-                                      }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                      "secretName"
-                                    ]
-                                  }
-                                }
+                                "required": [
+                                  "secret"
+                                ]
                               }
-                            ],
-                            "required": [
-                              "name"
                             ]
                           }
                         },
@@ -9202,75 +9154,63 @@
                               "name": {
                                 "type": "string",
                                 "description": "Volume name"
+                              },
+                              "emptyDir": {
+                                "type": "object",
+                                "description": "Configuration for an emptyDir volume"
+                              },
+                              "persistentVolumeClaim": {
+                                "type": "object",
+                                "properties": {
+                                  "claimName": {
+                                    "type": "string",
+                                    "description": "The name of the PersistentVolumeClaim"
+                                  }
+                                }
+                              },
+                              "configMap": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "The name of the ConfigMap"
+                                  }
+                                }
+                              },
+                              "secret": {
+                                "type": "object",
+                                "properties": {
+                                  "secretName": {
+                                    "type": "string",
+                                    "description": "The name of the Secret"
+                                  }
+                                }
                               }
                             },
-                            "oneOf": [
+                            "required": [
+                              "name"
+                            ],
+                            "anyOf": [
                               {
-                                "properties": {
-                                  "emptyDir": {
-                                    "type": "object",
-                                    "description": "Configuration for an emptyDir volume",
-                                    "additionalProperties": false
-                                  }
-                                },
                                 "required": [
                                   "emptyDir"
                                 ]
                               },
                               {
-                                "properties": {
-                                  "persistentVolumeClaim": {
-                                    "type": "object",
-                                    "properties": {
-                                      "claimName": {
-                                        "type": "string",
-                                        "description": "The name of the PersistentVolumeClaim"
-                                      }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                      "claimName"
-                                    ]
-                                  }
-                                }
+                                "required": [
+                                  "persistentVolumeClaim"
+                                ]
                               },
                               {
-                                "properties": {
-                                  "configMap": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "description": "The name of the ConfigMap"
-                                      }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                      "name"
-                                    ]
-                                  }
-                                }
+                                "required": [
+                                  "configMap"
+                                ]
                               },
                               {
-                                "properties": {
-                                  "secret": {
-                                    "type": "object",
-                                    "properties": {
-                                      "secretName": {
-                                        "type": "string",
-                                        "description": "The name of the Secret"
-                                      }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                      "secretName"
-                                    ]
-                                  }
-                                }
+                                "required": [
+                                  "secret"
+                                ]
                               }
-                            ],
-                            "required": [
-                              "name"
                             ]
                           }
                         },
@@ -9720,75 +9660,63 @@
                                   "name": {
                                     "type": "string",
                                     "description": "Volume name"
+                                  },
+                                  "emptyDir": {
+                                    "type": "object",
+                                    "description": "Configuration for an emptyDir volume"
+                                  },
+                                  "persistentVolumeClaim": {
+                                    "type": "object",
+                                    "properties": {
+                                      "claimName": {
+                                        "type": "string",
+                                        "description": "The name of the PersistentVolumeClaim"
+                                      }
+                                    }
+                                  },
+                                  "configMap": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "description": "The name of the ConfigMap"
+                                      }
+                                    }
+                                  },
+                                  "secret": {
+                                    "type": "object",
+                                    "properties": {
+                                      "secretName": {
+                                        "type": "string",
+                                        "description": "The name of the Secret"
+                                      }
+                                    }
                                   }
                                 },
-                                "oneOf": [
+                                "required": [
+                                  "name"
+                                ],
+                                "anyOf": [
                                   {
-                                    "properties": {
-                                      "emptyDir": {
-                                        "type": "object",
-                                        "description": "Configuration for an emptyDir volume",
-                                        "additionalProperties": false
-                                      }
-                                    },
                                     "required": [
                                       "emptyDir"
                                     ]
                                   },
                                   {
-                                    "properties": {
-                                      "persistentVolumeClaim": {
-                                        "type": "object",
-                                        "properties": {
-                                          "claimName": {
-                                            "type": "string",
-                                            "description": "The name of the PersistentVolumeClaim"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "claimName"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "persistentVolumeClaim"
+                                    ]
                                   },
                                   {
-                                    "properties": {
-                                      "configMap": {
-                                        "type": "object",
-                                        "properties": {
-                                          "name": {
-                                            "type": "string",
-                                            "description": "The name of the ConfigMap"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "name"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "configMap"
+                                    ]
                                   },
                                   {
-                                    "properties": {
-                                      "secret": {
-                                        "type": "object",
-                                        "properties": {
-                                          "secretName": {
-                                            "type": "string",
-                                            "description": "The name of the Secret"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "secretName"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "secret"
+                                    ]
                                   }
-                                ],
-                                "required": [
-                                  "name"
                                 ]
                               }
                             },
@@ -10202,75 +10130,63 @@
                                     "name": {
                                       "type": "string",
                                       "description": "Volume name"
+                                    },
+                                    "emptyDir": {
+                                      "type": "object",
+                                      "description": "Configuration for an emptyDir volume"
+                                    },
+                                    "persistentVolumeClaim": {
+                                      "type": "object",
+                                      "properties": {
+                                        "claimName": {
+                                          "type": "string",
+                                          "description": "The name of the PersistentVolumeClaim"
+                                        }
+                                      }
+                                    },
+                                    "configMap": {
+                                      "type": "object",
+                                      "properties": {
+                                        "name": {
+                                          "type": "string",
+                                          "description": "The name of the ConfigMap"
+                                        }
+                                      }
+                                    },
+                                    "secret": {
+                                      "type": "object",
+                                      "properties": {
+                                        "secretName": {
+                                          "type": "string",
+                                          "description": "The name of the Secret"
+                                        }
+                                      }
                                     }
                                   },
-                                  "oneOf": [
+                                  "required": [
+                                    "name"
+                                  ],
+                                  "anyOf": [
                                     {
-                                      "properties": {
-                                        "emptyDir": {
-                                          "type": "object",
-                                          "description": "Configuration for an emptyDir volume",
-                                          "additionalProperties": false
-                                        }
-                                      },
                                       "required": [
                                         "emptyDir"
                                       ]
                                     },
                                     {
-                                      "properties": {
-                                        "persistentVolumeClaim": {
-                                          "type": "object",
-                                          "properties": {
-                                            "claimName": {
-                                              "type": "string",
-                                              "description": "The name of the PersistentVolumeClaim"
-                                            }
-                                          },
-                                          "additionalProperties": false,
-                                          "required": [
-                                            "claimName"
-                                          ]
-                                        }
-                                      }
+                                      "required": [
+                                        "persistentVolumeClaim"
+                                      ]
                                     },
                                     {
-                                      "properties": {
-                                        "configMap": {
-                                          "type": "object",
-                                          "properties": {
-                                            "name": {
-                                              "type": "string",
-                                              "description": "The name of the ConfigMap"
-                                            }
-                                          },
-                                          "additionalProperties": false,
-                                          "required": [
-                                            "name"
-                                          ]
-                                        }
-                                      }
+                                      "required": [
+                                        "configMap"
+                                      ]
                                     },
                                     {
-                                      "properties": {
-                                        "secret": {
-                                          "type": "object",
-                                          "properties": {
-                                            "secretName": {
-                                              "type": "string",
-                                              "description": "The name of the Secret"
-                                            }
-                                          },
-                                          "additionalProperties": false,
-                                          "required": [
-                                            "secretName"
-                                          ]
-                                        }
-                                      }
+                                      "required": [
+                                        "secret"
+                                      ]
                                     }
-                                  ],
-                                  "required": [
-                                    "name"
                                   ]
                                 }
                               },
@@ -17818,75 +17734,63 @@
                                   "name": {
                                     "type": "string",
                                     "description": "Volume name"
+                                  },
+                                  "emptyDir": {
+                                    "type": "object",
+                                    "description": "Configuration for an emptyDir volume"
+                                  },
+                                  "persistentVolumeClaim": {
+                                    "type": "object",
+                                    "properties": {
+                                      "claimName": {
+                                        "type": "string",
+                                        "description": "The name of the PersistentVolumeClaim"
+                                      }
+                                    }
+                                  },
+                                  "configMap": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "description": "The name of the ConfigMap"
+                                      }
+                                    }
+                                  },
+                                  "secret": {
+                                    "type": "object",
+                                    "properties": {
+                                      "secretName": {
+                                        "type": "string",
+                                        "description": "The name of the Secret"
+                                      }
+                                    }
                                   }
                                 },
-                                "oneOf": [
+                                "required": [
+                                  "name"
+                                ],
+                                "anyOf": [
                                   {
-                                    "properties": {
-                                      "emptyDir": {
-                                        "type": "object",
-                                        "description": "Configuration for an emptyDir volume",
-                                        "additionalProperties": false
-                                      }
-                                    },
                                     "required": [
                                       "emptyDir"
                                     ]
                                   },
                                   {
-                                    "properties": {
-                                      "persistentVolumeClaim": {
-                                        "type": "object",
-                                        "properties": {
-                                          "claimName": {
-                                            "type": "string",
-                                            "description": "The name of the PersistentVolumeClaim"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "claimName"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "persistentVolumeClaim"
+                                    ]
                                   },
                                   {
-                                    "properties": {
-                                      "configMap": {
-                                        "type": "object",
-                                        "properties": {
-                                          "name": {
-                                            "type": "string",
-                                            "description": "The name of the ConfigMap"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "name"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "configMap"
+                                    ]
                                   },
                                   {
-                                    "properties": {
-                                      "secret": {
-                                        "type": "object",
-                                        "properties": {
-                                          "secretName": {
-                                            "type": "string",
-                                            "description": "The name of the Secret"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "secretName"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "secret"
+                                    ]
                                   }
-                                ],
-                                "required": [
-                                  "name"
                                 ]
                               }
                             },
@@ -18363,75 +18267,63 @@
                                   "name": {
                                     "type": "string",
                                     "description": "Volume name"
+                                  },
+                                  "emptyDir": {
+                                    "type": "object",
+                                    "description": "Configuration for an emptyDir volume"
+                                  },
+                                  "persistentVolumeClaim": {
+                                    "type": "object",
+                                    "properties": {
+                                      "claimName": {
+                                        "type": "string",
+                                        "description": "The name of the PersistentVolumeClaim"
+                                      }
+                                    }
+                                  },
+                                  "configMap": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "description": "The name of the ConfigMap"
+                                      }
+                                    }
+                                  },
+                                  "secret": {
+                                    "type": "object",
+                                    "properties": {
+                                      "secretName": {
+                                        "type": "string",
+                                        "description": "The name of the Secret"
+                                      }
+                                    }
                                   }
                                 },
-                                "oneOf": [
+                                "required": [
+                                  "name"
+                                ],
+                                "anyOf": [
                                   {
-                                    "properties": {
-                                      "emptyDir": {
-                                        "type": "object",
-                                        "description": "Configuration for an emptyDir volume",
-                                        "additionalProperties": false
-                                      }
-                                    },
                                     "required": [
                                       "emptyDir"
                                     ]
                                   },
                                   {
-                                    "properties": {
-                                      "persistentVolumeClaim": {
-                                        "type": "object",
-                                        "properties": {
-                                          "claimName": {
-                                            "type": "string",
-                                            "description": "The name of the PersistentVolumeClaim"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "claimName"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "persistentVolumeClaim"
+                                    ]
                                   },
                                   {
-                                    "properties": {
-                                      "configMap": {
-                                        "type": "object",
-                                        "properties": {
-                                          "name": {
-                                            "type": "string",
-                                            "description": "The name of the ConfigMap"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "name"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "configMap"
+                                    ]
                                   },
                                   {
-                                    "properties": {
-                                      "secret": {
-                                        "type": "object",
-                                        "properties": {
-                                          "secretName": {
-                                            "type": "string",
-                                            "description": "The name of the Secret"
-                                          }
-                                        },
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "secretName"
-                                        ]
-                                      }
-                                    }
+                                    "required": [
+                                      "secret"
+                                    ]
                                   }
-                                ],
-                                "required": [
-                                  "name"
                                 ]
                               }
                             },
@@ -23019,75 +22911,63 @@
                       "name": {
                         "type": "string",
                         "description": "Volume name"
+                      },
+                      "emptyDir": {
+                        "type": "object",
+                        "description": "Configuration for an emptyDir volume"
+                      },
+                      "persistentVolumeClaim": {
+                        "type": "object",
+                        "properties": {
+                          "claimName": {
+                            "type": "string",
+                            "description": "The name of the PersistentVolumeClaim"
+                          }
+                        }
+                      },
+                      "configMap": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "The name of the ConfigMap"
+                          }
+                        }
+                      },
+                      "secret": {
+                        "type": "object",
+                        "properties": {
+                          "secretName": {
+                            "type": "string",
+                            "description": "The name of the Secret"
+                          }
+                        }
                       }
                     },
-                    "oneOf": [
+                    "required": [
+                      "name"
+                    ],
+                    "anyOf": [
                       {
-                        "properties": {
-                          "emptyDir": {
-                            "type": "object",
-                            "description": "Configuration for an emptyDir volume",
-                            "additionalProperties": false
-                          }
-                        },
                         "required": [
                           "emptyDir"
                         ]
                       },
                       {
-                        "properties": {
-                          "persistentVolumeClaim": {
-                            "type": "object",
-                            "properties": {
-                              "claimName": {
-                                "type": "string",
-                                "description": "The name of the PersistentVolumeClaim"
-                              }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                              "claimName"
-                            ]
-                          }
-                        }
+                        "required": [
+                          "persistentVolumeClaim"
+                        ]
                       },
                       {
-                        "properties": {
-                          "configMap": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "description": "The name of the ConfigMap"
-                              }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                              "name"
-                            ]
-                          }
-                        }
+                        "required": [
+                          "configMap"
+                        ]
                       },
                       {
-                        "properties": {
-                          "secret": {
-                            "type": "object",
-                            "properties": {
-                              "secretName": {
-                                "type": "string",
-                                "description": "The name of the Secret"
-                              }
-                            },
-                            "additionalProperties": false,
-                            "required": [
-                              "secretName"
-                            ]
-                          }
-                        }
+                        "required": [
+                          "secret"
+                        ]
                       }
-                    ],
-                    "required": [
-                      "name"
                     ]
                   }
                 },
@@ -23651,75 +23531,63 @@
                           "name": {
                             "type": "string",
                             "description": "Volume name"
+                          },
+                          "emptyDir": {
+                            "type": "object",
+                            "description": "Configuration for an emptyDir volume"
+                          },
+                          "persistentVolumeClaim": {
+                            "type": "object",
+                            "properties": {
+                              "claimName": {
+                                "type": "string",
+                                "description": "The name of the PersistentVolumeClaim"
+                              }
+                            }
+                          },
+                          "configMap": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "The name of the ConfigMap"
+                              }
+                            }
+                          },
+                          "secret": {
+                            "type": "object",
+                            "properties": {
+                              "secretName": {
+                                "type": "string",
+                                "description": "The name of the Secret"
+                              }
+                            }
                           }
                         },
-                        "oneOf": [
+                        "required": [
+                          "name"
+                        ],
+                        "anyOf": [
                           {
-                            "properties": {
-                              "emptyDir": {
-                                "type": "object",
-                                "description": "Configuration for an emptyDir volume",
-                                "additionalProperties": false
-                              }
-                            },
                             "required": [
                               "emptyDir"
                             ]
                           },
                           {
-                            "properties": {
-                              "persistentVolumeClaim": {
-                                "type": "object",
-                                "properties": {
-                                  "claimName": {
-                                    "type": "string",
-                                    "description": "The name of the PersistentVolumeClaim"
-                                  }
-                                },
-                                "additionalProperties": false,
-                                "required": [
-                                  "claimName"
-                                ]
-                              }
-                            }
+                            "required": [
+                              "persistentVolumeClaim"
+                            ]
                           },
                           {
-                            "properties": {
-                              "configMap": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "The name of the ConfigMap"
-                                  }
-                                },
-                                "additionalProperties": false,
-                                "required": [
-                                  "name"
-                                ]
-                              }
-                            }
+                            "required": [
+                              "configMap"
+                            ]
                           },
                           {
-                            "properties": {
-                              "secret": {
-                                "type": "object",
-                                "properties": {
-                                  "secretName": {
-                                    "type": "string",
-                                    "description": "The name of the Secret"
-                                  }
-                                },
-                                "additionalProperties": false,
-                                "required": [
-                                  "secretName"
-                                ]
-                              }
-                            }
+                            "required": [
+                              "secret"
+                            ]
                           }
-                        ],
-                        "required": [
-                          "name"
                         ]
                       }
                     },
@@ -23880,75 +23748,63 @@
                 "name": {
                   "type": "string",
                   "description": "Volume name"
+                },
+                "emptyDir": {
+                  "type": "object",
+                  "description": "Configuration for an emptyDir volume"
+                },
+                "persistentVolumeClaim": {
+                  "type": "object",
+                  "properties": {
+                    "claimName": {
+                      "type": "string",
+                      "description": "The name of the PersistentVolumeClaim"
+                    }
+                  }
+                },
+                "configMap": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the ConfigMap"
+                    }
+                  }
+                },
+                "secret": {
+                  "type": "object",
+                  "properties": {
+                    "secretName": {
+                      "type": "string",
+                      "description": "The name of the Secret"
+                    }
+                  }
                 }
               },
-              "oneOf": [
+              "required": [
+                "name"
+              ],
+              "anyOf": [
                 {
-                  "properties": {
-                    "emptyDir": {
-                      "type": "object",
-                      "description": "Configuration for an emptyDir volume",
-                      "additionalProperties": false
-                    }
-                  },
                   "required": [
                     "emptyDir"
                   ]
                 },
                 {
-                  "properties": {
-                    "persistentVolumeClaim": {
-                      "type": "object",
-                      "properties": {
-                        "claimName": {
-                          "type": "string",
-                          "description": "The name of the PersistentVolumeClaim"
-                        }
-                      },
-                      "additionalProperties": false,
-                      "required": [
-                        "claimName"
-                      ]
-                    }
-                  }
+                  "required": [
+                    "persistentVolumeClaim"
+                  ]
                 },
                 {
-                  "properties": {
-                    "configMap": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "The name of the ConfigMap"
-                        }
-                      },
-                      "additionalProperties": false,
-                      "required": [
-                        "name"
-                      ]
-                    }
-                  }
+                  "required": [
+                    "configMap"
+                  ]
                 },
                 {
-                  "properties": {
-                    "secret": {
-                      "type": "object",
-                      "properties": {
-                        "secretName": {
-                          "type": "string",
-                          "description": "The name of the Secret"
-                        }
-                      },
-                      "additionalProperties": false,
-                      "required": [
-                        "secretName"
-                      ]
-                    }
-                  }
+                  "required": [
+                    "secret"
+                  ]
                 }
-              ],
-              "required": [
-                "name"
               ]
             }
           },
@@ -24053,75 +23909,63 @@
           "name": {
             "type": "string",
             "description": "Volume name"
+          },
+          "emptyDir": {
+            "type": "object",
+            "description": "Configuration for an emptyDir volume"
+          },
+          "persistentVolumeClaim": {
+            "type": "object",
+            "properties": {
+              "claimName": {
+                "type": "string",
+                "description": "The name of the PersistentVolumeClaim"
+              }
+            }
+          },
+          "configMap": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the ConfigMap"
+              }
+            }
+          },
+          "secret": {
+            "type": "object",
+            "properties": {
+              "secretName": {
+                "type": "string",
+                "description": "The name of the Secret"
+              }
+            }
           }
         },
-        "oneOf": [
+        "required": [
+          "name"
+        ],
+        "anyOf": [
           {
-            "properties": {
-              "emptyDir": {
-                "type": "object",
-                "description": "Configuration for an emptyDir volume",
-                "additionalProperties": false
-              }
-            },
             "required": [
               "emptyDir"
             ]
           },
           {
-            "properties": {
-              "persistentVolumeClaim": {
-                "type": "object",
-                "properties": {
-                  "claimName": {
-                    "type": "string",
-                    "description": "The name of the PersistentVolumeClaim"
-                  }
-                },
-                "additionalProperties": false,
-                "required": [
-                  "claimName"
-                ]
-              }
-            }
+            "required": [
+              "persistentVolumeClaim"
+            ]
           },
           {
-            "properties": {
-              "configMap": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "The name of the ConfigMap"
-                  }
-                },
-                "additionalProperties": false,
-                "required": [
-                  "name"
-                ]
-              }
-            }
+            "required": [
+              "configMap"
+            ]
           },
           {
-            "properties": {
-              "secret": {
-                "type": "object",
-                "properties": {
-                  "secretName": {
-                    "type": "string",
-                    "description": "The name of the Secret"
-                  }
-                },
-                "additionalProperties": false,
-                "required": [
-                  "secretName"
-                ]
-              }
-            }
+            "required": [
+              "secret"
+            ]
           }
-        ],
-        "required": [
-          "name"
         ]
       },
       "createBoardRequest": {
