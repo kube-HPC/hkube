@@ -355,7 +355,7 @@ const applySidecars = (inputSpec, clusterOptions = {}) => {
 };
 
 const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env, workerCustomResources}) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -381,6 +381,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_IMAGE: workerImage });
     spec = applyAlgorithmResourceRequests(spec, resourceRequests, node);
     if (settings.applyResources) {
+        workerResourceRequests = (workerCustomResources?.requests && workerCustomResources?.limits) ? workerCustomResources : workerResourceRequests;
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);
     }
     spec = applyNodeSelector(spec, nodeSelector);
