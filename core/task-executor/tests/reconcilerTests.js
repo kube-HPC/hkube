@@ -898,6 +898,72 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
+        it('should add workerCustomResources', async () => {
+            globalSettings.applyResources = true
+            const algorithm = 'worker-custom-resources-alg';
+            
+            const testOptions = { ...options, defaultStorage: 's3' };
+
+            const res = await reconciler.reconcile({
+                options: testOptions,
+                workerResources: testOptions.resources.worker,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
+                .to.deep.include({ limits: { cpu: 0.2, memory: '512Mi' } });
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
+                .to.deep.include({ requests: { cpu: 0.1 , memory: '256Mi' } });
+        });
+        it('should add worker resources when workerCustomResources is with partial spec', async () => {
+            globalSettings.applyResources = true
+            const algorithm = 'worker-custom-resources-nolimit-alg';
+
+            const testOptions = { ...options, defaultStorage: 's3' };
+
+            const res = await reconciler.reconcile({
+                options: testOptions,
+                workerResources: testOptions.resources.worker,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
+                .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
+        });
         it('should not add worker resources', async () => {
             globalSettings.applyResources = false
             const algorithm = 'green-alg';
