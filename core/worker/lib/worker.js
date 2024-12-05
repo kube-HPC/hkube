@@ -234,10 +234,10 @@ class Worker {
      * @returns {Promise<void>} A promise that resolves when all container statuses have been processed.
      */
     async _checkAlgorithmStatus() {
+        log.info('entered _checkAlgorithmStatus', { component });
         if (!this._podName) return;
 
         try {
-            log.info('trying to check algorithm container status', { component });
             await this._processContainerStatus();
             const sideCars = await this._fetchAndInitializeSideCarStatus();
             await Promise.all(
