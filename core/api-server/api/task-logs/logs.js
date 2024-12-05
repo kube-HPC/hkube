@@ -86,11 +86,11 @@ class Logs {
                 const errorFound = sideCars.some(container => {
                     const { terminated, waiting } = container.state || {};
                     if (terminated?.reason === 'Error') {
-                        logsData.podStatus = podStatus.ERROR;
+                        logsData.podStatus = podStatus.SIDECAR_ERROR;
                         return true;
                     }
                     if (waiting?.reason === 'ImagePullBackOff') {
-                        logsData.podStatus = podStatus.NO_IMAGE;
+                        logsData.podStatus = podStatus.SIDECAR_NO_IMAGE;
                     }
                     return false;
                 });
@@ -98,10 +98,10 @@ class Logs {
                 if (!errorFound) {
                     const { terminated, waiting } = currentAlgorunner.state;
                     if (terminated?.reason === 'Error') {
-                        logsData.podStatus = podStatus.ERROR;
+                        logsData.podStatus = podStatus.ALGORUNNER_ERROR;
                     }
                     else if (waiting?.reason === 'ImagePullBackOff') {
-                        logsData.podStatus = podStatus.NO_IMAGE;
+                        logsData.podStatus = podStatus.ALGORUNNER_NO_IMAGE;
                     }
                 }
             }
