@@ -250,7 +250,7 @@ class Worker {
             log.info(`WORKER LOGGING: message: ${e.message}`, { component });
         }
         finally {
-            this._shouldCheckPodStatus = (this._shouldCheckAlgorithmStatus || this._shouldCheckSideCarStatus.some(value => value));
+            this._shouldCheckPodStatus = (this._shouldCheckAlgorithmStatus || this._shouldCheckSideCarStatus?.some(value => value));
             if (this._shouldCheckPodStatus) {
                 setTimeout(() => this._checkPodStatus(), this._options.checkAlgorithmStatusInterval);
             }
@@ -293,7 +293,7 @@ class Worker {
     async _processContainerStatus(name, index) {
         log.info('entered _processContainerStatus', { component });
         const containerKind = name ? 'sidecar' : ALGORITHM_CONTAINER;
-        log.info(`trying to check ${containerKind} container ${name || ''} status`, { component });
+        log.info(`trying to check the status of ${containerKind} container ${name || ''}`, { component });
         const containerStatus = await kubernetes.getPodContainerStatus(this._podName, name || ALGORITHM_CONTAINER) || {};
         const { status, reason, message } = containerStatus;
         if (status === CONTAINER_STATUS.RUNNING) {
