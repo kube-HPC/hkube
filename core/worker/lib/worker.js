@@ -58,13 +58,6 @@ class Worker {
         this._doTheBootstrap();
     }
 
-    _initWrapperSettings(timeoutDuration) {
-        this._wrapperAlive = {
-            isRunning: false,
-            timeoutDuration
-        };
-    }
-
     _initAlgorithmSettings() {
         const { storage: algorithmStorage, encoding: algorithmEncoding } = this._algorithmSettings;
         const storage = algorithmStorage || this._options.defaultStorageProtocol;
@@ -347,7 +340,7 @@ class Worker {
             if (failAttemps > 3) {
                 const options = {
                     error: {
-                        message: `${message}. ${containerMessage.message}`,
+                        message: `Container - ${name}: ${message}. ${containerMessage.message}`,
                         isImagePullErr: true
                     }
                 };
@@ -739,8 +732,7 @@ class Worker {
                             command: messages.outgoing.initialize,
                             data: { ...data, spanId }
                         });
-                        this._wrapperAlive.isRunning = true;
-                        this._handleWrapperIsAlive();
+                        this._handleWrapperIsAlive(false);
                     }
                     break;
                 }
