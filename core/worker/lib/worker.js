@@ -217,7 +217,7 @@ class Worker {
             }
             return;
         }
-        if (this._shouldCheckSideCarStatus.length > 0 && this._shouldCheckPodStatus) {
+        if (this._shouldCheckSideCarStatus?.length > 0 && this._shouldCheckPodStatus) {
             log.info('not ready yet', { component });
             this._checkPodStatus();
             return;
