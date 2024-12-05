@@ -255,7 +255,7 @@ class Worker {
             log.info(`WORKER LOGGING: message: ${e.message}`, { component });
         }
         finally {
-            if (this._shouldCheckAlgorithmStatus && this._shouldCheckSideCarStatus.some(value => value)) {
+            if (this._shouldCheckAlgorithmStatus || this._shouldCheckSideCarStatus.some(value => value)) {
                 setTimeout(() => this._checkAlgorithmStatus(), this._options.checkAlgorithmStatusInterval);
             }
             log.info(`exited _checkAlgorithmStatus with phase ${adir}`, { component });
@@ -272,6 +272,7 @@ class Worker {
      * @returns {Promise<Array<string>>} A promise that resolves to an array of sidecar container names.
      */
     async _fetchAndInitializeSideCarStatus() {
+        log.info('entered _fetchAndInitializeSideCarStatus', { component });
         const sideCars = (await kubernetes.getContainerNamesForPod(this._podName))
             .filter(name => name !== ALGORITHM_CONTAINER && name !== WORKER_CONTAINER);
         const { length } = sideCars;
@@ -279,7 +280,7 @@ class Worker {
             this._shouldCheckSideCarStatus = new Array(length).fill(true);
             this._sidecarStatusFailAttempts = new Array(length).fill(0);
         }
-
+        log.info(`exited _fetchAndInitializeSideCarStatus with sidecar count: ${length}`, { component });
         return sideCars;
     }
 
@@ -294,6 +295,7 @@ class Worker {
      * @returns {Promise<void>} A promise that resolves when the container's status is processed
      */
     async _processContainerStatus(name, index) {
+        log.info('entered _processContainerStatus', { component });
         const containerKind = name ? 'sidecar' : ALGORITHM_CONTAINER;
         log.info(`trying to check ${containerKind} container ${name} status`, { component });
         const containerStatus = await kubernetes.getPodContainerStatus(this._podName, name || ALGORITHM_CONTAINER) || {};
@@ -308,8 +310,9 @@ class Worker {
             }
         }
         else if (reason) {
-            await this._handleContainerFailure(index, reason, message);
+            await this._handleContainerFailure(index, reason, message, name || ALGORITHM_CONTAINER);
         }
+        log.info('exited _processContainerStatus', { component });
     }
 
     /**
@@ -323,7 +326,8 @@ class Worker {
      * @param {string} message - The error message for the container failure
      * @returns {Promise<void>} A promise that resolves when the failure is handled
      */
-    async _handleContainerFailure(index, reason, message) {
+    async _handleContainerFailure(index, reason, message, name) {
+        log.info('Enter _handleContainerFailure', { component });
         const containerMessage = kubernetes.formatContainerMessage(reason);
 
         if (containerMessage.isImagePullErr) {
@@ -336,7 +340,7 @@ class Worker {
                 this._algorunnerStatusFailAttempts += 1;
                 failAttemps = this._algorunnerStatusFailAttempts;
             }
-
+            log.info(`WORKER LOGGING: message: ${message}, failAttempts: ${failAttemps}, containerName: ${name}`, { component });
             if (failAttemps > 3) {
                 const options = {
                     error: {
@@ -345,10 +349,12 @@ class Worker {
                     }
                 };
                 log.error(options.error.message, { component });
+                log.info('WORKER LOGGING: Ending Job due to too many image pull failures', { component });
                 await this._endJob(options);
                 this._shouldCheckAlgorithmStatus = false;
             }
         }
+        log.info('Exit _handleContainerFailure', { component });
     }
 
     _registerToConnectionEvents() {
