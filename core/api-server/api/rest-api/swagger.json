@@ -6990,6 +6990,7 @@
                             "type": "array",
                             "items": {
                               "type": "object",
+                              "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                               "properties": {
                                 "name": {
                                   "type": "string",
@@ -7029,28 +7030,6 @@
                               },
                               "required": [
                                 "name"
-                              ],
-                              "anyOf": [
-                                {
-                                  "required": [
-                                    "emptyDir"
-                                  ]
-                                },
-                                {
-                                  "required": [
-                                    "persistentVolumeClaim"
-                                  ]
-                                },
-                                {
-                                  "required": [
-                                    "configMap"
-                                  ]
-                                },
-                                {
-                                  "required": [
-                                    "secret"
-                                  ]
-                                }
                               ]
                             }
                           },
@@ -7664,6 +7643,7 @@
                               "type": "array",
                               "items": {
                                 "type": "object",
+                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                                 "properties": {
                                   "name": {
                                     "type": "string",
@@ -7703,28 +7683,6 @@
                                 },
                                 "required": [
                                   "name"
-                                ],
-                                "anyOf": [
-                                  {
-                                    "required": [
-                                      "emptyDir"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "persistentVolumeClaim"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "configMap"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "secret"
-                                    ]
-                                  }
                                 ]
                               }
                             },
@@ -8144,6 +8102,7 @@
                               "type": "array",
                               "items": {
                                 "type": "object",
+                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                                 "properties": {
                                   "name": {
                                     "type": "string",
@@ -8183,28 +8142,6 @@
                                 },
                                 "required": [
                                   "name"
-                                ],
-                                "anyOf": [
-                                  {
-                                    "required": [
-                                      "emptyDir"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "persistentVolumeClaim"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "configMap"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "secret"
-                                    ]
-                                  }
                                 ]
                               }
                             },
@@ -8619,6 +8556,7 @@
                           "type": "array",
                           "items": {
                             "type": "object",
+                            "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                             "properties": {
                               "name": {
                                 "type": "string",
@@ -8658,28 +8596,6 @@
                             },
                             "required": [
                               "name"
-                            ],
-                            "anyOf": [
-                              {
-                                "required": [
-                                  "emptyDir"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "persistentVolumeClaim"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "configMap"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "secret"
-                                ]
-                              }
                             ]
                           }
                         },
@@ -9150,6 +9066,7 @@
                           "type": "array",
                           "items": {
                             "type": "object",
+                            "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                             "properties": {
                               "name": {
                                 "type": "string",
@@ -9189,28 +9106,6 @@
                             },
                             "required": [
                               "name"
-                            ],
-                            "anyOf": [
-                              {
-                                "required": [
-                                  "emptyDir"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "persistentVolumeClaim"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "configMap"
-                                ]
-                              },
-                              {
-                                "required": [
-                                  "secret"
-                                ]
-                              }
                             ]
                           }
                         },
@@ -9656,6 +9551,7 @@
                               "type": "array",
                               "items": {
                                 "type": "object",
+                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                                 "properties": {
                                   "name": {
                                     "type": "string",
@@ -9695,28 +9591,6 @@
                                 },
                                 "required": [
                                   "name"
-                                ],
-                                "anyOf": [
-                                  {
-                                    "required": [
-                                      "emptyDir"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "persistentVolumeClaim"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "configMap"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "secret"
-                                    ]
-                                  }
                                 ]
                               }
                             },
@@ -10126,6 +10000,7 @@
                                 "type": "array",
                                 "items": {
                                   "type": "object",
+                                  "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                                   "properties": {
                                     "name": {
                                       "type": "string",
@@ -10165,28 +10040,6 @@
                                   },
                                   "required": [
                                     "name"
-                                  ],
-                                  "anyOf": [
-                                    {
-                                      "required": [
-                                        "emptyDir"
-                                      ]
-                                    },
-                                    {
-                                      "required": [
-                                        "persistentVolumeClaim"
-                                      ]
-                                    },
-                                    {
-                                      "required": [
-                                        "configMap"
-                                      ]
-                                    },
-                                    {
-                                      "required": [
-                                        "secret"
-                                      ]
-                                    }
                                   ]
                                 }
                               },
@@ -17730,6 +17583,7 @@
                               "type": "array",
                               "items": {
                                 "type": "object",
+                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                                 "properties": {
                                   "name": {
                                     "type": "string",
@@ -17769,28 +17623,6 @@
                                 },
                                 "required": [
                                   "name"
-                                ],
-                                "anyOf": [
-                                  {
-                                    "required": [
-                                      "emptyDir"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "persistentVolumeClaim"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "configMap"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "secret"
-                                    ]
-                                  }
                                 ]
                               }
                             },
@@ -18263,6 +18095,7 @@
                               "type": "array",
                               "items": {
                                 "type": "object",
+                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                                 "properties": {
                                   "name": {
                                     "type": "string",
@@ -18302,28 +18135,6 @@
                                 },
                                 "required": [
                                   "name"
-                                ],
-                                "anyOf": [
-                                  {
-                                    "required": [
-                                      "emptyDir"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "persistentVolumeClaim"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "configMap"
-                                    ]
-                                  },
-                                  {
-                                    "required": [
-                                      "secret"
-                                    ]
-                                  }
                                 ]
                               }
                             },
@@ -22907,6 +22718,7 @@
                   "type": "array",
                   "items": {
                     "type": "object",
+                    "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                     "properties": {
                       "name": {
                         "type": "string",
@@ -22946,28 +22758,6 @@
                     },
                     "required": [
                       "name"
-                    ],
-                    "anyOf": [
-                      {
-                        "required": [
-                          "emptyDir"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "persistentVolumeClaim"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "configMap"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "secret"
-                        ]
-                      }
                     ]
                   }
                 },
@@ -23527,6 +23317,7 @@
                       "type": "array",
                       "items": {
                         "type": "object",
+                        "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
                         "properties": {
                           "name": {
                             "type": "string",
@@ -23566,28 +23357,6 @@
                         },
                         "required": [
                           "name"
-                        ],
-                        "anyOf": [
-                          {
-                            "required": [
-                              "emptyDir"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "persistentVolumeClaim"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "configMap"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "secret"
-                            ]
-                          }
                         ]
                       }
                     },
@@ -23744,6 +23513,7 @@
             "type": "array",
             "items": {
               "type": "object",
+              "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
               "properties": {
                 "name": {
                   "type": "string",
@@ -23783,28 +23553,6 @@
               },
               "required": [
                 "name"
-              ],
-              "anyOf": [
-                {
-                  "required": [
-                    "emptyDir"
-                  ]
-                },
-                {
-                  "required": [
-                    "persistentVolumeClaim"
-                  ]
-                },
-                {
-                  "required": [
-                    "configMap"
-                  ]
-                },
-                {
-                  "required": [
-                    "secret"
-                  ]
-                }
               ]
             }
           },
@@ -23905,6 +23653,7 @@
       },
       "sidecarVolume": {
         "type": "object",
+        "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
         "properties": {
           "name": {
             "type": "string",
@@ -23944,28 +23693,6 @@
         },
         "required": [
           "name"
-        ],
-        "anyOf": [
-          {
-            "required": [
-              "emptyDir"
-            ]
-          },
-          {
-            "required": [
-              "persistentVolumeClaim"
-            ]
-          },
-          {
-            "required": [
-              "configMap"
-            ]
-          },
-          {
-            "required": [
-              "secret"
-            ]
-          }
         ]
       },
       "createBoardRequest": {

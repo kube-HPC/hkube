@@ -1,4 +1,5 @@
 type: object
+description: Fill one of the volume types (emptyDir, PVC, CM, Secret)
 properties:
   name:
     type: string
@@ -26,8 +27,3 @@ properties:
         description: The name of the Secret
 required:
   - name
-anyOf:
-  - required: ["emptyDir"]
-  - required: ["persistentVolumeClaim"]
-  - required: ["configMap"]
-  - required: ["secret"]
