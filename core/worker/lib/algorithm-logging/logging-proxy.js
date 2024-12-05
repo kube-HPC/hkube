@@ -16,7 +16,6 @@ class LoggingProxy {
             log.warning('Algorunner logging proxy not started.', { component });
             return;
         }
-        log.info(`LOGGING CHECK: algorunnerLogging: ${options.algorunnerLogging}, podId: ${options.kubernetes.podId}, podName: ${options.kubernetes.pod_name}`, { component });
         const { algorunnerLogFileName, baseLogsPath, disable } = this._createLogPath({
             ...options.algorunnerLogging,
             podId: options.kubernetes.podId,
@@ -28,13 +27,14 @@ class LoggingProxy {
         }
 
         this._algorunnerLogFilePath = path.join(baseLogsPath, algorunnerLogFileName);
-        log.info(`LOGGING CHECK: baseLogsPath: ${baseLogsPath}, algorunnerLogFileName: ${algorunnerLogFileName}`, { component });
+        log.info(`LOGGING PROXY CHECK: baseLogsPath: ${baseLogsPath}, algorunnerLogFileName: ${algorunnerLogFileName}`, { component }); // ADIR LOG DELETE
         log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component });
         this._startWatch = this._startWatch.bind(this);
         this._startWatch();
     }
 
     _createLogPath({ algorunnerLogFileName, baseLogsPath, disable, podId, podName }) {
+        log.info(`LOGGING PROXY CHECK: algorunnerLogging: ${algorunnerLogFileName}, podId: ${podId}, podName: ${podName}`, { component }); // ADIR LOG DELETE
         if (disable) {
             return { disable };
         }

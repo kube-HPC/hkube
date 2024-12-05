@@ -238,16 +238,20 @@ class Worker {
 
         try {
             log.info('trying to check algorithm container status', { component });
-            const sideCars = await this._fetchAndInitializeSideCarStatus();
-            await this._processSideCarContainers(sideCars);
-            await Promise.all(sideCars.map((currSideCar, index) => this._processContainerStatus(currSideCar, index)));
             await this._processContainerStatus();
+            const sideCars = await this._fetchAndInitializeSideCarStatus();
+            await Promise.all(
+                sideCars
+                    .map((currSideCar, index) => ({ currSideCar, index }))
+                    .filter(({ index }) => this._shouldCheckSideCarStatus[index])
+                    .map(({ currSideCar, index }) => this._processContainerStatus(currSideCar, index))
+            );
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
         }
         finally {
-            if (this._shouldCheckAlgorithmStatus) {
+            if (this._shouldCheckAlgorithmStatus && this._shouldCheckSideCarStatus.some(value => value)) {
                 setTimeout(() => this._checkAlgorithmStatus(), this._options.checkAlgorithmStatusInterval);
             }
         }
@@ -265,9 +269,10 @@ class Worker {
     async _fetchAndInitializeSideCarStatus() {
         const sideCars = (await kubernetes.getContainerNamesForPod(this._podName))
             .filter(name => name !== ALGORITHM_CONTAINER && name !== WORKER_CONTAINER);
-        if (!this._shouldCheckSideCarStatus || !this._sidecarStatusFailAttempts) {
-            this._shouldCheckSideCarStatus = new Array(sideCars.length).fill(true);
-            this._sidecarStatusFailAttempts = new Array(sideCars.length).fill(0);
+        const { length } = sideCars;
+        if (length > 0 && (!this._shouldCheckSideCarStatus || !this._sidecarStatusFailAttempts)) {
+            this._shouldCheckSideCarStatus = new Array(length).fill(true);
+            this._sidecarStatusFailAttempts = new Array(length).fill(0);
         }
 
         return sideCars;
@@ -284,11 +289,12 @@ class Worker {
      * @returns {Promise<void>} A promise that resolves when the container's status is processed
      */
     async _processContainerStatus(name, index) {
-        const containerKind = name ? 'sidecar ' : ALGORITHM_CONTAINER;
+        const containerKind = name ? 'sidecar' : ALGORITHM_CONTAINER;
+        log.info(`trying to check ${containerKind} container ${name} status`, { component });
         const containerStatus = await kubernetes.getPodContainerStatus(this._podName, name || ALGORITHM_CONTAINER) || {};
         const { status, reason, message } = containerStatus;
         if (status === CONTAINER_STATUS.RUNNING) {
-            log.info(`${containerKind}${name} status is ${status}`, { component });
+            log.info(`${containerKind} ${name} status is ${status}`, { component });
             if (containerKind === ALGORITHM_CONTAINER) {
                 this._shouldCheckAlgorithmStatus = false;
             }
