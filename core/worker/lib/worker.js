@@ -33,7 +33,7 @@ class Worker {
         this._algorunnerStatusFailAttempts = 0;
         this._sidecarStatusFailAttempts = undefined;
         this._shouldCheckPodStatus = true;
-        this._checkAlgorithmStatus = this._checkAlgorithmStatus.bind(this);
+        this._checkPodStatus = this._checkPodStatus.bind(this);
         this._wrapperAlive = {};
     }
 
@@ -204,10 +204,10 @@ class Worker {
         stateManager.stop({ isTtlExpired });
     }
 
-    async _doTheBootstrap() {
+    _doTheBootstrap() {
         if (!this._isConnected) {
             log.info('not connected yet', { component });
-            await this._checkAlgorithmStatus();
+            this._checkPodStatus();
             return;
         }
         log.info('algorithm connected', { component });
@@ -215,6 +215,11 @@ class Worker {
             if (this._devMode) {
                 jobConsumer.isConnected = true;
             }
+            return;
+        }
+        if (this._shouldCheckSideCarStatus.length > 0 && this._shouldCheckPodStatus) {
+            log.info('not ready yet', { component });
+            this._checkPodStatus();
             return;
         }
         this._isBootstrapped = true;
@@ -226,16 +231,16 @@ class Worker {
     }
 
     /**
-     * Checks the status of the algorithm container and all sidecar containers.
-     * It processes each sidecar container, checks its status, and processes the algorithm container.
+     * Checks the status of the pod containers and all sidecar containers.
+     * It processes each sidecar container, checks its status, and processes the pod containers.
      * The method runs periodically based on the configured interval.
      *
-     * @function _checkAlgorithmStatus
+     * @function _checkPodStatus
      * @memberof Worker
      * @returns {Promise<void>} A promise that resolves when all container statuses have been processed.
      */
-    async _checkAlgorithmStatus() {
-        log.info('entered _checkAlgorithmStatus', { component });
+    async _checkPodStatus() {
+        log.info('entered _checkPodStatus', { component });
         if (!this._podName) return;
         try {
             await this._processContainerStatus();
@@ -254,9 +259,9 @@ class Worker {
         finally {
             this._shouldCheckPodStatus = (this._shouldCheckAlgorithmStatus || this._shouldCheckSideCarStatus.some(value => value));
             if (this._shouldCheckPodStatus) {
-                setTimeout(() => this._checkAlgorithmStatus(), this._options.checkAlgorithmStatusInterval);
+                setTimeout(() => this._checkPodStatus(), this._options.checkAlgorithmStatusInterval);
             }
-            log.info('exited _checkAlgorithmStatus', { component });
+            log.info('exited _checkPodStatus', { component });
         }
     }
 
