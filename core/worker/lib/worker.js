@@ -204,10 +204,10 @@ class Worker {
         stateManager.stop({ isTtlExpired });
     }
 
-    _doTheBootstrap() {
+    async _doTheBootstrap() {
         if (!this._isConnected) {
             log.info('not connected yet', { component });
-            this._checkAlgorithmStatus();
+            await this._checkAlgorithmStatus();
             return;
         }
         log.info('algorithm connected', { component });
