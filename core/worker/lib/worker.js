@@ -677,7 +677,7 @@ class Worker {
     _handleTimeout(state) {
         if (state === workerStates.ready) {
             this._clearInactiveTimeout();
-            if (!this._shouldCheckPodStatus && !jobConsumer.hotWorker && this._inactiveTimeoutMs != 0) { // eslint-disable-line
+            if (!jobConsumer.hotWorker && this._inactiveTimeoutMs != 0) { // eslint-disable-line
                 log.info(`starting inactive timeout for worker ${this._inactiveTimeoutMs / 1000} seconds`, { component });
                 this._inactiveTimer = setTimeout(() => {
                     if (!this._inTerminationMode) {
