@@ -155,7 +155,7 @@ class Logs {
                 let currLogs = await logSource.getLogs(currArgs);
                 currLogs = currLogs.map(logLine => {
                     const formattedLog = this._format(logLine);
-                    formattedLog.message = `K8S (Sicarcar: ${containerName}): ${log.message}`;
+                    formattedLog.message = `K8S (Sidecar: ${containerName}): ${formattedLog.message}`;
                     return formattedLog;
                 });
                 return currLogs;
