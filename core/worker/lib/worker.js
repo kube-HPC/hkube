@@ -236,24 +236,29 @@ class Worker {
     async _checkAlgorithmStatus() {
         log.info('entered _checkAlgorithmStatus', { component });
         if (!this._podName) return;
-
+        let adir = 1;
         try {
             await this._processContainerStatus();
+            adir = 2;
             const sideCars = await this._fetchAndInitializeSideCarStatus();
+            adir = 3;
             await Promise.all(
                 sideCars
                     .map((currSideCar, index) => ({ currSideCar, index }))
                     .filter(({ index }) => this._shouldCheckSideCarStatus[index])
                     .map(({ currSideCar, index }) => this._processContainerStatus(currSideCar, index))
             );
+            adir = 4;
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
+            log.info(`WORKER LOGGING: message: ${e.message}`, { component });
         }
         finally {
             if (this._shouldCheckAlgorithmStatus && this._shouldCheckSideCarStatus.some(value => value)) {
                 setTimeout(() => this._checkAlgorithmStatus(), this._options.checkAlgorithmStatusInterval);
             }
+            log.info(`exited _checkAlgorithmStatus with phase ${adir}`, { component });
         }
     }
 
