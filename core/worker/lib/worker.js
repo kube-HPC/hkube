@@ -32,6 +32,7 @@ class Worker {
         this._shouldCheckSideCarStatus = undefined;
         this._algorunnerStatusFailAttempts = 0;
         this._sidecarStatusFailAttempts = undefined;
+        this._shouldCheckPodStatus = true;
         this._checkAlgorithmStatus = this._checkAlgorithmStatus.bind(this);
         this._wrapperAlive = {};
     }
@@ -236,29 +237,26 @@ class Worker {
     async _checkAlgorithmStatus() {
         log.info('entered _checkAlgorithmStatus', { component });
         if (!this._podName) return;
-        let adir = 1;
         try {
             await this._processContainerStatus();
-            adir = 2;
             const sideCars = await this._fetchAndInitializeSideCarStatus();
-            adir = 3;
             await Promise.all(
                 sideCars
                     .map((currSideCar, index) => ({ currSideCar, index }))
                     .filter(({ index }) => this._shouldCheckSideCarStatus[index])
                     .map(({ currSideCar, index }) => this._processContainerStatus(currSideCar, index))
             );
-            adir = 4;
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
             log.info(`WORKER LOGGING: message: ${e.message}`, { component });
         }
         finally {
-            if (this._shouldCheckAlgorithmStatus || this._shouldCheckSideCarStatus.some(value => value)) {
+            this._shouldCheckPodStatus = (this._shouldCheckAlgorithmStatus || this._shouldCheckSideCarStatus.some(value => value));
+            if (this._shouldCheckPodStatus) {
                 setTimeout(() => this._checkAlgorithmStatus(), this._options.checkAlgorithmStatusInterval);
             }
-            log.info(`exited _checkAlgorithmStatus with phase ${adir}`, { component });
+            log.info('exited _checkAlgorithmStatus', { component });
         }
     }
 
@@ -297,11 +295,11 @@ class Worker {
     async _processContainerStatus(name, index) {
         log.info('entered _processContainerStatus', { component });
         const containerKind = name ? 'sidecar' : ALGORITHM_CONTAINER;
-        log.info(`trying to check ${containerKind} container ${name} status`, { component });
+        log.info(`trying to check ${containerKind} container ${name || ''} status`, { component });
         const containerStatus = await kubernetes.getPodContainerStatus(this._podName, name || ALGORITHM_CONTAINER) || {};
         const { status, reason, message } = containerStatus;
         if (status === CONTAINER_STATUS.RUNNING) {
-            log.info(`${containerKind} ${name} status is ${status}`, { component });
+            log.info(`${containerKind} ${name || ''} status is ${status}`, { component });
             if (containerKind === ALGORITHM_CONTAINER) {
                 this._shouldCheckAlgorithmStatus = false;
             }
@@ -352,6 +350,7 @@ class Worker {
                 log.info('WORKER LOGGING: Ending Job due to too many image pull failures', { component });
                 await this._endJob(options);
                 this._shouldCheckAlgorithmStatus = false;
+                this._shouldCheckSideCarStatus.fill(false);
             }
         }
         log.info('Exit _handleContainerFailure', { component });
@@ -678,7 +677,7 @@ class Worker {
     _handleTimeout(state) {
         if (state === workerStates.ready) {
             this._clearInactiveTimeout();
-            if (!jobConsumer.hotWorker && this._inactiveTimeoutMs != 0) { // eslint-disable-line
+            if (!this._shouldCheckPodStatus && !jobConsumer.hotWorker && this._inactiveTimeoutMs != 0) { // eslint-disable-line
                 log.info(`starting inactive timeout for worker ${this._inactiveTimeoutMs / 1000} seconds`, { component });
                 this._inactiveTimer = setTimeout(() => {
                     if (!this._inTerminationMode) {

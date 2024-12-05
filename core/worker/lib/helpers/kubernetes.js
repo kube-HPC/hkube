@@ -223,7 +223,6 @@ class KubernetesApi extends EventEmitter {
             const pod = await this._client.pods.get({ podName });
             const containers = objectPath.get(pod, 'body.spec.containers', []);
             const containerNames = containers.map(container => container.name);
-            log.info(`Found ${containerNames.length} containers for pod ${podName}`, { component });
             return containerNames;
         }
         catch (error) {
