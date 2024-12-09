@@ -345,6 +345,8 @@ class Worker {
                     }
                 };
                 log.error(options.error.message, { component });
+                log.error(options.error.message, { component: Components.ALGORUNNER });
+                // log.error(options.error.message, { component: name || Components.ALGORUNNER });
                 log.info('WORKER LOGGING: Ending Job due to too many image pull failures', { component });
                 await this._endJob(options);
                 this._shouldCheckAlgorithmStatus = false;
