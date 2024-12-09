@@ -29,9 +29,9 @@ class Worker {
         this._isScalingDown = false;
         this._inTerminationMode = false;
         this._shouldCheckAlgorithmStatus = true;
-        this._shouldCheckSideCarStatus = undefined;
+        this._shouldCheckSideCarStatus = [];
         this._algorunnerStatusFailAttempts = 0;
-        this._sidecarStatusFailAttempts = undefined;
+        this._sidecarStatusFailAttempts = [];
         this._shouldCheckPodStatus = true;
         this._checkPodStatus = this._checkPodStatus.bind(this);
         this._wrapperAlive = {};
@@ -210,7 +210,7 @@ class Worker {
             }
             return;
         }
-        if (this._shouldCheckSideCarStatus?.length > 0 && this._shouldCheckPodStatus) {
+        if (this._shouldCheckSideCarStatus.length > 0 && this._shouldCheckPodStatus) {
             log.info('not ready yet', { component });
             this._checkPodStatus();
             return;
@@ -250,7 +250,7 @@ class Worker {
             log.info(`WORKER LOGGING: message: ${e.message}`, { component });
         }
         finally {
-            this._shouldCheckPodStatus = (this._shouldCheckAlgorithmStatus || this._shouldCheckSideCarStatus?.some(value => value));
+            this._shouldCheckPodStatus = (this._shouldCheckAlgorithmStatus || this._shouldCheckSideCarStatus.some(value => value));
             if (this._shouldCheckPodStatus) {
                 setTimeout(() => this._checkPodStatus(), this._options.checkAlgorithmStatusInterval);
             }
@@ -272,7 +272,7 @@ class Worker {
         const sideCars = (await kubernetes.getContainerNamesForPod(this._podName))
             .filter(name => name !== ALGORITHM_CONTAINER && name !== WORKER_CONTAINER);
         const { length } = sideCars;
-        if (length > 0 && (!this._shouldCheckSideCarStatus || !this._sidecarStatusFailAttempts)) {
+        if (length > 0 && (this._shouldCheckSideCarStatus.length === 0 || this._sidecarStatusFailAttempts.length === 0)) {
             this._shouldCheckSideCarStatus = new Array(length).fill(true);
             this._sidecarStatusFailAttempts = new Array(length).fill(0);
         }
@@ -317,7 +317,7 @@ class Worker {
      *
      * @function _handleContainerFailure
      * @memberof Worker
-     * @param {number} index - The index of the sidecar container being checked (not needed for the algorithm container)
+     * @param {number} index - The index of the sidecar container being checked (undefined for algorithm container)
      * @param {string} reason - The reason for container failure
      * @param {string} message - The error message for the container failure
      * @returns {Promise<void>} A promise that resolves when the failure is handled
@@ -328,7 +328,7 @@ class Worker {
 
         if (containerMessage.isImagePullErr) {
             let failAttemps;
-            if (index >= 0) {
+            if (index) {
                 this._sidecarStatusFailAttempts[index] += 1;
                 failAttemps = this._sidecarStatusFailAttempts[index];
             }
