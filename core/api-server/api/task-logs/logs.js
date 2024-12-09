@@ -127,6 +127,7 @@ class Logs {
                     taskTime
                 };
                 logs = await logSource.getLogs(args);
+                logs = await this._handleLogRetry(args, logs, logSource);
                 logs = logs.map(this._format);
                 if (sideCars.length > 0) {
                     const containerNames = sideCars.map(x => x.name);
@@ -148,6 +149,35 @@ class Logs {
         return logsData;
     }
 
+    /**
+     * Handles retry logic for fetching logs if a specific log pattern is detected.
+     *
+     * @param {Object} args - The arguments used for fetching logs.
+     * @param {Array<string>} logs - The logs retrieved from the source.
+     * @param {Object} logSource - The log source object with a `getLogs` method.
+     * @returns {Promise<Array<string>>} - The updated logs after retry logic is applied.
+     */
+    async _handleLogRetry(args, logs, logSource) {
+        const givenLogPattern = /log file \/var\/log\/pods\/default_[^/]+\/algorunner\/0\.log does not exist\. Trying again in 2 seconds\./;
+        if (logs.some(currLog => givenLogPattern.test(currLog))) {
+            const newArgs = { ...args, nodeKind: containers.worker };
+            return logSource.getLogs(newArgs);
+        }
+        return logs;
+    }
+
+    /**
+     * Fetches and formats logs for a list of sidecar containers.
+     *
+     * @param {Array<string>} containerNames - List of sidecar`s container names to fetch logs for.
+     * @param {Object} logSource - The log source object with a `getLogs` method for retrieving logs.
+     * @param {Object} args - Common arguments used for log retrieval.
+     * @returns {Promise<Array<Object>>} - A promise that resolves to a flattened array of formatted logs from all containers.
+     * Each log entry contains:
+     *   - `message` (string): The formatted log message, prefixed with the container name.
+     *   - `level` (string): The log level (e.g., 'info', 'error').
+     *   - `timestamp` (number): The timestamp of the log.
+     */
     async _getSideCarLogs(containerNames, logSource, args) {
         const logPromises = containerNames.map(async (containerName) => {
             const currArgs = { ...args, containerName };
