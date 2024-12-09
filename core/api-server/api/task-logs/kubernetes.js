@@ -46,13 +46,14 @@ class KubernetesLogs {
         }
     }
 
-    async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip }) {
+    async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip, containerName }) {
         let tailLines;
         if (sort === sortOrder.desc) {
             tailLines = limit;
         }
 
-        const logsData = await this._client.logs.get({ podName, tailLines, containerName: this.getContainerName(nodeKind) });
+        const resolvedContainerName = containerName || this.getContainerName(nodeKind);
+        const logsData = await this._client.logs.get({ podName, tailLines, containerName: resolvedContainerName });
 
         return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip });
     }
