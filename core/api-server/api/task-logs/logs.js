@@ -127,7 +127,6 @@ class Logs {
                     taskTime
                 };
                 logs = await logSource.getLogs(args);
-                logs = await this._handleLogRetry(args, logs, logSource);
                 logs = logs.map(this._format);
                 if (sideCars.length > 0) {
                     const containerNames = sideCars.map(x => x.name);
@@ -147,23 +146,6 @@ class Logs {
             }];
         }
         return logsData;
-    }
-
-    /**
-     * Handles retry logic for fetching logs if a specific log pattern is detected.
-     *
-     * @param {Object} args - The arguments used for fetching logs.
-     * @param {Array<string>} logs - The logs retrieved from the source.
-     * @param {Object} logSource - The log source object with a `getLogs` method.
-     * @returns {Promise<Array<string>>} - The updated logs after retry logic is applied.
-     */
-    async _handleLogRetry(args, logs, logSource) {
-        const givenLogPattern = /log file \/var\/log\/pods\/default_[^/]+\/algorunner\/0\.log does not exist\. Trying again in 2 seconds\./;
-        if (logs.some(currLog => givenLogPattern.test(currLog))) {
-            const newArgs = { ...args, nodeKind: containers.worker };
-            return logSource.getLogs(newArgs);
-        }
-        return logs;
     }
 
     /**
