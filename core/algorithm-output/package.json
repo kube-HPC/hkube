@@ -6,7 +6,7 @@
   "dependencies": {
     "@hkube/config": "^2.0.11",
     "@hkube/logger": "^2.0.2",
-    "@hkube/nodejs-wrapper": "^2.1.2"
+    "@hkube/nodejs-wrapper": "^2.1.3"
   },
   "devDependencies": {
     "@hkube/uid": "^1.0.4",
