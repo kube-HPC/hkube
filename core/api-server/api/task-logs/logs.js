@@ -81,32 +81,48 @@ class Logs {
 
             try {
                 const podData = await kubernetes._client.pods.get({ podName });
-                const currentAlgorunner = podData.body.status.containerStatuses.find(x => x.name === containers.algorunner);
-                sideCars = podData.body.status.containerStatuses.filter(x => (x.name !== containers.algorunner && x.name !== containers.worker));
-                const errorFound = sideCars.some(container => {
-                    const { terminated, waiting } = container.state || {};
-                    if (terminated?.reason === 'Error') {
-                        logsData.podStatus = podStatus.ERROR;
-                        return true;
-                    }
-                    if (waiting?.reason === 'ImagePullBackOff') {
-                        logsData.podStatus = podStatus.NO_IMAGE;
-                    }
-                    return false;
-                });
+                const { containerStatuses } = podData.body.status.containerStatuses;
+                if (containerStatuses && containerStatuses.length > 0) {
+                    const currentAlgorunner = containerStatuses.find(x => x.name === containers.algorunner);
+                    sideCars = containerStatuses.filter(x => (x.name !== containers.algorunner && x.name !== containers.worker));
 
-                if (!errorFound) {
-                    const { terminated, waiting } = currentAlgorunner.state;
-                    if (terminated?.reason === 'Error') {
-                        logsData.podStatus = podStatus.ERROR;
+                    const errorFound = sideCars.some(container => {
+                        const { terminated, waiting } = container.state || {};
+                        if (terminated?.reason === 'Error') {
+                            logsData.podStatus = podStatus.ERROR;
+                            return true;
+                        }
+                        if (waiting?.reason === 'ImagePullBackOff') {
+                            logsData.podStatus = podStatus.NO_IMAGE;
+                        }
+                        return false;
+                    });
+
+                    if (!errorFound && currentAlgorunner) {
+                        const { terminated, waiting } = currentAlgorunner.state || {};
+                        if (terminated?.reason === 'Error') {
+                            logsData.podStatus = podStatus.ERROR;
+                        }
+                        else if (waiting?.reason === 'ImagePullBackOff') {
+                            logsData.podStatus = podStatus.NO_IMAGE;
+                        }
                     }
-                    else if (waiting?.reason === 'ImagePullBackOff') {
-                        logsData.podStatus = podStatus.NO_IMAGE;
-                    }
+                }
+                else {
+                    log.info(`No containers found for pod ${podName}`, { component });
                 }
             }
             catch (e) {
-                logsData.podStatus = podStatus.NOT_EXIST;
+                if (e.code === 404) {
+                    logsData.podStatus = podStatus.NOT_EXIST;
+                }
+                else {
+                    log.error(`Error fetching logs for pod ${podName}: ${e.message}`, { component }, e);
+                    logsData.logs = [{
+                        message: `Error fetching logs for pod ${podName}: ${e.message}`
+                    }];
+                    logsData.podStatus = podStatus.ERROR;
+                }
             }
 
             if (source === sources.k8s && logsData.podStatus === podStatus.NOT_EXIST) {

@@ -58,6 +58,24 @@ class KubernetesLogs {
         return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip });
     }
 
+    async getPodEvents(podName) {
+        try {
+            const res = await this._client.pods.get({ podName });
+            const events = res.body.items.filter(event => event.involvedObject.name === podName);
+
+            return events.map(event => ({
+                type: event.type,
+                reason: event.reason,
+                message: event.message,
+                timestamp: event.lastTimestamp || event.eventTime,
+            }));
+        }
+        catch (error) {
+            log.error(`Error fetching events for pod ${podName}: ${error.message}`, { component }, error);
+            return [];
+        }
+    }
+
     _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip }) {
         let logs = [];
         const logList = logsData.body.split('\n');
