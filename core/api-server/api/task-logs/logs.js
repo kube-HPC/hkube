@@ -135,7 +135,7 @@ class Logs {
                 case podStatus.PENDING: {
                     const logSource = this._getLogSource(source);
                     const events = await logSource.getPodEvents(podName);
-                    logsData.logs = events.map(this._format);
+                    logsData.logs = events;
                     break;
                 }
                 default:
