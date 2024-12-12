@@ -60,9 +60,7 @@ class KubernetesLogs {
 
     async getPodEvents(podName) {
         try {
-            const res = await this._client.api.v1.events.get({
-                qs: { fieldSelector: `involvedObject.name=${podName}` }
-            });
+            const res = await this._client.pods.get({ podName });
             const events = res.body.items;
 
             return events.map(event => ({
