@@ -66,9 +66,8 @@ class KubernetesLogs {
             const events = res.body.items;
 
             return events.map(event => ({
-                type: event.type,
-                reason: event.reason,
-                message: event.message,
+                level: event.type,
+                message: `${event.reason}: ${event.message}`,
                 timestamp: event.lastTimestamp || event.eventTime,
             }));
         }
