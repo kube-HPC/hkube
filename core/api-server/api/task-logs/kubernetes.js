@@ -61,10 +61,10 @@ class KubernetesLogs {
     async getPodEvents(podName) {
         try {
             const res = await this._client.pods.get({ podName });
-            const events = res.body.items;
+            const events = res.body.items.status.conditions;
 
             return events.map(event => ({
-                level: event.type,
+                level: 'Warning',
                 message: `${event.reason}: ${event.message}`,
                 timestamp: event.lastTimestamp || event.eventTime,
             }));
