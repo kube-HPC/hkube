@@ -87,60 +87,31 @@ class Logs {
                     sideCars = status.containerStatuses.filter(x => (x.name !== containers.algorunner && x.name !== containers.worker));
 
                     const errorFound = sideCars.some(container => {
-                        const { terminated, waiting } = container.state || {};
-                        if (terminated?.reason === 'Error') {
-                            logsData.podStatus = podStatus.ERROR;
-                            return true;
-                        }
-                        if (waiting?.reason === 'ImagePullBackOff') {
-                            logsData.podStatus = podStatus.NO_IMAGE;
+                        const retStatus = this._checkContainerState(container, podStatus);
+                        if (retStatus) {
+                            logsData.podStatus = retStatus;
+                            return retStatus === podStatus.ERROR;
                         }
                         return false;
                     });
 
                     if (!errorFound && currentAlgorunner) {
-                        const { terminated, waiting } = currentAlgorunner.state || {};
-                        if (terminated?.reason === 'Error') {
-                            logsData.podStatus = podStatus.ERROR;
-                        }
-                        else if (waiting?.reason === 'ImagePullBackOff') {
-                            logsData.podStatus = podStatus.NO_IMAGE;
+                        const retStatus = this._checkContainerState(currentAlgorunner);
+                        if (retStatus) {
+                            logsData.podStatus = retStatus;
                         }
                     }
                 }
                 else {
-                    log.info(`No containers found for pod ${podName}`, { component });
-                    podStatus.PENDING = 'PENDING'; // HARD CODED UNTIL PACKAGE UPDATES
-                    logsData.podStatus = podStatus.PENDING;
+                    logsData.podStatus = podStatus.NOT_EXIST;
                 }
             }
             catch (e) {
-                if (e.code === 404) {
-                    logsData.podStatus = podStatus.NOT_EXIST;
-                }
-                else {
-                    log.error(`Error fetching logs for pod ${podName}: ${e.message}`, { component }, e);
-                    logsData.logs = [{
-                        message: `Error fetching logs for pod ${podName}: ${e.message}`
-                    }];
-                    logsData.podStatus = podStatus.ERROR;
-                }
+                logsData.podStatus = podStatus.NOT_EXIST;
             }
 
-            if (source === sources.k8s) {
-                switch (logsData.podStatus) {
-                case podStatus.NOT_EXIST:
-                    logsData.logs = [];
-                    break;
-                case podStatus.PENDING: {
-                    const logSource = this._getLogSource(source);
-                    const events = await logSource.getPodEvents(podName);
-                    logsData.logs = events;
-                    break;
-                }
-                default:
-                    break;
-                }
+            if (source === sources.k8s && logsData.podStatus === podStatus.NOT_EXIST) {
+                logsData.logs = [];
             }
             else {
                 const logSource = this._getLogSource(source);
@@ -176,6 +147,17 @@ class Logs {
             }];
         }
         return logsData;
+    }
+
+    _checkContainerState(container) {
+        const { terminated, waiting } = container.state || {};
+        if (terminated?.reason === 'Error') {
+            return podStatus.ERROR;
+        }
+        if (waiting?.reason === 'ImagePullBackOff') {
+            return podStatus.NO_IMAGE;
+        }
+        return null;
     }
 
     /**
