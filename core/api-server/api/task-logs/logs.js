@@ -81,7 +81,7 @@ class Logs {
 
             try {
                 const podData = await kubernetes._client.pods.get({ podName });
-                const { status } = podData.body.status;
+                const { status } = podData.body || {};
                 if (status && status.containerStatuses && status.containerStatuses.length > 0) {
                     const currentAlgorunner = status.containerStatuses.find(x => x.name === containers.algorunner);
                     sideCars = status.containerStatuses.filter(x => (x.name !== containers.algorunner && x.name !== containers.worker));
