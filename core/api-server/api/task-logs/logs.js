@@ -81,10 +81,10 @@ class Logs {
 
             try {
                 const podData = await kubernetes._client.pods.get({ podName });
-                const { containerStatuses } = podData.body.status.containerStatuses;
-                if (containerStatuses && containerStatuses.length > 0) {
-                    const currentAlgorunner = containerStatuses.find(x => x.name === containers.algorunner);
-                    sideCars = containerStatuses.filter(x => (x.name !== containers.algorunner && x.name !== containers.worker));
+                const { status } = podData.body.status;
+                if (status && status.containerStatuses && status.containerStatuses.length > 0) {
+                    const currentAlgorunner = status.containerStatuses.find(x => x.name === containers.algorunner);
+                    sideCars = status.containerStatuses.filter(x => (x.name !== containers.algorunner && x.name !== containers.worker));
 
                     const errorFound = sideCars.some(container => {
                         const { terminated, waiting } = container.state || {};
@@ -110,6 +110,8 @@ class Logs {
                 }
                 else {
                     log.info(`No containers found for pod ${podName}`, { component });
+                    podStatus.NO_CONTAINERS = 'PENDING'; // HARD CODED UNTIL PACKAGE UPDATES
+                    logsData.podStatus = podStatus.PENDING;
                 }
             }
             catch (e) {
@@ -125,8 +127,22 @@ class Logs {
                 }
             }
 
-            if (source === sources.k8s && logsData.podStatus === podStatus.NOT_EXIST) {
-                logsData.logs = [];
+            if (source === sources.k8s) {
+                switch (logsData.podStatus) {
+                case podStatus.NOT_EXIST:
+                    logsData.logs = [];
+                    break;
+                case podStatus.PENDING: {
+                    const logSource = this._getLogSource(source);
+                    const events = await logSource.getPodEvents(podName);
+                    logsData.logs = [{
+                        message: `Pod ${podName} does not exist`
+                    }];
+                    break;
+                }
+                default:
+                    break;
+                }
             }
             else {
                 const logSource = this._getLogSource(source);
