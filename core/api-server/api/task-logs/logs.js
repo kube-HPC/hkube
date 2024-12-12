@@ -135,9 +135,7 @@ class Logs {
                 case podStatus.PENDING: {
                     const logSource = this._getLogSource(source);
                     const events = await logSource.getPodEvents(podName);
-                    logsData.logs = [{
-                        message: `Pod ${podName} does not exist`
-                    }];
+                    logsData.logs = events.map(this._format);
                     break;
                 }
                 default:
