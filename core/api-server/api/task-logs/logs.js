@@ -110,7 +110,7 @@ class Logs {
                 }
                 else {
                     log.info(`No containers found for pod ${podName}`, { component });
-                    podStatus.NO_CONTAINERS = 'PENDING'; // HARD CODED UNTIL PACKAGE UPDATES
+                    podStatus.PENDING = 'PENDING'; // HARD CODED UNTIL PACKAGE UPDATES
                     logsData.podStatus = podStatus.PENDING;
                 }
             }
