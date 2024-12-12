@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.8.2",
+    "version": "2.8.4",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6751,6 +6751,60 @@
                       "default": "256Mi",
                       "example": "512Mi"
                     },
+                    "workerCustomResources": {
+                      "type": "object",
+                      "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+                      "properties": {
+                        "requests": {
+                          "type": "object",
+                          "description": "Resource requests for the worker",
+                          "properties": {
+                            "cpu": {
+                              "type": "number",
+                              "description": "CPU request for the worker",
+                              "minimum": 0,
+                              "example": 0.1
+                            },
+                            "memory": {
+                              "type": "string",
+                              "description": "Memory request for the worker",
+                              "format": "memory",
+                              "example": "256Mi"
+                            }
+                          },
+                          "required": [
+                            "cpu",
+                            "memory"
+                          ]
+                        },
+                        "limits": {
+                          "type": "object",
+                          "description": "Resource limits for the worker",
+                          "properties": {
+                            "cpu": {
+                              "type": "number",
+                              "description": "CPU limit for the worker",
+                              "minimum": 0,
+                              "example": 0.2
+                            },
+                            "memory": {
+                              "type": "string",
+                              "description": "Memory limit for the worker",
+                              "format": "memory",
+                              "example": "512Mi"
+                            }
+                          },
+                          "required": [
+                            "cpu",
+                            "memory"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "limits",
+                        "requests"
+                      ]
+                    },
                     "reservedMemory": {
                       "type": "string",
                       "nullable": true,
@@ -7249,6 +7303,60 @@
                         "default": "256Mi",
                         "example": "512Mi"
                       },
+                      "workerCustomResources": {
+                        "type": "object",
+                        "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+                        "properties": {
+                          "requests": {
+                            "type": "object",
+                            "description": "Resource requests for the worker",
+                            "properties": {
+                              "cpu": {
+                                "type": "number",
+                                "description": "CPU request for the worker",
+                                "minimum": 0,
+                                "example": 0.1
+                              },
+                              "memory": {
+                                "type": "string",
+                                "description": "Memory request for the worker",
+                                "format": "memory",
+                                "example": "256Mi"
+                              }
+                            },
+                            "required": [
+                              "cpu",
+                              "memory"
+                            ]
+                          },
+                          "limits": {
+                            "type": "object",
+                            "description": "Resource limits for the worker",
+                            "properties": {
+                              "cpu": {
+                                "type": "number",
+                                "description": "CPU limit for the worker",
+                                "minimum": 0,
+                                "example": 0.2
+                              },
+                              "memory": {
+                                "type": "string",
+                                "description": "Memory limit for the worker",
+                                "format": "memory",
+                                "example": "512Mi"
+                              }
+                            },
+                            "required": [
+                              "cpu",
+                              "memory"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "limits",
+                          "requests"
+                        ]
+                      },
                       "reservedMemory": {
                         "type": "string",
                         "nullable": true,
@@ -7553,6 +7661,60 @@
                         "default": "256Mi",
                         "example": "512Mi"
                       },
+                      "workerCustomResources": {
+                        "type": "object",
+                        "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+                        "properties": {
+                          "requests": {
+                            "type": "object",
+                            "description": "Resource requests for the worker",
+                            "properties": {
+                              "cpu": {
+                                "type": "number",
+                                "description": "CPU request for the worker",
+                                "minimum": 0,
+                                "example": 0.1
+                              },
+                              "memory": {
+                                "type": "string",
+                                "description": "Memory request for the worker",
+                                "format": "memory",
+                                "example": "256Mi"
+                              }
+                            },
+                            "required": [
+                              "cpu",
+                              "memory"
+                            ]
+                          },
+                          "limits": {
+                            "type": "object",
+                            "description": "Resource limits for the worker",
+                            "properties": {
+                              "cpu": {
+                                "type": "number",
+                                "description": "CPU limit for the worker",
+                                "minimum": 0,
+                                "example": 0.2
+                              },
+                              "memory": {
+                                "type": "string",
+                                "description": "Memory limit for the worker",
+                                "format": "memory",
+                                "example": "512Mi"
+                              }
+                            },
+                            "required": [
+                              "cpu",
+                              "memory"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "limits",
+                          "requests"
+                        ]
+                      },
                       "reservedMemory": {
                         "type": "string",
                         "nullable": true,
@@ -7851,6 +8013,60 @@
                     "format": "algorithm-memory",
                     "default": "256Mi",
                     "example": "512Mi"
+                  },
+                  "workerCustomResources": {
+                    "type": "object",
+                    "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+                    "properties": {
+                      "requests": {
+                        "type": "object",
+                        "description": "Resource requests for the worker",
+                        "properties": {
+                          "cpu": {
+                            "type": "number",
+                            "description": "CPU request for the worker",
+                            "minimum": 0,
+                            "example": 0.1
+                          },
+                          "memory": {
+                            "type": "string",
+                            "description": "Memory request for the worker",
+                            "format": "memory",
+                            "example": "256Mi"
+                          }
+                        },
+                        "required": [
+                          "cpu",
+                          "memory"
+                        ]
+                      },
+                      "limits": {
+                        "type": "object",
+                        "description": "Resource limits for the worker",
+                        "properties": {
+                          "cpu": {
+                            "type": "number",
+                            "description": "CPU limit for the worker",
+                            "minimum": 0,
+                            "example": 0.2
+                          },
+                          "memory": {
+                            "type": "string",
+                            "description": "Memory limit for the worker",
+                            "format": "memory",
+                            "example": "512Mi"
+                          }
+                        },
+                        "required": [
+                          "cpu",
+                          "memory"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "limits",
+                      "requests"
+                    ]
                   },
                   "reservedMemory": {
                     "type": "string",
@@ -8207,6 +8423,60 @@
                     "default": "256Mi",
                     "example": "512Mi"
                   },
+                  "workerCustomResources": {
+                    "type": "object",
+                    "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+                    "properties": {
+                      "requests": {
+                        "type": "object",
+                        "description": "Resource requests for the worker",
+                        "properties": {
+                          "cpu": {
+                            "type": "number",
+                            "description": "CPU request for the worker",
+                            "minimum": 0,
+                            "example": 0.1
+                          },
+                          "memory": {
+                            "type": "string",
+                            "description": "Memory request for the worker",
+                            "format": "memory",
+                            "example": "256Mi"
+                          }
+                        },
+                        "required": [
+                          "cpu",
+                          "memory"
+                        ]
+                      },
+                      "limits": {
+                        "type": "object",
+                        "description": "Resource limits for the worker",
+                        "properties": {
+                          "cpu": {
+                            "type": "number",
+                            "description": "CPU limit for the worker",
+                            "minimum": 0,
+                            "example": 0.2
+                          },
+                          "memory": {
+                            "type": "string",
+                            "description": "Memory limit for the worker",
+                            "format": "memory",
+                            "example": "512Mi"
+                          }
+                        },
+                        "required": [
+                          "cpu",
+                          "memory"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "limits",
+                      "requests"
+                    ]
+                  },
                   "reservedMemory": {
                     "type": "string",
                     "nullable": true,
@@ -8537,6 +8807,60 @@
                         "default": "256Mi",
                         "example": "512Mi"
                       },
+                      "workerCustomResources": {
+                        "type": "object",
+                        "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+                        "properties": {
+                          "requests": {
+                            "type": "object",
+                            "description": "Resource requests for the worker",
+                            "properties": {
+                              "cpu": {
+                                "type": "number",
+                                "description": "CPU request for the worker",
+                                "minimum": 0,
+                                "example": 0.1
+                              },
+                              "memory": {
+                                "type": "string",
+                                "description": "Memory request for the worker",
+                                "format": "memory",
+                                "example": "256Mi"
+                              }
+                            },
+                            "required": [
+                              "cpu",
+                              "memory"
+                            ]
+                          },
+                          "limits": {
+                            "type": "object",
+                            "description": "Resource limits for the worker",
+                            "properties": {
+                              "cpu": {
+                                "type": "number",
+                                "description": "CPU limit for the worker",
+                                "minimum": 0,
+                                "example": 0.2
+                              },
+                              "memory": {
+                                "type": "string",
+                                "description": "Memory limit for the worker",
+                                "format": "memory",
+                                "example": "512Mi"
+                              }
+                            },
+                            "required": [
+                              "cpu",
+                              "memory"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "limits",
+                          "requests"
+                        ]
+                      },
                       "reservedMemory": {
                         "type": "string",
                         "nullable": true,
@@ -8830,6 +9154,60 @@
                           "format": "algorithm-memory",
                           "default": "256Mi",
                           "example": "512Mi"
+                        },
+                        "workerCustomResources": {
+                          "type": "object",
+                          "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+                          "properties": {
+                            "requests": {
+                              "type": "object",
+                              "description": "Resource requests for the worker",
+                              "properties": {
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "CPU request for the worker",
+                                  "minimum": 0,
+                                  "example": 0.1
+                                },
+                                "memory": {
+                                  "type": "string",
+                                  "description": "Memory request for the worker",
+                                  "format": "memory",
+                                  "example": "256Mi"
+                                }
+                              },
+                              "required": [
+                                "cpu",
+                                "memory"
+                              ]
+                            },
+                            "limits": {
+                              "type": "object",
+                              "description": "Resource limits for the worker",
+                              "properties": {
+                                "cpu": {
+                                  "type": "number",
+                                  "description": "CPU limit for the worker",
+                                  "minimum": 0,
+                                  "example": 0.2
+                                },
+                                "memory": {
+                                  "type": "string",
+                                  "description": "Memory limit for the worker",
+                                  "format": "memory",
+                                  "example": "512Mi"
+                                }
+                              },
+                              "required": [
+                                "cpu",
+                                "memory"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "limits",
+                            "requests"
+                          ]
                         },
                         "reservedMemory": {
                           "type": "string",
@@ -16259,6 +16637,60 @@
                         "default": "256Mi",
                         "example": "512Mi"
                       },
+                      "workerCustomResources": {
+                        "type": "object",
+                        "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+                        "properties": {
+                          "requests": {
+                            "type": "object",
+                            "description": "Resource requests for the worker",
+                            "properties": {
+                              "cpu": {
+                                "type": "number",
+                                "description": "CPU request for the worker",
+                                "minimum": 0,
+                                "example": 0.1
+                              },
+                              "memory": {
+                                "type": "string",
+                                "description": "Memory request for the worker",
+                                "format": "memory",
+                                "example": "256Mi"
+                              }
+                            },
+                            "required": [
+                              "cpu",
+                              "memory"
+                            ]
+                          },
+                          "limits": {
+                            "type": "object",
+                            "description": "Resource limits for the worker",
+                            "properties": {
+                              "cpu": {
+                                "type": "number",
+                                "description": "CPU limit for the worker",
+                                "minimum": 0,
+                                "example": 0.2
+                              },
+                              "memory": {
+                                "type": "string",
+                                "description": "Memory limit for the worker",
+                                "format": "memory",
+                                "example": "512Mi"
+                              }
+                            },
+                            "required": [
+                              "cpu",
+                              "memory"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "limits",
+                          "requests"
+                        ]
+                      },
                       "reservedMemory": {
                         "type": "string",
                         "nullable": true,
@@ -16615,6 +17047,60 @@
                         "format": "algorithm-memory",
                         "default": "256Mi",
                         "example": "512Mi"
+                      },
+                      "workerCustomResources": {
+                        "type": "object",
+                        "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+                        "properties": {
+                          "requests": {
+                            "type": "object",
+                            "description": "Resource requests for the worker",
+                            "properties": {
+                              "cpu": {
+                                "type": "number",
+                                "description": "CPU request for the worker",
+                                "minimum": 0,
+                                "example": 0.1
+                              },
+                              "memory": {
+                                "type": "string",
+                                "description": "Memory request for the worker",
+                                "format": "memory",
+                                "example": "256Mi"
+                              }
+                            },
+                            "required": [
+                              "cpu",
+                              "memory"
+                            ]
+                          },
+                          "limits": {
+                            "type": "object",
+                            "description": "Resource limits for the worker",
+                            "properties": {
+                              "cpu": {
+                                "type": "number",
+                                "description": "CPU limit for the worker",
+                                "minimum": 0,
+                                "example": 0.2
+                              },
+                              "memory": {
+                                "type": "string",
+                                "description": "Memory limit for the worker",
+                                "format": "memory",
+                                "example": "512Mi"
+                              }
+                            },
+                            "required": [
+                              "cpu",
+                              "memory"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "limits",
+                          "requests"
+                        ]
                       },
                       "reservedMemory": {
                         "type": "string",
@@ -21084,6 +21570,60 @@
             "default": "256Mi",
             "example": "512Mi"
           },
+          "workerCustomResources": {
+            "type": "object",
+            "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+            "properties": {
+              "requests": {
+                "type": "object",
+                "description": "Resource requests for the worker",
+                "properties": {
+                  "cpu": {
+                    "type": "number",
+                    "description": "CPU request for the worker",
+                    "minimum": 0,
+                    "example": 0.1
+                  },
+                  "memory": {
+                    "type": "string",
+                    "description": "Memory request for the worker",
+                    "format": "memory",
+                    "example": "256Mi"
+                  }
+                },
+                "required": [
+                  "cpu",
+                  "memory"
+                ]
+              },
+              "limits": {
+                "type": "object",
+                "description": "Resource limits for the worker",
+                "properties": {
+                  "cpu": {
+                    "type": "number",
+                    "description": "CPU limit for the worker",
+                    "minimum": 0,
+                    "example": 0.2
+                  },
+                  "memory": {
+                    "type": "string",
+                    "description": "Memory limit for the worker",
+                    "format": "memory",
+                    "example": "512Mi"
+                  }
+                },
+                "required": [
+                  "cpu",
+                  "memory"
+                ]
+              }
+            },
+            "required": [
+              "limits",
+              "requests"
+            ]
+          },
           "reservedMemory": {
             "type": "string",
             "nullable": true,
@@ -21527,6 +22067,60 @@
                 "format": "algorithm-memory",
                 "default": "256Mi",
                 "example": "512Mi"
+              },
+              "workerCustomResources": {
+                "type": "object",
+                "description": "Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.",
+                "properties": {
+                  "requests": {
+                    "type": "object",
+                    "description": "Resource requests for the worker",
+                    "properties": {
+                      "cpu": {
+                        "type": "number",
+                        "description": "CPU request for the worker",
+                        "minimum": 0,
+                        "example": 0.1
+                      },
+                      "memory": {
+                        "type": "string",
+                        "description": "Memory request for the worker",
+                        "format": "memory",
+                        "example": "256Mi"
+                      }
+                    },
+                    "required": [
+                      "cpu",
+                      "memory"
+                    ]
+                  },
+                  "limits": {
+                    "type": "object",
+                    "description": "Resource limits for the worker",
+                    "properties": {
+                      "cpu": {
+                        "type": "number",
+                        "description": "CPU limit for the worker",
+                        "minimum": 0,
+                        "example": 0.2
+                      },
+                      "memory": {
+                        "type": "string",
+                        "description": "Memory limit for the worker",
+                        "format": "memory",
+                        "example": "512Mi"
+                      }
+                    },
+                    "required": [
+                      "cpu",
+                      "memory"
+                    ]
+                  }
+                },
+                "required": [
+                  "limits",
+                  "requests"
+                ]
               },
               "reservedMemory": {
                 "type": "string",
