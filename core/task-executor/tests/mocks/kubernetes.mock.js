@@ -18,9 +18,9 @@ module.exports = {
                 getVersionsConfigMap: async () => { return {}; },
                 getResourcesPerNode: async () => { return {}; },
                 getSidecarConfigs: async () => { return {}; },
-                getAllPVC: async () => { return []; },
-                getAllConfigMaps: async () => { return []; },
-                getAllSecrets: async () => { return []; }
+                getAllPVCNames: async () => { return []; },
+                getAllSecretNames: async () => { return []; },
+                getAllConfigMapNames: async () => { return []; }
             },
             callCount: (name) => {
                 return callCount[name];

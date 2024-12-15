@@ -534,17 +534,26 @@ const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
     return filtered;
 };
 
-const _getAllVolumes = async () => {
-    const pvcs = await kubernetes.getAllPVC();
-    const configMaps = await kubernetes.getAllConfigMaps();
-    const secrets = await kubernetes.getAllSecrets();
-
-    const pvcNames = pvcs.map(pvc => pvc.volumes.map(volume => volume.persistentVolumeClaim && volume.persistentVolumeClaim.claimName));
-    const configMapNames = configMaps.map(configMap => configMap.volumes.map(volume => volume.configMap && volume.configMap.name));
-    const secretNames = secrets.map(secret => secret.volumes.map(volume => volume.secret && volume.secret.secretName));
+/**
+ * Fetches the names of all PersistentVolumeClaims (PVCs), ConfigMaps, and Secrets in the Kubernetes cluster.
+ *
+ * @async
+ * @function _getAllVolumes
+ * @returns {Promise<Object>} A promise that resolves to an object containing arrays of names for PVCs, ConfigMaps, and Secrets.
+ *
+ * @property {string[]} pvcs - An array of PersistentVolumeClaim names.
+ * @property {string[]} configMaps - An array of ConfigMap names.
+ * @property {string[]} secrets - An array of Secret names.
+ *
+ * @throws {Error} Throws an error if there is an issue while fetching the resources.
+ */
+const _getAllVolumeNames = async () => {
+    const pvcs = await kubernetes.getAllPVCNames();
+    const configMaps = await kubernetes.getAllConfigMapNames();
+    const secrets = await kubernetes.getAllSecretNames();
     
-    const volumes = { pvcs: pvcNames, configMaps: configMapNames, secrets: secretNames };
-    return volumes;
+    const volumesNames = { pvcs, configMaps, secrets };
+    return volumesNames;
 };
 
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
@@ -621,8 +630,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             createDetails, reconcileResult, toResume, scheduledRequests
         }
     );
-    const allVolumes = await _getAllVolumes();
-    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumes);
+    const allVolumesNames = await _getAllVolumeNames();
+    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumesNames);
     created.forEach((j) => {
         createdJobsList.push(j);
     });

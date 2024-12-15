@@ -26,63 +26,6 @@ class KubernetesApi {
         settings.sidecars = await this.getSidecarConfigs();
     }
 
-    /**
-     * Fetches all PersistentVolumeClaims (PVCs) in the Kubernetes cluster.
-     *
-     * @async
-     * @returns {Promise<Object>} A promise that resolves to the list of all PVCs.
-     * @throws {Error} Throws an error if there is an issue while fetching PVCs.
-     */
-    async getAllPVC() {
-        try {
-            // Fetch all PVCs by passing an empty string for the name, or leaving it undefined if the client accepts that.
-            const pvc = await this._client.pvc.all();
-            return pvc.body.items; // Return all PVCs
-        }
-        catch (error) {
-            log.error(`Error fetching PVCs: ${error.message}`, { component }, error);
-            throw new Error(`Failed to fetch PVCs: ${error.message}`);
-        }
-    }
-
-    /**
-     * Fetches all Secrets in the Kubernetes cluster.
-     *
-     * @async
-     * @returns {Promise<Object>} A promise that resolves to the list of all Secrets.
-     * @throws {Error} Throws an error if there is an issue while fetching Secrets.
-     */
-    async getAllSecrets() {
-        try {
-            // Fetch all Secrets by passing an empty string for the name
-            const secret = await this._client.secrets.get({ name: '' });
-            return secret.body.items; // Return all Secrets
-        }
-        catch (error) {
-            log.error(`Error fetching Secrets: ${error.message}`, { component }, error);
-            throw new Error(`Failed to fetch Secrets: ${error.message}`);
-        }
-    }
-
-    /**
-     * Fetches all ConfigMaps in the Kubernetes cluster.
-     *
-     * @async
-     * @returns {Promise<Object>} A promise that resolves to the list of all ConfigMaps.
-     * @throws {Error} Throws an error if there is an issue while fetching ConfigMaps.
-     */
-    async getAllConfigMaps() {
-        try {
-            // Fetch all ConfigMaps by passing an empty string for the name
-            const configMap = await this._client.configMaps.get({ name: '' });
-            return configMap.body.items; // Return all ConfigMaps
-        }
-        catch (error) {
-            log.error(`Error fetching ConfigMaps: ${error.message}`, { component }, error);
-            throw new Error(`Failed to fetch ConfigMaps: ${error.message}`);
-        }
-    }
-
     async createJob({ spec, jobDetails = {} }) {
         log.info(`Creating job ${spec.metadata.name}${jobDetails.hotWorker ? ' [hot-worker]' : ''}`, { component });
         try {
@@ -179,6 +122,64 @@ class KubernetesApi {
         }
         const [pods, nodes] = await Promise.all([this._client.pods.all(), this._client.nodes.all()]);
         return { pods, nodes };
+    }
+
+    /**
+     * Fetches the names of all PersistentVolumeClaims (PVCs) in the Kubernetes cluster.
+     *
+     * @async
+     * @function getAllPVCNames
+     * @returns {Promise<string[]>} A promise that resolves to an array of PVC names.
+     * @throws {Error} Throws an error if there is an issue while fetching PVCs.
+     */
+    async getAllPVCNames() {
+        try {
+            const pvc = await this._client.pvc.all();
+            const names = pvc.map(p => p.metadata.name);
+            return names;
+        }
+        catch (error) {
+            log.error(`Error fetching PVCs: ${error.message}`, { component }, error);
+            throw new Error(`Failed to fetch PVCs: ${error.message}`);
+        }
+    }
+
+    /**
+    * Fetches the names of all Secrets in the Kubernetes cluster.
+    *
+    * @async
+    * @returns {Promise<string[]>} A promise that resolves to an array of Secret names.
+    * @throws {Error} Throws an error if there is an issue while fetching Secrets.
+        */
+    async getAllSecretNames() {
+        try {
+            const secrets = await this._client.secrets.get({ name: '' });
+            const names = secrets.body.items.map(secret => secret.metadata.name);
+            return names;
+        }
+        catch (error) {
+            log.error(`Error fetching Secrets: ${error.message}`, { component }, error);
+            throw new Error(`Failed to fetch Secrets: ${error.message}`);
+        }
+    }
+
+    /**
+     * Fetches the names of all ConfigMaps in the Kubernetes cluster.
+     *
+     * @async
+     * @returns {Promise<string[]>} A promise that resolves to an array of ConfigMap names.
+     * @throws {Error} Throws an error if there is an issue while fetching ConfigMaps.
+     */
+    async getAllConfigMapNames() {
+        try {
+            const configMaps = await this._client.configMaps.get({ name: '' });
+            const names = configMaps.body.items.map(configMap => configMap.metadata.name);
+            return names;
+        }
+        catch (error) {
+            log.error(`Error fetching ConfigMaps: ${error.message}`, { component }, error);
+            throw new Error(`Failed to fetch ConfigMaps: ${error.message}`);
+        }
     }
 }
 
