@@ -135,7 +135,7 @@ class KubernetesApi {
     async getAllPVCNames() {
         try {
             const pvc = await this._client.pvc.all();
-            const names = pvc.map(p => p.metadata.name);
+            const names = pvc.body.items.map(p => p.metadata.name);
             return names;
         }
         catch (error) {
