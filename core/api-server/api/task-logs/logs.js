@@ -54,6 +54,15 @@ class Logs {
         throw new Error(`Unknown log source ${source}`);
     }
 
+    /**
+     * Fetches logs for a specified task or pod, including logs from sidecar containers if applicable.
+     *
+     * @async
+     * @returns {Promise<Object>} A promise that resolves to an object containing:
+     * - `logs`: An array of log entries with timestamps, levels, and messages.
+     * - `podStatus`: The status of the pod (e.g., `NORMAL`, `ERROR`, `NOT_EXIST`, etc.).
+     * @throws {Error} Throws an error if logs cannot be fetched from the specified source.
+     */
     async getLogs({
         taskId,
         podName,
@@ -149,6 +158,20 @@ class Logs {
         return logsData;
     }
 
+    /**
+     * Checks the state of a container and determines its status.
+     *
+     * @param {Object} container - The container object to check.
+     * @param {Object} container.state - The state of the container, containing `terminated` and `waiting` properties.
+     * @param {Object} [container.state.terminated] - The terminated state of the container, if it exists.
+     * @param {string} [container.state.terminated.reason] - The reason for the termination, if available.
+     * @param {Object} [container.state.waiting] - The waiting state of the container, if it exists.
+     * @param {string} [container.state.waiting.reason] - The reason for the waiting state, if available.
+     * @returns {string|null} Returns the status of the container:
+     * - `podStatus.ERROR` if the container terminated with an error.
+     * - `podStatus.NO_IMAGE` if the container is waiting due to an `ImagePullBackOff`.
+     * - `null` if no relevant status is found.
+     */
     _checkContainerState(container) {
         const { terminated, waiting } = container.state || {};
         if (terminated?.reason === 'Error') {

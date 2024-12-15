@@ -533,6 +533,20 @@ const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
     });
     return filtered;
 };
+
+const _getAllVolumes = async () => {
+    const pvcs = await kubernetes.getAllPVC();
+    const configMaps = await kubernetes.getAllConfigMaps();
+    const secrets = await kubernetes.getAllSecrets();
+
+    const pvcNames = pvcs.map(pvc => pvc.volumes.map(volume => volume.persistentVolumeClaim && volume.persistentVolumeClaim.claimName));
+    const configMapNames = configMaps.map(configMap => configMap.volumes.map(volume => volume.configMap && volume.configMap.name));
+    const secretNames = secrets.map(secret => secret.volumes.map(volume => volume.secret && volume.secret.secretName));
+    
+    const volumes = { pvcs: pvcNames, configMaps: configMapNames, secrets: secretNames };
+    return volumes;
+};
+
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     // update the cache of jobs lately created by removing old jobs
     _clearCreatedJobsList(null, options);
@@ -607,7 +621,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             createDetails, reconcileResult, toResume, scheduledRequests
         }
     );
-    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests);
+    const allVolumes = await _getAllVolumes();
+    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumes);
     created.forEach((j) => {
         createdJobsList.push(j);
     });

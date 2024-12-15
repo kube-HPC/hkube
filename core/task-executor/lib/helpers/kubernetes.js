@@ -23,8 +23,64 @@ class KubernetesApi {
             this.getResourcesPerNode = cacheResults(this.getResourcesPerNode.bind(this), 1000);
             this.getWorkerJobs = cacheResults(this.getWorkerJobs.bind(this), 1000);
         }
-
         settings.sidecars = await this.getSidecarConfigs();
+    }
+
+    /**
+     * Fetches all PersistentVolumeClaims (PVCs) in the Kubernetes cluster.
+     *
+     * @async
+     * @returns {Promise<Object>} A promise that resolves to the list of all PVCs.
+     * @throws {Error} Throws an error if there is an issue while fetching PVCs.
+     */
+    async getAllPVC() {
+        try {
+            // Fetch all PVCs by passing an empty string for the name, or leaving it undefined if the client accepts that.
+            const pvc = await this._client.pvc.get({ name: '' });
+            return pvc.body.items; // Return all PVCs
+        }
+        catch (error) {
+            log.error(`Error fetching PVCs: ${error.message}`, { component }, error);
+            throw new Error(`Failed to fetch PVCs: ${error.message}`);
+        }
+    }
+
+    /**
+     * Fetches all Secrets in the Kubernetes cluster.
+     *
+     * @async
+     * @returns {Promise<Object>} A promise that resolves to the list of all Secrets.
+     * @throws {Error} Throws an error if there is an issue while fetching Secrets.
+     */
+    async getAllSecrets() {
+        try {
+            // Fetch all Secrets by passing an empty string for the name
+            const secret = await this._client.secrets.get({ name: '' });
+            return secret.body.items; // Return all Secrets
+        }
+        catch (error) {
+            log.error(`Error fetching Secrets: ${error.message}`, { component }, error);
+            throw new Error(`Failed to fetch Secrets: ${error.message}`);
+        }
+    }
+
+    /**
+     * Fetches all ConfigMaps in the Kubernetes cluster.
+     *
+     * @async
+     * @returns {Promise<Object>} A promise that resolves to the list of all ConfigMaps.
+     * @throws {Error} Throws an error if there is an issue while fetching ConfigMaps.
+     */
+    async getAllConfigMaps() {
+        try {
+            // Fetch all ConfigMaps by passing an empty string for the name
+            const configMap = await this._client.configMaps.get({ name: '' });
+            return configMap.body.items; // Return all ConfigMaps
+        }
+        catch (error) {
+            log.error(`Error fetching ConfigMaps: ${error.message}`, { component }, error);
+            throw new Error(`Failed to fetch ConfigMaps: ${error.message}`);
+        }
     }
 
     async createJob({ spec, jobDetails = {} }) {

@@ -154,7 +154,45 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
     return warning;
 };
 
-const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
+/**
+ * Checks the availability of volumes in sidecar containers.
+ * 
+ * This method checks whether each volume (PVC, ConfigMap, or Secret) in the sidecar containers exists based on the provided list of all available volumes.
+ * It returns an array of names of volumes that do not exist.
+ * 
+ * @param {Array<Object>} sideCars - An array of sidecar containers.
+ * Each sidecar object must contain a `volume` field, which can have `persistentVolumeClaim`, `configMap`, or `secret` properties.
+ * @param {Object} allVolumes - An object containing all available PVCs, ConfigMaps, and Secrets with their names.
+ * @returns {Array<string>} An array of names of missing volumes. If all volumes exist, the array will be empty.
+ */
+const _getMissingSideCarVolumes = (sideCars, allVolumes) => {
+    if (!sideCars || sideCars.length === 0) return [];
+    const missingVolumes = [];
+    sideCars.forEach(sideCar => {
+        const { volume } = sideCar;
+        if (volume.persistentVolumeClaim) {
+            const name = volume.persistentVolumeClaim.claimName;
+            if (!allVolumes.pvcs.find(pvcName => pvcName === name)) {
+                missingVolumes.push(name);
+            }
+        }
+        if (volume.configMap) {
+            const { name } = volume.configMap;
+            if (!allVolumes.configMaps.find(configMapName => configMapName === name)) {
+                missingVolumes.push(name);
+            }
+        }
+        if (volume.secret) {
+            const name = volume.secret.secretName;
+            if (!allVolumes.secrets.find(secretName => secretName === name)) {
+                missingVolumes.push(name);
+            }
+        }
+    });
+    return missingVolumes;
+};
+
+const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) => {
     if (totalAdded >= MAX_JOBS_PER_TICK) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
@@ -170,6 +208,24 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
         const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
         const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesBySelector.length);
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
+    }
+
+    const missingSideCarVolumes = _getMissingSideCarVolumes(jobDetails.sideCars, allVolumes);
+    if (missingSideCarVolumes.length > 0) {
+        const warning = {
+            type: 'warning',
+            reason: 'failedScheduling',
+            message: `One or more sidecar volumes are missing or do not exist: ${missingSideCarVolumes.join(', ')}`,
+            timestamp: Date.now(),
+            requestedResources: jobDetails.resourceRequests.requests,
+            sidecarVolumes: missingSideCarVolumes
+        };
+
+        return {
+            shouldAdd: false,
+            warning,
+            newResources: { ...availableResources }
+        };
     }
 
     const nodeForSchedule = availableNode.node;
@@ -302,7 +358,7 @@ const pauseAccordingToResources = (stopDetails, availableResources, skippedReque
     return { toStop };
 };
 
-const matchJobsToResources = (createDetails, availableResources, scheduledRequests = []) => {
+const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], allVolumes) => {
     const created = [];
     const skipped = [];
     const localDetails = clone(createDetails);
@@ -311,7 +367,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
     // loop over all the job types one by one and assign until it can't fit in any node
     const cb = (j) => {
         if (j.numberOfNewJobs > 0) {
-            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded);
+            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, allVolumes);
             if (shouldAdd) {
                 const toCreate = { ...j.jobDetails, createdTime: Date.now(), node };
                 created.push(toCreate);
