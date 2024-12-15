@@ -36,7 +36,7 @@ class KubernetesApi {
     async getAllPVC() {
         try {
             // Fetch all PVCs by passing an empty string for the name, or leaving it undefined if the client accepts that.
-            const pvc = await this._client.pvc.get({ name: '' });
+            const pvc = await this._client.pvc.all();
             return pvc.body.items; // Return all PVCs
         }
         catch (error) {
