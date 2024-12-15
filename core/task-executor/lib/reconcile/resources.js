@@ -224,7 +224,7 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) =>
             algorithmName: jobDetails.algorithmName,
             type: 'warning',
             reason: 'failedScheduling',
-            message: `One or more sidecar volumes are missing or do not exist: ${missingSideCarVolumes.join(', ')}`,
+            message: `One or more sideCar volumes are missing or do not exist\nMissing volumes: ${missingSideCarVolumes.join(', ')}`,
             timestamp: Date.now(),
             // requestedResources: jobDetails.resourceRequests.requests,
             sidecarVolumes: missingSideCarVolumes,
