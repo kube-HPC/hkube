@@ -215,6 +215,7 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) =>
     const missingSideCarVolumes = _getMissingSideCarVolumes(jobDetails.sideCars, allVolumes);
     if (missingSideCarVolumes.length > 0) {
         const warning = {
+            algorithmName: jobDetails.algorithmName,
             type: 'warning',
             reason: 'failedScheduling',
             message: `One or more sidecar volumes are missing or do not exist: ${missingSideCarVolumes.join(', ')}`,
