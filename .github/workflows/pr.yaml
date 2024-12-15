@@ -48,7 +48,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "v3.11"
+          python-version: "v3.10"
           architecture: x64
           run: |
             `pip install --upgrade wheel
