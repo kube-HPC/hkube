@@ -2,6 +2,11 @@ const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
 const { consts, gpuVendors } = require('../consts');
 const { lessWithTolerance } = require('../helpers/compare');
+// const { warningCodes } = require('@hkube/consts');
+const warningCodes = {
+    INVALID_VOLUME: 1001, // Invalid or missing volume
+    RESOURCES: 1002, // Insufficient resources (CPU, memory, etc.)
+};
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
 
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, useResourcePressure = true) => {
@@ -149,7 +154,8 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, 
         message: messages.join(', '),
         timestamp: Date.now(),
         complexResourceDescriptor,
-        requestedResources: jobDetails.resourceRequests.requests
+        requestedResources: jobDetails.resourceRequests.requests,
+        code: warningCodes.RESOURCES
     };
     return warning;
 };
@@ -220,8 +226,9 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) =>
             reason: 'failedScheduling',
             message: `One or more sidecar volumes are missing or do not exist: ${missingSideCarVolumes.join(', ')}`,
             timestamp: Date.now(),
-            requestedResources: jobDetails.resourceRequests.requests,
-            sidecarVolumes: missingSideCarVolumes
+            // requestedResources: jobDetails.resourceRequests.requests,
+            sidecarVolumes: missingSideCarVolumes,
+            code: warningCodes.INVALID_VOLUME
         };
 
         return {
