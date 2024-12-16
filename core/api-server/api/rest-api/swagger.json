@@ -6771,11 +6771,7 @@
                               "format": "memory",
                               "example": "256Mi"
                             }
-                          },
-                          "required": [
-                            "cpu",
-                            "memory"
-                          ]
+                          }
                         },
                         "limits": {
                           "type": "object",
@@ -6793,11 +6789,7 @@
                               "format": "memory",
                               "example": "512Mi"
                             }
-                          },
-                          "required": [
-                            "cpu",
-                            "memory"
-                          ]
+                          }
                         }
                       },
                       "required": [
@@ -7323,11 +7315,7 @@
                                 "format": "memory",
                                 "example": "256Mi"
                               }
-                            },
-                            "required": [
-                              "cpu",
-                              "memory"
-                            ]
+                            }
                           },
                           "limits": {
                             "type": "object",
@@ -7345,11 +7333,7 @@
                                 "format": "memory",
                                 "example": "512Mi"
                               }
-                            },
-                            "required": [
-                              "cpu",
-                              "memory"
-                            ]
+                            }
                           }
                         },
                         "required": [
@@ -7681,11 +7665,7 @@
                                 "format": "memory",
                                 "example": "256Mi"
                               }
-                            },
-                            "required": [
-                              "cpu",
-                              "memory"
-                            ]
+                            }
                           },
                           "limits": {
                             "type": "object",
@@ -7703,11 +7683,7 @@
                                 "format": "memory",
                                 "example": "512Mi"
                               }
-                            },
-                            "required": [
-                              "cpu",
-                              "memory"
-                            ]
+                            }
                           }
                         },
                         "required": [
@@ -8034,11 +8010,7 @@
                             "format": "memory",
                             "example": "256Mi"
                           }
-                        },
-                        "required": [
-                          "cpu",
-                          "memory"
-                        ]
+                        }
                       },
                       "limits": {
                         "type": "object",
@@ -8056,11 +8028,7 @@
                             "format": "memory",
                             "example": "512Mi"
                           }
-                        },
-                        "required": [
-                          "cpu",
-                          "memory"
-                        ]
+                        }
                       }
                     },
                     "required": [
@@ -8443,11 +8411,7 @@
                             "format": "memory",
                             "example": "256Mi"
                           }
-                        },
-                        "required": [
-                          "cpu",
-                          "memory"
-                        ]
+                        }
                       },
                       "limits": {
                         "type": "object",
@@ -8465,11 +8429,7 @@
                             "format": "memory",
                             "example": "512Mi"
                           }
-                        },
-                        "required": [
-                          "cpu",
-                          "memory"
-                        ]
+                        }
                       }
                     },
                     "required": [
@@ -8827,11 +8787,7 @@
                                 "format": "memory",
                                 "example": "256Mi"
                               }
-                            },
-                            "required": [
-                              "cpu",
-                              "memory"
-                            ]
+                            }
                           },
                           "limits": {
                             "type": "object",
@@ -8849,11 +8805,7 @@
                                 "format": "memory",
                                 "example": "512Mi"
                               }
-                            },
-                            "required": [
-                              "cpu",
-                              "memory"
-                            ]
+                            }
                           }
                         },
                         "required": [
@@ -9175,11 +9127,7 @@
                                   "format": "memory",
                                   "example": "256Mi"
                                 }
-                              },
-                              "required": [
-                                "cpu",
-                                "memory"
-                              ]
+                              }
                             },
                             "limits": {
                               "type": "object",
@@ -9197,11 +9145,7 @@
                                   "format": "memory",
                                   "example": "512Mi"
                                 }
-                              },
-                              "required": [
-                                "cpu",
-                                "memory"
-                              ]
+                              }
                             }
                           },
                           "required": [
@@ -16657,11 +16601,7 @@
                                 "format": "memory",
                                 "example": "256Mi"
                               }
-                            },
-                            "required": [
-                              "cpu",
-                              "memory"
-                            ]
+                            }
                           },
                           "limits": {
                             "type": "object",
@@ -16679,11 +16619,7 @@
                                 "format": "memory",
                                 "example": "512Mi"
                               }
-                            },
-                            "required": [
-                              "cpu",
-                              "memory"
-                            ]
+                            }
                           }
                         },
                         "required": [
@@ -17068,11 +17004,7 @@
                                 "format": "memory",
                                 "example": "256Mi"
                               }
-                            },
-                            "required": [
-                              "cpu",
-                              "memory"
-                            ]
+                            }
                           },
                           "limits": {
                             "type": "object",
@@ -17090,11 +17022,7 @@
                                 "format": "memory",
                                 "example": "512Mi"
                               }
-                            },
-                            "required": [
-                              "cpu",
-                              "memory"
-                            ]
+                            }
                           }
                         },
                         "required": [
@@ -21590,11 +21518,7 @@
                     "format": "memory",
                     "example": "256Mi"
                   }
-                },
-                "required": [
-                  "cpu",
-                  "memory"
-                ]
+                }
               },
               "limits": {
                 "type": "object",
@@ -21612,11 +21536,7 @@
                     "format": "memory",
                     "example": "512Mi"
                   }
-                },
-                "required": [
-                  "cpu",
-                  "memory"
-                ]
+                }
               }
             },
             "required": [
@@ -22088,11 +22008,7 @@
                         "format": "memory",
                         "example": "256Mi"
                       }
-                    },
-                    "required": [
-                      "cpu",
-                      "memory"
-                    ]
+                    }
                   },
                   "limits": {
                     "type": "object",
@@ -22110,11 +22026,7 @@
                         "format": "memory",
                         "example": "512Mi"
                       }
-                    },
-                    "required": [
-                      "cpu",
-                      "memory"
-                    ]
+                    }
                   }
                 },
                 "required": [

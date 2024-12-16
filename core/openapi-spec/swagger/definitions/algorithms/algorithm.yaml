@@ -41,9 +41,6 @@ properties:
             description: Memory request for the worker
             format: memory
             example: "256Mi"
-        required:
-          - cpu
-          - memory
       limits:
         type: object
         description: Resource limits for the worker
@@ -58,9 +55,6 @@ properties:
             description: Memory limit for the worker
             format: memory
             example: "512Mi"
-        required:
-          - cpu
-          - memory
     required:
       - limits
       - requests
