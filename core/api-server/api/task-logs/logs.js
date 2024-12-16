@@ -96,16 +96,16 @@ class Logs {
                     sideCars = status.containerStatuses.filter(x => (x.name !== containers.algorunner && x.name !== containers.worker));
 
                     const errorFound = sideCars.some(container => {
-                        const retStatus = this._checkContainerState(container, podStatus);
+                        const retStatus = this._checkContainerState(container, true);
                         if (retStatus) {
                             logsData.podStatus = retStatus;
-                            return retStatus === podStatus.ERROR;
+                            return retStatus === podStatus.ALGORUNNER.ERROR;
                         }
                         return false;
                     });
 
                     if (!errorFound && currentAlgorunner) {
-                        const retStatus = this._checkContainerState(currentAlgorunner);
+                        const retStatus = this._checkContainerState(currentAlgorunner, false);
                         if (retStatus) {
                             logsData.podStatus = retStatus;
                         }
@@ -167,18 +167,21 @@ class Logs {
      * @param {string} [container.state.terminated.reason] - The reason for the termination, if available.
      * @param {Object} [container.state.waiting] - The waiting state of the container, if it exists.
      * @param {string} [container.state.waiting.reason] - The reason for the waiting state, if available.
+     * @param {boolean} isSideCar - A flag indicating whether the container is a sidecar (`true`) or an algorunner (`false`).
      * @returns {string|null} Returns the status of the container:
-     * - `podStatus.ERROR` if the container terminated with an error.
-     * - `podStatus.NO_IMAGE` if the container is waiting due to an `ImagePullBackOff`.
+     * - `podStatus.SIDECAR_ERROR` if the sidecar container terminated with an error.
+     * - `podStatus.ALGORUNNER_ERROR` if the algorunner container terminated with an error.
+     * - `podStatus.SIDECAR_NO_IMAGE` if the sidecar container is waiting due to an `ImagePullBackOff`.
+     * - `podStatus.ALGORUNNER_NO_IMAGE` if the algorunner container is waiting due to an `ImagePullBackOff`.
      * - `null` if no relevant status is found.
      */
-    _checkContainerState(container) {
+    _checkContainerState(container, isSideCar) {
         const { terminated, waiting } = container.state || {};
         if (terminated?.reason === 'Error') {
-            return podStatus.ERROR;
+            return isSideCar ? podStatus.SIDECAR_ERROR : podStatus.ALGORUNNER_ERROR;
         }
         if (waiting?.reason === 'ImagePullBackOff') {
-            return podStatus.NO_IMAGE;
+            return isSideCar ? podStatus.SIDECAR_NO_IMAGE : podStatus.ALGORUNNER_NO_IMAGE;
         }
         return null;
     }
