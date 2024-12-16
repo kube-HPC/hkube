@@ -1,11 +1,7 @@
 /* eslint-disable prefer-const */
 const { parser } = require('@hkube/parsers');
 const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
-// const { warningCodes } = require('@hkube/consts');
-const warningCodes = {
-    INVALID_VOLUME: 1001, // Invalid or missing volume
-    RESOURCES: 1002, // Insufficient resources (CPU, memory, etc.)
-};
+const { warningCodes } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
 const log = logger.GetLogFromContainer();

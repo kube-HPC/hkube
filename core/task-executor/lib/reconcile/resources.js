@@ -1,12 +1,8 @@
 const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
+const { warningCodes } = require('@hkube/consts');
 const { consts, gpuVendors } = require('../consts');
 const { lessWithTolerance } = require('../helpers/compare');
-// const { warningCodes } = require('@hkube/consts');
-const warningCodes = {
-    INVALID_VOLUME: 1001, // Invalid or missing volume
-    RESOURCES: 1002, // Insufficient resources (CPU, memory, etc.)
-};
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
 
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, useResourcePressure = true) => {
