@@ -326,13 +326,11 @@ const applyAnnotations = (spec, keyVal) => {
 const applySidecar = ({ container: sideCarContiners, volumes, volumeMounts, environments }, spec) => {
     spec.spec.template.spec.containers.push(...sideCarContiners);
     if (volumes) {
-        // eslint-disable-next-line no-loop-func
         volumes.forEach(v => {
             spec = applyVolumes(spec, v);
         });
     }
     if (volumeMounts) {
-        // eslint-disable-next-line no-loop-func
         volumeMounts.forEach(v => {
             sideCarContiners.forEach(container => {
                 spec = applyVolumeMounts(spec, container.name, v);
@@ -340,7 +338,6 @@ const applySidecar = ({ container: sideCarContiners, volumes, volumeMounts, envi
         });
     }
     if (environments) {
-        // eslint-disable-next-line no-loop-func
         environments.forEach(v => {
             sideCarContiners.forEach(container => {
                 spec = applyEnvToContainer(spec, container.name, { [v.name]: v.value });

@@ -252,6 +252,7 @@ class Worker {
             if (this._shouldCheckPodStatus) {
                 setTimeout(() => this._checkPodStatus(), this._options.checkAlgorithmStatusInterval);
             }
+            else this._doTheBootstrap();
         }
     }
 
