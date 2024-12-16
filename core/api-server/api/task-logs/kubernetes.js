@@ -49,7 +49,6 @@ class KubernetesLogs {
     /**
      * Retrieves logs from a specific container or pod in a Kubernetes cluster.
      * Return value - if containerName is provided, logs are taken from a sidecar container, which has no special structure.
-     * In this case, we return the logs as array of lines. Otherwise, logs are taken from the worker container.
      */
     async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip, containerName }) {
         let tailLines;
