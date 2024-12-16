@@ -291,7 +291,7 @@ class Worker {
         const containerStatus = await kubernetes.getPodContainerStatus(this._podName, name || ALGORITHM_CONTAINER) || {};
         const { status, reason, message } = containerStatus;
         if (status === CONTAINER_STATUS.RUNNING) {
-            log.info(`${containerKind} ${name || ''} status is ${status}`, { component });
+            log.info(`${containerKind} ${name ? `${name} ` : ''}status is ${status}`, { component });
             if (containerKind === ALGORITHM_CONTAINER) {
                 this._shouldCheckAlgorithmStatus = false;
             }
