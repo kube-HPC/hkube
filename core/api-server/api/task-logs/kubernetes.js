@@ -46,6 +46,11 @@ class KubernetesLogs {
         }
     }
 
+    /**
+     * Retrieves logs from a specific container or pod in a Kubernetes cluster.
+     * Return value - if containerName is provided, logs are taken from a sidecar container, which has no special structure.
+     * In this case, we return the logs as array of lines. Otherwise, logs are taken from the worker container.
+     */
     async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip, containerName }) {
         let tailLines;
         if (sort === sortOrder.desc) {
@@ -55,7 +60,7 @@ class KubernetesLogs {
         const resolvedContainerName = containerName || this.getContainerName(nodeKind);
         const logsData = await this._client.logs.get({ podName, tailLines, containerName: resolvedContainerName });
 
-        return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip });
+        return containerName ? logsData.body.split('\n') : this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip });
     }
 
     _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip }) {
