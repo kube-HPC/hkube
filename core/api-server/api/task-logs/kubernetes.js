@@ -60,17 +60,17 @@ class KubernetesLogs {
         const resolvedContainerName = containerName || this.getContainerName(nodeKind);
         const logsData = await this._client.logs.get({ podName, tailLines, containerName: resolvedContainerName });
 
-        return containerName ? logsData.body.split('\n') : this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip });
+        return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip, containerName });
     }
 
-    _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip }) {
+    _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip, containerName }) {
         let logs = [];
         const logList = logsData.body.split('\n');
-        logList.forEach((l) => {
-            if (!l) {
+        logList.forEach((line) => {
+            if (!line) {
                 return;
             }
-            const logData = this._formatMethod(l, taskId, nodeKind);
+            const logData = containerName ? this._formatSideCarLog(line, containerName) : this._formatMethod(line, taskId, nodeKind);
             const valid = this._filter(logData, logMode);
             if (valid) {
                 logs.push(logData);
@@ -81,6 +81,14 @@ class KubernetesLogs {
             logs = logs.slice(skip, pageNumber * limit);
         }
         return logs;
+    }
+
+    _formatSideCarLog(line, containerName) {
+        return {
+            timestamp: Date.now(),
+            message: `K8S (Sidecar: ${containerName}): ${line}`,
+            level: 'info'
+        };
     }
 
     _filter(line, logMode) {

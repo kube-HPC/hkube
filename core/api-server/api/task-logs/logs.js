@@ -202,12 +202,7 @@ class Logs {
         const logPromises = containerNames.map(async (containerName) => {
             const currArgs = { ...args, containerName };
             try {
-                let currLogs = await logSource.getLogs(currArgs);
-                currLogs = currLogs.map(logLine => {
-                    const formattedLog = this._format(logLine);
-                    formattedLog.message = `K8S (Sidecar: ${containerName}): ${formattedLog.message}`;
-                    return formattedLog;
-                });
+                const currLogs = await logSource.getLogs(currArgs);
                 return currLogs;
             }
             catch (error) {
