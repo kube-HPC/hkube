@@ -233,7 +233,6 @@ class Worker {
      * @returns {Promise<void>} A promise that resolves when all container statuses have been processed.
      */
     async _checkPodStatus() {
-        log.info('entered _checkPodStatus', { component });
         if (!this._podName) return;
         try {
             await this._processContainerStatus();
@@ -247,14 +246,12 @@ class Worker {
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
-            log.info(`WORKER LOGGING: message: ${e.message}`, { component });
         }
         finally {
             this._shouldCheckPodStatus = (this._shouldCheckAlgorithmStatus || this._shouldCheckSideCarStatus.some(value => value));
             if (this._shouldCheckPodStatus) {
                 setTimeout(() => this._checkPodStatus(), this._options.checkAlgorithmStatusInterval);
             }
-            log.info('exited _checkPodStatus', { component });
         }
     }
 
@@ -268,7 +265,6 @@ class Worker {
      * @returns {Promise<Array<string>>} A promise that resolves to an array of sidecar container names.
      */
     async _fetchAndInitializeSideCarStatus() {
-        log.info('entered _fetchAndInitializeSideCarStatus', { component });
         const sideCars = (await kubernetes.getContainerNamesForPod(this._podName))
             .filter(name => name !== ALGORITHM_CONTAINER && name !== WORKER_CONTAINER);
         const { length } = sideCars;
@@ -276,7 +272,6 @@ class Worker {
             this._shouldCheckSideCarStatus = new Array(length).fill(true);
             this._sidecarStatusFailAttempts = new Array(length).fill(0);
         }
-        log.info(`exited _fetchAndInitializeSideCarStatus with sidecar count: ${length}`, { component });
         return sideCars;
     }
 
@@ -291,7 +286,6 @@ class Worker {
      * @returns {Promise<void>} A promise that resolves when the container's status is processed
      */
     async _processContainerStatus(name, index) {
-        log.info('entered _processContainerStatus', { component });
         const containerKind = name ? 'sidecar' : ALGORITHM_CONTAINER;
         log.info(`trying to check the status of ${containerKind} container ${name || ''}`, { component });
         const containerStatus = await kubernetes.getPodContainerStatus(this._podName, name || ALGORITHM_CONTAINER) || {};
@@ -308,7 +302,6 @@ class Worker {
         else if (reason) {
             await this._handleContainerFailure(index, reason, message, name || ALGORITHM_CONTAINER);
         }
-        log.info('exited _processContainerStatus', { component });
     }
 
     /**
@@ -323,7 +316,6 @@ class Worker {
      * @returns {Promise<void>} A promise that resolves when the failure is handled
      */
     async _handleContainerFailure(index, reason, message, name) {
-        log.info('Enter _handleContainerFailure', { component });
         const containerMessage = kubernetes.formatContainerMessage(reason);
 
         if (containerMessage.isImagePullErr) {
@@ -336,7 +328,6 @@ class Worker {
                 this._algorunnerStatusFailAttempts += 1;
                 failAttemps = this._algorunnerStatusFailAttempts;
             }
-            log.info(`WORKER LOGGING: message: ${message}, failAttempts: ${failAttemps}, containerName: ${name}`, { component });
             if (failAttemps > 3) {
                 const options = {
                     error: {
@@ -347,13 +338,11 @@ class Worker {
                 log.error(options.error.message, { component });
                 log.error(options.error.message, { component: Components.ALGORUNNER });
                 // log.error(options.error.message, { component: name || Components.ALGORUNNER });
-                log.info('WORKER LOGGING: Ending Job due to too many image pull failures', { component });
                 await this._endJob(options);
                 this._shouldCheckAlgorithmStatus = false;
                 this._shouldCheckSideCarStatus.fill(false);
             }
         }
-        log.info('Exit _handleContainerFailure', { component });
     }
 
     _registerToConnectionEvents() {

@@ -27,14 +27,12 @@ class LoggingProxy {
         }
 
         this._algorunnerLogFilePath = path.join(baseLogsPath, algorunnerLogFileName);
-        log.info(`LOGGING PROXY CHECK: baseLogsPath: ${baseLogsPath}, algorunnerLogFileName: ${algorunnerLogFileName}`, { component }); // ADIR LOG DELETE
         log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component });
         this._startWatch = this._startWatch.bind(this);
         this._startWatch();
     }
 
     _createLogPath({ algorunnerLogFileName, baseLogsPath, disable, podId, podName }) {
-        log.info(`LOGGING PROXY CHECK: algorunnerLogging: ${algorunnerLogFileName}, podId: ${podId}, podName: ${podName}`, { component }); // ADIR LOG DELETE
         if (disable) {
             return { disable };
         }
