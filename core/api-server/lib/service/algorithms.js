@@ -264,6 +264,13 @@ class AlgorithmStore {
         if (oldAlgorithm && oldAlgorithm.type !== newAlgorithm.type) {
             throw new InvalidDataError(`algorithm type cannot be changed from "${oldAlgorithm.type}" to "${newAlgorithm.type}"`);
         }
+        if (newAlgorithm.workerCustomResources) {
+            const errorOutput = this._validateWorkerCustomResources(newAlgorithm.workerCustomResources);
+            if (errorOutput.length > 0) {
+                throw new InvalidDataError(`algorithm has invalid workerCustomResources: ${errorOutput.join(', ')}`);
+            }
+        }
+
         await this._validateAlgorithm(newAlgorithm);
         const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
         const buildId = await buildsService.tryToCreateBuild(oldAlgorithm, newAlgorithm, file, forceBuild, messages, messagesCode);
@@ -323,6 +330,17 @@ class AlgorithmStore {
     async _validateAlgorithm(newAlgorithm) {
         validator.algorithms.addAlgorithmDefaults(newAlgorithm);
         await validator.algorithms.validateAlgorithmResources(newAlgorithm);
+    }
+
+    _validateWorkerCustomResources(resources) {
+        const errors = [];
+        if ((resources.requests?.memory && !resources.limits?.memory) || (resources.limits?.memory && !resources.requests?.memory)) {
+            errors.push('If requests.memory is defined, limits.memory must also be defined, and vice versa');
+        }
+        if ((resources.requests?.cpu && !resources.limits?.cpu) || (resources.limits?.cpu && !resources.requests?.cpu)) {
+            errors.push('If requests.cpu is defined, limits.cpu must also be defined, and vice versa');
+        }
+        return errors;
     }
 
     _mergeAlgorithm(oldAlgorithm, payload) {
