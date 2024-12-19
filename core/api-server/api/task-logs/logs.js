@@ -95,7 +95,7 @@ class Logs {
                 if (status && status.containerStatuses && status.containerStatuses.length > 0) {
                     const currentAlgorunner = status.containerStatuses.find(x => x.name === containers.algorunner);
                     sideCars = status.containerStatuses.filter(x => (x.name !== containers.algorunner && x.name !== containers.worker));
-                    if (sideCars.length > 0) {
+                    if (sideCars.length > 0 && this._sideCarLogsSkip === undefined) {
                         this._sideCarLogsSkip = new Array(sideCars.length).fill(0);
                     }
 
