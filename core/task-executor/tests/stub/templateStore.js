@@ -100,5 +100,33 @@ module.exports = [
         nodeSelector: {
             "kubernetes.io/hostname": ["node1", "node2", "node4"]
         }
+    },
+    {
+        name: 'worker-custom-resources-alg',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            limits: {
+                cpu: 0.2,
+                memory: "512Mi"
+            },
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        }
+    },
+    {
+        name: 'worker-custom-resources-nolimit-alg',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        }
     }
 ];

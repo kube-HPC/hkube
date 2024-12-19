@@ -617,6 +617,113 @@ describe('Store/Algorithms', () => {
             expect(response.body).to.be.an('array');
             expect(response.body).to.have.lengthOf(0);
         });
+        it('should throw invalid of workerCustomResources for limits cpu missing', async () => {
+            const body = {
+                name: uuid(),
+                algorithmImage: 'image',
+                workerCustomResources: {
+                    requests: { cpu: '0.1', memory: '200Mi' },
+                    limits: { memory: '300Mi' }
+                }
+            };
+            const options = {
+                uri: restPath,
+                body
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: limits.cpu must be defined');
+        });
+        it('should throw invalid of workerCustomResources for requests cpu missing', async () => {
+            const body = {
+                name: uuid(),
+                algorithmImage: 'image',
+                workerCustomResources: {
+                    requests: {  memory: '200Mi' },
+                    limits: {cpu: '0.1',memory: '300Mi' }
+                }
+            };
+            const options = {
+                uri: restPath,
+                body
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.cpu must be defined');
+        });
+        it('should throw invalid of workerCustomResources for requests memory missing', async () => {
+            const body = {
+                name: uuid(),
+                algorithmImage: 'image',
+                workerCustomResources: {
+                    requests: {  cpu: '0.1' },
+                    limits: {cpu: '0.1',memory: '300Mi' }
+                }
+            };
+            const options = {
+                uri: restPath,
+                body
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.memory must be defined');
+        });
+        it('should throw invalid of workerCustomResources for limits memory missing', async () => {
+            const body = {
+                name: uuid(),
+                algorithmImage: 'image',
+                workerCustomResources: {
+                    requests: {  cpu: '0.1',memory: '300Mi' },
+                    limits: {cpu: '0.2' }
+                }
+            };
+            const options = {
+                uri: restPath,
+                body
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: limits.memory must be defined');
+        });
+        it('should throw invalid of workerCustomResources for both cpu and memory', async () => {
+            const body = {
+                name: uuid(),
+                algorithmImage: 'image',
+                workerCustomResources: {
+                    requests: {  },
+                    limits: { cpu: '0.1', memory: '300Mi' }
+                }
+            };
+            const options = {
+                uri: restPath,
+                body
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.memory must be defined, requests.cpu must be defined');
+        });
+        it('should succeed with workerCustomResources for both cpu and memory', async () => {
+            const body = {
+                name: uuid(),
+                algorithmImage: 'image',
+                workerCustomResources: {
+                    requests: { cpu: '0.1', memory: '300Mi'  },
+                    limits: { cpu: '0.2', memory: '400Mi' }
+                }
+            };
+            const options = {
+                uri: restPath,
+                body
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+            expect(response.body.workerCustomResources.limits.memory).to.to.equal('400Mi');
+        });
     });
     describe('/store/algorithms/apply POST', () => {
         describe('Validation', () => {
