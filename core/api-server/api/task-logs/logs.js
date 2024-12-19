@@ -11,7 +11,7 @@ class Logs {
         this._sources = new Map();
         this._sources.set(sources.k8s, kubernetes);
         this._sources.set(sources.es, elasticSearch);
-        this._sideCarLogsSkip = undefined;
+        this._sideCarLogs = undefined;
     }
 
     async init(options) {
@@ -95,8 +95,8 @@ class Logs {
                 if (status && status.containerStatuses && status.containerStatuses.length > 0) {
                     const currentAlgorunner = status.containerStatuses.find(x => x.name === containers.algorunner);
                     sideCars = status.containerStatuses.filter(x => (x.name !== containers.algorunner && x.name !== containers.worker));
-                    if (sideCars.length > 0 && this._sideCarLogsSkip === undefined) {
-                        this._sideCarLogsSkip = new Array(sideCars.length).fill(0);
+                    if (sideCars.length > 0 && this._sideCarLogs === undefined) {
+                        this._sideCarLogs = new Array(sideCars.length).fill({ oldLogs: [] }); // An array with all old logs of the sidecar container
                     }
 
                     const errorFound = sideCars.some(container => {
@@ -206,10 +206,10 @@ class Logs {
         const logPromises = containerNames.map(async (containerName, index) => {
             const currArgs = { ...args, containerName };
             try {
-                currArgs.skip = this._sideCarLogsSkip[index];
+                currArgs.skip = this._sideCarLogs[index].oldLogs.length;
                 const currLogs = await logSource.getLogs(currArgs);
-                this._sideCarLogsSkip[index] += currLogs.length;
-                return currLogs;
+                this._sideCarLogs.oldLogs.push(...currLogs);
+                return this._sideCarLogs.oldLogs;
             }
             catch (error) {
                 const errorLog = [{
