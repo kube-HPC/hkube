@@ -334,11 +334,17 @@ class AlgorithmStore {
 
     _validateWorkerCustomResources(resources) {
         const errors = [];
-        if ((resources.requests?.memory && !resources.limits?.memory) || (resources.limits?.memory && !resources.requests?.memory)) {
-            errors.push('If requests.memory is defined, limits.memory must also be defined, and vice versa');
+        if ((resources.requests?.memory && !resources.limits?.memory)) {
+            errors.push('limits.memory must be defined');
         }
-        if ((resources.requests?.cpu && !resources.limits?.cpu) || (resources.limits?.cpu && !resources.requests?.cpu)) {
-            errors.push('If requests.cpu is defined, limits.cpu must also be defined, and vice versa');
+        if ((resources.limits?.memory && !resources.requests?.memory)) {
+            errors.push('requests.memory must be defined');
+        }
+        if ((resources.requests?.cpu && !resources.limits?.cpu)) {
+            errors.push('limits.cpu must be defined');
+        }
+        if ((resources.limits?.cpu && !resources.requests?.cpu)) {
+            errors.push('requests.cpu must be defined');
         }
         return errors;
     }
