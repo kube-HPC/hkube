@@ -46,7 +46,7 @@ const routes = (options) => {
         let datesRange;
         let search;
         let errormsg;
-        if (startTime !== undefined && startTime !== {}) {
+        if (startTime && Object.keys(startTime).length > 0) {
             datesRange = { from: startTime.from, to: startTime.to };
             search = { query: { jobId, pipelineName, datesRange } };
         }

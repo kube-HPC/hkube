@@ -49,6 +49,12 @@ class KubernetesApi extends EventEmitter {
         }
     }
 
+    /**
+     * Retrieves the job name associated with a given pod.
+     *
+     * @param {string} podName - The name of the pod.
+     * @returns {Promise<string|null>} - The job name or null if not found.
+     */
     async getJobForPod(podName) {
         try {
             log.debug(`getJobForPod for pod ${podName}`, { component });
@@ -61,6 +67,13 @@ class KubernetesApi extends EventEmitter {
         }
     }
 
+    /**
+     * Retrieves the status of a specific container within a pod.
+     *
+     * @param {string} podName - The name of the pod.
+     * @param {string} containerName - The name of the container.
+     * @returns {Promise<Object|null>} - The container status or null if not found.
+     */
     async getPodContainerStatus(podName, containerName) {
         let container = null;
         try {
@@ -73,6 +86,14 @@ class KubernetesApi extends EventEmitter {
         return container;
     }
 
+    /**
+     * Waits for a container to reach the "terminated" state.
+     *
+     * @param {string} podName - The name of the pod.
+     * @param {string} containerName - The name of the container.
+     * @param {number} [timeout=20000] - The maximum wait time in milliseconds.
+     * @returns {Promise<boolean>} - Resolves to true if the container is terminated, otherwise false.
+     */
     async waitForTerminatedState(podName, containerName, timeout = 20000) {
         log.info('waiting for container termination', { component });
 
@@ -96,6 +117,13 @@ class KubernetesApi extends EventEmitter {
         });
     }
 
+    /**
+     * Waits for a container to exit, i.e., not be in the "running" state.
+     *
+     * @param {string} podName - The name of the pod.
+     * @param {string} containerName - The name of the container.
+     * @returns {Promise<Object|null>} - The container status when it exits.
+     */
     async waitForExitState(podName, containerName) {
         log.info('waiting for container exit state', { component });
 
@@ -118,6 +146,20 @@ class KubernetesApi extends EventEmitter {
         });
     }
 
+    /**
+     * Waits for a container status to match a given predicate.
+     *
+     * @param {Object} params - Parameters for waiting.
+     * @param {string} params.podName - The name of the pod.
+     * @param {string} params.containerName - The name of the container.
+     * @param {Function} params.predicate - A function that tests the container status.
+     * @param {Function} params.onStatus - A callback function to call on each status check.
+     * @param {Function} params.onSuccess - A callback function to call if the predicate is met.
+     * @param {Function} params.onFailed - A callback function to call if the timeout is reached.
+     * @param {number} [params.interval=1000] - The interval between status checks in milliseconds.
+     * @param {number} [params.timeout=5000] - The maximum wait time in milliseconds.
+     * @returns {Promise<void>} - Resolves when the status is successfully met or times out.
+     */
     async waitForContainerStatus({ podName, containerName, predicate, onStatus, onSuccess, onFailed, interval = 1000, timeout = 5000 }) {
         const start = Date.now();
         let containerStatus;
@@ -140,6 +182,12 @@ class KubernetesApi extends EventEmitter {
         return onFailed && onFailed(containerStatus);
     }
 
+    /**
+     * Deletes a Kubernetes job by its name.
+     *
+     * @param {string} jobName - The name of the job to delete.
+     * @returns {Promise<Object|null>} - The result of the job deletion or null if it fails.
+     */
     async deleteJob(jobName) {
         log.debug(`Deleting job ${jobName}`, { component });
         try {
@@ -152,9 +200,35 @@ class KubernetesApi extends EventEmitter {
         return null;
     }
 
+    /**
+     * Formats a message for a container termination reason.
+     *
+     * @param {string} reason - The termination reason.
+     * @returns {Object} - The formatted message and reason details.
+     */
     formatContainerMessage(reason) {
         const item = Object.values(CONTAINER_MESSAGE_FORMATS).find(c => c.reasons.includes(reason));
         return item || CONTAINER_MESSAGE_FORMATS.UNKNOWN;
+    }
+
+    /**
+     * Retrieves the names of all containers in the specified pod.
+     *
+     * @param {string} podName - The name of the pod.
+     * @returns {Promise<string[]>} - A promise that resolves to a list of container names.
+     */
+    async getContainerNamesForPod(podName) {
+        try {
+            log.debug(`Fetching container names for pod ${podName}`, { component });
+            const pod = await this._client.pods.get({ podName });
+            const containers = objectPath.get(pod, 'body.spec.containers', []);
+            const containerNames = containers.map(container => container.name);
+            return containerNames;
+        }
+        catch (error) {
+            log.warning(`Unable to fetch container names for pod ${podName}. error: ${error.message}`, { component }, error);
+            return [];
+        }
     }
 }
 

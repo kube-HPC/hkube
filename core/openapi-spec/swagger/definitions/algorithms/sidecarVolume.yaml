@@ -1,0 +1,29 @@
+type: object
+description: Fill one of the volume types (emptyDir, PVC, CM, Secret)
+properties:
+  name:
+    type: string
+    description: Volume name
+  emptyDir:
+    type: object
+    description: Configuration for an emptyDir volume
+  persistentVolumeClaim:
+    type: object
+    properties:
+      claimName:
+        type: string
+        description: The name of the PersistentVolumeClaim
+  configMap:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of the ConfigMap
+  secret:
+    type: object
+    properties:
+      secretName:
+        type: string
+        description: The name of the Secret
+required:
+  - name

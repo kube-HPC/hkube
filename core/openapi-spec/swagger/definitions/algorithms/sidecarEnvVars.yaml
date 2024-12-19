@@ -1,0 +1,11 @@
+type: object
+properties:
+  name:
+    type: string
+    description: environment variable name
+  value:
+    type: string
+    description: environment variable value
+required:
+- name
+- value

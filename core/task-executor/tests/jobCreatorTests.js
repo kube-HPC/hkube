@@ -472,10 +472,10 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[3].name).to.eql('c2')
             expect(res.spec.template.spec.volumes).to.deep.include(globalSettings.sidecars[0].volumes[0])
             expect(res.spec.template.spec.volumes).to.deep.include(globalSettings.sidecars[0].volumes[1])
-            expect(res.spec.template.spec.containers[0].volumeMounts).to.deep.include(globalSettings.sidecars[0].volumeMounts[0])
+            expect(res.spec.template.spec.containers[2].volumeMounts).to.deep.include(globalSettings.sidecars[0].volumeMounts[0])
             expect(res.spec.template.spec.containers[1].volumeMounts).to.not.deep.include(globalSettings.sidecars[0].volumeMounts[0])
-            expect(res.spec.template.spec.containers[0].env).to.deep.include(globalSettings.sidecars[0].environments[0])
-            expect(res.spec.template.spec.containers[0].env).to.deep.include(globalSettings.sidecars[0].environments[1])
+            expect(res.spec.template.spec.containers[2].env).to.deep.include(globalSettings.sidecars[0].environments[0])
+            expect(res.spec.template.spec.containers[2].env).to.deep.include(globalSettings.sidecars[0].environments[1])
             expect(res.spec.template.spec.containers[1].env).to.not.deep.include(globalSettings.sidecars[0].environments[0])
         });
         it('should not apply sidecar if no sidecar configmap', () => {

@@ -336,10 +336,117 @@ const nodeWithLabels = {
     }
 }
 
+const persistentVolumeClaim = {
+    items: [
+        {
+            metadata: {
+                name: 'pvc-1',
+                labels: {
+                    'app': 'my-app'
+                }
+            },
+            spec: {
+                accessModes: ['ReadWriteOnce'],
+                resources: {
+                    requests: {
+                        storage: '1Gi'
+                    }
+                },
+                storageClassName: 'standard'
+            },
+            status: {
+                phase: 'Bound'
+            }
+        },
+        {
+            metadata: {
+                name: 'pvc-2',
+                labels: {
+                    'app': 'my-app'
+                }
+            },
+            spec: {
+                accessModes: ['ReadWriteMany'],
+                resources: {
+                    requests: {
+                        storage: '2Gi'
+                    }
+                },
+                storageClassName: 'fast'
+            },
+            status: {
+                phase: 'Pending'
+            }
+        }
+    ]
+};
+
+const configMap = {
+    items: [
+        {
+            metadata: {
+                name: 'config-map-1',
+                labels: {
+                    'app': 'my-app'
+                }
+            },
+            data: {
+                'config.json': '{"setting1": "value1", "setting2": "value2"}',
+                'config.yaml': 'setting1: value1\nsetting2: value2'
+            }
+        },
+        {
+            metadata: {
+                name: 'config-map-2',
+                labels: {
+                    'app': 'another-app'
+                }
+            },
+            data: {
+                'app-config.json': '{"feature1": "enabled", "feature2": "disabled"}',
+                'app-config.yaml': 'feature1: enabled\nfeature2: disabled'
+            }
+        }
+    ]
+};
+
+const secret = {
+    items: [
+        {
+            metadata: {
+                name: 'secret-1',
+                labels: {
+                    'app': 'my-app'
+                }
+            },
+            data: {
+                'username': Buffer.from('admin').toString('base64'),
+                'password': Buffer.from('password123').toString('base64')
+            }
+        },
+        {
+            metadata: {
+                name: 'secret-2',
+                labels: {
+                    'app': 'another-app'
+                }
+            },
+            data: {
+                'api-key': Buffer.from('my-api-key-1234').toString('base64'),
+                'token': Buffer.from('my-secret-token').toString('base64')
+            }
+        }
+    ]
+};
+
+
 module.exports = {
     pods,
     nodes,
     nodeWithLabels,
     nodesNoGpu,
-    podsGpu
+    podsGpu,
+    persistentVolumeClaim,
+    configMap,
+    secret
 };

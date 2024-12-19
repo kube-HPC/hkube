@@ -8,6 +8,8 @@ const kubernetes = require('../helpers/kubernetes');
 const DELAY = 2;
 const criLogRegex = /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/;
 let log;
+const ALGORITHM_CONTAINER = 'algorunner';
+const WORKER_CONTAINER = 'worker';
 
 class LoggingProxy {
     async init(options) {
@@ -16,6 +18,7 @@ class LoggingProxy {
             log.warning('Algorunner logging proxy not started.', { component });
             return;
         }
+        log.info(`LOGGING PROXY CHECK: options: ${JSON.stringify(options.algorunnerLogging)}`, { component }); // ADIR LOG DELETE
         const { algorunnerLogFileName, baseLogsPath, disable } = this._createLogPath({
             ...options.algorunnerLogging,
             podId: options.kubernetes.podId,
@@ -25,6 +28,10 @@ class LoggingProxy {
             log.warning('Algorunner logging proxy not started.', { component });
             return;
         }
+        log.info(`LOGGING PROXY CHECK: baseLogsPath: ${baseLogsPath}, algorunnerLogFileName: ${algorunnerLogFileName}`, { component }); // ADIR LOG DELETE
+        const sideCars = (await kubernetes.getContainerNamesForPod(this._podName))
+            .filter(name => name !== ALGORITHM_CONTAINER && name !== WORKER_CONTAINER);
+        this.componentNames = [ALGORITHM_CONTAINER, ...sideCars];
 
         this._algorunnerLogFilePath = path.join(baseLogsPath, algorunnerLogFileName);
         log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component });
@@ -33,6 +40,7 @@ class LoggingProxy {
     }
 
     _createLogPath({ algorunnerLogFileName, baseLogsPath, disable, podId, podName }) {
+        log.info(`LOGGING PROXY CHECK: algorunnerLogging: ${algorunnerLogFileName}, podId: ${podId}, podName: ${podName}`, { component }); // ADIR LOG DELETE
         if (disable) {
             return { disable };
         }
@@ -46,7 +54,7 @@ class LoggingProxy {
 
             return {
                 algorunnerLogFileName: '0.log',
-                baseLogsPath: `/var/log/pods/${namespace}_${podName}_${podId}/algorunner`
+                baseLogsPath: `/var/log/pods/${namespace}_${podName}_${podId}/mycar`
             };
         }
         if (kubeVersion.major === 1 && kubeVersion.minor >= 12) {
@@ -54,17 +62,18 @@ class LoggingProxy {
 
             return {
                 algorunnerLogFileName: '0.log',
-                baseLogsPath: `/var/log/pods/${podId}/algorunner`
+                baseLogsPath: `/var/log/pods/${podId}/mycar`
             };
         }
         // logs are in /var/log/pods/podid/container_name_0.log
         return {
-            algorunnerLogFileName: 'algorunner_0.log',
+            algorunnerLogFileName: 'mycar_0.log',
             baseLogsPath: `/var/log/pods/${podId}`
         };
     }
 
     _getLogMessage(rawLine) {
+        log.info(`LOGGING PROXY CHECK: rawLine: ${rawLine}`, { component }); // ADIR LOG DELETE
         let stream;
         let internalLog;
         let logMessage = rawLine;
@@ -121,10 +130,10 @@ class LoggingProxy {
             this._tail.on('line', (line) => {
                 const { logMessage, stream, internalLog } = this._getLogMessage(line);
                 if (stream === 'stderr') {
-                    log.info(logMessage, { component, ...internalLog });
+                    log.info(`LOGGING PROXY: watch-logMessage: ${logMessage}`, { component, ...internalLog });
                 }
                 else {
-                    log.info(logMessage, { component, ...internalLog });
+                    log.info(`LOGGING PROXY: watch-logMessage: ${logMessage}`, { component, ...internalLog });
                 }
             });
             this._tail.on('error', (error) => {

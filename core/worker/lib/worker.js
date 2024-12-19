@@ -13,6 +13,7 @@ const streamHandler = require('./streaming/services/stream-handler');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
 const ALGORITHM_CONTAINER = 'algorunner';
+const WORKER_CONTAINER = 'worker';
 const component = Components.WORKER;
 const { CONTAINER_STATUS } = kubernetes;
 const DEFAULT_STOP_TIMEOUT = 5000;
@@ -28,8 +29,11 @@ class Worker {
         this._isScalingDown = false;
         this._inTerminationMode = false;
         this._shouldCheckAlgorithmStatus = true;
+        this._shouldCheckSideCarStatus = [];
         this._algorunnerStatusFailAttempts = 0;
-        this._checkAlgorithmStatus = this._checkAlgorithmStatus.bind(this);
+        this._sidecarStatusFailAttempts = [];
+        this._shouldCheckPodStatus = true;
+        this._checkPodStatus = this._checkPodStatus.bind(this);
         this._wrapperAlive = {};
     }
 
@@ -52,13 +56,6 @@ class Worker {
         this._registerToAutoScalerChangesEvents();
         this._setInactiveTimeout();
         this._doTheBootstrap();
-    }
-
-    _initWrapperSettings(timeoutDuration) {
-        this._wrapperAlive = {
-            isRunning: false,
-            timeoutDuration
-        };
     }
 
     _initAlgorithmSettings() {
@@ -203,7 +200,7 @@ class Worker {
     _doTheBootstrap() {
         if (!this._isConnected) {
             log.info('not connected yet', { component });
-            this._checkAlgorithmStatus();
+            this._checkPodStatus();
             return;
         }
         log.info('algorithm connected', { component });
@@ -211,6 +208,11 @@ class Worker {
             if (this._devMode) {
                 jobConsumer.isConnected = true;
             }
+            return;
+        }
+        if (this._shouldCheckSideCarStatus.length > 0 && this._shouldCheckPodStatus) {
+            log.info('not ready yet', { component });
+            this._checkPodStatus();
             return;
         }
         this._isBootstrapped = true;
@@ -221,42 +223,125 @@ class Worker {
         log.debug('finished bootstrap state', { component });
     }
 
-    async _checkAlgorithmStatus() {
-        if (!this._podName) {
-            return;
-        }
+    /**
+     * Checks the status of the pod containers and all sidecar containers.
+     * It processes each sidecar container, checks its status, and processes the pod containers.
+     * The method runs periodically based on the configured interval.
+     *
+     * @function _checkPodStatus
+     * @memberof Worker
+     * @returns {Promise<void>} A promise that resolves when all container statuses have been processed.
+     */
+    async _checkPodStatus() {
+        if (!this._podName) return;
         try {
-            log.info('trying to check algorithm container status', { component });
-            const containerStatus = await kubernetes.getPodContainerStatus(this._podName, ALGORITHM_CONTAINER) || {};
-            const { status, reason, message } = containerStatus;
-            if (status === CONTAINER_STATUS.RUNNING) {
-                log.info(`algorithm container status is ${status}`, { component });
-                this._shouldCheckAlgorithmStatus = false;
-            }
-            else if (reason) {
-                const containerMessage = kubernetes.formatContainerMessage(reason);
-                if (containerMessage.isImagePullErr) {
-                    this._algorunnerStatusFailAttempts += 1;
-                    if (this._algorunnerStatusFailAttempts > 3) {
-                        const options = {
-                            error: {
-                                message: `${message}. ${containerMessage.message}`,
-                                isImagePullErr: true
-                            }
-                        };
-                        log.error(options.error.message, { component });
-                        await this._endJob(options);
-                        this._shouldCheckAlgorithmStatus = false;
-                    }
-                }
-            }
+            await this._processContainerStatus();
+            const sideCars = await this._fetchAndInitializeSideCarStatus();
+            await Promise.all(
+                sideCars
+                    .map((currSideCar, index) => ({ currSideCar, index }))
+                    .filter(({ index }) => this._shouldCheckSideCarStatus[index])
+                    .map(({ currSideCar, index }) => this._processContainerStatus(currSideCar, index))
+            );
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
         }
         finally {
-            if (this._shouldCheckAlgorithmStatus) {
-                setTimeout(this._checkAlgorithmStatus, this._options.checkAlgorithmStatusInterval);
+            this._shouldCheckPodStatus = (this._shouldCheckAlgorithmStatus || this._shouldCheckSideCarStatus.some(value => value));
+            if (this._shouldCheckPodStatus) {
+                setTimeout(() => this._checkPodStatus(), this._options.checkAlgorithmStatusInterval);
+            }
+            else this._doTheBootstrap();
+        }
+    }
+
+    /**
+     * Fetches the list of sidecar container names for the given pod, and initializes
+     * the status tracking arrays (`_shouldCheckSideCarStatus` and `_sidecarStatusFailAttempts`)
+     * if they are not already initialized.
+     *
+     * @function _fetchAndInitializeSideCarStatus
+     * @memberof Worker
+     * @returns {Promise<Array<string>>} A promise that resolves to an array of sidecar container names.
+     */
+    async _fetchAndInitializeSideCarStatus() {
+        const sideCars = (await kubernetes.getContainerNamesForPod(this._podName))
+            .filter(name => name !== ALGORITHM_CONTAINER && name !== WORKER_CONTAINER);
+        const { length } = sideCars;
+        if (length > 0 && (this._shouldCheckSideCarStatus.length === 0 || this._sidecarStatusFailAttempts.length === 0)) {
+            this._shouldCheckSideCarStatus = new Array(length).fill(true);
+            this._sidecarStatusFailAttempts = new Array(length).fill(0);
+        }
+        return sideCars;
+    }
+
+    /**
+     * Processes the status of a given container (either a sidecar or the algorithm container).
+     * If the container is running, the status is logged. If not, failure is handled based on the reason.
+     *
+     * @function _processContainerStatus
+     * @memberof Worker
+     * @param {string} [name] - The name of the container (defaults to `ALGORITHM_CONTAINER` for the algorithm container)
+     * @param {number} [index] - The index of the sidecar container (not needed for the algorithm container)
+     * @returns {Promise<void>} A promise that resolves when the container's status is processed
+     */
+    async _processContainerStatus(name, index) {
+        const containerKind = name ? 'sidecar' : ALGORITHM_CONTAINER;
+        log.info(`trying to check the status of ${containerKind} container ${name || ''}`, { component });
+        const containerStatus = await kubernetes.getPodContainerStatus(this._podName, name || ALGORITHM_CONTAINER) || {};
+        const { status, reason, message } = containerStatus;
+        if (status === CONTAINER_STATUS.RUNNING) {
+            log.info(`${containerKind} ${name ? `${name} ` : ''}status is ${status}`, { component });
+            if (containerKind === ALGORITHM_CONTAINER) {
+                this._shouldCheckAlgorithmStatus = false;
+            }
+            else {
+                this._shouldCheckSideCarStatus[index] = false;
+            }
+        }
+        else if (reason) {
+            await this._handleContainerFailure(index, reason, message, name || ALGORITHM_CONTAINER);
+        }
+    }
+
+    /**
+     * Handles the failure case for containers, specifically image pull errors.
+     * If the failure attempts exceed 3, the job is terminated and no further checks are made.
+     *
+     * @function _handleContainerFailure
+     * @memberof Worker
+     * @param {number} index - The index of the sidecar container being checked (undefined for algorithm container)
+     * @param {string} reason - The reason for container failure
+     * @param {string} message - The error message for the container failure
+     * @returns {Promise<void>} A promise that resolves when the failure is handled
+     */
+    async _handleContainerFailure(index, reason, message, name) {
+        const containerMessage = kubernetes.formatContainerMessage(reason);
+
+        if (containerMessage.isImagePullErr) {
+            let failAttemps;
+            if (index) {
+                this._sidecarStatusFailAttempts[index] += 1;
+                failAttemps = this._sidecarStatusFailAttempts[index];
+            }
+            else {
+                this._algorunnerStatusFailAttempts += 1;
+                failAttemps = this._algorunnerStatusFailAttempts;
+            }
+            if (failAttemps > 3) {
+                const options = {
+                    error: {
+                        message: `Container - ${name}: ${message}. ${containerMessage.message}`,
+                        isImagePullErr: true
+                    }
+                };
+                log.error(options.error.message, { component });
+                log.error(options.error.message, { component: Components.ALGORUNNER });
+                // log.error(options.error.message, { component: name || Components.ALGORUNNER });
+                await this._endJob(options);
+                this._shouldCheckAlgorithmStatus = false;
+                this._shouldCheckSideCarStatus.fill(false);
             }
         }
     }
@@ -639,8 +724,7 @@ class Worker {
                             command: messages.outgoing.initialize,
                             data: { ...data, spanId }
                         });
-                        this._wrapperAlive.isRunning = true;
-                        this._handleWrapperIsAlive();
+                        this._handleWrapperIsAlive(false);
                     }
                     break;
                 }
