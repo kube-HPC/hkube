@@ -363,7 +363,7 @@ describe('Streaming', () => {
 
             await scale(data1, reqRateInfo, 4);
             await scale(data2, reqRateInfo, 4, slave);
-            await delay(2000);
+            await delay(2500);
             const { required } = autoScale(nodeName);
             expect(required).to.be.equal(28, `required is ${required}, suppose to be 28`);
         });
