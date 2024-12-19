@@ -56,7 +56,7 @@ class KubernetesLogs {
             tailLines = limit;
         }
 
-        const resolvedContainerName = containerName || this.getContainerName(nodeKind);
+        const resolvedContainerName = containerName || this.getContainerName(nodeKind); // To specify specific container name, used for sideCar.
         const logsData = await this._client.logs.get({ podName, tailLines, containerName: resolvedContainerName });
 
         return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip, containerName });
@@ -104,14 +104,14 @@ class KubernetesLogs {
         if (!line?.message) {
             return false;
         }
-        if (logMode === logModes.ALL) {
+        if (logMode === logModes.ALL) { // Source = All
             return true;
         }
         const isInternalLog = line.message.startsWith(`${internalLogPrefix}`);
-        if (logMode === logModes.INTERNAL && isInternalLog) {
+        if (logMode === logModes.INTERNAL && isInternalLog) { // Source = System
             return true;
         }
-        if (logMode === logModes.ALGORITHM && !isInternalLog) {
+        if (logMode === logModes.ALGORITHM && !isInternalLog) { // Source = Algorithm
             return true;
         }
         return false;
