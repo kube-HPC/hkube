@@ -176,7 +176,7 @@ const _processAllRequests = (
                 algorithmOptions,
                 mounts,
                 reservedMemory,
-                sideCars
+                sideCars,
                 workerCustomResources
             }
         });
