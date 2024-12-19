@@ -46,26 +46,31 @@ class KubernetesLogs {
         }
     }
 
-    async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip }) {
+    /**
+     * Retrieves logs from a specific container or pod in a Kubernetes cluster.
+     * Return value - if containerName is provided, logs are taken from a sidecar container, which has no special structure.
+     */
+    async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip, containerName }) {
         let tailLines;
         if (sort === sortOrder.desc) {
             tailLines = limit;
         }
 
-        const logsData = await this._client.logs.get({ podName, tailLines, containerName: this.getContainerName(nodeKind) });
+        const resolvedContainerName = containerName || this.getContainerName(nodeKind); // To specify specific container name, used for sideCar.
+        const logsData = await this._client.logs.get({ podName, tailLines, containerName: resolvedContainerName });
 
-        return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip });
+        return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip, containerName });
     }
 
-    _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip }) {
+    _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip, containerName }) {
         let logs = [];
         const logList = logsData.body.split('\n');
-        logList.forEach((l) => {
-            if (!l) {
+        logList.forEach((line) => {
+            if (!line) {
                 return;
             }
-            const logData = this._formatMethod(l, taskId, nodeKind);
-            const valid = this._filter(logData, logMode);
+            const logData = containerName ? this._formatSideCarLog(line, containerName) : this._formatMethod(line, taskId, nodeKind); // if we have a container name, it`s a sidecar log.
+            const valid = this._filter(logData, logMode, containerName);
             if (valid) {
                 logs.push(logData);
             }
@@ -77,19 +82,50 @@ class KubernetesLogs {
         return logs;
     }
 
-    _filter(line, logMode) {
+    /**
+     * Formats a log line from a sidecar container.
+     *
+     * @param {string} line - The log line to be formatted.
+     * @param {string} containerName - The name of the sidecar container.
+     * @returns {Object} - The formatted log data.
+     * @property {number} timestamp - The timestamp of the log line.
+     * @property {string} message - The formatted log message.
+     * @property {string} level - The log level (always 'info' in this case, since level is unknown).
+     */
+    _formatSideCarLog(line, containerName) {
+        return {
+            timestamp: Date.now(),
+            message: `${containerName}:: ${line}`,
+            level: 'info'
+        };
+    }
+
+    _filter(line, logMode) { // containerName - add argument after patch
         if (!line?.message) {
             return false;
         }
-        if (logMode === logModes.ALL) {
-            return true;
-        }
         const isInternalLog = line.message.startsWith(`${internalLogPrefix}`);
-        if (logMode === logModes.INTERNAL && isInternalLog) {
-            return true;
-        }
-        if (logMode === logModes.ALGORITHM && !isInternalLog) {
-            return true;
+        // logModes.SIDECAR = 'sideCar'; // HARD CODED ADIR REMOVE
+        switch (logMode) {
+            case logModes.ALL: // Source = All
+                return true;
+            case logModes.INTERNAL:
+                if (isInternalLog) { // Source = System
+                    return true;
+                }
+                break;
+            case logModes.ALGORITHM:
+                if (!isInternalLog) { // Source = Algorithm
+                    return true;
+                }
+                break;
+            // case logModes.SIDECAR:
+            //     if (line.message.startsWith(`${containerName}::`)) { // Source = Sidecar
+            //         return true;
+            //     }
+            //     break;
+            default:
+                return false;
         }
         return false;
     }
