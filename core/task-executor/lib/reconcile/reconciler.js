@@ -145,6 +145,7 @@ const _processAllRequests = (
             continue;
         }
         const algorithmTemplate = algorithmTemplates[algorithmName];
+        const { workerCustomResources } = algorithmTemplates[algorithmName];
         const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
         const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
         const resourceRequests = createContainerResource(algorithmTemplate);
@@ -176,6 +177,7 @@ const _processAllRequests = (
                 mounts,
                 reservedMemory,
                 sideCars
+                workerCustomResources
             }
         });
         if (!reconcileResult[algorithmName]) {
