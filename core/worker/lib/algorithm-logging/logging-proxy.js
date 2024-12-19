@@ -54,7 +54,7 @@ class LoggingProxy {
 
             return {
                 algorunnerLogFileName: '0.log',
-                baseLogsPath: `/var/log/pods/${namespace}_${podName}_${podId}/algorunner`
+                baseLogsPath: `/var/log/pods/${namespace}_${podName}_${podId}/my-sidecar-check`
             };
         }
         if (kubeVersion.major === 1 && kubeVersion.minor >= 12) {
@@ -62,12 +62,12 @@ class LoggingProxy {
 
             return {
                 algorunnerLogFileName: '0.log',
-                baseLogsPath: `/var/log/pods/${podId}/algorunner`
+                baseLogsPath: `/var/log/pods/${podId}/my-sidecar-check`
             };
         }
         // logs are in /var/log/pods/podid/container_name_0.log
         return {
-            algorunnerLogFileName: 'algorunner_0.log',
+            algorunnerLogFileName: 'my-sidecar-check_0.log',
             baseLogsPath: `/var/log/pods/${podId}`
         };
     }

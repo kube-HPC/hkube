@@ -70,7 +70,7 @@ class KubernetesLogs {
                 return;
             }
             const logData = containerName ? this._formatSideCarLog(line, containerName) : this._formatMethod(line, taskId, nodeKind); // if we have a container name, it`s a sidecar log.
-            const valid = this._filter(logData, logMode);
+            const valid = this._filter(logData, logMode, containerName);
             if (valid) {
                 logs.push(logData);
             }
@@ -95,24 +95,37 @@ class KubernetesLogs {
     _formatSideCarLog(line, containerName) {
         return {
             timestamp: Date.now(),
-            message: `K8S (Sidecar: ${containerName}): ${line}`,
+            message: `${containerName}:: ${line}`,
             level: 'info'
         };
     }
 
-    _filter(line, logMode) {
+    _filter(line, logMode) { // containerName - add argument after patch
         if (!line?.message) {
             return false;
         }
-        if (logMode === logModes.ALL) { // Source = All
-            return true;
-        }
         const isInternalLog = line.message.startsWith(`${internalLogPrefix}`);
-        if (logMode === logModes.INTERNAL && isInternalLog) { // Source = System
-            return true;
-        }
-        if (logMode === logModes.ALGORITHM && !isInternalLog) { // Source = Algorithm
-            return true;
+        // logModes.SIDECAR = 'sideCar'; // HARD CODED ADIR REMOVE
+        switch (logMode) {
+            case logModes.ALL: // Source = All
+                return true;
+            case logModes.INTERNAL:
+                if (isInternalLog) { // Source = System
+                    return true;
+                }
+                break;
+            case logModes.ALGORITHM:
+                if (!isInternalLog) { // Source = Algorithm
+                    return true;
+                }
+                break;
+            // case logModes.SIDECAR:
+            //     if (line.message.startsWith(`${containerName}::`)) { // Source = Sidecar
+            //         return true;
+            //     }
+            //     break;
+            default:
+                return false;
         }
         return false;
     }
