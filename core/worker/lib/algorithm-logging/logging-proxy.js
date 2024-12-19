@@ -54,7 +54,7 @@ class LoggingProxy {
 
             return {
                 algorunnerLogFileName: '0.log',
-                baseLogsPath: `/var/log/pods/${namespace}_${podName}_${podId}/my-sidecar-check`
+                baseLogsPath: `/var/log/pods/${namespace}_${podName}_${podId}/mycar`
             };
         }
         if (kubeVersion.major === 1 && kubeVersion.minor >= 12) {
@@ -62,12 +62,12 @@ class LoggingProxy {
 
             return {
                 algorunnerLogFileName: '0.log',
-                baseLogsPath: `/var/log/pods/${podId}/my-sidecar-check`
+                baseLogsPath: `/var/log/pods/${podId}/mycar`
             };
         }
         // logs are in /var/log/pods/podid/container_name_0.log
         return {
-            algorunnerLogFileName: 'my-sidecar-check_0.log',
+            algorunnerLogFileName: 'mycar_0.log',
             baseLogsPath: `/var/log/pods/${podId}`
         };
     }
@@ -130,10 +130,10 @@ class LoggingProxy {
             this._tail.on('line', (line) => {
                 const { logMessage, stream, internalLog } = this._getLogMessage(line);
                 if (stream === 'stderr') {
-                    log.info(logMessage, { component, ...internalLog });
+                    log.info(`LOGGING PROXY: watch-logMessage: ${logMessage}`, { component, ...internalLog });
                 }
                 else {
-                    log.info(logMessage, { component, ...internalLog });
+                    log.info(`LOGGING PROXY: watch-logMessage: ${logMessage}`, { component, ...internalLog });
                 }
             });
             this._tail.on('error', (error) => {
