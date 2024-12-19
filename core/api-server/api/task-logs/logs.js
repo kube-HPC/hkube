@@ -209,7 +209,7 @@ class Logs {
                 currArgs.skip = this._sideCarLogs[index].oldLogs.length;
                 const currLogs = await logSource.getLogs(currArgs);
                 this._sideCarLogs[index].oldLogs.push(...currLogs);
-                return this._sideCarLogs.oldLogs;
+                return this._sideCarLogs[index].oldLogs;
             }
             catch (error) {
                 const errorLog = [{
