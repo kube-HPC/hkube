@@ -12,6 +12,23 @@ const ALGORITHM_CONTAINER = 'algorunner';
 const WORKER_CONTAINER = 'worker';
 
 class LoggingProxy {
+    /**
+     * Initializes the logging proxy by setting up the log file paths for Algorunner and sideCar containers.
+     *
+     * This method first checks if the `algorunnerLogging` option is provided. If not, it logs a warning and returns.
+     * Then, it initializes the log file path for Algorunner using `_initAlgorunnerLogFilePath`. If the initialization fails, it returns early.
+     * After that, it initializes the log file paths for sidecar containers using `_initSideCarLogFilePath`. If the initialization fails, it returns early.
+     * If both initializations succeed, it binds the `_startWatch` method to the current context and starts the log file watch process.
+     *
+     * @param {Object} options - The options for configuring the logging proxy.
+     * @param {Object} options.algorunnerLogging - The configuration for Algorunner logging.
+     * @param {Object} options.kubernetes - The Kubernetes-related configuration.
+     * @param {string} options.kubernetes.podId - The ID of the Kubernetes pod.
+     * @param {string} options.kubernetes.pod_name - The name of the Kubernetes pod.
+     *
+     * @returns {Promise<void>} - This method returns a promise that resolves when the initialization is complete.
+     *                             If logging proxy initialization fails at any point, it returns early without proceeding further.
+     */
     async init(options) {
         log = Logger.GetLogFromContainer();
         if (!options?.algorunnerLogging) {
@@ -19,32 +36,116 @@ class LoggingProxy {
             return;
         }
         log.info(`LOGGING PROXY CHECK: options: ${JSON.stringify(options.algorunnerLogging)}`, { component }); // ADIR LOG DELETE
-        const { algorunnerLogFileName, baseLogsPath, disable } = this._createLogPath({
-            ...options.algorunnerLogging,
-            podId: options.kubernetes.podId,
-            podName: options.kubernetes.pod_name
-        });
-        if (disable || !algorunnerLogFileName || !baseLogsPath) {
-            log.warning('Algorunner logging proxy not started.', { component });
-            return;
-        }
-        log.info(`LOGGING PROXY CHECK: baseLogsPath: ${baseLogsPath}, algorunnerLogFileName: ${algorunnerLogFileName}`, { component }); // ADIR LOG DELETE
-        const sideCars = (await kubernetes.getContainerNamesForPod(this._podName))
-            .filter(name => name !== ALGORITHM_CONTAINER && name !== WORKER_CONTAINER);
-        this.componentNames = [ALGORITHM_CONTAINER, ...sideCars];
-
-        this._algorunnerLogFilePath = path.join(baseLogsPath, algorunnerLogFileName);
-        log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component });
+        if (await this._initAlgorunnerLogFilePath(options)) return; // true if failed
+        if (await this._initSideCarLogFilePath(options)) return; // true if failed
         this._startWatch = this._startWatch.bind(this);
         this._startWatch();
     }
 
-    _createLogPath({ algorunnerLogFileName, baseLogsPath, disable, podId, podName }) {
+    /**
+     * Initializes the log file path for the Algorunner container.
+     *
+     * This method generates the log file path for the Algorunner container using the provided options.
+     * If logging is disabled or the log file name or base log path is missing, a warning is logged and the method returns `true`.
+     * Otherwise, the log file path is stored and a message indicating the log path is logged.
+     *
+     * @param {Object} options - The options for configuring the log path.
+     * @param {Object} options.algorunnerLogging - The logging configuration for Algorunner.
+     * @param {Object} options.kubernetes - The Kubernetes-related configuration.
+     * @param {string} options.kubernetes.podId - The ID of the Kubernetes pod.
+     * @param {string} options.kubernetes.pod_name - The name of the Kubernetes pod.
+     *
+     * @returns {Promise<boolean>} - Returns `true` if the logging proxy is not started due to missing or invalid configuration, otherwise `false`.
+     */
+    async _initAlgorunnerLogFilePath(options) {
+        const { logFileName, baseLogsPath, disable } = this._createLogPath({
+            ...options.algorunnerLogging,
+            podId: options.kubernetes.podId,
+            podName: options.kubernetes.pod_name,
+            containerName: ALGORITHM_CONTAINER
+        });
+        if (disable || !logFileName || !baseLogsPath) {
+            log.warning('Algorunner logging proxy not started.', { component });
+            return true;
+        }
+        log.info(`LOGGING PROXY CHECK: baseLogsPath: ${baseLogsPath}, algorunnerLogFileName: ${logFileName}`, { component }); // ADIR LOG DELETE
+
+        this._algorunnerLogFilePath = path.join(baseLogsPath, logFileName);
+        log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component });
+        return false;
+    }
+
+    /**
+     * Initializes the log file paths for the sidecar containers in the pod.
+     *
+     * This method retrieves the sideCars container names, generates the log file path for each container,
+     * and stores an object containing the log path and the container name.
+     * If logging is disabled or the log file name or base log path is missing for any container, a warning is logged,
+     * and the method returns `true` immediately.
+     * Otherwise, the log file path for each sidecar container is stored, and a message indicating the log path is logged.
+     *
+     * @param {Object} options - The options for configuring the log paths.
+     * @param {Object} options.algorunnerLogging - The logging configuration for Algorunner.
+     * @param {Object} options.kubernetes - The Kubernetes-related configuration.
+     * @param {string} options.kubernetes.podId - The ID of the Kubernetes pod.
+     * @param {string} options.kubernetes.pod_name - The name of the Kubernetes pod.
+     *
+     * @returns {Promise<boolean>} - Returns `true` if any container logging proxy is not started, otherwise `false`.
+     */
+    async _initSideCarLogFilePath(options) {
+        const sideCars = (await kubernetes.getContainerNamesForPod(this._podName))
+            .filter(name => name !== ALGORITHM_CONTAINER && name !== WORKER_CONTAINER);
+        this._sideCarLogFilePath = new Array(sideCars.length);
+
+        const failed = sideCars.some((carName, index) => {
+            const { logFileName, baseLogsPath, disable } = this._createLogPath({
+                ...options.algorunnerLogging,
+                podId: options.kubernetes.podId,
+                podName: options.kubernetes.pod_name,
+                containerName: carName
+            });
+            if (disable || !logFileName || !baseLogsPath) {
+                // log.warning(`${carName} logging proxy not started.`, { carName });
+                log.warning(`${carName} logging proxy not started.`, { component });
+                return true;
+            }
+            this._sideCarLogFilePath[index] = { path: path.join(baseLogsPath, logFileName), carName };
+            log.info(`reading ${carName} logs from host path ${this._sideCarLogFilePath[index].path}`, { component });
+            // log.info(`reading ${carName} logs from host path ${this._sideCarLogFilePath[index].path}`, { carName });
+            return false;
+        });
+        return failed;
+    }
+
+    /**
+     * Creates the log file path for a container based on the provided parameters.
+     *
+     * This method generates the log file path for a container, either for the Algorunner container or sidecar containers,
+     * depending on the provided `containerName`. If the logging is disabled or required information is missing,
+     * it returns an object indicating that the logging should be disabled.
+     *
+     * The log path is created based on the Kubernetes version and the container name.
+     * For Kubernetes versions >= 1.14, the log paths are constructed using the pod's namespace, pod name, and pod ID.
+     * For older versions, the log paths are constructed differently.
+     *
+     * @param {Object} options - The options for configuring the log path.
+     * @param {string} options.algorunnerLogFileName - The log file name for the Algorunner container.
+     * @param {string} options.baseLogsPath - The base directory for log files.
+     * @param {boolean} options.disable - Indicates whether logging is disabled.
+     * @param {string} options.podId - The ID of the Kubernetes pod.
+     * @param {string} options.podName - The name of the Kubernetes pod.
+     * @param {string} options.containerName - The name of the container (e.g., "algorunner", "sidecar").
+     *
+     * @returns {Object} - Returns an object containing the `logFileName` and `baseLogsPath` if logging is enabled,
+     * or an object with `disable` if logging is disabled. The structure of the returned object varies
+     * based on the Kubernetes version and container name.
+     */
+    _createLogPath({ algorunnerLogFileName, baseLogsPath, disable, podId, podName, containerName }) {
         log.info(`LOGGING PROXY CHECK: algorunnerLogging: ${algorunnerLogFileName}, podId: ${podId}, podName: ${podName}`, { component }); // ADIR LOG DELETE
         if (disable) {
             return { disable };
         }
-        if (algorunnerLogFileName && baseLogsPath) {
+        if (algorunnerLogFileName && baseLogsPath && containerName === ALGORITHM_CONTAINER) {
             return { algorunnerLogFileName, baseLogsPath };
         }
         const kubeVersion = kubernetes.kubeVersion || {};
@@ -53,21 +154,21 @@ class LoggingProxy {
             // logs are in /var/log/pods/default_podName_podid/container_name/0.log
 
             return {
-                algorunnerLogFileName: '0.log',
-                baseLogsPath: `/var/log/pods/${namespace}_${podName}_${podId}/mycar`
+                logFileName: '0.log',
+                baseLogsPath: `/var/log/pods/${namespace}_${podName}_${podId}/${containerName}`
             };
         }
         if (kubeVersion.major === 1 && kubeVersion.minor >= 12) {
             // logs are in /var/log/pods/podid/container_name/0.log
 
             return {
-                algorunnerLogFileName: '0.log',
-                baseLogsPath: `/var/log/pods/${podId}/mycar`
+                logFileName: '0.log',
+                baseLogsPath: `/var/log/pods/${podId}/${containerName}`
             };
         }
         // logs are in /var/log/pods/podid/container_name_0.log
         return {
-            algorunnerLogFileName: 'mycar_0.log',
+            logFileName: `${containerName}_0.log`,
             baseLogsPath: `/var/log/pods/${podId}`
         };
     }
@@ -116,6 +217,18 @@ class LoggingProxy {
         return result;
     }
 
+    /**
+     * Starts watching the Algorunner and sidecar log files.
+     *
+     * This method checks if the Algorunner log file path is set and exists. If it does, it begins monitoring the log file
+     * for new log lines. Additionally, if sidecar log files are available, it starts monitoring those as well.
+     * When a new log line is detected, it is passed to the `_handleLogMessage` method for processing.
+     *
+     * If any errors occur during the log monitoring process (e.g., the log file doesn't exist),
+     * the method will retry after a specified delay.
+     *
+     * @returns {void} - This method does not return any value. It simply starts the log monitoring process.
+     */
     _startWatch() {
         if (!this._algorunnerLogFilePath) {
             return;
@@ -128,21 +241,46 @@ class LoggingProxy {
         try {
             this._tail = new Tail(this._algorunnerLogFilePath, { fromBeginning: true });
             this._tail.on('line', (line) => {
-                const { logMessage, stream, internalLog } = this._getLogMessage(line);
-                if (stream === 'stderr') {
-                    log.info(`LOGGING PROXY: watch-logMessage: ${logMessage}`, { component, ...internalLog });
-                }
-                else {
-                    log.info(`LOGGING PROXY: watch-logMessage: ${logMessage}`, { component, ...internalLog });
-                }
+                this._handleLogMessage(line, component);
             });
+            if (this._sideCarLogFilePath && this._sideCarLogFilePath.length > 0) {
+                this._sideCarLogFilePath.forEach((sidecar) => {
+                    const sidecarTail = new Tail(sidecar.path, { fromBeginning: true });
+                    sidecarTail.on('line', (line) => {
+                        // this._handleLogMessage(line, sidecar.carName);
+                        this._handleLogMessage(line, component);
+                    });
+                });
+            }
+
             this._tail.on('error', (error) => {
                 log.throttle.error(error.message, { component });
             });
         }
         catch (error) {
-            log.throttle.warning(`Algorunner logging proxy error: ${error.message}. Trying again in ${DELAY} seconds.`, { component });
+            log.throttle.warning(`Logging proxy error: ${error.message}. Trying again in ${DELAY} seconds.`, { component });
             setTimeout(this._startWatch, DELAY * 1000);
+        }
+    }
+
+    /**
+     * Handles a log message.
+     *
+     * This method parses the log message, determines the log stream (stdout or stderr),
+     * and logs it appropriately based on the component (Algorunner or sidecar).
+     *
+     * @param {string} line - The raw log line to process.
+     * @param {string} logComponent - The component name used for logging (e.g., 'component' for Algorunner or 'abcabcabc' for sidecars).
+     *
+     * @returns {void} - This method does not return a value. It logs the processed log message.
+     */
+    _handleLogMessage(line, logComponent) {
+        const { logMessage, stream, internalLog } = this._getLogMessage(line);
+        if (stream === 'stderr') {
+            log.info(`LOGGING PROXY: watch-logMessage: ${logMessage}`, { component: logComponent, ...internalLog });
+        }
+        else {
+            log.info(`LOGGING PROXY: watch-logMessage: ${logMessage}`, { component: logComponent, ...internalLog });
         }
     }
 }
