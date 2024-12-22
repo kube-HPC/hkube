@@ -247,8 +247,8 @@ class LoggingProxy {
                 this._sideCarLogFilePath.forEach((sidecar) => {
                     const sidecarTail = new Tail(sidecar.path, { fromBeginning: true });
                     sidecarTail.on('line', (line) => {
-                        // this._handleLogMessage(line, sidecar.carName);
-                        this._handleLogMessage(line, component);
+                        const prefix = `${sidecar.carName}::`;
+                        this._handleLogMessage(line, sidecar.carName, prefix);
                     });
                 });
             }
@@ -274,13 +274,13 @@ class LoggingProxy {
      *
      * @returns {void} - This method does not return a value. It logs the processed log message.
      */
-    _handleLogMessage(line, logComponent) {
+    _handleLogMessage(line, logComponent, prefix = '') {
         const { logMessage, stream, internalLog } = this._getLogMessage(line);
         if (stream === 'stderr') {
-            log.info(`${logMessage}`, { component: logComponent, ...internalLog });
+            log.info(`${prefix}${logMessage}`, { component: logComponent, ...internalLog });
         }
         else {
-            log.info(`${logMessage}`, { component: logComponent, ...internalLog });
+            log.info(`${prefix}${logMessage}`, { component: logComponent, ...internalLog });
         }
     }
 }

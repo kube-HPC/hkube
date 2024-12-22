@@ -61,9 +61,9 @@ class EsLogs {
         case logModes.ALGORITHM: // Source = Algorithm
             query.push(`NOT ${this._structuredPrefix}message: "${internalLogPrefix}*"`);
             break;
-        // case logModes.SIDECAR: // Source = any SideCar
-        //     query.push(`${containerName}message: "${containerName}::*"`); // not needed. still haven`t formatted message
-        //     break;
+        case logModes.SIDECAR: // Source = any SideCar
+            query.push(`${containerName}message: "${containerName}::*"`);
+            break;
         default:
             break;
         }

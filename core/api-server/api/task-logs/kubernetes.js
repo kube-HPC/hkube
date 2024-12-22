@@ -96,7 +96,7 @@ class KubernetesLogs {
                     return true;
                 }
                 break;
-            case logModes.ALGORITHM:
+            case logModes.ALGORITHM || logModes.SIDECAR:
                 if (!isInternalLog) { // Source = Algorithm
                     return true;
                 }
