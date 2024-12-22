@@ -142,8 +142,7 @@ class Logs {
                 }
                 else if (sideCars.length > 0 || sideCarNames.length > 0) {
                     const containerNames = sideCarNames.length > 0 ? sideCarNames : sideCars.map(x => x.name);
-                    const sideCarsLogs = await this._getSideCarLogs(containerNames, logSource, args);
-                    logs.push(...sideCarsLogs);
+                    logs = await this._getSideCarLogs(containerNames, logSource, args);
                 }
                 logs = logs.map(this._format);
                 logs = orderBy(logs, l => l.timestamp, sortOrder.desc);
