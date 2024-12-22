@@ -50,19 +50,19 @@ class KubernetesLogs {
      * Retrieves logs from a specific container or pod in a Kubernetes cluster.
      * Return value - if containerName is provided, logs are taken from a sidecar container, which has no special structure.
      */
-    async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip, containerName }) {
+    async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip, sideCarContainerName }) {
         let tailLines;
         if (sort === sortOrder.desc) {
             tailLines = limit;
         }
 
-        const resolvedContainerName = containerName || this.getContainerName(nodeKind); // To specify specific container name, used for sideCar.
-        const logsData = await this._client.logs.get({ podName, tailLines, containerName: resolvedContainerName });
+        const containerName = this.getContainerName(nodeKind);
+        const logsData = await this._client.logs.get({ podName, tailLines, containerName });
 
-        return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip, containerName });
+        return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip, sideCarContainerName });
     }
 
-    _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip, containerName }) {
+    _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip, sideCarContainerName }) {
         let logs = [];
         const logList = logsData.body.split('\n');
         logList.forEach((line) => {
@@ -70,7 +70,7 @@ class KubernetesLogs {
                 return;
             }
             const logData = this._formatMethod(line, taskId, nodeKind);
-            const valid = this._filter(logData, logMode, containerName);
+            const valid = this._filter(logData, logMode, sideCarContainerName);
             if (valid) {
                 logs.push(logData);
             }
@@ -82,12 +82,11 @@ class KubernetesLogs {
         return logs;
     }
 
-    _filter(line, logMode) { // containerName - add argument after patch
+    _filter(line, logMode, sideCarContainerName) {
         if (!line?.message) {
             return false;
         }
         const isInternalLog = line.message.startsWith(`${internalLogPrefix}`);
-        // logModes.SIDECAR = 'sideCar'; // HARD CODED ADIR REMOVE
         switch (logMode) {
             case logModes.ALL: // Source = All
                 return true;
@@ -96,16 +95,16 @@ class KubernetesLogs {
                     return true;
                 }
                 break;
-            case logModes.ALGORITHM || logModes.SIDECAR:
+            case logModes.ALGORITHM:
                 if (!isInternalLog) { // Source = Algorithm
                     return true;
                 }
                 break;
-            // case logModes.SIDECAR:
-            //     if (line.message.startsWith(`${containerName}::`)) { // Source = Sidecar
-            //         return true;
-            //     }
-            //     break;
+            case logModes.SIDECAR:
+                if (line.message.startsWith(`${sideCarContainerName}::`)) { // Source = Sidecar
+                    return true;
+                }
+                break;
             default:
                 return false;
         }

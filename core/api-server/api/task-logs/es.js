@@ -53,7 +53,6 @@ class EsLogs {
         if (podName) {
             query.push(`kubernetes.pod_name: "${podName}"`);
         }
-        logModes.SIDECAR = 'sideCar'; // HARD CODED ADIR REMOVE
         switch (logMode) {
         case logModes.INTERNAL: // Source = System
             query.push(`${this._structuredPrefix}message: "${internalLogPrefix}*"`);

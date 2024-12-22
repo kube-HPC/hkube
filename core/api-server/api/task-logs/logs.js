@@ -200,7 +200,6 @@ class Logs {
      */
     async _getSideCarLogs(containerNames, logSource, args) {
         const logPromises = containerNames.map(async (containerName) => {
-            logModes.SIDECAR = 'sideCar'; // HARD CODED ADIR REMOVE
             const currArgs = { ...args, logMode: logModes.SIDECAR, containerName };
             try {
                 const currLogs = await logSource.getLogs(currArgs);
@@ -208,7 +207,7 @@ class Logs {
             }
             catch (error) {
                 const errorLog = [{
-                    message: `Error fetching logs for ${containerName}: ${error.message || error || ''}`,
+                    message: `Error fetching logs for sideCar ${containerName}: ${error.message || error || ''}`,
                     level: 'error',
                     timestamp: Date.now()
                 }];

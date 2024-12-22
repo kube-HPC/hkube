@@ -264,15 +264,16 @@ class LoggingProxy {
     }
 
     /**
-     * Handles a log message.
+     * Handles a log message by parsing it and logging it based on the stream type and component.
      *
-     * This method parses the log message, determines the log stream (stdout or stderr),
-     * and logs it appropriately based on the component (Algorunner or sidecar).
+     * This method processes the raw log message to determine whether it belongs to stdout or stderr
+     * and logs it with the appropriate based on the component (Algorunner or sideCar name)
      *
      * @param {string} line - The raw log line to process.
-     * @param {string} logComponent - The component name used for logging (e.g., 'component' for Algorunner or 'abcabcabc' for sidecars).
+     * @param {string} logComponent - The name of the component generating the log (e.g., 'Algorunner', sideCar name).
+     * @param {string} [prefix=''] - An optional string to prefix the log message, typically used for sidecar identification (default is an empty string).
      *
-     * @returns {void} - This method does not return a value. It logs the processed log message.
+     * @returns {void} - This method does not return a value. It logs the processed message based on the stream type.
      */
     _handleLogMessage(line, logComponent, prefix = '') {
         const { logMessage, stream, internalLog } = this._getLogMessage(line);
