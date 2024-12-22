@@ -71,8 +71,11 @@ class EsLogs {
             query.push(searchComponent);
         }
         else if (nodeKind) {
-            const searchComponent = this.addComponentCriteria(nodeKind);
+            let searchComponent = this.addComponentCriteria(nodeKind);
             if (searchComponent) {
+                if (containerName && logMode === logModes.ALL) {
+                    searchComponent = `(${searchComponent} OR ${this._structuredPrefix}meta.internal.container: "${containerName}")`;
+                }
                 query.push(searchComponent);
             }
         }
