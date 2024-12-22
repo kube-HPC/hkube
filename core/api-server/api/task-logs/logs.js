@@ -140,7 +140,7 @@ class Logs {
                 logs = await logSource.getLogs(args);
                 logs = logs.map(this._format);
                 if ((sideCars.length > 0 || sideCarNames.length > 0) && (logMode === logModes.SIDECAR || logMode === logModes.ALL)) {
-                    const containerNames = sideCars.length > 0 ? sideCars.map(x => x.name) : sideCarNames;
+                    const containerNames = sideCarNames.length > 0 ? sideCarNames : sideCars.map(x => x.name);
                     const sideCarsLogs = await this._getSideCarLogs(containerNames, logSource, args);
                     logs.push(...sideCarsLogs);
                 }
