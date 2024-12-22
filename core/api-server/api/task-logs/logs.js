@@ -202,8 +202,8 @@ class Logs {
      */
     async _getSideCarLogs(containerNames, logSource, args) {
         let firstDone = false;
-        const logPromises = containerNames.map(async (containerName) => {
-            const currArgs = firstDone ? { ...args, logMode: logModes.SIDECAR, containerName } : { ...args, containerName };
+        const logPromises = containerNames.map(async (sideCarContainerName) => {
+            const currArgs = firstDone ? { ...args, logMode: logModes.SIDECAR, sideCarContainerName } : { ...args, sideCarContainerName };
             firstDone = true;
             try {
                 const currLogs = await logSource.getLogs(currArgs);
@@ -211,7 +211,7 @@ class Logs {
             }
             catch (error) {
                 const errorLog = [{
-                    message: `Error fetching logs for sideCar ${containerName}: ${error.message || error || ''}`,
+                    message: `Error fetching logs for sideCar ${sideCarContainerName}: ${error.message || error || ''}`,
                     level: 'error',
                     timestamp: Date.now()
                 }];
