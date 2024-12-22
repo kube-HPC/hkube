@@ -201,8 +201,10 @@ class Logs {
      *   - `timestamp` (number): The timestamp of the log.
      */
     async _getSideCarLogs(containerNames, logSource, args) {
+        let firstDone = false;
         const logPromises = containerNames.map(async (containerName) => {
-            const currArgs = { ...args, containerName };
+            const currArgs = firstDone ? { ...args, logMode: logModes.SIDECAR, containerName } : { ...args, containerName };
+            firstDone = true;
             try {
                 const currLogs = await logSource.getLogs(currArgs);
                 return currLogs;

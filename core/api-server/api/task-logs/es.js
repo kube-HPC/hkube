@@ -36,16 +36,20 @@ class EsLogs {
         }
     }
 
-    addComponentCriteria(nodeKind) {
+    addComponentCriteria(nodeKind, sideCarName) {
         let search;
-        const components = getSearchComponent(nodeKind).map(sc => `${this._structuredPrefix}meta.internal.component: "${sc}"`);
+        const componentNames = [...getSearchComponent(nodeKind)];
+        if (sideCarName) {
+            componentNames.push(sideCarName);
+        }
+        const components = componentNames.map(sc => `${this._structuredPrefix}meta.internal.component: "${sc}"`);
         if (components.length) {
             search = `(${components.join(' OR ')})`;
         }
         return search;
     }
 
-    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime, containerName }) {
+    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime, sideCarContainerName }) {
         const query = [];
         if (taskId) {
             query.push(`${this._structuredPrefix}meta.internal.taskId: "${taskId}"`);
@@ -61,21 +65,18 @@ class EsLogs {
             query.push(`NOT ${this._structuredPrefix}message: "${internalLogPrefix}*"`);
             break;
         case logModes.SIDECAR: // Source = any SideCar
-            query.push(`${this._structuredPrefix}message: "${sideCarPrefix(containerName)}*"`);
+            query.push(`${this._structuredPrefix}message: "${sideCarPrefix(sideCarContainerName)}*"`);
             break;
         default:
             break;
         }
         if (logMode === logModes.SIDECAR) {
-            const searchComponent = `${this._structuredPrefix}meta.internal.component: "${containerName}"`;
+            const searchComponent = `${this._structuredPrefix}meta.internal.component: "${sideCarContainerName}"`;
             query.push(searchComponent);
         }
         else if (nodeKind) {
-            let searchComponent = this.addComponentCriteria(nodeKind);
+            const searchComponent = this.addComponentCriteria(nodeKind, sideCarContainerName);
             if (searchComponent) {
-                if (containerName && logMode === logModes.ALL) {
-                    searchComponent = `(${searchComponent} OR ${this._structuredPrefix}meta.internal.container: "${containerName}")`;
-                }
                 query.push(searchComponent);
             }
         }
