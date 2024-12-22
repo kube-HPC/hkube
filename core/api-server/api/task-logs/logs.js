@@ -201,8 +201,7 @@ class Logs {
     async _getSideCarLogs(containerNames, logSource, args) {
         const logPromises = containerNames.map(async (containerName) => {
             logModes.SIDECAR = 'sideCar'; // HARD CODED ADIR REMOVE
-            // const currArgs = { ...args, logMode: logModes.SIDECAR, containerName };
-            const currArgs = { ...args, containerName };
+            const currArgs = { ...args, logMode: logModes.SIDECAR, containerName };
             try {
                 const currLogs = await logSource.getLogs(currArgs);
                 return currLogs;
