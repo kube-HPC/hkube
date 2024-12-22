@@ -73,7 +73,8 @@ class Logs {
         sort = sortOrder.desc,
         limit = LOGS_LIMIT,
         searchWord,
-        taskTime
+        taskTime,
+        sideCarNames = []
     }) {
         let logs = [];
         const logsData = {};
@@ -138,8 +139,8 @@ class Logs {
                 };
                 logs = await logSource.getLogs(args);
                 logs = logs.map(this._format);
-                if (sideCars.length > 0 && (logMode === logModes.SIDECAR || logMode === logModes.ALL)) {
-                    const containerNames = sideCars.map(x => x.name);
+                if ((sideCars.length > 0 || sideCarNames.length > 0) && (logMode === logModes.SIDECAR || logMode === logModes.ALL)) {
+                    const containerNames = sideCars.length > 0 ? sideCars.map(x => x.name) : sideCarNames;
                     const sideCarsLogs = await this._getSideCarLogs(containerNames, logSource, args);
                     logs.push(...sideCarsLogs);
                 }
