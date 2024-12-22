@@ -69,7 +69,7 @@ class KubernetesLogs {
             if (!line) {
                 return;
             }
-            const logData = containerName ? this._formatSideCarLog(line, containerName) : this._formatMethod(line, taskId, nodeKind); // if we have a container name, it`s a sidecar log.
+            const logData = this._formatMethod(line, taskId, nodeKind);
             const valid = this._filter(logData, logMode, containerName);
             if (valid) {
                 logs.push(logData);
@@ -80,24 +80,6 @@ class KubernetesLogs {
             logs = logs.slice(skip, pageNumber * limit);
         }
         return logs;
-    }
-
-    /**
-     * Formats a log line from a sidecar container.
-     *
-     * @param {string} line - The log line to be formatted.
-     * @param {string} containerName - The name of the sidecar container.
-     * @returns {Object} - The formatted log data.
-     * @property {number} timestamp - The timestamp of the log line.
-     * @property {string} message - The formatted log message.
-     * @property {string} level - The log level (always 'info' in this case, since level is unknown).
-     */
-    _formatSideCarLog(line, containerName) {
-        return {
-            timestamp: Date.now(),
-            message: `${containerName}:: ${line}`,
-            level: 'info'
-        };
     }
 
     _filter(line, logMode) { // containerName - add argument after patch
