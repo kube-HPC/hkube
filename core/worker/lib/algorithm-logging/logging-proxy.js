@@ -10,6 +10,7 @@ const criLogRegex = /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/;
 let log;
 const ALGORITHM_CONTAINER = 'algorunner';
 const WORKER_CONTAINER = 'worker';
+const sideCarPrefix = (sideCarContainerName) => `${sideCarContainerName.toUpperCase()}::`;
 
 class LoggingProxy {
     /**
@@ -108,8 +109,7 @@ class LoggingProxy {
                 return true;
             }
             this._sideCarLogFilePath[index] = { path: path.join(baseLogsPath, logFileName), carName };
-            log.info(`reading ${carName} logs from host path ${this._sideCarLogFilePath[index].path}`, { component });
-            // log.info(`reading ${carName} logs from host path ${this._sideCarLogFilePath[index].path}`, { carName });
+            log.info(`reading ${carName} logs from host path ${this._sideCarLogFilePath[index].path}`, { carName });
             return false;
         });
         return failed;
@@ -243,8 +243,7 @@ class LoggingProxy {
                 this._sideCarLogFilePath.forEach((sidecar) => {
                     const sidecarTail = new Tail(sidecar.path, { fromBeginning: true });
                     sidecarTail.on('line', (line) => {
-                        const prefix = `${sidecar.carName}::`;
-                        this._handleLogMessage(line, sidecar.carName, prefix);
+                        this._handleLogMessage(line, sidecar.carName, sideCarPrefix(sidecar.carName));
                     });
                 });
             }

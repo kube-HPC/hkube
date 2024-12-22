@@ -25,7 +25,7 @@ const components = {
 };
 
 const internalLogPrefix = 'wrapper::';
-const sideCarPrefix = (sideCarContainerName) => `${sideCarContainerName}::`;
+const sideCarPrefix = (sideCarContainerName) => `${sideCarContainerName.toUpperCase()}::`;
 
 const LOGS_LIMIT = 500;
 
