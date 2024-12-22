@@ -86,6 +86,7 @@ class KubernetesLogs {
         if (!line?.message) {
             return false;
         }
+        const { component: logComponent } = line.meta.internal;
         const isInternalLog = line.message.startsWith(`${internalLogPrefix}`);
         switch (logMode) {
             case logModes.ALL: // Source = All
@@ -96,7 +97,7 @@ class KubernetesLogs {
                 }
                 break;
             case logModes.ALGORITHM:
-                if (!isInternalLog) { // Source = Algorithm
+                if (!isInternalLog && logComponent === 'Algorunner') { // Source = Algorithm
                     return true;
                 }
                 break;
