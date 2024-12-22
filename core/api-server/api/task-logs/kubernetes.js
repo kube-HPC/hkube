@@ -4,7 +4,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { nodeKind: nodeKinds } = require('@hkube/consts');
 const component = require('../../lib/consts/componentNames').LOGS;
 const { getSearchComponent } = require('./searchComponents');
-const { formats, containers, sortOrder, internalLogPrefix } = require('./consts');
+const { formats, containers, sortOrder, internalLogPrefix, sideCarPrefix } = require('./consts');
 
 class KubernetesLogs {
     constructor() {
@@ -101,7 +101,7 @@ class KubernetesLogs {
                 }
                 break;
             case logModes.SIDECAR:
-                if (line.message.startsWith(`${sideCarContainerName}::`)) { // Source = Sidecar
+                if (line.message.startsWith(sideCarPrefix(sideCarContainerName))) { // Source = Sidecar
                     return true;
                 }
                 break;
@@ -116,7 +116,7 @@ class KubernetesLogs {
             const line = JSON.parse(str);
             const { taskId, component: logComponent } = line.meta.internal;
             if (task) {
-                if (task === taskId && getSearchComponent(nodeKind).includes(logComponent)) {
+                if (task === taskId && (getSearchComponent(nodeKind).includes(logComponent) || line.message.startsWith(sideCarPrefix(logComponent)))) {
                     return line;
                 }
             }
