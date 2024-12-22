@@ -45,7 +45,7 @@ class EsLogs {
         return search;
     }
 
-    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime }) { // containerName - add argument after patch
+    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime, containerName }) {
         const query = [];
         if (taskId) {
             query.push(`${this._structuredPrefix}meta.internal.taskId: "${taskId}"`);
@@ -53,7 +53,7 @@ class EsLogs {
         if (podName) {
             query.push(`kubernetes.pod_name: "${podName}"`);
         }
-        // logModes.SIDECAR = 'sideCar'; // HARD CODED ADIR REMOVE
+        logModes.SIDECAR = 'sideCar'; // HARD CODED ADIR REMOVE
         switch (logMode) {
         case logModes.INTERNAL: // Source = System
             query.push(`${this._structuredPrefix}message: "${internalLogPrefix}*"`);
@@ -61,13 +61,17 @@ class EsLogs {
         case logModes.ALGORITHM: // Source = Algorithm
             query.push(`NOT ${this._structuredPrefix}message: "${internalLogPrefix}*"`);
             break;
-        // case logModes.SIDECAR: // Source = any SideCar
-        //     query.push(`${containerName}message: "${containerName}::*"`);
-        //     break;
+        case logModes.SIDECAR: // Source = any SideCar
+            query.push(`${containerName}message: "${containerName}::*"`);
+            break;
         default:
             break;
         }
-        if (nodeKind) {
+        if (logMode === logModes.SIDECAR) {
+            const comp = `${this._structuredPrefix}meta.internal.component: "${containerName}"`;
+            query.push(comp);
+        }
+        else if (nodeKind) {
             const searchComponent = this.addComponentCriteria(nodeKind);
             if (searchComponent) {
                 query.push(searchComponent);
