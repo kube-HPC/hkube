@@ -138,7 +138,7 @@ class Logs {
                 };
                 logs = await logSource.getLogs(args);
                 logs = logs.map(this._format);
-                if (sideCars.length > 0) {
+                if (sideCars.length > 0 && (logMode === logModes.SIDECAR || logMode === logModes.ALL)) {
                     const containerNames = sideCars.map(x => x.name);
                     const sideCarsLogs = await this._getSideCarLogs(containerNames, logSource, args);
                     logs.push(...sideCarsLogs);
@@ -200,7 +200,7 @@ class Logs {
      */
     async _getSideCarLogs(containerNames, logSource, args) {
         const logPromises = containerNames.map(async (containerName) => {
-            const currArgs = { ...args, logMode: logModes.SIDECAR, containerName };
+            const currArgs = { ...args, containerName };
             try {
                 const currLogs = await logSource.getLogs(currArgs);
                 return currLogs;
