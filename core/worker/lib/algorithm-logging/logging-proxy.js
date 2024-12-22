@@ -93,7 +93,7 @@ class LoggingProxy {
      * @returns {Promise<boolean>} - Returns `true` if any container logging proxy is not started, otherwise `false`.
      */
     async _initSideCarLogFilePath(options) {
-        const sideCars = (await kubernetes.getContainerNamesForPod(this._podName))
+        const sideCars = (await kubernetes.getContainerNamesForPod(options.kubernetes.pod_name))
             .filter(name => name !== ALGORITHM_CONTAINER && name !== WORKER_CONTAINER);
         this._sideCarLogFilePath = new Array(sideCars.length);
 
