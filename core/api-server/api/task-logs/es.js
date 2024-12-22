@@ -62,14 +62,14 @@ class EsLogs {
             query.push(`NOT ${this._structuredPrefix}message: "${internalLogPrefix}*"`);
             break;
         case logModes.SIDECAR: // Source = any SideCar
-            query.push(`${containerName}message: "${containerName}::*"`);
+            query.push(`${this._structuredPrefix}message: "${containerName}::*"`);
             break;
         default:
             break;
         }
         if (logMode === logModes.SIDECAR) {
-            const comp = `${this._structuredPrefix}meta.internal.component: "${containerName}"`;
-            query.push(comp);
+            const searchComponent = `${this._structuredPrefix}meta.internal.component: "${containerName}"`;
+            query.push(searchComponent);
         }
         else if (nodeKind) {
             const searchComponent = this.addComponentCriteria(nodeKind);
