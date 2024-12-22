@@ -35,7 +35,6 @@ class LoggingProxy {
             log.warning('Algorunner logging proxy not started.', { component });
             return;
         }
-        // log.info(`LOGGING PROXY CHECK: options: ${JSON.stringify(options.algorunnerLogging)}`, { component }); // ADIR LOG DELETE
         if (await this._initAlgorunnerLogFilePath(options)) return; // true if failed
         if (await this._initSideCarLogFilePath(options)) return; // true if failed
         this._startWatch = this._startWatch.bind(this);
@@ -68,7 +67,6 @@ class LoggingProxy {
             log.warning('Algorunner logging proxy not started.', { component });
             return true;
         }
-        // log.info(`LOGGING PROXY CHECK: baseLogsPath: ${baseLogsPath}, algorunnerLogFileName: ${logFileName}`, { component }); // ADIR LOG DELETE
 
         this._algorunnerLogFilePath = path.join(baseLogsPath, logFileName);
         log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component });
@@ -141,7 +139,6 @@ class LoggingProxy {
      * based on the Kubernetes version and container name.
      */
     _createLogPath({ algorunnerLogFileName, baseLogsPath, disable, podId, podName, containerName }) {
-        // log.info(`LOGGING PROXY CHECK: algorunnerLogging: ${algorunnerLogFileName}, podId: ${podId}, podName: ${podName}`, { component }); // ADIR LOG DELETE
         if (disable) {
             return { disable };
         }
@@ -174,7 +171,6 @@ class LoggingProxy {
     }
 
     _getLogMessage(rawLine) {
-        // log.info(`LOGGING PROXY CHECK: rawLine: ${rawLine}`, { component }); // ADIR LOG DELETE
         let stream;
         let internalLog;
         let logMessage = rawLine;
