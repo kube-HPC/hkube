@@ -137,12 +137,12 @@ class Logs {
                     searchWord,
                     taskTime
                 };
-                if (logMode !== logModes.SIDECAR) {
-                    logs = await logSource.getLogs(args);
-                }
-                else if (sideCars.length > 0 || sideCarNames.length > 0) {
+                if ((sideCars.length > 0 || sideCarNames.length > 0) && (logMode === logModes.SIDECAR || logMode === logModes.ALL)) {
                     const containerNames = sideCarNames.length > 0 ? sideCarNames : sideCars.map(x => x.name);
                     logs = await this._getSideCarLogs(containerNames, logSource, args);
+                }
+                else {
+                    logs = await logSource.getLogs(args);
                 }
                 logs = logs.map(this._format);
                 logs = orderBy(logs, l => l.timestamp, sortOrder.desc);
