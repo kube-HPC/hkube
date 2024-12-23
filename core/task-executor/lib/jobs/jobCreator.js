@@ -337,7 +337,7 @@ const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, envi
     }
     if (environments) {
         Object.entries(environments).forEach(([key, value]) => {
-            spec = applyEnvToContainer(spec, sideCarContainer.container.name, { [key]: value });
+            spec = applyEnvToContainer(spec, sideCarContainer.name, { [key]: value });
         });
     }
     return spec;

@@ -410,13 +410,18 @@ describe('jobCreator', () => {
         });
     });
     describe('sidecars', () => {
+        const formatEnvironments = (environments) => {
+            return Object.entries(environments).map(([key, value]) => ({
+                name: key,
+                value: value,
+            }));
+        }
+
         before(() => {
             globalSettings.sidecars = [{
-                name: 'my-sidecar',
-                container: [
+                name: 'my-sidecar-1',
+                container: 
                     { name: 'c1', image: 'foo/bar' },
-                    { name: 'c2', image: 'foo/bar' }
-                ],
                 volumes: [
                     {
                         name: "v1",
@@ -436,18 +441,42 @@ describe('jobCreator', () => {
                     }
 
                 ],
-                environments: [
+                environments: {
+                    "env1": "val1",
+                    "env2": "val2"
+                }
+            },
+            {
+                name: 'my-sidecar-2',
+                container: { 
+                    name: 'c2',
+                    image: 'foo/bar' 
+                },
+                volumes: [
                     {
-                        name: "env1",
-                        value: "val1"
+                        name: "v1",
+                        emptyDir: {}
                     },
                     {
-                        name: "env2",
-                        value: "val2"
+                        name: "v2",
+                        configMap: {
+                            name: "cm2"
+                        }
                     }
-                ]
+                ],
+                volumeMounts: [
+                    {
+                        name: "v2",
+                        mountPath: '/tmp/foo'
+                    }
 
-            }]
+                ],
+                environments: {
+                    "env1": "val1",
+                    "env2": "val2"
+                }
+            }
+        ]
         })
         after(() => {
             globalSettings.sidecars = []
@@ -465,18 +494,22 @@ describe('jobCreator', () => {
                 algorithmImage: 'myImage1',
                 algorithmName: 'myalgo1',
                 options,
-                clusterOptions: { "my-sidecarSidecarEnabled": true }
+                clusterOptions: { "my-sidecar-1SidecarEnabled": true, "my-sidecar-2SidecarEnabled": true }
             });
-            expect(res.spec.template.spec.containers).to.have.lengthOf(4)
-            expect(res.spec.template.spec.containers[2].name).to.eql('c1')
-            expect(res.spec.template.spec.containers[3].name).to.eql('c2')
-            expect(res.spec.template.spec.volumes).to.deep.include(globalSettings.sidecars[0].volumes[0])
-            expect(res.spec.template.spec.volumes).to.deep.include(globalSettings.sidecars[0].volumes[1])
-            expect(res.spec.template.spec.containers[2].volumeMounts).to.deep.include(globalSettings.sidecars[0].volumeMounts[0])
-            expect(res.spec.template.spec.containers[1].volumeMounts).to.not.deep.include(globalSettings.sidecars[0].volumeMounts[0])
-            expect(res.spec.template.spec.containers[2].env).to.deep.include(globalSettings.sidecars[0].environments[0])
-            expect(res.spec.template.spec.containers[2].env).to.deep.include(globalSettings.sidecars[0].environments[1])
-            expect(res.spec.template.spec.containers[1].env).to.not.deep.include(globalSettings.sidecars[0].environments[0])
+            const { containers, volumes } = res.spec.template.spec;
+            expect(containers).to.have.lengthOf(4)
+            expect(containers[2].name).to.eql('c1')
+            expect(containers[3].name).to.eql('c2')
+            expect(volumes).to.deep.include(globalSettings.sidecars[0].volumes[0])
+            expect(volumes).to.deep.include(globalSettings.sidecars[0].volumes[1])
+            expect(volumes).to.deep.include(globalSettings.sidecars[1].volumes[0])
+            expect(volumes).to.deep.include(globalSettings.sidecars[1].volumes[1])
+            expect(containers[2].volumeMounts).to.deep.include(globalSettings.sidecars[0].volumeMounts[0])
+            expect(containers[1].volumeMounts).to.not.deep.include(globalSettings.sidecars[0].volumeMounts[0])
+            expect(containers[2].volumeMounts).to.deep.include(globalSettings.sidecars[1].volumeMounts[0])
+            expect(containers[1].volumeMounts).to.not.deep.include(globalSettings.sidecars[1].volumeMounts[0])
+            expect(containers[2].env).to.deep.include.members(formatEnvironments(globalSettings.sidecars[0].environments));
+            expect(containers[3].env).to.deep.include.members(formatEnvironments(globalSettings.sidecars[1].environments));
         });
         it('should not apply sidecar if no sidecar configmap', () => {
             const res = createJobSpec({
