@@ -207,8 +207,8 @@ properties:
     example:
     - name: "my-sidecar"
       container:
-        - name: "c1"
-          image: "hkube/my-image"
+        name: "c1"
+        image: "hkube/my-image"
       volumes:
         - name: "v1"
           emptyDir: {}
@@ -216,7 +216,6 @@ properties:
         - name: "v1"
           mountPath: "/tmp/foo"
       environments:
-        - name: "env1"
-          value: "val1"
+        env1: "val1"
 required:
   - name

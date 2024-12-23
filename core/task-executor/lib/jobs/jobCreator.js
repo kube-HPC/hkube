@@ -323,8 +323,8 @@ const applyAnnotations = (spec, keyVal) => {
     return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
 };
 
-const applySidecar = ({ container: sideCarContiners, volumes, volumeMounts, environments }, spec) => {
-    spec.spec.template.spec.containers.push(...sideCarContiners);
+const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, environments }, spec) => {
+    spec.spec.template.spec.containers.push(sideCarContainer);
     if (volumes) {
         volumes.forEach(v => {
             spec = applyVolumes(spec, v);
@@ -332,16 +332,12 @@ const applySidecar = ({ container: sideCarContiners, volumes, volumeMounts, envi
     }
     if (volumeMounts) {
         volumeMounts.forEach(v => {
-            sideCarContiners.forEach(container => {
-                spec = applyVolumeMounts(spec, container.name, v);
-            });
+            spec = applyVolumeMounts(spec, sideCarContainer.name, v);
         });
     }
     if (environments) {
-        environments.forEach(v => {
-            sideCarContiners.forEach(container => {
-                spec = applyEnvToContainer(spec, container.name, { [v.name]: v.value });
-            });
+        Object.entries(environments).forEach(([key, value]) => {
+            spec = applyEnvToContainer(spec, sideCarContainer.container.name, { [key]: value });
         });
     }
     return spec;
@@ -350,11 +346,11 @@ const applySidecar = ({ container: sideCarContiners, volumes, volumeMounts, envi
 const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
     let spec = clonedeep(inputSpec);
     for (const sidecar of settings.sidecars) {
-        const { name, container: scContainers, volumes, volumeMounts, environments } = sidecar;
+        const { name, container: scContainer, volumes, volumeMounts, environments } = sidecar;
         if (!clusterOptions[`${name}SidecarEnabled`]) {
             continue;
         }
-        spec = applySidecar({ container: scContainers, volumes, volumeMounts, environments }, spec);
+        spec = applySidecar({ container: scContainer, volumes, volumeMounts, environments }, spec);
     }
     customSideCars.forEach(sideCar => {
         spec = applySidecar(sideCar, spec);

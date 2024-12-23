@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.8.4",
+    "version": "2.8.5",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -7012,25 +7012,22 @@
                             "description": "name of the sidecar"
                           },
                           "container": {
-                            "type": "array",
+                            "type": "object",
                             "description": "key-value pairs of names and images for containers",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "name": {
-                                  "type": "string",
-                                  "description": "container name"
-                                },
-                                "image": {
-                                  "type": "string",
-                                  "description": "container image"
-                                }
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "container name"
                               },
-                              "required": [
-                                "name",
-                                "image"
-                              ]
-                            }
+                              "image": {
+                                "type": "string",
+                                "description": "container image"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "image"
+                            ]
                           },
                           "volumes": {
                             "type": "array",
@@ -7101,25 +7098,9 @@
                             }
                           },
                           "environments": {
-                            "type": "array",
-                            "description": "key-value pairs of names and values",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "name": {
-                                  "type": "string",
-                                  "description": "environment variable name"
-                                },
-                                "value": {
-                                  "type": "string",
-                                  "description": "environment variable value"
-                                }
-                              },
-                              "required": [
-                                "name",
-                                "value"
-                              ]
-                            }
+                            "type": "object",
+                            "nullable": true,
+                            "description": "key value environment variables for sideCar"
                           }
                         }
                       },
@@ -7127,12 +7108,10 @@
                       "example": [
                         {
                           "name": "my-sidecar",
-                          "container": [
-                            {
-                              "name": "c1",
-                              "image": "hkube/my-image"
-                            }
-                          ],
+                          "container": {
+                            "name": "c1",
+                            "image": "hkube/my-image"
+                          },
                           "volumes": [
                             {
                               "name": "v1",
@@ -7145,12 +7124,9 @@
                               "mountPath": "/tmp/foo"
                             }
                           ],
-                          "environments": [
-                            {
-                              "name": "env1",
-                              "value": "val1"
-                            }
-                          ]
+                          "environments": {
+                            "env1": "val1"
+                          }
                         }
                       ]
                     }
@@ -7711,25 +7687,22 @@
                               "description": "name of the sidecar"
                             },
                             "container": {
-                              "type": "array",
+                              "type": "object",
                               "description": "key-value pairs of names and images for containers",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "container name"
-                                  },
-                                  "image": {
-                                    "type": "string",
-                                    "description": "container image"
-                                  }
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "container name"
                                 },
-                                "required": [
-                                  "name",
-                                  "image"
-                                ]
-                              }
+                                "image": {
+                                  "type": "string",
+                                  "description": "container image"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "image"
+                              ]
                             },
                             "volumes": {
                               "type": "array",
@@ -7800,25 +7773,9 @@
                               }
                             },
                             "environments": {
-                              "type": "array",
-                              "description": "key-value pairs of names and values",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "environment variable name"
-                                  },
-                                  "value": {
-                                    "type": "string",
-                                    "description": "environment variable value"
-                                  }
-                                },
-                                "required": [
-                                  "name",
-                                  "value"
-                                ]
-                              }
+                              "type": "object",
+                              "nullable": true,
+                              "description": "key value environment variables for sideCar"
                             }
                           }
                         },
@@ -7826,12 +7783,10 @@
                         "example": [
                           {
                             "name": "my-sidecar",
-                            "container": [
-                              {
-                                "name": "c1",
-                                "image": "hkube/my-image"
-                              }
-                            ],
+                            "container": {
+                              "name": "c1",
+                              "image": "hkube/my-image"
+                            },
                             "volumes": [
                               {
                                 "name": "v1",
@@ -7844,12 +7799,9 @@
                                 "mountPath": "/tmp/foo"
                               }
                             ],
-                            "environments": [
-                              {
-                                "name": "env1",
-                                "value": "val1"
-                              }
-                            ]
+                            "environments": {
+                              "env1": "val1"
+                            }
                           }
                         ]
                       }
@@ -8216,25 +8168,22 @@
                               "description": "name of the sidecar"
                             },
                             "container": {
-                              "type": "array",
+                              "type": "object",
                               "description": "key-value pairs of names and images for containers",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "container name"
-                                  },
-                                  "image": {
-                                    "type": "string",
-                                    "description": "container image"
-                                  }
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "container name"
                                 },
-                                "required": [
-                                  "name",
-                                  "image"
-                                ]
-                              }
+                                "image": {
+                                  "type": "string",
+                                  "description": "container image"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "image"
+                              ]
                             },
                             "volumes": {
                               "type": "array",
@@ -8305,25 +8254,9 @@
                               }
                             },
                             "environments": {
-                              "type": "array",
-                              "description": "key-value pairs of names and values",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "environment variable name"
-                                  },
-                                  "value": {
-                                    "type": "string",
-                                    "description": "environment variable value"
-                                  }
-                                },
-                                "required": [
-                                  "name",
-                                  "value"
-                                ]
-                              }
+                              "type": "object",
+                              "nullable": true,
+                              "description": "key value environment variables for sideCar"
                             }
                           }
                         },
@@ -8331,12 +8264,10 @@
                         "example": [
                           {
                             "name": "my-sidecar",
-                            "container": [
-                              {
-                                "name": "c1",
-                                "image": "hkube/my-image"
-                              }
-                            ],
+                            "container": {
+                              "name": "c1",
+                              "image": "hkube/my-image"
+                            },
                             "volumes": [
                               {
                                 "name": "v1",
@@ -8349,12 +8280,9 @@
                                 "mountPath": "/tmp/foo"
                               }
                             ],
-                            "environments": [
-                              {
-                                "name": "env1",
-                                "value": "val1"
-                              }
-                            ]
+                            "environments": {
+                              "env1": "val1"
+                            }
                           }
                         ]
                       }
@@ -8716,25 +8644,22 @@
                           "description": "name of the sidecar"
                         },
                         "container": {
-                          "type": "array",
+                          "type": "object",
                           "description": "key-value pairs of names and images for containers",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "description": "container name"
-                              },
-                              "image": {
-                                "type": "string",
-                                "description": "container image"
-                              }
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "container name"
                             },
-                            "required": [
-                              "name",
-                              "image"
-                            ]
-                          }
+                            "image": {
+                              "type": "string",
+                              "description": "container image"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "image"
+                          ]
                         },
                         "volumes": {
                           "type": "array",
@@ -8805,25 +8730,9 @@
                           }
                         },
                         "environments": {
-                          "type": "array",
-                          "description": "key-value pairs of names and values",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "description": "environment variable name"
-                              },
-                              "value": {
-                                "type": "string",
-                                "description": "environment variable value"
-                              }
-                            },
-                            "required": [
-                              "name",
-                              "value"
-                            ]
-                          }
+                          "type": "object",
+                          "nullable": true,
+                          "description": "key value environment variables for sideCar"
                         }
                       }
                     },
@@ -8831,12 +8740,10 @@
                     "example": [
                       {
                         "name": "my-sidecar",
-                        "container": [
-                          {
-                            "name": "c1",
-                            "image": "hkube/my-image"
-                          }
-                        ],
+                        "container": {
+                          "name": "c1",
+                          "image": "hkube/my-image"
+                        },
                         "volumes": [
                           {
                             "name": "v1",
@@ -8849,12 +8756,9 @@
                             "mountPath": "/tmp/foo"
                           }
                         ],
-                        "environments": [
-                          {
-                            "name": "env1",
-                            "value": "val1"
-                          }
-                        ]
+                        "environments": {
+                          "env1": "val1"
+                        }
                       }
                     ]
                   }
@@ -9272,25 +9176,22 @@
                           "description": "name of the sidecar"
                         },
                         "container": {
-                          "type": "array",
+                          "type": "object",
                           "description": "key-value pairs of names and images for containers",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "description": "container name"
-                              },
-                              "image": {
-                                "type": "string",
-                                "description": "container image"
-                              }
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "container name"
                             },
-                            "required": [
-                              "name",
-                              "image"
-                            ]
-                          }
+                            "image": {
+                              "type": "string",
+                              "description": "container image"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "image"
+                          ]
                         },
                         "volumes": {
                           "type": "array",
@@ -9361,25 +9262,9 @@
                           }
                         },
                         "environments": {
-                          "type": "array",
-                          "description": "key-value pairs of names and values",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "description": "environment variable name"
-                              },
-                              "value": {
-                                "type": "string",
-                                "description": "environment variable value"
-                              }
-                            },
-                            "required": [
-                              "name",
-                              "value"
-                            ]
-                          }
+                          "type": "object",
+                          "nullable": true,
+                          "description": "key value environment variables for sideCar"
                         }
                       }
                     },
@@ -9387,12 +9272,10 @@
                     "example": [
                       {
                         "name": "my-sidecar",
-                        "container": [
-                          {
-                            "name": "c1",
-                            "image": "hkube/my-image"
-                          }
-                        ],
+                        "container": {
+                          "name": "c1",
+                          "image": "hkube/my-image"
+                        },
                         "volumes": [
                           {
                             "name": "v1",
@@ -9405,12 +9288,9 @@
                             "mountPath": "/tmp/foo"
                           }
                         ],
-                        "environments": [
-                          {
-                            "name": "env1",
-                            "value": "val1"
-                          }
-                        ]
+                        "environments": {
+                          "env1": "val1"
+                        }
                       }
                     ]
                   }
@@ -9803,25 +9683,22 @@
                               "description": "name of the sidecar"
                             },
                             "container": {
-                              "type": "array",
+                              "type": "object",
                               "description": "key-value pairs of names and images for containers",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "container name"
-                                  },
-                                  "image": {
-                                    "type": "string",
-                                    "description": "container image"
-                                  }
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "container name"
                                 },
-                                "required": [
-                                  "name",
-                                  "image"
-                                ]
-                              }
+                                "image": {
+                                  "type": "string",
+                                  "description": "container image"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "image"
+                              ]
                             },
                             "volumes": {
                               "type": "array",
@@ -9892,25 +9769,9 @@
                               }
                             },
                             "environments": {
-                              "type": "array",
-                              "description": "key-value pairs of names and values",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "environment variable name"
-                                  },
-                                  "value": {
-                                    "type": "string",
-                                    "description": "environment variable value"
-                                  }
-                                },
-                                "required": [
-                                  "name",
-                                  "value"
-                                ]
-                              }
+                              "type": "object",
+                              "nullable": true,
+                              "description": "key value environment variables for sideCar"
                             }
                           }
                         },
@@ -9918,12 +9779,10 @@
                         "example": [
                           {
                             "name": "my-sidecar",
-                            "container": [
-                              {
-                                "name": "c1",
-                                "image": "hkube/my-image"
-                              }
-                            ],
+                            "container": {
+                              "name": "c1",
+                              "image": "hkube/my-image"
+                            },
                             "volumes": [
                               {
                                 "name": "v1",
@@ -9936,12 +9795,9 @@
                                 "mountPath": "/tmp/foo"
                               }
                             ],
-                            "environments": [
-                              {
-                                "name": "env1",
-                                "value": "val1"
-                              }
-                            ]
+                            "environments": {
+                              "env1": "val1"
+                            }
                           }
                         ]
                       }
@@ -10298,25 +10154,22 @@
                                 "description": "name of the sidecar"
                               },
                               "container": {
-                                "type": "array",
+                                "type": "object",
                                 "description": "key-value pairs of names and images for containers",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "name": {
-                                      "type": "string",
-                                      "description": "container name"
-                                    },
-                                    "image": {
-                                      "type": "string",
-                                      "description": "container image"
-                                    }
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "container name"
                                   },
-                                  "required": [
-                                    "name",
-                                    "image"
-                                  ]
-                                }
+                                  "image": {
+                                    "type": "string",
+                                    "description": "container image"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "image"
+                                ]
                               },
                               "volumes": {
                                 "type": "array",
@@ -10387,25 +10240,9 @@
                                 }
                               },
                               "environments": {
-                                "type": "array",
-                                "description": "key-value pairs of names and values",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "name": {
-                                      "type": "string",
-                                      "description": "environment variable name"
-                                    },
-                                    "value": {
-                                      "type": "string",
-                                      "description": "environment variable value"
-                                    }
-                                  },
-                                  "required": [
-                                    "name",
-                                    "value"
-                                  ]
-                                }
+                                "type": "object",
+                                "nullable": true,
+                                "description": "key value environment variables for sideCar"
                               }
                             }
                           },
@@ -10413,12 +10250,10 @@
                           "example": [
                             {
                               "name": "my-sidecar",
-                              "container": [
-                                {
-                                  "name": "c1",
-                                  "image": "hkube/my-image"
-                                }
-                              ],
+                              "container": {
+                                "name": "c1",
+                                "image": "hkube/my-image"
+                              },
                               "volumes": [
                                 {
                                   "name": "v1",
@@ -10431,12 +10266,9 @@
                                   "mountPath": "/tmp/foo"
                                 }
                               ],
-                              "environments": [
-                                {
-                                  "name": "env1",
-                                  "value": "val1"
-                                }
-                              ]
+                              "environments": {
+                                "env1": "val1"
+                              }
                             }
                           ]
                         }
@@ -17927,25 +17759,22 @@
                               "description": "name of the sidecar"
                             },
                             "container": {
-                              "type": "array",
+                              "type": "object",
                               "description": "key-value pairs of names and images for containers",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "container name"
-                                  },
-                                  "image": {
-                                    "type": "string",
-                                    "description": "container image"
-                                  }
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "container name"
                                 },
-                                "required": [
-                                  "name",
-                                  "image"
-                                ]
-                              }
+                                "image": {
+                                  "type": "string",
+                                  "description": "container image"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "image"
+                              ]
                             },
                             "volumes": {
                               "type": "array",
@@ -18016,25 +17845,9 @@
                               }
                             },
                             "environments": {
-                              "type": "array",
-                              "description": "key-value pairs of names and values",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "environment variable name"
-                                  },
-                                  "value": {
-                                    "type": "string",
-                                    "description": "environment variable value"
-                                  }
-                                },
-                                "required": [
-                                  "name",
-                                  "value"
-                                ]
-                              }
+                              "type": "object",
+                              "nullable": true,
+                              "description": "key value environment variables for sideCar"
                             }
                           }
                         },
@@ -18042,12 +17855,10 @@
                         "example": [
                           {
                             "name": "my-sidecar",
-                            "container": [
-                              {
-                                "name": "c1",
-                                "image": "hkube/my-image"
-                              }
-                            ],
+                            "container": {
+                              "name": "c1",
+                              "image": "hkube/my-image"
+                            },
                             "volumes": [
                               {
                                 "name": "v1",
@@ -18060,12 +17871,9 @@
                                 "mountPath": "/tmp/foo"
                               }
                             ],
-                            "environments": [
-                              {
-                                "name": "env1",
-                                "value": "val1"
-                              }
-                            ]
+                            "environments": {
+                              "env1": "val1"
+                            }
                           }
                         ]
                       }
@@ -18485,25 +18293,22 @@
                               "description": "name of the sidecar"
                             },
                             "container": {
-                              "type": "array",
+                              "type": "object",
                               "description": "key-value pairs of names and images for containers",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "container name"
-                                  },
-                                  "image": {
-                                    "type": "string",
-                                    "description": "container image"
-                                  }
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "container name"
                                 },
-                                "required": [
-                                  "name",
-                                  "image"
-                                ]
-                              }
+                                "image": {
+                                  "type": "string",
+                                  "description": "container image"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "image"
+                              ]
                             },
                             "volumes": {
                               "type": "array",
@@ -18574,25 +18379,9 @@
                               }
                             },
                             "environments": {
-                              "type": "array",
-                              "description": "key-value pairs of names and values",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "environment variable name"
-                                  },
-                                  "value": {
-                                    "type": "string",
-                                    "description": "environment variable value"
-                                  }
-                                },
-                                "required": [
-                                  "name",
-                                  "value"
-                                ]
-                              }
+                              "type": "object",
+                              "nullable": true,
+                              "description": "key value environment variables for sideCar"
                             }
                           }
                         },
@@ -18600,12 +18389,10 @@
                         "example": [
                           {
                             "name": "my-sidecar",
-                            "container": [
-                              {
-                                "name": "c1",
-                                "image": "hkube/my-image"
-                              }
-                            ],
+                            "container": {
+                              "name": "c1",
+                              "image": "hkube/my-image"
+                            },
                             "volumes": [
                               {
                                 "name": "v1",
@@ -18618,12 +18405,9 @@
                                 "mountPath": "/tmp/foo"
                               }
                             ],
-                            "environments": [
-                              {
-                                "name": "env1",
-                                "value": "val1"
-                              }
-                            ]
+                            "environments": {
+                              "env1": "val1"
+                            }
                           }
                         ]
                       }
@@ -23154,25 +22938,22 @@
                   "description": "name of the sidecar"
                 },
                 "container": {
-                  "type": "array",
+                  "type": "object",
                   "description": "key-value pairs of names and images for containers",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "container name"
-                      },
-                      "image": {
-                        "type": "string",
-                        "description": "container image"
-                      }
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "container name"
                     },
-                    "required": [
-                      "name",
-                      "image"
-                    ]
-                  }
+                    "image": {
+                      "type": "string",
+                      "description": "container image"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "image"
+                  ]
                 },
                 "volumes": {
                   "type": "array",
@@ -23243,25 +23024,9 @@
                   }
                 },
                 "environments": {
-                  "type": "array",
-                  "description": "key-value pairs of names and values",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "environment variable name"
-                      },
-                      "value": {
-                        "type": "string",
-                        "description": "environment variable value"
-                      }
-                    },
-                    "required": [
-                      "name",
-                      "value"
-                    ]
-                  }
+                  "type": "object",
+                  "nullable": true,
+                  "description": "key value environment variables for sideCar"
                 }
               }
             },
@@ -23269,12 +23034,10 @@
             "example": [
               {
                 "name": "my-sidecar",
-                "container": [
-                  {
-                    "name": "c1",
-                    "image": "hkube/my-image"
-                  }
-                ],
+                "container": {
+                  "name": "c1",
+                  "image": "hkube/my-image"
+                },
                 "volumes": [
                   {
                     "name": "v1",
@@ -23287,12 +23050,9 @@
                     "mountPath": "/tmp/foo"
                   }
                 ],
-                "environments": [
-                  {
-                    "name": "env1",
-                    "value": "val1"
-                  }
-                ]
+                "environments": {
+                  "env1": "val1"
+                }
               }
             ]
           }
@@ -23799,25 +23559,22 @@
                       "description": "name of the sidecar"
                     },
                     "container": {
-                      "type": "array",
+                      "type": "object",
                       "description": "key-value pairs of names and images for containers",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "container name"
-                          },
-                          "image": {
-                            "type": "string",
-                            "description": "container image"
-                          }
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "container name"
                         },
-                        "required": [
-                          "name",
-                          "image"
-                        ]
-                      }
+                        "image": {
+                          "type": "string",
+                          "description": "container image"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "image"
+                      ]
                     },
                     "volumes": {
                       "type": "array",
@@ -23888,25 +23645,9 @@
                       }
                     },
                     "environments": {
-                      "type": "array",
-                      "description": "key-value pairs of names and values",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "environment variable name"
-                          },
-                          "value": {
-                            "type": "string",
-                            "description": "environment variable value"
-                          }
-                        },
-                        "required": [
-                          "name",
-                          "value"
-                        ]
-                      }
+                      "type": "object",
+                      "nullable": true,
+                      "description": "key value environment variables for sideCar"
                     }
                   }
                 },
@@ -23914,12 +23655,10 @@
                 "example": [
                   {
                     "name": "my-sidecar",
-                    "container": [
-                      {
-                        "name": "c1",
-                        "image": "hkube/my-image"
-                      }
-                    ],
+                    "container": {
+                      "name": "c1",
+                      "image": "hkube/my-image"
+                    },
                     "volumes": [
                       {
                         "name": "v1",
@@ -23932,12 +23671,9 @@
                         "mountPath": "/tmp/foo"
                       }
                     ],
-                    "environments": [
-                      {
-                        "name": "env1",
-                        "value": "val1"
-                      }
-                    ]
+                    "environments": {
+                      "env1": "val1"
+                    }
                   }
                 ]
               }
@@ -23995,25 +23731,22 @@
             "description": "name of the sidecar"
           },
           "container": {
-            "type": "array",
+            "type": "object",
             "description": "key-value pairs of names and images for containers",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "container name"
-                },
-                "image": {
-                  "type": "string",
-                  "description": "container image"
-                }
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "container name"
               },
-              "required": [
-                "name",
-                "image"
-              ]
-            }
+              "image": {
+                "type": "string",
+                "description": "container image"
+              }
+            },
+            "required": [
+              "name",
+              "image"
+            ]
           },
           "volumes": {
             "type": "array",
@@ -24084,44 +23817,11 @@
             }
           },
           "environments": {
-            "type": "array",
-            "description": "key-value pairs of names and values",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "environment variable name"
-                },
-                "value": {
-                  "type": "string",
-                  "description": "environment variable value"
-                }
-              },
-              "required": [
-                "name",
-                "value"
-              ]
-            }
+            "type": "object",
+            "nullable": true,
+            "description": "key value environment variables for sideCar"
           }
         }
-      },
-      "sidecarContainer": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "container name"
-          },
-          "image": {
-            "type": "string",
-            "description": "container image"
-          }
-        },
-        "required": [
-          "name",
-          "image"
-        ]
       },
       "sidecarVolumeMounts": {
         "type": "object",
@@ -24138,23 +23838,6 @@
         "required": [
           "name",
           "mountPath"
-        ]
-      },
-      "sidecarEnvVars": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "environment variable name"
-          },
-          "value": {
-            "type": "string",
-            "description": "environment variable value"
-          }
-        },
-        "required": [
-          "name",
-          "value"
         ]
       },
       "sidecarVolume": {
