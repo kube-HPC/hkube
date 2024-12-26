@@ -131,7 +131,7 @@ class Logs {
                     searchWord,
                     taskTime
                 };
-                if ((sideCars.length > 0 || containerNames.length > 0) && logMode !== logModes.ALGORITHM && logMode === logModes.INTERNAL) {
+                if ((sideCars.length > 0 || containerNames.length > 0) && logMode !== logModes.ALGORITHM && logMode !== logModes.INTERNAL) {
                     const containerNameList = containerNames.length > 0 ? containerNames : sideCars.map(x => x.name);
                     args.containerNameList = containerNameList;
                 }
