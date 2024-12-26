@@ -36,11 +36,11 @@ class EsLogs {
         }
     }
 
-    addComponentCriteria(nodeKind, sideCarName) {
+    addComponentCriteria(nodeKind, containerNameList) {
         let search;
-        const componentNames = [...getSearchComponent(nodeKind)];
-        if (sideCarName) {
-            componentNames.push(sideCarName);
+        const componentNames = getSearchComponent(nodeKind);
+        if (containerNameList) {
+            componentNames.push(...containerNameList);
         }
         const components = componentNames.map(sc => `${this._structuredPrefix}meta.internal.component: "${sc}"`);
         if (components.length) {
@@ -49,7 +49,7 @@ class EsLogs {
         return search;
     }
 
-    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime, sideCarContainerName }) {
+    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime, containerNameList }) {
         const query = [];
         if (taskId) {
             query.push(`${this._structuredPrefix}meta.internal.taskId: "${taskId}"`);
@@ -57,6 +57,7 @@ class EsLogs {
         if (podName) {
             query.push(`kubernetes.pod_name: "${podName}"`);
         }
+        // Handle message structure
         switch (logMode) {
         case logModes.INTERNAL: // Source = System
             query.push(`${this._structuredPrefix}message: "${internalLogPrefix}*"`);
@@ -67,16 +68,22 @@ class EsLogs {
         default:
             break;
         }
-        if (logMode === logModes.SIDECAR) {
-            const searchComponent = `${this._structuredPrefix}meta.internal.component: "${sideCarContainerName}"`;
+        // Handle components
+        if (logMode === logModes.SIDECAR) { // In this case, we only ask for 1 sideCar, not more.
+            if (containerNameList.length === 0) {
+                log.error('a sideCar Name is requried in containerNames when logMode is SIDECAR!', { component });
+                return [];
+            }
+            const searchComponent = `${this._structuredPrefix}meta.internal.component: "${containerNameList[0]}"`;
             query.push(searchComponent);
         }
         else if (nodeKind) {
-            const searchComponent = this.addComponentCriteria(nodeKind, sideCarContainerName);
+            const searchComponent = this.addComponentCriteria(nodeKind, containerNameList);
             if (searchComponent) {
                 query.push(searchComponent);
             }
         }
+
         if (searchWord) {
             query.push(`${searchWord}*`);
         }

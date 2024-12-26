@@ -47,30 +47,30 @@ class KubernetesLogs {
     }
 
     /**
-     * Retrieves logs from a specific container or pod in a Kubernetes cluster.
-     * Return value - if containerName is provided, logs are taken from a sidecar container, which has no special structure.
+     * Retrieves logs from worker container.
+     * Return value - Returns an array of log objects, each containing a timestamp, level, and message, of the given containerNameList, if filtering by it.
      */
-    async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip, sideCarContainerName }) {
+    async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip, containerNameList }) {
         let tailLines;
         if (sort === sortOrder.desc) {
             tailLines = limit;
         }
-
+        // The worker container is logging all the other containers logs, by using logging-proxy. So we will need the worker logs.
         const containerName = this.getContainerName(nodeKind);
         const logsData = await this._client.logs.get({ podName, tailLines, containerName });
 
-        return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip, sideCarContainerName });
+        return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip, containerNameList });
     }
 
-    _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip, sideCarContainerName }) {
+    _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip, containerNameList }) {
         let logs = [];
         const logList = logsData.body.split('\n');
         logList.forEach((line) => {
             if (!line) {
                 return;
             }
-            const logData = this._formatMethod(line, taskId, nodeKind, sideCarContainerName);
-            const valid = this._filter(logData, logMode, sideCarContainerName);
+            const logData = this._formatMethod(line, taskId, nodeKind, containerNameList);
+            const valid = this._filter(logData, logMode, containerNameList);
             if (valid) {
                 logs.push(logData);
             }
@@ -82,7 +82,7 @@ class KubernetesLogs {
         return logs;
     }
 
-    _filter(line, logMode, sideCarContainerName) {
+    _filter(line, logMode, containerNameList) {
         if (!line?.message) {
             return false;
         }
@@ -91,18 +91,18 @@ class KubernetesLogs {
         switch (logMode) {
             case logModes.ALL: // Source = All
                 return true;
-            case logModes.INTERNAL:
-                if (isInternalLog) { // Source = System
+            case logModes.INTERNAL: // Source = System
+                if (isInternalLog) {
                     return true;
                 }
                 break;
-            case logModes.ALGORITHM:
-                if (!isInternalLog && logComponent === 'Algorunner') { // Source = Algorithm
+            case logModes.ALGORITHM: // Source = Algorithm
+                if (!isInternalLog && logComponent === 'Algorunner') {
                     return true;
                 }
                 break;
-            case logModes.SIDECAR:
-                if (!isInternalLog && logComponent === sideCarContainerName) { // Source = Sidecar
+            case logModes.SIDECAR: // Source = Sidecar
+                if (!isInternalLog && containerNameList.includes(logComponent)) {
                     return true;
                 }
                 break;
@@ -112,12 +112,13 @@ class KubernetesLogs {
         return false;
     }
 
-    _formatJson(str, task, nodeKind, sideCarContainerName) {
+    _formatJson(str, task, nodeKind, containerNameList) {
         try {
             const line = JSON.parse(str);
             const { taskId, component: logComponent } = line.meta.internal;
             if (task) {
-                if (task === taskId && (getSearchComponent(nodeKind).includes(logComponent) || logComponent === sideCarContainerName)) {
+                const resolvedSearchComponent = [...getSearchComponent(nodeKind), ...containerNameList];
+                if (task === taskId && resolvedSearchComponent.includes(logComponent)) {
                     return line;
                 }
             }
