@@ -25,7 +25,6 @@ const components = {
 };
 
 const internalLogPrefix = 'wrapper::';
-const sideCarPrefix = (sideCarContainerName) => `${sideCarContainerName.toUpperCase()}::`;
 
 const LOGS_LIMIT = 500;
 
@@ -36,6 +35,5 @@ module.exports = {
     containers,
     components,
     internalLogPrefix,
-    sideCarPrefix,
     LOGS_LIMIT,
 };

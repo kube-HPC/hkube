@@ -3,7 +3,7 @@ const { logModes } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../lib/consts/componentNames').LOGS;
 const { getSearchComponent } = require('./searchComponents');
-const { internalLogPrefix, sideCarPrefix } = require('./consts');
+const { internalLogPrefix } = require('./consts');
 
 class EsLogs {
     constructor() {
@@ -61,11 +61,8 @@ class EsLogs {
         case logModes.INTERNAL: // Source = System
             query.push(`${this._structuredPrefix}message: "${internalLogPrefix}*"`);
             break;
-        case logModes.ALGORITHM: // Source = Algorithm
+        case logModes.ALGORITHM || logModes.SIDECAR: // Source = Algorithm / SideCar
             query.push(`NOT ${this._structuredPrefix}message: "${internalLogPrefix}*"`);
-            break;
-        case logModes.SIDECAR: // Source = any SideCar
-            query.push(`${this._structuredPrefix}message: "${sideCarPrefix(sideCarContainerName)}*"`);
             break;
         default:
             break;

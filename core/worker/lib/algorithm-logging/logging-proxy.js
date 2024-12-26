@@ -10,7 +10,6 @@ const criLogRegex = /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/;
 let log;
 const ALGORITHM_CONTAINER = 'algorunner';
 const WORKER_CONTAINER = 'worker';
-const sideCarPrefix = (sideCarContainerName) => `${sideCarContainerName.toUpperCase()}::`;
 
 class LoggingProxy {
     /**
@@ -243,7 +242,7 @@ class LoggingProxy {
                 this._sideCarLogFilePath.forEach((sidecar) => {
                     const sidecarTail = new Tail(sidecar.path, { fromBeginning: true });
                     sidecarTail.on('line', (line) => {
-                        this._handleLogMessage(line, sidecar.carName, sideCarPrefix(sidecar.carName));
+                        this._handleLogMessage(line, sidecar.carName);
                     });
                 });
             }
@@ -270,13 +269,13 @@ class LoggingProxy {
      *
      * @returns {void} - This method does not return a value. It logs the processed message based on the stream type.
      */
-    _handleLogMessage(line, logComponent, prefix = '') {
+    _handleLogMessage(line, logComponent) {
         const { logMessage, stream, internalLog } = this._getLogMessage(line);
         if (stream === 'stderr') {
-            log.info(`${prefix}${logMessage}`, { component: logComponent, ...internalLog });
+            log.info(`${logMessage}`, { component: logComponent, ...internalLog });
         }
         else {
-            log.info(`${prefix}${logMessage}`, { component: logComponent, ...internalLog });
+            log.info(`${logMessage}`, { component: logComponent, ...internalLog });
         }
     }
 }

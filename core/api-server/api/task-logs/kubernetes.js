@@ -4,7 +4,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { nodeKind: nodeKinds } = require('@hkube/consts');
 const component = require('../../lib/consts/componentNames').LOGS;
 const { getSearchComponent } = require('./searchComponents');
-const { formats, containers, sortOrder, internalLogPrefix, sideCarPrefix } = require('./consts');
+const { formats, containers, sortOrder, internalLogPrefix } = require('./consts');
 
 class KubernetesLogs {
     constructor() {
@@ -69,7 +69,7 @@ class KubernetesLogs {
             if (!line) {
                 return;
             }
-            const logData = this._formatMethod(line, taskId, nodeKind);
+            const logData = this._formatMethod(line, taskId, nodeKind, sideCarContainerName);
             const valid = this._filter(logData, logMode, sideCarContainerName);
             if (valid) {
                 logs.push(logData);
@@ -102,7 +102,7 @@ class KubernetesLogs {
                 }
                 break;
             case logModes.SIDECAR:
-                if (line.message.startsWith(sideCarPrefix(sideCarContainerName))) { // Source = Sidecar
+                if (!isInternalLog && logComponent === sideCarContainerName) { // Source = Sidecar
                     return true;
                 }
                 break;
@@ -112,12 +112,12 @@ class KubernetesLogs {
         return false;
     }
 
-    _formatJson(str, task, nodeKind) {
+    _formatJson(str, task, nodeKind, sideCarContainerName) {
         try {
             const line = JSON.parse(str);
             const { taskId, component: logComponent } = line.meta.internal;
             if (task) {
-                if (task === taskId && (getSearchComponent(nodeKind).includes(logComponent) || line.message.startsWith(sideCarPrefix(logComponent)))) {
+                if (task === taskId && (getSearchComponent(nodeKind).includes(logComponent) || logComponent === sideCarContainerName)) {
                     return line;
                 }
             }

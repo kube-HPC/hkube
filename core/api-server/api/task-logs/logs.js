@@ -100,7 +100,7 @@ class Logs {
                         const retStatus = this._checkContainerState(container, true);
                         if (retStatus) {
                             logsData.podStatus = retStatus;
-                            return retStatus === podStatus.ALGORUNNER.ERROR;
+                            return retStatus === podStatus.SIDECAR_ERROR;
                         }
                         return false;
                     });
