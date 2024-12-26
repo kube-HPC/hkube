@@ -108,9 +108,7 @@ class Logs {
                         }
                     }
                 }
-                else {
-                    logsData.podStatus = podStatus.NOT_EXIST;
-                }
+                else logsData.podStatus = podStatus.NOT_EXIST;
             }
             catch (e) {
                 logsData.podStatus = podStatus.NOT_EXIST;
@@ -137,6 +135,7 @@ class Logs {
                     const containerNameList = containerNames.length > 0 ? containerNames : sideCars.map(x => x.name);
                     args.containerNameList = containerNameList;
                 }
+                else args.containerNameList = [];
                 logsData.logs = await this._getLogs(args, logSource);
             }
         }
