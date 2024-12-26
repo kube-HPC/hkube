@@ -74,7 +74,7 @@ class Logs {
         limit = LOGS_LIMIT,
         searchWord,
         taskTime,
-        containerNames = [] // Used for sideCar containers names, and future support for any additional container which might be added (any container other then algorunner).
+        containerNames = [] // Used for sideCar containers names, and future support for any additional container which might be added (any container other than algorunner).
     }) {
         const logsData = {};
         try {

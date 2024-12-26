@@ -83,8 +83,8 @@ class GraphqlResolvers {
     }
 
     async queryLogs(query) {
-        const { taskId, podName, source, nodeKind, logMode, pageNum, sort, limit, searchWord, taskTime, sideCarNames } = query;
-        const logs = await logsQueries.getLogs({ taskId, podName, source, nodeKind, logMode, pageNum, sort, limit, searchWord, taskTime, sideCarNames });
+        const { taskId, podName, source, nodeKind, logMode, pageNum, sort, limit, searchWord, taskTime, containerNames } = query;
+        const logs = await logsQueries.getLogs({ taskId, podName, source, nodeKind, logMode, pageNum, sort, limit, searchWord, taskTime, containerNames });
         return logs;
     }
 

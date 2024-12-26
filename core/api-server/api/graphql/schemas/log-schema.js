@@ -21,7 +21,7 @@ const logsTypeDefs = gql`
       searchWord: String
       taskTime: String
       limit: Int
-      sideCarNames: [String]
+      containerNames: [String]
     ): LogsMainType
   }
 `;
