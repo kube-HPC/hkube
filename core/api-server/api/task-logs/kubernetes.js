@@ -46,26 +46,31 @@ class KubernetesLogs {
         }
     }
 
-    async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip }) {
+    /**
+     * Retrieves logs from worker container.
+     * Return value - Returns an array of log objects, each containing a timestamp, level, and message, of the given containerNameList, if filtering by it.
+     */
+    async getLogs({ taskId, podName, nodeKind, logMode, pageNum, sort, limit, skip, containerNameList }) {
         let tailLines;
         if (sort === sortOrder.desc) {
             tailLines = limit;
         }
+        // The worker container is logging all the other containers logs, by using logging-proxy. So we will need the worker logs.
+        const containerName = this.getContainerName(nodeKind);
+        const logsData = await this._client.logs.get({ podName, tailLines, containerName });
 
-        const logsData = await this._client.logs.get({ podName, tailLines, containerName: this.getContainerName(nodeKind) });
-
-        return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip });
+        return this._formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, sort, limit, skip, containerNameList });
     }
 
-    _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip }) {
+    _formalizeData({ logsData, taskId, nodeKind, logMode, pageNum, limit, skip, containerNameList }) {
         let logs = [];
         const logList = logsData.body.split('\n');
-        logList.forEach((l) => {
-            if (!l) {
+        logList.forEach((line) => {
+            if (!line) {
                 return;
             }
-            const logData = this._formatMethod(l, taskId, nodeKind);
-            const valid = this._filter(logData, logMode);
+            const logData = this._formatMethod(line, taskId, nodeKind, containerNameList);
+            const valid = this._filter(logData, logMode, containerNameList);
             if (valid) {
                 logs.push(logData);
             }
@@ -77,29 +82,43 @@ class KubernetesLogs {
         return logs;
     }
 
-    _filter(line, logMode) {
+    _filter(line, logMode, containerNameList) {
         if (!line?.message) {
             return false;
         }
-        if (logMode === logModes.ALL) {
-            return true;
-        }
+        const { component: logComponent } = line.meta.internal;
         const isInternalLog = line.message.startsWith(`${internalLogPrefix}`);
-        if (logMode === logModes.INTERNAL && isInternalLog) {
-            return true;
-        }
-        if (logMode === logModes.ALGORITHM && !isInternalLog) {
-            return true;
+        switch (logMode) {
+            case logModes.ALL: // Source = All
+                return true;
+            case logModes.INTERNAL: // Source = System
+                if (isInternalLog) {
+                    return true;
+                }
+                break;
+            case logModes.ALGORITHM: // Source = Algorithm
+                if (!isInternalLog && logComponent === 'Algorunner') {
+                    return true;
+                }
+                break;
+            case logModes.SIDECAR: // Source = Sidecar
+                if (!isInternalLog && containerNameList.includes(logComponent)) {
+                    return true;
+                }
+                break;
+            default:
+                return false;
         }
         return false;
     }
 
-    _formatJson(str, task, nodeKind) {
+    _formatJson(str, task, nodeKind, containerNameList) {
         try {
             const line = JSON.parse(str);
             const { taskId, component: logComponent } = line.meta.internal;
             if (task) {
-                if (task === taskId && getSearchComponent(nodeKind).includes(logComponent)) {
+                const resolvedSearchComponent = [...getSearchComponent(nodeKind), ...containerNameList];
+                if (task === taskId && resolvedSearchComponent.includes(logComponent)) {
                     return line;
                 }
             }

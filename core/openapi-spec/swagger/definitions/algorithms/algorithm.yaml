@@ -197,5 +197,25 @@ properties:
     type: string
     nullable: true
     description: the extension name that will be attached to a file when downloading algorithm result
+  sideCars:
+    type: array
+    nullable: true
+    description: a list of sideCars for the algorithm
+    items:
+      $ref: "#/components/schemas/sideCars"
+    uniqueItems: true
+    example:
+    - name: "my-sidecar"
+      container:
+        name: "c1"
+        image: "hkube/my-image"
+      volumes:
+        - name: "v1"
+          emptyDir: {}
+      volumeMounts:
+        - name: "v1"
+          mountPath: "/tmp/foo"
+      environments:
+        env1: "val1"
 required:
   - name

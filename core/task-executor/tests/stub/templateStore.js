@@ -128,5 +128,304 @@ module.exports = [
                 memory: "256Mi"
             }
         }
+    },
+    {
+        name: 'algo-car-pvc-non-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        },
+        "sideCars": [
+            {
+                "name": "mycar",
+                "container": [
+                    {
+                        "name": "mycar",
+                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "v1",
+                        "persistentVolumeClaim": {
+                            "claimName": "hjkjhgfdfjkjhgffg"
+                        }
+                    }
+                ],
+                "volumeMounts": [
+                    {
+                        "name": "v1",
+                        "mountPath": "/tmp/foo"
+                    }
+                ],
+                "environments": [
+                    {
+                        "name": "env1",
+                        "value": "val1"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'algo-car-pvc-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        },
+        "sideCars": [
+            {
+                "name": "mycar",
+                "container": [
+                    {
+                        "name": "mycar",
+                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "v1",
+                        "persistentVolumeClaim": {
+                            "claimName": "pvc-1"
+                        }
+                    }
+                ],
+                "volumeMounts": [
+                    {
+                        "name": "v1",
+                        "mountPath": "/tmp/foo"
+                    }
+                ],
+                "environments": [
+                    {
+                        "name": "env1",
+                        "value": "val1"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'algo-car-config-map-non-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        },
+        "sideCars": [
+            {
+                "name": "mycar",
+                "container": [
+                    {
+                        "name": "mycar",
+                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "v1",
+                        "configMap": {
+                            "name": "hjkjhgfdfjkjhgffg"
+                        }
+                    }
+                ],
+                "volumeMounts": [
+                    {
+                        "name": "v1",
+                        "mountPath": "/tmp/foo"
+                    }
+                ],
+                "environments": [
+                    {
+                        "name": "env1",
+                        "value": "val1"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'algo-car-config-map-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        },
+        "sideCars": [
+            {
+                "name": "mycar",
+                "container": [
+                    {
+                        "name": "mycar",
+                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "v1",
+                        "configMap": {
+                            "name": "config-map-1"
+                        }
+                    }
+                ],
+                "volumeMounts": [
+                    {
+                        "name": "v1",
+                        "mountPath": "/tmp/foo"
+                    }
+                ],
+                "environments": [
+                    {
+                        "name": "env1",
+                        "value": "val1"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'algo-car-secret-non-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        },
+        "sideCars": [
+            {
+                "name": "mycar",
+                "container": [
+                    {
+                        "name": "mycar",
+                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "v1",
+                        "secret": {
+                            "secretName": "hjkjhgfdfjkjhgffg"
+                        }
+                    }
+                ],
+                "volumeMounts": [
+                    {
+                        "name": "v1",
+                        "mountPath": "/tmp/foo"
+                    }
+                ],
+                "environments": [
+                    {
+                        "name": "env1",
+                        "value": "val1"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'algo-car-secret-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        },
+        "sideCars": [
+            {
+                "name": "mycar",
+                "container": [
+                    {
+                        "name": "mycar",
+                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "v1",
+                        "secret": {
+                            "secretName": "secret-1"
+                        }
+                    }
+                ],
+                "volumeMounts": [
+                    {
+                        "name": "v1",
+                        "mountPath": "/tmp/foo"
+                    }
+                ],
+                "environments": [
+                    {
+                        "name": "env1",
+                        "value": "val1"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'algo-car-emptyDir',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        },
+        "sideCars": [
+            {
+                "name": "mycar",
+                "container": [
+                    {
+                        "name": "mycar",
+                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "v1",
+                        "emptyDir": {}
+                    }
+                ],
+                "volumeMounts": [
+                    {
+                        "name": "v1",
+                        "mountPath": "/tmp/foo"
+                    }
+                ],
+                "environments": [
+                    {
+                        "name": "env1",
+                        "value": "val1"
+                    }
+                ]
+            }
+        ]
     }
 ];

@@ -54,6 +54,15 @@ class Logs {
         throw new Error(`Unknown log source ${source}`);
     }
 
+    /**
+     * Fetches logs for a specified task or pod, including logs from sidecar containers if applicable.
+     *
+     * @async
+     * @returns {Promise<Object>} A promise that resolves to an object containing:
+     * - `logs`: An array of log entries with timestamps, levels, and messages.
+     * - `podStatus`: The status of the pod (e.g., `NORMAL`, `ERROR`, `NOT_EXIST`, etc.).
+     * @throws {Error} Throws an error if logs cannot be fetched from the specified source.
+     */
     async getLogs({
         taskId,
         podName,
@@ -64,31 +73,42 @@ class Logs {
         sort = sortOrder.desc,
         limit = LOGS_LIMIT,
         searchWord,
-        taskTime
+        taskTime,
+        containerNames = [] // Used for sideCar containers names, and future support for any additional container which might be added (any container other than algorunner).
     }) {
-        let logs = [];
         const logsData = {};
         try {
-            let skip = 0;
+            const sideCars = [];
             const pageNumber = parseInt(pageNum, 10);
             const sizeLimit = parseInt(limit, 10);
-            if (pageNumber > 0) {
-                skip = (pageNumber - 1) * sizeLimit;
-            }
+            const skip = pageNumber > 0 ? (pageNumber - 1) * sizeLimit : 0;
 
             logsData.podStatus = podStatus.NORMAL;
 
             try {
                 const podData = await kubernetes._client.pods.get({ podName });
-                const currentAlgorunner = podData.body.status.containerStatuses.filter(x => x.name === containers.algorunner)[0];
-                const { terminated, waiting } = currentAlgorunner.state;
+                const { status } = podData.body || {};
+                if (status && status.containerStatuses && status.containerStatuses.length > 0) {
+                    const currentAlgorunner = status.containerStatuses.find(x => x.name === containers.algorunner);
+                    sideCars.push(...status.containerStatuses.filter(x => (x.name !== containers.algorunner && x.name !== containers.worker)));
 
-                if (terminated?.reason === 'Error') {
-                    logsData.podStatus = podStatus.ERROR;
+                    const errorFound = sideCars.some(container => {
+                        const retStatus = this._checkContainerState(container, true);
+                        if (retStatus) {
+                            logsData.podStatus = retStatus;
+                            return retStatus === podStatus.SIDECAR_ERROR;
+                        }
+                        return false;
+                    });
+
+                    if (!errorFound && currentAlgorunner) {
+                        const retStatus = this._checkContainerState(currentAlgorunner, false);
+                        if (retStatus) {
+                            logsData.podStatus = retStatus;
+                        }
+                    }
                 }
-                else if (waiting?.reason === 'ImagePullBackOff') {
-                    logsData.podStatus = podStatus.NO_IMAGE;
-                }
+                else logsData.podStatus = podStatus.NOT_EXIST;
             }
             catch (e) {
                 logsData.podStatus = podStatus.NOT_EXIST;
@@ -99,21 +119,24 @@ class Logs {
             }
             else {
                 const logSource = this._getLogSource(source);
-                logs = await logSource.getLogs({
+                const args = {
                     taskId,
                     podName,
                     nodeKind,
                     logMode,
                     sort,
                     skip,
-                    ageNum: pageNumber,
+                    pageNum: pageNumber,
                     limit: sizeLimit,
                     searchWord,
                     taskTime
-                });
-                logs = logs.map(this._format);
-                logs = orderBy(logs, l => l.timestamp, sortOrder.desc);
-                logsData.logs = logs;
+                };
+                if ((sideCars.length > 0 || containerNames.length > 0) && logMode !== logModes.ALGORITHM && logMode !== logModes.INTERNAL) {
+                    const containerNameList = containerNames.length > 0 ? containerNames : sideCars.map(x => x.name);
+                    args.containerNameList = containerNameList;
+                }
+                else args.containerNameList = [];
+                logsData.logs = await this._getLogs(args, logSource);
             }
         }
         catch (e) {
@@ -125,6 +148,42 @@ class Logs {
             }];
         }
         return logsData;
+    }
+
+    /**
+     * Checks the state of a container and determines its status.
+     *
+     * @param {Object} container - The container object to check.
+     * @param {Object} container.state - The state of the container, containing `terminated` and `waiting` properties.
+     * @param {Object} [container.state.terminated] - The terminated state of the container, if it exists.
+     * @param {string} [container.state.terminated.reason] - The reason for the termination, if available.
+     * @param {Object} [container.state.waiting] - The waiting state of the container, if it exists.
+     * @param {string} [container.state.waiting.reason] - The reason for the waiting state, if available.
+     * @param {boolean} isSideCar - A flag indicating whether the container is a sidecar (`true`) or an algorunner (`false`).
+     * @returns {string|null} Returns the status of the container.
+     */
+    _checkContainerState(container, isSideCar) {
+        const { terminated, waiting } = container.state || {};
+        if (terminated?.reason === 'Error') {
+            return isSideCar ? podStatus.SIDECAR_ERROR : podStatus.ALGORUNNER_ERROR;
+        }
+        if (waiting?.reason === 'ImagePullBackOff') {
+            return isSideCar ? podStatus.SIDECAR_NO_IMAGE : podStatus.ALGORUNNER_NO_IMAGE;
+        }
+        return null;
+    }
+
+    /**
+     * Retrieves and formats logs from a given log source.
+     * @param {Object} args - The arguments to pass to the log source's getLogs method.
+     * @param {Object} logSource - The source from which to retrieve the logs.
+     * @returns {Promise<Array>} A promise that resolves to an array of formatted logs, ordered by timestamp in descending order.
+     */
+    async _getLogs(args, logSource) {
+        let logs = await logSource.getLogs(args);
+        logs = logs.map(this._format);
+        logs = orderBy(logs, l => l.timestamp, sortOrder.desc);
+        return logs;
     }
 
     _format(line) {

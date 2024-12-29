@@ -1711,7 +1711,227 @@ describe('reconciler', () => {
                 algorithmRequests: [{ data }]
             });
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
-            expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);
+            expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);globalSettings.sidecars
+        });
+
+        describe('algorithms with sideCar', function () {
+            it('should not schedule algorithm with sideCar with non-exist pvc', async () => {
+                const algorithm = 'algo-car-pvc-non-exist';
+                const res = await reconciler.reconcile({
+                    options,
+                    normResources,
+                    algorithmTemplates,
+                    algorithmRequests: [
+                        {
+                            data: [{
+                                name: algorithm,
+                            }]
+                        }
+                    ],
+                    jobs: {
+                        body: {
+                            items: [
+    
+                            ]
+                        }
+                    }
+                });
+                expect(res).to.exist;
+                expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 0, skipped: 1, resumed: 0 } });
+            });
+
+            it('should schedule algorithm with sideCar with existing pvc', async () => {
+                const algorithm = 'algo-car-pvc-exist';
+                const res = await reconciler.reconcile({
+                    options,
+                    normResources,
+                    algorithmTemplates,
+                    algorithmRequests: [
+                        {
+                            data: [{
+                                name: algorithm,
+                            }]
+                        }
+                    ],
+                    jobs: {
+                        body: {
+                            items: [
+    
+                            ]
+                        }
+                    }
+                });
+                expect(res).to.exist;
+                expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+                expect(callCount('createJob').length).to.eql(1);
+                const spec = callCount('createJob')[0][0].spec.spec.template.spec
+                expect(spec.containers[0].image).to.eql('hkube/worker');
+                expect(spec.containers[1].image).to.eql('hkube/algorithm-example');
+                expect(spec.containers.length).to.eql(3); // worker, algorunner, sidecar
+                const volumes = spec.volumes;
+                const volume = volumes.find(v => v.name === 'v1');
+
+                expect(volume).to.have.property('persistentVolumeClaim');
+                expect(volume.persistentVolumeClaim).to.be.an('object');
+                expect(volume.persistentVolumeClaim).to.have.property('claimName', 'pvc-1');
+            });
+
+            it('should not schedule algorithm with sideCar with non-existing configMap', async () => {
+                const algorithm = 'algo-car-config-map-non-exist';
+                const res = await reconciler.reconcile({
+                    options,
+                    normResources,
+                    algorithmTemplates,
+                    algorithmRequests: [
+                        {
+                            data: [{
+                                name: algorithm,
+                            }]
+                        }
+                    ],
+                    jobs: {
+                        body: {
+                            items: [
+    
+                            ]
+                        }
+                    }
+                });
+                expect(res).to.exist;
+                expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 0, skipped: 1, resumed: 0 } });
+            });
+
+            it('should schedule algorithm with sideCar with existing configMap', async () => {
+                const algorithm = 'algo-car-config-map-exist';
+                const res = await reconciler.reconcile({
+                    options,
+                    normResources,
+                    algorithmTemplates,
+                    algorithmRequests: [
+                        {
+                            data: [{
+                                name: algorithm,
+                            }]
+                        }
+                    ],
+                    jobs: {
+                        body: {
+                            items: [
+    
+                            ]
+                        }
+                    }
+                });
+                expect(res).to.exist;
+                expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+                expect(callCount('createJob').length).to.eql(1);
+                const spec = callCount('createJob')[0][0].spec.spec.template.spec
+                expect(spec.containers[0].image).to.eql('hkube/worker');
+                expect(spec.containers[1].image).to.eql('hkube/algorithm-example');
+                expect(spec.containers.length).to.eql(3); // worker, algorunner, sidecar
+                const volumes = spec.volumes;
+                const volume = volumes.find(v => v.name === 'v1');
+
+                expect(volume).to.have.property('configMap');
+                expect(volume.configMap).to.be.an('object');
+                expect(volume.configMap).to.have.property('name', 'config-map-1');
+            });
+
+            it('should not schedule algorithm with sideCar with non-exist secret', async () => {
+                const algorithm = 'algo-car-secret-non-exist';
+                const res = await reconciler.reconcile({
+                    options,
+                    normResources,
+                    algorithmTemplates,
+                    algorithmRequests: [
+                        {
+                            data: [{
+                                name: algorithm,
+                            }]
+                        }
+                    ],
+                    jobs: {
+                        body: {
+                            items: [
+    
+                            ]
+                        }
+                    }
+                });
+                expect(res).to.exist;
+                expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 0, skipped: 1, resumed: 0 } });
+            });
+
+            it('should schedule algorithm with sideCar with existing secret', async () => {
+                const algorithm = 'algo-car-secret-exist';
+                const res = await reconciler.reconcile({
+                    options,
+                    normResources,
+                    algorithmTemplates,
+                    algorithmRequests: [
+                        {
+                            data: [{
+                                name: algorithm,
+                            }]
+                        }
+                    ],
+                    jobs: {
+                        body: {
+                            items: [
+    
+                            ]
+                        }
+                    }
+                });
+                expect(res).to.exist;
+                expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+                expect(callCount('createJob').length).to.eql(1);
+                const spec = callCount('createJob')[0][0].spec.spec.template.spec
+                expect(spec.containers[0].image).to.eql('hkube/worker');
+                expect(spec.containers[1].image).to.eql('hkube/algorithm-example');
+                expect(spec.containers.length).to.eql(3); // worker, algorunner, sidecar
+                const volumes = spec.volumes;
+                const volume = volumes.find(v => v.name === 'v1');
+
+                expect(volume).to.have.property('secret');
+                expect(volume.secret).to.be.an('object');
+                expect(volume.secret).to.have.property('secretName', 'secret-1');
+            });
+
+            it('should schedule algorithm with sideCar with emptyDir', async () => {
+                const algorithm = 'algo-car-emptyDir';
+                const res = await reconciler.reconcile({
+                    options,
+                    normResources,
+                    algorithmTemplates,
+                    algorithmRequests: [
+                        {
+                            data: [{
+                                name: algorithm,
+                            }]
+                        }
+                    ],
+                    jobs: {
+                        body: {
+                            items: [
+    
+                            ]
+                        }
+                    }
+                });
+                expect(res).to.exist;
+                expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+                expect(callCount('createJob').length).to.eql(1);
+                const spec = callCount('createJob')[0][0].spec.spec.template.spec
+                expect(spec.containers[0].image).to.eql('hkube/worker');
+                expect(spec.containers[1].image).to.eql('hkube/algorithm-example');
+                expect(spec.containers.length).to.eql(3); // worker, algorunner, sidecar
+                const volumes = spec.volumes;
+                const volume = volumes.find(v => v.name === 'v1');
+
+                expect(volume).to.have.property('emptyDir');
+                expect(volume.emptyDir).to.be.an('object').that.deep.equals({});
+            });
         });
     });
 });

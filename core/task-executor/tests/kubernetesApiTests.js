@@ -81,4 +81,16 @@ describe('Kubernetes API', () => {
         expect(res).to.have.property('pods')
         expect(res).to.have.property('nodes')
     });
+    it('should get all PVC names', async () => {
+        const res = await instance.getAllPVCNames();
+        expect(res).to.be.an('array').that.includes('pvc-1', 'pvc-2');
+    });
+    it('should get all ConfigMap names', async () => {
+        const res = await instance.getAllConfigMapNames();
+        expect(res).to.be.an('array').that.includes('config-map-1', 'config-map-2');
+    });
+    it('should get all Secret names', async () => {
+        const res = await instance.getAllSecretNames();
+        expect(res).to.be.an('array').that.includes('secret-1', 'secret-2');
+    });
 });

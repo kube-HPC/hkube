@@ -36,16 +36,20 @@ class EsLogs {
         }
     }
 
-    addComponentCriteria(nodeKind) {
+    addComponentCriteria(nodeKind, containerNameList) {
         let search;
-        const components = getSearchComponent(nodeKind).map(sc => `${this._structuredPrefix}meta.internal.component: "${sc}"`);
+        const componentNames = getSearchComponent(nodeKind);
+        if (containerNameList) {
+            componentNames.push(...containerNameList);
+        }
+        const components = componentNames.map(sc => `${this._structuredPrefix}meta.internal.component: "${sc}"`);
         if (components.length) {
             search = `(${components.join(' OR ')})`;
         }
         return search;
     }
 
-    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime }) {
+    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime, containerNameList }) {
         const query = [];
         if (taskId) {
             query.push(`${this._structuredPrefix}meta.internal.taskId: "${taskId}"`);
@@ -53,18 +57,33 @@ class EsLogs {
         if (podName) {
             query.push(`kubernetes.pod_name: "${podName}"`);
         }
-        if (logMode === logModes.INTERNAL) {
+        // Handle message structure
+        switch (logMode) {
+        case logModes.INTERNAL: // Source = System
             query.push(`${this._structuredPrefix}message: "${internalLogPrefix}*"`);
-        }
-        if (logMode === logModes.ALGORITHM) {
+            break;
+        case logModes.ALGORITHM || logModes.SIDECAR: // Source = Algorithm / SideCar
             query.push(`NOT ${this._structuredPrefix}message: "${internalLogPrefix}*"`);
+            break;
+        default:
+            break;
         }
-        if (nodeKind) {
-            const searchComponent = this.addComponentCriteria(nodeKind);
+        // Handle components
+        if (logMode === logModes.SIDECAR) { // In this case, we only ask for 1 sideCar, not more.
+            if (containerNameList.length === 0) {
+                log.error('a sideCar Name is requried in containerNames when logMode is SIDECAR!', { component });
+                return [];
+            }
+            const searchComponent = `${this._structuredPrefix}meta.internal.component: "${containerNameList[0]}"`;
+            query.push(searchComponent);
+        }
+        else if (nodeKind) {
+            const searchComponent = this.addComponentCriteria(nodeKind, containerNameList);
             if (searchComponent) {
                 query.push(searchComponent);
             }
         }
+
         if (searchWord) {
             query.push(`${searchWord}*`);
         }

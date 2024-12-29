@@ -1,4 +1,3 @@
-
 module.exports = {
     kubernetes: () => {
         let callCount = {};
@@ -16,15 +15,19 @@ module.exports = {
                     registerCount('createJob', theArgs);
                 },
                 getWorkerJobs: async () => { },
-                getVersionsConfigMap: async () => { return {} },
-                getResourcesPerNode: async () => { return {} },
-                getSidecarConfigs: async () => { return {} }
+                getVersionsConfigMap: async () => { return {}; },
+                getResourcesPerNode: async () => { return {}; },
+                getSidecarConfigs: async () => { return {}; },
+                getAllPVCNames: async () => { return ['pvc-1', 'pvc-2']; },
+                getAllSecretNames: async () => { return ['secret-1', 'secret-2']; },
+                getAllConfigMapNames: async () => { return ['config-map-1', 'config-map-2']; }
             },
-            callCount: (name) => { return callCount[name]; },
+            callCount: (name) => {
+                return callCount[name];
+            },
             clearCount: () => {
-                callCount = {}
+                callCount = {};
             },
-        }
+        };
     }
 };
-
