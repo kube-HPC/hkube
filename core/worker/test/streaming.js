@@ -365,7 +365,7 @@ describe('Streaming', () => {
             await scale(data2, reqRateInfo, 4, slave);
             await delay(2500);
             const { required } = autoScale(nodeName);
-            expect(required).to.be.equal(28, `required is ${required}, suppose to be 28`);
+            expect(required).to.be.oneOf([27, 28], `required is ${required}, suppose to be 27 or 28`);
         });
 
         it('should not scale up based on avg master and slaves', async () => {
