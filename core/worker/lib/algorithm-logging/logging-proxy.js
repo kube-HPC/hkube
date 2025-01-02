@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const Logger = require('@hkube/logger');
 const { Tail } = require('tail');
-const component = require('../consts').Components.ALGORUNNER;
+const algorunnerComponent = require('../consts').Components.ALGORUNNER;
 const kubernetes = require('../helpers/kubernetes');
 
 const DELAY = 2;
@@ -32,7 +32,7 @@ class LoggingProxy {
     async init(options) {
         log = Logger.GetLogFromContainer();
         if (!options?.algorunnerLogging) {
-            log.warning('Algorunner logging proxy not started.', { component });
+            log.warning('Logging proxy not started.', { component: algorunnerComponent });
             return;
         }
         if (await this._initAlgorunnerLogFilePath(options)) return; // true if failed
@@ -64,12 +64,12 @@ class LoggingProxy {
             containerName: ALGORITHM_CONTAINER
         });
         if (disable || !logFileName || !baseLogsPath) {
-            log.warning('Algorunner logging proxy not started.', { component });
+            log.warning('Algorunner logging proxy not started.', { component: algorunnerComponent });
             return true;
         }
 
         this._algorunnerLogFilePath = path.join(baseLogsPath, logFileName);
-        log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component });
+        log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component: algorunnerComponent });
         return false;
     }
 
@@ -104,7 +104,7 @@ class LoggingProxy {
             });
             if (disable || !logFileName || !baseLogsPath) {
                 // log.warning(`${carName} logging proxy not started.`, { carName });
-                log.warning(`${carName} logging proxy not started.`, { component });
+                log.warning(`${carName} logging proxy not started.`, { carName });
                 return true;
             }
             this._sideCarLogFilePath[index] = { path: path.join(baseLogsPath, logFileName), carName };
@@ -215,45 +215,45 @@ class LoggingProxy {
     /**
      * Starts watching the Algorunner and sidecar log files.
      *
-     * This method checks if the Algorunner log file path is set and exists. If it does, it begins monitoring the log file
-     * for new log lines. Additionally, if sidecar log files are available, it starts monitoring those as well.
-     * When a new log line is detected, it is passed to the `_handleLogMessage` method for processing.
-     *
-     * If any errors occur during the log monitoring process (e.g., the log file doesn't exist),
-     * the method will retry after a specified delay.
-     *
      * @returns {void} - This method does not return any value. It simply starts the log monitoring process.
      */
     _startWatch() {
-        if (!this._algorunnerLogFilePath) {
-            return;
-        }
-        if (!fs.existsSync(this._algorunnerLogFilePath)) {
-            log.throttle.warning(`log file ${this._algorunnerLogFilePath} does not exist. Trying again in ${DELAY} seconds.`, { component });
-            setTimeout(this._startWatch, DELAY * 1000);
+        this._startComponentWatch(this._algorunnerLogFilePath, algorunnerComponent);
+        this._sideCarLogFilePath?.forEach((sidecar) => {
+            this._startComponentWatch(sidecar.path, sidecar.carName);
+        });
+    }
+
+    /**
+     * Starts watching a specific log file for new log lines.
+     *
+     * This method checks if the log file path is valid and exists. If the file exists, it begins monitoring it
+     * for new lines. If the log file doesn't exist, it will retry after a specified delay.
+     *
+     * @param {string} logFilePath - The path of the log file to be monitored.
+     * @param {string} component - The name of the component associated with this log file.
+     *
+     * @returns {void} - This method does not return any value. It starts the log monitoring process for the given log file.
+     */
+    _startComponentWatch(logFilePath, component) {
+        if (!logFilePath) return;
+        if (!fs.existsSync(logFilePath)) {
+            log.throttle.warning(`Log file ${logFilePath} does not exist. Trying again it ${DELAY} seconds.`, { component });
+            setTimeout(() => this._startComponentWatch(logFilePath, component), DELAY * 1000);
             return;
         }
         try {
-            this._tail = new Tail(this._algorunnerLogFilePath, { fromBeginning: true });
-            this._tail.on('line', (line) => {
+            const tail = new Tail(logFilePath, { fromBeginning: true });
+            tail.on('line', (line) => {
                 this._handleLogMessage(line, component);
             });
-            if (this._sideCarLogFilePath && this._sideCarLogFilePath.length > 0) {
-                this._sideCarLogFilePath.forEach((sidecar) => {
-                    const sidecarTail = new Tail(sidecar.path, { fromBeginning: true });
-                    sidecarTail.on('line', (line) => {
-                        this._handleLogMessage(line, sidecar.carName);
-                    });
-                });
-            }
-
-            this._tail.on('error', (error) => {
+            tail.on('error', (error) => {
                 log.throttle.error(error.message, { component });
             });
         }
         catch (error) {
             log.throttle.warning(`Logging proxy error: ${error.message}. Trying again in ${DELAY} seconds.`, { component });
-            setTimeout(this._startWatch, DELAY * 1000);
+            setTimeout(() => this._startComponentWatch(logFilePath, component), DELAY * 1000);
         }
     }
 
@@ -264,18 +264,18 @@ class LoggingProxy {
      * and logs it with the appropriate based on the component (Algorunner or sideCar name)
      *
      * @param {string} line - The raw log line to process.
-     * @param {string} logComponent - The name of the component generating the log (e.g., 'Algorunner', sideCar name).
+     * @param {string} component - The name of the component generating the log (e.g., 'Algorunner', sideCar name).
      * @param {string} [prefix=''] - An optional string to prefix the log message, typically used for sidecar identification (default is an empty string).
      *
      * @returns {void} - This method does not return a value. It logs the processed message based on the stream type.
      */
-    _handleLogMessage(line, logComponent) {
+    _handleLogMessage(line, component) {
         const { logMessage, stream, internalLog } = this._getLogMessage(line);
         if (stream === 'stderr') {
-            log.info(`${logMessage}`, { component: logComponent, ...internalLog });
+            log.info(`${logMessage}`, { component, ...internalLog });
         }
         else {
-            log.info(`${logMessage}`, { component: logComponent, ...internalLog });
+            log.info(`${logMessage}`, { component, ...internalLog });
         }
     }
 }
