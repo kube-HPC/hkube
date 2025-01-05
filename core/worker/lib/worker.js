@@ -282,7 +282,7 @@ class Worker {
      *
      * @function _processContainerStatus
      * @memberof Worker
-     * @param {string} [name] - The name of the container (defaults to `ALGORITHM_CONTAINER` for the algorithm container)
+     * @param {string} [name] - The name of the container (when not given - algorunner container case)
      * @param {number} [index] - The index of the sidecar container (not needed for the algorithm container)
      * @returns {Promise<void>} A promise that resolves when the container's status is processed
      */
@@ -338,7 +338,9 @@ class Worker {
                 };
                 log.error(options.error.message, { component });
                 log.error(options.error.message, { component: Components.ALGORUNNER });
-                // log.error(options.error.message, { component: name || Components.ALGORUNNER });
+                if (name) {
+                    log.error(options.error.message, { component: name });
+                }
                 await this._endJob(options);
                 this._shouldCheckAlgorithmStatus = false;
                 this._shouldCheckSideCarStatus.fill(false);
