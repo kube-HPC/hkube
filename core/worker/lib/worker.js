@@ -338,7 +338,9 @@ class Worker {
                 };
                 log.error(options.error.message, { component });
                 log.error(options.error.message, { component: Components.ALGORUNNER });
-                // log.error(options.error.message, { component: name || Components.ALGORUNNER });
+                if (name) {
+                    log.error(options.error.message, { component: name });
+                }
                 await this._endJob(options);
                 this._shouldCheckAlgorithmStatus = false;
                 this._shouldCheckSideCarStatus.fill(false);
