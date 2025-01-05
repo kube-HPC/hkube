@@ -243,6 +243,21 @@ class LoggingProxy {
             return;
         }
         try {
+            if (component !== algorunnerComponent) {
+                fs.readFile(logFilePath, 'utf8', (err, data) => {
+                    if (err) {
+                        log.error(`Error reading initial file logs: ${err.message}`, { component });
+                    }
+                    else {
+                        const lines = data.split('\n');
+                        lines.forEach(line => {
+                            if (line.trim()) {
+                                this._handleLogMessage(line, component);
+                            }
+                        });
+                    }
+                });
+            }
             const tail = new Tail(logFilePath, { fromBeginning: true });
             tail.on('line', (line) => {
                 this._handleLogMessage(line, component);
@@ -272,7 +287,7 @@ class LoggingProxy {
     _handleLogMessage(line, component) {
         const { logMessage, stream, internalLog } = this._getLogMessage(line);
         if (stream === 'stderr') {
-            log.info(`${logMessage}`, { component, ...internalLog });
+            log.error(`${logMessage}`, { component, ...internalLog });
         }
         else {
             log.info(`${logMessage}`, { component, ...internalLog });
