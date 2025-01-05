@@ -246,7 +246,7 @@ class LoggingProxy {
             if (component !== algorunnerComponent) {
                 fs.readFile(logFilePath, 'utf8', (err, data) => {
                     if (err) {
-                        log.error(`Error reading initial file logs: ${err.message}`, { component });
+                        log.throttle.error(`Error reading log file ${logFilePath}: ${err.message}`, { component });
                     }
                     else {
                         const lines = data.split('\n');
