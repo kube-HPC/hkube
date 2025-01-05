@@ -282,7 +282,7 @@ class Worker {
      *
      * @function _processContainerStatus
      * @memberof Worker
-     * @param {string} [name] - The name of the container (defaults to `ALGORITHM_CONTAINER` for the algorithm container)
+     * @param {string} [name] - The name of the container (when not given - algorunner container case)
      * @param {number} [index] - The index of the sidecar container (not needed for the algorithm container)
      * @returns {Promise<void>} A promise that resolves when the container's status is processed
      */
