@@ -172,26 +172,28 @@ const _getMissingSideCarVolumes = (sideCars, allVolumes) => {
     const missingVolumes = [];
     sideCars.forEach(sideCar => {
         const { volumes } = sideCar;
-        volumes.forEach(volume => {
-            if (volume.persistentVolumeClaim) {
-                const name = volume.persistentVolumeClaim.claimName;
-                if (!allVolumes.pvcs.find(pvcName => pvcName === name)) {
-                    missingVolumes.push(name);
+        if (volumes) {
+            volumes.forEach(volume => {
+                if (volume.persistentVolumeClaim) {
+                    const name = volume.persistentVolumeClaim.claimName;
+                    if (!allVolumes.pvcs.find(pvcName => pvcName === name)) {
+                        missingVolumes.push(name);
+                    }
                 }
-            }
-            if (volume.configMap) {
-                const { name } = volume.configMap;
-                if (!allVolumes.configMaps.find(configMapName => configMapName === name)) {
-                    missingVolumes.push(name);
+                if (volume.configMap) {
+                    const { name } = volume.configMap;
+                    if (!allVolumes.configMaps.find(configMapName => configMapName === name)) {
+                        missingVolumes.push(name);
+                    }
                 }
-            }
-            if (volume.secret) {
-                const name = volume.secret.secretName;
-                if (!allVolumes.secrets.find(secretName => secretName === name)) {
-                    missingVolumes.push(name);
+                if (volume.secret) {
+                    const name = volume.secret.secretName;
+                    if (!allVolumes.secrets.find(secretName => secretName === name)) {
+                        missingVolumes.push(name);
+                    }
                 }
-            }
-        });
+            });
+        }
     });
     return missingVolumes;
 };
