@@ -118,7 +118,12 @@ class KubernetesLogs {
             const { taskId, component: logComponent } = line.meta.internal;
             if (task) {
                 const resolvedSearchComponent = [...getSearchComponent(nodeKind), ...containerNameList];
-                if (task === taskId && resolvedSearchComponent.includes(logComponent)) {
+                if (taskId) {
+                    if (task === taskId && resolvedSearchComponent.includes(logComponent)) {
+                        return line;
+                    }
+                }
+                else if (resolvedSearchComponent.includes(logComponent)) { // case when sideCar container starts before jobID is given.
                     return line;
                 }
             }
