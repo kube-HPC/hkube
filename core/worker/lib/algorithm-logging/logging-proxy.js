@@ -12,6 +12,10 @@ let log;
 const ALGORITHM_CONTAINER = 'algorunner';
 const WORKER_CONTAINER = 'worker';
 
+// This class is responsible for proxying the Algorunner and sideCars logs.
+// By doing this, the logs from Algorunner and sideCars are captured and printed into the worker logs.
+// When the logs are printed, they are saved into the logs of the Worker container, and also to ES with the relevant component.
+
 class LoggingProxy {
     /**
      * Initializes the logging proxy by setting up the log file paths for Algorunner and sideCar containers.
