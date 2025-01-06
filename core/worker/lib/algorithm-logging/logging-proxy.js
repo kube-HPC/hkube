@@ -242,7 +242,7 @@ class LoggingProxy {
     _startComponentWatch(logFilePath, component) {
         if (!logFilePath) return;
         if (!fs.existsSync(logFilePath)) {
-            log.throttle.warning(`Log file ${logFilePath} does not exist. Trying again it ${DELAY} seconds.`, { component });
+            log.throttle.warning(`Log file ${logFilePath} does not exist. Trying again it ${DELAY} seconds.`, { workerComponent });
             setTimeout(() => this._startComponentWatch(logFilePath, component), DELAY * 1000);
             return;
         }
@@ -256,7 +256,7 @@ class LoggingProxy {
             });
         }
         catch (error) {
-            log.throttle.warning(`Logging proxy error: ${error.message}. Trying again in ${DELAY} seconds.`, { component });
+            log.throttle.warning(`Logging proxy error: ${error.message}. Trying again in ${DELAY} seconds.`, { workerComponent });
             setTimeout(() => this._startComponentWatch(logFilePath, component), DELAY * 1000);
         }
     }
