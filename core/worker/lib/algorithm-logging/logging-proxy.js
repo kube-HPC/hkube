@@ -243,21 +243,6 @@ class LoggingProxy {
             return;
         }
         try {
-            if (component !== algorunnerComponent) {
-                fs.readFile(logFilePath, 'utf8', (err, data) => {
-                    if (err) {
-                        log.throttle.error(`Error reading log file ${logFilePath}: ${err.message}`, { component });
-                    }
-                    else {
-                        const lines = data.split('\n');
-                        lines.forEach(line => {
-                            if (line.trim()) {
-                                this._handleLogMessage(line, component);
-                            }
-                        });
-                    }
-                });
-            }
             const tail = new Tail(logFilePath, { fromBeginning: true });
             tail.on('line', (line) => {
                 this._handleLogMessage(line, component);
