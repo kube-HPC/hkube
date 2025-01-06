@@ -3,6 +3,7 @@ const fs = require('fs');
 const Logger = require('@hkube/logger');
 const { Tail } = require('tail');
 const algorunnerComponent = require('../consts').Components.ALGORUNNER;
+const workerComponent = require('../consts').Components.WORKER;
 const kubernetes = require('../helpers/kubernetes');
 
 const DELAY = 2;
@@ -32,7 +33,7 @@ class LoggingProxy {
     async init(options) {
         log = Logger.GetLogFromContainer();
         if (!options?.algorunnerLogging) {
-            log.warning('Logging proxy not started.', { component: algorunnerComponent });
+            log.warning('Logging proxy not started.', { component: workerComponent });
             return;
         }
         if (await this._initAlgorunnerLogFilePath(options)) return; // true if failed
@@ -64,12 +65,12 @@ class LoggingProxy {
             containerName: ALGORITHM_CONTAINER
         });
         if (disable || !logFileName || !baseLogsPath) {
-            log.warning('Algorunner logging proxy not started.', { component: algorunnerComponent });
+            log.warning('Algorunner logging proxy not started.', { component: workerComponent });
             return true;
         }
 
         this._algorunnerLogFilePath = path.join(baseLogsPath, logFileName);
-        log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component: algorunnerComponent });
+        log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component: workerComponent });
         return false;
     }
 
@@ -103,12 +104,11 @@ class LoggingProxy {
                 containerName: carName
             });
             if (disable || !logFileName || !baseLogsPath) {
-                // log.warning(`${carName} logging proxy not started.`, { carName });
-                log.warning(`${carName} logging proxy not started.`, { carName });
+                log.warning(`${carName} logging proxy not started.`, { component: workerComponent });
                 return true;
             }
             this._sideCarLogFilePath[index] = { path: path.join(baseLogsPath, logFileName), carName };
-            log.info(`reading ${carName} logs from host path ${this._sideCarLogFilePath[index].path}`, { carName });
+            log.info(`reading ${carName} logs from host path ${this._sideCarLogFilePath[index].path}`, { component: workerComponent });
             return false;
         });
         return failed;
