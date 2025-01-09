@@ -613,7 +613,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
     const requestTypes = calcRatio(totalRequests, totalCapacityNow);
     const workerTypes = calcRatio(mergedWorkers);
-    log.info(`workers registered in discovery = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
+    log.info(`workers registered in discovery = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.count })), null, 2)}`);
     log.info(`requests before getting cut due to ratio = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
     // cut requests based on ratio, since totalCapacityNow should grow gradually, we cut some of the requests, we do it according to their ratio of all requests.
     const cutRequests = [];
