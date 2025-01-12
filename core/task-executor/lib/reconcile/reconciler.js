@@ -740,7 +740,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // leave only requests that are not exceeding max workers.
     const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
     const requestsBeforeWindowCut = calcRatio(maxFilteredRequests);
-    log.info(`requests before getting cut by window =${JSON.stringify(Object.entries(requestsBeforeWindowCut.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
+    log.info(`Print requests before getting cut by window =${JSON.stringify(
+        Object.entries(requestsBeforeWindowCut.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2
+    )}`);
 
     // In order to handle request gradually create a sub list (according to prioritization.)
     const requestsWindow = _createRequestsWindow(algorithmTemplates, maxFilteredRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
