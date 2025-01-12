@@ -597,7 +597,12 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
 
     const requestsBeforeMaxCut = calcRatio(normRequests);
-    log.info(`requests Before cat by max workers registered in discovery =${JSON.stringify(Object.entries(requestsBeforeMaxCut.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
+
+    log.info(
+        `requests Before cat by max workers registered in discovery =${JSON.stringify(Object.entries(
+            requestsBeforeMaxCut.algorithms
+        ).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`
+    );
 
     // leave only requests that are not exceeding max workers.
     const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
