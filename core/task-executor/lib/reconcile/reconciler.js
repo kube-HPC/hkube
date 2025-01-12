@@ -714,6 +714,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
     // subtract the workers which changed from the workers list.
     const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
+    const workerTypes = calcRatio(mergedWorkers);
+    log.info(`Print workers registered in discovery = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count })), null, 2)}`);
+    log.info(`Print lately createdjobs = ${JSON.stringify(Object.entries(createdJobsList).map(([k, v]) => ({ name: k, count: v.count })), null, 2)}`);
 
     // get a list of workers that should turn 'hot' and be marked as hot.
     const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
@@ -752,8 +755,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
     const requestTypes = calcRatio(totalRequests, totalCapacityNow);
-    const workerTypes = calcRatio(mergedWorkers);
-    log.info(`workers registered in discovery = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
     log.info(`requests before getting cut due to ratio = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
 
     // cut requests based on ratio, since totalCapacityNow should grow gradually, we cut some of the requests, we do it according to their ratio of all requests.
