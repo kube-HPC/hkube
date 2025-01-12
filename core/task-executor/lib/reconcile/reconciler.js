@@ -572,7 +572,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // subtract the workers which changed from the workers list.
     const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
     const workerTypes = calcRatio(mergedWorkers);
-    log.info(`Print workers registered in discovery = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.count })), null, 2)}`);
+    log.info(`Print workers registered in discovery = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count })), null, 2)}`);
+    log.info(`Print lately createdjobs = ${JSON.stringify(Object.entries(createdJobsList).map(([k, v]) => ({ name: k, count: v.count })), null, 2)}`);
     // get a list of workers that should turn 'hot' and be marked as hot.
     const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
     // get a list of workers that should turn 'cold' and not be marked as hot any longer
