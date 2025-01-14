@@ -571,14 +571,15 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
     // subtract the workers which changed from the workers list.
     const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
-    const workerTypes = calcRatio(mergedWorkers);
-    log.info(`Print workers registered in discovery = ${JSON.stringify(Object.entries(workerTypes.algorithms).map((
-        [k, v]
-    ) => ({ name: k, count: v.count })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    const workerTypes = calcRatio(mergedWorkers) || { algorithms: {} };
+
+    // log.info(`Print workers registered in discovery = ${JSON.stringify(Object.entries(workerTypes.algorithms).map((
+    //     [k, v]
+    // ) => ({ name: k, count: v.count })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
     const createdJobsByType = calcRatio(createdJobsList);
-    log.info(`Print lately createdjobs = ${JSON.stringify(Object.entries(createdJobsByType.algorithms).map(
-        ([k, v]) => ({ name: k, count: v.count })
-    ), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    // log.info(`Print lately createdjobs = ${JSON.stringify(Object.entries(createdJobsByType.algorithms).map(
+    //     ([k, v]) => ({ name: k, count: v.count })
+    // ), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
     // get a list of workers that should turn 'hot' and be marked as hot.
     const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
     // get a list of workers that should turn 'cold' and not be marked as hot any longer
@@ -606,18 +607,18 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     const requestsBeforeMaxCut = calcRatio(normRequests);
 
-    log.info(
-        `Print requests before cat by maxworkers =${JSON.stringify(Object.entries(
-            requestsBeforeMaxCut.algorithms
-        ).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`
-    );
+    // log.info(
+    //     `Print requests before cat by maxworkers =${JSON.stringify(Object.entries(
+    //         requestsBeforeMaxCut.algorithms
+    //     ).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`
+    // );
 
     // leave only requests that are not exceeding max workers.
     const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
     const requestsBeforeWindowCut = calcRatio(maxFilteredRequests);
-    log.info(`Print requests before getting cut by window =${JSON.stringify(
-        Object.entries(requestsBeforeWindowCut.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2
-    ).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    // log.info(`Print requests before getting cut by window =${JSON.stringify(
+    //     Object.entries(requestsBeforeWindowCut.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2
+    // ).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
 
     // In order to handle request gradually create a sub list (according to prioritization.)
     const requestsWindow = _createRequestsWindow(algorithmTemplates, maxFilteredRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
@@ -628,9 +629,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
     const requestTypes = calcRatio(totalRequests, totalCapacityNow);
 
-    log.info(`Print requests before getting cut due to ratio = ${JSON.stringify(Object.entries(
-        requestTypes.algorithms
-    ).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    // log.info(`Print requests before getting cut due to ratio = ${JSON.stringify(Object.entries(
+    //     requestTypes.algorithms
+    // ).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
     // cut requests based on ratio, since totalCapacityNow should grow gradually, we cut some of the requests, we do it according to their ratio of all requests.
     const cutRequests = [];
     totalRequests.forEach(r => {
@@ -642,10 +643,10 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         }
     });
     const cutRequestTypes = calcRatio(cutRequests);
-    log.info(`Print requests after getting cut due to ratio = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map((
-        [k, v]
+    // log.info(`Print requests after getting cut due to ratio = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map((
+    //     [k, v]
 
-    ) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    // ) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
 
     _processAllRequests(
         {
@@ -744,11 +745,26 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         }
         reconcileResult[algorithmName].active = ws.count;
     });
-    log.info(`Print result = ${JSON.stringify(Object.entries(reconcileResult).map((
-        [k, v]
+    const mapForPrint = [];
+    new Set([
+        ...Object.keys(workerTypes?.algorithms),
+        ...Object.keys(createdJobsByType.algorithms),
+        ...Object.keys(requestsBeforeMaxCut.algorithms)
+    ]).forEach(key => {
+        mapForPrint.push({
+            name: key,
+            found_workers: workerTypes.algorithms[key]?.count || 0,
+            lately_created: createdJobsByType.algorithms[key]?.count || 0,
+            requests_in_queue: requestsBeforeMaxCut.algorithms[key]?.count || 0,
+            after_max_alg_cut: requestsBeforeWindowCut.algorithms[key]?.count || 0,
+            after_window_cut: requestTypes.algorithms[key]?.count || 0,
+            after_cut_by_ratio: cutRequestTypes.algorithms[key]?.count || 0,
+            created: reconcileResult[key]?.created || 0,
+            skipped: reconcileResult[key]?.skipped || 0
 
-    ) => ({ name: k, created: v.created, skipped: v.skipped, required: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
-
+        });
+    });
+    log.info(`Print result = ${JSON.stringify(mapForPrint).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
     return reconcileResult;
 };
 
