@@ -523,6 +523,29 @@ const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
     });
     return filtered;
 };
+
+/**
+ * Fetches the names of all PersistentVolumeClaims (PVCs), ConfigMaps, and Secrets in the Kubernetes cluster.
+ *
+ * @async
+ * @function _getAllVolumes
+ * @returns {Promise<Object>} A promise that resolves to an object containing arrays of names for PVCs, ConfigMaps, and Secrets.
+ *
+ * @property {string[]} pvcs - An array of PersistentVolumeClaim names.
+ * @property {string[]} configMaps - An array of ConfigMap names.
+ * @property {string[]} secrets - An array of Secret names.
+ *
+ * @throws {Error} Throws an error if there is an issue while fetching the resources.
+ */
+const _getAllVolumeNames = async () => {
+    const pvcs = await kubernetes.getAllPVCNames();
+    const configMaps = await kubernetes.getAllConfigMapNames();
+    const secrets = await kubernetes.getAllSecretNames();
+
+    const volumesNames = { pvcs, configMaps, secrets };
+    return volumesNames;
+};
+
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     // update the cache of jobs lately created by removing old jobs
     _clearCreatedJobsList(null, options);
@@ -561,8 +584,13 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
 
+    const requestsBeforeMaxCut = calcRatio(normRequests);
+    log.info(`requests Before cat by max workers registered in discovery =${JSON.stringify(Object.entries(requestsBeforeMaxCut.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
+
     // leave only requests that are not exceeding max workers.
     const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
+    const requestsBeforeWindowCut = calcRatio(maxFilteredRequests);
+    log.info(`requests before getting cut by window =${JSON.stringify(Object.entries(requestsBeforeWindowCut.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
 
     // In order to handle request gradually create a sub list (according to prioritization.)
     const requestsWindow = _createRequestsWindow(algorithmTemplates, maxFilteredRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
@@ -572,9 +600,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
     const requestTypes = calcRatio(totalRequests, totalCapacityNow);
-    // const workerTypes = calcRatio(mergedWorkers);
-    // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
-    // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
+    const workerTypes = calcRatio(mergedWorkers);
+    log.info(`workers registered in discovery = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
+    log.info(`requests before getting cut due to ratio = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
     // cut requests based on ratio, since totalCapacityNow should grow gradually, we cut some of the requests, we do it according to their ratio of all requests.
     const cutRequests = [];
     totalRequests.forEach(r => {
@@ -585,9 +613,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             cutRequests.push(r);
         }
     });
-    // const cutRequestTypes = calcRatio(cutRequests, totalCapacityNow);
-    // log.info(`cut-requests = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map(([k, v]) =>
-    //     ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
+    const cutRequestTypes = calcRatio(cutRequests);
+    log.info(`requests after getting cut due to ratio = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
 
     _processAllRequests(
         {
@@ -597,12 +624,13 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             createDetails, reconcileResult, toResume, scheduledRequests
         }
     );
-    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests);
+    const allVolumesNames = await _getAllVolumeNames();
+    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumesNames);
     created.forEach((j) => {
         createdJobsList.push(j);
     });
     const unScheduledObject = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
-    const {algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms} = unScheduledObject;
+    const { algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms } = unScheduledObject;
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
@@ -673,6 +701,15 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
                 resumed: 0,
                 required: 0
             };
+        }
+        const _created = reconcileResult[algorithmName].created;
+        const _skipped = reconcileResult[algorithmName].skipped;
+        const { paused, resumed, required } = reconcileResult[algorithmName];
+        const total = _created + _skipped + paused + resumed + required;
+        if (total !== 0) {
+            log.info(`CYCLE: task-executor: algo: ${algorithmName} created: ${_created}, 
+                skipped: ${_skipped}, paused: ${paused}, 
+                resumed: ${resumed}, required: ${required}.`);
         }
         reconcileResult[algorithmName].active = ws.count;
     });
