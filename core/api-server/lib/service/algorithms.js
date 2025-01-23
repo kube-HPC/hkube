@@ -270,6 +270,9 @@ class AlgorithmStore {
                 throw new InvalidDataError(`algorithm has invalid workerCustomResources: ${errorOutput.join(', ')}`);
             }
         }
+        if (!this._verifyUniqueSideCarContainerNames(payload)) {
+            throw new InvalidDataError('Sidecar container names must be unique!');
+        }
 
         await this._validateAlgorithm(newAlgorithm);
         const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
@@ -309,6 +312,28 @@ class AlgorithmStore {
             return true;
         }
         return !isEqual(oldAlgorithm, newAlgorithm);
+    }
+
+    /**
+     * Verifies that all container names in the payload are unique.
+     *
+     * @param {Object} payload - The payload containing sideCars data.
+     * @param {Array} payload.sideCars - Array of sidecar objects.
+     * @returns {boolean} - Returns `true` if all container names are unique, otherwise `false`.
+     */
+    _verifyUniqueSideCarContainerNames(payload) {
+        if (!payload.sideCars) return true;
+        const containerNames = [];
+        return payload.sideCars.every(sideCar => {
+            if (sideCar.container && sideCar.container.name) {
+                const containerName = sideCar.container.name;
+                if (containerNames.includes(containerName)) {
+                    return false;
+                }
+                containerNames.push(containerName);
+            }
+            return true;
+        });
     }
 
     _resolveType(payload, file) {
