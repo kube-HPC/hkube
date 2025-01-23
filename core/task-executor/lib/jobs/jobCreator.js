@@ -352,7 +352,7 @@ const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
         }
         spec = applySidecar({ container: scContainer, volumes, volumeMounts, environments }, spec);
     }
-    customSideCars.forEach(sideCar => {
+    customSideCars.forEach(sideCar => { // Sidecar user-feature
         spec = applySidecar(sideCar, spec);
     });
     return spec;

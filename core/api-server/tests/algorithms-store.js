@@ -1014,6 +1014,39 @@ describe('Store/Algorithms', () => {
                 expect(response.body).to.not.have.property('downloadFileExt');
                 expect(response.body).to.not.have.property('nodeSelector');
             });
+            it('should throw validation error if sidecar container names are not unique', async () => {
+                const url = 'https://github.com/hkube/my.git.foo.bar';
+                const body = {
+                    name: uuid(),
+                    gitRepository: {
+                        url
+                    },
+                    env: 'nodejs',
+                    type: 'Git',
+                    sideCars: [
+                        {
+                            container: {
+                                name: 'my-container-1',
+                                image: 'nginx'
+                            }
+                        },
+                        {
+                            container: {
+                                name: 'my-container-1',
+                                image: 'redis'
+                            }
+                        }
+                    ]
+                };
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.contain('Sidecar container names must be unique!');
+            });
         });
         describe('labels and annotations', () => {
             it('should throw validation error of invalid labels key', async () => {

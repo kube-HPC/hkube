@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.8.5",
+    "version": "2.8.6",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -7006,11 +7006,6 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "description": "name of the sidecar"
-                          },
                           "container": {
                             "type": "object",
                             "description": "key-value pairs of names and images for containers",
@@ -7681,11 +7676,6 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "name": {
-                              "type": "string",
-                              "minLength": 1,
-                              "description": "name of the sidecar"
-                            },
                             "container": {
                               "type": "object",
                               "description": "key-value pairs of names and images for containers",
@@ -8162,11 +8152,6 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "name": {
-                              "type": "string",
-                              "minLength": 1,
-                              "description": "name of the sidecar"
-                            },
                             "container": {
                               "type": "object",
                               "description": "key-value pairs of names and images for containers",
@@ -8638,11 +8623,6 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "name": {
-                          "type": "string",
-                          "minLength": 1,
-                          "description": "name of the sidecar"
-                        },
                         "container": {
                           "type": "object",
                           "description": "key-value pairs of names and images for containers",
@@ -9170,11 +9150,6 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "name": {
-                          "type": "string",
-                          "minLength": 1,
-                          "description": "name of the sidecar"
-                        },
                         "container": {
                           "type": "object",
                           "description": "key-value pairs of names and images for containers",
@@ -9677,11 +9652,6 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "name": {
-                              "type": "string",
-                              "minLength": 1,
-                              "description": "name of the sidecar"
-                            },
                             "container": {
                               "type": "object",
                               "description": "key-value pairs of names and images for containers",
@@ -10148,11 +10118,6 @@
                           "items": {
                             "type": "object",
                             "properties": {
-                              "name": {
-                                "type": "string",
-                                "minLength": 1,
-                                "description": "name of the sidecar"
-                              },
                               "container": {
                                 "type": "object",
                                 "description": "key-value pairs of names and images for containers",
@@ -17753,11 +17718,6 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "name": {
-                              "type": "string",
-                              "minLength": 1,
-                              "description": "name of the sidecar"
-                            },
                             "container": {
                               "type": "object",
                               "description": "key-value pairs of names and images for containers",
@@ -18287,11 +18247,6 @@
                         "items": {
                           "type": "object",
                           "properties": {
-                            "name": {
-                              "type": "string",
-                              "minLength": 1,
-                              "description": "name of the sidecar"
-                            },
                             "container": {
                               "type": "object",
                               "description": "key-value pairs of names and images for containers",
@@ -22932,11 +22887,6 @@
             "items": {
               "type": "object",
               "properties": {
-                "name": {
-                  "type": "string",
-                  "minLength": 1,
-                  "description": "name of the sidecar"
-                },
                 "container": {
                   "type": "object",
                   "description": "key-value pairs of names and images for containers",
@@ -23553,11 +23503,6 @@
                 "items": {
                   "type": "object",
                   "properties": {
-                    "name": {
-                      "type": "string",
-                      "minLength": 1,
-                      "description": "name of the sidecar"
-                    },
                     "container": {
                       "type": "object",
                       "description": "key-value pairs of names and images for containers",
@@ -23725,11 +23670,6 @@
       "sideCars": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "name of the sidecar"
-          },
           "container": {
             "type": "object",
             "description": "key-value pairs of names and images for containers",
