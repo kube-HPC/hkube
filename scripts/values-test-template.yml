@@ -7,7 +7,7 @@ global:
       pvc:
         capacity: 50Gi
         name: hkube-storage
-        nfs_root: /nfs/storageclass/test-new
+        nfs_root: /nfs/storageclass/test
         nfs_server: 172.20.45.142
         storage_class: "-"
       dev_pvc:
