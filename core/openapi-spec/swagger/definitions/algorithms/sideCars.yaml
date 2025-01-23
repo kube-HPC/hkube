@@ -1,9 +1,5 @@
 type: object
 properties:
-  name:
-    type: string
-    minLength: 1
-    description: name of the sidecar
   container:
     type: object
     description: key-value pairs of names and images for containers
