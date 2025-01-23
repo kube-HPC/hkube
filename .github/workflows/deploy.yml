@@ -192,11 +192,11 @@ jobs:
           TEST_URL: ${{ secrets.TEST_KUBERNETES_MASTER_IP }}
           TEST_KUBE_CONFIG_DATA: ${{ secrets.TEST_KUBECONFIG }}
       - name: download chart
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build_job.outputs.chart }}
       - name: download values
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build_job.outputs.values }}
       - name: verify kubectl
