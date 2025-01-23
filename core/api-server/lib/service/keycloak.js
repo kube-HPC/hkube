@@ -37,9 +37,12 @@ class KeycloakMiddleware {
     }
 
     protect(...roles) {
-        if (!this._keycloak) {
-            log.error('Keycloak middleware is not initialized.', { component });
-            throw new Error('Keycloak middleware is not initialized.');
+        if (!this._options.enabled) {
+            log.warning('Keycloak middleware is not initialized.', { component });
+            // throw new Error('Keycloak middleware is not initialized.');
+            return (req, res, next) => {
+                next();
+            }; // Allow passthrough when not using keycloak
         }
         if (roles.length > 0) {
             log.info(`Protecting with roles: ${roles.join(', ')}`, { component });

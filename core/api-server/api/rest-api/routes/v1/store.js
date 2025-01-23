@@ -5,6 +5,7 @@ const HttpStatus = require('http-status-codes');
 const pipelineStore = require('../../../../lib/service/pipelines');
 const algorithmStore = require('../../../../lib/service/algorithms');
 const upload = multer({ dest: 'uploads/zipped/' });
+const keycloak = require('../../../../lib/service/keycloak');
 
 const routes = (option) => {
     const router = RestServer.router();
@@ -61,7 +62,7 @@ const routes = (option) => {
         const response = await pipelineStore.updatePipeline(req.body);
         res.json(response);
     });
-    router.delete('/pipelines/:name', async (req, res) => {
+    router.delete('/pipelines/:name', keycloak.protect('hkube_api_admin'), async (req, res) => {
         const { name } = req.params;
         const keepOldVersions = req?.query?.keepOldVersions !== 'false';
         const message = await pipelineStore.deletePipeline({ name, keepOldVersions });
