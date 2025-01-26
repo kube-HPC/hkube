@@ -213,6 +213,7 @@ config.graphql = {
     useIntervalForStatistics: formatter.parseBool(process.env.GRAPHQL_USE_INTERVAL_FOR_STATISTICS, false),
 }
 config.keycloak = {
+    enabled: formatter.parseBool(process.env.KEYCLOAK_ENABLE, false),
     realm: process.env.KL_REALM || 'master',
     clientId: 'api-server',
     clientSecret: process.env.KL_CLIENT_SECRET || '5mAAqUXMsFWAGCnhvhrGPVVYuZLWy7Am',

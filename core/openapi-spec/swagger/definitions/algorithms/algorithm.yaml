@@ -23,6 +23,41 @@ properties:
     format: algorithm-memory
     default: 256Mi
     example: 512Mi
+  workerCustomResources:
+    type: object
+    description: Custom resource limits and requests for the algorithm worker - overrides defaults for THIS algorithm.
+    properties:
+      requests:
+        type: object
+        description: Resource requests for the worker
+        properties:
+          cpu:
+            type: number
+            description: CPU request for the worker
+            minimum: 0
+            example: 0.1
+          memory:
+            type: string
+            description: Memory request for the worker
+            format: memory
+            example: "256Mi"
+      limits:
+        type: object
+        description: Resource limits for the worker
+        properties:
+          cpu:
+            type: number
+            description: CPU limit for the worker
+            minimum: 0
+            example: 0.2
+          memory:
+            type: string
+            description: Memory limit for the worker
+            format: memory
+            example: "512Mi"
+    required:
+      - limits
+      - requests
   reservedMemory:
     type: string
     nullable: true
@@ -162,5 +197,25 @@ properties:
     type: string
     nullable: true
     description: the extension name that will be attached to a file when downloading algorithm result
+  sideCars:
+    type: array
+    nullable: true
+    description: a list of sideCars for the algorithm
+    items:
+      $ref: "#/components/schemas/sideCars"
+    uniqueItems: true
+    example:
+    - name: "my-sidecar"
+      container:
+        name: "c1"
+        image: "hkube/my-image"
+      volumes:
+        - name: "v1"
+          emptyDir: {}
+      volumeMounts:
+        - name: "v1"
+          mountPath: "/tmp/foo"
+      environments:
+        env1: "val1"
 required:
   - name

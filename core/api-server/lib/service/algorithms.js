@@ -264,6 +264,16 @@ class AlgorithmStore {
         if (oldAlgorithm && oldAlgorithm.type !== newAlgorithm.type) {
             throw new InvalidDataError(`algorithm type cannot be changed from "${oldAlgorithm.type}" to "${newAlgorithm.type}"`);
         }
+        if (newAlgorithm.workerCustomResources) {
+            const errorOutput = this._validateWorkerCustomResources(newAlgorithm.workerCustomResources);
+            if (errorOutput.length > 0) {
+                throw new InvalidDataError(`algorithm has invalid workerCustomResources: ${errorOutput.join(', ')}`);
+            }
+        }
+        if (!this._verifyUniqueSideCarContainerNames(payload)) {
+            throw new InvalidDataError('Sidecar container names must be unique!');
+        }
+
         await this._validateAlgorithm(newAlgorithm);
         const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
         const buildId = await buildsService.tryToCreateBuild(oldAlgorithm, newAlgorithm, file, forceBuild, messages, messagesCode);
@@ -304,6 +314,28 @@ class AlgorithmStore {
         return !isEqual(oldAlgorithm, newAlgorithm);
     }
 
+    /**
+     * Verifies that all container names in the payload are unique.
+     *
+     * @param {Object} payload - The payload containing sideCars data.
+     * @param {Array} payload.sideCars - Array of sidecar objects.
+     * @returns {boolean} - Returns `true` if all container names are unique, otherwise `false`.
+     */
+    _verifyUniqueSideCarContainerNames(payload) {
+        if (!payload.sideCars) return true;
+        const containerNames = [];
+        return payload.sideCars.every(sideCar => {
+            if (sideCar.container && sideCar.container.name) {
+                const containerName = sideCar.container.name;
+                if (containerNames.includes(containerName)) {
+                    return false;
+                }
+                containerNames.push(containerName);
+            }
+            return true;
+        });
+    }
+
     _resolveType(payload, file) {
         if (file) {
             return buildTypes.CODE;
@@ -323,6 +355,23 @@ class AlgorithmStore {
     async _validateAlgorithm(newAlgorithm) {
         validator.algorithms.addAlgorithmDefaults(newAlgorithm);
         await validator.algorithms.validateAlgorithmResources(newAlgorithm);
+    }
+
+    _validateWorkerCustomResources(resources) {
+        const errors = [];
+        if ((resources.requests?.memory && !resources.limits?.memory)) {
+            errors.push('limits.memory must be defined');
+        }
+        if ((resources.limits?.memory && !resources.requests?.memory)) {
+            errors.push('requests.memory must be defined');
+        }
+        if ((resources.requests?.cpu && !resources.limits?.cpu)) {
+            errors.push('limits.cpu must be defined');
+        }
+        if ((resources.limits?.cpu && !resources.requests?.cpu)) {
+            errors.push('requests.cpu must be defined');
+        }
+        return errors;
     }
 
     _mergeAlgorithm(oldAlgorithm, payload) {

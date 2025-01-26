@@ -145,12 +145,14 @@ const _processAllRequests = (
             continue;
         }
         const algorithmTemplate = algorithmTemplates[algorithmName];
+        const { workerCustomResources } = algorithmTemplates[algorithmName];
         const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
         const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
         const resourceRequests = createContainerResource(algorithmTemplate);
         const workerResourceRequests = createContainerResource(workerResources);
 
-        const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector, entryPoint, options: algorithmOptions, reservedMemory, mounts, env } = algorithmTemplate;
+        const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector,
+            entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars } = algorithmTemplate;
 
         createDetails.push({
             numberOfNewJobs: 1,
@@ -173,7 +175,9 @@ const _processAllRequests = (
                 clusterOptions,
                 algorithmOptions,
                 mounts,
-                reservedMemory
+                reservedMemory,
+                sideCars,
+                workerCustomResources
             }
         });
         if (!reconcileResult[algorithmName]) {
@@ -531,6 +535,29 @@ const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
     });
     return filtered;
 };
+
+/**
+ * Fetches the names of all PersistentVolumeClaims (PVCs), ConfigMaps, and Secrets in the Kubernetes cluster.
+ *
+ * @async
+ * @function _getAllVolumes
+ * @returns {Promise<Object>} A promise that resolves to an object containing arrays of names for PVCs, ConfigMaps, and Secrets.
+ *
+ * @property {string[]} pvcs - An array of PersistentVolumeClaim names.
+ * @property {string[]} configMaps - An array of ConfigMap names.
+ * @property {string[]} secrets - An array of Secret names.
+ *
+ * @throws {Error} Throws an error if there is an issue while fetching the resources.
+ */
+const _getAllVolumeNames = async () => {
+    const pvcs = await kubernetes.getAllPVCNames();
+    const configMaps = await kubernetes.getAllConfigMapNames();
+    const secrets = await kubernetes.getAllSecretNames();
+    
+    const volumesNames = { pvcs, configMaps, secrets };
+    return volumesNames;
+};
+
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     // update the cache of jobs lately created by removing old jobs
     _clearCreatedJobsList(null, options);
@@ -605,7 +632,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             createDetails, reconcileResult, toResume, scheduledRequests
         }
     );
-    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests);
+    const allVolumesNames = await _getAllVolumeNames();
+    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumesNames);
     created.forEach((j) => {
         createdJobsList.push(j);
     });

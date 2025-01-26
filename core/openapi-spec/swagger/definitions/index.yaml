@@ -31,6 +31,12 @@ algorithmBuild:
   $ref: ./algorithms/algorithmBuild.yaml
 kubernetesValueFrom:
   $ref: ./algorithms/kubernetesValueFrom.yaml
+sideCars:
+  $ref: ./algorithms/sideCars.yaml
+sidecarVolumeMounts:
+  $ref: ./algorithms/sidecarVolumeMounts.yaml
+sidecarVolume: 
+  $ref: ./algorithms/sidecarVolume.yaml
 
 # boards
 createBoardRequest:

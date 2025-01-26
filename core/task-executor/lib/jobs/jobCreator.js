@@ -323,39 +323,52 @@ const applyAnnotations = (spec, keyVal) => {
     return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
 };
 
-const applySidecars = (inputSpec, clusterOptions = {}) => {
-    let spec = clonedeep(inputSpec);
-    for (const sidecar of settings.sidecars) {
-        const { name, container, volumes, volumeMounts, environments } = sidecar;
-        if (!clusterOptions[`${name}SidecarEnabled`]) {
-            continue;
-        }
-        spec.spec.template.spec.containers.push(...container);
-        if (volumes) {
-            // eslint-disable-next-line no-loop-func
-            volumes.forEach(v => {
-                spec = applyVolumes(spec, v);
-            });
-        }
-        if (volumeMounts) {
-            // eslint-disable-next-line no-loop-func
-            volumeMounts.forEach(v => {
-                spec = applyVolumeMounts(spec, CONTAINERS.WORKER, v);
-            });
-        }
-        if (environments) {
-            // eslint-disable-next-line no-loop-func
-            environments.forEach(v => {
-                spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { [v.name]: v.value });
-            });
-        }
+const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, environments }, spec) => {
+    spec.spec.template.spec.containers.push(sideCarContainer);
+    if (volumes) {
+        volumes.forEach(v => {
+            spec = applyVolumes(spec, v);
+        });
     }
-
+    if (volumeMounts) {
+        volumeMounts.forEach(v => {
+            spec = applyVolumeMounts(spec, sideCarContainer.name, v);
+        });
+    }
+    if (environments) {
+        Object.entries(environments).forEach(([key, value]) => {
+            spec = applyEnvToContainer(spec, sideCarContainer.name, { [key]: value });
+        });
+    }
     return spec;
 };
 
+const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
+    let spec = clonedeep(inputSpec);
+    for (const sidecar of settings.sidecars) {
+        const { name, container: scContainer, volumes, volumeMounts, environments } = sidecar;
+        if (!clusterOptions[`${name}SidecarEnabled`]) {
+            continue;
+        }
+        spec = applySidecar({ container: scContainer, volumes, volumeMounts, environments }, spec);
+    }
+    customSideCars.forEach(sideCar => { // Sidecar user-feature
+        spec = applySidecar(sideCar, spec);
+    });
+    return spec;
+};
+const mergeWorkerResourceRequest = (defaultResource, customResource) => {
+    const mergedRequest = { requests: {}, limits: {} };
+
+    for (const key of ['requests', 'limits']) {
+        mergedRequest[key].memory = customResource[key]?.memory || defaultResource[key]?.memory || null;
+        mergedRequest[key].cpu = customResource[key]?.cpu || defaultResource[key]?.cpu || null;
+    }
+    return mergedRequest;
+};
+
 const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env, workerCustomResources, sideCars }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -380,7 +393,10 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_VERSION: algorithmVersion });
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_IMAGE: workerImage });
     spec = applyAlgorithmResourceRequests(spec, resourceRequests, node);
-    if (settings.applyResources) {
+    if (settings.applyResources || workerCustomResources) {
+        if (workerCustomResources) {
+            workerResourceRequests = mergeWorkerResourceRequest(workerResourceRequests, workerCustomResources);
+        }
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);
     }
     spec = applyNodeSelector(spec, nodeSelector);
@@ -407,7 +423,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     }
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
-    spec = applySidecars(spec, clusterOptions);
+    spec = applySidecars(spec, sideCars, clusterOptions);
     return spec;
 };
 

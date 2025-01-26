@@ -1,0 +1,11 @@
+type: object
+properties:
+  name:
+    type: string
+    description: volume name
+  mountPath:
+    type: string
+    description: volume mount path
+required:
+  - name
+  - mountPath

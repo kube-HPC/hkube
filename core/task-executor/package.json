@@ -1,6 +1,6 @@
 {
   "name": "task-executor",
-  "version": "2.8.4",
+  "version": "2.8.8",
   "description": "Hkube scheduler service",
   "main": "app.js",
   "scripts": {
@@ -24,7 +24,7 @@
   "homepage": "https://github.com/kube-HPC/task-executor#readme",
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/consts": "^1.0.51",
+    "@hkube/consts": "^1.0.54",
     "@hkube/db": "^1.0.32",
     "@hkube/etcd": "^5.1.2",
     "@hkube/healthchecks": "^1.0.1",

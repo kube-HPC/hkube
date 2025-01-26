@@ -50,6 +50,14 @@ jobs:
       - run: |
           npm ci
           echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "v3.10"
+          architecture: x64
+          run: |
+            `pip install --upgrade wheel
+            python setup.py sdist bdist_wheel
       - name: bootstrap
         run: |
           export CHANGED=$(lerna changed --includeMergedTags)||true
@@ -62,7 +70,7 @@ jobs:
           echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec npm ci --scope {}
           echo CHANGED=$CHANGED >> $GITHUB_ENV
         env:
-          BUILD_ALL: '${{ github.event.client_payload.BUILD_ALL || github.event.inputs.BUILD_ALL }}'
+          BUILD_ALL: "${{ github.event.client_payload.BUILD_ALL || github.event.inputs.BUILD_ALL }}"
 
       - name: build and test
         run: |
@@ -73,7 +81,7 @@ jobs:
           else 
             scripts/runTestAndBuild.sh
           fi
-        env: 
+        env:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       - name: trigger
         if: env.CHANGED
@@ -83,4 +91,4 @@ jobs:
           route: POST /repos/kube-HPC/release-manager/dispatches
           event_type: trigger
         env:
-          GITHUB_TOKEN: '${{ secrets.GH_TOKEN }}'
+          GITHUB_TOKEN: "${{ secrets.GH_TOKEN }}"
