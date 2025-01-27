@@ -62,7 +62,7 @@ const routes = (option) => {
         const response = await pipelineStore.updatePipeline(req.body);
         res.json(response);
     });
-    router.delete('/pipelines/:name', keycloak.protect('hkube_api_admin'), async (req, res) => {
+    router.delete('/pipelines/:name', keycloak.protect('hkube_api_delete'), async (req, res) => {
         const { name } = req.params;
         const keepOldVersions = req?.query?.keepOldVersions !== 'false';
         const message = await pipelineStore.deletePipeline({ name, keepOldVersions });

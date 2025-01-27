@@ -214,9 +214,9 @@ config.graphql = {
 }
 config.keycloak = {
     enabled: formatter.parseBool(process.env.KEYCLOAK_ENABLE, false),
-    realm: process.env.KC_REALM || 'master',
+    realm: process.env.KC_REALM || 'hkube',
     clientId: 'api-server',
-    clientSecret: process.env.KC_CLIENT_SECRET || 'r3gmlUZ2Bx3vL7iB79rNKMQjaYTqshVK',
+    clientSecret: process.env.KC_CLIENT_SECRET || '4q2NZlxDJXcm01p3dAfL8eqVWkmb1HpL',
     authServerUrl: process.env.KC_URL || 'http://hkube-keycloak/hkube/keycloak'
 
 }
