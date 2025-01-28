@@ -1,4 +1,5 @@
 const Keycloak = require('keycloak-connect');
+const axios = require('axios');
 const Logger = require('@hkube/logger');
 
 let log;
@@ -25,6 +26,18 @@ class KeycloakMiddleware {
                     secret: this._options.clientSecret
                 }
             });
+
+            try {
+                // Validate realm configuration by fetching the realm info
+                const realmInfoUrl = `${this._options.authServerUrl}/realms/${this._options.realm}`;
+                const response = await axios.get(realmInfoUrl);
+                log.info(`Keycloak realm '${response.data.realm}' validated successfully.`, { component });
+            }
+            catch (error) {
+                log.error(`Failed to validate Keycloak realm '${this._options.realm}': ${error.message}`, { component });
+                throw new Error(`Invalid Keycloak realm configuration: ${error.message}`);
+            }
+
             log.info(`Keycloak initialized with options: ${JSON.stringify(this._options)}`, { component });
         }
         else {
