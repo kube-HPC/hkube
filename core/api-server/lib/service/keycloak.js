@@ -51,6 +51,9 @@ class KeycloakMiddleware {
 
     protect(...roles) {
         if (!this._options.enabled) {
+            if (!this._keycloak) {
+                log.error('Keycloak is not initialized. Cannot protect this route.', { component });
+            }
             log.warning('Keycloak middleware is not initialized.', { component });
             // throw new Error('Keycloak middleware is not initialized.');
             return (req, res, next) => {
