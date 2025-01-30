@@ -49,27 +49,24 @@ class KeycloakMiddleware {
         return this._keycloak;
     }
 
-    protect(...roles) {
-        if (!this._options.enabled) {
-            if (!this._keycloak) {
-                log.error('Keycloak is not initialized. Cannot protect this route.', { component });
+    getProtect(roles) {
+        return (req, res, next) => {
+            if (!this._options.enabled) {
+                return next();
             }
-            log.warning('Keycloak middleware is not initialized.', { component });
-            // throw new Error('Keycloak middleware is not initialized.');
-            return (req, res, next) => {
-                next();
-            }; // Allow passthrough when not using keycloak
-        }
-        if (roles.length > 0) {
-            log.info(`Protecting with roles: ${roles.join(', ')}`, { component });
-            return this._keycloak.protect((token) => roles.some(role => token.hasRole(role)));
-        }
-        log.info('Protecting all requests without role restrictions.', { component });
-        return this._keycloak.protect();
+            // If roles are undefined or an empty array, treat it as no role protection
+            if (!roles || roles.length === 0) {
+                log.info('No roles provided, protecting route without role restrictions.', { component });
+                return this._keycloak.protect()(req, res, next);
+            }
+
+            // Directly call the keycloak.protect() method with multiple roles
+            return this._keycloak.protect(roles)(req, res, next);
+        };
     }
 
     // Use this for auditing purposes
-    async getUserInfo(req) {
+    async getUserInfo(req) { // introspect()?
         if (!this._keycloak) {
             log.error('Keycloak middleware is not initialized.', { component });
             throw new Error('Keycloak middleware is not initialized.');
