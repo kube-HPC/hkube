@@ -1,10 +1,12 @@
 const RestServer = require('@hkube/rest-server');
+const { keycloakRoles } = require('@hkube/consts');
+const keycloak = require('../../../../lib/service/keycloak');
 const DatabaseQuerier = require('../../../graphql/queries/database-querier');
 
 const taskExecResourceName = 'task-executor';
 const routes = () => {
     const router = RestServer.router();
-    router.get('/unscheduledalgorithms', async (req, res) => {
+    router.get('/unscheduledalgorithms', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         let mergedResoures;
         try {
             const resources = await DatabaseQuerier._getDiscoveryType(taskExecResourceName);
@@ -15,7 +17,7 @@ const routes = () => {
         }
         res.json(mergedResoures);
     });
-    router.get('/unscheduledalgorithms/:algorithmName', async (req, res) => {
+    router.get('/unscheduledalgorithms/:algorithmName', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         let mergedResources;
         const { algorithmName } = req.params;
         try {
