@@ -16,6 +16,18 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
 
         const server = new ApolloServer({
             schema,
+            context: ({ req }) => {
+                const context = {
+                    authHeader: req.headers.authorization || '',
+                    ...req
+                };
+
+                // If there's a pre-existing context - merge
+                if (req.context) {
+                    return { ...req.context, ...context };
+                }
+                return context;
+            },
             plugins: [{
                 async serverWillStart() {
                     return {
