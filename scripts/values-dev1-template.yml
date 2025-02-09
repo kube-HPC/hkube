@@ -43,3 +43,7 @@ jaeger:
   enable: true  
 minio:
   enable: true
+keycloak:
+  env:
+    hostname_url: https://dev.hkube.org/hkube/keycloak
+    hostname_admin_url: https://dev.hkube.org/hkube/keycloak
