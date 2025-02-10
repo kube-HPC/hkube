@@ -14,3 +14,12 @@ components:
     $ref: ./swagger/definitions/index.yaml
   parameters:
     $ref: ./swagger/paths/datasource/parameters.yaml
+  securitySchemes:
+    bearerAuth: 
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+  - {}
