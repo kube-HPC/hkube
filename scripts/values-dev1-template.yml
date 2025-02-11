@@ -1,5 +1,6 @@
 global:
   clusterName: dev1-spot
+  hkube_url: https://dev.hkube.org/hkube
   storage:
     binary: true
     fs:
