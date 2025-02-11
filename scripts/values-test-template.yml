@@ -1,5 +1,6 @@
 global:
   clusterName: test
+  hkube_url: https://cicd-test.hkube.org/hkube
   storage:
     binary: true
     fs:
@@ -43,7 +44,3 @@ jaeger:
   enable: true
 minio:
   enable: true
-keycloak:
-  env:
-    hostname_url: https://cicd-test.hkube.org/hkube/keycloak
-    hostname_admin_url: https://cicd-test.hkube.org/hkube/keycloak
