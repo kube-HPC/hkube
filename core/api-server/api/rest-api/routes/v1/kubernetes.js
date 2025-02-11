@@ -6,7 +6,7 @@ const keycloak = require('../../../../lib/service/keycloak');
 
 const routes = () => {
     const router = RestServer.router();
-    router.delete('/algorithms/pods/:algName', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {
+    router.delete('/algorithms/pods/:algName', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { algName } = req.params;
         const message = []; let pods; let podName;
         let { selector } = req.query;
@@ -30,7 +30,7 @@ const routes = () => {
         }
         res.status(HttpStatus.StatusCodes.OK).json({ message });
     });
-    router.delete('/algorithms/jobs/:algName', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {
+    router.delete('/algorithms/jobs/:algName', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { algName } = req.params;
         const message = []; let jobs; let jobName;
         let { selector } = req.query;
