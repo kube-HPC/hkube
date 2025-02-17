@@ -22,6 +22,9 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
         freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESSURE));
     }
     else {
+        totalCpu = node.total.cpu;
+        totalGpu = node.total.gpu;
+        totalMemory = node.total.memory;
         freeCpu = node.free.cpu;
         freeGpu = node.free.gpu;
         freeMemory = node.free.memory;
