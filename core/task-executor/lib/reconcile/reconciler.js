@@ -637,7 +637,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     _processAllRequests(
         {
-            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: cutRequests, registry, clusterOptions, workerResources
+            idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests: cutRequests, registry, clusterOptions, workerResources
         },
         {
             createDetails, reconcileResult, toResume, scheduledRequests
