@@ -114,6 +114,8 @@ const _processAllRequests = (
 ) => {
     for (let r of normRequests) {// eslint-disable-line
         const { algorithmName, hotWorker } = r;
+
+        // Check for idle workers
         const idleWorkerIndex = idleWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (idleWorkerIndex !== -1) {
             // there is idle worker. don't do anything
@@ -122,6 +124,7 @@ const _processAllRequests = (
             continue;
         }
 
+        // Check for pending workers
         const pendingWorkerIndex = pendingWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (pendingWorkerIndex !== -1) {
             // there is a pending worker.
@@ -129,6 +132,8 @@ const _processAllRequests = (
             scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
+
+        // Check for recently creates jobs
         const jobsCreatedIndex = jobsCreated.findIndex(w => w.algorithmName === algorithmName);
         if (jobsCreatedIndex !== -1) {
             // there is a pending worker.
@@ -136,6 +141,8 @@ const _processAllRequests = (
             scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
+
+        // Check for paused workers
         const pausedWorkerIndex = pausedWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (pausedWorkerIndex !== -1) {
             // there is paused worker. wake it up
@@ -144,6 +151,8 @@ const _processAllRequests = (
             scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
+
+        // Build request to create new worker job (if no suitable workers found)
         const algorithmTemplate = algorithmTemplates[algorithmName];
         const { workerCustomResources } = algorithmTemplates[algorithmName];
         const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
@@ -154,6 +163,7 @@ const _processAllRequests = (
         const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector,
             entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars } = algorithmTemplate;
 
+        // Add request details for new job creation (will need to get confirmation via matchJobsToResources)
         createDetails.push({
             numberOfNewJobs: 1,
             jobDetails: {
@@ -180,6 +190,7 @@ const _processAllRequests = (
                 workerCustomResources
             }
         });
+
         if (!reconcileResult[algorithmName]) {
             reconcileResult[algorithmName] = {
                 required: 1,
@@ -638,7 +649,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
     const unScheduledObject = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
-    const {algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms} = unScheduledObject;
+    const { algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms } = unScheduledObject;
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
