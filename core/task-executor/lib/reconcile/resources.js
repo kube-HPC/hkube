@@ -30,35 +30,39 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
         freeMemory = node.free.memory;
     }
 
-    const cpu = requestedCpu < freeCpu;
-    const mem = requestedMemory < freeMemory;
-    const gpu = requestedGpu === 0 || lessWithTolerance(requestedGpu, freeGpu);
+    // Check if requested resources fit within availble resources.
+    const hasSufficientCpu = requestedCpu < freeCpu;
+    const hasSufficientMemory = requestedMemory < freeMemory;
+    const hasSufficientGpu = requestedGpu === 0 || lessWithTolerance(requestedGpu, freeGpu);
 
-    const cpuMaxCapacity = requestedCpu > totalCpu;
-    const memMaxCapacity = requestedMemory > totalMemory;
-    const gpuMaxCapacity = requestedGpu > 0 && lessWithTolerance(totalGpu, requestedGpu);
+    // Check if requested resources exceed node's max capacity.
+    const exceedsCpuMaxCapacity = requestedCpu > totalCpu;
+    const exceedsMemMaxCapacity = requestedMemory > totalMemory;
+    const exceedsGpuMaxCapacity = requestedGpu > 0 && lessWithTolerance(totalGpu, requestedGpu);
+
     // log the amount of missing capacity per resource.
     let missingCpu;
     let missingMem;
     let missingGpu;
-    if (!cpu) {
+
+    if (!hasSufficientCpu) {
         missingCpu = requestedCpu - freeCpu;
         missingCpu = missingCpu.toFixed(2);
     }
-    if (!mem) {
+    if (!hasSufficientMemory) {
         missingMem = requestedMemory - freeMemory;
         missingMem = missingMem.toFixed(2);
     }
-    if ((requestedGpu > 0) && !gpu) {
+    if ((requestedGpu > 0) && !hasSufficientGpu) {
         missingGpu = requestedGpu - freeGpu;
         missingGpu = missingGpu.toFixed(2);
     }
 
     return {
         node,
-        available: cpu && mem && gpu,
-        maxCapacity: { cpu: cpuMaxCapacity, mem: memMaxCapacity, gpu: gpuMaxCapacity },
-        details: { cpu, mem, gpu },
+        available: hasSufficientCpu && hasSufficientMemory && hasSufficientGpu,
+        maxCapacity: { cpu: exceedsCpuMaxCapacity, mem: exceedsMemMaxCapacity, gpu: exceedsGpuMaxCapacity },
+        details: { cpu: hasSufficientCpu, mem: hasSufficientMemory, gpu: hasSufficientGpu },
         amountsMissing: { cpu: missingCpu || 0, mem: missingMem || 0, gpu: missingGpu || 0 }
     };
 };
