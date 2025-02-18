@@ -163,7 +163,7 @@ const _processAllRequests = (
         const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector,
             entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars } = algorithmTemplate;
 
-        // Ensure sidecar resources have values for CPU, memory, and GPU
+        // Ensure sidecar resources have values for CPU, memory, and GPU, and if not assign default values
         if (sideCars) {
             sideCars.forEach(sideCar => {
                 const { resources } = sideCar.container;
