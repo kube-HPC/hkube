@@ -1,10 +1,12 @@
 const RestServer = require('@hkube/rest-server');
+const { keycloakRoles } = require('@hkube/consts');
 const HttpStatus = require('http-status-codes');
 const kubernetes = require('../../../task-logs/kubernetes');
+const keycloak = require('../../../../lib/service/keycloak');
 
 const routes = () => {
     const router = RestServer.router();
-    router.delete('/algorithms/pods/:algName', async (req, res) => {
+    router.delete('/algorithms/pods/:algName', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { algName } = req.params;
         const message = []; let pods; let podName;
         let { selector } = req.query;
@@ -28,7 +30,7 @@ const routes = () => {
         }
         res.status(HttpStatus.StatusCodes.OK).json({ message });
     });
-    router.delete('/algorithms/jobs/:algName', async (req, res) => {
+    router.delete('/algorithms/jobs/:algName', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { algName } = req.params;
         const message = []; let jobs; let jobName;
         let { selector } = req.query;

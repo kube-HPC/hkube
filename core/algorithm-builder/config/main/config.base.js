@@ -49,7 +49,7 @@ config.packagesRepo = {
     python: {
         registry: process.env.PIP_REGISTRY || '',
         token: process.env.PIP_TOKEN || '',
-        defaultBaseImage: process.env.PYTHON_DEFAULT_BASE_IMAGE || 'python:3.7',
+        defaultBaseImage: process.env.PYTHON_DEFAULT_BASE_IMAGE || 'python:3.8',
         wrapperVersion: process.env.PYTHON_WRAPPER_VERSION || ''
     },
     java: {
