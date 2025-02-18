@@ -169,7 +169,6 @@ const _processAllRequests = (
                 const { resources } = sideCar.container;
                 const { requests = {} } = resources || {};
                 const { cpu, memory, gpu } = requests;
-                
                 sideCar.resources = createContainerResource({ cpu, memory, gpu });
             });
         }
