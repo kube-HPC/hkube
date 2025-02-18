@@ -163,6 +163,17 @@ const _processAllRequests = (
         const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector,
             entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars } = algorithmTemplate;
 
+        // Ensure sidecar resources have values for CPU, memory, and GPU
+        if (sideCars) {
+            sideCars.forEach(sideCar => {
+                const { resources } = sideCar.container;
+                const { requests = {} } = resources || {};
+                const { cpu, memory, gpu } = requests;
+                
+                sideCar.resources = createContainerResource({ cpu, memory, gpu });
+            });
+        }
+
         // Add request details for new job creation (will need to get confirmation via matchJobsToResources)
         createDetails.push({
             numberOfNewJobs: 1,

@@ -8,7 +8,7 @@ const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImag
     applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation,
     applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const parse = require('@hkube/units-converter');
-const { components, containers, gpuVendors, volumes: volumeKinds, consts } = require('../consts');
+const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
 const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, varLog, varlibdockercontainers, varlogMount, varlibdockercontainersMount, sharedVolumeMounts, algoMetricVolume } = require('../templates');
@@ -323,27 +323,8 @@ const applyAnnotations = (spec, keyVal) => {
     return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
 };
 
-const mergeResourceRequest = (defaultResource, customResource) => {
-    const mergedRequest = { requests: {}, limits: {} };
-
-    for (const key of ['requests', 'limits']) {
-        mergedRequest[key].memory = customResource[key]?.memory || defaultResource[key]?.memory || null;
-        mergedRequest[key].cpu = customResource[key]?.cpu || defaultResource[key]?.cpu || null;
-    }
-    return mergedRequest;
-};
-
-const updateSidecarCustomResources = (container) => {
-    const { resources: customResources } = container;
-    const sideCarDefaultResources = consts.SIDECAR_DEFAULT_RESOURCES;
-    const resources = mergeResourceRequest(sideCarDefaultResources, customResources);
-    container.resources = resources;
-    return container;
-};
-
 const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, environments }, spec) => {
-    const sideCarContainerWithResources = settings.applyResources ? updateSidecarCustomResources(sideCarContainer) : sideCarContainer;
-    spec.spec.template.spec.containers.push(sideCarContainerWithResources);
+    spec.spec.template.spec.containers.push(sideCarContainer);
     if (volumes) {
         volumes.forEach(v => {
             spec = applyVolumes(spec, v);
@@ -360,6 +341,16 @@ const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, envi
         });
     }
     return spec;
+};
+
+const mergeWorkerResourceRequest = (defaultResource, customResource) => {
+    const mergedRequest = { requests: {}, limits: {} };
+
+    for (const key of ['requests', 'limits']) {
+        mergedRequest[key].memory = customResource[key]?.memory || defaultResource[key]?.memory || null;
+        mergedRequest[key].cpu = customResource[key]?.cpu || defaultResource[key]?.cpu || null;
+    }
+    return mergedRequest;
 };
 
 const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
@@ -405,7 +396,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     spec = applyAlgorithmResourceRequests(spec, resourceRequests, node);
     if (settings.applyResources || workerCustomResources) {
         if (workerCustomResources) {
-            workerResourceRequests = mergeResourceRequest(workerResourceRequests, workerCustomResources);
+            workerResourceRequests = mergeWorkerResourceRequest(workerResourceRequests, workerCustomResources);
         }
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);
     }
