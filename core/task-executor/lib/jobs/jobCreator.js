@@ -8,11 +8,12 @@ const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImag
     applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation,
     applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const parse = require('@hkube/units-converter');
-const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
+const { components, containers, gpuVendors, volumes: volumeKinds, consts } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
 const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, varLog, varlibdockercontainers, varlogMount, varlibdockercontainersMount, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
+const { createContainerResource } = require('../reconcile/createOptions');
 const CONTAINERS = containers;
 
 const applyAlgorithmResourceRequests = (inputSpec, resourceRequests, node) => {
@@ -323,8 +324,16 @@ const applyAnnotations = (spec, keyVal) => {
     return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
 };
 
+const _applyDefaultResourcesSideCar = (container) => {
+    const { resources } = container;
+    const { requests = {} } = resources || {};
+    const { cpu = consts.DEFAULT_SIDE_CAR_CPU, memory = consts.DEFAULT_SIDE_CAR_MEMORY, gpu } = requests;
+    container.resources = createContainerResource({ cpu, memory, gpu });
+};
+
 const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, environments }, spec) => {
-    spec.spec.template.spec.containers.push(sideCarContainer);
+    const sidecarWithDefaultResources = _applyDefaultResourcesSideCar(sideCarContainer);
+    spec.spec.template.spec.containers.push(sidecarWithDefaultResources);
     if (volumes) {
         volumes.forEach(v => {
             spec = applyVolumes(spec, v);
