@@ -17,7 +17,7 @@ const setAlgorithmImage = (template, versions, registry) => {
 
 const _createContainerResourceByFactor = ({ cpu, mem, gpu } = {}, factor = 1) => {
     const cpuFactored = (cpu || 0.1) * factor;
-    const memory = `${(mem || 128) * factor}Mi`;
+    const memory = `${(mem || 4) * factor}Mi`;
     const gpus = gpu ? { [gpuVendors.NVIDIA]: gpu } : null;
     return { cpu: cpuFactored, memory, ...gpus };
 };
