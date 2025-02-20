@@ -1242,9 +1242,5 @@ describe('reconciler', () => {
                 expect(volume.emptyDir).to.be.an('object').that.deep.equals({});
             });
         });
-
-        describe('sidecar default resources', function () {
-            
-        });
     });
 });
