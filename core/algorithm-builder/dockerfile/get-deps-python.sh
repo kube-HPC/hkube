@@ -2,7 +2,7 @@
 set -eo pipefail
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 mkdir -p $SCRIPTPATH/../environments/python/packages
-versions="python:2.7 python:3.5 python:3.6 python:3.7"
+versions="python:3.8 python:3.9 python:3.10"
 for v in $versions
 do
   echo downloading for $v
