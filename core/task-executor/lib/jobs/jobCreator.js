@@ -332,8 +332,8 @@ const _applyDefaultResourcesSideCar = (container) => {
 };
 
 const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, environments }, spec) => {
-    const sidecarWithDefaultResources = _applyDefaultResourcesSideCar(sideCarContainer);
-    spec.spec.template.spec.containers.push(sidecarWithDefaultResources);
+    _applyDefaultResourcesSideCar(sideCarContainer);
+    spec.spec.template.spec.containers.push(sideCarContainer);
     if (volumes) {
         volumes.forEach(v => {
             spec = applyVolumes(spec, v);
