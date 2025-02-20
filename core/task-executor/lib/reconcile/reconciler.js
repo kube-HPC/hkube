@@ -168,7 +168,7 @@ const _processAllRequests = (
             sideCars.forEach(sideCar => {
                 const { resources } = sideCar.container;
                 const { requests = {} } = resources || {};
-                const { cpu, memory, gpu } = requests;
+                const { cpu = consts.DEFAULT_SIDE_CAR_CPU, memory = consts.DEFAULT_SIDE_CAR_MEMORY, gpu } = requests;
                 if (sideCar.container) { 
                     sideCar.container.resources = createContainerResource({ cpu, memory, gpu });
                 }
