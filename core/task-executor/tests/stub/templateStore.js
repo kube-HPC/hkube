@@ -134,39 +134,30 @@ module.exports = [
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
-        workerCustomResources: {
-            requests: {
-                cpu: 0.1,
-                memory: "256Mi"
-            }
-        },
-        "sideCars": [
+        sideCars: [
             {
-                "name": "mycar",
-                "container": [
+                container: {
+                    name: "mycar",
+                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                },
+                volumes: [
                     {
-                        "name": "mycar",
-                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
-                    }
-                ],
-                "volumes": [
-                    {
-                        "name": "v1",
-                        "persistentVolumeClaim": {
-                            "claimName": "hjkjhgfdfjkjhgffg"
+                        name: "v1",
+                        persistentVolumeClaim: {
+                            claimName: "hjkjhgfdfjkjhgffg"
                         }
                     }
                 ],
-                "volumeMounts": [
+                volumeMounts: [
                     {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
+                        name: "v1",
+                        mountPath: "/tmp/foo"
                     }
                 ],
-                "environments": [
+                environments: [
                     {
-                        "name": "env1",
-                        "value": "val1"
+                        name: "env1",
+                        value: "val1"
                     }
                 ]
             }
@@ -177,36 +168,27 @@ module.exports = [
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
-        workerCustomResources: {
-            requests: {
-                cpu: 0.1,
-                memory: "256Mi"
-            }
-        },
-        "sideCars": [
+        sideCars: [
             {
-                "name": "mycar",
-                "container": [
+                container: {
+                    name: "mycar",
+                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                },
+                volumes: [
                     {
-                        "name": "mycar",
-                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
-                    }
-                ],
-                "volumes": [
-                    {
-                        "name": "v1",
-                        "persistentVolumeClaim": {
-                            "claimName": "pvc-1"
+                        name: "v1",
+                        persistentVolumeClaim: {
+                            claimName: "pvc-1"
                         }
                     }
                 ],
-                "volumeMounts": [
+                volumeMounts: [
                     {
                         "name": "v1",
                         "mountPath": "/tmp/foo"
                     }
                 ],
-                "environments": [
+                environments: [
                     {
                         "name": "env1",
                         "value": "val1"
@@ -220,39 +202,30 @@ module.exports = [
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
-        workerCustomResources: {
-            requests: {
-                cpu: 0.1,
-                memory: "256Mi"
-            }
-        },
-        "sideCars": [
+        sideCars: [
             {
-                "name": "mycar",
-                "container": [
+                container: {
+                    name: "mycar",
+                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                },
+                volumes: [
                     {
-                        "name": "mycar",
-                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
-                    }
-                ],
-                "volumes": [
-                    {
-                        "name": "v1",
-                        "configMap": {
-                            "name": "hjkjhgfdfjkjhgffg"
+                        name: "v1",
+                        configMap: {
+                            name: "hjkjhgfdfjkjhgffg"
                         }
                     }
                 ],
-                "volumeMounts": [
+                volumeMounts: [
                     {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
+                        name: "v1",
+                        mountPath: "/tmp/foo"
                     }
                 ],
-                "environments": [
+                environments: [
                     {
-                        "name": "env1",
-                        "value": "val1"
+                        name: "env1",
+                        value: "val1"
                     }
                 ]
             }
@@ -263,39 +236,30 @@ module.exports = [
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
-        workerCustomResources: {
-            requests: {
-                cpu: 0.1,
-                memory: "256Mi"
-            }
-        },
-        "sideCars": [
+        sideCars: [
             {
-                "name": "mycar",
-                "container": [
+                container: {
+                    name: "mycar",
+                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                },
+                volumes: [
                     {
-                        "name": "mycar",
-                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
-                    }
-                ],
-                "volumes": [
-                    {
-                        "name": "v1",
-                        "configMap": {
-                            "name": "config-map-1"
+                        name: "v1",
+                        configMap: {
+                            name: "config-map-1"
                         }
                     }
                 ],
-                "volumeMounts": [
+                volumeMounts: [
                     {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
+                        name: "v1",
+                        mountPath: "/tmp/foo"
                     }
                 ],
-                "environments": [
+                environments: [
                     {
-                        "name": "env1",
-                        "value": "val1"
+                        name: "env1",
+                        value: "val1"
                     }
                 ]
             }
@@ -306,39 +270,30 @@ module.exports = [
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
-        workerCustomResources: {
-            requests: {
-                cpu: 0.1,
-                memory: "256Mi"
-            }
-        },
-        "sideCars": [
+        sideCars: [
             {
-                "name": "mycar",
-                "container": [
+                container: {
+                    name: "mycar",
+                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                },
+                volumes: [
                     {
-                        "name": "mycar",
-                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
-                    }
-                ],
-                "volumes": [
-                    {
-                        "name": "v1",
-                        "secret": {
-                            "secretName": "hjkjhgfdfjkjhgffg"
+                        name: "v1",
+                        secret: {
+                            secretName: "hjkjhgfdfjkjhgffg"
                         }
                     }
                 ],
-                "volumeMounts": [
+                volumeMounts: [
                     {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
+                        name: "v1",
+                        mountPath: "/tmp/foo"
                     }
                 ],
                 "environments": [
                     {
-                        "name": "env1",
-                        "value": "val1"
+                        name: "env1",
+                        value: "val1"
                     }
                 ]
             }
@@ -349,80 +304,158 @@ module.exports = [
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
-        workerCustomResources: {
-            requests: {
-                cpu: 0.1,
-                memory: "256Mi"
-            }
-        },
-        "sideCars": [
+        sideCars: [
             {
-                "name": "mycar",
-                "container": [
+                container: {
+                    name: "mycar",
+                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                },
+                volumes: [
                     {
-                        "name": "mycar",
-                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
-                    }
-                ],
-                "volumes": [
-                    {
-                        "name": "v1",
-                        "secret": {
-                            "secretName": "secret-1"
+                        name: "v1",
+                        secret: {
+                            secretName: "secret-1"
                         }
                     }
                 ],
-                "volumeMounts": [
+                volumeMounts: [
                     {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
+                        name: "v1",
+                        mountPath: "/tmp/foo"
                     }
                 ],
-                "environments": [
+                environments: [
                     {
-                        "name": "env1",
-                        "value": "val1"
+                        name: "env1",
+                        value: "val1"
                     }
                 ]
             }
         ]
     },
     {
-        name: 'algo-car-emptyDir',
+        algorithmName: 'algo-car-emptyDir',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
-        workerCustomResources: {
-            requests: {
-                cpu: 0.1,
-                memory: "256Mi"
-            }
-        },
-        "sideCars": [
+        sideCars: [
             {
-                "name": "mycar",
-                "container": [
+                container: {
+                    name: "mycar",
+                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                },
+                volumes: [
                     {
-                        "name": "mycar",
-                        "image": "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                        name: "v1",
+                        emptyDir: {}
                     }
                 ],
-                "volumes": [
+                volumeMounts: [
                     {
-                        "name": "v1",
-                        "emptyDir": {}
+                        name: "v1",
+                        mountPath: "/tmp/foo"
                     }
                 ],
-                "volumeMounts": [
+                environments: [
                     {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
+                        name: "env1",
+                        value: "val1"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'algo-car-container-req',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        sideCars: [
+            {
+                container: {
+                    name: "mycar",
+                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                },
+                volumes: [
+                    {
+                        name: "v1",
+                        emptyDir: {}
                     }
                 ],
-                "environments": [
+                volumeMounts: [
                     {
-                        "name": "env1",
-                        "value": "val1"
+                        name: "v1",
+                        mountPath: "/tmp/foo"
+                    }
+                ],
+                environments: [
+                    {
+                        name: "env1",
+                        value: "val1"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'algo-car-container-lim',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        sideCars: [
+            {
+                container: {
+                    name: "mycar",
+                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                },
+                volumes: [
+                    {
+                        name: "v1",
+                        emptyDir: {}
+                    }
+                ],
+                volumeMounts: [
+                    {
+                        name: "v1",
+                        mountPath: "/tmp/foo"
+                    }
+                ],
+                environments: [
+                    {
+                        name: "env1",
+                        value: "val1"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'algo-car-container-req-lim',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        sideCars: [
+            {
+                container: {
+                    name: "mycar",
+                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                },
+                volumes: [
+                    {
+                        name: "v1",
+                        emptyDir: {}
+                    }
+                ],
+                volumeMounts: [
+                    {
+                        name: "v1",
+                        mountPath: "/tmp/foo"
+                    }
+                ],
+                environments: [
+                    {
+                        name: "env1",
+                        value: "val1"
                     }
                 ]
             }
