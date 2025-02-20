@@ -477,18 +477,21 @@ describe('jobCreator', () => {
                 }
             }
         ]
-        })
-        after(() => {
-            globalSettings.sidecars = []
         });
+
+        after(() => {
+            globalSettings.sidecars = [];
+        });
+
         it('should not apply sidecar if not enabled', () => {
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
                 algorithmName: 'myalgo1',
                 options,
             });
-            expect(res.spec.template.spec.containers).to.have.lengthOf(2)
+            expect(res.spec.template.spec.containers).to.have.lengthOf(2);
         });
+
         it('should apply sidecar if enabled', () => {
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
@@ -497,20 +500,21 @@ describe('jobCreator', () => {
                 clusterOptions: { "my-sidecar-1SidecarEnabled": true, "my-sidecar-2SidecarEnabled": true }
             });
             const { containers, volumes } = res.spec.template.spec;
-            expect(containers).to.have.lengthOf(4)
-            expect(containers[2].name).to.eql('c1')
-            expect(containers[3].name).to.eql('c2')
-            expect(volumes).to.deep.include(globalSettings.sidecars[0].volumes[0])
-            expect(volumes).to.deep.include(globalSettings.sidecars[0].volumes[1])
-            expect(volumes).to.deep.include(globalSettings.sidecars[1].volumes[0])
-            expect(volumes).to.deep.include(globalSettings.sidecars[1].volumes[1])
-            expect(containers[2].volumeMounts).to.deep.include(globalSettings.sidecars[0].volumeMounts[0])
-            expect(containers[1].volumeMounts).to.not.deep.include(globalSettings.sidecars[0].volumeMounts[0])
-            expect(containers[2].volumeMounts).to.deep.include(globalSettings.sidecars[1].volumeMounts[0])
-            expect(containers[1].volumeMounts).to.not.deep.include(globalSettings.sidecars[1].volumeMounts[0])
+            expect(containers).to.have.lengthOf(4);
+            expect(containers[2].name).to.eql('c1');
+            expect(containers[3].name).to.eql('c2');
+            expect(volumes).to.deep.include(globalSettings.sidecars[0].volumes[0]);
+            expect(volumes).to.deep.include(globalSettings.sidecars[0].volumes[1]);
+            expect(volumes).to.deep.include(globalSettings.sidecars[1].volumes[0]);
+            expect(volumes).to.deep.include(globalSettings.sidecars[1].volumes[1]);
+            expect(containers[2].volumeMounts).to.deep.include(globalSettings.sidecars[0].volumeMounts[0]);
+            expect(containers[1].volumeMounts).to.not.deep.include(globalSettings.sidecars[0].volumeMounts[0]);
+            expect(containers[2].volumeMounts).to.deep.include(globalSettings.sidecars[1].volumeMounts[0]);
+            expect(containers[1].volumeMounts).to.not.deep.include(globalSettings.sidecars[1].volumeMounts[0]);
             expect(containers[2].env).to.deep.include.members(formatEnvironments(globalSettings.sidecars[0].environments));
             expect(containers[3].env).to.deep.include.members(formatEnvironments(globalSettings.sidecars[1].environments));
         });
+
         it('should not apply sidecar if no sidecar configmap', () => {
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
@@ -518,9 +522,10 @@ describe('jobCreator', () => {
                 options,
                 clusterOptions: { "no-sidecarSidecarEnabled": true }
             });
-            expect(res.spec.template.spec.containers).to.have.lengthOf(2)
+            expect(res.spec.template.spec.containers).to.have.lengthOf(2);
         });
-    })
+    });
+
     describe('devMode', () => {
         it('should apply with devMode', () => {
             const res = createJobSpec({
