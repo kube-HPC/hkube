@@ -12,7 +12,7 @@ const { Encoding } = require('@hkube/encoding');
 const ws = require('../lib/algorithm-communication/ws');
 const jobs = require('./jobs');
 let savedCallbacks = {}
-const callbacksToSave=['_handleResponse', '_sendError'];
+const callbacksToSave = ['_handleResponse', '_sendError'];
 
 describe('Debug', () => {
     let combinedUrl;
@@ -29,10 +29,10 @@ describe('Debug', () => {
         ws.removeAllListeners();
         const sleep = d => new Promise(r => setTimeout(r, d));
         await sleep(2000)
-        callbacksToSave.forEach(c=>savedCallbacks[c]=app.getWrapper()[c]);
+        callbacksToSave.forEach(c => savedCallbacks[c] = app.getWrapper()[c]);
     });
     afterEach(() => {
-        callbacksToSave.forEach(c=>app.getWrapper()[c]=savedCallbacks[c]);
+        callbacksToSave.forEach(c => app.getWrapper()[c] = savedCallbacks[c]);
     });
 
     it('streaming stateless init start', async () => {
@@ -424,7 +424,7 @@ describe('Debug', () => {
         await promiseStartResult;
         wrapper._stop({ forceStop: true });
     });
-    
+
     it('should handle algorithm error', async () => {
         socket = new WebSocket(combinedUrl, {});
         let resolveInit;
@@ -479,4 +479,99 @@ describe('Debug', () => {
         expect(closeCode).to.eql(debugMessages.codes.close);
 
     });
+
+
+    it('test start invoked upon reconnect', async () => {
+        socket = new WebSocket(combinedUrl, {});
+        let resolveInit;
+        let resolveStart;
+        let resolveStartResult;
+        let resolveMessage;
+        let resolveMessageForwarded;
+        const promiseInit = new Promise((res, rej) => {
+            resolveInit = res;
+
+        });
+        const promiseStart = new Promise((res, rej) => {
+            resolveStart = res;
+        });
+        const promiseStartResult = new Promise((res, rej) => {
+            resolveStartResult = res;
+        });
+        const promiseMessage = new Promise((res, rej) => {
+            resolveMessage = res;
+        });
+        const promiseMessageForwarded = new Promise((res, rej) => {
+            resolveMessageForwarded = res;
+        });
+        let sendMessageId;
+        socket.on('message', (data) => {
+            const decodedData = encoding.decode(data);
+            if (decodedData.command === 'initialize') {
+                resolveInit();
+            }
+            if (decodedData.command === 'start') {
+                resolveStart();
+            }
+            if (decodedData.command === messages.incoming.streamingInMessage) {
+                expect(decodedData.data.payload).to.eq('message2', 'stateful did not get the message')
+                expect(decodedData.data.origin).to.eq('a', 'stateful did not get the origin')
+                sendMessageId = decodedData.data.sendMessageId;
+                resolveMessage();
+            }
+        })
+        const wrapper = app.getWrapper();
+        wrapper._handleResponse = (algorithmData) => {
+            expect(algorithmData).to.eq('return value', 'wrong return value');
+            resolveStartResult()
+
+        }
+        await wrapper._stop({});
+        const start = () => {
+            wrapper._init(jobs.jobDataStateful);
+            wrapper._start({});
+        }
+        ws.on('connection', start
+        )
+        await promiseInit;
+        await promiseStart;
+        const originalSendMessage = wrapper._streamingManager.sendMessage;
+        wrapper._streamingManager.sendMessage = ({ message, flowPattern }) => {
+            expect(flowPattern[0].source).to.eq('nodeName1');
+            wrapper._streamingManager.sendMessage = originalSendMessage;
+            wrapper._streamingManager.sendMessage(message, flowPattern);
+            resolveMessageForwarded();
+        }
+        wrapper._streamingManager._onMessage({
+            flowPattern: [{
+                source: 'nodeName1',
+                next: ['nextNode2']
+            }], payload: 'message2', origin: 'a'
+        });
+        await promiseMessage;
+        socket.send(encoding.encode({ command: messages.outgoing.streamingOutMessage, data: { message: 'myMessage', sendMessageId } }))
+        await promiseMessageForwarded;
+        socket.send(encoding.encode({ command: messages.outgoing.done, data: 'return value' }));
+        await promiseStartResult;
+        ws.on('disconnect', async () => {
+            const socket2 = new WebSocket(`${combinedUrl}&hostname=host 2`, {});
+            socket2.on('message', (data) => {
+                const decodedData = encoding.decode(data);
+                if (decodedData.command === 'initialize') {
+                    resolveInit();
+                }
+                if (decodedData.command === 'start') {
+                    resolveStart();
+                }
+            });
+        });
+        const promiseSecondStart = new Promise((res, rej) => {
+            resolveStart = res;
+        });
+        await socket.terminate();
+        await promiseSecondStart;
+        wrapper._stop({ forceStop: true });
+    });
+
+
 });
