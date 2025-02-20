@@ -327,8 +327,8 @@ const applyAnnotations = (spec, keyVal) => {
 const _applyDefaultResourcesSideCar = (container) => {
     const { resources } = container;
     const { requests = {} } = resources || {};
-    const { cpu = consts.DEFAULT_SIDE_CAR_CPU, memory = consts.DEFAULT_SIDE_CAR_MEMORY, gpu } = requests;
-    container.resources = createContainerResource({ cpu, memory, gpu });
+    const { cpu = consts.DEFAULT_SIDE_CAR_CPU, mem = consts.DEFAULT_SIDE_CAR_MEMORY, gpu } = requests;
+    container.resources = createContainerResource({ cpu, mem, gpu });
 };
 
 const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, environments }, spec) => {
