@@ -31,22 +31,35 @@ describe('reconciler', () => {
      * Creates an argument object for the reconciler.
      *
      * @param {string | string[]} algNames - A single algorithm name or an array of algorithm names.
-     * @param {Object} [customOptions=options] - Optional custom options to override the default options. Defaults to the `options` variable if not provided.
-     * @returns {Object} The argument object for the reconciler, containing options, normResources, algorithmTemplates, algorithmRequests, jobs, and clusterOptions.
+     * @param {Object} [options={}] - Optional configuration overrides.
+     * @param {Object} [options.localOptions=options] - Overrides the default `options` if provided.
+     * @param {Object} [options.localNormResources=normResources] - Overrides the default `normResources` if provided.
+     * @param {Object} [options.localAlgorithmTemplates=algorithmTemplates] - Overrides the default `algorithmTemplates` if provided.
+     * @param {Object} [options.clusterOptions]
+     * @param {Object} [options.versions]
+     * @param {Object} [options.registry]
+     * @param {Object} [options.workerResources]
+     * @param {Object} [options.workers]
+     * @returns {Object} The argument object for the reconciler, containing options, normResources, algorithmTemplates, algorithmRequests, clusterOptions, versions, registry, workerResources, and workers.
      */
-    const createReconcileArgs = (algNames, customOptions = options) => {
+    const createReconcileArgs = (algNames, { localOptions = options, localNormResources = normResources, localAlgorithmTemplates = algorithmTemplates,
+        clusterOptions, versions, registry, workerResources, workers } = {}) => {
         const data = Array.isArray(algNames) ? algNames.map(name => ({ name })) : [{ name: algNames }];
         return {
-            options: customOptions,
-            normResources,
-            algorithmTemplates,
+            options: localOptions,
+            normResources: localNormResources,
+            algorithmTemplates: localAlgorithmTemplates,
             algorithmRequests: [{ data }],
-            jobs: {
-                body: {
-                    items: []
-                }
-            },
-            clusterOptions: {}
+            // jobs: {
+            //     body: {
+            //         items: []
+            //     }
+            // },
+            clusterOptions,
+            versions,
+            registry,
+            workerResources,
+            workers
         }
     }
 
@@ -92,8 +105,7 @@ describe('reconciler', () => {
 
         xit('should keep node selector', async () => {
             const algorithm = 'black-alg';
-            const argument = createReconcileArgs(algorithm);
-            argument.clusterOptions.useNodeSelector = true;
+            const argument = createReconcileArgs(algorithm, { clusterOptions: { useNodeSelector: true } } );
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -102,8 +114,7 @@ describe('reconciler', () => {
 
         xit('should remove node selector', async () => {
             const algorithm = 'black-alg';
-            const argument = createReconcileArgs(algorithm);
-            argument.clusterOptions.useNodeSelector = false;
+            const argument = createReconcileArgs(algorithm, { clusterOptions: { useNodeSelector: false } } );
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -121,8 +132,7 @@ describe('reconciler', () => {
 
         xit('should keep node selector', async () => {
             const algorithm = 'black-alg';
-            const argument = createReconcileArgs(algorithm);
-            argument.clusterOptions.useNodeSelector = true;
+            const argument = createReconcileArgs(algorithm, { clusterOptions: { useNodeSelector: true } } );
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -229,8 +239,7 @@ describe('reconciler', () => {
                     }
                 ]
             }
-            const argument = createReconcileArgs(algorithm);
-            argument.versions = versions;
+            const argument = createReconcileArgs(algorithm, { versions });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -259,8 +268,7 @@ describe('reconciler', () => {
                     }
                 ]
             }
-            const argument = createReconcileArgs(algorithm);
-            argument.versions = versions;
+            const argument = createReconcileArgs(algorithm, { versions });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -290,9 +298,7 @@ describe('reconciler', () => {
                 ]
             }
             const registry = { registry: 'my.registry/prefix' };
-            const argument = createReconcileArgs(algorithm);
-            argument.registry = registry;
-            argument.versions = versions;
+            const argument = createReconcileArgs(algorithm, { versions, registry });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -367,8 +373,8 @@ describe('reconciler', () => {
                 mounts
             };
 
-            const testOptions = { ...options, defaultStorage: 'fs' };
-            const argument = createReconcileArgs(algorithm, testOptions);
+            const localOptions = { ...options, defaultStorage: 'fs' };
+            const argument = createReconcileArgs(algorithm, { localOptions });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -395,8 +401,8 @@ describe('reconciler', () => {
                 }
             };
 
-            const testOptions = { ...options, defaultStorage: 'fs', jaeger: { host: 'foo.bar' } };
-            const argument = createReconcileArgs(algorithm, testOptions);
+            const localOptions = { ...options, defaultStorage: 'fs', jaeger: { host: 'foo.bar' } };
+            const argument = createReconcileArgs(algorithm, { localOptions });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -422,8 +428,8 @@ describe('reconciler', () => {
                 }
             };
 
-            const testOptions = { ...options, defaultStorage: 'fs', kubernetes: { ...options.kubernetes, isPrivileged: false } };
-            const argument = createReconcileArgs(algorithm, testOptions);
+            const localOptions = { ...options, defaultStorage: 'fs', kubernetes: { ...options.kubernetes, isPrivileged: false } };
+            const argument = createReconcileArgs(algorithm, { localOptions });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -462,14 +468,14 @@ describe('reconciler', () => {
                 }
             };
 
-            const testOptions = { ...options, defaultStorage: 'fs', jaeger: { host: 'foo.bar' }, kubernetes: { ...options.kubernetes, isPrivileged: false } };
-            const argument = createReconcileArgs(algorithm, testOptions);
+            const localOptions = { ...options, defaultStorage: 'fs', jaeger: { host: 'foo.bar' }, kubernetes: { ...options.kubernetes, isPrivileged: false } };
+            const argument = createReconcileArgs(algorithm, { localOptions });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env
-                .find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST').value).to.eql(testOptions.jaeger.host);
+                .find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST').value).to.eql(localOptions.jaeger.host);
         });
 
         it('should add env param, volume, volumeMount if fs is defaultStorage', async () => {
@@ -484,8 +490,8 @@ describe('reconciler', () => {
                 }
             };
 
-            const testOptions = { ...options, defaultStorage: 'fs' };
-            const argument = createReconcileArgs(algorithm, testOptions);
+            const localOptions = { ...options, defaultStorage: 'fs' };
+            const argument = createReconcileArgs(algorithm, { localOptions });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -508,8 +514,8 @@ describe('reconciler', () => {
                 reservedMemory: '256Mi'
             };
 
-            const testOptions = { ...options, defaultStorage: 'fs' };
-            const argument = createReconcileArgs(algorithm, testOptions);
+            const localOptions = { ...options, defaultStorage: 'fs' };
+            const argument = createReconcileArgs(algorithm, { localOptions });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -530,8 +536,8 @@ describe('reconciler', () => {
                 }
             };
 
-            const testOptions = { ...options, defaultStorage: 's3' };
-            const argument = createReconcileArgs(algorithm, testOptions);
+            const localOptions = { ...options, defaultStorage: 's3' };
+            const argument = createReconcileArgs(algorithm, { localOptions });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -548,9 +554,9 @@ describe('reconciler', () => {
                 algorithmImage: 'hkube/algorithm-example',
             };
 
-            const testOptions = { ...options, defaultStorage: 's3' };
-            const argument = createReconcileArgs(algorithm, testOptions);
-            argument.workerResources = testOptions.resources.worker;
+            const localOptions = { ...options, defaultStorage: 's3' };
+            const workerResources = localOptions.resources.worker;
+            const argument = createReconcileArgs(algorithm, { localOptions, workerResources });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -564,10 +570,10 @@ describe('reconciler', () => {
 
         it('should add workerCustomResources without applyResources flag', async () => {
             const algorithm = 'worker-custom-resources-alg';
-            const testOptions = { ...options, defaultStorage: 's3' };
+            const localOptions = { ...options, defaultStorage: 's3' };
 
-            const argument = createReconcileArgs(algorithm, testOptions);
-            argument.workerResources = testOptions.resources.worker;
+            const workerResources = localOptions.resources.worker;
+            const argument = createReconcileArgs(algorithm, { localOptions, workerResources });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -582,10 +588,10 @@ describe('reconciler', () => {
         it('should add worker resources when workerCustomResources is with partial spec using default for missing values', async () => {
             globalSettings.applyResources = true
             const algorithm = 'worker-custom-resources-nolimit-alg';
-            const testOptions = { ...options, defaultStorage: 's3' };
+            const localOptions = { ...options, defaultStorage: 's3' };
 
-            const argument = createReconcileArgs(algorithm, testOptions);
-            argument.workerResources = testOptions.resources.worker;
+            const workerResources = localOptions.resources.worker;
+            const argument = createReconcileArgs(algorithm, { localOptions, workerResources });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -604,10 +610,10 @@ describe('reconciler', () => {
             algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
             };
-            const testOptions = { ...options, defaultStorage: 's3' };
+            const localOptions = { ...options, defaultStorage: 's3' };
 
-            const argument = createReconcileArgs(algorithm, testOptions);
-            argument.workerResources = testOptions.resources.worker;
+            const workerResources = localOptions.resources.worker;
+            const argument = createReconcileArgs(algorithm, { localOptions, workerResources });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -623,10 +629,10 @@ describe('reconciler', () => {
             algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
             };
-            const testOptions = { ...options, defaultStorage: 's3' };
+            const localOptions = { ...options, defaultStorage: 's3' };
 
-            const argument = createReconcileArgs(algorithm, testOptions);
-            argument.workerResources = testOptions.resources.worker;
+            const workerResources = localOptions.resources.worker;
+            const argument = createReconcileArgs(algorithm, { localOptions, workerResources });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -656,8 +662,7 @@ describe('reconciler', () => {
                 { workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus }
             ];
 
-            const argument = createReconcileArgs(algorithm1);
-            argument.workers = workers;
+            const argument = createReconcileArgs(algorithm1, { workers });
             const res = await reconciler.reconcile(argument);
 
             expect(res[algorithm1].required).to.eql(0);
@@ -681,8 +686,7 @@ describe('reconciler', () => {
                 { workerId: `${algorithm1}-1`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus }
             ];
 
-            const argument = createReconcileArgs(algorithm1);
-            argument.workers = workers;
+            const argument = createReconcileArgs(algorithm1, { workers });
             const res = await reconciler.reconcile(argument);
 
             expect(res[algorithm1].required).to.eql(0);
@@ -707,8 +711,7 @@ describe('reconciler', () => {
                 { workerId: `${algorithm1}-2`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus }
             ];
 
-            const argument = createReconcileArgs(Array(6).fill(algorithm1));
-            argument.workers = workers;
+            const argument = createReconcileArgs(Array(6).fill(algorithm1), { workers });
             const res = await reconciler.reconcile(argument);
 
             expect(res[algorithm1].required).to.eql(2);
@@ -729,8 +732,7 @@ describe('reconciler', () => {
             };
             const workers = [];
 
-            const argument = createReconcileArgs(algorithm1);
-            argument.workers = workers;
+            const argument = createReconcileArgs(algorithm1, { workers });
             const res = await reconciler.reconcile(argument);
 
             expect(res[algorithm1].required).to.eql(1);
@@ -828,8 +830,7 @@ describe('reconciler', () => {
                 ...Array.from(Array(5).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm3, workerStatus })),
             ];
             const algorithms = shuffle(requests);
-            const argument = createReconcileArgs(algorithms);
-            argument.workers = workers;
+            const argument = createReconcileArgs(algorithms, { workers });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -889,8 +890,7 @@ describe('reconciler', () => {
                 ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm4, workerStatus }))
             ];
             const algorithms = shuffle(requests);
-            const argument = createReconcileArgs(algorithms);
-            argument.workers = workers;
+            const argument = createReconcileArgs(algorithms, { workers });
             const res = await reconciler.reconcile(argument);
 
             expect(res).to.exist;
@@ -952,8 +952,8 @@ describe('reconciler', () => {
         it('should update algorithm that cannot be scheduled due to cpu', async () => {
             const algorithm = algorithmTemplates['big-cpu'];
             const amount = 3;
-            const argument = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             await reconciler.reconcile(argument);
             const res = await reconciler.reconcile(argument);
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
@@ -972,8 +972,8 @@ describe('reconciler', () => {
         it('should update algorithm that cannot be scheduled due to memory', async () => {
             const algorithm = algorithmTemplates['big-mem'];
             const amount = 3;
-            const argument = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             await reconciler.reconcile(argument);
             const res = await reconciler.reconcile(argument);
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
@@ -992,9 +992,8 @@ describe('reconciler', () => {
             const algorithm = algorithmTemplates['yellow-alg'];
             const localResources = clone(resources);
             const localNormResources = normalizeResources({ nodes: localResources.nodesNoGpu, pods: localResources.podsGpu });
-            const argument = createReconcileArgs(algorithm.name);
-            argument.normResources = localNormResources;
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(algorithm.name, { localNormResources, localAlgorithmTemplates });
             const res = await reconciler.reconcile(argument);
 
             expect(res['yellow-alg'].created).to.eql(1)
@@ -1003,8 +1002,8 @@ describe('reconciler', () => {
         it('should update algorithm that cannot be scheduled due to gpu', async () => {
             const algorithm = algorithmTemplates['big-gpu'];
             const amount = 3;
-            const argument = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             await reconciler.reconcile(argument);
             const res = await reconciler.reconcile(argument);
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
@@ -1022,8 +1021,8 @@ describe('reconciler', () => {
         it('should update algorithm that cannot be scheduled due to max limit cpu', async () => {
             const algorithm = algorithmTemplates['max-cpu'];
             const amount = 3;
-            const argument = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             const res = await reconciler.reconcile(argument);
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
@@ -1038,8 +1037,8 @@ describe('reconciler', () => {
         it('should update algorithm that cannot be scheduled due to max limit memory', async () => {
             const algorithm = algorithmTemplates['max-mem'];
             const amount = 3;
-            const argument = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             const res = await reconciler.reconcile(argument);
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
@@ -1054,8 +1053,8 @@ describe('reconciler', () => {
         it('should update algorithm that cannot be scheduled due to max limit gpu', async () => {
             const algorithm = algorithmTemplates['max-gpu'];
             const amount = 3;
-            const argument = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             const res = await reconciler.reconcile(argument);
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
@@ -1070,8 +1069,8 @@ describe('reconciler', () => {
         it('should update algorithm that cannot be scheduled due to node selector', async () => {
             const algorithm = algorithmTemplates['node-selector'];
             const amount = 3;
-            const argument = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             const res = await reconciler.reconcile(argument);
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
@@ -1086,8 +1085,8 @@ describe('reconciler', () => {
         it('should update algorithm that cannot be scheduled due to all params', async () => {
             const algorithm = algorithmTemplates['node-all-params'];
             const amount = 3;
-            const argument = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             const res = await reconciler.reconcile(argument);
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
@@ -1103,8 +1102,8 @@ describe('reconciler', () => {
         it('should update algorithm unschedule and then succeed to schedule', async () => {
             const algorithm = algorithmTemplates['eval-alg'];
             const amount = 3;
-            const argument1 = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument1.algorithmTemplates = { [algorithm.name]: { ...algorithm, cpu: 25 } };
+            const localAlgorithmTemplates = { [algorithm.name]: { ...algorithm, cpu: 25 } };
+            const argument1 = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             const argument2 = { ...argument1, algorithmTemplates: { [algorithm.name]: { ...algorithm, cpu: 1 } } };
             const res1 = await reconciler.reconcile(argument1);
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
@@ -1119,8 +1118,8 @@ describe('reconciler', () => {
         it('should not allocate algorithm with multiple values in the same nodeSelector key ', async () => {
             const algorithm = algorithmTemplates['selector-multi-values'];
             const amount = 3;
-            const argument = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             const res = await reconciler.reconcile(argument);
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
@@ -1134,8 +1133,8 @@ describe('reconciler', () => {
         it('should allocate algorithm with multiple values in the same nodeSelector key ', async () => {
             const algorithm = algorithmTemplates['selector-multi-values-node4'];
             const amount = 3;
-            const argument = createReconcileArgs(Array(amount).fill(algorithm.name));
-            argument.algorithmTemplates = { [algorithm.name]: algorithm };
+            const localAlgorithmTemplates = { [algorithm.name]: algorithm };
+            const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             const res = await reconciler.reconcile(argument);
             await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);globalSettings.sidecars
