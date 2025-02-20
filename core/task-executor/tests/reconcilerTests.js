@@ -1756,8 +1756,10 @@ describe('reconciler', () => {
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);globalSettings.sidecars
         });
+    });
 
-        describe('algorithms with sideCar', function () {
+    describe('reconcile algorithms with sideCar', function () {
+        describe('sidecar volume tests', function () {
             it('should not schedule algorithm with sideCar with non-exist pvc', async () => {
                 const algorithm = 'algo-car-pvc-non-exist';
                 const res = await reconciler.reconcile({
@@ -1975,6 +1977,10 @@ describe('reconciler', () => {
                 expect(volume).to.have.property('emptyDir');
                 expect(volume.emptyDir).to.be.an('object').that.deep.equals({});
             });
+        });
+
+        describe('sidecar default resources', function () {
+            
         });
     });
 });
