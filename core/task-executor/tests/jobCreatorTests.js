@@ -23,6 +23,7 @@ describe('jobCreator', () => {
             expect(() => applyAlgorithmName(missingWorkerSpec, 'myAlgo1')).to.throw('unable to find container worker');
         });
     });
+
     describe('setWorkerImage', () => {
         it('should use image from versions config map', () => {
             const versions = {
@@ -41,8 +42,9 @@ describe('jobCreator', () => {
                 "mem": 128
             };
             const res = setWorkerImage(workerTemplate, versions);
-            expect(res).to.eql('foo/wkr:v1.2.3')
-        })
+            expect(res).to.eql('foo/wkr:v1.2.3');
+        });
+
         it('should use image from template', () => {
             const versions = {
                 versions: [
@@ -59,8 +61,9 @@ describe('jobCreator', () => {
                 "mem": 128
             };
             const res = setWorkerImage(workerTemplate, versions);
-            expect(res).to.eql('hkube/worker:v1.2.3')
-        })
+            expect(res).to.eql('hkube/worker:v1.2.3');
+        });
+
         it('should use image from versions config map with registry', () => {
             const versions = {
                 versions: [
@@ -80,41 +83,48 @@ describe('jobCreator', () => {
             };
             const res = setWorkerImage(workerTemplate, versions, { registry });
             expect(res).to.eql('localhost:5555/bar/foo/wkr:v1.2.3')
-        })
-    })
+        });
+    });
+
     describe('applyImageName', () => {
         it('should replace algorithm image name in spec', () => {
             const res = applyAlgorithmImage(jobTemplate, 'registry:5000/myAlgo1Image:v2');
             expect(res).to.nested.include({ 'spec.template.spec.containers[1].image': 'registry:5000/myAlgo1Image:v2' });
         });
+
         it('should throw if no algorithm container', () => {
             const missingAlgorunnerSpec = clonedeep(jobTemplate);
             missingAlgorunnerSpec.spec.template.spec.containers.splice(1, 1);
             expect(() => applyAlgorithmImage(missingAlgorunnerSpec, 'registry:5000/myAlgo1Image:v2')).to.throw('unable to find container algorunner');
         });
     });
+
     describe('applyWorkerImageName', () => {
         it('should replace worker image name in spec', () => {
             const res = applyWorkerImage(jobTemplate, 'workerImage:v2');
             expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'workerImage:v2' });
         });
+
         it('should throw if no worker container2', () => {
             const missingWorkerSpec = clonedeep(jobTemplate);
             missingWorkerSpec.spec.template.spec.containers.splice(0, 1);
             expect(() => applyWorkerImage(missingWorkerSpec, 'workerImage:v2')).to.throw('unable to find container worker');
         });
     });
+
     describe('applyHotWorker', () => {
         it('should add env to spec', () => {
             const res = applyHotWorker(jobTemplate, false);
             expect(res).to.eql(jobTemplate);
         });
+
         it('should replace env in spec', () => {
             const res = applyHotWorker(jobTemplate, true);
             expect(res.spec.template.spec.containers[0].env).to.have.lengthOf(6);
             expect(res.spec.template.spec.containers[0].env).to.deep.include({ name: 'HOT_WORKER', value: 'true' });
         });
     });
+
     describe('apply labels', () => {
         it('should add new label', () => {
             const labels = {
@@ -123,6 +133,7 @@ describe('jobCreator', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, labels });
             expect(res).to.nested.include({ 'spec.template.metadata.labels.key': labels.key });
         });
+
         it('should not override label', () => {
             const labels = {
                 'group': 'my-group'
@@ -131,6 +142,7 @@ describe('jobCreator', () => {
             expect(res.spec.template.metadata.labels.group).to.not.eql(labels.group);
         });
     });
+
     describe('apply annotations', () => {
         it('should add new annotation', () => {
             const annotations = {
@@ -139,6 +151,7 @@ describe('jobCreator', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, annotations });
             expect(res).to.nested.include({ 'spec.template.metadata.annotations.key': annotations.key });
         });
+
         it('should override annotation', () => {
             const annotations1 = {
                 'group': 'my-group'
@@ -152,16 +165,20 @@ describe('jobCreator', () => {
             expect(res2.spec.template.metadata.annotations.group).to.eql(annotations2.group);
         });
     });
+
     describe('jobSpec', () => {
         beforeEach(() => {
             globalSettings.applyResources = false;
         });
+
         it('should throw if no image name', () => {
             expect(() => createJobSpec({ algorithmName: 'myalgo1', options })).to.throw('Unable to create job spec. algorithmImage is required');
         });
+
         it('should throw if no algorithm name', () => {
             expect(() => createJobSpec({ algorithmImage: 'myImage1', options })).to.throw('Unable to create job spec. algorithmName is required');
         });
+
         it('should apply all required properties', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options, clusterOptions: { datasourcesServiceEnabled: true } });
             expect(res).to.nested.include({ 'spec.template.spec.containers[1].image': 'myImage1' });
@@ -199,6 +216,7 @@ describe('jobCreator', () => {
                 }
             );
         });
+
         it('should apply with worker', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
             expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'workerImage2' });
@@ -206,11 +224,13 @@ describe('jobCreator', () => {
             expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
             expect(res.metadata.name).to.include('myalgo1-');
         });
+
         it('should apply imagePullSecrets', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, clusterOptions: { imagePullSecretName: 'my-secret' } });
             expect(res.spec.template.spec.imagePullSecrets).to.exist;
             expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({ name: 'my-secret' });
         });
+
         it('should apply gateway params to env', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', kind: 'gateway', options });
             const env = res.spec.template.spec.containers[1].env;
@@ -246,35 +266,43 @@ describe('jobCreator', () => {
                 }
             });
         });
+
         it('should apply cache params to env', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', reservedMemory: '502.552M', options });
             expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DISCOVERY_MAX_CACHE_SIZE', value: '479' })
         });
+
         it('should apply cache params to env', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', reservedMemory: '256Mi', options });
             expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DISCOVERY_MAX_CACHE_SIZE', value: '256' })
         });
+
         it('should not apply cache params to env if empty', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', reservedMemory: '256Mi', options });
             expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DISCOVERY_MAX_CACHE_SIZE', value: '256' })
         });
+
         it('should not apply cache params to env if no cache', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options });
             expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'DISCOVERY_MAX_CACHE_SIZE', value: '256' })
             expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'STORAGE_MAX_CACHE_SIZE', value: '128' })
         });
+
         it('should apply java memory convert Mi', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', reservedMemory: '256Mi', env: 'java', options, resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200Mi' } } });
             expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '160' })
         });
+
         it('should apply java memory G', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', reservedMemory: '256G', env: 'java', options, resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200G' } } });
             expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '152588' })
         });
+
         it('should not apply java memory for non java env', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', reservedMemory: '256G', env: 'python', options, resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200Gi' } } });
             expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '160G' })
         });
+
         it('should apply mounts', () => {
             const mounts = [
                 {
@@ -346,18 +374,22 @@ describe('jobCreator', () => {
                 }
             );
         });
+
         it('should apply 0 mounts', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, mounts: [], clusterOptions: { datasourcesServiceEnabled: true } });
             expect(res.spec.template.spec.volumes).to.have.length(4)
         });
+
         it('should apply no mounts', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, clusterOptions: { datasourcesServiceEnabled: true } });
             expect(res.spec.template.spec.volumes).to.have.length(4)
         });
+
         it('should not apply datasources pvc if disabled', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, clusterOptions: { datasourcesServiceEnabled: false } });
             expect(res.spec.template.spec.volumes).to.have.length(3)
         });
+
         it('should apply opengl params', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, algorithmOptions: { opengl: true } });
             expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DISPLAY', value: ':0' })
@@ -377,6 +409,7 @@ describe('jobCreator', () => {
                 }
             );
         });
+
         it('should apply with worker and resources', () => {
             globalSettings.applyResources = true;
 
@@ -396,19 +429,23 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[1].resources).to.deep.include({ limits: { cpu: '500m', memory: '200M' } });
             expect(res.spec.template.spec.containers[0].resources).to.deep.include({ limits: { cpu: '200m', memory: '100Mi' } });
         });
+
         it('should apply nodeSelector', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1',nodeSelector: {name: "node1"} , options });
             expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values).to.eql(['node1']);
         });
+
         it('should apply nodeSelector multiple values in same type', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1',nodeSelector: {name: ["node1","node2"]} , options });
             expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values).to.eql(['node1','node2']);
         });
+
         it('should apply nodeSelector multiple values in multiple types', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1',nodeSelector: {name: ["node1","node2"], gpu: "max-gpu", "kubernetes.io/arch": ["amd64","intel"]} , options });
             expect(res.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions.length).to.eql(3);
         });
     });
+
     describe('sidecars', () => {
         const formatEnvironments = (environments) => {
             return Object.entries(environments).map(([key, value]) => ({
@@ -551,6 +588,7 @@ describe('jobCreator', () => {
                 }
             );
         });
+
         it('should apply with custom mount path when "devMode" and "devFolder" are present', () => {
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
@@ -574,6 +612,7 @@ describe('jobCreator', () => {
                 }
             );
         });
+
         it('should not add devMode if cluster disabled', () => {
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
@@ -584,6 +623,7 @@ describe('jobCreator', () => {
             });
             expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'DEV_MODE', value: 'true' });
         });
+
         it('should not add devMode if algorithm disabled', () => {
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
