@@ -343,6 +343,16 @@ const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, envi
     return spec;
 };
 
+const mergeWorkerResourceRequest = (defaultResource, customResource) => {
+    const mergedRequest = { requests: {}, limits: {} };
+
+    for (const key of ['requests', 'limits']) {
+        mergedRequest[key].memory = customResource[key]?.memory || defaultResource[key]?.memory || null;
+        mergedRequest[key].cpu = customResource[key]?.cpu || defaultResource[key]?.cpu || null;
+    }
+    return mergedRequest;
+};
+
 const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
     let spec = clonedeep(inputSpec);
     for (const sidecar of settings.sidecars) {
@@ -356,15 +366,6 @@ const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
         spec = applySidecar(sideCar, spec);
     });
     return spec;
-};
-const mergeWorkerResourceRequest = (defaultResource, customResource) => {
-    const mergedRequest = { requests: {}, limits: {} };
-
-    for (const key of ['requests', 'limits']) {
-        mergedRequest[key].memory = customResource[key]?.memory || defaultResource[key]?.memory || null;
-        mergedRequest[key].cpu = customResource[key]?.cpu || defaultResource[key]?.cpu || null;
-    }
-    return mergedRequest;
 };
 
 const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
