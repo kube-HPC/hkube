@@ -337,10 +337,12 @@ const mergeResourceRequest = (defaultResource, customResource) => {
 };
 
 const _applyDefaultResourcesSideCar = (container) => {
-    const { resources } = container;
-    const { requests = {} } = resources || {};
-    const { cpu = consts.DEFAULT_SIDE_CAR_CPU, mem = consts.DEFAULT_SIDE_CAR_MEMORY, gpu } = requests;
-    container.resources = createContainerResource({ cpu, mem, gpu });
+    const { resources = {} } = container;
+    const { requests = {} } = resources;
+    const { cpu = main.resources.sideCar.cpu, memory = main.resources.sideCar.memory, gpu } = requests;
+    const mem = parse.getMemoryInMi(memory);
+    const resourcesWithDefaultLimits = createContainerResource({ cpu, mem, gpu });
+    container.resources = mergeResourceRequest(resourcesWithDefaultLimits, resources);
 };
 
 const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, environments }, spec) => {
