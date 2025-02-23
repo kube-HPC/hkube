@@ -326,6 +326,16 @@ const applyAnnotations = (spec, keyVal) => {
     return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
 };
 
+const mergeResourceRequest = (defaultResource, customResource) => {
+    const mergedRequest = { requests: {}, limits: {} };
+
+    for (const key of ['requests', 'limits']) {
+        mergedRequest[key].memory = customResource[key]?.memory || defaultResource[key]?.memory || null;
+        mergedRequest[key].cpu = customResource[key]?.cpu || defaultResource[key]?.cpu || null;
+    }
+    return mergedRequest;
+};
+
 const _applyDefaultResourcesSideCar = (container) => {
     const { resources } = container;
     const { requests = {} } = resources || {};
@@ -352,16 +362,6 @@ const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, envi
         });
     }
     return spec;
-};
-
-const mergeWorkerResourceRequest = (defaultResource, customResource) => {
-    const mergedRequest = { requests: {}, limits: {} };
-
-    for (const key of ['requests', 'limits']) {
-        mergedRequest[key].memory = customResource[key]?.memory || defaultResource[key]?.memory || null;
-        mergedRequest[key].cpu = customResource[key]?.cpu || defaultResource[key]?.cpu || null;
-    }
-    return mergedRequest;
 };
 
 const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
@@ -407,7 +407,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     spec = applyAlgorithmResourceRequests(spec, resourceRequests, node);
     if (settings.applyResources || workerCustomResources) {
         if (workerCustomResources) {
-            workerResourceRequests = mergeWorkerResourceRequest(workerResourceRequests, workerCustomResources);
+            workerResourceRequests = mergeResourceRequest(workerResourceRequests, workerCustomResources);
         }
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);
     }
