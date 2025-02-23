@@ -645,7 +645,6 @@ describe('jobCreator', () => {
                 const sidecar = sidecarAlg.sideCars[0];
                 const { container: inputContainer } = sidecar;
                 const resources = mergeWithDefaultResources(inputContainer.resources);
-                resources.requests = inputContainer.resources.requests;
 
                 const res = createJobSpec({ ...sidecarAlg, options });
                 const { containers } = res.spec.template.spec;
@@ -660,13 +659,52 @@ describe('jobCreator', () => {
                 const sidecar = sidecarAlg.sideCars[0];
                 const { container: inputContainer } = sidecar;
                 const resources = mergeWithDefaultResources(inputContainer.resources);
-                resources.limits = inputContainer.resources.limits;
 
                 const res = createJobSpec({ ...sidecarAlg, options });
                 const { containers } = res.spec.template.spec;
                 const sidecarContainer = containers.find(c => c.name === inputContainer.name);
 
                 expect(sidecarContainer.resources).to.deep.equal(resources);
+            });
+
+            it('should build spec with sidecar, with given requests and limits', () => {
+                const sidecarAlg = templateStore.find(alg => alg.name === 'algo-car-container-req-lim');
+                sidecarAlg.algorithmName = sidecarAlg.name;
+                const sidecar = sidecarAlg.sideCars[0];
+                const { container: inputContainer } = sidecar;
+                const resources = mergeWithDefaultResources(inputContainer.resources);
+
+                const res = createJobSpec({ ...sidecarAlg, options });
+                const { containers } = res.spec.template.spec;
+                const sidecarContainer = containers.find(c => c.name === inputContainer.name);
+
+                expect(sidecarContainer.resources).to.deep.equal(resources);
+            });
+
+            it('should build spec with sidecar, with given requests and limits, and missing field', () => {
+                const sidecarAlg = templateStore.find(alg => alg.name === 'algo-car-container-req-lim');
+                sidecarAlg.algorithmName = sidecarAlg.name;
+                const sidecar = sidecarAlg.sideCars[0];
+                const { container: inputContainer } = sidecar;
+
+                const scenarios = [
+                    { description: 'missing requests.cpu', field: 'requests', type: 'cpu' },
+                    { description: 'missing requests.memory', field: 'requests', type: 'memory' },
+                    { description: 'missing limits.cpu', field: 'limits', type: 'cpu' },
+                    { description: 'missing limits.memory', field: 'limits', type: 'memory' }
+                ];
+
+                scenarios.forEach(({ description, field, type }) => {
+                    const inputContainerClone = { ...inputContainer };
+                    delete inputContainerClone.resources[field][type];
+
+                    const resources = mergeWithDefaultResources(inputContainerClone.resources);
+                    const res = createJobSpec({ ...sidecarAlg, options });
+                    const { containers } = res.spec.template.spec;
+                    const sidecarContainer = containers.find(c => c.name === inputContainer.name);
+
+                    expect(sidecarContainer.resources).to.deep.equal(resources, `Failed on scenario: ${description}`);
+                });
             });
         });
     });
