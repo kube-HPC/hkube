@@ -1,5 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 const clonedeep = require('lodash.clonedeep');
+const configIt = require('@hkube/config');
+const { main } = configIt.load();
 const { randomString } = require('@hkube/uid');
 const { nodeKind } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -8,7 +10,7 @@ const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImag
     applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation,
     applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const parse = require('@hkube/units-converter');
-const { components, containers, gpuVendors, volumes: volumeKinds, consts } = require('../consts');
+const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
 const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, varLog, varlibdockercontainers, varlogMount, varlibdockercontainersMount, sharedVolumeMounts, algoMetricVolume } = require('../templates');
