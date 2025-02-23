@@ -138,7 +138,7 @@ module.exports = [
             {
                 container: {
                     name: "mycar",
-                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
                 volumes: [
                     {
@@ -172,7 +172,7 @@ module.exports = [
             {
                 container: {
                     name: "mycar",
-                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
                 volumes: [
                     {
@@ -206,7 +206,7 @@ module.exports = [
             {
                 container: {
                     name: "mycar",
-                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
                 volumes: [
                     {
@@ -240,7 +240,7 @@ module.exports = [
             {
                 container: {
                     name: "mycar",
-                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
                 volumes: [
                     {
@@ -274,7 +274,7 @@ module.exports = [
             {
                 container: {
                     name: "mycar",
-                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
                 volumes: [
                     {
@@ -308,7 +308,7 @@ module.exports = [
             {
                 container: {
                     name: "mycar",
-                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
                 volumes: [
                     {
@@ -334,7 +334,7 @@ module.exports = [
         ]
     },
     {
-        algorithmName: 'algo-car-emptyDir',
+        name: 'algo-car-emptyDir',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
@@ -342,7 +342,7 @@ module.exports = [
             {
                 container: {
                     name: "mycar",
-                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
                 volumes: [
                     {
@@ -374,7 +374,13 @@ module.exports = [
             {
                 container: {
                     name: "mycar",
-                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne",
+                    resources: {
+                        requests: {
+                            cpu: 0.2,
+                            memory: '150Mi'
+                        }
+                    }
                 },
                 volumes: [
                     {
@@ -406,7 +412,13 @@ module.exports = [
             {
                 container: {
                     name: "mycar",
-                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne",
+                    resources: {
+                        limits: {
+                            cpu: 0.2,
+                            memory: '250Mi'
+                        }
+                    }
                 },
                 volumes: [
                     {
@@ -438,7 +450,17 @@ module.exports = [
             {
                 container: {
                     name: "mycar",
-                    image: "hkube/api-server:v2.8.19-sidecar_feature-11879765908"
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne",
+                    resources: {
+                        requests: {
+                            cpu: 0.1,
+                            memory: '150Mi'
+                        },
+                        limits: {
+                            cpu: 0.2,
+                            memory: '250Mi'
+                        }
+                    }
                 },
                 volumes: [
                     {
