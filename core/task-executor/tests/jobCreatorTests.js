@@ -10,7 +10,7 @@ const { jobTemplate } = require('./stub/jobTemplates');
 const templateStore = require('./stub/templateStore');
 const { settings: globalSettings } = require('../lib/helpers/settings');
 const { setWorkerImage } = require('../lib/reconcile/createOptions');
-const consts = require('../lib/consts/consts');
+const parse = require('@hkube/units-converter');
 
 describe('jobCreator', () => {
     describe('applyAlgorithmName', () => {
@@ -572,17 +572,6 @@ describe('jobCreator', () => {
         });
 
         describe('custom sidecars', () => {
-            const defaultResources = {
-                requests: {
-                  cpu: consts.DEFAULT_SIDE_CAR_CPU,
-                  memory: consts.DEFAULT_SIDE_CAR_MEMORY + "Mi",
-                },
-                limits: {
-                  cpu: !globalSettings.useResourceLimits ? consts.DEFAULT_SIDE_CAR_CPU : consts.DEFAULT_SIDE_CAR_CPU * 2,
-                  memory: !globalSettings.useResourceLimits ? consts.DEFAULT_SIDE_CAR_MEMORY + "Mi" : consts.DEFAULT_SIDE_CAR_MEMORY * 2 + "Mi"
-                },
-            }
-
             before(() => {
                 globalSettings.useResourceLimits = true;
             });
@@ -591,10 +580,47 @@ describe('jobCreator', () => {
                 globalSettings.useResourceLimits = false;
             });
 
+            /**
+             * Merges container resource requests and limits, applying default values
+             * and adjusting limits if needed.
+             *
+             * - If `requests` are higher than `limits`, limits will be set to match requests.
+             * - If `globalSettings.useResourceLimits` is `false`, limits will be doubled.
+             *
+             * @param {Object} containerResources - The container resources object.
+             * @param {Object} [containerResources.requests] - Requested CPU and memory.
+             * @param {string} [containerResources.requests.cpu] - Requested CPU (e.g., "250m").
+             * @param {string} [containerResources.requests.mem] - Requested memory (e.g., "512Mi").
+             * @param {Object} [containerResources.limits] - Resource limits for CPU and memory.
+             * @param {string} [containerResources.limits.cpu] - CPU limit (e.g., "500m").
+             * @param {string} [containerResources.limits.mem] - Memory limit (e.g., "1Gi").
+             * @returns {Object} Merged resource requests and limits.
+             */
+            const mergeWithDefaultResources = (containerResources) => {
+                const { cpu: reqCPU = main.resources.sideCar.cpu, memory: reqMem = main.resources.sideCar.memory } = containerResources.requests || {}, 
+                      reqMEM = parse.getMemoryInMi(reqMem);
+            
+                const { cpu: limitCPU = main.resources.sideCar.cpu, memory: limitMem = main.resources.sideCar.memory } = containerResources.limits || {}, 
+                      limitMEM = parse.getMemoryInMi(limitMem);
+            
+                return {
+                    requests: {
+                        cpu: reqCPU,
+                        memory: reqMEM + "Mi",
+                    },
+                    limits: {
+                        cpu: (limitCPU < reqCPU) ? reqCPU : (globalSettings.useResourceLimits ? limitCPU : limitCPU * 2),
+                        memory: (limitMEM < reqMEM) ? reqMEM + "Mi" : (limitMEM * (globalSettings.useResourceLimits ? 1 : 2)) + "Mi",
+                    },
+                };
+            };
+
             it('should build spec with sidecar, with default resources', () => {
-                const sidecarAlg = templateStore.find(alg => alg.algorithmName === 'algo-car-emptyDir');
+                const sidecarAlg = templateStore.find(alg => alg.name === 'algo-car-emptyDir');
+                sidecarAlg.algorithmName = sidecarAlg.name;
                 const sidecar = sidecarAlg.sideCars[0];
                 const { container: inputContainer, volumes: inputVolumes, volumeMounts: inputVolumeMounts, environments: inputEnv } = sidecar;
+                const defaultResources = mergeWithDefaultResources(inputContainer);
 
                 const res = createJobSpec({ ...sidecarAlg, options });
                 const { containers, volumes } = res.spec.template.spec;
@@ -613,8 +639,34 @@ describe('jobCreator', () => {
                 expect(sidecarVolume).to.deep.equal(inputVolumes[0]);
             });
 
-            it('should build spec with sidecar, with default limits', () => {
+            it('should build spec with sidecar, with default limits and given requests', () => {
+                const sidecarAlg = templateStore.find(alg => alg.name === 'algo-car-container-req');
+                sidecarAlg.algorithmName = sidecarAlg.name;
+                const sidecar = sidecarAlg.sideCars[0];
+                const { container: inputContainer } = sidecar;
+                const resources = mergeWithDefaultResources(inputContainer.resources);
+                resources.requests = inputContainer.resources.requests;
 
+                const res = createJobSpec({ ...sidecarAlg, options });
+                const { containers } = res.spec.template.spec;
+                const sidecarContainer = containers.find(c => c.name === inputContainer.name);
+
+                expect(sidecarContainer.resources).to.deep.equal(resources);
+            });
+
+            it('should build spec with sidecar, with default requests and given limits', () => {
+                const sidecarAlg = templateStore.find(alg => alg.name === 'algo-car-container-lim');
+                sidecarAlg.algorithmName = sidecarAlg.name;
+                const sidecar = sidecarAlg.sideCars[0];
+                const { container: inputContainer } = sidecar;
+                const resources = mergeWithDefaultResources(inputContainer.resources);
+                resources.limits = inputContainer.resources.limits;
+
+                const res = createJobSpec({ ...sidecarAlg, options });
+                const { containers } = res.spec.template.spec;
+                const sidecarContainer = containers.find(c => c.name === inputContainer.name);
+
+                expect(sidecarContainer.resources).to.deep.equal(resources);
             });
         });
     });
