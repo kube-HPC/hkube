@@ -19,6 +19,8 @@ global:
   ingress:
     use_regex: true
 env:
+  kibana_url: "https://cicd-test.hkube.org/system/kibana/"
+  grafana_url: "https://cicd-test.hkube.org/grafana"
   default_storage: "fs"
 build_secret:
   docker_registry: ""
