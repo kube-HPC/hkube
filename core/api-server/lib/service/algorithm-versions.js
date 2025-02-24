@@ -47,8 +47,8 @@ class AlgorithmVersions {
         // check if running pipelines
         if (!force) {
             const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
-            if (runningPipelines.length > 0) {
-                const { length } = runningPipelines;
+            const { length } = runningPipelines;
+            if (length > 0) {
                 throw new ActionNotAllowed(
                     `there ${length === 1 ? 'is a' : `are ${length}`} running pipeline${length === 1 ? '' : 's'} which depend${length === 1 ? 's' : ''} on "${options.name}" algorithm`,
                     runningPipelines.map(p => p.jobId)
