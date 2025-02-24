@@ -27349,6 +27349,38 @@
           }
         }
       },
+      "pipelineVersionId": {
+        "type": "string",
+        "description": "Unique identifier representing version id",
+        "minLength": 1,
+        "maxLength": 10
+      },
+      "applyPipelineVersion": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          },
+          "version": {
+            "type": "string",
+            "description": "Unique identifier representing version id",
+            "minLength": 1,
+            "maxLength": 10
+          },
+          "force": {
+            "type": "boolean",
+            "description": "should replace or not current pipeline version, if pipeline is running",
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "version"
+        ]
+      },
       "priority": {
         "type": "integer",
         "minimum": 1,

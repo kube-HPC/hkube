@@ -1,0 +1,4 @@
+type: string
+description: Unique identifier representing version id
+minLength: 1
+maxLength: 10
