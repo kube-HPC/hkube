@@ -170,7 +170,7 @@ describe('Versions/Algorithms', () => {
             const res2 = await request(versionReq);
             expect(res2.body).to.have.property('error');
             expect(res2.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(res2.body.error.message).to.equal(`there are 1 running pipelines which dependent on "${name}" algorithm`);
+            expect(res2.body.error.message).to.equal(`there is a running pipeline which depends on "${name}" algorithm`);
         });
         it('should not throw error of running pipelines dependent on algorithm', async () => {
             const name = `my-alg-${uuid()}`;

@@ -48,7 +48,13 @@ class AlgorithmVersions {
         if (!force) {
             const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
             if (runningPipelines.length > 0) {
-                throw new ActionNotAllowed(`there are ${runningPipelines.length} running pipelines which dependent on "${options.name}" algorithm`, runningPipelines.map(p => p.jobId));
+                throw new ActionNotAllowed(
+                    `there ${runningPipelines.length === 1 ? 'is' : 'are'}`
+                    + ` ${runningPipelines.length === 1 ? 'a' : runningPipelines.length} running pipeline`
+                    + `${runningPipelines.length === 1 ? '' : 's'} which depend`
+                    + `${runningPipelines.length === 1 ? 's' : ''} on "${options.name}" algorithm`,
+                    runningPipelines.map(p => p.jobId)
+                );
             }
         }
         // Deleting the error check "not last version algorithm"
