@@ -64,7 +64,7 @@ describe('Versions/Algorithms', () => {
 
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(res.body.error.message).to.equal('unable to remove used version');
+            expect(res.body.error.message).to.equal('unable to remove the currently used version');
         });
         it('should succeed to delete specific version', async () => {
             const algorithmImage1 = 'test-algorithmImage-1';
