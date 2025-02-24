@@ -4,19 +4,23 @@ const { uid: uuid } = require('@hkube/uid');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
 const stateManager = require('../lib/state/state-manager');
+const HttpStatus = require('http-status-codes');
 let restUrl, restPath;
 
 
 describe('Versions/Pipelines', () => {
-    const pipeline = clone(pipelines[0]);
+    let pipeline;
+    beforeEach (() => {
+        pipeline = clone(pipelines[0]);
+    });
 
     const addPipeline = async (pipeline) => {
         const name = `pipe-test-${uuid()}`;
         await stateManager.deletePipeline({ name, keepOldVersions: false })
-        const addRequest = { uri: `${restUrl}/store/pipelines`, method: 'POST', body: pipeline };
         pipeline.name = name;
+        const addRequest = { uri: `${restUrl}/store/pipelines`, method: 'POST', body: pipeline };
         const res = await request(addRequest);
-        return { name, version: res.body.version };
+        return res.body;
     }
 
     const updatePipeline = async (pipeline) => {
@@ -34,7 +38,7 @@ describe('Versions/Pipelines', () => {
     const getSpecificVersion = async (name, version) => {
         const versionReq = { uri: `${restPath}/${name}/${version}`, method: 'GET' };
         const res = await request(versionReq);
-        return res.body.version;
+        return res.body;
     }
 
     before(() => {
@@ -42,35 +46,77 @@ describe('Versions/Pipelines', () => {
         restPath = `${restUrl}/versions/pipelines`;
     });
 
-    describe('get', () => {
-        it('should succeed to get list of the new pipeline version', async () => {
-            const { name } = await addPipeline(pipeline);
-            const versionsList = await getAllVersions(name);
-            expect(versionsList).to.have.lengthOf(1);
+    describe('get methods', () => {
+        describe('getVersions method', () => {
+            it('should succeed to get list of the new pipeline version', async () => {
+                const { name, version: oldVersion } = await addPipeline(pipeline);
+                const versionsList1 = await getAllVersions(name);
+                expect(versionsList1).to.have.lengthOf(1);
+                pipeline.priority = 2;
+                const newVersion = await updatePipeline(pipeline);
+                expect(newVersion).to.not.equal(oldVersion);
+                const versionsList2 = await getAllVersions(name);
+                expect(versionsList2).to.have.lengthOf(2);
+            });
+
+            it('should return empty versions list for pipeline name which doesnt exist', async () => {
+                const versions = await getAllVersions('non-exist');
+                expect(versions).to.be.an('array').that.is.empty;
+            });
         });
 
-        it('should succeed to get version', async () => {
-            const { name, version } = await addPipeline(pipeline);
-            const specificVersion = await getSpecificVersion(name, version);
-            expect(specificVersion).to.eql(version);
-        });
-        
-        it('should succeed to get versions and change version to latest', async () => {
-            const { name, version: oldVersion } = await addPipeline(pipeline);
-            const pipeline2 = clone(pipeline);
-            pipeline2.options.ttl = 6666;
-            const newVersion = await updatePipeline(pipeline2);
-            const versionsList = await getAllVersions(name)
-            const semver = versionsList.map((v) => v.semver);
-            expect(versionsList).to.have.lengthOf(2);
-            expect(semver).to.eql(['1.0.1', '1.0.0']);
-            expect(oldVersion).to.be.not.equal(newVersion);
-            expect(newVersion).to.be.equal(versionsList[0].version);
-            expect(versionsList[0].semver).to.be.equal('1.0.1');
+        describe('getVersion method', () => {
+            it('should succeed to get version', async () => {
+                const { name, version } = await addPipeline(pipeline);
+                const { version: specificVersion } = await getSpecificVersion(name, version);
+                expect(specificVersion).to.eql(version);
+            });
+
+            it('should throw ResourceNotFoundError if pipeline is not found', async () => {
+                const { error } = await getSpecificVersion('non-exist', '6');
+                expect(error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
+                expect(error.message).to.equal('pipeline non-exist Not Found');
+            });
+
+            it('should throw ResourceNotFoundError if version is not found', async () => {
+                const { name } = await addPipeline(pipeline);
+                const { error } = await getSpecificVersion(name, '6');
+                expect(error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
+                expect(error.message).to.equal('version 6 Not Found');
+            });
         });
     });
 
-    describe('versions when pipeline is deleted', () => {
+    describe('update methods', () => {
+        describe('updating the pipeline itself', () => {
+            it('should succeed to get versions and change version to latest, plus change semver', async () => {
+                const { name, version: oldVersion } = await addPipeline(pipeline);
+                pipeline.options.ttl = 6666;
+                const newVersion = await updatePipeline(pipeline);
+                const versionsList = await getAllVersions(name)
+                const semver = versionsList.map((v) => v.semver);
+                expect(versionsList).to.have.lengthOf(2);
+                expect(semver).to.eql(['1.0.1', '1.0.0']);
+                expect(oldVersion).to.be.not.equal(newVersion);
+                expect(newVersion).to.be.equal(versionsList[0].version);
+                expect(versionsList[0].semver).to.be.equal('1.0.1');
+            });
+
+            it('should not change version if the same pipeline has been inserted, without any update', async () => {
+                const addedPipeline = await addPipeline(pipeline);
+                const { name, version } = addedPipeline;
+                const versionAfterUpdate = await updatePipeline(addedPipeline);
+                const versionsList = await getAllVersions(name);
+                const semver = versionsList.map((v) => v.semver);
+                expect(versionsList).to.have.lengthOf(1);
+                expect(semver).to.eql(['1.0.0']);
+                expect(version).to.eql(versionAfterUpdate);
+                expect(version).to.be.equal(versionsList[0].version);
+            });
+        });
+    });
+
+    describe('versions handling when pipeline is deleted', () => {
         it('should return empty list after pipeline deleted', async () => {
             const { name } = await addPipeline(pipeline);
             await stateManager.deletePipeline({ name, keepOldVersions: false });
