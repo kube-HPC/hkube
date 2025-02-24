@@ -1,4 +1,2 @@
-type: object
-properties:
-  token:
-    type: string
+type: string
+description: "The authentication token"
