@@ -41,7 +41,7 @@ class PipelineVersions {
         if (!force) {
             const { length } = runningJobs;
             if (length > 0) {
-                throw new ActionNotAllowed(`The selected pipeline "${name}" is currently running on ${length} job${length === 1 ? '' : 's'}.`);
+                throw new ActionNotAllowed(`The selected pipeline ${name} is currently running on ${length} job${length === 1 ? '' : 's'}.`);
             }
         }
         else {
@@ -63,7 +63,7 @@ class PipelineVersions {
             throw new ResourceNotFoundError('pipeline', name);
         }
         if (pipeline.version === version) {
-            throw new ActionNotAllowed('unable to remove used version');
+            throw new ActionNotAllowed('unable to remove the currently used version');
         }
         const pipelineVersion = await versioning.getVersion({ version }, true);
         if (!pipelineVersion) {

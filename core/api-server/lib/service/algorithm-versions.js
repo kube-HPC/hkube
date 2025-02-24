@@ -72,7 +72,7 @@ class AlgorithmVersions {
             throw new ResourceNotFoundError('algorithm', name);
         }
         if (algorithm.version === version) {
-            throw new ActionNotAllowed('unable to remove used version');
+            throw new ActionNotAllowed('unable to remove the currently used version');
         }
         const algorithmVersion = await versioning.getVersion({ version });
         if (!algorithmVersion) {
