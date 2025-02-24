@@ -200,7 +200,7 @@ class PipelineCreator {
                 if (nodeStateType && nodeStateType !== stateType.Stateful) {
                     throw new InvalidDataError(`Gateway node ${nodeName} stateType must be "stateful". Got ${nodeStateType}`);
                 }
-                const { algorithmName, url, streamKind} = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
+                const { algorithmName, url, streamKind } = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
                 node.stateType = streamKind;
                 node.algorithmName = algorithmName;
                 gateways.push({ nodeName, url });
@@ -269,12 +269,6 @@ class PipelineCreator {
 
         const dag = new DAG({});
         edges.forEach(e => dag.setEdge(e.source, e.target));
-        const nodeNames = new Set(dag.getNodeNames());
-        const node = pipeline.nodes.find(n => !nodeNames.has(n.nodeName || n.origName));
-        if (node) {
-            throw new InvalidDataError(`node "${node.nodeName}" does not belong to any flow`);
-        }
-
         const sources = dag.getSources().map(s => pipeline.nodes.find(n => n.nodeName === s));
         const statelessNodes = sources.filter(s => s.stateType === stateType.Stateless);
         if (statelessNodes.length > 0) {
@@ -293,7 +287,7 @@ class PipelineCreator {
         };
     }
 
-    async buildStreamingFlowGraph({ pipeline, keyFlow, isBuildAllFlows }) {
+    async buildStreamingFlowGraph({ pipeline, keyFlow }) {
         const flows = pipeline.streaming?.flows;
         const defaultFlow = pipeline.streaming?.defaultFlow;
         const showFlow = keyFlow || (defaultFlow || Object.keys(flows)[0]);
@@ -368,35 +362,16 @@ class PipelineCreator {
             });
         });
         parsedFlow[k] = flow;
-        //  });
-
         const dag = new DAG({});
         edges.forEach(e => dag.setEdge(e.source, e.target));
-        const nodeNames = new Set(dag.getNodeNames());
-        const node = pipeline.nodes.find(n => !nodeNames.has(n.nodeName || n.origName));
-
-        if (isBuildAllFlows) {
-            if (node) {
-                throw new InvalidDataError(`node "${node.nodeName}" does not belong to any flow`);
-            }
-        }
-        else {
-            const nodeName = node?.nodeName || node?.origName || '';
-            // eslint-disable-next-line no-param-reassign
-            pipeline.nodes = pipeline.nodes.filter(n => n.nodeName !== nodeName);
-        }
-
         const sources = dag.getSources().map(s => pipeline.nodes.find(n => n.nodeName === s));
         const statelessNodes = sources.filter(s => s.stateType === stateType.Stateless);
         if (statelessNodes.length > 0) {
             throw new InvalidDataError(`entry node "${statelessNodes[0].nodeName}" cannot be ${stateType.Stateless} on ${pipeline.kind} pipeline`);
         }
-
         return {
-
             nodes: pipeline.nodes,
             edges
-
         };
     }
 
