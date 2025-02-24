@@ -222,13 +222,15 @@ const _getMissingSideCarVolumes = (sideCars, allVolumes) => {
  */
 const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCustomResources, sideCars }) => {
     const sideCarResources = sideCars?.map(sideCar => sideCar?.container?.resources) || [];
+    const workerRequestedCPU = settings.applyResources ? workerResourceRequests.requests.cpu : '0';
+    const workerRequestedMemory = settings.applyResources ? workerResourceRequests.requests.memory : '0Mi';
 
     const requestedCpu = parse.getCpuInCore(resourceRequests?.requests?.cpu || '0')
-        + parse.getCpuInCore(workerCustomResources?.requests?.cpu || (settings.applyResources && workerResourceRequests?.requests?.cpu) || '0')
+        + parse.getCpuInCore(workerCustomResources?.requests?.cpu || workerRequestedCPU)
         + sideCarResources.reduce((acc, resources) => acc + parse.getCpuInCore(resources?.requests?.cpu || '0'), 0);
 
     const requestedMemory = parse.getMemoryInMi(resourceRequests?.requests?.memory || '0Mi')
-        + parse.getMemoryInMi(workerCustomResources?.requests?.memory || (settings.applyResources && workerResourceRequests?.requests?.memory) || '0Mi')
+        + parse.getMemoryInMi(workerCustomResources?.requests?.memory || workerRequestedMemory)
         + sideCarResources.reduce((acc, resources) => acc + parse.getMemoryInMi(resources?.requests?.memory || '0Mi'), 0);
 
     return { requestedCpu, requestedMemory };
