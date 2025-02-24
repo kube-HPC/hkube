@@ -8,7 +8,7 @@ const defaulter = new Validator({ useDefaults: true, coerceTypes: true, nullable
 
 class ApiValidator {
     init(schemas) {
-        this.definitions = schemas;
+        this.definitions = schemas; // Schemas are taken from swagger schemas
         customFormats.init(schemas, validator, defaulter);
     }
 
