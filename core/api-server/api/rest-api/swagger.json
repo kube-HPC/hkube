@@ -22803,8 +22803,12 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "string",
-                  "description": "The authentication token"
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
@@ -27829,8 +27833,12 @@
         }
       },
       "loginResponse": {
-        "type": "string",
-        "description": "The authentication token"
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
       },
       "loginRequest": {
         "type": "object",

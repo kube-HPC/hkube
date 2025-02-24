@@ -7,7 +7,7 @@ const routes = () => {
         try {
             // const { username, password } = req.body;
             const token = await auth.login(req.body);
-            res.json(token);
+            res.json({ token });
         }
         catch (e) {
             next(e);
