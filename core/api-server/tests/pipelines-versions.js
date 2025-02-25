@@ -5,13 +5,18 @@ const { pipelines } = require('./mocks');
 const { request } = require('./utils');
 const stateManager = require('../lib/state/state-manager');
 const HttpStatus = require('http-status-codes');
-let restUrl, restPath;
 
 
-describe('Versions/Pipelines', () => {
+describe.only('Versions/Pipelines', () => {
     let pipeline;
+    let restUrl, restPath;
     beforeEach (() => {
         pipeline = clone(pipelines[0]);
+    });
+
+    before(() => {
+        restUrl = global.testParams.restUrl;
+        restPath = `${restUrl}/versions/pipelines`;
     });
 
     const addPipeline = async (pipeline) => {
@@ -29,6 +34,12 @@ describe('Versions/Pipelines', () => {
         return res.body.version;
     }
 
+    const getPipelineCurrentVersion = async (name) => {
+        const getRequest = { uri: `${restUrl}/store/pipelines/${name}`, method: 'GET' };
+        const res = await request(getRequest);
+        return res.body.version;
+    }
+
     const getAllVersions = async (name) => {
         const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
         const res = await request(versionReq);
@@ -41,10 +52,11 @@ describe('Versions/Pipelines', () => {
         return res.body;
     }
 
-    before(() => {
-        restUrl = global.testParams.restUrl;
-        restPath = `${restUrl}/versions/pipelines`;
-    });
+    const updatePipelineVersion = async (name, version) => {
+        const updateRequest = { uri: `${restPath}/apply`, method: 'POST', body: { name, version, force: true } };
+        const res = await request(updateRequest);
+        return res.body;
+    }
 
     describe('get methods', () => {
         describe('getVersions method', () => {
@@ -52,9 +64,11 @@ describe('Versions/Pipelines', () => {
                 const { name, version: oldVersion } = await addPipeline(pipeline);
                 const versionsList1 = await getAllVersions(name);
                 expect(versionsList1).to.have.lengthOf(1);
+
                 pipeline.priority = 2;
                 const newVersion = await updatePipeline(pipeline);
                 expect(newVersion).to.not.equal(oldVersion);
+
                 const versionsList2 = await getAllVersions(name);
                 expect(versionsList2).to.have.lengthOf(2);
             });
@@ -95,6 +109,7 @@ describe('Versions/Pipelines', () => {
                 const newVersion = await updatePipeline(pipeline);
                 const versionsList = await getAllVersions(name)
                 const semver = versionsList.map((v) => v.semver);
+
                 expect(versionsList).to.have.lengthOf(2);
                 expect(semver).to.eql(['1.0.1', '1.0.0']);
                 expect(oldVersion).to.be.not.equal(newVersion);
@@ -108,10 +123,40 @@ describe('Versions/Pipelines', () => {
                 const versionAfterUpdate = await updatePipeline(addedPipeline);
                 const versionsList = await getAllVersions(name);
                 const semver = versionsList.map((v) => v.semver);
+
                 expect(versionsList).to.have.lengthOf(1);
                 expect(semver).to.eql(['1.0.0']);
                 expect(version).to.eql(versionAfterUpdate);
                 expect(version).to.be.equal(versionsList[0].version);
+            });
+        });
+
+        describe('applying pipeline version (change to other version)', () => {
+            it('should succeed to apply version', async () => {
+                const { name, version: version1 } = await addPipeline(pipeline);
+                pipeline.priority = 2;
+                const version2 = await updatePipeline(pipeline);
+                const currentVersion2 = await getPipelineCurrentVersion(name);
+                expect(version1).to.not.equal(version2);
+                expect(version2).to.equal(currentVersion2);
+
+                await updatePipelineVersion(name, version1);
+                const currentVersion1 = await getPipelineCurrentVersion(name);
+
+                expect(currentVersion1).to.equal(version1);
+            });
+
+            it('should throw ResourceNotFoundError if pipeline is not found', async () => {
+                const { error } = await updatePipelineVersion('non-exist', '6');
+                expect(error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
+                expect(error.message).to.equal('pipeline non-exist Not Found');
+            });
+
+            it('should throw ResourceNotFoundError if version is not found', async () => {
+                const { name } = await addPipeline(pipeline);
+                const { error } = await updatePipelineVersion(name, '6');
+                expect(error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
+                expect(error.message).to.equal('version 6 Not Found');
             });
         });
     });
