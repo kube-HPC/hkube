@@ -20045,11 +20045,6 @@
                     "description": "Unique identifier representing version id",
                     "minLength": 1,
                     "maxLength": 10
-                  },
-                  "force": {
-                    "type": "boolean",
-                    "description": "should replace or not current pipeline version, if pipeline is running",
-                    "default": false
                   }
                 },
                 "required": [
@@ -20059,7 +20054,7 @@
               }
             }
           },
-          "description": "an object representing the pipeline name, the version to change to, and force flag (when forced, pipeline execution stops)",
+          "description": "an object representing the pipeline name and the version to change to",
           "required": true
         },
         "responses": {
@@ -27590,11 +27585,6 @@
             "description": "Unique identifier representing version id",
             "minLength": 1,
             "maxLength": 10
-          },
-          "force": {
-            "type": "boolean",
-            "description": "should replace or not current pipeline version, if pipeline is running",
-            "default": false
           }
         },
         "required": [

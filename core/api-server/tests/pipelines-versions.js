@@ -53,7 +53,7 @@ describe('Versions/Pipelines', () => {
     }
 
     const updatePipelineVersion = async (name, version) => {
-        const updateRequest = { uri: `${restPath}/apply`, method: 'POST', body: { name, version, force: true } };
+        const updateRequest = { uri: `${restPath}/apply`, method: 'POST', body: { name, version } };
         const res = await request(updateRequest);
         return res.body;
     }

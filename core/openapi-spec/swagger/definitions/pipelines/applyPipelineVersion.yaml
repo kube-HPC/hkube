@@ -4,10 +4,6 @@ properties:
     $ref: "#/components/schemas/pipelineName"
   version:
     $ref: "#/components/schemas/pipelineVersionId"
-  force:
-    type: boolean
-    description: should replace or not current pipeline version, if pipeline is running
-    default: false
 required:
   - name
   - version

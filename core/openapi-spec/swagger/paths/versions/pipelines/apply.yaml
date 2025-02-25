@@ -8,7 +8,7 @@ post:
       application/json:
         schema:
           $ref: "#/components/schemas/applyPipelineVersion"
-    description: an object representing the pipeline name, the version to change to, and force flag (when forced, pipeline execution stops)
+    description: an object representing the pipeline name and the version to change to
     required: true
   responses:
     "200":
