@@ -58,6 +58,12 @@ describe('Versions/Pipelines', () => {
         return res.body;
     }
 
+    const deleteVersion = async (name, version) => {
+        const deleteRequest = { uri: `${restPath}/${name}/${version}`, method: 'DELETE' };
+        const res = await request(deleteRequest);
+        return res.body;
+    }
+
     describe('get methods', () => {
         describe('getVersions method', () => {
             it('should succeed to get list of the new pipeline version', async () => {
@@ -191,19 +197,65 @@ describe('Versions/Pipelines', () => {
         });
     });
 
-    describe('versions handling when pipeline is deleted', () => {
-        it('should return empty list after pipeline deleted', async () => {
-            const { name } = await addPipeline(pipeline);
-            await stateManager.deletePipeline({ name, keepOldVersions: false });
-            const versionsList = await getAllVersions(name);
-            expect(versionsList).to.have.lengthOf(0);
+    describe('delete methods', () => {
+        describe('versions handling when pipeline is deleted', () => {
+            it('should return empty list after pipeline deleted', async () => {
+                const { name } = await addPipeline(pipeline);
+                await stateManager.deletePipeline({ name, keepOldVersions: false });
+                const versionsList = await getAllVersions(name);
+                expect(versionsList).to.have.lengthOf(0);
+            });
+    
+            it('should return the versions of the deleted pipeline', async () => {
+                const { name } = await addPipeline(pipeline);
+                await stateManager.deletePipeline({ name, keepOldVersions: true });
+                const versionsList = await getAllVersions(name);
+                expect(versionsList).to.have.lengthOf(1);
+            });
         });
 
-        it('should return the versions of the deleted pipeline', async () => {
-            const { name } = await addPipeline(pipeline);
-            await stateManager.deletePipeline({ name, keepOldVersions: true });
-            const versionsList = await getAllVersions(name);
-            expect(versionsList).to.have.lengthOf(1);
+        describe('deleting versions test', () => {
+            it('should delete version', async () => {
+                const { name, version: version1 } = await addPipeline(pipeline);
+                pipeline.priority = 2;
+                const version2 = await updatePipeline(pipeline);
+                expect(version1).to.not.equal(version2);
+
+                const versionsList1 = await getAllVersions(name);
+                const { deleted } = await deleteVersion(name, version1);
+                const versionsList2 = await getAllVersions(name);
+                expect(deleted).to.equal(1);
+                expect(versionsList1).to.have.lengthOf(2);
+                expect(versionsList2).to.have.lengthOf(1);
+            });
+
+            it('should throw ActionNotAllowed when trying to delete the currently used version of pipeline', async () => {
+                const { name, version: version1 } = await addPipeline(pipeline);
+                pipeline.priority = 2;
+                const version2 = await updatePipeline(pipeline);
+                expect(version1).to.not.equal(version2);
+
+                const versionsList1 = await getAllVersions(name);
+                const { error } = await deleteVersion(name, version2);
+                const versionsList2 = await getAllVersions(name);
+                expect(error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(error.message).to.equal('unable to remove the currently used version');
+                expect(versionsList1).to.have.lengthOf(2);
+                expect(versionsList2).to.have.lengthOf(2);
+            });
+
+            it('should throw ResourceNotFoundError non-existing pipeline', async () => {
+                const { error } = await deleteVersion('non-exist', '6');
+                expect(error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
+                expect(error.message).to.equal('pipeline non-exist Not Found');
+            });
+
+            it('should throw ResourceNotFoundError non-existing version of an existing pipeline', async () => {
+                const { name } = await addPipeline(pipeline);
+                const { error } = await deleteVersion(name, 'non-exist');
+                expect(error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
+                expect(error.message).to.equal('version non-exist Not Found');
+            });
         });
     });
 });
