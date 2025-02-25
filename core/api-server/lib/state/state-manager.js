@@ -259,6 +259,11 @@ class StateManager extends EventEmitter {
     }
 
     async updatePipeline(options) {
+        const pipeline = options;
+        if (!pipeline.created) {
+            pipeline.created = Date.now();
+        }
+        pipeline.modified = Date.now();
         return this._db.pipelines.update(options);
     }
 
