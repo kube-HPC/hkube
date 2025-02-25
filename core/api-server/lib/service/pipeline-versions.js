@@ -1,7 +1,6 @@
 const asyncQueue = require('async.queue');
 const versioning = require('./versioning');
 const validator = require('../validation/api-validator');
-const Execution = require('./execution');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 
@@ -32,24 +31,9 @@ class PipelineVersions {
     }
 
     async applyVersion(options) {
-        const { name, version, force } = options;
+        const { name, version } = options;
         validator.pipelines.validatePipelineVersion(options);
         const pipelineVersion = await this.getVersion({ name, version });
-
-        // check if the pipeline is running
-        const runningJobs = await stateManager.searchJobs({ pipelineName: name, hasResult: false, fields: { jobId: true } });
-        if (!force) {
-            const { length } = runningJobs;
-            if (length > 0) {
-                throw new ActionNotAllowed(`The selected pipeline ${name} is currently running on ${length} job${length === 1 ? '' : 's'}.`);
-            }
-        }
-        else {
-            runningJobs.forEach(element => {
-                const { jobId } = element;
-                Execution.stopJob({ jobId, reason: 'Pipeline version has been changed.' });
-            });
-        }
 
         await stateManager.updatePipeline(pipelineVersion.pipeline);
         return pipelineVersion;
