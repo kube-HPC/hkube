@@ -199,7 +199,7 @@ class Worker {
 
     _doTheBootstrap() {
         if (!this._isConnected) {
-            log.info('not connected yet', { component });
+            log.info('algorithm not connected yet', { component });
             this._checkPodStatus();
             return;
         }
@@ -211,7 +211,7 @@ class Worker {
             return;
         }
         if (this._shouldCheckSideCarStatus.length > 0 && this._shouldCheckPodStatus) {
-            log.info('not ready yet', { component });
+            log.info('pod not ready yet', { component });
             this._checkPodStatus();
             return;
         }
@@ -235,13 +235,13 @@ class Worker {
     async _checkPodStatus() {
         if (!this._podName) return;
         try {
-            await this._processContainerStatus();
+            if (this._shouldCheckAlgorithmStatus) await this._processContainerStatus();
             const sideCars = await this._fetchAndInitializeSideCarStatus();
             await Promise.all(
                 sideCars
-                    .map((currSideCar, index) => ({ currSideCar, index }))
-                    .filter(({ index }) => this._shouldCheckSideCarStatus[index])
-                    .map(({ currSideCar, index }) => this._processContainerStatus(currSideCar, index))
+                    .map((currSideCar, index) => ({ currSideCar, index })) // transform to array of objects with index
+                    .filter(({ index }) => this._shouldCheckSideCarStatus[index]) // filter all sideCars which not needed to be checked
+                    .map(({ currSideCar, index }) => this._processContainerStatus(currSideCar, index)) // check container status for each
             );
         }
         catch (e) {
