@@ -7,7 +7,7 @@ const stateManager = require('../lib/state/state-manager');
 const HttpStatus = require('http-status-codes');
 
 
-describe.only('Versions/Pipelines', () => {
+describe('Versions/Pipelines', () => {
     let pipeline;
     let restUrl, restPath;
     beforeEach (() => {
@@ -76,6 +76,12 @@ describe.only('Versions/Pipelines', () => {
             it('should return empty versions list for pipeline name which doesnt exist', async () => {
                 const versions = await getAllVersions('non-exist');
                 expect(versions).to.be.an('array').that.is.empty;
+            });
+
+            it('should fail validation since name is not a string', async () => {
+                const { error } = await getAllVersions({});
+                expect(error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
             });
         });
 
@@ -157,6 +163,30 @@ describe.only('Versions/Pipelines', () => {
                 const { error } = await updatePipelineVersion(name, '6');
                 expect(error.code).to.equal(HttpStatus.StatusCodes.NOT_FOUND);
                 expect(error.message).to.equal('version 6 Not Found');
+            });
+
+            it('should throw validation error of data.name should be string', async () => {
+                const { error } = await updatePipelineVersion({}, '6');
+                expect(error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(error.message).to.equal('data.name should be string');
+            });
+
+            it('should throw validation error of data.version should be string', async () => {
+                const { error } = await updatePipelineVersion('pipename', {});
+                expect(error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(error.message).to.equal('data.version should be string');
+            });
+
+            it('should throw validation error of required property name', async () => {
+                const { error } = await updatePipelineVersion(undefined, {});
+                expect(error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(error.message).to.equal("data should have required property 'name'");
+            });
+
+            it('should throw validation error of required property version', async () => {
+                const { error } = await updatePipelineVersion('pipename', undefined);
+                expect(error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(error.message).to.equal("data should have required property 'version'");
             });
         });
     });
