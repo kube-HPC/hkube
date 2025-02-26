@@ -1,7 +1,6 @@
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const clonedeep = require('lodash.clonedeep');
-
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
@@ -585,6 +584,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const createPromises = [];
     const reconcileResult = {};
     const toResume = [];
+    const failedJobs = [];
     const scheduledRequests = [];
     const idleWorkers = clonedeep(mergedWorkers.filter(w => _idleWorkerFilter(w)));
     const activeWorkers = clonedeep(mergedWorkers.filter(w => _activeWorkerFilter(w)));
@@ -638,7 +638,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
     const unScheduledObject = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
-    const {algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms} = unScheduledObject;
+    const { algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms } = unScheduledObject;
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
@@ -675,14 +675,22 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const coolDownPromises = coolDownWorkers.map(r => _coolDownWorker(r));
     const stopPromises = toStopFiltered.map(r => _stopWorker(r));
     const resumePromises = toResume.map(r => _resumeWorker(r));
-    createPromises.push(created.map(r => _createJob(r, options)));
+    createPromises.push(created.map((job) => {
+        const response = _createJob(job, options);
+        if (response.statusCode === 422) {
+            failedJobs.push({ ...job, error: response.error });
+            return null;
+        }
+        return response;
+    }));
 
     await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
     // add created and skipped info
     const workerStats = _calcStats(normWorkers);
 
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
-        res.created = created.filter(c => c.algorithmName === algorithmName).length;
+        res.failed = failedJobs.filter(job => job.algorithmName === algorithmName).length;
+        res.created = created.filter(c => c.algorithmName === algorithmName).length - res.failed;
         res.skipped = skipped.filter(c => c.algorithmName === algorithmName).length;
         res.paused = toStop.filter(c => c.algorithmName === algorithmName).length;
         res.resumed = toResume.filter(c => c.algorithmName === algorithmName).length;
