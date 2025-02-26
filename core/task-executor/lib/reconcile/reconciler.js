@@ -618,9 +618,9 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
     const resumePromises = toResume.map(r => _resumeWorker(r));
     created.forEach(job => createPromises.push(_createJob(job, options)));
 
-    await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
-    createPromises.forEach(response => {
-        if (response.statusCode === 422) {
+    const resolvedPromises = await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
+    resolvedPromises.slice(0, createPromises.length).forEach(response => {
+        if (response && response.statusCode === 422) {
             const { job, error } = response;
             failedJobs.push({ job, error });
             return null;
