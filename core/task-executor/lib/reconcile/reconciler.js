@@ -560,6 +560,7 @@ const _getAllVolumeNames = async () => {
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     // update the cache of jobs lately created by removing old jobs
     _clearCreatedJobsList(null, options);
+
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
     // assign created jobs to workers, and list all jobs with no workers.
@@ -678,7 +679,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     createPromises.push(created.map((job) => {
         const response = _createJob(job, options);
         if (response.statusCode === 422) {
-            failedJobs.push({ ...job, error: response.error });
+            failedJobs.push({ job, error: response.error });
             return null;
         }
         return response;
@@ -689,7 +690,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const workerStats = _calcStats(normWorkers);
 
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
-        res.failed = failedJobs.filter(job => job.algorithmName === algorithmName).length;
+        res.failed = failedJobs.filter(c => c.job.algorithmName === algorithmName).length;
         res.created = created.filter(c => c.algorithmName === algorithmName).length - res.failed;
         res.skipped = skipped.filter(c => c.algorithmName === algorithmName).length;
         res.paused = toStop.filter(c => c.algorithmName === algorithmName).length;
@@ -699,6 +700,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         reconcileResult,
         unScheduledAlgorithms,
         ignoredUnScheduledAlgorithms,
+        failedJobs,
         actual: workerStats,
         resourcePressure: {
             cpu: consts.CPU_RATIO_PRESSURE,
