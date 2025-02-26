@@ -557,61 +557,32 @@ const _getAllVolumeNames = async () => {
     return volumesNames;
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
-    // update the cache of jobs lately created by removing old jobs
-    _clearCreatedJobsList(null, options);
-
-    const normWorkers = normalizeWorkers(workers);
-    const normJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
-    // assign created jobs to workers, and list all jobs with no workers.
-    const merged = mergeWorkers(normWorkers, normJobs);
-    // filter out algorithm requests that have no such algorithm definition
-    const normRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
-    // find workers who's image changed
-    const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
-    // subtract the workers which changed from the workers list.
-    const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
-    // get a list of workers that should turn 'hot' and be marked as hot.
-    const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
-    // get a list of workers that should turn 'cold' and not be marked as hot any longer
-    const coolDownWorkers = normalizeColdWorkers(mergedWorkers, algorithmTemplates);
+const _checkResourcePressure = (normResources) => {
     const isCpuPressure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESSURE;
     const isMemoryPressure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESSURE;
     const isResourcePressure = isCpuPressure || isMemoryPressure;
     if (isResourcePressure) {
         log.trace(`isCpuPressure: ${isCpuPressure}, isMemoryPressure: ${isMemoryPressure}`, { component });
     }
-    const createDetails = [];
-    const createPromises = [];
-    const reconcileResult = {};
-    const toResume = [];
-    const failedJobs = [];
-    const scheduledRequests = [];
+};
+
+// Utility function to categorize workers
+const _categorizeWorkers = (mergedWorkers, merged) => {
+    // Identify worker types
     const idleWorkers = clonedeep(mergedWorkers.filter(w => _idleWorkerFilter(w)));
     const activeWorkers = clonedeep(mergedWorkers.filter(w => _activeWorkerFilter(w)));
     const pausedWorkers = clonedeep(mergedWorkers.filter(w => _pausedWorkerFilter(w)));
-
-    // workers that already have a job created but no worker registered yet.
+    // workers that already have a job created but no worker registered yet:
     const pendingWorkers = clonedeep(merged.extraJobs);
     const jobsCreated = clonedeep(createdJobsList);
+    
+    return {
+        idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, jobsCreated
+    };
+};
 
-    _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
-
-    // leave only requests that are not exceeding max workers.
-    const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
-
-    // In order to handle request gradually create a sub list (according to prioritization.)
-    const requestsWindow = _createRequestsWindow(algorithmTemplates, maxFilteredRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
-
-    // Add requests for hot workers as well
-    const totalRequests = normalizeHotRequests(requestsWindow, algorithmTemplates);
-
-    // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
-    const requestTypes = calcRatio(totalRequests, totalCapacityNow);
-    // const workerTypes = calcRatio(mergedWorkers);
-    // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
-    // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
-    // cut requests based on ratio, since totalCapacityNow should grow gradually, we cut some of the requests, we do it according to their ratio of all requests.
+// cut requests based on ratio, since totalCapacityNow should grow gradually, we cut some of the requests, we do it according to their ratio of all requests.
+const _cutRequests = (totalRequests, requestTypes) => {
     const cutRequests = [];
     totalRequests.forEach(r => {
         const ratios = calcRatio(cutRequests, totalCapacityNow);
@@ -621,56 +592,25 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             cutRequests.push(r);
         }
     });
-    // const cutRequestTypes = calcRatio(cutRequests, totalCapacityNow);
-    // log.info(`cut-requests = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map(([k, v]) =>
-    //     ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
+    return cutRequests;
+};
 
-    _processAllRequests(
-        {
-            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: cutRequests, registry, clusterOptions, workerResources
-        },
-        {
-            createDetails, reconcileResult, toResume, scheduledRequests
-        }
-    );
-    const allVolumesNames = await _getAllVolumeNames();
-    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumesNames);
-    created.forEach((j) => {
-        createdJobsList.push(j);
-    });
-    const unScheduledObject = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
-    const { algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms } = unScheduledObject;
-
-    // if couldn't create all, try to stop some workers
-    const stopDetails = [];
-
-    _findWorkersToStop({
-        skipped, idleWorkers, activeWorkers, algorithmTemplates, scheduledRequests
-    }, { stopDetails });
-
-    const { toStop } = pauseAccordingToResources(
-        stopDetails,
-        normResources,
-        skipped
-    );
-    if (created.length > 0) {
-        log.trace(`creating ${created.length} algorithms....`, { component });
-    }
-
-    // log.info(`to stop: ${JSON.stringify(toStop.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
+const _filterWorkersToStop = (toStop, toResume) => {
     const toStopFiltered = [];
-    toStop.forEach(s => {
-        const index = toResume.findIndex(tr => tr.algorithmName === s.algorithmName);
+    toStop.forEach(worker => {
+        const index = toResume.findIndex(resumed => resumed.algorithmName === worker.algorithmName);
         if (index !== -1) {
             toResume.splice(index, 1);
         }
         else {
-            toStopFiltered.push(s);
+            toStopFiltered.push(worker);
         }
     });
+    return toStopFiltered;
+};
 
-    // log.info(`to stop: ${JSON.stringify(toStopFiltered.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
-
+// Function to process promises for worker actions (stopping, warming, cooling, etc.)
+const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, createPromises, failedJobs, created, options }) => {
     const exitWorkersPromises = exitWorkers.map(r => _exitWorker(r));
     const warmUpPromises = warmUpWorkers.map(r => _warmUpWorker(r));
     const coolDownPromises = coolDownWorkers.map(r => _coolDownWorker(r));
@@ -686,9 +626,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     }));
 
     await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
-    // add created and skipped info
-    const workerStats = _calcStats(normWorkers);
+};
 
+const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, failedJobs, created, skipped, toStop, toResume, workerStats, normResources }) => {
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.failed = failedJobs.filter(c => c.job.algorithmName === algorithmName).length;
         res.created = created.filter(c => c.algorithmName === algorithmName).length - res.failed;
@@ -696,6 +636,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         res.paused = toStop.filter(c => c.algorithmName === algorithmName).length;
         res.resumed = toResume.filter(c => c.algorithmName === algorithmName).length;
     });
+
     await etcd.updateDiscovery({
         reconcileResult,
         unScheduledAlgorithms,
@@ -709,6 +650,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         },
         nodes: _getNodeStats(normResources)
     });
+
     workerStats.stats.forEach((ws) => {
         const { algorithmName } = ws;
         if (!reconcileResult[algorithmName]) {
@@ -717,20 +659,114 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
                 skipped: 0,
                 paused: 0,
                 resumed: 0,
-                required: 0
+                required: 0,
+                failed: 0
             };
         }
-        const _created = reconcileResult[algorithmName].created;
-        const _skipped = reconcileResult[algorithmName].skipped;
-        const { paused, resumed, required } = reconcileResult[algorithmName];
-        const total = _created + _skipped + paused + resumed + required;
+        const { created: _created, skipped: _skipped, paused, resumed, required, failed } = reconcileResult[algorithmName];
+        const total = _created + _skipped + paused + resumed + required + failed;
         if (total !== 0) {
-            log.info(`CYCLE: task-executor: algo: ${algorithmName} created: ${_created}, 
-                skipped: ${_skipped}, paused: ${paused}, 
-                resumed: ${resumed}, required: ${required}.`);
+            log.info(`CYCLE: task-executor: algo: ${algorithmName} created jobs: ${_created}, failed jobs: ${failed}, 
+                skipped jobs: ${_skipped}, paused workers: ${paused}, 
+                resumed workers: ${resumed}, required: ${required}.`);
         }
         reconcileResult[algorithmName].active = ws.count;
     });
+};
+
+const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
+    // Update the cache of jobs lately created by removing old jobs
+    _clearCreatedJobsList(null, options);
+
+    const normWorkers = normalizeWorkers(workers);
+    const normJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
+
+    // assign created jobs to workers, and list all jobs with no workers.
+    const merged = mergeWorkers(normWorkers, normJobs);
+    // filter out algorithm requests that have no such algorithm definition
+    const normRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
+
+    // find workers who's image changed
+    const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
+    // subtract the workers which changed from the workers list.
+    const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
+
+    // get a list of workers that should turn 'hot' and be marked as hot.
+    const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
+    // get a list of workers that should turn 'cold' and not be marked as hot any longer
+    const coolDownWorkers = normalizeColdWorkers(mergedWorkers, algorithmTemplates);
+
+    _checkResourcePressure(normResources);
+
+    // Initialize result variables
+    const createDetails = [];
+    const createPromises = [];
+    const reconcileResult = {};
+    const toResume = [];
+    const failedJobs = [];
+    const scheduledRequests = [];
+
+    // Categorize workers into idle, active, paused, etc.
+    const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, jobsCreated } = _categorizeWorkers(mergedWorkers, merged);
+
+    _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
+
+    // leave only requests that are not exceeding max workers.
+    const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
+    // In order to handle request gradually create a sub list (according to prioritization.)
+    const requestsWindow = _createRequestsWindow(algorithmTemplates, maxFilteredRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
+    // Add requests for hot workers as well
+    const totalRequests = normalizeHotRequests(requestsWindow, algorithmTemplates);
+    // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
+    const requestTypes = calcRatio(totalRequests, totalCapacityNow);
+    // const workerTypes = calcRatio(mergedWorkers);
+    // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
+    // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);'
+    const cutRequests = _cutRequests(totalRequests, requestTypes);
+
+    // const cutRequestTypes = calcRatio(cutRequests, totalCapacityNow);
+    // log.info(`cut-requests = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map(([k, v]) =>
+    //     ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
+
+    _processAllRequests({
+        idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: cutRequests, registry, clusterOptions, workerResources
+    }, { createDetails, reconcileResult, toResume, scheduledRequests });
+
+    // Handle job creation and scheduling
+    const allVolumesNames = await _getAllVolumeNames();
+    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumesNames);
+    created.forEach(j => createdJobsList.push(j));
+
+    const unScheduledObject = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
+    const { algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms } = unScheduledObject;
+
+    // if couldn't create all, try to stop some workers
+    const stopDetails = [];
+    _findWorkersToStop({
+        skipped, idleWorkers, activeWorkers, algorithmTemplates, scheduledRequests
+    }, { stopDetails });
+
+    const { toStop } = pauseAccordingToResources(stopDetails, normResources, skipped);
+
+    if (created.length > 0) {
+        log.trace(`creating ${created.length} algorithms....`, { component });
+    }
+
+    // log.info(`to stop: ${JSON.stringify(toStop.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
+    const toStopFiltered = _filterWorkersToStop(toStop, toResume);
+
+    // log.info(`to stop: ${JSON.stringify(toStopFiltered.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
+
+    await _processPromises({ 
+        exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, createPromises, failedJobs, created, options 
+    });
+
+    // add created and skipped info
+    const workerStats = _calcStats(normWorkers);
+    await _updateReconcileResult({
+        reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, failedJobs, created, skipped, toStop, toResume, workerStats, normResources
+    });
+
     return reconcileResult;
 };
 
