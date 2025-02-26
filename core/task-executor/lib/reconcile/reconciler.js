@@ -610,23 +610,24 @@ const _filterWorkersToStop = (toStop, toResume) => {
 };
 
 // Function to process promises for worker actions (stopping, warming, cooling, etc.)
-const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, createPromises, failedJobs, created, options }) => {
+const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, failedJobs, created, options }) => {
     const exitWorkersPromises = exitWorkers.map(r => _exitWorker(r));
     const warmUpPromises = warmUpWorkers.map(r => _warmUpWorker(r));
     const coolDownPromises = coolDownWorkers.map(r => _coolDownWorker(r));
     const stopPromises = toStopFiltered.map(r => _stopWorker(r));
     const resumePromises = toResume.map(r => _resumeWorker(r));
-    created.forEach(job => createPromises.push(_createJob(job, options)));
+    const createResponses = [];
+    created.forEach(async job => createResponses.push(await _createJob(job, options)));
 
-    const resolvedPromises = await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
-    resolvedPromises.slice(0, createPromises.length).forEach(response => {
+    createResponses.forEach(response => {
         if (response && response.statusCode === 422) {
-            const { job, error } = response;
-            failedJobs.push({ job, error });
+            const { job, message } = response;
+            failedJobs.push({ job, message });
             return null;
         }
         return response;
     });
+    await Promise.all([...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
 };
 
 const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, failedJobs, created, skipped, toStop, toResume, workerStats, normResources }) => {
@@ -701,7 +702,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // Initialize result variables
     const createDetails = [];
-    const createPromises = [];
     const reconcileResult = {};
     const toResume = [];
     const failedJobs = [];
@@ -759,7 +759,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // log.info(`to stop: ${JSON.stringify(toStopFiltered.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
 
     await _processPromises({ 
-        exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, createPromises, failedJobs, created, options 
+        exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, failedJobs, created, options 
     });
 
     // add created and skipped info
