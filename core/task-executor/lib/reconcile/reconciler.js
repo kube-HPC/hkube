@@ -616,10 +616,11 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
     const coolDownPromises = coolDownWorkers.map(r => _coolDownWorker(r));
     const stopPromises = toStopFiltered.map(r => _stopWorker(r));
     const resumePromises = toResume.map(r => _resumeWorker(r));
-    const createResponses = [];
-    created.forEach(async job => createResponses.push(await _createJob(job, options)));
+    const createPromises = [];
+    created.forEach(job => createPromises.push(_createJob(job, options)));
 
-    createResponses.forEach(response => {
+    const resolvedPromises = await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
+    resolvedPromises.slice(0, createPromises.length).forEach(response => {
         if (response && response.statusCode === 422) {
             const { job, message } = response;
             failedJobs.push({ job, message });
@@ -627,7 +628,6 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
         }
         return response;
     });
-    await Promise.all([...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
 };
 
 const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, failedJobs, created, skipped, toStop, toResume, workerStats, normResources }) => {
