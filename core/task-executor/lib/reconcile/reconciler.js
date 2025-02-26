@@ -616,7 +616,7 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
     const coolDownPromises = coolDownWorkers.map(r => _coolDownWorker(r));
     const stopPromises = toStopFiltered.map(r => _stopWorker(r));
     const resumePromises = toResume.map(r => _resumeWorker(r));
-    createPromises.push(created.map(job => _createJob(job, options)));
+    created.forEach(job => createPromises.push(_createJob(job, options)));
 
     await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
     createPromises.forEach(response => {
