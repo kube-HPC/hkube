@@ -366,10 +366,16 @@ const calcRatio = (totalRequests, capacity) => {
  * 3) if we found such an algorithm, we delete it from map.
  * 4) each iteration we update the discovery with the current map.
  */
-const _checkUnscheduled = (created, skipped, requests, algorithms, algorithmsForLogging, algorithmTemplates) => {
+const _checkUnscheduled = (created, skipped, failedJobs, requests, algorithms, algorithmsForLogging, algorithmTemplates) => {
     skipped.forEach((s) => {
         if (!algorithms[s.algorithmName]) {
             algorithms[s.algorithmName] = s.warning;
+        }
+    });
+
+    failedJobs.forEach((f) => {
+        if (!algorithms[f.algorithmName]) {
+            algorithms[f.algorithmName] = f.error;
         }
     });
 
@@ -620,10 +626,12 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
     created.forEach(job => createPromises.push(_createJob(job, options)));
 
     const resolvedPromises = await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
-    resolvedPromises.slice(0, createPromises.length).forEach(response => {
+    resolvedPromises.slice(0, createPromises.length).forEach((response, index) => {
         if (response && response.statusCode === 422) {
             const { job, message } = response;
-            failedJobs.push({ job, message });
+            const { algorithmName } = job;
+            failedJobs.push({ algorithmName, message, type: 'error' });
+            created.splice(index, 1);
             return null;
         }
         return response;
@@ -633,7 +641,7 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
 const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, failedJobs, created, skipped, toStop, toResume, workerStats, normResources }) => {
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.failed = failedJobs.filter(c => c.job.algorithmName === algorithmName).length;
-        res.created = created.filter(c => c.algorithmName === algorithmName).length - res.failed;
+        res.created = created.filter(c => c.algorithmName === algorithmName).length;
         res.skipped = skipped.filter(c => c.algorithmName === algorithmName).length;
         res.paused = toStop.filter(c => c.algorithmName === algorithmName).length;
         res.resumed = toResume.filter(c => c.algorithmName === algorithmName).length;
@@ -738,9 +746,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumesNames);
     created.forEach(j => createdJobsList.push(j));
 
-    const unScheduledObject = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
-    const { algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms } = unScheduledObject;
-
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
     _findWorkersToStop({
@@ -761,6 +766,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     await _processPromises({ 
         exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, failedJobs, created, options 
     });
+
+    const unScheduledObject = _checkUnscheduled(created, skipped, failedJobs, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
+    const { algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms } = unScheduledObject;
 
     // add created and skipped info
     const workerStats = _calcStats(normWorkers);
