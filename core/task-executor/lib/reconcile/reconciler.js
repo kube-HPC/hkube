@@ -628,9 +628,9 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
     const resolvedPromises = await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
     resolvedPromises.slice(0, createPromises.length).forEach((response, index) => {
         if (response && response.statusCode === 422) {
-            const { job, message } = response;
+            const { job, message: error } = response;
             const { algorithmName } = job;
-            failedJobs.push({ algorithmName, message, type: 'error' });
+            failedJobs.push({ algorithmName, error, type: 'error' });
             created.splice(index, 1);
             return null;
         }
