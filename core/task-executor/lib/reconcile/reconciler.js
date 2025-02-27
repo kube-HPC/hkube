@@ -397,7 +397,7 @@ const _checkUnscheduled = (created, skipped, failedJobs, requests, algorithms, a
         });
     }
     algorithmsForLogging = algorithmsForLogging || {}; // Persistant type for etcd.
-    return { algorithms, algorithmsForLogging };
+    return { unScheduledAlgorithms: algorithms, ignoredUnScheduledAlgorithms: algorithmsForLogging };
 };
 
 const _workersToMap = (requests) => {
@@ -768,7 +768,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     });
 
     const unScheduledObject = _checkUnscheduled(created, skipped, failedJobs, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
-    const { algorithms: unScheduledAlgorithms, algorithmsForLogging: ignoredUnScheduledAlgorithms } = unScheduledObject;
+    const { unScheduledAlgorithms, ignoredUnScheduledAlgorithms } = unScheduledObject;
 
     // add created and skipped info
     const workerStats = _calcStats(normWorkers);
