@@ -198,8 +198,8 @@ class KubernetesApi {
             const containerMatch = fullPath.match(/containers\[(\d+)\]/);
             if (containerMatch) {
                 const containerIndex = parseInt(containerMatch[1], 10);
-                if (spec?.template?.spec?.containers && spec.template.spec.containers[containerIndex]) {
-                    const containerName = spec.template.spec.containers[containerIndex].name;
+                if (spec?.spec?.template?.spec?.containers && spec.spec.template.spec.containers[containerIndex]) {
+                    const containerName = spec.spec.template.spec.containers[containerIndex].name;
                     // Replace the container reference with the actual name
                     formattedPath = fullPath.replace(/spec\.template\.spec\.containers\[\d+\]/, containerName);
                 }
