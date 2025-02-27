@@ -33,8 +33,8 @@ class KubernetesApi {
             return res;
         }
         catch (error) {
-            log.throttle.error(`unable to create job ${spec.metadata.name}. error: ${this._formatErrorMessage(error.message, spec)}`, { component }, error);
-            return { job: jobDetails, statusCode: error.statusCode, error: error.message };
+            log.throttle.error(`unable to create job ${spec.metadata.name}. error: ${error.message}`, { component }, error);
+            return { job: jobDetails, statusCode: error.statusCode, error: this._formatErrorMessage(error.message, spec) };
         }
     }
 
