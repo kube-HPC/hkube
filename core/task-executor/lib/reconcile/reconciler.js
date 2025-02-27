@@ -640,7 +640,7 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
 
 const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, failedJobs, created, skipped, toStop, toResume, workerStats, normResources }) => {
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
-        res.failed = failedJobs.filter(c => c.job.algorithmName === algorithmName).length;
+        res.failed = failedJobs.filter(c => c.algorithmName === algorithmName).length;
         res.created = created.filter(c => c.algorithmName === algorithmName).length;
         res.skipped = skipped.filter(c => c.algorithmName === algorithmName).length;
         res.paused = toStop.filter(c => c.algorithmName === algorithmName).length;
