@@ -40,6 +40,7 @@ class Persistence {
             onError: (...args) => this._onErrorSnapshot(...args)
         });
 
+        log.info(`data given is ${data}, with pendingAmount ${pendingAmount}, from component ${component}`, { component: 'AdirTest' });
         await scoring.store({
             key: this._algorithmName,
             data,
