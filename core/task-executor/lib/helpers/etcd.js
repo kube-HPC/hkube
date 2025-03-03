@@ -75,6 +75,23 @@ class Etcd {
         });
         return arrayToMap(templates);
     }
+
+    async getJobsStatus({options = {}, filter} = {}) {
+        const jobsStatus = await this._etcd.jobs.status.list(options, filter);
+        return jobsStatus;
+    }
+
+    async getJob({ jobId, fields = {} }) {
+        if (!jobId) throw new Error('jobId is required');
+        const job = await this._db.jobs.fetch({ jobId, fields});
+        return job;
+    }
+
+    async updateJobStatus(updatedJob) {
+        const updatedStatusJob = await this._db.jobs.updateStatus(updatedJob);
+        const updatedNodesAndStatusJob = await this._db.jobs.updateGraph(updatedStatusJob);
+        return updatedNodesAndStatusJob;
+    }
 }
 
 module.exports = new Etcd();

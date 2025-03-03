@@ -629,8 +629,13 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
     resolvedPromises.slice(0, createPromises.length).forEach((response, index) => {
         if (response && response.statusCode === 422) {
             const { job, error: message } = response;
-            const { algorithmName } = job;
-            failedJobs.push({ ...job, error: { algorithmName, message, type: 'error', reason: 'Job failed to start' } });
+            const { algorithmName, algorithmVersion } = job;
+            failedJobs.push({
+                ...job,
+                error: { 
+                    algorithmName, algorithmVersion, message, type: 'error', reason: 'Job failed to start'
+                }
+            });
             created.splice(index, 1);
             return null;
         }
@@ -681,6 +686,33 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
                 resumed workers: ${resumed}, required: ${required}.`);
         }
         reconcileResult[algorithmName].active = ws.count;
+    });
+};
+
+const _handleFailedJobs = async (failedJobs) => {
+    const fields = { jobId: true, graph: true };
+    const filter = (item) => item?.data?.states?.creating > 0;
+    const jobsErrors = failedJobs.map(job => job.error);
+
+    const creatingJobs = await etcd.getJobsStatus({ filter });
+    const jobsId = creatingJobs.map(j => j.id);
+    jobsId.forEach(async (jobId) => {
+        const job = await etcd.getJob({ jobId, fields });
+        const reasons = [];
+        job.graph.nodes.map((node) => {
+            const { algorithmName, algorithmVersion } = node;
+            const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName && error.algorithmVersion === algorithmVersion);
+            if (matchedError) {
+                node.error = matchedError.message;
+                node.status = 'failed';
+                reasons.push(matchedError.reason);
+            }
+
+            return node;
+        });
+        job.status.status = 'failed';
+        job.status.reason = reasons.join(', ');
+        etcd.updateJobStatus(job);
     });
 };
 
@@ -775,6 +807,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     await _updateReconcileResult({
         reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, failedJobs, created, skipped, toStop, toResume, workerStats, normResources
     });
+
+    _handleFailedJobs(failedJobs);
 
     return reconcileResult;
 };
