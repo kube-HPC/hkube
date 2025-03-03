@@ -82,7 +82,6 @@ class Etcd {
     }
 
     async getJob({ jobId, fields = {} }) {
-        if (!jobId) throw new Error('jobId is required');
         const job = await this._db.jobs.fetch({ jobId, fields});
         return job;
     }
