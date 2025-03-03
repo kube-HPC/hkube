@@ -717,7 +717,7 @@ const _handleFailedJobs = async (failedJobs) => {
             job.status.status = 'failed';
             job.status.reason = reasons.join(', ');
     
-            await etcd.updateJobStatus(job);
+            // await etcd.updateJobStatus(job);
         })
     );
 };
