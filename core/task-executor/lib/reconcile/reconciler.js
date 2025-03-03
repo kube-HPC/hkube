@@ -701,6 +701,8 @@ const _handleFailedJobs = async (failedJobs) => {
         jobsId.map(async (jobId) => {
             const job = await etcd.getJob({ jobId, fields });
             const reasons = [];
+
+            if (!job?.graph?.nodes) return;
     
             job.graph.nodes.forEach((node) => {
                 const { algorithmName, algorithmVersion } = node;
