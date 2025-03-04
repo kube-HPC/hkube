@@ -710,7 +710,7 @@ const _handleFailedJobs = async (failedJobs) => {
                         const task = {
                             jobId, taskId, nodeName, algorithmName, batchIndex: index, status: 'failed', error: matchedError.message, endTime: Date.now(), data: {}
                         };
-                        await etcd.updateJobTask(task);
+                        await etcd.setJobTask(task);
                     }
                 })
             );

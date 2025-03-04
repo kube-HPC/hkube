@@ -91,7 +91,7 @@ class Etcd {
         return job;
     }
 
-    async updateJobTask(task) {
+    async setJobTask(task) {
         const res = await this._etcd.jobs.tasks.set(task);
         return res;
     }
