@@ -691,43 +691,20 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
 
 const _handleFailedJobs = async (failedJobs) => {
     if (failedJobs.length === 0) return;
-    const fields = { jobId: true, graph: true };
-    const filter = (item) => item?.data?.states?.creating > 0 && item?.status !== 'failed';
+    const filter = (item) => item?.status === 'creating';
     const jobsErrors = failedJobs.map(job => job.error);
 
-    const creatingJobs = await etcd.getJobsStatus({ filter });
-    const jobsStatusData = creatingJobs.map(j => ({ jobId: j.jobId, data: j.data }));
-    await Promise.all(
-        jobsStatusData.map(async ({ jobId, data }) => {
-            const newData = { ...data };
-            const job = await etcd.getJob({ jobId, fields });
-            const reasons = [];
-
-            if (!job?.graph?.nodes) return;
-    
-            await Promise.all(
-                job.graph.nodes.map(async (node) => {
-                    const { algorithmName, algorithmVersion, nodeName } = node;
-                    const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName && error.algorithmVersion === algorithmVersion);
-                    if (matchedError) {
-                        if (newData.states[node.status]) {
-                            newData.states[node.status] = newData.states[node.status] === 1 ? null : newData.states[node.status] - 1;
-                            newData.states.failed = (newData.states.failed || 0) + 1;
-                        }
-                        const status = {
-                            jobId, level: 'error', reason: matchedError.reason, status: 'failed', data: newData, error: matchedError.message, nodeName
-                        };
-                        await etcd.updateJobStatus(status);
-
-                        node.error = matchedError.message;
-                        node.status = 'failed';
-                        reasons.push(matchedError.reason);
-                    }
-                })
-            );
-            await etcd.updateJobGraph(job);
-        })
-    );
+    const currentTasks = await etcd.getJobsTasks({ filter });
+    currentTasks.forEach((task) => {
+        const { algorithmName } = task;
+        const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName);
+        if (matchedError) {
+            task.status = 'failed';
+            task.error = matchedError.message;
+            task.endTime = Date.now();
+        }
+        etcd.updateJobTask(task);
+    });
 };
 
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {

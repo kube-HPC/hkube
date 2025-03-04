@@ -76,23 +76,14 @@ class Etcd {
         return arrayToMap(templates);
     }
 
-    async getJobsStatus({options = {}, filter} = {}) {
-        const jobsStatus = await this._etcd.jobs.status.list(options, filter);
+    async getJobsTasks({ options = {}, filter } = {}) {
+        const jobsStatus = await this._etcd.jobs.tasks.list(options, filter);
         return jobsStatus;
     }
 
-    async getJob({ jobId, fields = {} }) {
-        const job = await this._db.jobs.fetch({ jobId, fields});
-        return job;
-    }
-
-    async updateJobStatus(status) {
-        await this._db.jobs.updateStatus(status);
-        await this._etcd.jobs.status.update(status);
-    }
-
-    async updateJobGraph({ jobId, graph }) {
-        await this._db.jobs.updateGraph({ jobId, graph});
+    async updateJobTask(updatedTask) {
+        const res = await this._etcd.jobs.tasks.set(updatedTask);
+        return res;
     }
 }
 
