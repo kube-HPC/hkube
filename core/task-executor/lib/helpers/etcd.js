@@ -90,6 +90,11 @@ class Etcd {
         const job = await this._db.jobs.fetch({ jobId, fields });
         return job;
     }
+
+    async updateJobTask(task) {
+        const res = await this._etcd.jobs.tasks.set(task);
+        return res;
+    }
 }
 
 module.exports = new Etcd();
