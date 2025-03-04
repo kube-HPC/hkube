@@ -691,9 +691,31 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
 
 const _handleFailedJobs = async (failedJobs) => {
     if (failedJobs.length === 0) return;
-    const filter = (item) => item?.status === 'creating';
+    const fields = { jobId: true };
+    const filter = (item) => item?.data?.states?.creating > 0 && item?.status !== 'failed';
     const jobsErrors = failedJobs.map(job => job.error);
 
+    const creatingJobsIds = await etcd.getJobsStatus({ filter });
+    await Promise.all(
+        creatingJobsIds.map(async ({ jobId }) => {
+            const job = await etcd.getJob({ jobId, fields });
+
+            if (!job?.graph?.nodes) return;
+
+            await Promise.all(
+                job.graph.nodes.map(async (node, index) => {
+                    const { algorithmName, algorithmVersion, nodeName, taskId } = node;
+                    const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName && error.algorithmVersion === algorithmVersion);
+                    if (matchedError) {
+                        const task = {
+                            jobId, taskId, nodeName, algorithmName, batchIndex: index, status: 'failed', error: matchedError.message, endTime: Date.now(), data: {}
+                        };
+                        await etcd.updateJobTask(task);
+                    }
+                })
+            );
+        })
+    );
     const currentTasks = await etcd.getJobsTasks({ filter });
     currentTasks.forEach((task) => {
         const { algorithmName } = task;
