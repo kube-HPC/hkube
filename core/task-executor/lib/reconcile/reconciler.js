@@ -698,7 +698,8 @@ const _handleFailedJobs = async (failedJobs) => {
     const creatingJobs = await etcd.getJobsStatus({ filter });
     const jobsStatusData = creatingJobs.map(j => ({ jobId: j.jobId, data: j.data }));
     await Promise.all(
-        jobsStatusData.map(async ({ jobId }) => {
+        jobsStatusData.map(async ({ jobId, data }) => {
+            const newData = { ...data };
             const job = await etcd.getJob({ jobId, fields });
             const reasons = [];
 
@@ -709,7 +710,14 @@ const _handleFailedJobs = async (failedJobs) => {
                     const { algorithmName, algorithmVersion } = node;
                     const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName && error.algorithmVersion === algorithmVersion);
                     if (matchedError) {                        
-                        const status = { jobId, level: 'error', reason: matchedError.mesage, status: 'failed' };
+                        newData.states[node.status] -= 1;
+                        if (newData.states[node.status] === 0) {
+                            delete newData.states[node.status];
+                        }
+                        newData.states.failed = (newData.states.failed || 0) + 1;
+                        const status = {
+                            jobId, level: 'error', reason: matchedError.mesage, status: 'failed', data: newData
+                        };
                         
                         await etcd.updateJobStatus(status);
                         // node.error = matchedError.message;
