@@ -701,7 +701,7 @@ const _handleFailedJobs = async (failedJobs) => {
         jobsStatusData.map(async ({ jobId, data }) => {
             const newData = { ...data };
             const job = await etcd.getJob({ jobId, fields });
-            const reasons = [];
+            // const reasons = [];
 
             if (!job?.graph?.nodes) return;
     
@@ -709,14 +709,16 @@ const _handleFailedJobs = async (failedJobs) => {
                 job.graph.nodes.map(async (node) => {
                     const { algorithmName, algorithmVersion } = node;
                     const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName && error.algorithmVersion === algorithmVersion);
-                    if (matchedError) {                        
-                        newData.states[node.status] -= 1;
-                        if (newData.states[node.status] === 0) {
-                            delete newData.states[node.status];
+                    if (matchedError) {
+                        if (newData.states[node.status]) {
+                            newData.states[node.status] -= 1;
+                            if (newData.states[node.status] === 0) {
+                                delete newData.states[node.status];
+                            }
+                            newData.states.failed = (newData.states.failed || 0) + 1;
                         }
-                        newData.states.failed = (newData.states.failed || 0) + 1;
                         const status = {
-                            jobId, level: 'error', reason: matchedError.mesage, status: 'failed', data: newData
+                            jobId, level: 'error', reason: matchedError.reason, status: 'failed', data: newData, error: matchedError.message, nodeName: node.name
                         };
                         
                         await etcd.updateJobStatus(status);
@@ -727,8 +729,8 @@ const _handleFailedJobs = async (failedJobs) => {
                 })
             );
     
-            job.status.status = 'failed';
-            job.status.reason = reasons.join(', ');
+            // job.status.status = 'failed';
+            // job.status.reason = reasons.join(', ');
     
             // await etcd.updateJobStatus(job);
         })
