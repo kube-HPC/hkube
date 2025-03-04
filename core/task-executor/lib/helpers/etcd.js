@@ -76,11 +76,6 @@ class Etcd {
         return arrayToMap(templates);
     }
 
-    async getJobsTasks({ options = {}, filter } = {}) {
-        const jobsStatus = await this._etcd.jobs.tasks.list(options, filter);
-        return jobsStatus;
-    }
-
     async getJobsStatus({options = {}, filter} = {}) {
         const jobsStatus = await this._etcd.jobs.status.list(options, filter);
         return jobsStatus;
