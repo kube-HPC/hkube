@@ -692,7 +692,7 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
 const _handleFailedJobs = async (failedJobs) => {
     if (failedJobs.length === 0) return;
     const fields = { jobId: true, graph: true };
-    const filter = (item) => item?.data?.states?.creating > 0;
+    const filter = (item) => item?.data?.states?.creating > 0 && item?.status !== 'failed';
     const jobsErrors = failedJobs.map(job => job.error);
 
     const creatingJobs = await etcd.getJobsStatus({ filter });
@@ -707,7 +707,7 @@ const _handleFailedJobs = async (failedJobs) => {
     
             await Promise.all(
                 job.graph.nodes.map(async (node) => {
-                    const { algorithmName, algorithmVersion } = node;
+                    const { algorithmName, algorithmVersion, nodeName } = node;
                     const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName && error.algorithmVersion === algorithmVersion);
                     if (matchedError) {
                         if (newData.states[node.status]) {
@@ -715,7 +715,7 @@ const _handleFailedJobs = async (failedJobs) => {
                             newData.states.failed = (newData.states.failed || 0) + 1;
                         }
                         const status = {
-                            jobId, level: 'error', reason: matchedError.reason, status: 'failed', data: newData, error: matchedError.message, nodeName: node.name
+                            jobId, level: 'error', reason: matchedError.reason, status: 'failed', data: newData, error: matchedError.message, nodeName
                         };
                         
                         await etcd.updateJobStatus(status);
