@@ -712,9 +712,6 @@ const _handleFailedJobs = async (failedJobs) => {
                     if (matchedError) {
                         if (newData.states[node.status]) {
                             newData.states[node.status] -= 1;
-                            if (newData.states[node.status] === 0) {
-                                delete newData.states[node.status];
-                            }
                             newData.states.failed = (newData.states.failed || 0) + 1;
                         }
                         const status = {
