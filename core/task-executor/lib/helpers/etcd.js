@@ -86,10 +86,9 @@ class Etcd {
         return job;
     }
 
-    async updateJobStatus(updatedJob) {
-        const updatedStatusJob = await this._db.jobs.updateStatus(updatedJob);
-        const updatedNodesAndStatusJob = await this._db.jobs.updateGraph(updatedStatusJob);
-        return updatedNodesAndStatusJob;
+    async updateJobStatus(status) {
+        await this._db.jobs.updateStatus(status);
+        await this._etcd.jobs.status.update(status);
     }
 }
 

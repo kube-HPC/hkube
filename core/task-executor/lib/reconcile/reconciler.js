@@ -696,23 +696,28 @@ const _handleFailedJobs = async (failedJobs) => {
     const jobsErrors = failedJobs.map(job => job.error);
 
     const creatingJobs = await etcd.getJobsStatus({ filter });
-    const jobsId = creatingJobs.map(j => j.jobId);
+    const jobsStatusData = creatingJobs.map(j => ({ jobId: j.jobId, data: j.data }));
     await Promise.all(
-        jobsId.map(async (jobId) => {
+        jobsStatusData.map(async ({ jobId }) => {
             const job = await etcd.getJob({ jobId, fields });
             const reasons = [];
 
             if (!job?.graph?.nodes) return;
     
-            job.graph.nodes.forEach((node) => {
-                const { algorithmName, algorithmVersion } = node;
-                const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName && error.algorithmVersion === algorithmVersion);
-                if (matchedError) {
-                    node.error = matchedError.message;
-                    node.status = 'failed';
-                    reasons.push(matchedError.reason);
-                }
-            });
+            await Promise.all(
+                job.graph.nodes.map(async (node) => {
+                    const { algorithmName, algorithmVersion } = node;
+                    const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName && error.algorithmVersion === algorithmVersion);
+                    if (matchedError) {                        
+                        const status = { jobId, level: 'error', reason: matchedError.mesage, status: 'failed' };
+                        
+                        await etcd.updateJobStatus(status);
+                        // node.error = matchedError.message;
+                        // node.status = 'failed';
+                        // reasons.push(matchedError.reason);
+                    }
+                })
+            );
     
             job.status.status = 'failed';
             job.status.reason = reasons.join(', ');
