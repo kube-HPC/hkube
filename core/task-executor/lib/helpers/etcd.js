@@ -90,6 +90,10 @@ class Etcd {
         await this._db.jobs.updateStatus(status);
         await this._etcd.jobs.status.update(status);
     }
+
+    async updateJobGraph({ jobId, graph }) {
+        await this._db.jobs.updateGraph({ jobId, graph});
+    }
 }
 
 module.exports = new Etcd();
