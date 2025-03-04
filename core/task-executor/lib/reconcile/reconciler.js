@@ -710,9 +710,12 @@ const _handleFailedJobs = async (failedJobs) => {
                     const { algorithmName, algorithmVersion, nodeName } = node;
                     const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName && error.algorithmVersion === algorithmVersion);
                     if (matchedError) {
-                        if (newData.states[node.status]) {
+                        if (newData.states[node.status] > 0) {
                             newData.states[node.status] -= 1;
                             newData.states.failed = (newData.states.failed || 0) + 1;
+                        }
+                        else {
+                            newData.states[node.status] = null;
                         }
                         const status = {
                             jobId, level: 'error', reason: matchedError.reason, status: 'failed', data: newData, error: matchedError.message, nodeName
