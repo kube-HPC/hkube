@@ -87,7 +87,8 @@ class EsLogs {
 
         let queryStringNoTaskId;
         if (logMode !== logModes.INTERNAL && logMode !== logModes.ALGORITHM) {
-            queryStringNoTaskId = query.join(' AND ');
+            const queryNoTaskId = [...query, 'stream: "stdout"'];
+            queryStringNoTaskId = queryNoTaskId.join(' AND ');
         }
 
         if (taskId) {
