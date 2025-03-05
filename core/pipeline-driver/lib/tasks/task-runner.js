@@ -160,6 +160,8 @@ class TaskRunner {
     _handleWarningMessage(event, clusterNodes) {
         const { message, code } = event;
         switch (code) {
+            case warningCodes.JOB_CREATION_FAILED || 1003:
+                return { message, isError: true };
             case warningCodes.INVALID_VOLUME:
                 return { message, isError: true };
             case warningCodes.RESOURCES:

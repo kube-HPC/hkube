@@ -634,7 +634,7 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
                     type: 'warning',
                     reason: 'Job failed to start',
                     timestamp: Date.now(),
-                    code: warningCodes.JOB_FAILED || 1003
+                    code: warningCodes.JOB_CREATION_FAILED || 1003
                 }
             });
             created.splice(index, 1);
