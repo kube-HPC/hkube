@@ -4,6 +4,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 const sinon = require('sinon');
 const Etcd = require('@hkube/etcd');
+const { warningCodes } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const { Node } = NodeTypes;
 const pipelines = require('./mocks/pipelines');
@@ -281,6 +282,7 @@ describe('TaskRunner', function () {
                     hasMaxCapacity: false,
                     message: "Insufficient mem (4)",
                     timestamp: 1593926212391,
+                    code: warningCodes.RESOURCES,
                     complexResourceDescriptor: {
                         requestedSelectors: [
                             "mock-selector = mock-value"
@@ -432,6 +434,7 @@ describe('TaskRunner', function () {
                     hasMaxCapacity: true,
                     message: 'Maximum capacity exceeded cpu (4)',
                     timestamp: Date.now(),
+                    code: warningCodes.RESOURCES,
                     requestedResources: {
                       cpu: 2  
                     },
