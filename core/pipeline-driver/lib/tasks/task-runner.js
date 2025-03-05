@@ -130,7 +130,7 @@ class TaskRunner {
             const { message, isError } = this._handleWarningMessage(event, clusterNodes);
             if (isError) {
                 n.error = message;
-                n.endTime = Date.now();
+                // n.endTime = Date.now();
             }
             else {
                 n.warnings.push(message);
@@ -335,7 +335,7 @@ class TaskRunner {
         pipeline.nodes = await Promise.all(pipeline.nodes.map(async node => {
             const algorithm = await stateManager.getAlgorithmsByName(node.algorithmName);
             node.algorithmVersion = algorithm?.version;
-            node.devMode = algorithm.options.devMode;
+            node.devMode = algorithm.options?.devMode;
             return node;
         }));
 
