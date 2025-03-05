@@ -75,21 +75,6 @@ class Etcd {
         });
         return arrayToMap(templates);
     }
-
-    async getJobsStatus({options = {}, filter} = {}) {
-        const jobsStatus = await this._etcd.jobs.status.list(options, filter);
-        return jobsStatus;
-    }
-
-    async getJob({ jobId, fields}) {
-        const job = await this._db.jobs.fetch({ jobId, fields });
-        return job;
-    }
-
-    async setJobTask(task) {
-        const res = await this._etcd.jobs.tasks.set(task);
-        return res;
-    }
 }
 
 module.exports = new Etcd();

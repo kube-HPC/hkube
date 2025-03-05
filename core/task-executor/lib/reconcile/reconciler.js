@@ -689,32 +689,6 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
     });
 };
 
-const _handleFailedJobs = async (failedJobs) => {
-    if (failedJobs.length === 0) return;
-
-    const fields = { jobId: true };
-    const filter = (item) => item?.data?.states?.creating > 0 && item?.status !== 'failed';
-    const jobsErrors = failedJobs.map(job => job.error);
-
-    const creatingJobsIds = await etcd.getJobsStatus({ filter });
-    creatingJobsIds.forEach(async ({ jobId }) => {
-        const job = await etcd.getJob({ jobId, fields });
-
-        if (!job?.graph?.nodes) return;
-
-        job.graph.nodes.forEach(async (node, index) => {
-            const { algorithmName, algorithmVersion, nodeName, taskId } = node;
-            const matchedError = jobsErrors.find(error => error.algorithmName === algorithmName && error.algorithmVersion === algorithmVersion);
-            if (matchedError) {
-                const task = {
-                    jobId, taskId, nodeName, algorithmName, batchIndex: index, status: 'failed', error: matchedError.message, endTime: Date.now(), data: {}
-                };
-                await etcd.setJobTask(task);
-            }
-        });
-    });
-};
-
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     // Update the cache of jobs lately created by removing old jobs
     _clearCreatedJobsList(null, options);
@@ -806,8 +780,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     await _updateReconcileResult({
         reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, failedJobs, created, skipped, toStop, toResume, workerStats, normResources
     });
-
-    _handleFailedJobs(failedJobs);
 
     return reconcileResult;
 };
