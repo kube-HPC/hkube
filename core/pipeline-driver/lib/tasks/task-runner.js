@@ -142,7 +142,7 @@ class TaskRunner {
     _filterTasksByEvent(task, event) {
         return task.algorithmName === event.algorithmName
             && task.status === taskStatuses.CREATING
-            && (Date.now() - event.timestamp > this._schedulingWarningTimeoutMs || event.hasMaxCapacity);
+            && (Date.now() - event.timestamp > this._schedulingWarningTimeoutMs || event.surpassTimeout);
     }
 
     /**
