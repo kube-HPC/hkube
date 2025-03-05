@@ -130,6 +130,7 @@ class TaskRunner {
             const { message, isError } = this._handleWarningMessage(event, clusterNodes);
             if (isError) {
                 n.error = message;
+                n.endTime = Date.now();
             }
             else {
                 n.warnings.push(message);
