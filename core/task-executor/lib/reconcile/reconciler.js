@@ -632,6 +632,7 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
                     algorithmVersion,
                     message,
                     type: 'warning',
+                    timestamp: Date.now(),
                     reason: 'failedScheduling', // value goes to node status
                     code: warningCodes.JOB_CREATION_FAILED || 1003
                 }
