@@ -161,7 +161,7 @@ class TaskRunner {
     _handleWarningMessage(event, clusterNodes) {
         const { message, code } = event;
         switch (code) {
-            case warningCodes.JOB_CREATION_FAILED || 1003:
+            case warningCodes.JOB_CREATION_FAILED:
                 return { message, isError: true };
             case warningCodes.INVALID_VOLUME:
                 return { message, isError: true };
@@ -335,7 +335,7 @@ class TaskRunner {
         pipeline.nodes = await Promise.all(pipeline.nodes.map(async node => {
             const algorithm = await stateManager.getAlgorithmsByName(node.algorithmName);
             node.algorithmVersion = algorithm?.version;
-            node.devMode = algorithm.options?.devMode;
+            node.devMode = algorithm?.options?.devMode;
             return node;
         }));
 

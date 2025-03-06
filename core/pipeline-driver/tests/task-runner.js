@@ -351,6 +351,7 @@ describe('TaskRunner', function () {
                     surpassTimeout: true,
                     message: 'Maximum capacity exceeded cpu (4)',
                     timestamp: Date.now(),
+                    code: warningCodes.RESOURCES,
                     requestedResources: {
                       cpu: 2  
                     },
