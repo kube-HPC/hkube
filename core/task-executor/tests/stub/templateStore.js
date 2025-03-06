@@ -142,12 +142,10 @@ module.exports = [
         },
         sideCars: [
             {
-                container: [
-                    {
-                        name: 'mycar',
-                        image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                    }
-                ],
+                container: {
+                    name: 'mycar',
+                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
+                },
                 volumes: [
                     {
                         name: 'v1',
@@ -172,12 +170,10 @@ module.exports = [
         },
         sideCars: [
             {
-                container: [
-                    {
-                        name: 'mycar',
-                        image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                    }
-                ],
+                container: {
+                    name: 'mycar',
+                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
+                },
                 volumes: [
                     {
                         name: 'v1',
@@ -202,12 +198,10 @@ module.exports = [
         },
         sideCars: [
             {
-                container: [
-                    {
-                        name: 'mycar',
-                        image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                    }
-                ],
+                container: {
+                    name: 'mycar',
+                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
+                },
                 volumes: [
                     {
                         name: 'v1',
@@ -232,12 +226,10 @@ module.exports = [
         },
         sideCars: [
             {
-                container: [
-                    {
-                        name: 'mycar',
-                        image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                    }
-                ],
+                container: {
+                    name: 'mycar',
+                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
+                },
                 volumes: [
                     {
                         name: 'v1',
@@ -262,12 +254,10 @@ module.exports = [
         },
         sideCars: [
             {
-                container: [
-                    {
-                        name: 'mycar',
-                        image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                    }
-                ],
+                container: {
+                    name: 'mycar',
+                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
+                },
                 volumes: [
                     {
                         name: 'v1',
@@ -292,12 +282,10 @@ module.exports = [
         },
         sideCars: [
             {
-                container: [
-                    {
-                        name: 'mycar',
-                        image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                    }
-                ],
+                container: {
+                    name: 'mycar',
+                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
+                },
                 volumes: [
                     {
                         name: 'v1',
@@ -322,12 +310,10 @@ module.exports = [
         },
         sideCars: [
             {
-                container: [
-                    {
-                        name: 'mycar',
-                        image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                    }
-                ],
+                container: {
+                    name: 'mycar',
+                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
+                },
                 volumes: [
                     {
                         name: 'v1',
@@ -344,20 +330,18 @@ module.exports = [
         mem: '128Mi',
         sideCars: [
             {
-                container: [
-                    {
-                        name: 'mycar',
-                        image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908',
-                        resources: {
-                            requests: {
-                                cpu: 3
-                            },
-                            limits: {
-                                cpu: 1
-                            }
+                container: {
+                    name: 'mycar',
+                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908',
+                    resources: {
+                        requests: {
+                            cpu: 3
+                        },
+                        limits: {
+                            cpu: 1
                         }
                     }
-                ]
+                }
             }
         ]
     }
