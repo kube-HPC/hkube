@@ -366,7 +366,7 @@ const pauseAccordingToResources = (stopDetails, availableResources, skippedReque
 };
 
 const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], allVolumes) => {
-    const created = [];
+    const requested = [];
     const skipped = [];
     const localDetails = clone(createDetails);
     let addedThisTime = 0;
@@ -377,7 +377,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
             const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, allVolumes);
             if (shouldAdd) {
                 const toCreate = { ...j.jobDetails, createdTime: Date.now(), node };
-                created.push(toCreate);
+                requested.push(toCreate);
                 scheduledRequests.push({ algorithmName: toCreate.algorithmName });
             }
             else {
@@ -394,7 +394,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
         localDetails.forEach(cb);
     } while (addedThisTime > 0);
 
-    return { created, skipped };
+    return { requested, skipped };
 };
 
 module.exports = {

@@ -611,20 +611,24 @@ const _filterWorkersToStop = (toStop, toResume) => {
 };
 
 // Function to process promises for worker actions (stopping, warming, cooling, etc.)
-const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, skipped, created, options }) => {
+const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, skipped, requested, options }) => {
     const exitWorkersPromises = exitWorkers.map(r => _exitWorker(r));
     const warmUpPromises = warmUpWorkers.map(r => _warmUpWorker(r));
     const coolDownPromises = coolDownWorkers.map(r => _coolDownWorker(r));
     const stopPromises = toStopFiltered.map(r => _stopWorker(r));
     const resumePromises = toResume.map(r => _resumeWorker(r));
     const createPromises = [];
-    created.forEach(job => createPromises.push(_createJob(job, options)));
+    requested.forEach(job => createPromises.push(_createJob(job, options)));
 
     const resolvedPromises = await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
-    resolvedPromises.slice(0, createPromises.length).forEach((response, index) => {
+    const created = [];
+    createPromises.forEach((_, index) => {
+        const response = resolvedPromises[index];
+    
         if (response && response.statusCode === 422) {
             const { job, error: message } = response;
             const { algorithmName, algorithmVersion } = job;
+    
             skipped.push({
                 ...job,
                 warning: { 
@@ -637,11 +641,12 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
                     code: warningCodes.JOB_CREATION_FAILED
                 }
             });
-            created.splice(index, 1);
-            return null;
         }
-        return response;
+        else if (response.statusCode === 200) {
+            created.push(response.job);
+        }
     });
+    return created;
 };
 
 const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, created, skipped, toStop, toResume, workerStats, normResources }) => {
@@ -745,8 +750,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // Handle job creation and scheduling
     const allVolumesNames = await _getAllVolumeNames();
-    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumesNames);
-    created.forEach(j => createdJobsList.push(j));
+    const { requested, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumesNames);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
@@ -756,8 +760,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     const { toStop } = pauseAccordingToResources(stopDetails, normResources, skipped);
 
-    if (created.length > 0) {
-        log.trace(`creating ${created.length} algorithms....`, { component });
+    if (requested.length > 0) {
+        log.trace(`trying to create ${requested.length} algorithms....`, { component });
     }
 
     // log.info(`to stop: ${JSON.stringify(toStop.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
@@ -765,9 +769,10 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // log.info(`to stop: ${JSON.stringify(toStopFiltered.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
 
-    await _processPromises({ 
-        exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, skipped, created, options 
+    const created = await _processPromises({ 
+        exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, skipped, requested, options 
     });
+    created.forEach(j => createdJobsList.push(j));
 
     const unScheduledObject = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
     const { unScheduledAlgorithms, ignoredUnScheduledAlgorithms } = unScheduledObject;
