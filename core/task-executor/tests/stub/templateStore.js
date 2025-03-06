@@ -156,18 +156,6 @@ module.exports = [
                             "claimName": "hjkjhgfdfjkjhgffg"
                         }
                     }
-                ],
-                "volumeMounts": [
-                    {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
-                    }
-                ],
-                "environments": [
-                    {
-                        "name": "env1",
-                        "value": "val1"
-                    }
                 ]
             }
         ]
@@ -198,18 +186,6 @@ module.exports = [
                         "persistentVolumeClaim": {
                             "claimName": "pvc-1"
                         }
-                    }
-                ],
-                "volumeMounts": [
-                    {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
-                    }
-                ],
-                "environments": [
-                    {
-                        "name": "env1",
-                        "value": "val1"
                     }
                 ]
             }
@@ -242,18 +218,6 @@ module.exports = [
                             "name": "hjkjhgfdfjkjhgffg"
                         }
                     }
-                ],
-                "volumeMounts": [
-                    {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
-                    }
-                ],
-                "environments": [
-                    {
-                        "name": "env1",
-                        "value": "val1"
-                    }
                 ]
             }
         ]
@@ -284,18 +248,6 @@ module.exports = [
                         "configMap": {
                             "name": "config-map-1"
                         }
-                    }
-                ],
-                "volumeMounts": [
-                    {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
-                    }
-                ],
-                "environments": [
-                    {
-                        "name": "env1",
-                        "value": "val1"
                     }
                 ]
             }
@@ -328,18 +280,6 @@ module.exports = [
                             "secretName": "hjkjhgfdfjkjhgffg"
                         }
                     }
-                ],
-                "volumeMounts": [
-                    {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
-                    }
-                ],
-                "environments": [
-                    {
-                        "name": "env1",
-                        "value": "val1"
-                    }
                 ]
             }
         ]
@@ -371,18 +311,6 @@ module.exports = [
                             "secretName": "secret-1"
                         }
                     }
-                ],
-                "volumeMounts": [
-                    {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
-                    }
-                ],
-                "environments": [
-                    {
-                        "name": "env1",
-                        "value": "val1"
-                    }
                 ]
             }
         ]
@@ -411,18 +339,6 @@ module.exports = [
                     {
                         "name": "v1",
                         "emptyDir": {}
-                    }
-                ],
-                "volumeMounts": [
-                    {
-                        "name": "v1",
-                        "mountPath": "/tmp/foo"
-                    }
-                ],
-                "environments": [
-                    {
-                        "name": "env1",
-                        "value": "val1"
                     }
                 ]
             }
