@@ -347,13 +347,15 @@ module.exports = [
                 container: [
                     {
                         name: 'mycar',
-                        image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                    }
-                ],
-                volumes: [
-                    {
-                        name: 'v1',
-                        emptyDir: {}
+                        image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908',
+                        resources: {
+                            requests: {
+                                cpu: 3
+                            },
+                            limits: {
+                                cpu: 1
+                            }
+                        }
                     }
                 ]
             }

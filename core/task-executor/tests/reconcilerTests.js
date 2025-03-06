@@ -1503,6 +1503,60 @@ describe('reconciler', () => {
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 } });
         });
 
+        it('should update algorithm that cannot be scheduled due to invalid sidecar volume', async () => {
+            const algorithm = algorithmTemplates['algo-car-pvc-non-exist'];
+            const data = [
+                { name: algorithm.name },
+                { name: algorithm.name },
+                { name: algorithm.name }
+            ];
+            await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates: { [algorithm.name]: algorithm },
+                algorithmRequests: [{ data }]
+            });
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates: { [algorithm.name]: algorithm },
+                algorithmRequests: [{ data }]
+            });
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql('One or more sideCar volumes are missing or do not exist.\nMissing volumes: hjkjhgfdfjkjhgffg');
+            expect(algorithms[algorithm.name].surpassTimeout).to.be.oneOf([false, undefined]);
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
+        }).timeout(1000000);
+
+        it('should update algorithm that cannot be scheduled due to failed job (when limits are lower than requests)', async () => {
+            const algorithm = algorithmTemplates['algo-car-lim-lower-req'];
+            const data = [
+                { name: algorithm.name },
+                { name: algorithm.name },
+                { name: algorithm.name }
+            ];
+            await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates: { [algorithm.name]: algorithm },
+                algorithmRequests: [{ data }]
+            });
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates: { [algorithm.name]: algorithm },
+                algorithmRequests: [{ data }]
+            });
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql('Job is invalid: mycar.resources.requests: Invalid value: 2: must be less than or equal to cpu limit');
+            expect(algorithms[algorithm.name].surpassTimeout).to.be.true;
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
+        }).timeout(1000000);
+
         it('should update algorithm that cannot be scheduled due to memory', async () => {
             const algorithm = algorithmTemplates['big-mem'];
             const data = [
