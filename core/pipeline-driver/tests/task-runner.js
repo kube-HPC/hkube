@@ -526,4 +526,174 @@ describe('TaskRunner', function () {
         expect(driver._nodes._graph._nodes["black"].batch.length).to.eql(pipeline.nodes[2].minStatelessCount);
         expect(driver._nodes._graph._nodes["yellow"].batch.length).to.eql(pipeline.nodes[1].minStatelessCount);
     });
+
+    it('should start pipeline and handle maximum capacity exceeded - produce warning', async function () {
+        const jobId = createJobId();
+        const job = {
+            data: { jobId },
+            done: () => { }
+        }
+        const pipeline = pipelines.find(p => p.name === 'flow2');
+        const status = { status: 'pending' };
+        await stateManager.createJob({ jobId, pipeline, status });
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
+        const node = driver._nodes.getNode('green');
+        const algorithmName = node.algorithmName;
+        const discovery = {
+            unScheduledAlgorithms: {
+                [algorithmName]: {
+                    algorithmName: algorithmName,
+                    type: 'warning',
+                    reason: 'failedScheduling',
+                    surpassTimeout: true,
+                    message: 'template error message of volume error',
+                    timestamp: Date.now(),
+                    code: warningCodes.INVALID_VOLUME,
+                    requestedResources: {
+                      cpu: 2  
+                    },
+                    complexResourceDescriptor: {
+                        "nodes": [
+                            {
+                                nodeName : 'node1',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node2',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node3',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node4',
+                                requestsOverMaxCapacity: []
+                            },
+                        ],
+                        
+                    }
+                }
+            },
+            nodes: [
+                {
+                    "name" : "node1",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                },
+                {
+                    "name" : "node2",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                },
+                {
+                    "name" : "node3",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                },
+                {
+                    "name" : "node4",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                }
+            ]
+        }
+        const etcd = new Etcd(config.etcd);
+        await etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
+        await delay(2000);
+        const algorithm = discovery.unScheduledAlgorithms[algorithmName];
+        expect(node.status).to.equal(algorithm.reason);
+        expect(node.batch[0].status).to.equal(algorithm.reason);
+        expect(node.error).to.equal("template error message of volume error");
+    });
+
+    it('should start pipeline and handle maximum capacity exceeded - produce warning', async function () {
+        const jobId = createJobId();
+        const job = {
+            data: { jobId },
+            done: () => { }
+        }
+        const pipeline = pipelines.find(p => p.name === 'flow2');
+        const status = { status: 'pending' };
+        await stateManager.createJob({ jobId, pipeline, status });
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
+        const node = driver._nodes.getNode('green');
+        const algorithmName = node.algorithmName;
+        const discovery = {
+            unScheduledAlgorithms: {
+                [algorithmName]: {
+                    algorithmName: algorithmName,
+                    type: 'warning',
+                    reason: 'failedScheduling',
+                    surpassTimeout: true,
+                    message: 'template error message of job creation failed',
+                    timestamp: Date.now(),
+                    code: warningCodes.JOB_CREATION_FAILED,
+                    requestedResources: {
+                      cpu: 2  
+                    },
+                    complexResourceDescriptor: {
+                        "nodes": [
+                            {
+                                nodeName : 'node1',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node2',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node3',
+                                requestsOverMaxCapacity: [['cpu', true]]
+                            },
+                            {
+                                nodeName : 'node4',
+                                requestsOverMaxCapacity: []
+                            },
+                        ],
+                        
+                    }
+                }
+            },
+            nodes: [
+                {
+                    "name" : "node1",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                },
+                {
+                    "name" : "node2",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                },
+                {
+                    "name" : "node3",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                },
+                {
+                    "name" : "node4",
+                    "total" : {
+                        "cpu" : 1
+                    }
+                }
+            ]
+        }
+        const etcd = new Etcd(config.etcd);
+        await etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
+        await delay(2000);
+        const algorithm = discovery.unScheduledAlgorithms[algorithmName];
+        expect(node.status).to.equal(algorithm.reason);
+        expect(node.batch[0].status).to.equal(algorithm.reason);
+        expect(node.error).to.equal("template error message of job creation failed");
+    });
 });
