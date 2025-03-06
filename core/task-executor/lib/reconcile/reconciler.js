@@ -634,7 +634,7 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
                     type: 'warning',
                     timestamp: Date.now(),
                     reason: 'failedScheduling', // value goes to node status
-                    code: warningCodes.JOB_CREATION_FAILED || 1003
+                    code: warningCodes.JOB_CREATION_FAILED
                 }
             });
             created.splice(index, 1);
