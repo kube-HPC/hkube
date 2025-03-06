@@ -527,7 +527,7 @@ describe('TaskRunner', function () {
         expect(driver._nodes._graph._nodes["yellow"].batch.length).to.eql(pipeline.nodes[1].minStatelessCount);
     });
 
-    it('should start pipeline and handle maximum capacity exceeded - produce warning', async function () {
+    it('should set error to node which sidecar volume is invalid', async function () {
         const jobId = createJobId();
         const job = {
             data: { jobId },
@@ -612,7 +612,7 @@ describe('TaskRunner', function () {
         expect(node.error).to.equal("template error message of volume error");
     });
 
-    it('should start pipeline and handle maximum capacity exceeded - produce warning', async function () {
+    it('should set error to node which job creation has failed', async function () {
         const jobId = createJobId();
         const job = {
             data: { jobId },
