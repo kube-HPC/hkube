@@ -14,7 +14,7 @@ module.exports = {
                 createJob: async (...theArgs) => {
                     registerCount('createJob', theArgs);
                     const supposeToFail = [
-                        { algorithmName: 'algo-car-lim-lower-req', error: 'Job is invalid: mycar.resources.requests: Invalid value: 2: must be less than or equal to cpu limit', statusCode: 422 }
+                        { algorithmName: 'algo-car-lim-lower-req', error: 'Job is invalid: mycar.resources.requests: Invalid value: 3: must be less than or equal to cpu limit', statusCode: 422 }
                     ];
                     const jobDetails = theArgs[0]?.jobDetails;
                     const failureEntry = supposeToFail.find(entry => entry.algorithmName === jobDetails?.algorithmName);
