@@ -4,6 +4,7 @@ const { warningCodes } = require('@hkube/consts');
 const { consts, gpuVendors } = require('../consts');
 const { lessWithTolerance } = require('../helpers/compare');
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
+const { createWarning } = require('../utils/warningCreator');
 
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, useResourcePressure = true) => {
     let freeCpu;
@@ -79,83 +80,6 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
     return matched;
 };
 
-const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesAfterSelector) => {
-    const messages = [];
-    let ns;
-    let complexResourceDescriptor;
-    if (unMatchedNodesBySelector) {
-        ns = Object.entries(jobDetails.nodeSelector).map(([k, v]) => `${k}=${v}`); // Key value array of selectors
-        complexResourceDescriptor = {
-            ...complexResourceDescriptor,
-            requestedSelectors: ns,
-            numUnmatchedNodesBySelector: unMatchedNodesBySelector
-        };
-    } // Handle selector info, and update info for the complexResourceDescriptor
-    if (!nodesAfterSelector) {
-        messages.push(`No nodes available for scheduling due to selector condition - '${ns.join(',')}'`);
-    }
-    
-    let hasMaxCapacity = true;
-    const resourcesMap = Object.create(null);
-    const maxCapacityMap = Object.create(null);
-
-    const nodes = [];
-    nodesForSchedule.forEach(n => {
-        // let nodeIndex = -1;
-        let currentNode = {nodeName: n.node.name, amountsMissing: n.amountsMissing};
-        const maxCapacity = Object.entries(n.maxCapacity).filter(([, v]) => v === true);
-        if (maxCapacity.length === 0) {
-            hasMaxCapacity = false;
-        }
-        maxCapacity.forEach(([k]) => {
-            if (!maxCapacityMap[k]) {
-                maxCapacityMap[k] = 0;
-            }
-            maxCapacityMap[k] += 1;
-        });
-        if (maxCapacity) {
-            currentNode = {
-                ...currentNode,
-                requestsOverMaxCapacity: maxCapacity
-            };         
-        } // if requests exceed max capacity, add the array containing mem, cpu, gpu.
-        const nodeMissingResources = Object.entries(n.details).filter(([, v]) => v === false);
-        nodeMissingResources.forEach(([k]) => {
-            if (!resourcesMap[k]) {
-                resourcesMap[k] = 0;
-            }
-            resourcesMap[k] += 1;
-        });
-        nodes.push(currentNode);
-    });
-    // Valid node's total resource is lower than requested
-    if (hasMaxCapacity && Object.keys(maxCapacityMap).length > 0) {
-        const maxCapacity = Object.entries(maxCapacityMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`Maximum capacity exceeded ${maxCapacity.join(' ')}`);
-    }
-    // Not enough resources in valid node
-    else if (Object.keys(resourcesMap).length > 0) {
-        const resources = Object.entries(resourcesMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`Insufficient ${resources.join(', ')}`);
-    }
-    complexResourceDescriptor = {
-        ...complexResourceDescriptor,
-        nodes,
-    };
-    const warning = {
-        algorithmName: jobDetails.algorithmName,
-        type: 'warning',
-        reason: 'failedScheduling',
-        surpassTimeout: hasMaxCapacity,
-        message: messages.join(', '),
-        timestamp: Date.now(),
-        complexResourceDescriptor,
-        requestedResources: jobDetails.resourceRequests.requests,
-        code: warningCodes.RESOURCES
-    };
-    return warning;
-};
-
 /**
  * Checks the availability of volumes in sidecar containers.
  * 
@@ -212,22 +136,20 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) =>
     if (!availableNode) {
         // Number of total nodes that don't fit the attribute under nodeSelector
         const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
-        const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesBySelector.length);
+        const warning = createWarning({
+            unMatchedNodesBySelector,
+            jobDetails,
+            nodesForSchedule,
+            nodesAfterSelector: nodesBySelector.length,
+            code: warningCodes.RESOURCES
+        });
+        // const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesBySelector.length);
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
     }
 
     const missingSideCarVolumes = _getMissingSideCarVolumes(jobDetails.sideCars, allVolumes);
     if (missingSideCarVolumes.length > 0) {
-        const warning = {
-            algorithmName: jobDetails.algorithmName,
-            type: 'warning',
-            reason: 'failedScheduling',
-            message: `One or more sideCar volumes are missing or do not exist.\nMissing volumes: ${missingSideCarVolumes.join(', ')}`,
-            timestamp: Date.now(),
-            sidecarVolumes: missingSideCarVolumes,
-            code: warningCodes.INVALID_VOLUME
-        };
-
+        const warning = createWarning({ jobDetails, missingSideCarVolumes, code: warningCodes.INVALID_VOLUME });
         return {
             shouldAdd: false,
             warning,

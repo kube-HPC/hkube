@@ -2,6 +2,7 @@ const Logger = require('@hkube/logger');
 const { warningCodes } = require('@hkube/consts');
 const log = Logger.GetLogFromContainer();
 const clonedeep = require('lodash.clonedeep');
+const { createWarning } = require('../utils/warningCreator');
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
@@ -626,21 +627,12 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
         const response = resolvedPromises[index];
     
         if (response && response.statusCode === 422) {
-            const { jobDetails, error: message } = response;
-            const { algorithmName, algorithmVersion } = jobDetails;
+            const { jobDetails, message, spec } = response;
+            const warning = createWarning({ jobDetails, code: warningCodes.JOB_CREATION_FAILED, message, spec });
     
             skipped.push({
                 ...jobDetails,
-                warning: { 
-                    algorithmName,
-                    algorithmVersion,
-                    message,
-                    surpassTimeout: true,
-                    type: 'warning',
-                    timestamp: Date.now(),
-                    reason: 'failedScheduling', // value goes to node status
-                    code: warningCodes.JOB_CREATION_FAILED
-                }
+                warning
             });
         }
         else if (response.statusCode === 200) {

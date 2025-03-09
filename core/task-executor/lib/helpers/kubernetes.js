@@ -34,7 +34,8 @@ class KubernetesApi {
         }
         catch (error) {
             log.throttle.error(`unable to create job ${spec.metadata.name}. error: ${error.message}`, { component }, error);
-            return { jobDetails, statusCode: error.statusCode, error: this._formatErrorMessage(error.message, spec) };
+            const { message, statusCode } = error;
+            return { jobDetails, statusCode, message, spec };
         }
     }
 
@@ -181,42 +182,6 @@ class KubernetesApi {
             throw new Error(`Failed to fetch ConfigMaps: ${error.message}`);
         }
     }
-
-    _formatErrorMessage(message, spec) {
-        try {
-            // 1. Replace "Job.batch <jobName>" with just "Job"
-            message = message.replace(/^Job\.\w+ "\S+"/, 'Job');
-    
-            // 2. Extract the path (everything between "is invalid: " and the first colon)
-            const pathMatch = message.match(/is invalid: ([^:]+):/);
-            if (!pathMatch) return message; // If the path isn't found, return the original message
-    
-            const fullPath = pathMatch[1]; // The full path (e.g., spec.template.spec.containers[2].resources.requests)
-            let formattedPath = fullPath;
-    
-            // 3. If the path contains a container index, replace it with the container name
-            const containerMatch = fullPath.match(/containers\[(\d+)\]/);
-            if (containerMatch) {
-                const containerIndex = parseInt(containerMatch[1], 10);
-                if (spec?.spec?.template?.spec?.containers && spec.spec.template.spec.containers[containerIndex]) {
-                    const containerName = spec.spec.template.spec.containers[containerIndex].name;
-                    // Replace the container reference with the actual name
-                    formattedPath = fullPath.replace(/spec\.template\.spec\.containers\[\d+\]/, containerName);
-                }
-            }
-    
-            // 4. Construct the new message by replacing the path with its formatted version
-            let formattedMessage = message.replace(fullPath, formattedPath);
-    
-            // 5. Remove unnecessary quotes from the reason part (anything inside quotes)
-            formattedMessage = formattedMessage.replace(/"([^"]+)"/g, '$1');
-    
-            return formattedMessage.trim();
-        }
-        catch (error) {
-            return message; // Return original message if anything goes wrong
-        }
-    }    
 }
 
 module.exports = new KubernetesApi();
