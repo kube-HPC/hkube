@@ -14,7 +14,7 @@ module.exports = {
                 createJob: async (...theArgs) => {
                     registerCount('createJob', theArgs);
                     const supposeToFail = [
-                        { algorithmName: 'algo-car-lim-lower-req', error: 'Job is invalid: mycar.resources.requests: Invalid value: 3: must be less than or equal to cpu limit', statusCode: 422 }
+                        { algorithmName: 'algo-car-lim-lower-req', message: 'Job.batch "algo-car-lim-lower-req-1thjj" is invalid: spec.template.spec.containers[2].resources.requests: Invalid value: "3": must be less than or equal to cpu limit', statusCode: 422, spec: { spec: { template: { spec: { containers: [{ name: 'worker' }, { name: 'algorunner' }, { name: 'mycar' }]}}}} }
                     ];
                     const jobDetails = theArgs[0]?.jobDetails;
                     const failureEntry = supposeToFail.find(entry => entry.algorithmName === jobDetails?.algorithmName);
@@ -23,7 +23,8 @@ module.exports = {
                         return {
                             jobDetails,
                             statusCode: failureEntry.statusCode,
-                            error: failureEntry.error
+                            message: failureEntry.message,
+                            spec: failureEntry.spec
                         };
                     }
                 
