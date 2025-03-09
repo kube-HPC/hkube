@@ -618,7 +618,7 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
     const stopPromises = toStopFiltered.map(r => _stopWorker(r));
     const resumePromises = toResume.map(r => _resumeWorker(r));
     const createPromises = [];
-    requested.forEach(job => createPromises.push(_createJob(job, options)));
+    requested.forEach(jobDetails => createPromises.push(_createJob(jobDetails, options)));
 
     const resolvedPromises = await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
     const created = [];
@@ -626,11 +626,11 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
         const response = resolvedPromises[index];
     
         if (response && response.statusCode === 422) {
-            const { job, error: message } = response;
-            const { algorithmName, algorithmVersion } = job;
+            const { jobDetails, error: message } = response;
+            const { algorithmName, algorithmVersion } = jobDetails;
     
             skipped.push({
-                ...job,
+                ...jobDetails,
                 warning: { 
                     algorithmName,
                     algorithmVersion,

@@ -21,7 +21,7 @@ module.exports = {
 
                     if (failureEntry) {
                         return {
-                            job: jobDetails,
+                            jobDetails,
                             statusCode: failureEntry.statusCode,
                             error: failureEntry.error
                         };
