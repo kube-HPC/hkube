@@ -249,6 +249,10 @@ pipelineNode:
   $ref: ./pipelines/pipelineNode.yaml
 pipelineResult:
   $ref: ./pipelines/pipelineResult.yaml
+pipelineVersionId:
+  $ref: ./pipelines/pipelineVersionId.yaml
+applyPipelineVersion:
+  $ref: ./pipelines/applyPipelineVersion.yaml
 priority:
   $ref: ./pipelines/priority.yaml
 triggers:
