@@ -22468,7 +22468,7 @@
                     "type": {
                       "type": "string"
                     },
-                    "hasMaxCapacity": {
+                    "surpassTimeout": {
                       "type": "string"
                     },
                     "message": {
@@ -27752,7 +27752,7 @@
           "type": {
             "type": "string"
           },
-          "hasMaxCapacity": {
+          "surpassTimeout": {
             "type": "string"
           },
           "message": {
