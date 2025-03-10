@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "2.8.7",
+  "version": "2.8.8",
   "description": "pipeline execution based on DAG",
   "main": "app.js",
   "directories": {
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.11",
-    "@hkube/consts": "^1.0.54",
+    "@hkube/consts": "^1.0.58",
     "@hkube/dag": "^2.2.2",
     "@hkube/db": "^2.0.14",
     "@hkube/etcd": "^5.1.9",
