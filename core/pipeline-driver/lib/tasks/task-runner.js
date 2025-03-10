@@ -130,7 +130,6 @@ class TaskRunner {
             const { message, isError } = this._handleWarningMessage(event, clusterNodes);
             if (isError) {
                 n.error = message;
-                n.endTime = Date.now();
             }
             else {
                 n.warnings.push(message);
@@ -142,7 +141,7 @@ class TaskRunner {
     _filterTasksByEvent(task, event) {
         return task.algorithmName === event.algorithmName
             && task.status === taskStatuses.CREATING
-            && (Date.now() - event.timestamp > this._schedulingWarningTimeoutMs || event.surpassTimeout);
+            && (Date.now() - event.timestamp > this._schedulingWarningTimeoutMs || event.hasMaxCapacity);
     }
 
     /**
@@ -161,8 +160,6 @@ class TaskRunner {
     _handleWarningMessage(event, clusterNodes) {
         const { message, code } = event;
         switch (code) {
-            case warningCodes.JOB_CREATION_FAILED:
-                return { message, isError: true };
             case warningCodes.INVALID_VOLUME:
                 return { message, isError: true };
             case warningCodes.RESOURCES:
@@ -335,7 +332,7 @@ class TaskRunner {
         pipeline.nodes = await Promise.all(pipeline.nodes.map(async node => {
             const algorithm = await stateManager.getAlgorithmsByName(node.algorithmName);
             node.algorithmVersion = algorithm?.version;
-            node.devMode = algorithm?.options?.devMode;
+            node.devMode = algorithm.options.devMode;
             return node;
         }));
 

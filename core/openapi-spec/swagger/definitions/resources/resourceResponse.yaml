@@ -4,7 +4,7 @@ properties:
     type: string
   type:
     type: string
-  surpassTimeout:
+  hasMaxCapacity:
     type: string
   message:
     type: string

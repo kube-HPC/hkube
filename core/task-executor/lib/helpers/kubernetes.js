@@ -34,9 +34,8 @@ class KubernetesApi {
         }
         catch (error) {
             log.throttle.error(`unable to create job ${spec.metadata.name}. error: ${error.message}`, { component }, error);
-            const { message, statusCode } = error;
-            return { jobDetails, statusCode, message, spec };
         }
+        return null;
     }
 
     async getWorkerJobs() {
