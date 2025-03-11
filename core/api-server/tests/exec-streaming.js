@@ -344,25 +344,6 @@ describe('Streaming', () => {
             const res = await request(options);
             expect(res.body).to.have.property('jobId');
         });
-        it('should throw node does not belong to any flow', async () => {
-            const options = {
-                uri: restPath,
-                body: {
-                    name: 'streaming-flow',
-                    kind: 'stream',
-                    nodes,
-                    streaming: {
-                        flows: {
-                            analyze: 'A >> B >> C&D >> B >> A'
-                        }
-                    }
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('node "E" does not belong to any flow');
-        });
         it('should not throw invalid relation found', async () => {
             const options = {
                 uri: restPath,

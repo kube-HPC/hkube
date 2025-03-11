@@ -1,0 +1,9 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/pipelineName"
+  version:
+    $ref: "#/components/schemas/pipelineVersionId"
+required:
+  - name
+  - version

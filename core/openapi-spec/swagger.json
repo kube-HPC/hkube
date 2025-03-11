@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.8.7",
+    "version": "2.8.8",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -515,6 +515,10 @@
                         "target": "B"
                       }
                     ]
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "pipeline version"
                   }
                 },
                 "required": [
@@ -1022,6 +1026,10 @@
                         "target": "B"
                       }
                     ]
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "pipeline version"
                   }
                 },
                 "required": [
@@ -2569,6 +2577,10 @@
                           "target": "B"
                         }
                       ]
+                    },
+                    "version": {
+                      "type": "string",
+                      "description": "pipeline version"
                     }
                   },
                   "required": [
@@ -3075,6 +3087,10 @@
                           "target": "B"
                         }
                       ]
+                    },
+                    "version": {
+                      "type": "string",
+                      "description": "pipeline version"
                     }
                   },
                   "required": [
@@ -10742,6 +10758,10 @@
                           "target": "B"
                         }
                       ]
+                    },
+                    "version": {
+                      "type": "string",
+                      "description": "pipeline version"
                     }
                   },
                   "required": [
@@ -11447,6 +11467,10 @@
                             "target": "B"
                           }
                         ]
+                      },
+                      "version": {
+                        "type": "string",
+                        "description": "pipeline version"
                       }
                     },
                     "required": [
@@ -12207,6 +12231,10 @@
                             "target": "B"
                           }
                         ]
+                      },
+                      "version": {
+                        "type": "string",
+                        "description": "pipeline version"
                       }
                     },
                     "required": [
@@ -12682,6 +12710,10 @@
                         "target": "B"
                       }
                     ]
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "pipeline version"
                   }
                 },
                 "required": [
@@ -13123,6 +13155,10 @@
                           "target": "B"
                         }
                       ]
+                    },
+                    "version": {
+                      "type": "string",
+                      "description": "pipeline version"
                     }
                   },
                   "required": [
@@ -13625,6 +13661,10 @@
                         "target": "B"
                       }
                     ]
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "pipeline version"
                   }
                 },
                 "required": [
@@ -14066,6 +14106,10 @@
                           "target": "B"
                         }
                       ]
+                    },
+                    "version": {
+                      "type": "string",
+                      "description": "pipeline version"
                     }
                   },
                   "required": [
@@ -19263,6 +19307,10 @@
                             "target": "B"
                           }
                         ]
+                      },
+                      "version": {
+                        "type": "string",
+                        "description": "pipeline version"
                       }
                     },
                     "required": [
@@ -19795,6 +19843,10 @@
                             "target": "B"
                           }
                         ]
+                      },
+                      "version": {
+                        "type": "string",
+                        "description": "pipeline version"
                       }
                     },
                     "required": [
@@ -19826,6 +19878,222 @@
           },
           "404": {
             "description": "pipeline Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Pipeline Versions"
+        ],
+        "summary": "Delete version",
+        "description": "Delete existing pipeline version.",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "pipeline name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique identifier representing a specific pipeline",
+              "minLength": 1,
+              "format": "pipeline-name"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "pipeline version",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "algorithm Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/versions/pipelines/apply": {
+      "post": {
+        "tags": [
+          "Pipeline Versions"
+        ],
+        "summary": "Apply pipeline version",
+        "description": "Change the current pipeline version",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "Unique identifier representing version id",
+                    "minLength": 1,
+                    "maxLength": 10
+                  }
+                },
+                "required": [
+                  "name",
+                  "version"
+                ]
+              }
+            }
+          },
+          "description": "an object representing the pipeline name and the version to change to",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "the OK string",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "jobId Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -22200,7 +22468,7 @@
                     "type": {
                       "type": "string"
                     },
-                    "hasMaxCapacity": {
+                    "surpassTimeout": {
                       "type": "string"
                     },
                     "message": {
@@ -26490,6 +26758,10 @@
                     "target": "B"
                   }
                 ]
+              },
+              "version": {
+                "type": "string",
+                "description": "pipeline version"
               }
             },
             "required": [
@@ -26994,6 +27266,10 @@
                 "target": "B"
               }
             ]
+          },
+          "version": {
+            "type": "string",
+            "description": "pipeline version"
           }
         },
         "required": [
@@ -27289,6 +27565,33 @@
           }
         }
       },
+      "pipelineVersionId": {
+        "type": "string",
+        "description": "Unique identifier representing version id",
+        "minLength": 1,
+        "maxLength": 10
+      },
+      "applyPipelineVersion": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          },
+          "version": {
+            "type": "string",
+            "description": "Unique identifier representing version id",
+            "minLength": 1,
+            "maxLength": 10
+          }
+        },
+        "required": [
+          "name",
+          "version"
+        ]
+      },
       "priority": {
         "type": "integer",
         "minimum": 1,
@@ -27449,7 +27752,7 @@
           "type": {
             "type": "string"
           },
-          "hasMaxCapacity": {
+          "surpassTimeout": {
             "type": "string"
           },
           "message": {

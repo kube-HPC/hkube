@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver-queue",
-  "version": "2.8.9",
+  "version": "2.8.11",
   "description": "",
   "main": "app.js",
   "directories": {
