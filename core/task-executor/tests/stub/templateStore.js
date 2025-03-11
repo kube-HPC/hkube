@@ -319,6 +319,18 @@ module.exports = [
                         name: "v1",
                         emptyDir: {}
                     }
+                ],
+                volumeMounts: [
+                    {
+                        name: "v1",
+                        mountPath: "/tmp/foo"
+                    }
+                ],
+                environments: [
+                    {
+                        name: "env1",
+                        value: "val1"
+                    }
                 ]
             }
         ]
