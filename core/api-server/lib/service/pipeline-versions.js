@@ -2,7 +2,7 @@ const asyncQueue = require('async.queue');
 const versioning = require('./versioning');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError } = require('../errors');
+const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 
 class PipelineVersions {
     constructor() {
@@ -28,6 +28,34 @@ class PipelineVersions {
             throw new ResourceNotFoundError('version', version);
         }
         return pipelineVersion;
+    }
+
+    async applyVersion(options) {
+        const { name, version } = options;
+        validator.pipelines.validatePipelineVersion(options);
+        const pipelineVersion = await this.getVersion({ name, version });
+
+        await stateManager.updatePipeline(pipelineVersion.pipeline);
+        return pipelineVersion;
+    }
+
+    async deleteVersion(options) {
+        const { version, name } = options;
+        validator.pipelines.validatePipelineVersion({ name, version });
+        const pipeline = await stateManager.getPipeline({ name });
+        if (!pipeline) {
+            throw new ResourceNotFoundError('pipeline', name);
+        }
+        if (pipeline.version === version) {
+            throw new ActionNotAllowed('unable to remove the currently used version');
+        }
+        const pipelineVersion = await versioning.getVersion({ version }, true);
+        if (!pipelineVersion) {
+            throw new ResourceNotFoundError('version', version);
+        }
+        const res = await stateManager.deleteVersion({ name, version }, true);
+        const deleted = parseInt(res.deleted, 10);
+        return { deleted };
     }
 
     /**

@@ -45,6 +45,14 @@ const routes = (options) => {
         const response = await pipelineVersionsService.getVersion(req.params);
         res.json(response);
     });
+    router.post('/pipelines/apply', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
+        const response = await pipelineVersionsService.applyVersion(req.body);
+        res.status(HttpStatus.StatusCodes.CREATED).json(response);
+    });
+    router.delete('/pipelines/:name/:version', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {
+        const response = await pipelineVersionsService.deleteVersion(req.params);
+        res.json(response);
+    });
 
     return router;
 };

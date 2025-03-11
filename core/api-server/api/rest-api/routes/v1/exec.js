@@ -40,7 +40,7 @@ const routes = (options) => {
         res.json({ jobId, gateways });
     });
     router.post('/getGraphByStreamingFlow', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
-        const { nodes, edges } = await Execution.getGraphByStreamingFlow(req.body);
+        const { nodes, edges } = await Execution._getGraphByStreamingFlow(req.body);
         res.json({ nodes, edges });
     });
     router.post('/stop', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {

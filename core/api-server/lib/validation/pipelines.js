@@ -15,6 +15,10 @@ class ApiValidator {
         this._validator.validate(this._validator.definitions.pipelineName, name, false);
     }
 
+    validatePipelineVersion(pipeline) {
+        this._validator.validate(this._validator.definitions.applyPipelineVersion, pipeline, false);
+    }
+
     validatePipelineNodes(pipeline) {
         if (!pipeline.nodes?.length) {
             throw new InvalidDataError('pipeline must have at least one node');
