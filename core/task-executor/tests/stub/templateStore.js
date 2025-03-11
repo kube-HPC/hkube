@@ -274,24 +274,30 @@ module.exports = [
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
-        workerCustomResources: {
-            requests: {
-                cpu: 0.1,
-                memory: "256Mi"
-            }
-        },
         sideCars: [
             {
                 container: {
-                    name: 'mycar',
-                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
+                    name: "mycar",
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
                 volumes: [
                     {
-                        name: 'v1',
+                        name: "v1",
                         secret: {
-                            secretName: 'secret-1'
+                            secretName: "secret-1"
                         }
+                    }
+                ],
+                volumeMounts: [
+                    {
+                        name: "v1",
+                        mountPath: "/tmp/foo"
+                    }
+                ],
+                environments: [
+                    {
+                        name: "env1",
+                        value: "val1"
                     }
                 ]
             }
@@ -302,24 +308,94 @@ module.exports = [
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
-        workerCustomResources: {
-            requests: {
-                cpu: 0.1,
-                memory: "256Mi"
-            }
-        },
         sideCars: [
             {
                 container: {
-                    name: 'mycar',
-                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
+                    name: "mycar",
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
                 volumes: [
                     {
-                        name: 'v1',
+                        name: "v1",
                         emptyDir: {}
                     }
+                ],
+                volumeMounts: [
+                    {
+                        name: "v1",
+                        mountPath: "/tmp/foo"
+                    }
+                ],
+                environments: [
+                    {
+                        name: "env1",
+                        value: "val1"
+                    }
                 ]
+            }
+        ]
+    },
+    {
+        name: 'algo-car-container-req',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        sideCars: [
+            {
+                container: {
+                    name: "mycar",
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne",
+                    resources: {
+                        requests: {
+                            cpu: 0.2,
+                            memory: '150Mi'
+                        }
+                    }
+                }
+            }
+        ]
+    },
+    {
+        name: 'algo-car-container-lim',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        sideCars: [
+            {
+                container: {
+                    name: "mycar",
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne",
+                    resources: {
+                        limits: {
+                            cpu: 0.2,
+                            memory: '250Mi'
+                        }
+                    }
+                }
+            }
+        ]
+    },
+    {
+        name: 'algo-car-container-req-lim',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        sideCars: [
+            {
+                container: {
+                    name: "mycar",
+                    image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne",
+                    resources: {
+                        requests: {
+                            cpu: 0.1,
+                            memory: '150Mi'
+                        },
+                        limits: {
+                            cpu: 0.2,
+                            memory: '250Mi'
+                        }
+                    }
+                }
             }
         ]
     },

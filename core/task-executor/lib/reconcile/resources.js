@@ -3,6 +3,7 @@ const parse = require('@hkube/units-converter');
 const { warningCodes } = require('@hkube/consts');
 const { consts, gpuVendors } = require('../consts');
 const { lessWithTolerance } = require('../helpers/compare');
+const { settings } = require('../helpers/settings');
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
 const { createWarning } = require('../utils/warningCreator');
 
@@ -23,40 +24,47 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
         freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESSURE));
     }
     else {
+        totalCpu = node.total.cpu;
+        totalGpu = node.total.gpu;
+        totalMemory = node.total.memory;
         freeCpu = node.free.cpu;
         freeGpu = node.free.gpu;
         freeMemory = node.free.memory;
     }
 
-    const cpu = requestedCpu < freeCpu;
-    const mem = requestedMemory < freeMemory;
-    const gpu = requestedGpu === 0 || lessWithTolerance(requestedGpu, freeGpu);
+    // Check if requested resources fit within availble resources.
+    const hasSufficientCpu = requestedCpu < freeCpu;
+    const hasSufficientMemory = requestedMemory < freeMemory;
+    const hasSufficientGpu = requestedGpu === 0 || lessWithTolerance(requestedGpu, freeGpu);
 
-    const cpuMaxCapacity = requestedCpu > totalCpu;
-    const memMaxCapacity = requestedMemory > totalMemory;
-    const gpuMaxCapacity = requestedGpu > 0 && lessWithTolerance(totalGpu, requestedGpu);
+    // Check if requested resources exceed node's max capacity.
+    const exceedsCpuMaxCapacity = requestedCpu > totalCpu;
+    const exceedsMemMaxCapacity = requestedMemory > totalMemory;
+    const exceedsGpuMaxCapacity = requestedGpu > 0 && lessWithTolerance(totalGpu, requestedGpu);
+
     // log the amount of missing capacity per resource.
     let missingCpu;
     let missingMem;
     let missingGpu;
-    if (!cpu) {
+
+    if (!hasSufficientCpu) {
         missingCpu = requestedCpu - freeCpu;
         missingCpu = missingCpu.toFixed(2);
     }
-    if (!mem) {
+    if (!hasSufficientMemory) {
         missingMem = requestedMemory - freeMemory;
         missingMem = missingMem.toFixed(2);
     }
-    if ((requestedGpu > 0) && !gpu) {
+    if ((requestedGpu > 0) && !hasSufficientGpu) {
         missingGpu = requestedGpu - freeGpu;
         missingGpu = missingGpu.toFixed(2);
     }
 
     return {
         node,
-        available: cpu && mem && gpu,
-        maxCapacity: { cpu: cpuMaxCapacity, mem: memMaxCapacity, gpu: gpuMaxCapacity },
-        details: { cpu, mem, gpu },
+        available: hasSufficientCpu && hasSufficientMemory && hasSufficientGpu,
+        maxCapacity: { cpu: exceedsCpuMaxCapacity, mem: exceedsMemMaxCapacity, gpu: exceedsGpuMaxCapacity },
+        details: { cpu: hasSufficientCpu, mem: hasSufficientMemory, gpu: hasSufficientGpu },
         amountsMissing: { cpu: missingCpu || 0, mem: missingMem || 0, gpu: missingGpu || 0 }
     };
 };
@@ -122,13 +130,42 @@ const _getMissingSideCarVolumes = (sideCars, allVolumes) => {
     return missingVolumes;
 };
 
+/**
+ * Calculates the total requested CPU and memory from all containers.
+ * 
+ * @param {Object} params - The job details, containing the resource details.
+ * @param {Object} params.resourceRequests - The algorunner resource requests.
+ * @param {Object} params.workerResourceRequests - The worker resource requests.
+ * @param {Object} [params.workerCustomResources] - The optional custom worker resource requests.
+ * @param {Object} [params.sideCars] - The optional sidecar container.
+ * @param {Object} [params.sideCars.container] - The container inside the sidecar.
+ * @param {Object} [params.sideCars.container.resources] - The resource requests of the sidecar container.
+ * @returns {Object} An object containing the total requested CPU and memory.
+ * @returns {number} return.requestedCpu - The total requested CPU in cores.
+ * @returns {number} return.requestedMemory - The total requested memory in MiB.
+ */
+const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCustomResources, sideCars }) => {
+    const sideCarResources = sideCars?.map(sideCar => sideCar?.container?.resources) || [];
+    const workerRequestedCPU = settings.applyResources ? workerResourceRequests.requests.cpu : '0';
+    const workerRequestedMemory = settings.applyResources ? workerResourceRequests.requests.memory : '0Mi';
+
+    const requestedCpu = parse.getCpuInCore(resourceRequests?.requests?.cpu || '0')
+        + parse.getCpuInCore(workerCustomResources?.requests?.cpu || workerRequestedCPU)
+        + sideCarResources.reduce((acc, resources) => acc + parse.getCpuInCore(resources?.requests?.cpu || '0'), 0);
+
+    const requestedMemory = parse.getMemoryInMi(resourceRequests?.requests?.memory || '0Mi')
+        + parse.getMemoryInMi(workerCustomResources?.requests?.memory || workerRequestedMemory)
+        + sideCarResources.reduce((acc, resources) => acc + parse.getMemoryInMi(resources?.requests?.memory || '0Mi'), 0);
+
+    return { requestedCpu, requestedMemory };
+};
+
 const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) => {
     if (totalAdded >= MAX_JOBS_PER_TICK) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
-    const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
+    const { requestedCpu, requestedMemory } = getAllRequested(jobDetails);
     const requestedGpu = jobDetails.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
-    const requestedMemory = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
     const nodesBySelector = availableResources.nodeList.filter(n => nodeSelectorFilter(n.labels, jobDetails.nodeSelector));
     const nodesForSchedule = nodesBySelector.map(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
 
