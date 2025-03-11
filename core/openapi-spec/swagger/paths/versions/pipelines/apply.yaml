@@ -1,0 +1,37 @@
+post:
+  tags:
+    - Pipeline Versions
+  summary: Apply pipeline version
+  description: Change the current pipeline version
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/applyPipelineVersion"
+    description: an object representing the pipeline name and the version to change to
+    required: true
+  responses:
+    "200":
+      description: the OK string
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: jobId Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
