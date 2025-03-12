@@ -6,19 +6,24 @@ const component = require('../../lib/consts/componentNames').GRAPHQL_SERVER;
 const _typeDefs = require('./graphql-schema');
 const _resolvers = require('./resolvers');
 
-async function startApolloServer(typeDefs, resolvers, app, httpServer, port, config) {
+async function startApolloServer(typeDefs, resolvers, app, httpServer, port, config, keycloak) {
     try {
         const schema = makeExecutableSchema({
             typeDefs,
-            resolvers,
-
+            resolvers
         });
+
+        if (keycloak) app.use('/graphql', keycloak._keycloak.middleware());
 
         const server = new ApolloServer({
             schema,
             context: ({ req }) => {
+                const authHeader = req.headers.authorization || '';
+                const user = req.kauth?.grant?.access_token?.content || null; // Extract user info
+
                 const context = {
-                    authHeader: req.headers.authorization || '',
+                    authHeader,
+                    user,
                     ...req
                 };
 
@@ -40,7 +45,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
             introspection: config.introspection
         });
         await server.start();
-        server.applyMiddleware({ app });
+        server.applyMiddleware({ app, path: '/graphql' });
 
         log.info(`🚀 Query endpoint ready at http://localhost:${port}${server.graphqlPath}`, { component });
         log.info(`🚀 Subscription endpoint ready at ws://localhost:${port}${server.graphqlPath}`, { component });
@@ -50,8 +55,8 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
     }
 }
 
-const graphqlServer = (app, httpServer, port, config) => {
-    startApolloServer(_typeDefs, _resolvers.getResolvers(), app, httpServer, port, config).catch(err => {
+const graphqlServer = (app, httpServer, port, config, keycloak) => {
+    startApolloServer(_typeDefs, _resolvers.getResolvers(), app, httpServer, port, config, keycloak).catch(err => {
         log.error(err, { component });
     });
 };

@@ -75,7 +75,7 @@ class AppServer {
         };
 
         const data = await rest.start(opt);
-        graphqlServer(rest._app, rest._server, options.port, options.graphql);
+        graphqlServer(rest._app, rest._server, options.port, options.graphql, options.keycloak.enabled ? keycloak : undefined);
         log.info(`🚀 ${data.message}`, { component });
     }
 }
