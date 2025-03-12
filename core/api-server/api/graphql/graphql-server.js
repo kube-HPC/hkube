@@ -24,9 +24,19 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                     throw new AuthenticationError('Unauthorized: Missing or invalid token');
                 }
 
+                const roles = user?.realm_access?.roles || []; // Extract roles from the token
+
+                const checkPermission = (requiredRoles) => {
+                    if (!keycloak) return true; // Bypass if auth is disabled
+                    if (!requiredRoles || requiredRoles.length === 0) return true; // No role restriction
+                    return requiredRoles.some(role => roles.includes(role)); // Check if user has a required role
+                };
+
                 const context = {
                     authHeader,
                     user,
+                    roles,
+                    checkPermission,
                     ...req
                 };
 

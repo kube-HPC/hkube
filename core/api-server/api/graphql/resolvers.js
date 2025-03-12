@@ -1,6 +1,6 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable default-case */
-const { pipelineStatuses } = require('@hkube/consts');
+const { pipelineStatuses, keycloakRoles } = require('@hkube/consts');
 const stateManager = require('../../lib/state/state-manager');
 const dbQueires = require('./queries/database-querier');
 const preferedQuerier = require('./queries/prefered-querier');
@@ -8,6 +8,8 @@ const dataSourceQuerier = require('./queries/dataSource-querier');
 const statisticsQuerier = require('./queries/statistics-querier');
 const errorLogsQuerier = require('./queries/error-logs-querier');
 const logsQueries = require('../task-logs/logs');
+const AuthenticationError = require('../../lib/errors/AuthenticationError');
+
 class GraphqlResolvers {
     async queryJobs(query) {
         const jobs = await dbQueires.getJobs(query || {});
@@ -122,96 +124,130 @@ class GraphqlResolvers {
         return ds;
     }
 
+    _withAuth(resolver, requiredRoles) {
+        return async (parent, args, context, info) => {
+            if (!context.checkPermission(requiredRoles)) {
+                throw new AuthenticationError('Forbidden: You do not have access to this resource');
+            }
+            return resolver(parent, args, context, info);
+        };
+    }
+
     _getQueryResolvers() {
         return {
-            jobsAggregated: async (parent, args, context) => {
+            jobsAggregated: this._withAuth(async (parent, args, context) => {
                 // eslint-disable-next-line no-param-reassign
-                args.pipelineStatus = args.pipelineStatus ? args.pipelineStatus : {
-                    $not: {
-                        $in: [pipelineStatuses.PENDING]
-                    }
-                };
+                args.pipelineStatus = args.pipelineStatus || { $not: { $in: [pipelineStatuses.PENDING] } };
                 context.args = { ...args };
                 const jobs = await this.queryJobs({ ...args });
                 return { jobs: jobs.jobs, cursor: jobs.cursor };
-            },
-            algorithms: () => ({ list: this.queryAlgorithms() }),
-            experiments: () => this.queryExperiments(),
-            algorithmsByName: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            algorithms: this._withAuth(() => (
+                { list: this.queryAlgorithms() }
+            ), [keycloakRoles.API_VIEW]),
+
+            experiments: this._withAuth(() => this.queryExperiments(), [keycloakRoles.API_VIEW]),
+
+            algorithmsByName: this._withAuth((parent, args) => {
                 return this.queryAlgorithmsByName(args.name);
-            },
-            algorithmsByVersion: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            algorithmsByVersion: this._withAuth((parent, args) => {
                 return this.queryAlgorithmsByVersion(args.name, args.version);
-            },
-            nodeStatistics: async () => {
+            }, [keycloakRoles.API_VIEW]),
+
+            nodeStatistics: this._withAuth(async () => {
                 const stats = await statisticsQuerier.getStatisticsResults();
                 return stats;
-            },
-            diskSpace: async () => {
+            }, [keycloakRoles.API_VIEW]),
+
+            diskSpace: this._withAuth(async () => {
                 const stats = await statisticsQuerier.getDiskUsage();
                 return stats;
-            },
-            jobsByExperimentName: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            jobsByExperimentName: this._withAuth((parent, args) => {
                 return this.quesearchJobs(args.experimentName);
-            },
-            pipelines: async () => {
+            }, [keycloakRoles.API_VIEW]),
+
+            pipelines: this._withAuth(async () => {
                 const list = await this.queryPipelines();
                 return { list };
-            },
+            }, [keycloakRoles.API_VIEW]),
 
-            algorithmBuilds: (parent, args) => {
+            algorithmBuilds: this._withAuth((parent, args) => {
                 return this.queryAlgorithmBuilds(args.algorithmName);
-            },
-            pipelineStats: () => {
+            }, [keycloakRoles.API_VIEW]),
+
+            pipelineStats: this._withAuth(() => {
                 return this.queryPipelinesStats();
-            },
-            job: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            job: this._withAuth((parent, args) => {
                 return this.queryJob(args.id);
-            },
-            dataSources: () => ({ list: this.getDataSources() }),
-            dataSource: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            dataSources: this._withAuth(() => (
+                { list: this.getDataSources() }
+            ), [keycloakRoles.API_VIEW]),
+
+            dataSource: this._withAuth((parent, args) => {
                 return this.getDataSource(args);
-            },
-            DataSourceVersions: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            DataSourceVersions: this._withAuth((parent, args) => {
                 return this.queryDataSourceVersions(args);
-            },
-            DataSourceSnapanshots: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            DataSourceSnapanshots: this._withAuth((parent, args) => {
                 return this.queryDataSourceSnapshots(args);
-            },
-            DataSourcePreviewQuery: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            DataSourcePreviewQuery: this._withAuth((parent, args) => {
                 return this.queryDataSourcePreviewQuery(args);
-            },
-            discovery: () => {
+            }, [keycloakRoles.API_VIEW]),
+
+            discovery: this._withAuth(() => {
                 return this.getDiscovery();
-            },
-            logsByQuery: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            logsByQuery: this._withAuth((parent, args) => {
                 return this.queryLogs({ ...args });
-            },
-            errorLogs: async () => {
+            }, [keycloakRoles.API_VIEW]),
+
+            errorLogs: this._withAuth(async () => {
                 const res = await errorLogsQuerier.getLogs();
                 return res;
-            },
-            preferedList: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            preferedList: this._withAuth((parent, args) => {
                 return preferedQuerier.getPreferedList(args);
-            },
-            managedList: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            managedList: this._withAuth((parent, args) => {
                 return preferedQuerier.getManagedList(args);
-            },
-            aggregatedTagsPrefered: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            aggregatedTagsPrefered: this._withAuth((parent, args) => {
                 return preferedQuerier.getAggregatedPreferedByTags(args);
-            },
-            aggregatedPipelinePrefered: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            aggregatedPipelinePrefered: this._withAuth((parent, args) => {
                 return preferedQuerier.getAggregatedPreferedByPipeline(args);
-            },
-            aggregatedTagsManaged: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            aggregatedTagsManaged: this._withAuth((parent, args) => {
                 return preferedQuerier.getAggregatedManagedByTags(args);
-            },
-            aggregatedPipelineManaged: (parent, args) => {
+            }, [keycloakRoles.API_VIEW]),
+
+            aggregatedPipelineManaged: this._withAuth((parent, args) => {
                 return preferedQuerier.getAggregatedManagedByPipeline(args);
-            },
-            queueCount: () => {
+            }, [keycloakRoles.API_VIEW]),
+
+            queueCount: this._withAuth(() => {
                 return preferedQuerier.getQueueCount();
-            },
+            }, [keycloakRoles.API_VIEW]),
         };
     }
 
