@@ -14,8 +14,6 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
             resolvers
         });
 
-        // if (keycloak) app.use('/graphql', keycloak._keycloak.middleware());
-
         const server = new ApolloServer({
             schema,
             context: ({ req }) => {
