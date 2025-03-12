@@ -4,7 +4,7 @@ const parse = require('@hkube/units-converter');
 const DatabaseQuerier = require('./database-querier');
 const INTERVAL = 10000;
 const METRICS = ['cpu', 'mem', 'gpu'];
-const component = 'NodesStatistics';
+const component = require('../../../lib/consts/componentNames').NODES_STATISTICS;
 
 class NodesStatistics {
     constructor() {

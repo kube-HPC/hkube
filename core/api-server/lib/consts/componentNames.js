@@ -16,7 +16,8 @@ const Components = {
     LOGS: 'logs',
     GRAPHQL_QUERIES: 'GraphqlQueries',
     KEYCLOAK_MIDDLEWARE: 'Keycloak-Middleware',
-    ETCD_WRAPPER: 'ETCD-Wrapper'
+    ETCD_WRAPPER: 'ETCD-Wrapper',
+    NODES_STATISTICS: 'NodesStatistics'
 };
 
 module.exports = Components;
