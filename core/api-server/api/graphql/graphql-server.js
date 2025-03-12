@@ -21,6 +21,10 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                 const authHeader = req.headers.authorization || '';
                 const user = req.kauth?.grant?.access_token?.content || null; // Extract user info
 
+                if (!user && keycloak) {
+                    throw new Error('Unauthorized: Missing or invalid token');
+                }
+
                 const context = {
                     authHeader,
                     user,
