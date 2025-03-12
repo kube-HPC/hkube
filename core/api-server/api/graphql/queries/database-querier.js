@@ -6,7 +6,7 @@ const pipelineStats = require('./get-pipeline-stats');
 let log;
 const ETCD_INTERVAL = 2000;
 const MAX_ITEMS = 100;
-const component = 'ETCD-Wrapper';
+const component = require('../../../lib/consts/componentNames').ETCD_WRAPPER;
 const allExperimentsName = 'show-all';
 
 class DatabaseQuerier extends Events {

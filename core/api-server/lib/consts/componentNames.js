@@ -15,7 +15,8 @@ const Components = {
     DB: 'DB',
     LOGS: 'logs',
     GRAPHQL_QUERIES: 'GraphqlQueries',
-    KEYCLOAK_MIDDLEWARE: 'Keycloak-Middleware'
+    KEYCLOAK_MIDDLEWARE: 'Keycloak-Middleware',
+    ETCD_WRAPPER: 'ETCD-Wrapper'
 };
 
 module.exports = Components;
