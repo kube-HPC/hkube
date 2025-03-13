@@ -147,7 +147,9 @@ class GraphqlResolvers {
                 { list: this.queryAlgorithms() }
             ), [keycloakRoles.API_VIEW]),
 
-            experiments: this._withAuth(() => this.queryExperiments(), [keycloakRoles.API_VIEW]),
+            experiments: this._withAuth(() => {
+                this.queryExperiments();
+            }, [keycloakRoles.API_VIEW]),
 
             algorithmsByName: this._withAuth((parent, args) => {
                 return this.queryAlgorithmsByName(args.name);
