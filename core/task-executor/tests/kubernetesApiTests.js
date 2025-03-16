@@ -48,7 +48,7 @@ describe('Kubernetes API', () => {
     });
     it('should create job', async () => {
         const res = await instance.createJob({ spec: { metadata: { name: 'mySpec' } } });
-        expect(res.res.body.metadata.name).to.eql('mySpec');
+        expect(res.body.metadata.name).to.eql('mySpec');
     });
     it('should get worker jobs', async () => {
         const res = await instance.getWorkerJobs();
