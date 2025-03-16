@@ -1,10 +1,12 @@
 const RestServer = require('@hkube/rest-server');
+const { keycloakRoles } = require('@hkube/consts');
 const fse = require('fs-extra');
 const multer = require('multer');
 const HttpStatus = require('http-status-codes');
 const pipelineStore = require('../../../../lib/service/pipelines');
 const algorithmStore = require('../../../../lib/service/algorithms');
 const upload = multer({ dest: 'uploads/zipped/' });
+const keycloak = require('../../../../lib/service/keycloak');
 
 const routes = (option) => {
     const router = RestServer.router();
@@ -13,25 +15,25 @@ const routes = (option) => {
     });
 
     // pipelines
-    router.get('/pipelines', async (req, res) => {
+    router.get('/pipelines', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { sort } = req.query;
         const response = await pipelineStore.getPipelines({ sort });
         res.json(response);
     });
-    router.get('/pipelines/:name', async (req, res) => {
+    router.get('/pipelines/:name', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { name } = req.params;
         const response = await pipelineStore.getPipeline({ name });
         res.json(response);
     });
 
-    router.get('/pipelines/graph/:name', async (req, res) => {
+    router.get('/pipelines/graph/:name', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { name } = req.params;
         req.body.name = name;
         const response = await pipelineStore.getGraphByKindOrName(req.body);
         res.json(response);
     });
 
-    router.post('/pipelines/graph', async (req, res) => {
+    router.post('/pipelines/graph', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const response = await pipelineStore.getGraphByKindOrName(req.body);
         res.json(response);
     });
@@ -41,7 +43,7 @@ const routes = (option) => {
         res.json(response);
     }); */
 
-    router.post('/pipelines', async (req, res) => {
+    router.post('/pipelines', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
         const allowOverwrite = req.query.overwrite;
         if (Array.isArray(req.body)) {
             const returnPipelineList = await Promise.all(
@@ -57,11 +59,11 @@ const routes = (option) => {
             res.status(HttpStatus.StatusCodes.CREATED).json(response);
         }
     });
-    router.put('/pipelines', async (req, res) => {
+    router.put('/pipelines', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
         const response = await pipelineStore.updatePipeline(req.body);
         res.json(response);
     });
-    router.delete('/pipelines/:name', async (req, res) => {
+    router.delete('/pipelines/:name', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {
         const { name } = req.params;
         const keepOldVersions = req?.query?.keepOldVersions !== 'false';
         const message = await pipelineStore.deletePipeline({ name, keepOldVersions });
@@ -70,22 +72,22 @@ const routes = (option) => {
     // pipelines
 
     // algorithms
-    router.get('/algorithms', async (req, res) => {
+    router.get('/algorithms', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { name, sort, limit } = req.query;
         const response = await algorithmStore.getAlgorithms({ name, sort, limit });
         res.json(response);
     });
-    router.get('/algorithmsFilter', async (req, res) => {
+    router.get('/algorithmsFilter', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { name, kind, algorithmImage, pending, cursor, page, sort, limit, fields } = req.query;
         const response = await algorithmStore.searchAlgorithm({ name, kind, algorithmImage, pending, cursor, page, sort, limit, fields });
         res.json(response);
     });
-    router.get('/algorithms/:name', async (req, res) => {
+    router.get('/algorithms/:name', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { name } = req.params;
         const response = await algorithmStore.getAlgorithm({ name });
         res.json(response);
     });
-    router.post('/algorithms', async (req, res) => {
+    router.post('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
         const allowOverwrite = req.query.overwrite;
         if (Array.isArray(req.body)) {
             const returnAlgoList = await Promise.all(
@@ -102,19 +104,19 @@ const routes = (option) => {
             res.status(HttpStatus.StatusCodes.CREATED).json(response);
         }
     });
-    router.put('/algorithms', async (req, res) => {
+    router.put('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
         const forceUpdate = req?.query?.forceStopAndApplyVersion === 'true';
         const response = await algorithmStore.updateAlgorithm(req.body, { forceUpdate });
         res.json(response);
     });
-    router.delete('/algorithms/:name', async (req, res) => {
+    router.delete('/algorithms/:name', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {
         const { name } = req.params;
         const { force } = req.query;
         const keepOldVersions = req?.query?.keepOldVersions !== 'false';
         const message = await algorithmStore.deleteAlgorithm({ name, force, keepOldVersions });
         res.json({ message });
     });
-    router.post('/algorithms/apply', upload.single('file'), async (req, res) => {
+    router.post('/algorithms/apply', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
         const { file } = req;
         try {
             const bodyPayload = (req.body.payload) || '{}';

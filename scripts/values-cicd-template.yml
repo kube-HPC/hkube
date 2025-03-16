@@ -1,5 +1,6 @@
 global:
   clusterName: cicd
+  hkube_url: https://cicd.hkube.org/hkube
   storage:
     binary: true
     fs:
@@ -17,6 +18,8 @@ global:
   ingress:
     use_regex: true
 env:
+  kibana_url: "https://cicd.hkube.org/system/kibana/"
+  grafana_url: "https://cicd.hkube.org/grafana"
   default_storage: "fs"
 build_secret:
   docker_registry: ""

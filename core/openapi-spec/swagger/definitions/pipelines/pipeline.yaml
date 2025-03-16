@@ -57,5 +57,8 @@ properties:
     description: edges define relation between nodes
     items: {}
     example: [{ source: A, target: B }]
+  version:
+    type: string
+    description: pipeline version
 required:
   - name

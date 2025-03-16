@@ -3,6 +3,7 @@ const fs = require('fs');
 const Logger = require('@hkube/logger');
 const { Tail } = require('tail');
 const algorunnerComponent = require('../consts').Components.ALGORUNNER;
+const workerComponent = require('../consts').Components.WORKER;
 const kubernetes = require('../helpers/kubernetes');
 
 const DELAY = 2;
@@ -10,6 +11,10 @@ const criLogRegex = /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/;
 let log;
 const ALGORITHM_CONTAINER = 'algorunner';
 const WORKER_CONTAINER = 'worker';
+
+// This class is responsible for proxying the Algorunner and sideCars logs.
+// By doing this, the logs from Algorunner and sideCars are captured and printed into the worker logs.
+// When the logs are printed, they are saved into the logs of the Worker container, and also to ES with the relevant component.
 
 class LoggingProxy {
     /**
@@ -32,7 +37,7 @@ class LoggingProxy {
     async init(options) {
         log = Logger.GetLogFromContainer();
         if (!options?.algorunnerLogging) {
-            log.warning('Logging proxy not started.', { component: algorunnerComponent });
+            log.warning('Logging proxy not started.', { component: workerComponent });
             return;
         }
         if (await this._initAlgorunnerLogFilePath(options)) return; // true if failed
@@ -64,12 +69,12 @@ class LoggingProxy {
             containerName: ALGORITHM_CONTAINER
         });
         if (disable || !logFileName || !baseLogsPath) {
-            log.warning('Algorunner logging proxy not started.', { component: algorunnerComponent });
+            log.warning('Algorunner logging proxy not started.', { component: workerComponent });
             return true;
         }
 
         this._algorunnerLogFilePath = path.join(baseLogsPath, logFileName);
-        log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component: algorunnerComponent });
+        log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component: workerComponent });
         return false;
     }
 
@@ -103,12 +108,11 @@ class LoggingProxy {
                 containerName: carName
             });
             if (disable || !logFileName || !baseLogsPath) {
-                // log.warning(`${carName} logging proxy not started.`, { carName });
-                log.warning(`${carName} logging proxy not started.`, { carName });
+                log.warning(`${carName} logging proxy not started.`, { component: workerComponent });
                 return true;
             }
             this._sideCarLogFilePath[index] = { path: path.join(baseLogsPath, logFileName), carName };
-            log.info(`reading ${carName} logs from host path ${this._sideCarLogFilePath[index].path}`, { carName });
+            log.info(`reading ${carName} logs from host path ${this._sideCarLogFilePath[index].path}`, { component: workerComponent });
             return false;
         });
         return failed;
@@ -238,7 +242,7 @@ class LoggingProxy {
     _startComponentWatch(logFilePath, component) {
         if (!logFilePath) return;
         if (!fs.existsSync(logFilePath)) {
-            log.throttle.warning(`Log file ${logFilePath} does not exist. Trying again it ${DELAY} seconds.`, { component });
+            log.throttle.warning(`Log file ${logFilePath} does not exist. Trying again it ${DELAY} seconds.`, { workerComponent });
             setTimeout(() => this._startComponentWatch(logFilePath, component), DELAY * 1000);
             return;
         }
@@ -252,7 +256,7 @@ class LoggingProxy {
             });
         }
         catch (error) {
-            log.throttle.warning(`Logging proxy error: ${error.message}. Trying again in ${DELAY} seconds.`, { component });
+            log.throttle.warning(`Logging proxy error: ${error.message}. Trying again in ${DELAY} seconds.`, { workerComponent });
             setTimeout(() => this._startComponentWatch(logFilePath, component), DELAY * 1000);
         }
     }
@@ -272,7 +276,7 @@ class LoggingProxy {
     _handleLogMessage(line, component) {
         const { logMessage, stream, internalLog } = this._getLogMessage(line);
         if (stream === 'stderr') {
-            log.info(`${logMessage}`, { component, ...internalLog });
+            log.error(`${logMessage}`, { component, ...internalLog });
         }
         else {
             log.info(`${logMessage}`, { component, ...internalLog });

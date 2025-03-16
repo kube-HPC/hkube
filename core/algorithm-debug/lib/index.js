@@ -15,6 +15,10 @@ const init = async () => {
     });
     this.prevMessageDone = null;
 };
+const restart = (options) => {
+    ws.send({ command: messages.incoming.initialize, data: options });
+    ws.send({ command: messages.incoming.start, data: options });
+};
 const start = async (options, hkubeApi) => {
     log.debug('In debug start');
     events.removeAllListeners();
@@ -95,6 +99,9 @@ const start = async (options, hkubeApi) => {
         });
     });
     const optionsCopy = { ...options, kind: pipelineKind.Batch, flatInput: null };
+    ws.on('connection', () => {
+        restart(optionsCopy);
+    });
     ws.send({ command: messages.incoming.initialize, data: optionsCopy });
     ws.send({ command: messages.incoming.start, data: optionsCopy });
     if (options.kind === pipelineKind.Stream && options.stateType !== stateType.Stateless) {
@@ -121,6 +128,7 @@ const start = async (options, hkubeApi) => {
 const stop = async () => {
     log.info('In debug stop');
     events.emit('stop');
+    ws.removeListener('connection', restart);
 };
 
 module.exports = {

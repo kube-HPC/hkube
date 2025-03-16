@@ -10,6 +10,7 @@ const component = require('../lib/consts/componentNames').REST_API;
 const rest = new RestServer();
 const graphqlServer = require('./graphql/graphql-server');
 const routeLogBlacklist = ['/metrics', '/swagger'];
+const keycloak = require('../lib/service/keycloak');
 
 class AppServer {
     async init(options) {
@@ -46,6 +47,11 @@ class AppServer {
         validator.init(swagger.components.schemas);
 
         const { beforeRoutesMiddlewares, afterRoutesMiddlewares } = metrics.getMiddleware();
+
+        // Keycloak interceptor
+        if (options.keycloak.enabled) {
+            beforeRoutesMiddlewares.push(keycloak._keycloak.middleware());
+        }
 
         const opt = {
             swagger,
