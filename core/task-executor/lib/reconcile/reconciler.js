@@ -797,6 +797,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, created, skipped, toStop, toResume, workerStats, normResources
     });
 
+    // LOGS ADDITION:
     const mapForPrint = [];
     new Set([
         ...Object.keys(workerTypes?.algorithms),
@@ -816,7 +817,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
         });
     });
-    log.info(`Print result = ${JSON.stringify(mapForPrint).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    log.info(`Print result = ${JSON.stringify(mapForPrint, null, 2)}`);
     return reconcileResult;
 };
 
