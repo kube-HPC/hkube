@@ -29,8 +29,8 @@ module.exports = {
                     }
                 
                     return {
-                        statusCode: 200,
-                        job: jobDetails
+                        statusCode: 201,
+                        jobDetails
                     };
                 },
                 getWorkerJobs: async () => { },

@@ -647,7 +647,7 @@ const _processPromises = async ({ exitWorkers, warmUpWorkers, coolDownWorkers, t
             });
         }
         else if (response.statusCode === 200 || response.statusCode === 201) {
-            created.push(response.job);
+            created.push(response.jobDetails);
         }
     });
     return created;
