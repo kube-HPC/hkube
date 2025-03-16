@@ -30,7 +30,7 @@ class KubernetesApi {
         log.info(`Creating job ${spec.metadata.name}${jobDetails.hotWorker ? ' [hot-worker]' : ''}`, { component });
         try {
             const res = await this._client.jobs.create({ spec });
-            return { res, jobDetails };
+            return { ...res, jobDetails };
         }
         catch (error) {
             log.throttle.error(`unable to create job ${spec.metadata.name}. error: ${error.message}`, { component }, error);
