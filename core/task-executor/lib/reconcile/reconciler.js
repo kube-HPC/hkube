@@ -816,7 +816,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     await _updateReconcileResult({
         reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, created, skipped, toStop, toResume, workerStats, normResources
     });
-    
+
     // LOGS ADDITION:
     const mapForPrint = [];
     new Set([
