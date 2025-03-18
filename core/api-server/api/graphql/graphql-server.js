@@ -58,9 +58,10 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                     async requestDidStart() {
                         return {
                             async willSendResponse({ response }) {
-                                response.http.headers.set('custom-header', 'hello');
                                 if (response.errors?.length > 0) {
-                                    response.http.status = 403;
+                                    const status = response.errors[0].nodes?.[0]?.extensions?.http?.status ?? 403;
+                                    response.http.status = status;
+                                    delete response.data;
                                 }
                             },
                         };
