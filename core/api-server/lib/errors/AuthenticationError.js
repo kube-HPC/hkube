@@ -1,8 +1,14 @@
-class AuthenticationError extends Error {
+const { GraphQLError } = require('graphql');
+
+class AuthenticationError extends GraphQLError {
     constructor(message = 'Unauthorized', status, details = null) {
-        super(message);
-        this.status = status;
-        this.details = details;
+        super(message, {
+            extensions: {
+                code: status === 401 ? 'UNAUTHORIZED' : 'FORBIDDEN',
+                status,
+                details
+            }
+        });
     }
 }
 
