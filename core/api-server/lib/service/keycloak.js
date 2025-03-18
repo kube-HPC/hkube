@@ -3,7 +3,7 @@ const axios = require('axios');
 const Logger = require('@hkube/logger');
 
 let log;
-const component = 'Keycloak-Middleware';
+const component = require('../consts/componentNames').KEYCLOAK_MIDDLEWARE;
 
 class KeycloakMiddleware {
     constructor() {
