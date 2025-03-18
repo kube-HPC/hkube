@@ -66,15 +66,31 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                 }
                 return err;
             },
-            plugins: [{
-                async serverWillStart() {
-                    return {
-                        async drainServer() {
-                            // subscriptionServer.close();
-                        }
-                    };
+            plugins: [
+                {
+                    async requestDidStart() { // runs when a new GraphQL request starts processing.
+                        return {
+                            async willSendResponse({ response, errors }) { // Lifecycle hook that executes just before Apollo Server sends the response.
+                                if (errors?.length > 0) {
+                                    const authError = errors.find(err => err.originalError instanceof AuthenticationError);
+                                    if (authError) {
+                                        response.http.status = authError.originalError.status;
+                                    }
+                                }
+                            }
+                        };
+                    }
+                },
+                {
+                    async serverWillStart() { // Runs when the Apollo Server starts
+                        return {
+                            async drainServer() { // a cleanup method that runs when Apollo Server shuts down
+                                // subscriptionServer.close();
+                            }
+                        };
+                    }
                 }
-            }],
+            ],
             introspection: config.introspection
         });
         await server.start();
