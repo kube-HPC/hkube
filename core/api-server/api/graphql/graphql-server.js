@@ -1,4 +1,5 @@
 const { ApolloServer } = require('apollo-server-express');
+const HttpStatus = require('http-status-codes');
 const { GraphQLError } = require('graphql');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const log = require('@hkube/logger').GetLogFromContanier();
@@ -24,7 +25,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                         extensions: {
                             code: 'UNAUTHORIZED',
                             http: {
-                                status: 403
+                                status: HttpStatus.StatusCodes.UNAUTHORIZED
                             }
                         },
                     });
@@ -58,7 +59,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                         return {
                             async willSendResponse({ response }) {
                                 if (response.errors?.length > 0) {
-                                    const status = response.errors[0].nodes?.[0]?.extensions?.http?.status ?? 403;
+                                    const status = response.errors[0].nodes?.[0]?.extensions?.http?.status ?? HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR;
                                     response.http.status = status;
                                     delete response.data;
                                     response.errors = [{

@@ -1,6 +1,7 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable default-case */
 const { GraphQLError } = require('graphql');
+const HttpStatus = require('http-status-codes');
 const { pipelineStatuses, keycloakRoles } = require('@hkube/consts');
 const stateManager = require('../../lib/state/state-manager');
 const dbQueires = require('./queries/database-querier');
@@ -131,7 +132,7 @@ class GraphqlResolvers {
                     extensions: {
                         code: 'FORBIDDEN',
                         http: {
-                            status: 401
+                            status: HttpStatus.StatusCodes.FORBIDDEN
                         }
                     },
                 });
