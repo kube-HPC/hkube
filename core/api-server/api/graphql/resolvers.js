@@ -129,7 +129,10 @@ class GraphqlResolvers {
             if (!context.checkPermission(requiredRoles)) {
                 throw new GraphQLError('Forbidden: You do not have access to this resource', {
                     extenstions: {
-                        code: 'FORBIDDEN'
+                        code: 'FORBIDDEN',
+                        http: {
+                            status: 401
+                        }
                     },
                 });
             }
