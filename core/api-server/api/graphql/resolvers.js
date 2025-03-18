@@ -1,5 +1,4 @@
 /* eslint-disable no-plusplus */
-/* eslint-disable default-case */
 const HttpStatus = require('http-status-codes');
 const { pipelineStatuses, keycloakRoles } = require('@hkube/consts');
 const { AuthenticationError } = require('../../lib/errors');
