@@ -12,7 +12,7 @@ const _resolvers = require('./resolvers');
  */
 const buildContext = (req, keycloak) => {
     const user = req.kauth?.grant?.access_token?.content || null;
-    const roles = user?.resource_access?.['api-server']?.roles || null;
+    const roles = user?.resource_access?.['api-server']?.roles || [];
 
     // if (!user && keycloak) {
     //     throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
@@ -20,7 +20,7 @@ const buildContext = (req, keycloak) => {
 
     const checkPermission = (requiredRoles) => {
         if (!keycloak) return true; // Bypass if auth is disabled
-        if (!roles) throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
+        if (!user) throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
         if (!requiredRoles || requiredRoles.length === 0) return true; // No role restriction
         return requiredRoles.some(role => roles.includes(role)); // Check if user has a required role
     };
