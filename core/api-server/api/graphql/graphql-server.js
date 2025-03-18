@@ -47,6 +47,25 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                 }
                 return context;
             },
+            formatError: (err) => {
+                if (err.originalError instanceof AuthenticationError) {
+                    const code = (() => {
+                        switch (err.originalError.status) {
+                        case HttpStatus.StatusCodes.FORBIDDEN: return 'FORBIDDEN';
+                        case HttpStatus.StatusCodes.UNAUTHORIZED: return 'UNAUTHORIZED';
+                        default: return 'INTERNAL_SERVER_ERROR';
+                        }
+                    })();
+                    return {
+                        message: err.message,
+                        extensions: {
+                            code,
+                            status: err.originalError.status
+                        }
+                    };
+                }
+                return err;
+            },
             plugins: [{
                 async serverWillStart() {
                     return {
