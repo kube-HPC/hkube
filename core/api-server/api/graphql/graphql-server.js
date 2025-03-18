@@ -1,10 +1,8 @@
 const { ApolloServer } = require('apollo-server-express');
+const { GraphQLError } = require('graphql');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const log = require('@hkube/logger').GetLogFromContanier();
-const HttpStatus = require('http-status-codes');
 const component = require('../../lib/consts/componentNames').GRAPHQL_SERVER;
-const AuthenticationError = require('../../lib/errors/AuthenticationError');
-
 const _typeDefs = require('./graphql-schema');
 const _resolvers = require('./resolvers');
 
@@ -22,7 +20,12 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                 const user = req.kauth?.grant?.access_token?.content || null; // Extract user info
 
                 if (!user && keycloak) {
-                    throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
+                    throw new GraphQLError('Unauthorized: Missing or invalid token', {
+                        extenstions: {
+                            code: 'UNAUTHORIZED'
+                        },
+                    });
+                    // throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
                 }
 
                 const roles = user?.resource_access?.['api-server']?.roles || []; // Extract roles from the token
@@ -46,13 +49,6 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                     return { ...req.context, ...context };
                 }
                 return context;
-            },
-            formatError: (err) => {
-                const { message = err.message, code = HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR } = err.originalError;
-                return {
-                    message,
-                    code
-                };
             },
             plugins: [
                 {
