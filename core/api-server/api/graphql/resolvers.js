@@ -128,7 +128,7 @@ class GraphqlResolvers {
         return async (parent, args, context, info) => {
             if (!context.checkPermission(requiredRoles)) {
                 throw new GraphQLError('Forbidden: You do not have access to this resource', {
-                    extenstions: {
+                    extensions: {
                         code: 'FORBIDDEN',
                         http: {
                             status: 401

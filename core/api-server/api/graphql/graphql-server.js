@@ -21,7 +21,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
 
                 if (!user && keycloak) {
                     throw new GraphQLError('Unauthorized: Missing or invalid token', {
-                        extenstions: {
+                        extensions: {
                             code: 'UNAUTHORIZED',
                             http: {
                                 status: 403
@@ -58,9 +58,9 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                     async requestDidStart() {
                         return {
                             async willSendResponse({ response }) {
-                                // response.http.headers.set('custom-header', 'hello');
-                                if (response.body?.kind === 'single' && response.body.singleResult.errors?.[0]?.extensions?.code === 'TEAPOT') {
-                                    response.http.status = 418;
+                                response.http.headers.set('custom-header', 'hello');
+                                if (response.errors?.length > 0) {
+                                    response.http.status = 403;
                                 }
                             },
                         };
