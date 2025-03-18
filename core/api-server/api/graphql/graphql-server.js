@@ -48,7 +48,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                 return context;
             },
             formatError: (err) => {
-                const { message, extensions } = err;
+                const { message, extensions } = err.nodes[0];
                 return {
                     message,
                     extensions
@@ -56,17 +56,13 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
             },
             plugins: [
                 {
-                    async requestDidStart() { // runs when a new GraphQL request starts processing.
-                        return {
-                            async willSendResponse({ response, errors }) { // Lifecycle hook that executes just before Apollo Server sends the response.
-                                if (errors?.length > 0) {
-                                    const authError = errors.find(err => err.originalError instanceof AuthenticationError);
-                                    if (authError) {
-                                        response.http.status = authError.originalError.status;
-                                    }
-                                }
+                    async willSendResponse({ response, errors }) { // Lifecycle hook that executes just before Apollo Server sends the response.
+                        if (errors?.length > 0) {
+                            const authError = errors.find(err => err.originalError instanceof AuthenticationError);
+                            if (authError) {
+                                response.http.status = authError.originalError.status;
                             }
-                        };
+                        }
                     }
                 },
                 {
