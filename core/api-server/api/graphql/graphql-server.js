@@ -28,7 +28,6 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                             }
                         },
                     });
-                    // throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
                 }
 
                 const roles = user?.resource_access?.['api-server']?.roles || []; // Extract roles from the token
@@ -62,6 +61,11 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                                     const status = response.errors[0].nodes?.[0]?.extensions?.http?.status ?? 403;
                                     response.http.status = status;
                                     delete response.data;
+                                    response.errors = [{
+                                        message: response.errors[0].message,
+                                        code: response.errors[0].extensions.code,
+                                        status
+                                    }];
                                 }
                             },
                         };
