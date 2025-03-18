@@ -2,7 +2,7 @@ const { GraphQLError } = require('graphql');
 const HttpStatus = require('http-status-codes');
 
 class AuthenticationError extends GraphQLError {
-    constructor(message = 'Unauthorized', status = 403) {
+    constructor(message = 'Unauthorized', status = HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR) {
         const code = (() => {
             switch (status) {
             case HttpStatus.StatusCodes.FORBIDDEN: return 'FORBIDDEN';

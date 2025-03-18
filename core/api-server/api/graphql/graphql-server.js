@@ -45,8 +45,8 @@ const getApolloPlugins = () => [
                         const status = response.errors[0].nodes?.[0]?.extensions.http.status;
                         response.http.status = status;
                         response.errors = [{
-                            message: response.errors[0].message,
-                            code: response.errors[0].extensions.code,
+                            message: response.errors[0].message || 'An unexpected error occurred',
+                            code: response.errors[0].nodes?.[0]?.extensions?.code || HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR,
                             status
                         }];
                         delete response.data;
