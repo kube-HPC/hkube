@@ -76,10 +76,11 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
             schema,
             context: ({ req }) => buildContext(req, keycloak),
             formatError: (error) => {
+                const { extensions } = error.nodes[0];
                 return {
                     message: error.message,
-                    code: error.extensions?.code || 'INTERNAL_SERVER_ERROR',
-                    status: error.extensions?.status || 500
+                    code: extensions.error,
+                    status: extensions.http.status
                 };
             },
             plugins: getApolloPlugins(),
