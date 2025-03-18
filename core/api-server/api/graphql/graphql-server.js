@@ -11,21 +11,21 @@ const _resolvers = require('./resolvers');
  * Builds the GraphQL context, including authentication and role checking.
  */
 const buildContext = (req, keycloak) => {
-    const authHeader = req.headers.authorization || '';
     const user = req.kauth?.grant?.access_token?.content || null;
+    const roles = user?.resource_access?.['api-server']?.roles || null;
 
-    if (!user && keycloak) {
-        throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
-    }
+    // if (!user && keycloak) {
+    //     throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
+    // }
 
-    const roles = user?.resource_access?.['api-server']?.roles || [];
     const checkPermission = (requiredRoles) => {
         if (!keycloak) return true; // Bypass if auth is disabled
+        if (!roles) throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
         if (!requiredRoles || requiredRoles.length === 0) return true; // No role restriction
         return requiredRoles.some(role => roles.includes(role)); // Check if user has a required role
     };
 
-    const context = { authHeader, user, roles, checkPermission, ...req };
+    const context = { roles, checkPermission, ...req };
     // If there's a pre-existing context - merge
     if (req.context) {
         return { ...req.context, ...context };
@@ -79,7 +79,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                 const { extensions } = error.nodes[0];
                 return {
                     message: error.message,
-                    code: extensions.error,
+                    code: extensions.code,
                     status: extensions.http.status
                 };
             },
