@@ -109,7 +109,7 @@ const _createInvalidVolumeWarning = ({ jobDetails, missingSideCarVolumes, code }
 };
 
 const _createJobCreationFailedWarning = ({ jobDetails, code, message: givenMessage, spec }) => {
-    const { algortihnName, algorithmVersion } = jobDetails;
+    const { algorithmName, algorithmVersion } = jobDetails;
 
     const _formatErrorMessage = (message) => {
         try {
@@ -150,7 +150,7 @@ const _createJobCreationFailedWarning = ({ jobDetails, code, message: givenMessa
     const message = _formatErrorMessage(givenMessage);
 
     return _createWarning({
-        algortihnName,
+        algorithmName,
         algorithmVersion,
         predictedStatus: 'failedScheduling',
         message,
