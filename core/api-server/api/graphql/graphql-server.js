@@ -48,23 +48,13 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                 return context;
             },
             formatError: (err) => {
-                const { message, extensions } = err.nodes[0];
+                const { message = err.message, code = HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR } = err.originalError;
                 return {
                     message,
-                    extensions
+                    code
                 };
             },
             plugins: [
-                {
-                    async willSendResponse({ response, errors }) { // Lifecycle hook that executes just before Apollo Server sends the response.
-                        if (errors?.length > 0) {
-                            const authError = errors.find(err => err.originalError instanceof AuthenticationError);
-                            if (authError) {
-                                response.http.status = authError.originalError.status;
-                            }
-                        }
-                    }
-                },
                 {
                     async serverWillStart() { // Runs when the Apollo Server starts
                         return {
