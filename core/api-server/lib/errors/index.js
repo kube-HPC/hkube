@@ -3,7 +3,7 @@ const ResourceNotFoundError = require('./ResourceNotFoundError');
 const ResourceExistsError = require('./ResourceExistsError');
 const MethodNotAllowed = require('./MethodNotAllowed');
 const ActionNotAllowed = require('./ActionNotAllowed');
-const AuthenticationError = require('./ActionNotAllowed');
+const AuthenticationError = require('./AuthenticationError');
 
 module.exports = {
     InvalidDataError,
