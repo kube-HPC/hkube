@@ -1,8 +1,8 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable default-case */
-const { GraphQLError } = require('graphql');
 const HttpStatus = require('http-status-codes');
 const { pipelineStatuses, keycloakRoles } = require('@hkube/consts');
+const { AuthenticationError } = require('../../lib/errors');
 const stateManager = require('../../lib/state/state-manager');
 const dbQueires = require('./queries/database-querier');
 const preferedQuerier = require('./queries/prefered-querier');
@@ -128,14 +128,7 @@ class GraphqlResolvers {
     _withAuth(resolver, requiredRoles) {
         return async (parent, args, context, info) => {
             if (!context.checkPermission(requiredRoles)) {
-                throw new GraphQLError('Forbidden: You do not have access to this resource', {
-                    extensions: {
-                        code: 'FORBIDDEN',
-                        http: {
-                            status: HttpStatus.StatusCodes.FORBIDDEN
-                        }
-                    },
-                });
+                throw new AuthenticationError('Forbidden: You do not have access to this resource', HttpStatus.StatusCodes.FORBIDDEN);
             }
             return resolver(parent, args, context, info);
         };

@@ -1,8 +1,8 @@
 const { ApolloServer } = require('apollo-server-express');
 const HttpStatus = require('http-status-codes');
-const { GraphQLError } = require('graphql');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const log = require('@hkube/logger').GetLogFromContanier();
+const { AuthenticationError } = require('../../lib/errors');
 const component = require('../../lib/consts/componentNames').GRAPHQL_SERVER;
 const _typeDefs = require('./graphql-schema');
 const _resolvers = require('./resolvers');
@@ -21,14 +21,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                 const user = req.kauth?.grant?.access_token?.content || null; // Extract user info
 
                 if (!user && keycloak) {
-                    throw new GraphQLError('Unauthorized: Missing or invalid token', {
-                        extensions: {
-                            code: 'UNAUTHORIZED',
-                            http: {
-                                status: HttpStatus.StatusCodes.UNAUTHORIZED
-                            }
-                        },
-                    });
+                    throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
                 }
 
                 const roles = user?.resource_access?.['api-server']?.roles || []; // Extract roles from the token
@@ -59,7 +52,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                         return {
                             async willSendResponse({ response }) {
                                 if (response.errors?.length > 0) {
-                                    const status = response.errors[0].nodes?.[0]?.extensions?.http?.status ?? HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR;
+                                    const status = response.errors[0].nodes?.[0]?.extensions.http.status;
                                     response.http.status = status;
                                     delete response.data;
                                     response.errors = [{
