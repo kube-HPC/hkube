@@ -1,9 +1,7 @@
-const HttpStatus = require('http-status-codes');
-
 class AuthenticationError extends Error {
-    constructor(message = 'Unauthorized', details = null) {
+    constructor(message = 'Unauthorized', status, details = null) {
         super(message);
-        this.status = HttpStatus.StatusCodes.UNAUTHORIZED;
+        this.status = status;
         this.details = details;
     }
 }

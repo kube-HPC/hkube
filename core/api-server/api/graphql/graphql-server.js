@@ -1,6 +1,7 @@
 const { ApolloServer } = require('apollo-server-express');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const log = require('@hkube/logger').GetLogFromContanier();
+const HttpStatus = require('http-status-codes');
 const component = require('../../lib/consts/componentNames').GRAPHQL_SERVER;
 const AuthenticationError = require('../../lib/errors/AuthenticationError');
 
@@ -21,7 +22,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
                 const user = req.kauth?.grant?.access_token?.content || null; // Extract user info
 
                 if (!user && keycloak) {
-                    throw new AuthenticationError('Unauthorized: Missing or invalid token');
+                    throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
                 }
 
                 const roles = user?.resource_access?.['api-server']?.roles || []; // Extract roles from the token
