@@ -76,11 +76,11 @@ class KeycloakMiddleware {
                 const userName = req.kauth.grant.access_token.content.preferred_username;
                 return userName;
             }
-            return null;
+            return this._options.defaultUserAuditingName;
         }
         catch (error) {
             log.error(`Failed to retrieve user info: ${error.message}`, { component });
-            throw error;
+            return this._options.defaultUserAuditingName;
         }
     }
 }
