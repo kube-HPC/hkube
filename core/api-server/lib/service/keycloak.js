@@ -66,20 +66,17 @@ class KeycloakMiddleware {
     }
 
     // Use this for auditing purposes
-    async getUserInfo(req) { // introspect()?
+    getPreferredUsername(req) {
         if (!this._keycloak) {
-            log.error('Keycloak middleware is not initialized.', { component });
-            throw new Error('Keycloak middleware is not initialized.');
-        }
-        const token = this._keycloak.getToken(req);
-        if (!token) {
-            log.warn('No token found in request.', { component });
-            return null;
+            // log.error('Keycloak middleware is not initialized.', { component });
+            return this._options.defaultUserAuditingName;
         }
         try {
-            const userInfo = token.content;
-            log.info(`Retrieved user info: ${JSON.stringify(userInfo)}`, { component });
-            return userInfo;
+            if (req?.kauth) {
+                const userName = req.kauth.grant.access_token.content.preferred_username;
+                return userName;
+            }
+            return null;
         }
         catch (error) {
             log.error(`Failed to retrieve user info: ${error.message}`, { component });

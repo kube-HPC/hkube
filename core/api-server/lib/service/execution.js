@@ -3,7 +3,7 @@ const cloneDeep = require('lodash.clonedeep');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 const { uid } = require('@hkube/uid');
-const { pipelineTypes, pipelineStatuses, nodeKind } = require('@hkube/consts');
+const { pipelineTypes, pipelineStatuses, nodeKind, executeActions } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const storageManager = require('@hkube/storage-manager');
 const cachingService = require('./caching');
@@ -15,19 +15,20 @@ const gatewayService = require('./gateway');
 const debugService = require('./debug');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 const PausedState = [pipelineStatuses.PAUSED];
+const auditing = require('../utils/auditing');
 
 class ExecutionService {
-    async runRaw(options) {
+    async runRaw(options, userName) {
         validator.executions.validateRunRawPipeline(options);
-        return this._runPipeline({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.RAW] });
+        return this._runPipeline({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.RAW], userName });
     }
 
-    async runStored(options) {
+    async runStored(options, userName) {
         validator.executions.validateRunStoredPipeline(options);
-        return this._runStored({ pipeline: options, parentSpan: options.spanId, externalId: options.externalId, types: [pipelineTypes.STORED] });
+        return this._runStored({ pipeline: options, parentSpan: options.spanId, externalId: options.externalId, types: [pipelineTypes.STORED], userName });
     }
 
-    async runCaching(options) {
+    async runCaching(options, userName) {
         validator.executions.validateCaching(options);
         const pipeline = await cachingService.exec({ jobId: options.jobId, nodeName: options.nodeName });
         let { rootJobId } = pipeline;
@@ -47,10 +48,10 @@ class ExecutionService {
         }
         const types = [...pipeline.types, pipelineTypes.NODE];
         restPipeline.name += `-${options.nodeName}`;
-        return this._runPipeline({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types, debugNode });
+        return this._runPipeline({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types, debugNode, userName });
     }
 
-    async rerun(options) {
+    async rerun(options, userName) {
         validator.executions.validateRerun(options);
         const { jobId } = options;
         const job = await stateManager.getJob({ jobId, fields: { types: 'pipeline.types', userPipeline: true } });
@@ -58,13 +59,14 @@ class ExecutionService {
             throw new ResourceNotFoundError('jobId', jobId);
         }
         const types = [...job.types, pipelineTypes.RERUN];
-        return this._runPipeline({ pipeline: job.userPipeline, types, options: { validateNodes: false } });
+        return this._runPipeline({ pipeline: job.userPipeline, types, options: { validateNodes: false }, userName });
     }
 
-    async runAlgorithm(options) {
+    async runAlgorithm(options, userName) {
         validator.executions.validateExecAlgorithmRequest(options);
         const { name, input, debug } = options;
         const pipeline = {
+
             name,
             nodes: [{
                 nodeName: name,
@@ -74,11 +76,11 @@ class ExecutionService {
             }]
         };
         const types = [pipelineTypes.ALGORITHM];
-        return this._runPipeline({ pipeline, types });
+        return this._runPipeline({ pipeline, types, userName });
     }
 
     async _runStored(options) {
-        const { pipeline, jobId, rootJobId, parentSpan, types, mergeFlowInput, externalId } = options;
+        const { pipeline, jobId, rootJobId, parentSpan, types, mergeFlowInput, externalId, userName } = options;
         const storedPipeline = await stateManager.getPipeline({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
@@ -90,11 +92,11 @@ class ExecutionService {
             }
             return undefined;
         });
-        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, parentSpan, types, externalId });
+        return this._runPipeline({ pipeline: newPipeline, jobId, rootJobId, parentSpan, types, externalId, userName });
     }
 
     async _runPipeline(payload) {
-        const { pipeline, rootJobId, options, parentSpan, types, externalId } = payload;
+        const { pipeline, rootJobId, options, parentSpan, types, externalId, userName } = payload;
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
         const { validateNodes } = options || {};
         let extendedPipeline = restPipeline;
@@ -133,8 +135,9 @@ class ExecutionService {
             const lastRunResult = await this._getLastPipeline(extendedPipeline);
             const pipelineObject = { ...extendedPipeline, maxExceeded, rootJobId, flowInputMetadata: pipeFlowInputMetadata, startTime: Date.now(), lastRunResult, types: pipeTypes };
             const statusObject = { timestamp: Date.now(), pipeline: extendedPipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name };
+            const auditObject = auditing.generateAuditEntry(userName, executeActions.RUN, statusObject.timestamp); // Prevent mismatched timestamps
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
-            await stateManager.createJob({ jobId, userPipeline, externalId, pipeline: pipelineObject, status: statusObject, completion: false });
+            await stateManager.createJob({ jobId, userPipeline, externalId, pipeline: pipelineObject, status: statusObject, completion: false, auditTrail: [auditObject] });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return { jobId, gateways: extendedPipeline.streaming?.gateways };
@@ -283,7 +286,8 @@ class ExecutionService {
     }
 
     async stopJob(options) {
-        let { jobId, reason } = options;
+        // eslint-disable-next-line prefer-const
+        let { jobId, reason, userName } = options;
         reason = reason || 'stopped due to request';
         let pipeline;
         let status;
@@ -304,7 +308,8 @@ class ExecutionService {
             ({ jobId } = options.job || {});
             ({ status, pipeline } = options.job || {});
         }
-        const statusObject = { jobId, status: pipelineStatuses.STOPPED, reason, level: levels.INFO.name };
+        const auditObject = auditing.generateAuditEntry(userName, executeActions.STOP);
+        const statusObject = { jobId, status: pipelineStatuses.STOPPED, reason, level: levels.INFO.name, auditEntry: auditObject };
         const resultObject = { jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status: pipelineStatuses.STOPPED };
         await stateManager.updateJobStatus(statusObject);
         await stateManager.updateJobResult(resultObject);
@@ -312,7 +317,7 @@ class ExecutionService {
 
     async pauseJob(options) {
         validator.jobs.validateJobID(options);
-        const { jobId } = options;
+        const { jobId, userName } = options;
         const job = await stateManager.getJob({ jobId, fields: { status: true, result: true } });
         const { status, result } = job || {};
         if (!status) {
@@ -322,13 +327,14 @@ class ExecutionService {
         if (result) {
             throw new InvalidDataError(`unable to pause pipeline ${status.pipeline} because its in ${status.status} status`);
         }
-        const statusObject = { jobId, status: pipelineStatuses.PAUSED, level: levels.INFO.name };
+        const auditObject = auditing.generateAuditEntry(userName, executeActions.PAUSE);
+        const statusObject = { jobId, status: pipelineStatuses.PAUSED, level: levels.INFO.name, auditEntry: auditObject };
         await stateManager.updateJobStatus(statusObject);
     }
 
     async resumeJob(options) {
         validator.jobs.validateJobID(options);
-        const { jobId } = options;
+        const { jobId, userName } = options;
         const jobStatus = await stateManager.getStatus({ jobId });
         if (!jobStatus) {
             throw new ResourceNotFoundError('jobId', jobId);
@@ -336,7 +342,8 @@ class ExecutionService {
         if (!this.isPausedState(jobStatus.status)) {
             throw new InvalidDataError(`unable to resume pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
-        const statusObject = { jobId, status: pipelineStatuses.RESUMED, level: levels.INFO.name };
+        const auditObject = auditing.generateAuditEntry(userName, executeActions.RESUME);
+        const statusObject = { jobId, status: pipelineStatuses.RESUMED, level: levels.INFO.name, auditEntry: auditObject };
         await stateManager.updateJobStatus(statusObject);
         await producer.createJob({ jobId });
     }
