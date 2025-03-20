@@ -87,7 +87,9 @@ const routes = (option) => {
         const response = await algorithmStore.getAlgorithm({ name });
         res.json(response);
     });
-    router.post('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
+    router.post('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
+        // eslint-disable-next-line no-unused-vars
+        const { file } = req;
         const allowOverwrite = req.query.overwrite;
         if (Array.isArray(req.body)) {
             const returnAlgoList = await Promise.all(
@@ -104,7 +106,9 @@ const routes = (option) => {
             res.status(HttpStatus.StatusCodes.CREATED).json(response);
         }
     });
-    router.put('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
+    router.put('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
+        // eslint-disable-next-line no-unused-vars
+        const { file } = req;
         const forceUpdate = req?.query?.forceStopAndApplyVersion === 'true';
         const response = await algorithmStore.updateAlgorithm(req.body, { forceUpdate });
         res.json(response);
