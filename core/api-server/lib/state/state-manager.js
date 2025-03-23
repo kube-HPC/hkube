@@ -389,6 +389,10 @@ class StateManager extends EventEmitter {
         return this._db.jobs.fetchStatus(status);
     }
 
+    async geAuditTrail({ jobId }) {
+        return this._db.jobs.fetchAuditTrail({ jobId });
+    }
+
     async getJobPipeline({ jobId }) {
         return this._db.jobs.fetchPipeline({ jobId });
     }

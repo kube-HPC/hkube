@@ -122,6 +122,11 @@ const routes = (options) => {
         const response = await Execution.getJobStatus({ jobId });
         res.json(response);
     });
+    router.all('/auditTrail/:jobId?', methods(['GET']), keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const { jobId } = req.params;
+        const response = await Execution.getAuditTrail({ jobId });
+        res.json(response);
+    });
     router.all('/results/:jobId?', methods(['GET']), keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { jobId } = req.params;
         const response = await Execution.getJobResult({ jobId });

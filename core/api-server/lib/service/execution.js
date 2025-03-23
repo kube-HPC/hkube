@@ -209,6 +209,15 @@ class ExecutionService {
         return status;
     }
 
+    async getAuditTrail(options) {
+        validator.jobs.validateJobID(options);
+        const auditTrail = await stateManager.geAuditTrail({ jobId: options.jobId });
+        if (!auditTrail) {
+            throw new ResourceNotFoundError('auditTrail', options.jobId);
+        }
+        return auditTrail;
+    }
+
     async getPipeline(options) {
         validator.jobs.validateJobID(options);
         const { jobId } = options;
