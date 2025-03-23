@@ -55,7 +55,7 @@ describe('Store/Algorithms', () => {
             const response = await request({ uri: `${restPath}/test-alg`, method: 'GET' });
             const { version, created, modified, reservedMemory, ...algorithm } = response.body;
             expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
-        }).timeout(5000000);
+        });
     });
 
     describe('/store/algorithms:name DELETE', () => {
@@ -169,7 +169,7 @@ describe('Store/Algorithms', () => {
                 }) }
             };
             const resAlg = await request(algorithm);
-            await versionsService.createVersion(resAlg.body);
+            await versionsService.createVersion(resAlg.body.algorithm);
             await buildsService.startBuild({ buildId: `${algorithmName}-1`, algorithmName });
             await buildsService.startBuild({ buildId: `${algorithmName}-2`, algorithmName });
 
@@ -393,7 +393,7 @@ describe('Store/Algorithms', () => {
                 }) }
             };
             const response = await request(options);
-            const { version, created, modified, reservedMemory, ...algorithm } = response.body;
+            const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
             expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(options.body.payload) });
         });
@@ -410,7 +410,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { version, created, modified, reservedMemory, ...algorithm } = response.body;
+            const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
             expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
         });
@@ -428,7 +428,7 @@ describe('Store/Algorithms', () => {
             }));
             const result = await Promise.all(algorithms.map((a) => request({ uri: restPath, body: { payload: JSON.stringify(a) }})));
             result.forEach((r, i) => {
-                const { version, created, modified, reservedMemory, ...algorithm } = r.body;
+                const { version, created, modified, reservedMemory, ...algorithm } = r.body.algorithm;
                 expect(algorithm).to.eql(algorithms[i]);
             });
             const options = {
@@ -452,7 +452,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { version, created, modified, reservedMemory, ...algorithm } = response.body;
+            const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
             expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
         });
@@ -473,7 +473,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { version, created, modified, reservedMemory, ...algorithm } = response.body;
+            const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
             expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql(merge({}, defaultProps, JSON.parse(body.payload)));
         });
@@ -753,7 +753,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-            expect(response.body.workerCustomResources.limits.memory).to.to.equal('400Mi');
+            expect(response.body.algorithm.workerCustomResources.limits.memory).to.to.equal('400Mi');
         });
     });
 
@@ -2476,7 +2476,7 @@ describe('Store/Algorithms', () => {
                 body: { payload: JSON.stringify({ ...algo }) }
             };
             const response = await request(options);
-            const { reservedMemory, ...res } = response.body;
+            const { reservedMemory, ...res } = response.body.algorithm;
             expect(res).to.eql(algo);
         });
 
@@ -2501,8 +2501,8 @@ describe('Store/Algorithms', () => {
                 body: { payload: JSON.stringify({ ...algo, algorithmImage: 'new-image' }) }
             };
             const response = await request(options);
-            expect(response.body.version).to.be.exist;
-            expect(response.body.algorithmImage).to.not.eql(algo.algorithmImage);
+            expect(response.body.algorithm.version).to.be.exist;
+            expect(response.body.algorithm.algorithmImage).to.not.eql(algo.algorithmImage);
         });
     });
 });

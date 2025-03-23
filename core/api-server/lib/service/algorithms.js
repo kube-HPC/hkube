@@ -129,8 +129,8 @@ class AlgorithmStore {
             };
         }
         try {
-            const { algorithm } = await this.applyAlgorithm({ payload, file });
-            return algorithm;
+            const applyResponse = await this.applyAlgorithm({ payload, file });
+            return applyResponse;
         }
         catch (error) {
             return {
@@ -149,8 +149,8 @@ class AlgorithmStore {
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', payload.name);
         }
-        const { algorithm } = await this.applyAlgorithm({ payload, options, file });
-        return algorithm;
+        const applyResponse = await this.applyAlgorithm({ payload, options, file });
+        return applyResponse;
     }
 
     async deleteAlgorithm(options) {
