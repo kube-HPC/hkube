@@ -25,6 +25,10 @@ algorithmVersionTag:
   $ref: ./algorithms/algorithmVersionTag.yaml
 algorithmApplyOptions:
   $ref: ./algorithms/algorithmApplyOptions.yaml
+algorithmUpdateOptions:
+  $ref: ./algorithms/algorithmUpdateOptions.yaml
+algorithmInsertOptions:
+  $ref: ./algorithms/algorithmInsertOptions.yaml
 algorithmApplyResponse:
   $ref: ./algorithms/algorithmApplyResponse.yaml
 algorithmBuild:

@@ -1,0 +1,10 @@
+type: object
+properties:
+  failOnError:
+    type: boolean
+    description: should fail if an error occurs
+    default: false
+  allowOverwrite:
+    type: boolean
+    description: should overwrite existing algorithm, if any
+    default: false

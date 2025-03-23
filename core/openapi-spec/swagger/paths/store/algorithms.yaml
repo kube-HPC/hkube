@@ -36,9 +36,18 @@ post:
         type: string
   requestBody:
     content:
-      application/json:
+      multipart/form-data:
         schema:
-          $ref: "#/components/schemas/algorithm"
+          type: object
+          properties:
+            payload:
+              $ref: "#/components/schemas/algorithm"
+            options:
+              $ref: "#/components/schemas/algorithmInsertOptions"
+            file:
+              type: string
+              format: binary
+              description: "the algorithm source code (file types: zip, tar.gz). Works only when inserting one algorithm."
     description: algorithm descriptor to be added to the store
     required: true
   responses:
@@ -80,9 +89,18 @@ put:
       description: "Flag to force stop and apply the updated algorithm version for the next run."
   requestBody:
     content:
-      application/json:
+      multipart/form-data:
         schema:
-          $ref: "#/components/schemas/algorithm"
+          type: object
+          properties:
+            payload:
+              $ref: "#/components/schemas/algorithm"
+            options:
+              $ref: "#/components/schemas/algorithmUpdateOptions"
+            file:
+              type: string
+              format: binary
+              description: "the algorithm source code (file types: zip, tar.gz)."
     description: algorithm descriptor to be added to the store
     required: true
   responses:
