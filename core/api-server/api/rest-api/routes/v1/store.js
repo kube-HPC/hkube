@@ -96,7 +96,6 @@ const routes = (option) => {
         res.json(response);
     });
     router.post('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
-        // new
         const { file, body } = req;
         try {
             if (Array.isArray(body.payload)) {
@@ -122,25 +121,8 @@ const routes = (option) => {
                 await fse.remove(file.path);
             }
         }
-        // old
-        // const allowOverwrite = req.query.overwrite;
-        // if (Array.isArray(body)) {
-        //     const returnAlgoList = await Promise.all(
-        //         body.map(async (algorithmData) => {
-        //             const response = await algorithmStore.insertAlgorithm(algorithmData, false, allowOverwrite);
-        //             return response;
-        //         })
-        //     );
-        //     res.status(HttpStatus.StatusCodes.CREATED).json(returnAlgoList);
-        // }
-        // else {
-        //     // If req.body is not an array, process it as a single algorithm
-        //     const response = await algorithmStore.insertAlgorithm(body, true, allowOverwrite);
-        //     res.status(HttpStatus.StatusCodes.CREATED).json(response);
-        // }
     });
     router.put('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
-        /// new
         const { file, body } = req;
         try {
             const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
@@ -152,11 +134,6 @@ const routes = (option) => {
                 await fse.remove(file.path);
             }
         }
-
-        /// old
-        // const forceUpdate = req?.query?.forceStopAndApplyVersion === 'true';
-        // const response = await algorithmStore.updateAlgorithm(req.body, { forceUpdate });
-        // res.json(response);
     });
     router.delete('/algorithms/:name', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {
         const { name } = req.params;
