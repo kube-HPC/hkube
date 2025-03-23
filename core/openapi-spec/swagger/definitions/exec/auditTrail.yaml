@@ -1,0 +1,14 @@
+type: object
+properties:
+  auditTrail:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      properties:
+        timestamp:
+          type: string
+        user:
+          type: string
+        action:
+          type: string

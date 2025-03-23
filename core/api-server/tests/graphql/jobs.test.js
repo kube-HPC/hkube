@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const stateManager = require('../../lib/state/state-manager');
 const configIt = require('@hkube/config');
+const { executeActions } = require('@hkube/consts');
 const { main: config, logger } = configIt.load();
 const { pipelines } = require('../mocks');
 const { request } = require('../utils');
@@ -9,10 +10,12 @@ const grequest = require('graphql-request');
 
 const jobByNameQuery = require('./queries/job-by-name-query');
 const aggregatedJobQuery = require('./queries/aggregated-job-query');
+const aggregatedJobWithAudit = require('./queries/aggregated-job-with-audit');
 const req = grequest.request;
 let restUrl;
 let baseUrl;
-let graphqlUrl
+let graphqlUrl;
+const auditEntry = { userName: "defaultUser", timestamp: new Date(), action: executeActions.RUN };
 describe('graphql jobs', () => {
     before(() => {
 
@@ -35,12 +38,18 @@ describe('graphql jobs', () => {
 
 
         it('should return specific job ', async () => {
-
             await stateManager._db.jobs.create({ jobId: `job_${2}`, status: { status: 'active' }, type: 'stored', pipeline: pipelines[0] });
             const res = await req(graphqlUrl, jobByNameQuery);
             expect(res.job.key).to.be.eql('job_2');
 
         });
+        it('should return specific job and verify auditEntry ', async () => {
+            await stateManager._db.jobs.create({ jobId: `job_${2}`, status: { status: 'active' }, type: 'stored', pipeline: pipelines[0], auditTrail: [auditEntry] });
+            const res = await req(graphqlUrl, aggregatedJobWithAudit);
+            expect(res.jobsAggregated.jobs[0].auditTrail[0]).to.have.property('userName', auditEntry.userName);
+
+        });
+
         it('should query job by parameters', async () => {
             await stateManager._db.jobs.create({ jobId: `job_${2}`, status: { status: 'active' }, type: 'stored', pipeline: pipelines[0] });
             const res = await req(graphqlUrl, aggregatedJobQuery);
