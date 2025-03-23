@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Execution
+  summary: Get pipeline audit trail
+  description: Returns an audit trail 
+  parameters:
+    - name: jobId
+      in: path
+      description: Unique identifier representing pipeline execution
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: pipeline audit trail
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/auditTrail"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: jobId Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
