@@ -2,7 +2,7 @@ type: object
 properties:
   forceUpdate:
     type: boolean
-    description: should set the newly created version as current
+    description: Stop running algorithms if there are any and set the newly created version as current.
     default: false
   forceBuild:
     type: boolean
