@@ -28,12 +28,6 @@ post:
     - StoreAlgorithms
   summary: Insert algorithm
   description: Insert new algorithm to store if not exists
-  parameters:
-    - name: overwrite
-      in: query
-      example: 'false'
-      schema:
-        type: string
   requestBody:
     content:
       multipart/form-data:
@@ -80,13 +74,6 @@ put:
     - StoreAlgorithms
   summary: Update algorithm
   description: Update existing algorithm
-  parameters:
-    - name: forceStopAndApplyVersion
-      in: query
-      schema:
-        type: boolean
-        default: false
-      description: "Flag to force stop and apply the updated algorithm version for the next run."
   requestBody:
     content:
       multipart/form-data:
