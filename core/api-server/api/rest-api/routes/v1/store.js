@@ -72,6 +72,14 @@ const routes = (option) => {
     // pipelines
 
     // algorithms
+    const _processPayLoadAndOptions = async (givenPayload, givenOptions) => {
+        const bodyPayload = (givenPayload) || '{}';
+        const bodyOptions = (givenOptions) || '{}';
+        const payload = JSON.parse(bodyPayload);
+        const options = JSON.parse(bodyOptions);
+        return { payload, options };
+    };
+
     router.get('/algorithms', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { name, sort, limit } = req.query;
         const response = await algorithmStore.getAlgorithms({ name, sort, limit });
@@ -87,27 +95,45 @@ const routes = (option) => {
         const response = await algorithmStore.getAlgorithm({ name });
         res.json(response);
     });
-    router.post('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
-        const allowOverwrite = req.query.overwrite;
-        if (Array.isArray(req.body)) {
-            const returnAlgoList = await Promise.all(
-                req.body.map(async (algorithmData) => {
-                    // eslint-disable-next-line no-return-await
-                    return await algorithmStore.insertAlgorithm(algorithmData, false, allowOverwrite);
-                })
-            );
-            res.status(HttpStatus.StatusCodes.CREATED).json(returnAlgoList);
+    router.post('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
+        const { file, body } = req;
+        try {
+            if (Array.isArray(body.payload)) {
+                const returnAlgoList = await Promise.all(
+                    body.payload.map(async (algorithmData) => {
+                        const { payload, options } = await _processPayLoadAndOptions(algorithmData, body.options);
+                        options.failOnError = false;
+                        const response = await algorithmStore.insertAlgorithm({ payload, options });
+                        return response;
+                    })
+                );
+                res.status(HttpStatus.StatusCodes.CREATED).json(returnAlgoList);
+            }
+            else {
+                // If req.body.payload is not an array, process it as a single algorithm
+                const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
+                const response = await algorithmStore.insertAlgorithm({ payload, options, file });
+                res.status(HttpStatus.StatusCodes.CREATED).json(response);
+            }
         }
-        else {
-            // If req.body is not an array, process it as a single algorithm
-            const response = await algorithmStore.insertAlgorithm(req.body, true, allowOverwrite);
-            res.status(HttpStatus.StatusCodes.CREATED).json(response);
+        finally {
+            if (file?.path) {
+                await fse.remove(file.path);
+            }
         }
     });
-    router.put('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
-        const forceUpdate = req?.query?.forceStopAndApplyVersion === 'true';
-        const response = await algorithmStore.updateAlgorithm(req.body, { forceUpdate });
-        res.json(response);
+    router.put('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
+        const { file, body } = req;
+        try {
+            const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
+            const response = await algorithmStore.updateAlgorithm({ payload, options, file });
+            res.json(response);
+        }
+        finally {
+            if (file?.path) {
+                await fse.remove(file.path);
+            }
+        }
     });
     router.delete('/algorithms/:name', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {
         const { name } = req.params;
@@ -117,12 +143,9 @@ const routes = (option) => {
         res.json({ message });
     });
     router.post('/algorithms/apply', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
-        const { file } = req;
+        const { file, body } = req;
         try {
-            const bodyPayload = (req.body.payload) || '{}';
-            const bodyOptions = (req.body.options) || '{}';
-            const payload = JSON.parse(bodyPayload);
-            const options = JSON.parse(bodyOptions);
+            const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
             const response = await algorithmStore.applyAlgorithm({ options, payload, file });
             res.json(response);
         }
