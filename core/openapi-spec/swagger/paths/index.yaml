@@ -25,6 +25,8 @@
   $ref: ./exec/jobs.yaml
 /exec/status/{jobId}:
   $ref: ./exec/status.yaml
+/exec/auditTrail/{jobId}:
+ $ref: ./exec/auditTrail.yaml
 /exec/results/{jobId}:
   $ref: ./exec/results.yaml
 /exec/tree/{jobId}:
