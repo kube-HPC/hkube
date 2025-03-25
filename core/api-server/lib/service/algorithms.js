@@ -82,10 +82,10 @@ class AlgorithmStore {
         return stateManager.searchAlgorithms({ name, kind, algorithmImage: algorithmImageBoolean, pending, cursor, page, sort, limit, fields: createQueryObjectFromString(fields) });
     }
 
-    // eslint-disable-next-line consistent-return
-    async insertAlgorithm(options, failOnError = true, allowOverwrite) {
+    async insertAlgorithm({ payload, options, file }) {
+        const { failOnError = true, allowOverwrite } = options || {};
         try {
-            validator.algorithms.validateAlgorithmName(options);
+            validator.algorithms.validateAlgorithmName(payload);
         }
         catch (error) {
             if (failOnError) {
@@ -94,48 +94,48 @@ class AlgorithmStore {
             else {
                 return {
                     error: {
-                        name: options.name,
+                        name: payload.name,
                         code: 400,
                         message: error.message
                     }
                 };
             }
         }
-        const alg = await stateManager.getAlgorithm(options);
+        const alg = await stateManager.getAlgorithm(payload);
         if (alg) {
-            if (allowOverwrite === 'true') {
+            if (allowOverwrite) {
                 try {
-                    const updatedAlgorithm = await this.updateAlgorithm(options, { forceUpdate: true });
+                    const updatedAlgorithm = await this.updateAlgorithm({ payload, options: { forceUpdate: true }, file });
                     return updatedAlgorithm;
                 }
                 catch (error) {
                     return {
                         error: {
-                            name: options.name,
+                            name: payload.name,
                             code: 400,
-                            message: `Error updating ${options.name} ${error.message}`
+                            message: `Error updating ${payload.name} ${error.message}`
                         }
                     };
                 }
             }
             if (failOnError) {
-                throw new ResourceExistsError('algorithm', options.name);
+                throw new ResourceExistsError('algorithm', payload.name);
             }
             return {
                 error: {
                     code: 409,
-                    message: `algorithm ${options.name} already exists`
+                    message: `algorithm ${payload.name} already exists`
                 }
             };
         }
         try {
-            const { algorithm } = await this.applyAlgorithm({ payload: options });
-            return algorithm;
+            const applyResponse = await this.applyAlgorithm({ payload, file });
+            return applyResponse;
         }
         catch (error) {
             return {
                 error: {
-                    name: options.name,
+                    name: payload.name,
                     code: 400,
                     message: error.message,
                 },
@@ -143,14 +143,14 @@ class AlgorithmStore {
         }
     }
 
-    async updateAlgorithm(payload, options = {}) {
+    async updateAlgorithm({ payload, options, file }) {
         validator.algorithms.validateAlgorithmName(payload);
         const alg = await stateManager.getAlgorithm(payload);
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', payload.name);
         }
-        const { algorithm } = await this.applyAlgorithm({ payload, options });
-        return algorithm;
+        const applyResponse = await this.applyAlgorithm({ payload, options, file });
+        return applyResponse;
     }
 
     async deleteAlgorithm(options) {

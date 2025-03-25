@@ -1,0 +1,6 @@
+type: object
+properties:
+  allowOverwrite:
+    type: boolean
+    description: should overwrite existing algorithm, if any
+    default: false
