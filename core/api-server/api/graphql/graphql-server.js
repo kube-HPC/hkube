@@ -1,6 +1,6 @@
 const { ApolloServer } = require('apollo-server-express');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
-const HttpStatus = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const log = require('@hkube/logger').GetLogFromContanier();
 const { AuthenticationError } = require('../../lib/errors');
 const component = require('../../lib/consts/componentNames').GRAPHQL_SERVER;
@@ -12,20 +12,16 @@ const _resolvers = require('./resolvers');
  */
 const buildContext = (req, keycloak) => {
     const user = req.kauth?.grant?.access_token?.content || null;
-    const roles = user?.resource_access?.['api-server']?.roles || [];
-
-    // if (!user && keycloak) {
-    //     throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
-    // }
+    const userRoles = user?.resource_access?.['api-server']?.roles || [];
 
     const checkPermission = (requiredRoles) => {
         if (!keycloak) return true; // Bypass if auth is disabled
-        if (!user) throw new AuthenticationError('Unauthorized: Missing or invalid token', HttpStatus.StatusCodes.UNAUTHORIZED);
+        if (!user) throw new AuthenticationError('Unauthorized: Missing or invalid token', StatusCodes.UNAUTHORIZED);
         if (!requiredRoles || requiredRoles.length === 0) return true; // No role restriction
-        return requiredRoles.some(role => roles.includes(role)); // Check if user has a required role
+        return requiredRoles.every(role => userRoles.includes(role)); // Check if user has a required role
     };
 
-    const context = { roles, checkPermission, ...req };
+    const context = { checkPermission, ...req };
     // If there's a pre-existing context - merge
     if (req.context) {
         return { ...req.context, ...context };
@@ -46,7 +42,7 @@ const getApolloPlugins = () => [
                         response.http.status = status;
                         response.errors = [{
                             message: response.errors[0].message || 'An unexpected error occurred',
-                            code: response.errors[0].nodes?.[0]?.extensions?.code || HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR,
+                            code: response.errors[0].nodes?.[0]?.extensions?.code || StatusCodes.INTERNAL_SERVER_ERROR,
                             status
                         }];
                         delete response.data;
