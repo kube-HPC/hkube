@@ -130,7 +130,7 @@ module.exports = [
         }
     },
     {
-        name: 'algo-car-pvc-non-exist',
+        name: 'algo-pvc-non-exist',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
@@ -140,20 +140,32 @@ module.exports = [
                 memory: "256Mi"
             }
         },
-        sideCars: [
+        volumes: [
             {
-                container: {
-                    name: 'mycar',
-                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                },
-                volumes: [
-                    {
-                        name: 'v1',
-                        persistentVolumeClaim: {
-                            claimName: 'hjkjhgfdfjkjhgffg'
-                        }
-                    }
-                ]
+                name: 'v1',
+                persistentVolumeClaim: {
+                    claimName: 'hjkjhgfdfjkjhgffg'
+                }
+            }
+        ]
+    },
+    {
+        name: 'algo-pvc-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        },
+        volumes: [
+            {
+                name: 'v1',
+                persistentVolumeClaim: {
+                    claimName: 'pvc-1'
+                }
             }
         ]
     },
@@ -168,25 +180,25 @@ module.exports = [
                 memory: "256Mi"
             }
         },
+        volumes: [
+            {
+                name: 'v1',
+                persistentVolumeClaim: {
+                    claimName: 'pvc-1'
+                }
+            }
+        ],
         sideCars: [
             {
                 container: {
                     name: 'mycar',
                     image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                },
-                volumes: [
-                    {
-                        name: 'v1',
-                        persistentVolumeClaim: {
-                            claimName: 'pvc-1'
-                        }
-                    }
-                ]
+                }
             }
         ]
     },
     {
-        name: 'algo-car-config-map-non-exist',
+        name: 'algo-config-map-non-exist',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
@@ -196,20 +208,32 @@ module.exports = [
                 memory: "256Mi"
             }
         },
-        sideCars: [
+        volumes: [
             {
-                container: {
-                    name: 'mycar',
-                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                },
-                volumes: [
-                    {
-                        name: 'v1',
-                        configMap: {
-                            name: 'hjkjhgfdfjkjhgffg'
-                        }
-                    }
-                ]
+                name: 'v1',
+                configMap: {
+                    name: 'hjkjhgfdfjkjhgffg'
+                }
+            }
+        ]
+    },
+    {
+        name: 'algo-config-map-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        workerCustomResources: {
+            requests: {
+                cpu: 0.1,
+                memory: "256Mi"
+            }
+        },
+        volumes: [
+            {
+                name: 'v1',
+                configMap: {
+                    name: 'config-map-1'
+                }
             }
         ]
     },
@@ -224,25 +248,25 @@ module.exports = [
                 memory: "256Mi"
             }
         },
+        volumes: [
+            {
+                name: 'v1',
+                configMap: {
+                    name: 'config-map-1'
+                }
+            }
+        ],
         sideCars: [
             {
                 container: {
                     name: 'mycar',
                     image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                },
-                volumes: [
-                    {
-                        name: 'v1',
-                        configMap: {
-                            name: 'config-map-1'
-                        }
-                    }
-                ]
+                }
             }
         ]
     },
     {
-        name: 'algo-car-secret-non-exist',
+        name: 'algo-secret-non-exist',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
@@ -252,20 +276,26 @@ module.exports = [
                 memory: "256Mi"
             }
         },
-        sideCars: [
+        volumes: [
             {
-                container: {
-                    name: 'mycar',
-                    image: 'hkube/api-server:v2.8.19-sidecar_feature-11879765908'
-                },
-                volumes: [
-                    {
-                        name: 'v1',
-                        secret: {
-                            secretName: 'hjkjhgfdfjkjhgffg'
-                        }
-                    }
-                ]
+                name: 'v1',
+                secret: {
+                    secretName: 'hjkjhgfdfjkjhgffg'
+                }
+            }
+        ]
+    },
+    {
+        name: 'algo-secret-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        volumes: [
+            {
+                name: "v1",
+                secret: {
+                    secretName: "secret-1"
+                }
             }
         ]
     },
@@ -274,20 +304,20 @@ module.exports = [
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
+        volumes: [
+            {
+                name: "v1",
+                secret: {
+                    secretName: "secret-1"
+                }
+            }
+        ],
         sideCars: [
             {
                 container: {
                     name: "mycar",
                     image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
-                volumes: [
-                    {
-                        name: "v1",
-                        secret: {
-                            secretName: "secret-1"
-                        }
-                    }
-                ],
                 volumeMounts: [
                     {
                         name: "v1",
@@ -308,18 +338,18 @@ module.exports = [
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
         mem: '128Mi',
+        volumes: [
+            {
+                name: "v1",
+                emptyDir: {}
+            }
+        ],
         sideCars: [
             {
                 container: {
                     name: "mycar",
                     image: "docker.io/hkubedevtest/print-every-10-sec:v4o4c4xne"
                 },
-                volumes: [
-                    {
-                        name: "v1",
-                        emptyDir: {}
-                    }
-                ],
                 volumeMounts: [
                     {
                         name: "v1",
