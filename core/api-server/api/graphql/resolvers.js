@@ -129,6 +129,7 @@ class GraphqlResolvers {
             if (!context.checkPermission(requiredRoles)) {
                 throw new AuthenticationError('Forbidden: You do not have access to this resource', HttpStatus.StatusCodes.FORBIDDEN);
             }
+            // required args order for GraphQL resolvers - parent: result from the previous resolver, args: query/mutation inputs, context: shared data (e.g., auth, db), info: query details (field, schema, etc.)
             return resolver(parent, args, context, info);
         };
     }
