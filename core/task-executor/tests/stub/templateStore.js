@@ -450,5 +450,23 @@ module.exports = [
                 }
             }
         ]
+    },
+    {
+        name: 'algo-car-volume-mount',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        volumes: [
+            {
+                name: "v1",
+                emptyDir: {}
+            }
+        ],
+        volumeMounts: [
+            {
+                name: "v1",
+                mountPath: "/tmp/foo"
+            }
+        ],
     }
 ];

@@ -305,6 +305,23 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '160G' })
         });
 
+        it('should apply mounts of algorunner to spec', () => {
+            const alg = templateStore.find(alg => alg.name === 'algo-car-volume-mount');
+            alg.algorithmName = alg.name;
+            const res = createJobSpec({ ...alg, options });
+
+            expect(res.spec.template.spec.containers[1].name).to.equal('algorunner');
+            expect(res.spec.template.spec.containers[1].volumeMounts[1]).to.deep.equal(alg.volumeMounts[0]);
+        });
+        
+        it('should apply volumes of pod to spec', () => {
+            const alg = templateStore.find(alg => alg.name === 'algo-car-volume-mount');
+            alg.algorithmName = alg.name;
+            const res = createJobSpec({ ...alg, options });
+
+            expect(res.spec.template.spec.volumes[3]).to.deep.equal(alg.volumes[0]);
+        });
+
         it('should apply mounts', () => {
             const mounts = [
                 {
@@ -520,7 +537,7 @@ describe('jobCreator', () => {
                     options,
                     clusterOptions: { [`${sideCar1Name}SidecarEnabled`]: true, [`${sideCar2Name}SidecarEnabled`]: true }
                 });
-                const { containers, volumes } = res.spec.template.spec;
+                const { containers } = res.spec.template.spec;
                 expect(containers).to.have.lengthOf(4);
                 expect(containers[2].name).to.eql(sideCar1Name);
                 expect(containers[3].name).to.eql(sideCar2Name);
