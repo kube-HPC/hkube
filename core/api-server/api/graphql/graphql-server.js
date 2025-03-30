@@ -1,58 +1,97 @@
 const { ApolloServer } = require('apollo-server-express');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
+const { StatusCodes } = require('http-status-codes');
 const log = require('@hkube/logger').GetLogFromContanier();
+const { AuthenticationError } = require('../../lib/errors');
 const component = require('../../lib/consts/componentNames').GRAPHQL_SERVER;
-
 const _typeDefs = require('./graphql-schema');
 const _resolvers = require('./resolvers');
 
-async function startApolloServer(typeDefs, resolvers, app, httpServer, port, config) {
+/**
+ * Builds the GraphQL context, including authentication and role checking.
+ */
+const buildContext = (req, keycloak) => {
+    const user = req.kauth?.grant?.access_token?.content || null;
+    const userRoles = user?.resource_access?.['api-server']?.roles || [];
+
+    const checkPermission = (requiredRoles) => {
+        if (!keycloak) return true; // Bypass if auth is disabled
+        if (!user) throw new AuthenticationError('Unauthorized: Missing or invalid token', StatusCodes.UNAUTHORIZED);
+        if (!requiredRoles || requiredRoles.length === 0) return true; // No role restriction
+        return requiredRoles.every(role => userRoles.includes(role)); // Check if user has a required role
+    };
+
+    const context = { checkPermission, ...req };
+    // If there's a pre-existing context - merge
+    if (req.context) {
+        return { ...req.context, ...context };
+    }
+    return context;
+};
+
+/**
+ * Apollo Server Plugins for handling errors and lifecycle events.
+ */
+const getApolloPlugins = () => [
+    {
+        async requestDidStart() {
+            return {
+                async willSendResponse({ response }) {
+                    if (response.errors?.length > 0) {
+                        const status = response.errors[0].nodes?.[0]?.extensions.http.status;
+                        response.http.status = status;
+                        response.errors = [{
+                            message: response.errors[0].message || 'An unexpected error occurred',
+                            code: response.errors[0].nodes?.[0]?.extensions?.code || StatusCodes.INTERNAL_SERVER_ERROR,
+                            status
+                        }];
+                        delete response.data;
+                    }
+                },
+            };
+        },
+    },
+    {
+        async serverWillStart() { // runs when the Apollo Server starts
+            return {
+                async drainServer() { // a cleanup method that runs when Apollo Server shuts down
+                    // subscriptionServer.close();
+                }
+            };
+        }
+    }
+];
+
+/**
+ * Starts the Apollo GraphQL Server.
+ */
+async function startApolloServer(typeDefs, resolvers, app, httpServer, port, config, keycloak) {
     try {
-        const schema = makeExecutableSchema({
-            typeDefs,
-            resolvers,
-
-        });
-
+        const schema = makeExecutableSchema({ typeDefs, resolvers });
         const server = new ApolloServer({
             schema,
-            context: ({ req }) => {
-                const context = {
-                    authHeader: req.headers.authorization || '',
-                    ...req
-                };
-
-                // If there's a pre-existing context - merge
-                if (req.context) {
-                    return { ...req.context, ...context };
-                }
-                return context;
-            },
-            plugins: [{
-                async serverWillStart() {
-                    return {
-                        async drainServer() {
-                            // subscriptionServer.close();
-                        }
-                    };
-                }
-            }],
+            context: ({ req }) => buildContext(req, keycloak),
+            plugins: getApolloPlugins(),
             introspection: config.introspection
         });
+
         await server.start();
-        server.applyMiddleware({ app });
+        server.applyMiddleware({ app, path: '/graphql' });
 
         log.info(`🚀 Query endpoint ready at http://localhost:${port}${server.graphqlPath}`, { component });
         log.info(`🚀 Subscription endpoint ready at ws://localhost:${port}${server.graphqlPath}`, { component });
     }
     catch (error) {
-        log.error(`Error on running gr ${error}`,);
+        log.error(`Failed to start GraphQL server: ${error.message || error}`, { component });
     }
 }
 
-const graphqlServer = (app, httpServer, port, config) => {
-    startApolloServer(_typeDefs, _resolvers.getResolvers(), app, httpServer, port, config).catch(err => {
-        log.error(err, { component });
+/**
+ * Initializes the GraphQL server.
+ */
+const graphqlServer = (app, httpServer, port, config, keycloak) => {
+    startApolloServer(_typeDefs, _resolvers.getResolvers(), app, httpServer, port, config, keycloak).catch(err => {
+        log.error(`GraphQL server error: ${err.message || err}`, { component });
     });
 };
 
