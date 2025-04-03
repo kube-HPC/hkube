@@ -119,7 +119,7 @@ const jobTypeDefs = gql`
 
   type AuditEntry {
     timestamp: Float
-    userName: String
+    user: String
     action: String
   }
 
@@ -242,6 +242,8 @@ const jobTypeDefs = gql`
 
   extend type Query {
     jobsAggregated(
+      user: String
+      action: String
       experimentName: String
       pipelineName: String
       pipelineType: String

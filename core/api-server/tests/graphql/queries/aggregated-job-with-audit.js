@@ -127,7 +127,7 @@ const query = gql`
       }
       auditTrail {
         timestamp
-        userName
+        user
         action
       }
       cursor
