@@ -13,15 +13,11 @@ properties:
     required:
       - name
       - image
-  volumes:
-    type: array
-    items:
-      $ref: "#/components/schemas/sidecarVolume"
   volumeMounts:
     type: array
     description: key-value pairs of names and mountPaths
     items:
-      $ref: "#/components/schemas/sidecarVolumeMounts"
+      $ref: "#/components/schemas/volumeMounts"
   environments:
     type: object
     nullable: true
