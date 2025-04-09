@@ -21,7 +21,7 @@ const hkubeRepo = '/repos/kube-HPC/hkube/commits';
 const emptyGit = '/repos/hkube/empty/commits';
 const fullGit = '/repos/hkube/my.git.foo.bar/commits';
 
-describe.only('Store/Algorithms', () => {
+describe('Store/Algorithms', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/store/algorithms`;
