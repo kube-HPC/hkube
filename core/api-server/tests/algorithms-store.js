@@ -58,6 +58,18 @@ describe('Store/Algorithms', () => {
         });
     });
 
+
+    describe('/store/algorithms GET', () => {
+        it('should success to get list of algorithms', async () => {
+            const options = {
+                uri: restPath,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.be.an('array');
+        });
+    });
+
     describe('/store/algorithms:name DELETE', () => {
         it('should throw error algorithm not found', async () => {
             const algorithmName = `delete-${uuid()}`;
@@ -199,17 +211,6 @@ describe('Store/Algorithms', () => {
             const response = await request(options);
             expect(response.body).to.have.property('message');
             expect(response.body.message).to.contain('successfully deleted from store');
-        });
-    });
-
-    describe('/store/algorithms GET', () => {
-        it('should success to get list of algorithms', async () => {
-            const options = {
-                uri: restPath,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body).to.be.an('array');
         });
     });
 
