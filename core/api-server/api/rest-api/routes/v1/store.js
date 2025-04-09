@@ -125,7 +125,8 @@ const routes = (option) => {
                             const payload = algorithmData;
                             const options = { failOnError: false, allowOverwrite };
                             const response = await algorithmStore.insertAlgorithm({ payload, options });
-                            return response;
+                            const { algorithm } = response;
+                            return algorithm || response;
                         })
                     );
                     res.status(HttpStatus.StatusCodes.CREATED).json(returnAlgoList);
@@ -135,7 +136,8 @@ const routes = (option) => {
                     const payload = req.body;
                     const options = { failOnError: true, allowOverwrite };
                     const response = await algorithmStore.insertAlgorithm({ payload, options });
-                    res.status(HttpStatus.StatusCodes.CREATED).json(response);
+                    const { algorithm } = response;
+                    res.status(HttpStatus.StatusCodes.CREATED).json(algorithm || response);
                 }
             }
         }
@@ -158,7 +160,8 @@ const routes = (option) => {
                 const payload = req.body;
                 const options = { forceUpdate };
                 const response = await algorithmStore.updateAlgorithm({ payload, options });
-                res.json(response);
+                const { algorithm } = response;
+                res.json(algorithm || response);
             }
         }
         finally {

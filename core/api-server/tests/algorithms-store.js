@@ -938,7 +938,7 @@ describe('Store/Algorithms', () => {
                     }
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+                const { version, created, modified, reservedMemory, ...algorithm } = response.body;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql({ ...defaultProps, ...options.body });
             });
@@ -955,7 +955,7 @@ describe('Store/Algorithms', () => {
                     body
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+                const { version, created, modified, reservedMemory, ...algorithm } = response.body;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql({ ...defaultProps, ...body });
             });
@@ -973,7 +973,7 @@ describe('Store/Algorithms', () => {
                 }));
                 const result = await Promise.all(algorithms.map((a) => request({ uri: restPath, body: a })));
                 result.forEach((r, i) => {
-                    const { version, created, modified, reservedMemory, ...algorithm } = r.body.algorithm;
+                    const { version, created, modified, reservedMemory, ...algorithm } = r.body;
                     expect(algorithm).to.eql(algorithms[i]);
                 });
                 const options = {
@@ -997,7 +997,7 @@ describe('Store/Algorithms', () => {
                     body
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+                const { version, created, modified, reservedMemory, ...algorithm } = response.body;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql({ ...defaultProps, ...body });
             });
@@ -1018,7 +1018,7 @@ describe('Store/Algorithms', () => {
                     body
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+                const { version, created, modified, reservedMemory, ...algorithm } = response.body;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql(merge({}, defaultProps, body));
             });
@@ -1295,7 +1295,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-                expect(response.body.algorithm.workerCustomResources.limits.memory).to.to.equal('400Mi');
+                expect(response.body.workerCustomResources.limits.memory).to.to.equal('400Mi');
             });
         });
     });
@@ -3073,7 +3073,7 @@ describe('Store/Algorithms', () => {
                     body: algo
                 };
                 const response = await request(options);
-                const { reservedMemory, ...res } = response.body.algorithm;
+                const { reservedMemory, ...res } = response.body;
                 expect(res).to.eql(algo);
             });
     
@@ -3098,8 +3098,8 @@ describe('Store/Algorithms', () => {
                     body: { ...algo, algorithmImage: 'new-image' }
                 };
                 const response = await request(options);
-                expect(response.body.algorithm.version).to.be.exist;
-                expect(response.body.algorithm.algorithmImage).to.not.eql(algo.algorithmImage);
+                expect(response.body.version).to.be.exist;
+                expect(response.body.algorithmImage).to.not.eql(algo.algorithmImage);
             });    
         })
     });
