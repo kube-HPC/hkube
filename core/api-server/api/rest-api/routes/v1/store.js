@@ -122,8 +122,8 @@ const routes = (option) => {
                 if (Array.isArray(req.body)) {
                     const returnAlgoList = await Promise.all(
                         req.body.map(async (algorithmData) => {
-                            const params = { failOnError: false, allowOverwrite };
-                            const { payload, options } = await _processPayLoadAndOptions(algorithmData, params);
+                            const payload = algorithmData;
+                            const options = { failOnError: false, allowOverwrite };
                             const response = await algorithmStore.insertAlgorithm({ payload, options });
                             return response;
                         })
@@ -132,8 +132,8 @@ const routes = (option) => {
                 }
                 else {
                     // If req.body is not an array, process it as a single algorithm
-                    const params = { failOnError: true, allowOverwrite };
-                    const { payload, options } = await _processPayLoadAndOptions(req.body, params);
+                    const payload = req.body;
+                    const options = { failOnError: true, allowOverwrite };
                     const response = await algorithmStore.insertAlgorithm({ payload, options });
                     res.status(HttpStatus.StatusCodes.CREATED).json(response);
                 }
@@ -155,8 +155,8 @@ const routes = (option) => {
             }
             else { // Old way
                 const forceUpdate = req?.query?.forceStopAndApplyVersion === 'true';
-                const params = { forceUpdate };
-                const { payload, options } = await _processPayLoadAndOptions(req.body, params);
+                const payload = req.body;
+                const options = { forceUpdate };
                 const response = await algorithmStore.updateAlgorithm({ payload, options });
                 res.json(response);
             }
