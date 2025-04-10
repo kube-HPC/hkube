@@ -151,7 +151,7 @@ const routes = (options) => {
         }
     });
 
-    router.get('/search', async (req, res) => {
+    router.get('/search', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { experimentName, pipelineName, pipelineType, algorithmName, pipelineStatus, from, to, cursor, page, sort, limit, fields, exists } = req.query;
         const search = {
             query: {
