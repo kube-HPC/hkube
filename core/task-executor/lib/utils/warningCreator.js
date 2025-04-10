@@ -96,15 +96,14 @@ const _createResourcesWarning = ({ unMatchedNodesBySelector, jobDetails, nodesFo
     });
 };
 
-const _createInvalidVolumeWarning = ({ jobDetails, missingSideCarVolumes, code }) => {
-    const message = `One or more sideCar volumes are missing or do not exist.\nMissing volumes: ${missingSideCarVolumes.join(', ')}`;
+const _createInvalidVolumeWarning = ({ jobDetails, missingVolumes, code }) => {
+    const message = `One or more volumes are missing or do not exist.\nMissing volumes: ${missingVolumes.join(', ')}`;
     return _createWarning({
         algorithmName: jobDetails.algorithmName,
         predictedStatus: 'failedScheduling',
         message,
-        sidecarVolumes: missingSideCarVolumes,
         code,
-        missingSideCarVolumes
+        missingVolumes
     });
 };
 

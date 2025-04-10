@@ -37,10 +37,10 @@ kubernetesValueFrom:
   $ref: ./algorithms/kubernetesValueFrom.yaml
 sideCars:
   $ref: ./algorithms/sideCars.yaml
-sidecarVolumeMounts:
-  $ref: ./algorithms/sidecarVolumeMounts.yaml
-sidecarVolume: 
-  $ref: ./algorithms/sidecarVolume.yaml
+volumes: 
+  $ref: ./algorithms/volumes.yaml
+volumeMounts:
+  $ref: ./algorithms/volumeMounts.yaml
 
 # boards
 createBoardRequest:
