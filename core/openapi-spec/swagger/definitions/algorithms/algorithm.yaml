@@ -217,9 +217,6 @@ properties:
       container:
         name: "c1"
         image: "hkube/my-image"
-      volumes:
-        - name: "v1"
-          emptyDir: {}
       volumeMounts:
         - name: "v1"
           mountPath: "/tmp/foo"

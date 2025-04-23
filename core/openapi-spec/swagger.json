@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.2",
+    "version": "2.9.3",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -7252,12 +7252,6 @@
                             "name": "c1",
                             "image": "hkube/my-image"
                           },
-                          "volumes": [
-                            {
-                              "name": "v1",
-                              "emptyDir": {}
-                            }
-                          ],
                           "volumeMounts": [
                             {
                               "name": "v1",
@@ -7942,12 +7936,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -8438,12 +8426,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -8922,12 +8904,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -9478,12 +9454,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -10022,12 +9992,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -10508,12 +10472,6 @@
                                 "name": "c1",
                                 "image": "hkube/my-image"
                               },
-                              "volumes": [
-                                {
-                                  "name": "v1",
-                                  "emptyDir": {}
-                                }
-                              ],
                               "volumeMounts": [
                                 {
                                   "name": "v1",
@@ -18156,12 +18114,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -18705,12 +18657,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -23589,12 +23535,6 @@
                   "name": "c1",
                   "image": "hkube/my-image"
                 },
-                "volumes": [
-                  {
-                    "name": "v1",
-                    "emptyDir": {}
-                  }
-                ],
                 "volumeMounts": [
                   {
                     "name": "v1",
@@ -24250,12 +24190,6 @@
                       "name": "c1",
                       "image": "hkube/my-image"
                     },
-                    "volumes": [
-                      {
-                        "name": "v1",
-                        "emptyDir": {}
-                      }
-                    ],
                     "volumeMounts": [
                       {
                         "name": "v1",
