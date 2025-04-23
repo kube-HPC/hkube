@@ -305,6 +305,23 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '160G' })
         });
 
+        it('should apply mounts of algorunner to spec', () => {
+            const alg = templateStore.find(alg => alg.name === 'algo-car-volume-mount');
+            alg.algorithmName = alg.name;
+            const res = createJobSpec({ ...alg, options });
+
+            expect(res.spec.template.spec.containers[1].name).to.equal('algorunner');
+            expect(res.spec.template.spec.containers[1].volumeMounts[1]).to.deep.equal(alg.volumeMounts[0]);
+        });
+
+        it('should apply volumes of pod to spec', () => {
+            const alg = templateStore.find(alg => alg.name === 'algo-car-volume-mount');
+            alg.algorithmName = alg.name;
+            const res = createJobSpec({ ...alg, options });
+
+            expect(res.spec.template.spec.volumes[3]).to.deep.equal(alg.volumes[0]);
+        });
+
         it('should apply mounts', () => {
             const mounts = [
                 {
@@ -467,18 +484,6 @@ describe('jobCreator', () => {
                         name: sideCar1Name,
                         image: 'foo/bar'
                     },
-                    volumes: [
-                        {
-                            name: "v1",
-                            emptyDir: {}
-                        },
-                        {
-                            name: "v2",
-                            configMap: {
-                                name: "cm2"
-                            }
-                        }
-                    ],
                     volumeMounts: [
                         {
                             name: "v2",
@@ -497,18 +502,6 @@ describe('jobCreator', () => {
                         name: sideCar2Name,
                         image: 'foo/bar' 
                     },
-                    volumes: [
-                        {
-                            name: "v1",
-                            emptyDir: {}
-                        },
-                        {
-                            name: "v2",
-                            configMap: {
-                                name: "cm2"
-                            }
-                        }
-                    ],
                     volumeMounts: [
                         {
                             name: "v2",
@@ -544,14 +537,10 @@ describe('jobCreator', () => {
                     options,
                     clusterOptions: { [`${sideCar1Name}SidecarEnabled`]: true, [`${sideCar2Name}SidecarEnabled`]: true }
                 });
-                const { containers, volumes } = res.spec.template.spec;
+                const { containers } = res.spec.template.spec;
                 expect(containers).to.have.lengthOf(4);
                 expect(containers[2].name).to.eql(sideCar1Name);
                 expect(containers[3].name).to.eql(sideCar2Name);
-                expect(volumes).to.deep.include(globalSettings.sidecars[0].volumes[0]);
-                expect(volumes).to.deep.include(globalSettings.sidecars[0].volumes[1]);
-                expect(volumes).to.deep.include(globalSettings.sidecars[1].volumes[0]);
-                expect(volumes).to.deep.include(globalSettings.sidecars[1].volumes[1]);
                 expect(containers[2].volumeMounts).to.deep.include(globalSettings.sidecars[0].volumeMounts[0]);
                 expect(containers[1].volumeMounts).to.not.deep.include(globalSettings.sidecars[0].volumeMounts[0]);
                 expect(containers[2].volumeMounts).to.deep.include(globalSettings.sidecars[1].volumeMounts[0]);
@@ -619,7 +608,8 @@ describe('jobCreator', () => {
                 const sidecarAlg = templateStore.find(alg => alg.name === 'algo-car-emptyDir');
                 sidecarAlg.algorithmName = sidecarAlg.name;
                 const sidecar = sidecarAlg.sideCars[0];
-                const { container: inputContainer, volumes: inputVolumes, volumeMounts: inputVolumeMounts, environments: inputEnv } = sidecar;
+                const { volumes: inputVolumes } = sidecarAlg;
+                const { container: inputContainer, volumeMounts: inputVolumeMounts, environments: inputEnv } = sidecar;
                 const defaultResources = mergeWithDefaultResources(inputContainer);
 
                 const res = createJobSpec({ ...sidecarAlg, options });
