@@ -97,13 +97,14 @@ const routes = (option) => {
     });
     router.post('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
         const { file, body } = req;
+        const userName = keycloak.getPreferredUsername(req);
         try {
             if (Array.isArray(body.payload)) {
                 const returnAlgoList = await Promise.all(
                     body.payload.map(async (algorithmData) => {
                         const { payload, options } = await _processPayLoadAndOptions(algorithmData, body.options);
                         options.failOnError = false;
-                        const response = await algorithmStore.insertAlgorithm({ payload, options });
+                        const response = await algorithmStore.insertAlgorithm({ payload, options, userName });
                         return response;
                     })
                 );
@@ -112,7 +113,7 @@ const routes = (option) => {
             else {
                 // If req.body.payload is not an array, process it as a single algorithm
                 const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
-                const response = await algorithmStore.insertAlgorithm({ payload, options, file });
+                const response = await algorithmStore.insertAlgorithm({ payload, options, file, userName });
                 res.status(HttpStatus.StatusCodes.CREATED).json(response);
             }
         }
@@ -124,9 +125,10 @@ const routes = (option) => {
     });
     router.put('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
         const { file, body } = req;
+        const userName = keycloak.getPreferredUsername(req);
         try {
             const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
-            const response = await algorithmStore.updateAlgorithm({ payload, options, file });
+            const response = await algorithmStore.updateAlgorithm({ payload, options, file, userName });
             res.json(response);
         }
         finally {
@@ -144,9 +146,10 @@ const routes = (option) => {
     });
     router.post('/algorithms/apply', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
         const { file, body } = req;
+        const userName = keycloak.getPreferredUsername(req);
         try {
             const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
-            const response = await algorithmStore.applyAlgorithm({ options, payload, file });
+            const response = await algorithmStore.applyAlgorithm({ options, payload, file, userName });
             res.json(response);
         }
         finally {

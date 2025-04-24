@@ -99,6 +99,9 @@ class StateManager extends EventEmitter {
             algorithm.created = Date.now();
         }
         algorithm.modified = Date.now();
+        if (algorithm.auditTrail && algorithm?.auditTrail[0]?.timestamp) {
+            algorithm.auditTrail[0].timestamp = algorithm.modified;
+        }
         return this._db.algorithms.replace(algorithm);
     }
 

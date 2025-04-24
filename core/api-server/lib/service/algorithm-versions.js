@@ -39,11 +39,11 @@ class AlgorithmVersions {
         return ver;
     }
 
-    async applyVersion(options) {
+    async applyVersion(options, userName) {
         const { name, version, force } = options;
         validator.algorithms.validateAlgorithmVersion(options);
         const algorithmVersion = await this.getVersion({ name, version });
-
+        const oldAlgorithm = await stateManager.getAlgorithm({ name: algorithmVersion.algorithm.name });
         // check if running pipelines
         if (!force) {
             const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
@@ -59,7 +59,20 @@ class AlgorithmVersions {
         if (algorithmVersion.algorithm.errors != null) {
             algorithmVersion.algorithm.errors = algorithmVersion.algorithm?.errors.filter(x => x !== errorsCode.NOT_LAST_VERSION_ALGORITHM);
         }
-
+        // Handle audit for version
+        if (!oldAlgorithm.auditTrail) {
+            algorithmVersion.algorithm.auditTrail = [];
+        }
+        const auditEntry = {
+            user: userName,
+            timestamp: null,
+            version: algorithmVersion.version
+        };
+        algorithmVersion.algorithm.auditTrail = [
+            auditEntry,
+            ...oldAlgorithm.auditTrail || []
+        ];
+        //
         await stateManager.updateAlgorithm(algorithmVersion.algorithm);
         return algorithmVersion;
     }
@@ -98,9 +111,9 @@ class AlgorithmVersions {
      * 5) if lock was unsuccessful, try to increment the semver again.
      * 6) create the version.
      */
-    async createVersion(algorithm, buildId) {
+    async createVersion(algorithm, buildId, userName) {
         return new Promise((resolve, reject) => {
-            this._versionsQueue.push({ algorithm, buildId }, (err, res) => {
+            this._versionsQueue.push({ algorithm, buildId, userName }, (err, res) => {
                 if (err) {
                     return reject(err);
                 }

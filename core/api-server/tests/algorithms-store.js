@@ -53,7 +53,7 @@ describe('Store/Algorithms', () => {
             }) };
             await request({ uri: restPath, body });
             const response = await request({ uri: `${restPath}/test-alg`, method: 'GET' });
-            const { version, created, modified, reservedMemory, ...algorithm } = response.body;
+            const { version, created, modified, reservedMemory,auditTrail, ...algorithm } = response.body;
             expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
         });
     });
@@ -393,7 +393,7 @@ describe('Store/Algorithms', () => {
                 }) }
             };
             const response = await request(options);
-            const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+            const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
             expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(options.body.payload) });
         });
@@ -410,7 +410,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+            const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
             expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
         });
@@ -428,7 +428,7 @@ describe('Store/Algorithms', () => {
             }));
             const result = await Promise.all(algorithms.map((a) => request({ uri: restPath, body: { payload: JSON.stringify(a) }})));
             result.forEach((r, i) => {
-                const { version, created, modified, reservedMemory, ...algorithm } = r.body.algorithm;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = r.body.algorithm;
                 expect(algorithm).to.eql(algorithms[i]);
             });
             const options = {
@@ -452,7 +452,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+            const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
             expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
         });
@@ -473,7 +473,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+            const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
             expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
             expect(algorithm).to.eql(merge({}, defaultProps, JSON.parse(body.payload)));
         });
@@ -1849,9 +1849,9 @@ describe('Store/Algorithms', () => {
                 await stateManager.updateBuild({ buildId: res1.body.buildId, algorithmImage, status: 'completed' });
                 await delay(2000);
 
-                const { options, created: c1, modified: c2, reservedMemory: none, ...restProps } = res1.body.algorithm;
+                const { options, created: c1, modified: c2, reservedMemory: none,auditTrail, ...restProps } = res1.body.algorithm;
                 const res2 = await request({ uri: `${versionsPath}/${algorithmName}`, method: 'GET' });
-                const { version, created, modified, reservedMemory, ...algorithm } = res2.body[0].algorithm;
+                const { version, created, modified, reservedMemory, auditTrail:auditTrail1 , ...algorithm } = res2.body[0].algorithm;
                 expect(algorithm).to.eql({ ...defaultProps, ...restProps, algorithmImage });
             });
 
