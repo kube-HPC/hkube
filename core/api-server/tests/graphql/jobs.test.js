@@ -15,7 +15,7 @@ const req = grequest.request;
 let restUrl;
 let baseUrl;
 let graphqlUrl;
-const auditEntry = { userName: "defaultUser", timestamp: new Date(), action: executeActions.RUN };
+const auditEntry = { user: "defaultUser", timestamp: new Date(), action: executeActions.RUN };
 describe('graphql jobs', () => {
     before(() => {
 
@@ -46,7 +46,7 @@ describe('graphql jobs', () => {
         it('should return specific job and verify auditEntry ', async () => {
             await stateManager._db.jobs.create({ jobId: `job_${2}`, status: { status: 'active' }, type: 'stored', pipeline: pipelines[0], auditTrail: [auditEntry] });
             const res = await req(graphqlUrl, aggregatedJobWithAudit);
-            expect(res.jobsAggregated.jobs[0].auditTrail[0]).to.have.property('userName', auditEntry.userName);
+            expect(res.jobsAggregated.jobs[0].auditTrail[0]).to.have.property('user', auditEntry.user);
 
         });
 

@@ -11,7 +11,7 @@ const graphBuilder = require('../utils/graph-builder');
 const versionsService = require('./pipeline-versions');
 
 class PipelineService {
-    async updatePipeline(options) {
+    async updatePipeline(options, userName) {
         validator.pipelines.validateUpdatePipeline(options);
         await validator.algorithms.validateAlgorithmExists(options);
         validator.gateways.validateGatewayNodes(options.nodes);
@@ -21,10 +21,24 @@ class PipelineService {
             ...options,
         };
         const hasDiff = this._comparePipelines(newPipeline, oldPipeLine);
-        const newVersion = await this._versioning(hasDiff, newPipeline);
+        const newVersion = await this._versioning(hasDiff, newPipeline, userName);
         if (newVersion) {
             newPipeline.version = newVersion;
         }
+
+        if (!oldPipeLine.auditTrail) {
+            newPipeline.auditTrail = [];
+        }
+        const auditEntry = {
+            user: userName,
+            timestamp: newPipeline.modified,
+            version: newPipeline.version
+        };
+        newPipeline.auditTrail = [
+            auditEntry,
+            ...oldPipeLine.auditTrail || []
+        ];
+
         await stateManager.replacePipeline(newPipeline);
         return newPipeline;
     }
@@ -167,7 +181,7 @@ class PipelineService {
         });
     }
 
-    async insertPipeline(options, failOnError = true, allowOverwrite = false) {
+    async insertPipeline(options, failOnError = true, allowOverwrite = false, userName) {
         try {
             validator.pipelines.validateUpdatePipeline(options);
             await validator.algorithms.validateAlgorithmExists(options);
@@ -214,7 +228,7 @@ class PipelineService {
         if (pipeline) {
             if (allowOverwrite === 'true') {
                 try {
-                    const updatedPipeline = await this.updatePipeline(options);
+                    const updatedPipeline = await this.updatePipeline(options, userName);
                     return updatedPipeline;
                 }
                 catch (error) {
@@ -254,10 +268,10 @@ class PipelineService {
         return !isEqual(oldPipeline, newPipeline);
     }
 
-    async _versioning(hasDiff, pipeline) {
+    async _versioning(hasDiff, pipeline, userName) {
         let version;
         if (hasDiff) {
-            version = await versionsService.createVersion(pipeline);
+            version = await versionsService.createVersion(pipeline, userName);
         }
         return version;
     }

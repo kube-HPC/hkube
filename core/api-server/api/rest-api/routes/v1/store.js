@@ -45,22 +45,24 @@ const routes = (option) => {
 
     router.post('/pipelines', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
         const allowOverwrite = req.query.overwrite;
+        const userName = keycloak.getPreferredUsername(req);
         if (Array.isArray(req.body)) {
             const returnPipelineList = await Promise.all(
                 req.body.map(async (pipelineData) => {
                     // eslint-disable-next-line no-return-await
-                    return await pipelineStore.insertPipeline(pipelineData, false, allowOverwrite);
+                    return await pipelineStore.insertPipeline(pipelineData, false, allowOverwrite, userName);
                 })
             );
             res.status(HttpStatus.StatusCodes.CREATED).json(returnPipelineList);
         }
         else {
-            const response = await pipelineStore.insertPipeline(req.body);
+            const response = await pipelineStore.insertPipeline(req.body, true, false, userName);
             res.status(HttpStatus.StatusCodes.CREATED).json(response);
         }
     });
     router.put('/pipelines', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
-        const response = await pipelineStore.updatePipeline(req.body);
+        const userName = keycloak.getPreferredUsername(req);
+        const response = await pipelineStore.updatePipeline(req.body, userName);
         res.json(response);
     });
     router.delete('/pipelines/:name', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {

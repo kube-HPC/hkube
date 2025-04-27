@@ -1955,7 +1955,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1 });
             });
 
@@ -1987,7 +1987,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...apply1, ...apply2 });
             });
 
@@ -2077,7 +2077,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 

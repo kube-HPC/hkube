@@ -99,7 +99,7 @@ class StateManager extends EventEmitter {
             algorithm.created = Date.now();
         }
         algorithm.modified = Date.now();
-        if (algorithm.auditTrail && algorithm?.auditTrail[0]?.timestamp) {
+        if (algorithm.auditTrail && algorithm?.auditTrail[0]) {
             algorithm.auditTrail[0].timestamp = algorithm.modified;
         }
         return this._db.algorithms.replace(algorithm);
@@ -267,6 +267,9 @@ class StateManager extends EventEmitter {
             pipeline.created = Date.now();
         }
         pipeline.modified = Date.now();
+        if (pipeline.auditTrail && pipeline?.auditTrail[0]?.timestamp) {
+            pipeline.auditTrail[0].timestamp = pipeline.modified;
+        }
         return this._db.pipelines.update(options);
     }
 

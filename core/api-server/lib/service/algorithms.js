@@ -310,7 +310,7 @@ class AlgorithmStore {
             if (shouldStoreOverride) {
                 newAlgorithm.auditTrail = [
                     auditEntry,
-                    ...newAlgorithm.auditTrail
+                    ...newAlgorithm.auditTrail || []
                 ];
             }
             else {
