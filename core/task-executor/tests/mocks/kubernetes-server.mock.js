@@ -31,7 +31,7 @@ class MockClient {
                     res.json(nodes);
                     return;
                 }
-                if (req.url === '/api/v1/persistentvolumeclaims') {
+                if (req.url === '/api/v1/namespaces/default/persistentvolumeclaims/') {
                     res.json(persistentVolumeClaim);
                     return;
                 }

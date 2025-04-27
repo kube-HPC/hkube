@@ -135,7 +135,7 @@ class KubernetesApi {
      */
     async getAllPVCNames() {
         try {
-            const pvc = await this._client.pvc.all();
+            const pvc = await this._client.pvc.all(true);
             const names = pvc.body.items.map(p => p.metadata.name);
             return names;
         }
@@ -154,7 +154,7 @@ class KubernetesApi {
         */
     async getAllSecretNames() {
         try {
-            const secrets = await this._client.secrets.get({ name: '' });
+            const secrets = await this._client.secrets.get({ secretName: '' });
             const names = secrets.body.items.map(secret => secret.metadata.name);
             return names;
         }
