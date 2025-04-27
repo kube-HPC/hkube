@@ -58,6 +58,18 @@ describe('Store/Algorithms', () => {
         });
     });
 
+
+    describe('/store/algorithms GET', () => {
+        it('should success to get list of algorithms', async () => {
+            const options = {
+                uri: restPath,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.be.an('array');
+        });
+    });
+
     describe('/store/algorithms:name DELETE', () => {
         it('should throw error algorithm not found', async () => {
             const algorithmName = `delete-${uuid()}`;
@@ -202,558 +214,1089 @@ describe('Store/Algorithms', () => {
         });
     });
 
-    describe('/store/algorithms GET', () => {
-        it('should success to get list of algorithms', async () => {
-            const options = {
-                uri: restPath,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body).to.be.an('array');
-        });
-    });
-
     describe('/store/algorithms POST', () => {
-        it('should throw validation error of required property name', async () => {
-            const options = {
-                uri: restPath,
-                body: { payload: "{}" }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data should have required property 'name'");
+        describe('New way', () => {
+            it('should throw validation error of required property name', async () => {
+                const options = {
+                    uri: restPath,
+                    body: { payload: "{}" }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal("data should have required property 'name'");
+            });
+
+            it('should throw validation error of long algorithm name', async () => {
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify({ name: 'this-is-33-length-algorithm--name' }) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('data.name should NOT be longer than 32 characters');
+            });
+
+            it('should throw validation error of data.name should be string', async () => {
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify({ name: {} }) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('data.name should be string');
+            });
+
+            it('should throw validation error of memory min 4 Mi', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '3900Ki',
+                    cpu: 1
+                };
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify(algo) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
+            });
+
+            it('should throw conflict error', async () => {
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify({
+                            name: 'conflict',
+                            algorithmImage: 'image'
+                        })
+                    }
+                };
+                await request(options);
+                const response = await request(options);
+                expect(response.response.statusCode).to.equal(409);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.message).to.equal('algorithm conflict already exists');
+            });
+
+            const invalidChars = ['/', '_', '*', '#', '"', '%', 'A'];
+            invalidChars.forEach((v) => {
+                it(`should throw invalid algorithm name if include ${v}`, async () => {
+                    const options = {
+                        uri: restPath,
+                        body: { payload: JSON.stringify({
+                            name: `notvalid${v}name`,
+                            algorithmImage: 'image'
+                        }) }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                    expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
+                });
+            });
+
+            const invalidStartAndEndChars = ['/', '_', '*', '#', '"', '%', '-', 'A'];
+            invalidStartAndEndChars.forEach((v) => {
+                it(`should throw invalid if algorithm name if start with ${v}`, async () => {
+                    const options = {
+                        uri: restPath,
+                        body: { payload: JSON.stringify({
+                            name: `${v}notvalidname`,
+                            algorithmImage: 'image'
+                        }) }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                    expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
+                });
+
+                it(`should throw invalid if algorithm name if end with ${v}`, async () => {
+                    const options = {
+                        uri: restPath,
+                        body: { payload: JSON.stringify({
+                            name: `notvalidname${v}`,
+                            algorithmImage: 'image'
+                        }) }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                    expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
+                });
+            });
+
+            it('should failed to store algorithm with no name', async () => {
+                const body = { payload: "{}" };
+                const options = { uri: restPath, body };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal("data should have required property 'name'");
+            });
+
+            it('should failed to store algorithm with no image', async () => {
+                const body = { payload: JSON.stringify({
+                    name: uuid()
+                }) };
+                const options = { uri: restPath, body };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
+            });
+
+            it('should failed to store algorithm with end whitespace image name', async () => {
+                const body = { payload: JSON.stringify({
+                    name: uuid(),
+                    algorithmImage: 'image '
+                }) };
+                const options = { uri: restPath, body };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
+            });
+
+            it('should failed to store algorithm with start whitespace image name', async () => {
+                const body = { payload: JSON.stringify({
+                    name: uuid(),
+                    algorithmImage: ' image'
+                }) };
+                const options = { uri: restPath, body };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
+            });
+
+            it('should failed to store algorithm with middle whitespace image name', async () => {
+                const body = { payload: JSON.stringify({
+                    name: uuid(),
+                    algorithmImage: 'image name'
+                }) };
+                const options = { uri: restPath, body };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
+            });
+        
+            it('should succeed to store algorithm with name of 32 characters', async () => {
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify({
+                        name: `this-is-32-length-algorithm-${uuid()}`,
+                        algorithmImage: 'image-name'
+                    }) }
+                };
+                const response = await request(options);
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(options.body.payload) });
+            });
+
+            it('should succeed to store algorithm name (www.example.com)', async () => {
+                const body = { payload: JSON.stringify({
+                    name: '2-www.exam-ple.com' + uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1
+                }) };
+                const options = {
+                    uri: restPath,
+                    body
+                };
+                const response = await request(options);
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
+            });
+
+            it('should succeed to parallel store and get multiple algorithms', async function () {
+                const limit = 3;
+                const total = 5;
+                const keys = Array.from(Array(total).keys());
+                const algorithms = keys.map((k) => ({
+                    ...defaultProps,
+                    name: `stress-${k}-${uuid()}`,
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: k
+                }));
+                const result = await Promise.all(algorithms.map((a) => request({ uri: restPath, body: { payload: JSON.stringify(a) }})));
+                result.forEach((r, i) => {
+                    const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = r.body.algorithm;
+                    expect(algorithm).to.eql(algorithms[i]);
+                });
+                const options = {
+                    uri: `${restPath}?name=stress&limit=${limit}`,
+                    method: 'GET'
+                };
+                const response = await request(options);
+                expect(response.body).to.has.lengthOf(limit);
+            });
+
+            it('should succeed to store algorithm', async () => {
+                const body = { payload: JSON.stringify({
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image'
+                }) };
+                const options = {
+                    uri: restPath,
+                    body
+                };
+                const response = await request(options);
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
+            });
+
+            it('should succeed to store algorithm with devMode', async () => {
+                const body = { payload: JSON.stringify({
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                    options: {
+                        devMode: true
+                    }
+                }) };
+                const options = {
+                    uri: restPath,
+                    body
+                };
+                const response = await request(options);
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(algorithm).to.eql(merge({}, defaultProps, JSON.parse(body.payload)));
+            });
+
+            it('should succeed to create algorithms when provided with an array of valid data', async () => {
+                const algos = [
+                    {
+                        name: uuid(),
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                    {
+                        name: uuid(),
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                ];
+                const options = {
+                    uri: restPath,
+                    body: { payload: algos.map(alg => JSON.stringify(alg)) }
+                };
+
+                const response = await request(options);
+                expect(response.body).to.be.an('array');
+                expect(response.body).to.have.lengthOf(algos.length);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+            });
+
+            it('should succeed creating an array containing a 409 Conflict status and error message for existing algorithms', async () => {
+                const existingAlgorithm = {
+                    name: 'existing-algorithm',
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                }
+                const existingAlgOption = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify(existingAlgorithm) }
+                };
+                await request(existingAlgOption)
+
+                const algorithmsList = [
+                    {
+                        ...existingAlgorithm
+                    },
+                    {
+                        name: uuid(),
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                ];
+
+                const algorithmData = {
+                    uri: restPath,
+                    body: { payload: algorithmsList.map(alg => JSON.stringify(alg)) }
+                }
+
+                const response = await request(algorithmData)
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(response.body).to.be.an('array');
+                expect(response.body).to.have.lengthOf(algorithmsList.length);
+                expect(response.body[1].error).to.not.exist;
+                expect(response.body[0].error.code).to.equal(HttpStatus.StatusCodes.CONFLICT)
+                expect(response.body[0].error.message).to.include('algorithm existing-algorithm already exists');
+            });
+
+            it('should succeed to overwrite existing algorithms', async () => {
+                const existingAlgorithm = {
+                    name: 'existing-algorithm2',
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                }
+                const existingAlgOption = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify(existingAlgorithm) }
+                };
+                await request(existingAlgOption)
+                existingAlgorithm.mem = '40Mi'
+                const algorithmsList = [
+                    {
+                        ...existingAlgorithm
+                    },
+                    {
+                        name: uuid(),
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                ];
+
+                const algorithmData = {
+                    uri: restPath,
+                    body: { 
+                        payload: algorithmsList.map(alg => JSON.stringify(alg)),
+                        options: JSON.stringify({ allowOverwrite: true })
+                    }
+                }
+
+                const response = await request(algorithmData)
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(response.body).to.be.an('array');
+                expect(response.body).to.have.lengthOf(algorithmsList.length);
+                expect(response.body[1].error).to.not.exist;
+
+                const optionsGet = {
+                    uri: `${restPath}/existing-algorithm2`,
+                    method: 'GET'
+                };
+                const alg = await request(optionsGet);
+                expect(alg.body.mem).to.eq('40Mi');
+            });
+
+            it('should succeed creating an array containing a 400 Bad Request status and error message for invalid data', async () => {
+                // Define some algorithm data objects, including one with invalid data
+                const invalidAlgorithmData = [
+                    {
+                        name: 'Invalid Algorithm NAME-',
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                    {
+                        name: 'valid-algorithm-name',
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                ];
+
+                const algorithmData = {
+                    uri: restPath,
+                    body: { payload: invalidAlgorithmData.map(alg => JSON.stringify(alg)) }
+                }
+
+                const response = await request(algorithmData)
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(response.body).to.be.an('array');
+                expect(response.body).to.have.lengthOf(invalidAlgorithmData.length);
+                expect(response.body[1].error).to.not.exist;
+                expect(response.body[0].error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST)
+                expect(response.body[0].error.name).to.equal('Invalid Algorithm NAME-')
+                expect(response.body[0].error.message).to.include('algorithm name must contain only lower-case alphanumeric, dash or dot');
+            });
+
+            it('should return a 201 Created status and an empty array for an empty request body', async () => {
+                const emptyData = {
+                    uri: restPath,
+                    body: { payload: [] }
+                }
+
+                const response = await request(emptyData)
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(response.body).to.be.an('array');
+                expect(response.body).to.have.lengthOf(0);
+            });
+
+            it('should throw invalid of workerCustomResources for limits cpu missing', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    workerCustomResources: {
+                        requests: { cpu: '0.1', memory: '200Mi' },
+                        limits: { memory: '300Mi' }
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify(algo) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: limits.cpu must be defined');
+            });
+
+            it('should throw invalid of workerCustomResources for requests cpu missing', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    workerCustomResources: {
+                        requests: { memory: '200Mi' },
+                        limits: {cpu: '0.1',memory: '300Mi' }
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify(algo) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.cpu must be defined');
+            });
+
+            it('should throw invalid of workerCustomResources for requests memory missing', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    workerCustomResources: {
+                        requests: { cpu: '0.1' },
+                        limits: { cpu: '0.1',memory: '300Mi' }
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify(algo) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.memory must be defined');
+            });
+
+            it('should throw invalid of workerCustomResources for limits memory missing', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    workerCustomResources: {
+                        requests: {  cpu: '0.1',memory: '300Mi' },
+                        limits: {cpu: '0.2' }
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify(algo) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: limits.memory must be defined');
+            });
+
+            it('should throw invalid of workerCustomResources for both cpu and memory', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    workerCustomResources: {
+                        requests: {  },
+                        limits: { cpu: '0.1', memory: '300Mi' }
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify(algo) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.memory must be defined, requests.cpu must be defined');
+            });
+
+            it('should succeed with workerCustomResources for both cpu and memory', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    workerCustomResources: {
+                        requests: { cpu: '0.1', memory: '300Mi'  },
+                        limits: { cpu: '0.2', memory: '400Mi' }
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body: { payload: JSON.stringify(algo) }
+
+                };
+                const response = await request(options);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(response.body.algorithm.workerCustomResources.limits.memory).to.to.equal('400Mi');
+            });
         });
 
-        it('should throw validation error of long algorithm name', async () => {
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify({ name: 'this-is-33-length-algorithm--name' }) }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.name should NOT be longer than 32 characters');
-        });
+        describe('Old way', () => {
+            it('should throw validation error of required property name', async () => {
+                const options = {
+                    uri: restPath,
+                    body: {}
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal("data should have required property 'name'");
+            });
 
-        it('should throw validation error of data.name should be string', async () => {
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify({ name: {} }) }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.name should be string');
-        });
+            it('should throw validation error of long algorithm name', async () => {
+                const options = {
+                    uri: restPath,
+                    body: { name: 'this-is-33-length-algorithm--name' }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('data.name should NOT be longer than 32 characters');
+            });
 
-        it('should throw validation error of memory min 4 Mi', async () => {
-            const algo = {
-                name: uuid(),
-                algorithmImage: 'image',
-                mem: '3900Ki',
-                cpu: 1
-            };
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify(algo) }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
-        });
+            it('should throw validation error of data.name should be string', async () => {
+                const options = {
+                    uri: restPath,
+                    body: { name: {} }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('data.name should be string');
+            });
 
-        it('should throw conflict error', async () => {
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify({
+            it('should throw validation error of memory min 4 Mi', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '3900Ki',
+                    cpu: 1
+                };
+                const options = {
+                    uri: restPath,
+                    body: algo
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
+            });
+
+            it('should throw conflict error', async () => {
+                const options = {
+                    uri: restPath,
+                    body: {
                         name: 'conflict',
                         algorithmImage: 'image'
-                    })
-                }
-            };
-            await request(options);
-            const response = await request(options);
-            expect(response.response.statusCode).to.equal(409);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.message).to.equal('algorithm conflict already exists');
-        });
+                    }
+                };
+                await request(options);
+                const response = await request(options);
+                expect(response.response.statusCode).to.equal(409);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.message).to.equal('algorithm conflict already exists');
+            });
 
-        const invalidChars = ['/', '_', '*', '#', '"', '%', 'A'];
-        invalidChars.forEach((v) => {
-            it(`should throw invalid algorithm name if include ${v}`, async () => {
+            const invalidChars = ['/', '_', '*', '#', '"', '%', 'A'];
+            invalidChars.forEach((v) => {
+                it(`should throw invalid algorithm name if include ${v}`, async () => {
+                    const options = {
+                        uri: restPath,
+                        body: {
+                            name: `notvalid${v}name`,
+                            algorithmImage: 'image'
+                        }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                    expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
+                });
+            });
+
+            const invalidStartAndEndChars = ['/', '_', '*', '#', '"', '%', '-', 'A'];
+            invalidStartAndEndChars.forEach((v) => {
+                it(`should throw invalid if algorithm name if start with ${v}`, async () => {
+                    const options = {
+                        uri: restPath,
+                        body: {
+                            name: `${v}notvalidname`,
+                            algorithmImage: 'image'
+                        }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                    expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
+                });
+
+                it(`should throw invalid if algorithm name if end with ${v}`, async () => {
+                    const options = {
+                        uri: restPath,
+                        body: {
+                            name: `notvalidname${v}`,
+                            algorithmImage: 'image'
+                        }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                    expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
+                });
+            });
+
+            it('should failed to store algorithm with no name', async () => {
+                const body = {};
+                const options = { uri: restPath, body };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal("data should have required property 'name'");
+            });
+
+            it('should failed to store algorithm with no image', async () => {
+                const body = {
+                    name: uuid()
+                };
+                const options = { uri: restPath, body };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
+            });
+
+            it('should failed to store algorithm with end whitespace image name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'image '
+                };
+                const options = { uri: restPath, body };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
+            });
+
+            it('should failed to store algorithm with start whitespace image name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: ' image'
+                };
+                const options = { uri: restPath, body };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
+            });
+
+            it('should failed to store algorithm with middle whitespace image name', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'image name'
+                };
+                const options = { uri: restPath, body };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
+            });
+        
+            it('should succeed to store algorithm with name of 32 characters', async () => {
                 const options = {
                     uri: restPath,
-                    body: { payload: JSON.stringify({
-                        name: `notvalid${v}name`,
-                        algorithmImage: 'image'
-                    }) }
+                    body: {
+                        name: `this-is-32-length-algorithm-${uuid()}`,
+                        algorithmImage: 'image-name'
+                    }
+                };
+                const response = await request(options);
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body;
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(algorithm).to.eql({ ...defaultProps, ...options.body });
+            });
+
+            it('should succeed to store algorithm name (www.example.com)', async () => {
+                const body = {
+                    name: '2-www.exam-ple.com' + uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1
+                };
+                const options = {
+                    uri: restPath,
+                    body
+                };
+                const response = await request(options);
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body;
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(algorithm).to.eql({ ...defaultProps, ...body });
+            });
+
+            it('should succeed to parallel store and get multiple algorithms', async function () {
+                const limit = 3;
+                const total = 5;
+                const keys = Array.from(Array(total).keys());
+                const algorithms = keys.map((k) => ({
+                    ...defaultProps,
+                    name: `stress-${k}-${uuid()}`,
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: k
+                }));
+                const result = await Promise.all(algorithms.map((a) => request({ uri: restPath, body: a })));
+                result.forEach((r, i) => {
+                    const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = r.body;
+                    expect(algorithm).to.eql(algorithms[i]);
+                });
+                const options = {
+                    uri: `${restPath}?name=stress&limit=${limit}`,
+                    method: 'GET'
+                };
+                const response = await request(options);
+                expect(response.body).to.has.lengthOf(limit);
+            });
+
+            it('should succeed to store algorithm', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image'
+                };
+                const options = {
+                    uri: restPath,
+                    body
+                };
+                const response = await request(options);
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body;
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(algorithm).to.eql({ ...defaultProps, ...body });
+            });
+
+            it('should succeed to store algorithm with devMode', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                    options: {
+                        devMode: true
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body
+                };
+                const response = await request(options);
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body;
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(algorithm).to.eql(merge({}, defaultProps, body));
+            });
+
+            it('should succeed to create algorithms when provided with an array of valid data', async () => {
+                const algos = [
+                    {
+                        name: uuid(),
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                    {
+                        name: uuid(),
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                ];
+                const options = {
+                    uri: restPath,
+                    body: { payload: algos.map(alg => JSON.stringify(alg)) }
+                };
+
+                const response = await request(options);
+                expect(response.body).to.be.an('array');
+                expect(response.body).to.have.lengthOf(algos.length);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+            });
+
+            it('should succeed creating an array containing a 409 Conflict status and error message for existing algorithms', async () => {
+                const existingAlgorithm = {
+                    name: 'existing-algorithm',
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                }
+                const existingAlgOption = {
+                    uri: restPath,
+                    body: existingAlgorithm
+                };
+                await request(existingAlgOption)
+
+                const algorithmsList = [
+                    {
+                        ...existingAlgorithm
+                    },
+                    {
+                        name: uuid(),
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                ];
+
+                const algorithmData = {
+                    uri: restPath,
+                    body: algorithmsList
+                }
+
+                const response = await request(algorithmData)
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(response.body).to.be.an('array');
+                expect(response.body).to.have.lengthOf(algorithmsList.length);
+                expect(response.body[1].error).to.not.exist;
+                expect(response.body[0].error.code).to.equal(HttpStatus.StatusCodes.CONFLICT)
+                expect(response.body[0].error.message).to.include('algorithm existing-algorithm already exists');
+            });
+
+            it('should succeed to overwrite existing algorithms', async () => {
+                const existingAlgorithm = {
+                    name: 'existing-algorithm2',
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image',
+                }
+                const existingAlgOption = {
+                    uri: restPath,
+                    body: existingAlgorithm
+                };
+                await request(existingAlgOption)
+                existingAlgorithm.mem = '40Mi'
+                const algorithmsList = [
+                    {
+                        ...existingAlgorithm
+                    },
+                    {
+                        name: uuid(),
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                ];
+
+                const algorithmData = {
+                    uri: restPath + '?overwrite=true',
+                    body: algorithmsList
+                }
+
+                const response = await request(algorithmData)
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(response.body).to.be.an('array');
+                expect(response.body).to.have.lengthOf(algorithmsList.length);
+                expect(response.body[1].error).to.not.exist;
+
+                const optionsGet = {
+                    uri: `${restPath}/existing-algorithm2`,
+                    method: 'GET'
+                };
+                const alg = await request(optionsGet);
+                expect(alg.body.mem).to.eq('40Mi');
+            });
+
+            it('should succeed creating an array containing a 400 Bad Request status and error message for invalid data', async () => {
+                // Define some algorithm data objects, including one with invalid data
+                const invalidAlgorithmData = [
+                    {
+                        name: 'Invalid Algorithm NAME-',
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                    {
+                        name: 'valid-algorithm-name2',
+                        algorithmImage: 'image',
+                        mem: '50Mi',
+                        cpu: 1,
+                        type: 'Image',
+                    },
+                ];
+
+                const algorithmData = {
+                    uri: restPath,
+                    body: invalidAlgorithmData
+                }
+
+                const response = await request(algorithmData)
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(response.body).to.be.an('array');
+                expect(response.body).to.have.lengthOf(invalidAlgorithmData.length);
+                expect(response.body[1].error).to.not.exist;
+                expect(response.body[0].error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST)
+                expect(response.body[0].error.name).to.equal('Invalid Algorithm NAME-')
+                expect(response.body[0].error.message).to.include('algorithm name must contain only lower-case alphanumeric, dash or dot');
+            });
+
+            it('should return a 201 Created status and an empty array for an empty request body', async () => {
+                const emptyData = {
+                    uri: restPath,
+                    body: []
+                }
+
+                const response = await request(emptyData)
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(response.body).to.be.an('array');
+                expect(response.body).to.have.lengthOf(0);
+            });
+
+            it('should throw invalid of workerCustomResources for limits cpu missing', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    workerCustomResources: {
+                        requests: { cpu: '0.1', memory: '200Mi' },
+                        limits: { memory: '300Mi' }
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body: algo
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: limits.cpu must be defined');
             });
-        });
 
-        const invalidStartAndEndChars = ['/', '_', '*', '#', '"', '%', '-', 'A'];
-        invalidStartAndEndChars.forEach((v) => {
-            it(`should throw invalid if algorithm name if start with ${v}`, async () => {
+            it('should throw invalid of workerCustomResources for requests cpu missing', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    workerCustomResources: {
+                        requests: { memory: '200Mi' },
+                        limits: { cpu: '0.1',memory: '300Mi' }
+                    }
+                };
                 const options = {
                     uri: restPath,
-                    body: { payload: JSON.stringify({
-                        name: `${v}notvalidname`,
-                        algorithmImage: 'image'
-                    }) }
+                    body: algo
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.cpu must be defined');
             });
 
-            it(`should throw invalid if algorithm name if end with ${v}`, async () => {
+            it('should throw invalid of workerCustomResources for requests memory missing', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    workerCustomResources: {
+                        requests: { cpu: '0.1' },
+                        limits: { cpu: '0.1',memory: '300Mi' }
+                    }
+                };
                 const options = {
                     uri: restPath,
-                    body: { payload: JSON.stringify({
-                        name: `notvalidname${v}`,
-                        algorithmImage: 'image'
-                    }) }
+                    body: algo
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.memory must be defined');
             });
-        });
 
-        it('should failed to store algorithm with no name', async () => {
-            const body = { payload: "{}" };
-            const options = { uri: restPath, body };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data should have required property 'name'");
-        });
-
-        it('should failed to store algorithm with no image', async () => {
-            const body = { payload: JSON.stringify({
-                name: uuid()
-            }) };
-            const options = { uri: restPath, body };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
-        });
-
-        it('should failed to store algorithm with end whitespace image name', async () => {
-            const body = { payload: JSON.stringify({
-                name: uuid(),
-                algorithmImage: 'image '
-            }) };
-            const options = { uri: restPath, body };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
-        });
-
-        it('should failed to store algorithm with start whitespace image name', async () => {
-            const body = { payload: JSON.stringify({
-                name: uuid(),
-                algorithmImage: ' image'
-            }) };
-            const options = { uri: restPath, body };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
-        });
-
-        it('should failed to store algorithm with middle whitespace image name', async () => {
-            const body = { payload: JSON.stringify({
-                name: uuid(),
-                algorithmImage: 'image name'
-            }) };
-            const options = { uri: restPath, body };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
-        });
-    
-        it('should succeed to store algorithm with name of 32 characters', async () => {
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify({
-                    name: `this-is-32-length-algorithm-${uuid()}`,
-                    algorithmImage: 'image-name'
-                }) }
-            };
-            const response = await request(options);
-            const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
-            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-            expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(options.body.payload) });
-        });
-
-        it('should succeed to store algorithm name (www.example.com)', async () => {
-            const body = { payload: JSON.stringify({
-                name: '2-www.exam-ple.com' + uuid(),
-                algorithmImage: 'image',
-                mem: '50Mi',
-                cpu: 1
-            }) };
-            const options = {
-                uri: restPath,
-                body
-            };
-            const response = await request(options);
-            const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
-            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-            expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
-        });
-
-        it('should succeed to parallel store and get multiple algorithms', async function () {
-            const limit = 3;
-            const total = 5;
-            const keys = Array.from(Array(total).keys());
-            const algorithms = keys.map((k) => ({
-                ...defaultProps,
-                name: `stress-${k}-${uuid()}`,
-                algorithmImage: 'image',
-                mem: '50Mi',
-                cpu: k
-            }));
-            const result = await Promise.all(algorithms.map((a) => request({ uri: restPath, body: { payload: JSON.stringify(a) }})));
-            result.forEach((r, i) => {
-                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = r.body.algorithm;
-                expect(algorithm).to.eql(algorithms[i]);
+            it('should throw invalid of workerCustomResources for limits memory missing', async () => {
+                const algo = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    workerCustomResources: {
+                        requests: {  cpu: '0.1',memory: '300Mi' },
+                        limits: {cpu: '0.2' }
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body: algo
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: limits.memory must be defined');
             });
-            const options = {
-                uri: `${restPath}?name=stress&limit=${limit}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body).to.has.lengthOf(limit);
-        });
 
-        it('should succeed to store algorithm', async () => {
-            const body = { payload: JSON.stringify({
-                name: uuid(),
-                algorithmImage: 'image',
-                mem: '50Mi',
-                cpu: 1,
-                type: 'Image'
-            }) };
-            const options = {
-                uri: restPath,
-                body
-            };
-            const response = await request(options);
-            const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
-            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-            expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
-        });
-
-        it('should succeed to store algorithm with devMode', async () => {
-            const body = { payload: JSON.stringify({
-                name: uuid(),
-                algorithmImage: 'image',
-                mem: '50Mi',
-                cpu: 1,
-                type: 'Image',
-                options: {
-                    devMode: true
-                }
-            }) };
-            const options = {
-                uri: restPath,
-                body
-            };
-            const response = await request(options);
-            const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
-            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-            expect(algorithm).to.eql(merge({}, defaultProps, JSON.parse(body.payload)));
-        });
-
-        it('should secceed to create algorithms when provided with an array of valid data', async () => {
-            const algos = [
-                {
+            it('should throw invalid of workerCustomResources for both cpu and memory', async () => {
+                const algo = {
                     name: uuid(),
                     algorithmImage: 'image',
-                    mem: '50Mi',
-                    cpu: 1,
-                    type: 'Image',
-                },
-                {
+                    workerCustomResources: {
+                        requests: {  },
+                        limits: { cpu: '0.1', memory: '300Mi' }
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body: algo
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.memory must be defined, requests.cpu must be defined');
+            });
+
+            it('should succeed with workerCustomResources for both cpu and memory', async () => {
+                const algo = {
                     name: uuid(),
                     algorithmImage: 'image',
-                    mem: '50Mi',
-                    cpu: 1,
-                    type: 'Image',
-                },
-            ];
-            const options = {
-                uri: restPath,
-                body: { payload: algos.map(alg => JSON.stringify(alg)) }
-            };
+                    workerCustomResources: {
+                        requests: { cpu: '0.1', memory: '300Mi'  },
+                        limits: { cpu: '0.2', memory: '400Mi' }
+                    }
+                };
+                const options = {
+                    uri: restPath,
+                    body: algo
 
-            const response = await request(options);
-            expect(response.body).to.be.an('array');
-            expect(response.body).to.have.lengthOf(algos.length);
-            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-        });
-
-        it('should succeed creating an array containing a 409 Conflict status and error message for existing algorithms', async () => {
-            const existingAlgorithm = {
-                name: 'existing-algorithm',
-                algorithmImage: 'image',
-                mem: '50Mi',
-                cpu: 1,
-                type: 'Image',
-            }
-            const existingAlgOption = {
-                uri: restPath,
-                body: { payload: JSON.stringify(existingAlgorithm) }
-            };
-            await request(existingAlgOption)
-
-            const algorithmsList = [
-                {
-                    ...existingAlgorithm
-                },
-                {
-                    name: uuid(),
-                    algorithmImage: 'image',
-                    mem: '50Mi',
-                    cpu: 1,
-                    type: 'Image',
-                },
-            ];
-
-            const algorithmData = {
-                uri: restPath,
-                body: { payload: algorithmsList.map(alg => JSON.stringify(alg)) }
-            }
-
-            const response = await request(algorithmData)
-            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-            expect(response.body).to.be.an('array');
-            expect(response.body).to.have.lengthOf(algorithmsList.length);
-            expect(response.body[1].error).to.not.exist;
-            expect(response.body[0].error.code).to.equal(HttpStatus.StatusCodes.CONFLICT)
-            expect(response.body[0].error.message).to.include('algorithm existing-algorithm already exists');
-        });
-
-        it('should succeed to overwrith existing algorithms', async () => {
-            const existingAlgorithm = {
-                name: 'existing-algorithm2',
-                algorithmImage: 'image',
-                mem: '50Mi',
-                cpu: 1,
-                type: 'Image',
-            }
-            const existingAlgOption = {
-                uri: restPath,
-                body: { payload: JSON.stringify(existingAlgorithm) }
-            };
-            await request(existingAlgOption)
-            existingAlgorithm.mem = '40Mi'
-            const algorithmsList = [
-                {
-                    ...existingAlgorithm
-                },
-                {
-                    name: uuid(),
-                    algorithmImage: 'image',
-                    mem: '50Mi',
-                    cpu: 1,
-                    type: 'Image',
-                },
-            ];
-
-            const algorithmData = {
-                uri: restPath,
-                body: { 
-                    payload: algorithmsList.map(alg => JSON.stringify(alg)),
-                    options: JSON.stringify({ allowOverwrite: true })
-                }
-            }
-
-            const response = await request(algorithmData)
-            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-            expect(response.body).to.be.an('array');
-            expect(response.body).to.have.lengthOf(algorithmsList.length);
-            expect(response.body[1].error).to.not.exist;
-
-            const optionsGet = {
-                uri: `${restPath}/existing-algorithm2`,
-                method: 'GET'
-            };
-            const alg = await request(optionsGet);
-            expect(alg.body.mem).to.eq('40Mi');
-        });
-
-        it('should secceed creating an array containing a 400 Bad Request status and error message for invalid data', async () => {
-            // Define some algorithm data objects, including one with invalid data
-            const invalidAlgorithmData = [
-                {
-                    name: 'Invalid Algorithm NAME-',
-                    algorithmImage: 'image',
-                    mem: '50Mi',
-                    cpu: 1,
-                    type: 'Image',
-                },
-                {
-                    name: 'valid-algorithm-name',
-                    algorithmImage: 'image',
-                    mem: '50Mi',
-                    cpu: 1,
-                    type: 'Image',
-                },
-            ];
-
-            const algorithmData = {
-                uri: restPath,
-                body: { payload: invalidAlgorithmData.map(alg => JSON.stringify(alg)) }
-            }
-
-            const response = await request(algorithmData)
-            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-            expect(response.body).to.be.an('array');
-            expect(response.body).to.have.lengthOf(invalidAlgorithmData.length);
-            expect(response.body[1].error).to.not.exist;
-            expect(response.body[0].error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST)
-            expect(response.body[0].error.name).to.equal('Invalid Algorithm NAME-')
-            expect(response.body[0].error.message).to.include('algorithm name must contain only lower-case alphanumeric, dash or dot');
-        });
-
-        it('should return a 201 Created status and an empty array for an empty request body', async () => {
-            const emptyData = {
-                uri: restPath,
-                body: { payload: [] }
-            }
-
-            const response = await request(emptyData)
-            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-            expect(response.body).to.be.an('array');
-            expect(response.body).to.have.lengthOf(0);
-        });
-
-        it('should throw invalid of workerCustomResources for limits cpu missing', async () => {
-            const algo = {
-                name: uuid(),
-                algorithmImage: 'image',
-                workerCustomResources: {
-                    requests: { cpu: '0.1', memory: '200Mi' },
-                    limits: { memory: '300Mi' }
-                }
-            };
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify(algo) }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: limits.cpu must be defined');
-        });
-
-        it('should throw invalid of workerCustomResources for requests cpu missing', async () => {
-            const algo = {
-                name: uuid(),
-                algorithmImage: 'image',
-                workerCustomResources: {
-                    requests: {  memory: '200Mi' },
-                    limits: {cpu: '0.1',memory: '300Mi' }
-                }
-            };
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify(algo) }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.cpu must be defined');
-        });
-
-        it('should throw invalid of workerCustomResources for requests memory missing', async () => {
-            const algo = {
-                name: uuid(),
-                algorithmImage: 'image',
-                workerCustomResources: {
-                    requests: {  cpu: '0.1' },
-                    limits: {cpu: '0.1',memory: '300Mi' }
-                }
-            };
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify(algo) }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.memory must be defined');
-        });
-
-        it('should throw invalid of workerCustomResources for limits memory missing', async () => {
-            const algo = {
-                name: uuid(),
-                algorithmImage: 'image',
-                workerCustomResources: {
-                    requests: {  cpu: '0.1',memory: '300Mi' },
-                    limits: {cpu: '0.2' }
-                }
-            };
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify(algo) }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: limits.memory must be defined');
-        });
-
-        it('should throw invalid of workerCustomResources for both cpu and memory', async () => {
-            const algo = {
-                name: uuid(),
-                algorithmImage: 'image',
-                workerCustomResources: {
-                    requests: {  },
-                    limits: { cpu: '0.1', memory: '300Mi' }
-                }
-            };
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify(algo) }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('algorithm has invalid workerCustomResources: requests.memory must be defined, requests.cpu must be defined');
-        });
-
-        it('should succeed with workerCustomResources for both cpu and memory', async () => {
-            const algo = {
-                name: uuid(),
-                algorithmImage: 'image',
-                workerCustomResources: {
-                    requests: { cpu: '0.1', memory: '300Mi'  },
-                    limits: { cpu: '0.2', memory: '400Mi' }
-                }
-            };
-            const options = {
-                uri: restPath,
-                body: { payload: JSON.stringify(algo) }
-
-            };
-            const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
-            expect(response.body.algorithm.workerCustomResources.limits.memory).to.to.equal('400Mi');
+                };
+                const response = await request(options);
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(response.body.workerCustomResources.limits.memory).to.to.equal('400Mi');
+            });
         });
     });
 
@@ -2017,7 +2560,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1 });
             });
 
@@ -2047,7 +2590,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory,auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 
@@ -2106,7 +2649,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1 });
             });
 
@@ -2138,7 +2681,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 
@@ -2170,7 +2713,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory,auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 
@@ -2207,7 +2750,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 
@@ -2454,55 +2997,110 @@ describe('Store/Algorithms', () => {
     });
 
     describe('/store/algorithms PUT', () => {
-        it('should throw validation error of memory min 4 Mi', async () => {
-            const algo = Object.assign({}, algorithms[0]);
-            algo.mem = '3900Ki';
-            const options = {
-                method: 'PUT',
-                uri: restPath,
-                body: { payload: JSON.stringify({ ...algo }) }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
+        describe('New way', () => {
+            it('should throw validation error of memory min 4 Mi', async () => {
+                const algo = Object.assign({}, algorithms[0]);
+                algo.mem = '3900Ki';
+                const options = {
+                    method: 'PUT',
+                    uri: restPath,
+                    body: { payload: JSON.stringify({ ...algo }) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
+            });
+
+            it('should succeed to update algorithm', async () => {
+                const algo = { ...algorithms[0] };
+                const options = {
+                    uri: restPath,
+                    method: 'PUT',
+                    body: { payload: JSON.stringify({ ...algo }) }
+                };
+                const response = await request(options);
+                const { reservedMemory, ...res } = response.body.algorithm;
+                expect(res).to.eql(algo);
+            });
+
+            it('should failed to update algorithm', async () => {
+                const algo = { ...algorithms[0], algorithmImage: '' };
+                const options = {
+                    uri: restPath,
+                    method: 'PUT',
+                    body: { payload: JSON.stringify({ ...algo }) }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
+            });
+
+            it('should succeed to update algorithm image', async () => {
+                const algo = algorithms[0];
+                const options = {
+                    uri: restPath,
+                    method: 'PUT',
+                    body: { payload: JSON.stringify({ ...algo, algorithmImage: 'new-image' }) }
+                };
+                const response = await request(options);
+                expect(response.body.algorithm.version).to.be.exist;
+                expect(response.body.algorithm.algorithmImage).to.not.eql(algo.algorithmImage);
+            });
         });
 
-        it('should succeed to update algorithm', async () => {
-            const algo = { ...algorithms[0] };
-            const options = {
-                uri: restPath,
-                method: 'PUT',
-                body: { payload: JSON.stringify({ ...algo }) }
-            };
-            const response = await request(options);
-            const { reservedMemory, ...res } = response.body.algorithm;
-            expect(res).to.eql(algo);
-        });
-
-        it('should failed to update algorithm', async () => {
-            const algo = { ...algorithms[0], algorithmImage: '' };
-            const options = {
-                uri: restPath,
-                method: 'PUT',
-                body: { payload: JSON.stringify({ ...algo }) }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
-        });
-
-        it('should succeed to update algorithm image', async () => {
-            const algo = algorithms[0];
-            const options = {
-                uri: restPath,
-                method: 'PUT',
-                body: { payload: JSON.stringify({ ...algo, algorithmImage: 'new-image' }) }
-            };
-            const response = await request(options);
-            expect(response.body.algorithm.version).to.be.exist;
-            expect(response.body.algorithm.algorithmImage).to.not.eql(algo.algorithmImage);
-        });
+        describe('Old way', () => {
+            it('should throw validation error of memory min 4 Mi', async () => {
+                const algo = Object.assign({}, algorithms[0]);
+                algo.mem = '3900Ki';
+                const options = {
+                    method: 'PUT',
+                    uri: restPath,
+                    body: algo
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
+            });
+    
+            it('should succeed to update algorithm', async () => {
+                const algo = { ...algorithms[0] };
+                const options = {
+                    uri: restPath,
+                    method: 'PUT',
+                    body: algo
+                };
+                const response = await request(options);
+                const { reservedMemory, ...res } = response.body;
+                expect(res).to.eql(algo);
+            });
+    
+            it('should failed to update algorithm', async () => {
+                const algo = { ...algorithms[0], algorithmImage: '' };
+                const options = {
+                    uri: restPath,
+                    method: 'PUT',
+                    body: algo
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
+            });
+    
+            it('should succeed to update algorithm image', async () => {
+                const algo = algorithms[0];
+                const options = {
+                    uri: restPath,
+                    method: 'PUT',
+                    body: { ...algo, algorithmImage: 'new-image' }
+                };
+                const response = await request(options);
+                expect(response.body.version).to.be.exist;
+                expect(response.body.algorithmImage).to.not.eql(algo.algorithmImage);
+            });    
+        })
     });
 });

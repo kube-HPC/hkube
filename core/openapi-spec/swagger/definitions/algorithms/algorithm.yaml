@@ -197,6 +197,14 @@ properties:
     type: string
     nullable: true
     description: the extension name that will be attached to a file when downloading algorithm result
+  volumes:
+    type: array
+    items:
+      $ref: "#/components/schemas/volumes"
+  volumeMounts:
+    type: array
+    items:
+      $ref: "#/components/schemas/volumeMounts"
   sideCars:
     type: array
     nullable: true
@@ -209,9 +217,6 @@ properties:
       container:
         name: "c1"
         image: "hkube/my-image"
-      volumes:
-        - name: "v1"
-          emptyDir: {}
       volumeMounts:
         - name: "v1"
           mountPath: "/tmp/foo"

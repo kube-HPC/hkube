@@ -95,14 +95,16 @@ class DatabaseQuerier extends Events {
         return { experimentName, jobs };
     }
 
-    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, cursor, pageNum, sort, limit = MAX_ITEMS }) {
+    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, user, action, cursor, pageNum, sort, limit = MAX_ITEMS }) {
         const query = {
             experimentName,
             pipelineName,
             pipelineType,
             pipelineStatus,
             algorithmName,
-            datesRange
+            datesRange,
+            user,
+            action
         };
         const jobs = await this._db.jobs.searchApi({
             query,

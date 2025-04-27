@@ -345,14 +345,9 @@ const _applyDefaultResourcesSideCar = (container) => {
     container.resources = mergeResourceRequest(resourcesWithDefaultLimits, resources);
 };
 
-const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, environments }, spec) => {
+const applySidecar = ({ container: sideCarContainer, volumeMounts, environments }, spec) => {
     _applyDefaultResourcesSideCar(sideCarContainer);
     spec.spec.template.spec.containers.push(sideCarContainer);
-    if (volumes) {
-        volumes.forEach(v => {
-            spec = applyVolumes(spec, v);
-        });
-    }
     if (volumeMounts) {
         volumeMounts.forEach(v => {
             spec = applyVolumeMounts(spec, sideCarContainer.name, v);
@@ -366,14 +361,29 @@ const applySidecar = ({ container: sideCarContainer, volumes, volumeMounts, envi
     return spec;
 };
 
+const applyVolumesAndMounts = (inputSpec, volumes, volumeMounts) => {
+    let spec = clonedeep(inputSpec);
+    if (volumes) {
+        volumes.forEach(v => {
+            spec = applyVolumes(spec, v);
+        });
+    }
+    if (volumeMounts) {
+        volumeMounts.forEach(v => {
+            spec = applyVolumeMounts(spec, containers.ALGORITHM, v);
+        });
+    }
+    return spec;
+};
+
 const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
     let spec = clonedeep(inputSpec);
     for (const sidecar of settings.sidecars) {
-        const { name, container: scContainer, volumes, volumeMounts, environments } = sidecar;
+        const { name, container: scContainer, volumeMounts, environments } = sidecar;
         if (!clusterOptions[`${name}SidecarEnabled`]) {
             continue;
         }
-        spec = applySidecar({ container: scContainer, volumes, volumeMounts, environments }, spec);
+        spec = applySidecar({ container: scContainer, volumeMounts, environments }, spec);
     }
     customSideCars.forEach(sideCar => { // Sidecar user-feature
         spec = applySidecar(sideCar, spec);
@@ -382,7 +392,7 @@ const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
 };
 
 const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env, workerCustomResources, sideCars }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env, workerCustomResources, sideCars, volumes, volumeMounts }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -437,6 +447,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     }
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
+    spec = applyVolumesAndMounts(spec, volumes, volumeMounts);
     spec = applySidecars(spec, sideCars, clusterOptions);
     return spec;
 };

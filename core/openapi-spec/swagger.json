@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.1",
+    "version": "2.9.3",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -7124,6 +7124,73 @@
                       "nullable": true,
                       "description": "the extension name that will be attached to a file when downloading algorithm result"
                     },
+                    "volumes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Volume name"
+                          },
+                          "emptyDir": {
+                            "type": "object",
+                            "description": "Configuration for an emptyDir volume"
+                          },
+                          "persistentVolumeClaim": {
+                            "type": "object",
+                            "properties": {
+                              "claimName": {
+                                "type": "string",
+                                "description": "The name of the PersistentVolumeClaim"
+                              }
+                            }
+                          },
+                          "configMap": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "The name of the ConfigMap"
+                              }
+                            }
+                          },
+                          "secret": {
+                            "type": "object",
+                            "properties": {
+                              "secretName": {
+                                "type": "string",
+                                "description": "The name of the Secret"
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "name"
+                        ]
+                      }
+                    },
+                    "volumeMounts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "volume name"
+                          },
+                          "mountPath": {
+                            "type": "string",
+                            "description": "volume mount path"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "mountPath"
+                        ]
+                      }
+                    },
                     "sideCars": {
                       "type": "array",
                       "nullable": true,
@@ -7148,53 +7215,6 @@
                               "name",
                               "image"
                             ]
-                          },
-                          "volumes": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                              "properties": {
-                                "name": {
-                                  "type": "string",
-                                  "description": "Volume name"
-                                },
-                                "emptyDir": {
-                                  "type": "object",
-                                  "description": "Configuration for an emptyDir volume"
-                                },
-                                "persistentVolumeClaim": {
-                                  "type": "object",
-                                  "properties": {
-                                    "claimName": {
-                                      "type": "string",
-                                      "description": "The name of the PersistentVolumeClaim"
-                                    }
-                                  }
-                                },
-                                "configMap": {
-                                  "type": "object",
-                                  "properties": {
-                                    "name": {
-                                      "type": "string",
-                                      "description": "The name of the ConfigMap"
-                                    }
-                                  }
-                                },
-                                "secret": {
-                                  "type": "object",
-                                  "properties": {
-                                    "secretName": {
-                                      "type": "string",
-                                      "description": "The name of the Secret"
-                                    }
-                                  }
-                                }
-                              },
-                              "required": [
-                                "name"
-                              ]
-                            }
                           },
                           "volumeMounts": {
                             "type": "array",
@@ -7232,12 +7252,6 @@
                             "name": "c1",
                             "image": "hkube/my-image"
                           },
-                          "volumes": [
-                            {
-                              "name": "v1",
-                              "emptyDir": {}
-                            }
-                          ],
                           "volumeMounts": [
                             {
                               "name": "v1",
@@ -7794,6 +7808,73 @@
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       },
+                      "volumes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Volume name"
+                            },
+                            "emptyDir": {
+                              "type": "object",
+                              "description": "Configuration for an emptyDir volume"
+                            },
+                            "persistentVolumeClaim": {
+                              "type": "object",
+                              "properties": {
+                                "claimName": {
+                                  "type": "string",
+                                  "description": "The name of the PersistentVolumeClaim"
+                                }
+                              }
+                            },
+                            "configMap": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "The name of the ConfigMap"
+                                }
+                              }
+                            },
+                            "secret": {
+                              "type": "object",
+                              "properties": {
+                                "secretName": {
+                                  "type": "string",
+                                  "description": "The name of the Secret"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
+                        }
+                      },
+                      "volumeMounts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "volume name"
+                            },
+                            "mountPath": {
+                              "type": "string",
+                              "description": "volume mount path"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "mountPath"
+                          ]
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -7818,53 +7899,6 @@
                                 "name",
                                 "image"
                               ]
-                            },
-                            "volumes": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "Volume name"
-                                  },
-                                  "emptyDir": {
-                                    "type": "object",
-                                    "description": "Configuration for an emptyDir volume"
-                                  },
-                                  "persistentVolumeClaim": {
-                                    "type": "object",
-                                    "properties": {
-                                      "claimName": {
-                                        "type": "string",
-                                        "description": "The name of the PersistentVolumeClaim"
-                                      }
-                                    }
-                                  },
-                                  "configMap": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "description": "The name of the ConfigMap"
-                                      }
-                                    }
-                                  },
-                                  "secret": {
-                                    "type": "object",
-                                    "properties": {
-                                      "secretName": {
-                                        "type": "string",
-                                        "description": "The name of the Secret"
-                                      }
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "name"
-                                ]
-                              }
                             },
                             "volumeMounts": {
                               "type": "array",
@@ -7902,12 +7936,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -8270,6 +8298,73 @@
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       },
+                      "volumes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Volume name"
+                            },
+                            "emptyDir": {
+                              "type": "object",
+                              "description": "Configuration for an emptyDir volume"
+                            },
+                            "persistentVolumeClaim": {
+                              "type": "object",
+                              "properties": {
+                                "claimName": {
+                                  "type": "string",
+                                  "description": "The name of the PersistentVolumeClaim"
+                                }
+                              }
+                            },
+                            "configMap": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "The name of the ConfigMap"
+                                }
+                              }
+                            },
+                            "secret": {
+                              "type": "object",
+                              "properties": {
+                                "secretName": {
+                                  "type": "string",
+                                  "description": "The name of the Secret"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
+                        }
+                      },
+                      "volumeMounts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "volume name"
+                            },
+                            "mountPath": {
+                              "type": "string",
+                              "description": "volume mount path"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "mountPath"
+                          ]
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -8294,53 +8389,6 @@
                                 "name",
                                 "image"
                               ]
-                            },
-                            "volumes": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "Volume name"
-                                  },
-                                  "emptyDir": {
-                                    "type": "object",
-                                    "description": "Configuration for an emptyDir volume"
-                                  },
-                                  "persistentVolumeClaim": {
-                                    "type": "object",
-                                    "properties": {
-                                      "claimName": {
-                                        "type": "string",
-                                        "description": "The name of the PersistentVolumeClaim"
-                                      }
-                                    }
-                                  },
-                                  "configMap": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "description": "The name of the ConfigMap"
-                                      }
-                                    }
-                                  },
-                                  "secret": {
-                                    "type": "object",
-                                    "properties": {
-                                      "secretName": {
-                                        "type": "string",
-                                        "description": "The name of the Secret"
-                                      }
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "name"
-                                ]
-                              }
                             },
                             "volumeMounts": {
                               "type": "array",
@@ -8378,12 +8426,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -8734,6 +8776,73 @@
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       },
+                      "volumes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Volume name"
+                            },
+                            "emptyDir": {
+                              "type": "object",
+                              "description": "Configuration for an emptyDir volume"
+                            },
+                            "persistentVolumeClaim": {
+                              "type": "object",
+                              "properties": {
+                                "claimName": {
+                                  "type": "string",
+                                  "description": "The name of the PersistentVolumeClaim"
+                                }
+                              }
+                            },
+                            "configMap": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "The name of the ConfigMap"
+                                }
+                              }
+                            },
+                            "secret": {
+                              "type": "object",
+                              "properties": {
+                                "secretName": {
+                                  "type": "string",
+                                  "description": "The name of the Secret"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
+                        }
+                      },
+                      "volumeMounts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "volume name"
+                            },
+                            "mountPath": {
+                              "type": "string",
+                              "description": "volume mount path"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "mountPath"
+                          ]
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -8758,53 +8867,6 @@
                                 "name",
                                 "image"
                               ]
-                            },
-                            "volumes": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "Volume name"
-                                  },
-                                  "emptyDir": {
-                                    "type": "object",
-                                    "description": "Configuration for an emptyDir volume"
-                                  },
-                                  "persistentVolumeClaim": {
-                                    "type": "object",
-                                    "properties": {
-                                      "claimName": {
-                                        "type": "string",
-                                        "description": "The name of the PersistentVolumeClaim"
-                                      }
-                                    }
-                                  },
-                                  "configMap": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "description": "The name of the ConfigMap"
-                                      }
-                                    }
-                                  },
-                                  "secret": {
-                                    "type": "object",
-                                    "properties": {
-                                      "secretName": {
-                                        "type": "string",
-                                        "description": "The name of the Secret"
-                                      }
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "name"
-                                ]
-                              }
                             },
                             "volumeMounts": {
                               "type": "array",
@@ -8842,12 +8904,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -9270,6 +9326,73 @@
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       },
+                      "volumes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Volume name"
+                            },
+                            "emptyDir": {
+                              "type": "object",
+                              "description": "Configuration for an emptyDir volume"
+                            },
+                            "persistentVolumeClaim": {
+                              "type": "object",
+                              "properties": {
+                                "claimName": {
+                                  "type": "string",
+                                  "description": "The name of the PersistentVolumeClaim"
+                                }
+                              }
+                            },
+                            "configMap": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "The name of the ConfigMap"
+                                }
+                              }
+                            },
+                            "secret": {
+                              "type": "object",
+                              "properties": {
+                                "secretName": {
+                                  "type": "string",
+                                  "description": "The name of the Secret"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
+                        }
+                      },
+                      "volumeMounts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "volume name"
+                            },
+                            "mountPath": {
+                              "type": "string",
+                              "description": "volume mount path"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "mountPath"
+                          ]
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -9294,53 +9417,6 @@
                                 "name",
                                 "image"
                               ]
-                            },
-                            "volumes": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "Volume name"
-                                  },
-                                  "emptyDir": {
-                                    "type": "object",
-                                    "description": "Configuration for an emptyDir volume"
-                                  },
-                                  "persistentVolumeClaim": {
-                                    "type": "object",
-                                    "properties": {
-                                      "claimName": {
-                                        "type": "string",
-                                        "description": "The name of the PersistentVolumeClaim"
-                                      }
-                                    }
-                                  },
-                                  "configMap": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "description": "The name of the ConfigMap"
-                                      }
-                                    }
-                                  },
-                                  "secret": {
-                                    "type": "object",
-                                    "properties": {
-                                      "secretName": {
-                                        "type": "string",
-                                        "description": "The name of the Secret"
-                                      }
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "name"
-                                ]
-                              }
                             },
                             "volumeMounts": {
                               "type": "array",
@@ -9378,12 +9454,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -9794,6 +9864,73 @@
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       },
+                      "volumes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Volume name"
+                            },
+                            "emptyDir": {
+                              "type": "object",
+                              "description": "Configuration for an emptyDir volume"
+                            },
+                            "persistentVolumeClaim": {
+                              "type": "object",
+                              "properties": {
+                                "claimName": {
+                                  "type": "string",
+                                  "description": "The name of the PersistentVolumeClaim"
+                                }
+                              }
+                            },
+                            "configMap": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "The name of the ConfigMap"
+                                }
+                              }
+                            },
+                            "secret": {
+                              "type": "object",
+                              "properties": {
+                                "secretName": {
+                                  "type": "string",
+                                  "description": "The name of the Secret"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
+                        }
+                      },
+                      "volumeMounts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "volume name"
+                            },
+                            "mountPath": {
+                              "type": "string",
+                              "description": "volume mount path"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "mountPath"
+                          ]
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -9818,53 +9955,6 @@
                                 "name",
                                 "image"
                               ]
-                            },
-                            "volumes": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "Volume name"
-                                  },
-                                  "emptyDir": {
-                                    "type": "object",
-                                    "description": "Configuration for an emptyDir volume"
-                                  },
-                                  "persistentVolumeClaim": {
-                                    "type": "object",
-                                    "properties": {
-                                      "claimName": {
-                                        "type": "string",
-                                        "description": "The name of the PersistentVolumeClaim"
-                                      }
-                                    }
-                                  },
-                                  "configMap": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "description": "The name of the ConfigMap"
-                                      }
-                                    }
-                                  },
-                                  "secret": {
-                                    "type": "object",
-                                    "properties": {
-                                      "secretName": {
-                                        "type": "string",
-                                        "description": "The name of the Secret"
-                                      }
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "name"
-                                ]
-                              }
                             },
                             "volumeMounts": {
                               "type": "array",
@@ -9902,12 +9992,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -10260,6 +10344,73 @@
                           "nullable": true,
                           "description": "the extension name that will be attached to a file when downloading algorithm result"
                         },
+                        "volumes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Volume name"
+                              },
+                              "emptyDir": {
+                                "type": "object",
+                                "description": "Configuration for an emptyDir volume"
+                              },
+                              "persistentVolumeClaim": {
+                                "type": "object",
+                                "properties": {
+                                  "claimName": {
+                                    "type": "string",
+                                    "description": "The name of the PersistentVolumeClaim"
+                                  }
+                                }
+                              },
+                              "configMap": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string",
+                                    "description": "The name of the ConfigMap"
+                                  }
+                                }
+                              },
+                              "secret": {
+                                "type": "object",
+                                "properties": {
+                                  "secretName": {
+                                    "type": "string",
+                                    "description": "The name of the Secret"
+                                  }
+                                }
+                              }
+                            },
+                            "required": [
+                              "name"
+                            ]
+                          }
+                        },
+                        "volumeMounts": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "volume name"
+                              },
+                              "mountPath": {
+                                "type": "string",
+                                "description": "volume mount path"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "mountPath"
+                            ]
+                          }
+                        },
                         "sideCars": {
                           "type": "array",
                           "nullable": true,
@@ -10284,53 +10435,6 @@
                                   "name",
                                   "image"
                                 ]
-                              },
-                              "volumes": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                                  "properties": {
-                                    "name": {
-                                      "type": "string",
-                                      "description": "Volume name"
-                                    },
-                                    "emptyDir": {
-                                      "type": "object",
-                                      "description": "Configuration for an emptyDir volume"
-                                    },
-                                    "persistentVolumeClaim": {
-                                      "type": "object",
-                                      "properties": {
-                                        "claimName": {
-                                          "type": "string",
-                                          "description": "The name of the PersistentVolumeClaim"
-                                        }
-                                      }
-                                    },
-                                    "configMap": {
-                                      "type": "object",
-                                      "properties": {
-                                        "name": {
-                                          "type": "string",
-                                          "description": "The name of the ConfigMap"
-                                        }
-                                      }
-                                    },
-                                    "secret": {
-                                      "type": "object",
-                                      "properties": {
-                                        "secretName": {
-                                          "type": "string",
-                                          "description": "The name of the Secret"
-                                        }
-                                      }
-                                    }
-                                  },
-                                  "required": [
-                                    "name"
-                                  ]
-                                }
                               },
                               "volumeMounts": {
                                 "type": "array",
@@ -10368,12 +10472,6 @@
                                 "name": "c1",
                                 "image": "hkube/my-image"
                               },
-                              "volumes": [
-                                {
-                                  "name": "v1",
-                                  "emptyDir": {}
-                                }
-                              ],
                               "volumeMounts": [
                                 {
                                   "name": "v1",
@@ -17888,6 +17986,73 @@
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       },
+                      "volumes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Volume name"
+                            },
+                            "emptyDir": {
+                              "type": "object",
+                              "description": "Configuration for an emptyDir volume"
+                            },
+                            "persistentVolumeClaim": {
+                              "type": "object",
+                              "properties": {
+                                "claimName": {
+                                  "type": "string",
+                                  "description": "The name of the PersistentVolumeClaim"
+                                }
+                              }
+                            },
+                            "configMap": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "The name of the ConfigMap"
+                                }
+                              }
+                            },
+                            "secret": {
+                              "type": "object",
+                              "properties": {
+                                "secretName": {
+                                  "type": "string",
+                                  "description": "The name of the Secret"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
+                        }
+                      },
+                      "volumeMounts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "volume name"
+                            },
+                            "mountPath": {
+                              "type": "string",
+                              "description": "volume mount path"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "mountPath"
+                          ]
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -17912,53 +18077,6 @@
                                 "name",
                                 "image"
                               ]
-                            },
-                            "volumes": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "Volume name"
-                                  },
-                                  "emptyDir": {
-                                    "type": "object",
-                                    "description": "Configuration for an emptyDir volume"
-                                  },
-                                  "persistentVolumeClaim": {
-                                    "type": "object",
-                                    "properties": {
-                                      "claimName": {
-                                        "type": "string",
-                                        "description": "The name of the PersistentVolumeClaim"
-                                      }
-                                    }
-                                  },
-                                  "configMap": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "description": "The name of the ConfigMap"
-                                      }
-                                    }
-                                  },
-                                  "secret": {
-                                    "type": "object",
-                                    "properties": {
-                                      "secretName": {
-                                        "type": "string",
-                                        "description": "The name of the Secret"
-                                      }
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "name"
-                                ]
-                              }
                             },
                             "volumeMounts": {
                               "type": "array",
@@ -17996,12 +18114,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -18417,6 +18529,73 @@
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
                       },
+                      "volumes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Volume name"
+                            },
+                            "emptyDir": {
+                              "type": "object",
+                              "description": "Configuration for an emptyDir volume"
+                            },
+                            "persistentVolumeClaim": {
+                              "type": "object",
+                              "properties": {
+                                "claimName": {
+                                  "type": "string",
+                                  "description": "The name of the PersistentVolumeClaim"
+                                }
+                              }
+                            },
+                            "configMap": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "description": "The name of the ConfigMap"
+                                }
+                              }
+                            },
+                            "secret": {
+                              "type": "object",
+                              "properties": {
+                                "secretName": {
+                                  "type": "string",
+                                  "description": "The name of the Secret"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
+                        }
+                      },
+                      "volumeMounts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "volume name"
+                            },
+                            "mountPath": {
+                              "type": "string",
+                              "description": "volume mount path"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "mountPath"
+                          ]
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -18441,53 +18620,6 @@
                                 "name",
                                 "image"
                               ]
-                            },
-                            "volumes": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                                "properties": {
-                                  "name": {
-                                    "type": "string",
-                                    "description": "Volume name"
-                                  },
-                                  "emptyDir": {
-                                    "type": "object",
-                                    "description": "Configuration for an emptyDir volume"
-                                  },
-                                  "persistentVolumeClaim": {
-                                    "type": "object",
-                                    "properties": {
-                                      "claimName": {
-                                        "type": "string",
-                                        "description": "The name of the PersistentVolumeClaim"
-                                      }
-                                    }
-                                  },
-                                  "configMap": {
-                                    "type": "object",
-                                    "properties": {
-                                      "name": {
-                                        "type": "string",
-                                        "description": "The name of the ConfigMap"
-                                      }
-                                    }
-                                  },
-                                  "secret": {
-                                    "type": "object",
-                                    "properties": {
-                                      "secretName": {
-                                        "type": "string",
-                                        "description": "The name of the Secret"
-                                      }
-                                    }
-                                  }
-                                },
-                                "required": [
-                                  "name"
-                                ]
-                              }
                             },
                             "volumeMounts": {
                               "type": "array",
@@ -18525,12 +18657,6 @@
                               "name": "c1",
                               "image": "hkube/my-image"
                             },
-                            "volumes": [
-                              {
-                                "name": "v1",
-                                "emptyDir": {}
-                              }
-                            ],
                             "volumeMounts": [
                               {
                                 "name": "v1",
@@ -23281,6 +23407,73 @@
             "nullable": true,
             "description": "the extension name that will be attached to a file when downloading algorithm result"
           },
+          "volumes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Volume name"
+                },
+                "emptyDir": {
+                  "type": "object",
+                  "description": "Configuration for an emptyDir volume"
+                },
+                "persistentVolumeClaim": {
+                  "type": "object",
+                  "properties": {
+                    "claimName": {
+                      "type": "string",
+                      "description": "The name of the PersistentVolumeClaim"
+                    }
+                  }
+                },
+                "configMap": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the ConfigMap"
+                    }
+                  }
+                },
+                "secret": {
+                  "type": "object",
+                  "properties": {
+                    "secretName": {
+                      "type": "string",
+                      "description": "The name of the Secret"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "volumeMounts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "volume name"
+                },
+                "mountPath": {
+                  "type": "string",
+                  "description": "volume mount path"
+                }
+              },
+              "required": [
+                "name",
+                "mountPath"
+              ]
+            }
+          },
           "sideCars": {
             "type": "array",
             "nullable": true,
@@ -23305,53 +23498,6 @@
                     "name",
                     "image"
                   ]
-                },
-                "volumes": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "Volume name"
-                      },
-                      "emptyDir": {
-                        "type": "object",
-                        "description": "Configuration for an emptyDir volume"
-                      },
-                      "persistentVolumeClaim": {
-                        "type": "object",
-                        "properties": {
-                          "claimName": {
-                            "type": "string",
-                            "description": "The name of the PersistentVolumeClaim"
-                          }
-                        }
-                      },
-                      "configMap": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "The name of the ConfigMap"
-                          }
-                        }
-                      },
-                      "secret": {
-                        "type": "object",
-                        "properties": {
-                          "secretName": {
-                            "type": "string",
-                            "description": "The name of the Secret"
-                          }
-                        }
-                      }
-                    },
-                    "required": [
-                      "name"
-                    ]
-                  }
                 },
                 "volumeMounts": {
                   "type": "array",
@@ -23389,12 +23535,6 @@
                   "name": "c1",
                   "image": "hkube/my-image"
                 },
-                "volumes": [
-                  {
-                    "name": "v1",
-                    "emptyDir": {}
-                  }
-                ],
                 "volumeMounts": [
                   {
                     "name": "v1",
@@ -23922,6 +24062,73 @@
                 "nullable": true,
                 "description": "the extension name that will be attached to a file when downloading algorithm result"
               },
+              "volumes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Volume name"
+                    },
+                    "emptyDir": {
+                      "type": "object",
+                      "description": "Configuration for an emptyDir volume"
+                    },
+                    "persistentVolumeClaim": {
+                      "type": "object",
+                      "properties": {
+                        "claimName": {
+                          "type": "string",
+                          "description": "The name of the PersistentVolumeClaim"
+                        }
+                      }
+                    },
+                    "configMap": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "The name of the ConfigMap"
+                        }
+                      }
+                    },
+                    "secret": {
+                      "type": "object",
+                      "properties": {
+                        "secretName": {
+                          "type": "string",
+                          "description": "The name of the Secret"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              "volumeMounts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "volume name"
+                    },
+                    "mountPath": {
+                      "type": "string",
+                      "description": "volume mount path"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "mountPath"
+                  ]
+                }
+              },
               "sideCars": {
                 "type": "array",
                 "nullable": true,
@@ -23946,53 +24153,6 @@
                         "name",
                         "image"
                       ]
-                    },
-                    "volumes": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "Volume name"
-                          },
-                          "emptyDir": {
-                            "type": "object",
-                            "description": "Configuration for an emptyDir volume"
-                          },
-                          "persistentVolumeClaim": {
-                            "type": "object",
-                            "properties": {
-                              "claimName": {
-                                "type": "string",
-                                "description": "The name of the PersistentVolumeClaim"
-                              }
-                            }
-                          },
-                          "configMap": {
-                            "type": "object",
-                            "properties": {
-                              "name": {
-                                "type": "string",
-                                "description": "The name of the ConfigMap"
-                              }
-                            }
-                          },
-                          "secret": {
-                            "type": "object",
-                            "properties": {
-                              "secretName": {
-                                "type": "string",
-                                "description": "The name of the Secret"
-                              }
-                            }
-                          }
-                        },
-                        "required": [
-                          "name"
-                        ]
-                      }
                     },
                     "volumeMounts": {
                       "type": "array",
@@ -24030,12 +24190,6 @@
                       "name": "c1",
                       "image": "hkube/my-image"
                     },
-                    "volumes": [
-                      {
-                        "name": "v1",
-                        "emptyDir": {}
-                      }
-                    ],
                     "volumeMounts": [
                       {
                         "name": "v1",
@@ -24114,53 +24268,6 @@
               "image"
             ]
           },
-          "volumes": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "Volume name"
-                },
-                "emptyDir": {
-                  "type": "object",
-                  "description": "Configuration for an emptyDir volume"
-                },
-                "persistentVolumeClaim": {
-                  "type": "object",
-                  "properties": {
-                    "claimName": {
-                      "type": "string",
-                      "description": "The name of the PersistentVolumeClaim"
-                    }
-                  }
-                },
-                "configMap": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "The name of the ConfigMap"
-                    }
-                  }
-                },
-                "secret": {
-                  "type": "object",
-                  "properties": {
-                    "secretName": {
-                      "type": "string",
-                      "description": "The name of the Secret"
-                    }
-                  }
-                }
-              },
-              "required": [
-                "name"
-              ]
-            }
-          },
           "volumeMounts": {
             "type": "array",
             "description": "key-value pairs of names and mountPaths",
@@ -24189,24 +24296,7 @@
           }
         }
       },
-      "sidecarVolumeMounts": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "volume name"
-          },
-          "mountPath": {
-            "type": "string",
-            "description": "volume mount path"
-          }
-        },
-        "required": [
-          "name",
-          "mountPath"
-        ]
-      },
-      "sidecarVolume": {
+      "volumes": {
         "type": "object",
         "description": "Fill one of the volume types (emptyDir, PVC, CM, Secret)",
         "properties": {
@@ -24248,6 +24338,23 @@
         },
         "required": [
           "name"
+        ]
+      },
+      "volumeMounts": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "volume name"
+          },
+          "mountPath": {
+            "type": "string",
+            "description": "volume mount path"
+          }
+        },
+        "required": [
+          "name",
+          "mountPath"
         ]
       },
       "createBoardRequest": {

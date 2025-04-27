@@ -89,42 +89,37 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
 };
 
 /**
- * Checks the availability of volumes in sidecar containers.
+ * Checks the availability of volumes.
  * 
- * This method checks whether each volume (PVC, ConfigMap, or Secret) in the sidecar containers exists based on the provided list of all available volumes.
+ * This method checks whether each volume (PVC, ConfigMap, or Secret) in requested volumes exists based on the provided list of all available volumes.
  * It returns an array of names of volumes that do not exist.
  * 
- * @param {Array<Object>} sideCars - An array of sidecar containers.
- * Each sidecar object must contain a `volume` field, which can have `persistentVolumeClaim`, `configMap`, or `secret` properties.
+ * @param {Array<Object>} requestedVolumes - An array of requested volumes.
+ * Each volume can have `persistentVolumeClaim`, `configMap`, or `secret` properties.
  * @param {Object} allVolumes - An object containing all available PVCs, ConfigMaps, and Secrets with their names.
  * @returns {Array<string>} An array of names of missing volumes. If all volumes exist, the array will be empty.
  */
-const _getMissingSideCarVolumes = (sideCars, allVolumes) => {
-    if (!sideCars || sideCars.length === 0) return [];
+const _getMissingVolumes = (requestedVolumes, allVolumes) => {
+    if (!requestedVolumes || requestedVolumes.length === 0) return [];
     const missingVolumes = [];
-    sideCars.forEach(sideCar => {
-        const { volumes } = sideCar;
-        if (volumes) {
-            volumes.forEach(volume => {
-                if (volume.persistentVolumeClaim) {
-                    const name = volume.persistentVolumeClaim.claimName;
-                    if (!allVolumes.pvcs.find(pvcName => pvcName === name)) {
-                        missingVolumes.push(name);
-                    }
-                }
-                if (volume.configMap) {
-                    const { name } = volume.configMap;
-                    if (!allVolumes.configMaps.find(configMapName => configMapName === name)) {
-                        missingVolumes.push(name);
-                    }
-                }
-                if (volume.secret) {
-                    const name = volume.secret.secretName;
-                    if (!allVolumes.secrets.find(secretName => secretName === name)) {
-                        missingVolumes.push(name);
-                    }
-                }
-            });
+    requestedVolumes.forEach(volume => {
+        if (volume.persistentVolumeClaim) {
+            const name = volume.persistentVolumeClaim.claimName;
+            if (!allVolumes.pvcs.find(pvcName => pvcName === name)) {
+                missingVolumes.push(name);
+            }
+        }
+        if (volume.configMap) {
+            const { name } = volume.configMap;
+            if (!allVolumes.configMaps.find(configMapName => configMapName === name)) {
+                missingVolumes.push(name);
+            }
+        }
+        if (volume.secret) {
+            const name = volume.secret.secretName;
+            if (!allVolumes.secrets.find(secretName => secretName === name)) {
+                missingVolumes.push(name);
+            }
         }
     });
     return missingVolumes;
@@ -184,9 +179,9 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) =>
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
     }
 
-    const missingSideCarVolumes = _getMissingSideCarVolumes(jobDetails.sideCars, allVolumes);
-    if (missingSideCarVolumes.length > 0) {
-        const warning = createWarning({ jobDetails, missingSideCarVolumes, code: warningCodes.INVALID_VOLUME });
+    const missingVolumes = _getMissingVolumes(jobDetails.volumes, allVolumes);
+    if (missingVolumes.length > 0) {
+        const warning = createWarning({ jobDetails, missingVolumes, code: warningCodes.INVALID_VOLUME });
         return {
             shouldAdd: false,
             warning,

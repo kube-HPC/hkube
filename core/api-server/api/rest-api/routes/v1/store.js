@@ -101,22 +101,47 @@ const routes = (option) => {
         const { file, body } = req;
         const userName = keycloak.getPreferredUsername(req);
         try {
-            if (Array.isArray(body.payload)) {
-                const returnAlgoList = await Promise.all(
-                    body.payload.map(async (algorithmData) => {
-                        const { payload, options } = await _processPayLoadAndOptions(algorithmData, body.options);
-                        options.failOnError = false;
-                        const response = await algorithmStore.insertAlgorithm({ payload, options, userName });
-                        return response;
-                    })
-                );
-                res.status(HttpStatus.StatusCodes.CREATED).json(returnAlgoList);
+            if (body.payload !== undefined) { // New way
+                if (Array.isArray(body.payload)) {
+                    const returnAlgoList = await Promise.all(
+                        body.payload.map(async (algorithmData) => {
+                            const { payload, options } = await _processPayLoadAndOptions(algorithmData, body.options);
+                            options.failOnError = false;
+                            const response = await algorithmStore.insertAlgorithm({ payload, options, userName });
+                            return response;
+                        })
+                    );
+                    res.status(HttpStatus.StatusCodes.CREATED).json(returnAlgoList);
+                }
+                else {
+                    // If req.body.payload is not an array, process it as a single algorithm
+                    const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
+                    const response = await algorithmStore.insertAlgorithm({ payload, options, file, userName });
+                    res.status(HttpStatus.StatusCodes.CREATED).json(response);
+                }
             }
-            else {
-                // If req.body.payload is not an array, process it as a single algorithm
-                const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
-                const response = await algorithmStore.insertAlgorithm({ payload, options, file, userName });
-                res.status(HttpStatus.StatusCodes.CREATED).json(response);
+            else { // Old way
+                const allowOverwrite = req.query.overwrite;
+                if (Array.isArray(req.body)) {
+                    const returnAlgoList = await Promise.all(
+                        req.body.map(async (algorithmData) => {
+                            const payload = algorithmData;
+                            const options = { failOnError: false, allowOverwrite };
+                            const response = await algorithmStore.insertAlgorithm({ payload, options, userName });
+                            const { algorithm } = response;
+                            return algorithm || response;
+                        })
+                    );
+                    res.status(HttpStatus.StatusCodes.CREATED).json(returnAlgoList);
+                }
+                else {
+                    // If req.body is not an array, process it as a single algorithm
+                    const payload = req.body;
+                    const options = { failOnError: true, allowOverwrite };
+                    const response = await algorithmStore.insertAlgorithm({ payload, options, userName });
+                    const { algorithm } = response;
+                    res.status(HttpStatus.StatusCodes.CREATED).json(algorithm || response);
+                }
             }
         }
         finally {
@@ -129,9 +154,19 @@ const routes = (option) => {
         const { file, body } = req;
         const userName = keycloak.getPreferredUsername(req);
         try {
-            const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
-            const response = await algorithmStore.updateAlgorithm({ payload, options, file, userName });
-            res.json(response);
+            if (body.payload !== undefined) { // New way
+                const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
+                const response = await algorithmStore.updateAlgorithm({ payload, options, file, userName });
+                res.json(response);
+            }
+            else { // Old way
+                const forceUpdate = req?.query?.forceStopAndApplyVersion === 'true';
+                const payload = req.body;
+                const options = { forceUpdate };
+                const response = await algorithmStore.updateAlgorithm({ payload, options, userName });
+                const { algorithm } = response;
+                res.json(algorithm || response);
+            }
         }
         finally {
             if (file?.path) {
