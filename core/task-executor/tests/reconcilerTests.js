@@ -1018,7 +1018,7 @@ describe('reconciler', () => {
             const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
             const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
-            expect(algorithms[algorithm.name].message).to.eql('Job is invalid: mycar.resources.requests: Invalid value: 3: must be less than or equal to cpu limit');
+            expect(algorithms[algorithm.name].message).to.eql('Kubernetes Job is invalid: mycar.resources.requests: Invalid value: 3: must be less than or equal to cpu limit');
             expect(algorithms[algorithm.name].surpassTimeout).to.be.true;
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         }).timeout(1000000);
