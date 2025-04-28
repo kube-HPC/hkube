@@ -459,6 +459,50 @@ describe('Store/Algorithms', () => {
                 expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
             });
 
+            it('stored algorithm version should have creator', async () => {
+                const body = { payload: JSON.stringify({
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image'
+                }) };
+                const options = {
+                    uri: restPath,
+                    body
+                };
+                const response = await request(options);
+                const { version, name, ...algorithm } = response.body.algorithm;
+                const optionsVersionGet = {
+                    uri:`${restUrl}/versions/algorithms/${name}/${version}`,
+                    method: 'GET'
+                }
+                const responseVersion = await request(optionsVersionGet)
+                expect(responseVersion.body).to.have.property('createdBy');
+            });
+
+            it('should succeed to store algorithm and have auditTrail', async () => {
+                const body = { payload: JSON.stringify({
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image'
+                }) };
+                const options = {
+                    uri: restPath,
+                    body
+                };
+                const response = await request(options);
+                const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(algorithm).to.have.property('auditTrail');
+                expect(algorithm.auditTrail[0]).to.have.property('user');
+                expect(algorithm.auditTrail[0]).to.have.property('timestamp');
+                expect(algorithm.auditTrail[0]).to.have.property('version');
+                expect(algorithm.auditTrail[0].timestamp).to.not.be.null;
+            });
+
             it('should succeed to store algorithm with devMode', async () => {
                 const body = { payload: JSON.stringify({
                     name: uuid(),
@@ -2751,6 +2795,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response3 = await request(request3);
                 const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
+                expect(auditTrail.length).to.be.eql(2);
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 

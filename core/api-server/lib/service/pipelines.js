@@ -255,7 +255,7 @@ class PipelineService {
             modified: Date.now(),
             ...options,
         };
-        const version = await this._versioning(true, newPipeline);
+        const version = await this._versioning(true, newPipeline, userName);
         newPipeline.version = version;
         await stateManager.insertPipeline(newPipeline);
         return newPipeline;
