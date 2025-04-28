@@ -20,6 +20,7 @@ const gitRepo = 'https://github.com/kube-HPC/hkube';
 const hkubeRepo = '/repos/kube-HPC/hkube/commits';
 const emptyGit = '/repos/hkube/empty/commits';
 const fullGit = '/repos/hkube/my.git.foo.bar/commits';
+const config = require('../config/main/config.base.js');
 
 describe('Store/Algorithms', () => {
     before(() => {
@@ -479,6 +480,7 @@ describe('Store/Algorithms', () => {
                 }
                 const responseVersion = await request(optionsVersionGet)
                 expect(responseVersion.body).to.have.property('createdBy');
+                expect(responseVersion.body.createdBy).to.eql(config.keycloak.defaultUserAuditingName)
             });
 
             it('should succeed to store algorithm and have auditTrail', async () => {
@@ -498,6 +500,7 @@ describe('Store/Algorithms', () => {
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.have.property('auditTrail');
                 expect(algorithm.auditTrail[0]).to.have.property('user');
+                expect(algorithm.auditTrail[0].user).to.eql(config.keycloak.defaultUserAuditingName);
                 expect(algorithm.auditTrail[0]).to.have.property('timestamp');
                 expect(algorithm.auditTrail[0]).to.have.property('version');
                 expect(algorithm.auditTrail[0].timestamp).to.not.be.null;

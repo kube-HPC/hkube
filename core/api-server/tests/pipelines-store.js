@@ -6,6 +6,7 @@ const { uuid } = require('@hkube/uid');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
 const stateManager = require('../lib/state/state-manager');
+const config = require('../config/main/config.base.js');
 let restUrl, restPath;
 
 describe('Store/Pipelines', () => {
@@ -749,6 +750,7 @@ describe('Store/Pipelines', () => {
             delete response.body.modified;
             const { auditTrail, ...body} = response.body;
             expect(auditTrail[0]).to.have.property('user');
+            expect(auditTrail[0].user).to.eql(config.keycloak.defaultUserAuditingName)
             expect(auditTrail[0]).to.have.property('timestamp');
             expect(auditTrail[0]).to.have.property('version');
             expect(auditTrail[0].timestamp).to.not.be.null;
@@ -1000,7 +1002,8 @@ describe('Store/Pipelines', () => {
                 method: 'GET'
             }
             const responseVersion = await request(optionsVersionGet)
-            expect(responseVersion.body).to.have.property('createdBy');}
-        );
+            expect(responseVersion.body).to.have.property('createdBy');
+            expect(responseVersion.body.createdBy).to.eql(config.keycloak.defaultUserAuditingName)
+    });
     });
 });
