@@ -113,7 +113,7 @@ const _createJobCreationFailedWarning = ({ jobDetails, code, message: givenMessa
     const _formatErrorMessage = (message) => {
         try {
             // 1. Replace "Job.batch <jobName>" with just "Job"
-            message = message.replace(/^Job\.\w+ "\S+"/, 'Job');
+            message = message.replace(/^Job\.\w+ "\S+"/, 'Kubernetes Job');
     
             // 2. Extract the path (everything between "is invalid: " and the first colon)
             const pathMatch = message.match(/is invalid: ([^:]+):/);
