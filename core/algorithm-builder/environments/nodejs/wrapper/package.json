@@ -7,10 +7,12 @@
     "start": "node app",
     "build": "./dockerfile/build.sh nodejs-env"
   },
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "@hkube/nodejs-wrapper": "^2.1.2"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "engines": {
+    "npm": ">=8.8.0"
+  }
 }
