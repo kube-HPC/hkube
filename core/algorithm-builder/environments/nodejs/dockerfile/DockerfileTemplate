@@ -1,27 +1,15 @@
 # ------------------- 1st Stage: Install only wrapper dependencies -------------------
 FROM ${DOCKER_PULL_REGISTRY_USER}/node:18.1.0-buster AS wrapper
 
-RUN apt-get update && \
-    apt-get install -y python3 make g++ && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN npm config set python /usr/bin/python3
-
 COPY ./wrapper/package.json ./wrapper/package-lock.json /hkube/algorithm-runner/
 # COPY ./wrapper/package.json /hkube/algorithm-runner/
 WORKDIR /hkube/algorithm-runner/
 RUN npm ci --registry=http://artifacts-registry:8081/hkube/artifacts-registry/repository/npm
 # RUN npm --registry=http://artifacts-registry:8081/hkube/artifacts-registry/repository/npm install
 
-
 # ------------------- 2nd Stage: Install algorithm dependencies -------------------
 FROM ${baseImage} AS build
 LABEL maintainer="hkube.dev@gmail.com"
-
-RUN apt-get update && \
-    apt-get install -y python3 make g++ && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN npm config set python /usr/bin/python3
 
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
 
