@@ -257,6 +257,12 @@ class PipelineService {
         };
         const version = await this._versioning(true, newPipeline, userName);
         newPipeline.version = version;
+        const auditEntry = {
+            user: userName,
+            timestamp: newPipeline.modified,
+            version: newPipeline.version
+        };
+        newPipeline.auditTrail = [auditEntry];
         await stateManager.insertPipeline(newPipeline);
         return newPipeline;
     }

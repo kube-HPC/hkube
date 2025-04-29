@@ -408,6 +408,7 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('version');
             delete response.body.version;
             delete response.body.modified;
+            delete response.body.auditTrail;
             expect(response.body).to.eql(pipeline);
             const storedPipeline = await request({
                 uri: restPath + '/' + pipeline.name,
@@ -417,7 +418,9 @@ describe('Store/Pipelines', () => {
             delete actual.modified;
             expect(actual).to.have.property('version');
             delete actual.version;
-            expect(actual).to.eql(pipeline);
+            const { auditTrail, ...pipe } = actual
+            expect(auditTrail.length).to.eql(1) // first insert should have one audit
+            expect(pipe).to.eql(pipeline);
         });
         it('should succeed to store pipeline and add defaults', async () => {
             const name = uuid();
