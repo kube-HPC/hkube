@@ -1,11 +1,11 @@
 # ------------------- 1st Stage: Install only wrapper dependencies -------------------
 FROM ${DOCKER_PULL_REGISTRY_USER}/node:18.1.0-buster AS wrapper
 
-COPY ./wrapper/package.json ./wrapper/package-lock.json /hkube/algorithm-runner/
-# COPY ./wrapper/package.json /hkube/algorithm-runner/
+# COPY ./wrapper/package.json ./wrapper/package-lock.json /hkube/algorithm-runner/
+COPY ./wrapper/package.json /hkube/algorithm-runner/
 WORKDIR /hkube/algorithm-runner/
-RUN npm ci --registry=http://artifacts-registry:8081/hkube/artifacts-registry/repository/npm
-# RUN npm --registry=http://artifacts-registry:8081/hkube/artifacts-registry/repository/npm install
+# RUN npm ci --registry=http://artifacts-registry:8081/hkube/artifacts-registry/repository/npm
+RUN npm --registry=http://artifacts-registry:8081/hkube/artifacts-registry/repository/npm install
 
 # ------------------- 2nd Stage: Install algorithm dependencies -------------------
 FROM ${baseImage} AS build
@@ -13,8 +13,7 @@ LABEL maintainer="hkube.dev@gmail.com"
 
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
 
-COPY ./algorithm_unique_folder/package.json ./algorithm_unique_folder/package-lock.json ./
-# COPY ./algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
+COPY ./algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./dockerfile /hkube/algorithm-runner/dockerfile
 
 ENV packagesRegistry=${packagesRegistry}
@@ -23,13 +22,12 @@ ENV packagesAuth=${packagesAuth}
 ENV dependency_install_cmd=${dependency_install_cmd}
 
 RUN /hkube/algorithm-runner/dockerfile/requirements.sh
-# RUN ../dockerfile/requirements.sh
 
 # ------------------- Final Stage: Build Final Image -------------------
 FROM ${baseImage}
 RUN mkdir -p /hkube-logs
 
-# COPY ./wrapper /hkube/algorithm-runner
+COPY ./wrapper /hkube/algorithm-runner
 COPY --from=wrapper /hkube/algorithm-runner/ /hkube/algorithm-runner/
 COPY ./nodemon ./docker-entrypoint.sh /hkube/
 COPY --from=build /hkube/algorithm-runner/algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
