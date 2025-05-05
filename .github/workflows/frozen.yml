@@ -53,7 +53,7 @@ jobs:
           echo ${CHANGED}
           npm install -g npm@9.5.0
           if [ ! -z "$CHANGED" ]; then
-            echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec npm ci  -loglevel  verbose --scope {}
+            echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec "npm ci  -loglevel  verbose" --scope {}
           fi
           echo CHANGED=$CHANGED >> $GITHUB_ENV
       - name: build and test
