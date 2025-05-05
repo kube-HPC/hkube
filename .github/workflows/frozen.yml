@@ -51,6 +51,7 @@ jobs:
         run: |
           export CHANGED=$(lerna changed --includeMergedTags)||true
           echo ${CHANGED}
+          npm install -g npm@9.5.0
           if [ ! -z "$CHANGED" ]; then
             echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec npm ci --scope {}
           fi
