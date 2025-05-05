@@ -50,7 +50,8 @@
         "request-promise": "^4.2.5",
         "socket.io": "^2.3.0",
         "tail": "^2.0.3",
-        "ws": "^7.2.3"
+        "ws": "^7.2.3",
+        "zeromq": "^6.4.2"
     },
     "devDependencies": {
         "chai": "^4.2.0",
