@@ -47,13 +47,20 @@ jobs:
       - run: |
           npm ci
           echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "v3.10"
+          architecture: x64
+          run: |
+            `pip install --upgrade wheel
+            python setup.py sdist bdist_wheel          
       - name: bootstrap
         run: |
           export CHANGED=$(lerna changed --includeMergedTags)||true
           echo ${CHANGED}
-          npm install -g npm@9.5.0
           if [ ! -z "$CHANGED" ]; then
-            echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec "npm ci  -loglevel  verbose" --scope {}
+            echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec npm ci --scope {}
           fi
           echo CHANGED=$CHANGED >> $GITHUB_ENV
       - name: build and test
