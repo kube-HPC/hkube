@@ -146,7 +146,7 @@ class LoggingProxy {
             return { disable };
         }
         if (algorunnerLogFileName && baseLogsPath && containerName === ALGORITHM_CONTAINER) {
-            return { algorunnerLogFileName, baseLogsPath };
+            return { logFileName: algorunnerLogFileName, baseLogsPath };
         }
         const kubeVersion = kubernetes.kubeVersion || {};
         const namespace = kubernetes.namespace || 'default';
