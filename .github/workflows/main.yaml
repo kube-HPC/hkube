@@ -48,6 +48,7 @@ jobs:
           node-version: 18.x
       - run: ./scripts/beforeInstall.sh
       - run: |
+          npm install zeromq@^6.4.2 --no-build
           npm ci
           echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
       - name: Setup Python
