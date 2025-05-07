@@ -82,7 +82,7 @@ class AlgorithmStore {
         return stateManager.searchAlgorithms({ name, kind, algorithmImage: algorithmImageBoolean, pending, cursor, page, sort, limit, fields: createQueryObjectFromString(fields) });
     }
 
-    async insertAlgorithm({ payload, options, file }) {
+    async insertAlgorithm({ payload, options, file, userName }) {
         const { failOnError = true, allowOverwrite } = options || {};
         try {
             validator.algorithms.validateAlgorithmName(payload);
@@ -105,7 +105,7 @@ class AlgorithmStore {
         if (alg) {
             if (allowOverwrite) {
                 try {
-                    const updatedAlgorithm = await this.updateAlgorithm({ payload, options: { forceUpdate: true }, file });
+                    const updatedAlgorithm = await this.updateAlgorithm({ payload, options: { forceUpdate: true }, userName });
                     return updatedAlgorithm;
                 }
                 catch (error) {
@@ -129,7 +129,7 @@ class AlgorithmStore {
             };
         }
         try {
-            const applyResponse = await this.applyAlgorithm({ payload, file });
+            const applyResponse = await this.applyAlgorithm({ payload, file, userName });
             return applyResponse;
         }
         catch (error) {
@@ -143,13 +143,13 @@ class AlgorithmStore {
         }
     }
 
-    async updateAlgorithm({ payload, options, file }) {
+    async updateAlgorithm({ payload, options, file, userName }) {
         validator.algorithms.validateAlgorithmName(payload);
         const alg = await stateManager.getAlgorithm(payload);
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', payload.name);
         }
-        const applyResponse = await this.applyAlgorithm({ payload, options, file });
+        const applyResponse = await this.applyAlgorithm({ payload, options, file, userName });
         return applyResponse;
     }
 
@@ -244,13 +244,13 @@ class AlgorithmStore {
         const { forceUpdate, forceBuild } = data.options || {};
         const { version, created, modified, ...payload } = data.payload;
         const file = { path: data.file?.path, name: data.file?.originalname };
+        const { userName } = data;
 
         if (!payload.name) {
             throw new InvalidDataError('algorithm should have required property "name"');
         }
 
         const oldAlgorithm = await stateManager.getAlgorithm(payload);
-
         if (!oldAlgorithm && !payload.type && !file.path && payload.algorithmImage && payload.fileInfo) {
             delete payload.fileInfo;
         }
@@ -288,7 +288,7 @@ class AlgorithmStore {
             newAlgorithm.reservedMemory = `${reservedMemory}Mi`;
         }
 
-        const newVersion = await this._versioning(hasDiff, newAlgorithm, buildId);
+        const newVersion = await this._versioning(hasDiff, newAlgorithm, buildId, userName);
         if (newVersion) {
             newAlgorithm.version = newVersion;
             messages.push(format(MESSAGES.VERSION_CREATED, { algorithmName: newAlgorithm.name }));
@@ -302,6 +302,20 @@ class AlgorithmStore {
         if (shouldStoreOverride || shouldStoreFirstApply) {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             messagesCode.push(errorsCode.ALGORITHM_PUSHED);
+            const auditEntry = {
+                user: userName,
+                timestamp: null,
+                version: newVersion
+            };
+            if (shouldStoreOverride) {
+                newAlgorithm.auditTrail = [
+                    auditEntry,
+                    ...newAlgorithm.auditTrail || []
+                ];
+            }
+            else {
+                newAlgorithm.auditTrail = [auditEntry];
+            } // shouldStoreFirstApply
             await stateManager.updateAlgorithm(newAlgorithm);
         }
         return { buildId, messages, messagesCode, algorithm: newAlgorithm };
@@ -385,10 +399,10 @@ class AlgorithmStore {
         return newAlgorithm;
     }
 
-    async _versioning(hasDiff, algorithm, buildId) {
+    async _versioning(hasDiff, algorithm, buildId, userName) {
         let version;
         if (hasDiff && algorithm.algorithmImage && !buildId) {
-            version = await versionsService.createVersion(algorithm);
+            version = await versionsService.createVersion(algorithm, undefined, userName);
         }
         return version;
     }

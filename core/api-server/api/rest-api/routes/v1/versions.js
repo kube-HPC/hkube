@@ -22,7 +22,8 @@ const routes = (options) => {
         res.json(response);
     });
     router.post('/algorithms/apply', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
-        const response = await algoVersionsService.applyVersion(req.body);
+        const userName = keycloak.getPreferredUsername(req);
+        const response = await algoVersionsService.applyVersion(req.body, userName);
         res.status(HttpStatus.StatusCodes.CREATED).json(response);
     });
     router.post('/algorithms/tag', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
@@ -46,7 +47,8 @@ const routes = (options) => {
         res.json(response);
     });
     router.post('/pipelines/apply', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
-        const response = await pipelineVersionsService.applyVersion(req.body);
+        const userName = keycloak.getPreferredUsername(req);
+        const response = await pipelineVersionsService.applyVersion(req.body, userName);
         res.status(HttpStatus.StatusCodes.CREATED).json(response);
     });
     router.delete('/pipelines/:name/:version', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {

@@ -198,8 +198,8 @@ describe('Versions/Algorithms', () => {
             const versionReq = { uri: `${restPath}/apply`, body: { version, name, force: true } };
             await request(exeRawPayload);
             const res2 = await request(versionReq);
-            const { created, modified, ...alg1 } = res1.body.algorithm;
-            const { created: c2, modified: m2, ...alg2 } = res2.body.algorithm;
+            const { created, modified, auditTrail, ...alg1 } = res1.body.algorithm;
+            const { created: c2, modified: m2, auditTrail:auditTrail1, ...alg2 } = res2.body.algorithm;
             expect(alg1).to.eql(alg2);
         });
         it('should succeed to forceUpdate', async () => {

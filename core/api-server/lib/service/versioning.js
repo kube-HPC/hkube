@@ -23,9 +23,19 @@ class Versioning {
             version,
             semver,
             created: Date.now(),
+            createdBy: object.userName,
             name,
             [isPipeline ? 'pipeline' : 'algorithm']: { ...extractedObject, version }
         };
+        // Remove audit from version to avoid db duplicacy.
+        if (!isPipeline) {
+            const { auditTrail, ...algorithmWithoutAudit } = newVersion.algorithm;
+            newVersion.algorithm = algorithmWithoutAudit;
+        }
+        else {
+            const { auditTrailPipe: auditTrail, ...pipelineWithoutAudit } = newVersion.pipeline;
+            newVersion.pipeline = pipelineWithoutAudit;
+        } // remove pipeline auditTrail from version
         await stateManager.createVersion(newVersion, isPipeline);
         return version;
     }
