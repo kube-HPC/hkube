@@ -30,11 +30,25 @@ class PipelineVersions {
         return pipelineVersion;
     }
 
-    async applyVersion(options) {
+    async applyVersion(options, userName) {
         const { name, version } = options;
         validator.pipelines.validatePipelineVersion(options);
         const pipelineVersion = await this.getVersion({ name, version });
-
+        const oldPipeline = await stateManager.getPipeline({ name });
+        // Handle audit for version
+        if (!oldPipeline.auditTrail) {
+            pipelineVersion.pipeline.auditTrail = [];
+        }
+        const auditEntry = {
+            user: userName,
+            timestamp: null,
+            version: pipelineVersion.version
+        };
+        pipelineVersion.pipeline.auditTrail = [
+            auditEntry,
+            ...oldPipeline.auditTrail || []
+        ];
+        //
         await stateManager.updatePipeline(pipelineVersion.pipeline);
         return pipelineVersion;
     }
@@ -72,9 +86,9 @@ class PipelineVersions {
      * 5) if lock was unsuccessful, try to increment the semver again.
      * 6) create the version.
      */
-    async createVersion(pipeline) {
+    async createVersion(pipeline, userName) {
         return new Promise((resolve, reject) => {
-            this._versionsQueue.push({ pipeline }, (err, res) => {
+            this._versionsQueue.push({ pipeline, userName }, (err, res) => {
                 if (err) {
                     return reject(err);
                 }

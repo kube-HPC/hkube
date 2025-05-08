@@ -8,6 +8,7 @@ const experiments = require('./experiments.json');
 const stateManager = require('../state/state-manager');
 const algorithmsVersionsService = require('../../lib/service/algorithm-versions');
 const pipelinesVersionsService = require('../../lib/service/pipeline-versions');
+const keycloak = require('../../lib/service/keycloak');
 
 class PipelinesUpdater {
     async init(options) {
@@ -163,7 +164,8 @@ class PipelinesUpdater {
                 // Add versions only to algorithms with no versions.
                 const existingVersion = await algorithmsVersionsService.getLatestSemver(algorithm);
                 if (!existingVersion) {
-                    const newVersion = await algorithmsVersionsService.createVersion(algorithm);
+                    const userName = keycloak.getPreferredUsername(req);
+                    const newVersion = await algorithmsVersionsService.createVersion(algorithm, undefined, userName);
                     await algorithmsVersionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
                 }
             }

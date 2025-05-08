@@ -660,5 +660,62 @@
             "progressVerbosityLevel": "debug",
             "ttl": 85900
         }
+    },
+    {
+        "name": "auditTrailUpdate",
+        "kind": "batch",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "kind": "algorithm",
+                "minStatelessCount": 0,
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "kind": "algorithm",
+                "minStatelessCount": 0,
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "kind": "algorithm",
+                "minStatelessCount": 0,
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "links": [
+                    "links-1",
+                    "links-2",
+                    "links-3",
+                    "links-4",
+                    "links-5",
+                    "links-6",
+                    "links-7",
+                    "links-8",
+                    "links-9",
+                    "links-10"
+                ]
+            }
+        },
+        "priority": 5,
+        "experimentName": "main",
+        "options": {
+            "ttl": 3600,
+            "activeTtl": 1000,
+            "batchTolerance": 30,
+            "progressVerbosityLevel": "debug"
+        }
     }
 ]

@@ -45,22 +45,24 @@ const routes = (option) => {
 
     router.post('/pipelines', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
         const allowOverwrite = req.query.overwrite;
+        const userName = keycloak.getPreferredUsername(req);
         if (Array.isArray(req.body)) {
             const returnPipelineList = await Promise.all(
                 req.body.map(async (pipelineData) => {
                     // eslint-disable-next-line no-return-await
-                    return await pipelineStore.insertPipeline(pipelineData, false, allowOverwrite);
+                    return await pipelineStore.insertPipeline(pipelineData, false, allowOverwrite, userName);
                 })
             );
             res.status(HttpStatus.StatusCodes.CREATED).json(returnPipelineList);
         }
         else {
-            const response = await pipelineStore.insertPipeline(req.body);
+            const response = await pipelineStore.insertPipeline(req.body, true, false, userName);
             res.status(HttpStatus.StatusCodes.CREATED).json(response);
         }
     });
     router.put('/pipelines', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
-        const response = await pipelineStore.updatePipeline(req.body);
+        const userName = keycloak.getPreferredUsername(req);
+        const response = await pipelineStore.updatePipeline(req.body, userName);
         res.json(response);
     });
     router.delete('/pipelines/:name', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {
@@ -97,6 +99,7 @@ const routes = (option) => {
     });
     router.post('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
         const { file, body } = req;
+        const userName = keycloak.getPreferredUsername(req);
         try {
             if (body.payload !== undefined) { // New way
                 if (Array.isArray(body.payload)) {
@@ -104,7 +107,7 @@ const routes = (option) => {
                         body.payload.map(async (algorithmData) => {
                             const { payload, options } = await _processPayLoadAndOptions(algorithmData, body.options);
                             options.failOnError = false;
-                            const response = await algorithmStore.insertAlgorithm({ payload, options });
+                            const response = await algorithmStore.insertAlgorithm({ payload, options, userName });
                             return response;
                         })
                     );
@@ -113,7 +116,7 @@ const routes = (option) => {
                 else {
                     // If req.body.payload is not an array, process it as a single algorithm
                     const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
-                    const response = await algorithmStore.insertAlgorithm({ payload, options, file });
+                    const response = await algorithmStore.insertAlgorithm({ payload, options, file, userName });
                     res.status(HttpStatus.StatusCodes.CREATED).json(response);
                 }
             }
@@ -124,7 +127,7 @@ const routes = (option) => {
                         req.body.map(async (algorithmData) => {
                             const payload = algorithmData;
                             const options = { failOnError: false, allowOverwrite };
-                            const response = await algorithmStore.insertAlgorithm({ payload, options });
+                            const response = await algorithmStore.insertAlgorithm({ payload, options, userName });
                             const { algorithm } = response;
                             return algorithm || response;
                         })
@@ -135,7 +138,7 @@ const routes = (option) => {
                     // If req.body is not an array, process it as a single algorithm
                     const payload = req.body;
                     const options = { failOnError: true, allowOverwrite };
-                    const response = await algorithmStore.insertAlgorithm({ payload, options });
+                    const response = await algorithmStore.insertAlgorithm({ payload, options, userName });
                     const { algorithm } = response;
                     res.status(HttpStatus.StatusCodes.CREATED).json(algorithm || response);
                 }
@@ -149,17 +152,18 @@ const routes = (option) => {
     });
     router.put('/algorithms', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
         const { file, body } = req;
+        const userName = keycloak.getPreferredUsername(req);
         try {
             if (body.payload !== undefined) { // New way
                 const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
-                const response = await algorithmStore.updateAlgorithm({ payload, options, file });
+                const response = await algorithmStore.updateAlgorithm({ payload, options, file, userName });
                 res.json(response);
             }
             else { // Old way
                 const forceUpdate = req?.query?.forceStopAndApplyVersion === 'true';
                 const payload = req.body;
                 const options = { forceUpdate };
-                const response = await algorithmStore.updateAlgorithm({ payload, options });
+                const response = await algorithmStore.updateAlgorithm({ payload, options, userName });
                 const { algorithm } = response;
                 res.json(algorithm || response);
             }
@@ -179,9 +183,10 @@ const routes = (option) => {
     });
     router.post('/algorithms/apply', keycloak.getProtect(keycloakRoles.API_EDIT), upload.single('file'), async (req, res) => {
         const { file, body } = req;
+        const userName = keycloak.getPreferredUsername(req);
         try {
             const { payload, options } = await _processPayLoadAndOptions(body.payload, body.options);
-            const response = await algorithmStore.applyAlgorithm({ options, payload, file });
+            const response = await algorithmStore.applyAlgorithm({ options, payload, file, userName });
             res.json(response);
         }
         finally {

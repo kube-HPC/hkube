@@ -835,6 +835,7 @@ describe('Streaming', () => {
             expect(response.body).to.have.property('version');
             delete response.body.version;
             delete response.body.modified;
+            delete response.body.auditTrail;
             expect(response.body).to.deep.equal(pipeline);
         });
     });
