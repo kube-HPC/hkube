@@ -20,8 +20,9 @@ class AuthService {
                 password
             })
         );
-        const token = response.data.access_token;
-        return token;
+        // const token = response.data.access_token;
+        const { data } = response;
+        return data;
     }
 
     _validate(options) {
