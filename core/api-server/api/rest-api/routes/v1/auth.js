@@ -6,8 +6,8 @@ const routes = () => {
     router.post('/login', async (req, res, next) => {
         try {
             // const { username, password } = req.body;
-            const token = await auth.login(req.body);
-            res.json({ token });
+            const data = await auth.login(req.body);
+            res.json({ data });
         }
         catch (e) {
             next(e);
