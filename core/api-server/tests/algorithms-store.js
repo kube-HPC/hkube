@@ -20,6 +20,7 @@ const gitRepo = 'https://github.com/kube-HPC/hkube';
 const hkubeRepo = '/repos/kube-HPC/hkube/commits';
 const emptyGit = '/repos/hkube/empty/commits';
 const fullGit = '/repos/hkube/my.git.foo.bar/commits';
+const config = require('../config/main/config.base.js');
 
 describe('Store/Algorithms', () => {
     before(() => {
@@ -53,7 +54,7 @@ describe('Store/Algorithms', () => {
             }) };
             await request({ uri: restPath, body });
             const response = await request({ uri: `${restPath}/test-alg`, method: 'GET' });
-            const { version, created, modified, reservedMemory, ...algorithm } = response.body;
+            const { version, created, modified, reservedMemory,auditTrail, ...algorithm } = response.body;
             expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
         });
     });
@@ -395,7 +396,7 @@ describe('Store/Algorithms', () => {
                     }) }
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(options.body.payload) });
             });
@@ -412,7 +413,7 @@ describe('Store/Algorithms', () => {
                     body
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
             });
@@ -430,7 +431,7 @@ describe('Store/Algorithms', () => {
                 }));
                 const result = await Promise.all(algorithms.map((a) => request({ uri: restPath, body: { payload: JSON.stringify(a) }})));
                 result.forEach((r, i) => {
-                    const { version, created, modified, reservedMemory, ...algorithm } = r.body.algorithm;
+                    const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = r.body.algorithm;
                     expect(algorithm).to.eql(algorithms[i]);
                 });
                 const options = {
@@ -454,9 +455,55 @@ describe('Store/Algorithms', () => {
                     body
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql({ ...defaultProps, ...JSON.parse(body.payload) });
+            });
+
+            it('stored algorithm version should have creator', async () => {
+                const body = { payload: JSON.stringify({
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image'
+                }) };
+                const options = {
+                    uri: restPath,
+                    body
+                };
+                const response = await request(options);
+                const { version, name, ...algorithm } = response.body.algorithm;
+                const optionsVersionGet = {
+                    uri:`${restUrl}/versions/algorithms/${name}/${version}`,
+                    method: 'GET'
+                }
+                const responseVersion = await request(optionsVersionGet)
+                expect(responseVersion.body).to.have.property('createdBy');
+                expect(responseVersion.body.createdBy).to.eql(config.keycloak.defaultUserAuditingName)
+            });
+
+            it('should succeed to store algorithm and have auditTrail', async () => {
+                const body = { payload: JSON.stringify({
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '50Mi',
+                    cpu: 1,
+                    type: 'Image'
+                }) };
+                const options = {
+                    uri: restPath,
+                    body
+                };
+                const response = await request(options);
+                const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+                expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
+                expect(algorithm).to.have.property('auditTrail');
+                expect(algorithm.auditTrail[0]).to.have.property('user');
+                expect(algorithm.auditTrail[0].user).to.eql(config.keycloak.defaultUserAuditingName);
+                expect(algorithm.auditTrail[0]).to.have.property('timestamp');
+                expect(algorithm.auditTrail[0]).to.have.property('version');
+                expect(algorithm.auditTrail[0].timestamp).to.not.be.null;
             });
 
             it('should succeed to store algorithm with devMode', async () => {
@@ -475,7 +522,7 @@ describe('Store/Algorithms', () => {
                     body
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body.algorithm;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body.algorithm;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql(merge({}, defaultProps, JSON.parse(body.payload)));
             });
@@ -938,7 +985,7 @@ describe('Store/Algorithms', () => {
                     }
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql({ ...defaultProps, ...options.body });
             });
@@ -955,7 +1002,7 @@ describe('Store/Algorithms', () => {
                     body
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql({ ...defaultProps, ...body });
             });
@@ -973,7 +1020,7 @@ describe('Store/Algorithms', () => {
                 }));
                 const result = await Promise.all(algorithms.map((a) => request({ uri: restPath, body: a })));
                 result.forEach((r, i) => {
-                    const { version, created, modified, reservedMemory, ...algorithm } = r.body;
+                    const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = r.body;
                     expect(algorithm).to.eql(algorithms[i]);
                 });
                 const options = {
@@ -997,7 +1044,7 @@ describe('Store/Algorithms', () => {
                     body
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql({ ...defaultProps, ...body });
             });
@@ -1018,7 +1065,7 @@ describe('Store/Algorithms', () => {
                     body
                 };
                 const response = await request(options);
-                const { version, created, modified, reservedMemory, ...algorithm } = response.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response.body;
                 expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.CREATED);
                 expect(algorithm).to.eql(merge({}, defaultProps, body));
             });
@@ -2392,9 +2439,9 @@ describe('Store/Algorithms', () => {
                 await stateManager.updateBuild({ buildId: res1.body.buildId, algorithmImage, status: 'completed' });
                 await delay(2000);
 
-                const { options, created: c1, modified: c2, reservedMemory: none, ...restProps } = res1.body.algorithm;
+                const { options, created: c1, modified: c2, reservedMemory: none,auditTrail, ...restProps } = res1.body.algorithm;
                 const res2 = await request({ uri: `${versionsPath}/${algorithmName}`, method: 'GET' });
-                const { version, created, modified, reservedMemory, ...algorithm } = res2.body[0].algorithm;
+                const { version, created, modified, reservedMemory, auditTrail:auditTrail1 , ...algorithm } = res2.body[0].algorithm;
                 expect(algorithm).to.eql({ ...defaultProps, ...restProps, algorithmImage });
             });
 
@@ -2498,7 +2545,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1 });
             });
 
@@ -2530,7 +2577,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...apply1, ...apply2 });
             });
 
@@ -2560,7 +2607,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1 });
             });
 
@@ -2590,7 +2637,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory,auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 
@@ -2620,7 +2667,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 
@@ -2649,7 +2696,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1 });
             });
 
@@ -2681,7 +2728,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 
@@ -2713,7 +2760,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory,auditTrail, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 
@@ -2750,7 +2797,8 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, created, modified, reservedMemory, ...algorithm } = response3.body;
+                const { version, created, modified, reservedMemory, auditTrail, ...algorithm } = response3.body;
+                expect(auditTrail.length).to.be.eql(2);
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
 

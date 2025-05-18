@@ -6,6 +6,7 @@ const { uuid } = require('@hkube/uid');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
 const stateManager = require('../lib/state/state-manager');
+const config = require('../config/main/config.base.js');
 let restUrl, restPath;
 
 describe('Store/Pipelines', () => {
@@ -407,6 +408,7 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('version');
             delete response.body.version;
             delete response.body.modified;
+            delete response.body.auditTrail;
             expect(response.body).to.eql(pipeline);
             const storedPipeline = await request({
                 uri: restPath + '/' + pipeline.name,
@@ -416,7 +418,9 @@ describe('Store/Pipelines', () => {
             delete actual.modified;
             expect(actual).to.have.property('version');
             delete actual.version;
-            expect(actual).to.eql(pipeline);
+            const { auditTrail, ...pipe } = actual
+            expect(auditTrail.length).to.eql(1) // first insert should have one audit
+            expect(pipe).to.eql(pipeline);
         });
         it('should succeed to store pipeline and add defaults', async () => {
             const name = uuid();
@@ -747,7 +751,34 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('version');
             delete response.body.version;
             delete response.body.modified;
-            expect(response.body).to.deep.equal(pipeline);
+            const { auditTrail, ...body} = response.body;
+            expect(auditTrail[0]).to.have.property('user');
+            expect(auditTrail[0].user).to.eql(config.keycloak.defaultUserAuditingName)
+            expect(auditTrail[0]).to.have.property('timestamp');
+            expect(auditTrail[0]).to.have.property('version');
+            expect(auditTrail[0].timestamp).to.not.be.null;
+            expect(body).to.deep.equal(pipeline);
+        });
+        it('updated pipeline should have auditTrail with multiple entries', async () => {
+            const pipeline = clone(pipelines[26]);
+            pipeline.description = 'my description';
+            pipeline.kind = 'stream';
+            pipeline.nodes.forEach((n) => {
+                n.kind = 'algorithm';
+            });
+            const options = {
+                uri: restPath,
+                method: 'PUT',
+                body: pipeline
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('modified');
+            expect(response.body).to.have.property('version');
+            delete response.body.version;
+            delete response.body.modified;
+            options.body.flowInput.files.links[0] = 'links-11'
+            const responseUpdate = await request(options);
+            expect(responseUpdate.body.auditTrail.length).to.be.eql(2);
         });
         it('should throw validation error if algorithmName not exists', async () => {
             const pipeline = clone(pipelines[0]);
@@ -937,5 +968,45 @@ describe('Store/Pipelines', () => {
             expect(response.body).to.have.property('streaming');
             expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
         });
+        it('stored pipeline version should have creator', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'checkCreator',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType:'stateful',
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            stateType:'stateless',
+                            maxStatelessCount: 7,
+                            minStatelessCount : 5,
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            const {version, name, ...pipeline} = response.body
+            const optionsVersionGet = {
+                uri:`${restUrl}/versions/pipelines/${name}/${version}`,
+                method: 'GET'
+            }
+            const responseVersion = await request(optionsVersionGet)
+            expect(responseVersion.body).to.have.property('createdBy');
+            expect(responseVersion.body.createdBy).to.eql(config.keycloak.defaultUserAuditingName)
+    });
     });
 });
