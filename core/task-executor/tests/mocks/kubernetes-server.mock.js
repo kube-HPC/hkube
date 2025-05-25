@@ -1,7 +1,7 @@
 const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
-const { pods, nodes } = require('../stub/resources');
+const { pods, nodes, persistentVolumeClaim, secret, configMap } = require('../stub/resources');
 const app = express();
 
 const configMapRes = {
@@ -29,6 +29,18 @@ class MockClient {
                 }
                 if (req.url === '/api/v1/nodes') {
                     res.json(nodes);
+                    return;
+                }
+                if (req.url === '/api/v1/namespaces/default/persistentvolumeclaims/') {
+                    res.json(persistentVolumeClaim);
+                    return;
+                }
+                if (req.url === '/api/v1/namespaces/default/secrets/') {
+                    res.json(secret);
+                    return;
+                }
+                if (req.url === '/api/v1/namespaces/default/configmaps/') {
+                    res.json(configMap);
                     return;
                 }
                 res.json(req.body);

@@ -1,5 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 const clonedeep = require('lodash.clonedeep');
+const configIt = require('@hkube/config');
+const { main } = configIt.load();
 const { randomString } = require('@hkube/uid');
 const { nodeKind } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -13,6 +15,7 @@ const { JAVA } = require('../consts/envs');
 const component = components.K8S;
 const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, varLog, varlibdockercontainers, varlogMount, varlibdockercontainersMount, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
+const { createContainerResource } = require('../reconcile/createOptions');
 const CONTAINERS = containers;
 
 const applyAlgorithmResourceRequests = (inputSpec, resourceRequests, node) => {
@@ -323,39 +326,73 @@ const applyAnnotations = (spec, keyVal) => {
     return applyKeyVal(spec, keyVal, 'annotation', 'spec.template.metadata.annotations');
 };
 
-const applySidecars = (inputSpec, clusterOptions = {}) => {
+const mergeResourceRequest = (defaultResource, customResource) => {
+    const mergedRequest = { requests: {}, limits: {} };
+
+    for (const key of ['requests', 'limits']) {
+        mergedRequest[key].memory = customResource[key]?.memory || defaultResource[key]?.memory || null;
+        mergedRequest[key].cpu = customResource[key]?.cpu || defaultResource[key]?.cpu || null;
+    }
+    return mergedRequest;
+};
+
+const _applyDefaultResourcesSideCar = (container) => {
+    const { resources = {} } = container;
+    const { requests = {} } = resources;
+    const { cpu = main.resources.sideCar.cpu, memory = main.resources.sideCar.memory, gpu } = requests;
+    const mem = parse.getMemoryInMi(memory);
+    const resourcesWithDefaultLimits = createContainerResource({ cpu, mem, gpu });
+    container.resources = mergeResourceRequest(resourcesWithDefaultLimits, resources);
+};
+
+const applySidecar = ({ container: sideCarContainer, volumeMounts, environments }, spec) => {
+    _applyDefaultResourcesSideCar(sideCarContainer);
+    spec.spec.template.spec.containers.push(sideCarContainer);
+    if (volumeMounts) {
+        volumeMounts.forEach(v => {
+            spec = applyVolumeMounts(spec, sideCarContainer.name, v);
+        });
+    }
+    if (environments) {
+        Object.entries(environments).forEach(([key, value]) => {
+            spec = applyEnvToContainer(spec, sideCarContainer.name, { [key]: value });
+        });
+    }
+    return spec;
+};
+
+const applyVolumesAndMounts = (inputSpec, volumes, volumeMounts) => {
+    let spec = clonedeep(inputSpec);
+    if (volumes) {
+        volumes.forEach(v => {
+            spec = applyVolumes(spec, v);
+        });
+    }
+    if (volumeMounts) {
+        volumeMounts.forEach(v => {
+            spec = applyVolumeMounts(spec, containers.ALGORITHM, v);
+        });
+    }
+    return spec;
+};
+
+const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
     let spec = clonedeep(inputSpec);
     for (const sidecar of settings.sidecars) {
-        const { name, container, volumes, volumeMounts, environments } = sidecar;
+        const { name, container: scContainer, volumeMounts, environments } = sidecar;
         if (!clusterOptions[`${name}SidecarEnabled`]) {
             continue;
         }
-        spec.spec.template.spec.containers.push(...container);
-        if (volumes) {
-            // eslint-disable-next-line no-loop-func
-            volumes.forEach(v => {
-                spec = applyVolumes(spec, v);
-            });
-        }
-        if (volumeMounts) {
-            // eslint-disable-next-line no-loop-func
-            volumeMounts.forEach(v => {
-                spec = applyVolumeMounts(spec, CONTAINERS.WORKER, v);
-            });
-        }
-        if (environments) {
-            // eslint-disable-next-line no-loop-func
-            environments.forEach(v => {
-                spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { [v.name]: v.value });
-            });
-        }
+        spec = applySidecar({ container: scContainer, volumeMounts, environments }, spec);
     }
-
+    customSideCars.forEach(sideCar => { // Sidecar user-feature
+        spec = applySidecar(sideCar, spec);
+    });
     return spec;
 };
 
 const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env, workerCustomResources, sideCars, volumes, volumeMounts }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -380,7 +417,10 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_VERSION: algorithmVersion });
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_IMAGE: workerImage });
     spec = applyAlgorithmResourceRequests(spec, resourceRequests, node);
-    if (settings.applyResources) {
+    if (settings.applyResources || workerCustomResources) {
+        if (workerCustomResources) {
+            workerResourceRequests = mergeResourceRequest(workerResourceRequests, workerCustomResources);
+        }
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);
     }
     spec = applyNodeSelector(spec, nodeSelector);
@@ -407,7 +447,8 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     }
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
-    spec = applySidecars(spec, clusterOptions);
+    spec = applyVolumesAndMounts(spec, volumes, volumeMounts);
+    spec = applySidecars(spec, sideCars, clusterOptions);
     return spec;
 };
 

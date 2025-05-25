@@ -64,7 +64,7 @@ describe('Versions/Algorithms', () => {
 
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(res.body.error.message).to.equal('unable to remove used version');
+            expect(res.body.error.message).to.equal('unable to remove the currently used version');
         });
         it('should succeed to delete specific version', async () => {
             const algorithmImage1 = 'test-algorithmImage-1';
@@ -170,7 +170,7 @@ describe('Versions/Algorithms', () => {
             const res2 = await request(versionReq);
             expect(res2.body).to.have.property('error');
             expect(res2.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(res2.body.error.message).to.equal(`there are 1 running pipelines which dependent on "${name}" algorithm`);
+            expect(res2.body.error.message).to.equal(`there is a running pipeline which depends on "${name}" algorithm`);
         });
         it('should not throw error of running pipelines dependent on algorithm', async () => {
             const name = `my-alg-${uuid()}`;
@@ -198,8 +198,8 @@ describe('Versions/Algorithms', () => {
             const versionReq = { uri: `${restPath}/apply`, body: { version, name, force: true } };
             await request(exeRawPayload);
             const res2 = await request(versionReq);
-            const { created, modified, ...alg1 } = res1.body.algorithm;
-            const { created: c2, modified: m2, ...alg2 } = res2.body.algorithm;
+            const { created, modified, auditTrail, ...alg1 } = res1.body.algorithm;
+            const { created: c2, modified: m2, auditTrail:auditTrail1, ...alg2 } = res2.body.algorithm;
             expect(alg1).to.eql(alg2);
         });
         it('should succeed to forceUpdate', async () => {

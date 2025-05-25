@@ -82,10 +82,10 @@ class AlgorithmStore {
         return stateManager.searchAlgorithms({ name, kind, algorithmImage: algorithmImageBoolean, pending, cursor, page, sort, limit, fields: createQueryObjectFromString(fields) });
     }
 
-    // eslint-disable-next-line consistent-return
-    async insertAlgorithm(options, failOnError = true, allowOverwrite) {
+    async insertAlgorithm({ payload, options, file, userName }) {
+        const { failOnError = true, allowOverwrite } = options || {};
         try {
-            validator.algorithms.validateAlgorithmName(options);
+            validator.algorithms.validateAlgorithmName(payload);
         }
         catch (error) {
             if (failOnError) {
@@ -94,48 +94,48 @@ class AlgorithmStore {
             else {
                 return {
                     error: {
-                        name: options.name,
+                        name: payload.name,
                         code: 400,
                         message: error.message
                     }
                 };
             }
         }
-        const alg = await stateManager.getAlgorithm(options);
+        const alg = await stateManager.getAlgorithm(payload);
         if (alg) {
-            if (allowOverwrite === 'true') {
+            if (allowOverwrite) {
                 try {
-                    const updatedAlgorithm = await this.updateAlgorithm(options, { forceUpdate: true });
+                    const updatedAlgorithm = await this.updateAlgorithm({ payload, options: { forceUpdate: true }, userName });
                     return updatedAlgorithm;
                 }
                 catch (error) {
                     return {
                         error: {
-                            name: options.name,
+                            name: payload.name,
                             code: 400,
-                            message: `Error updating ${options.name} ${error.message}`
+                            message: `Error updating ${payload.name} ${error.message}`
                         }
                     };
                 }
             }
             if (failOnError) {
-                throw new ResourceExistsError('algorithm', options.name);
+                throw new ResourceExistsError('algorithm', payload.name);
             }
             return {
                 error: {
                     code: 409,
-                    message: `algorithm ${options.name} already exists`
+                    message: `algorithm ${payload.name} already exists`
                 }
             };
         }
         try {
-            const { algorithm } = await this.applyAlgorithm({ payload: options });
-            return algorithm;
+            const applyResponse = await this.applyAlgorithm({ payload, file, userName });
+            return applyResponse;
         }
         catch (error) {
             return {
                 error: {
-                    name: options.name,
+                    name: payload.name,
                     code: 400,
                     message: error.message,
                 },
@@ -143,14 +143,14 @@ class AlgorithmStore {
         }
     }
 
-    async updateAlgorithm(payload, options = {}) {
+    async updateAlgorithm({ payload, options, file, userName }) {
         validator.algorithms.validateAlgorithmName(payload);
         const alg = await stateManager.getAlgorithm(payload);
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', payload.name);
         }
-        const { algorithm } = await this.applyAlgorithm({ payload, options });
-        return algorithm;
+        const applyResponse = await this.applyAlgorithm({ payload, options, file, userName });
+        return applyResponse;
     }
 
     async deleteAlgorithm(options) {
@@ -244,13 +244,13 @@ class AlgorithmStore {
         const { forceUpdate, forceBuild } = data.options || {};
         const { version, created, modified, ...payload } = data.payload;
         const file = { path: data.file?.path, name: data.file?.originalname };
+        const { userName } = data;
 
         if (!payload.name) {
             throw new InvalidDataError('algorithm should have required property "name"');
         }
 
         const oldAlgorithm = await stateManager.getAlgorithm(payload);
-
         if (!oldAlgorithm && !payload.type && !file.path && payload.algorithmImage && payload.fileInfo) {
             delete payload.fileInfo;
         }
@@ -264,6 +264,16 @@ class AlgorithmStore {
         if (oldAlgorithm && oldAlgorithm.type !== newAlgorithm.type) {
             throw new InvalidDataError(`algorithm type cannot be changed from "${oldAlgorithm.type}" to "${newAlgorithm.type}"`);
         }
+        if (newAlgorithm.workerCustomResources) {
+            const errorOutput = this._validateWorkerCustomResources(newAlgorithm.workerCustomResources);
+            if (errorOutput.length > 0) {
+                throw new InvalidDataError(`algorithm has invalid workerCustomResources: ${errorOutput.join(', ')}`);
+            }
+        }
+        if (!this._verifyUniqueSideCarContainerNames(payload)) {
+            throw new InvalidDataError('Sidecar container names must be unique!');
+        }
+
         await this._validateAlgorithm(newAlgorithm);
         const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
         const buildId = await buildsService.tryToCreateBuild(oldAlgorithm, newAlgorithm, file, forceBuild, messages, messagesCode);
@@ -278,7 +288,7 @@ class AlgorithmStore {
             newAlgorithm.reservedMemory = `${reservedMemory}Mi`;
         }
 
-        const newVersion = await this._versioning(hasDiff, newAlgorithm, buildId);
+        const newVersion = await this._versioning(hasDiff, newAlgorithm, buildId, userName);
         if (newVersion) {
             newAlgorithm.version = newVersion;
             messages.push(format(MESSAGES.VERSION_CREATED, { algorithmName: newAlgorithm.name }));
@@ -292,6 +302,20 @@ class AlgorithmStore {
         if (shouldStoreOverride || shouldStoreFirstApply) {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             messagesCode.push(errorsCode.ALGORITHM_PUSHED);
+            const auditEntry = {
+                user: userName,
+                timestamp: null,
+                version: newVersion
+            };
+            if (shouldStoreOverride) {
+                newAlgorithm.auditTrail = [
+                    auditEntry,
+                    ...newAlgorithm.auditTrail || []
+                ];
+            }
+            else {
+                newAlgorithm.auditTrail = [auditEntry];
+            } // shouldStoreFirstApply
             await stateManager.updateAlgorithm(newAlgorithm);
         }
         return { buildId, messages, messagesCode, algorithm: newAlgorithm };
@@ -302,6 +326,28 @@ class AlgorithmStore {
             return true;
         }
         return !isEqual(oldAlgorithm, newAlgorithm);
+    }
+
+    /**
+     * Verifies that all container names in the payload are unique.
+     *
+     * @param {Object} payload - The payload containing sideCars data.
+     * @param {Array} payload.sideCars - Array of sidecar objects.
+     * @returns {boolean} - Returns `true` if all container names are unique, otherwise `false`.
+     */
+    _verifyUniqueSideCarContainerNames(payload) {
+        if (!payload.sideCars) return true;
+        const containerNames = [];
+        return payload.sideCars.every(sideCar => {
+            if (sideCar.container && sideCar.container.name) {
+                const containerName = sideCar.container.name;
+                if (containerNames.includes(containerName)) {
+                    return false;
+                }
+                containerNames.push(containerName);
+            }
+            return true;
+        });
     }
 
     _resolveType(payload, file) {
@@ -325,6 +371,23 @@ class AlgorithmStore {
         await validator.algorithms.validateAlgorithmResources(newAlgorithm);
     }
 
+    _validateWorkerCustomResources(resources) {
+        const errors = [];
+        if ((resources.requests?.memory && !resources.limits?.memory)) {
+            errors.push('limits.memory must be defined');
+        }
+        if ((resources.limits?.memory && !resources.requests?.memory)) {
+            errors.push('requests.memory must be defined');
+        }
+        if ((resources.requests?.cpu && !resources.limits?.cpu)) {
+            errors.push('limits.cpu must be defined');
+        }
+        if ((resources.limits?.cpu && !resources.requests?.cpu)) {
+            errors.push('requests.cpu must be defined');
+        }
+        return errors;
+    }
+
     _mergeAlgorithm(oldAlgorithm, payload) {
         const old = cloneDeep(oldAlgorithm);
         const newAlgorithm = { ...old, ...payload };
@@ -336,10 +399,10 @@ class AlgorithmStore {
         return newAlgorithm;
     }
 
-    async _versioning(hasDiff, algorithm, buildId) {
+    async _versioning(hasDiff, algorithm, buildId, userName) {
         let version;
         if (hasDiff && algorithm.algorithmImage && !buildId) {
-            version = await versionsService.createVersion(algorithm);
+            version = await versionsService.createVersion(algorithm, undefined, userName);
         }
         return version;
     }

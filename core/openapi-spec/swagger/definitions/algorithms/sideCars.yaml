@@ -1,0 +1,24 @@
+type: object
+properties:
+  container:
+    type: object
+    description: key-value pairs of names and images for containers
+    properties:
+      name:
+        type: string
+        description: container name
+      image:
+        type: string
+        description: container image
+    required:
+      - name
+      - image
+  volumeMounts:
+    type: array
+    description: key-value pairs of names and mountPaths
+    items:
+      $ref: "#/components/schemas/volumeMounts"
+  environments:
+    type: object
+    nullable: true
+    description: key value environment variables for sideCar

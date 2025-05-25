@@ -14,7 +14,10 @@ const Components = {
     GITHUB_WEBHOOK: 'Github-Webhook',
     DB: 'DB',
     LOGS: 'logs',
-    GRAPHQL_QUERIES: 'GraphqlQueries'
+    GRAPHQL_QUERIES: 'GraphqlQueries',
+    KEYCLOAK_MIDDLEWARE: 'Keycloak-Middleware',
+    ETCD_WRAPPER: 'ETCD-Wrapper',
+    NODES_STATISTICS: 'NodesStatistics'
 };
 
 module.exports = Components;

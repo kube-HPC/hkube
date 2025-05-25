@@ -1,8 +1,10 @@
 const RestServer = require('@hkube/rest-server');
 const { pipelineStatuses } = require('@hkube/consts');
+const { keycloakRoles } = require('@hkube/consts');
 const Execution = require('../../../../lib/service/execution');
 const methods = require('../../middlewares/methods');
 const formatter = require('../../../../lib/utils/formatters');
+const keycloak = require('../../../../lib/service/keycloak');
 
 const createQueryObjectFromString = (str) => {
     return str?.replace(/\s/g, '').split(',').reduce((acc, cur) => {
@@ -14,39 +16,45 @@ const createQueryObjectFromString = (str) => {
 
 const routes = (options) => {
     const router = RestServer.router();
-    router.get('/', (req, res) => {
+    router.get('/', keycloak.getProtect(keycloakRoles.API_VIEW), (req, res) => {
         res.json({ message: `${options.version} ${options.file} api` });
     });
-    router.post('/raw', async (req, res) => {
-        const { jobId, gateways } = await Execution.runRaw(req.body);
+    router.post('/raw', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const userName = keycloak.getPreferredUsername(req);
+        const { jobId, gateways } = await Execution.runRaw(req.body, userName);
         res.json({ jobId, gateways });
     });
-    router.post('/stored', async (req, res) => {
-        const { jobId, gateways } = await Execution.runStored(req.body);
+    router.post('/stored', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const userName = keycloak.getPreferredUsername(req);
+        const { jobId, gateways } = await Execution.runStored(req.body, userName);
         res.json({ jobId, gateways });
     });
-    router.post('/caching', async (req, res) => {
-        const { jobId, gateways } = await Execution.runCaching(req.body);
+    router.post('/caching', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const userName = keycloak.getPreferredUsername(req);
+        const { jobId, gateways } = await Execution.runCaching(req.body, userName);
         res.json({ jobId, gateways });
     });
-    router.post('/algorithm', async (req, res) => {
-        const { jobId, gateways } = await Execution.runAlgorithm(req.body);
+    router.post('/algorithm', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const userName = keycloak.getPreferredUsername(req);
+        const { jobId, gateways } = await Execution.runAlgorithm(req.body, userName);
         res.json({ jobId, gateways });
     });
-    router.post('/rerun', async (req, res) => {
-        const { jobId, gateways } = await Execution.rerun(req.body);
+    router.post('/rerun', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const userName = keycloak.getPreferredUsername(req);
+        const { jobId, gateways } = await Execution.rerun(req.body, userName);
         res.json({ jobId, gateways });
     });
-    router.post('/getGraphByStreamingFlow', async (req, res) => {
-        const { nodes, edges } = await Execution.getGraphByStreamingFlow(req.body);
+    router.post('/getGraphByStreamingFlow', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const { nodes, edges } = await Execution._getGraphByStreamingFlow(req.body);
         res.json({ nodes, edges });
     });
-    router.post('/stop', async (req, res) => {
+    router.post('/stop', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const userName = keycloak.getPreferredUsername(req);
         const { jobId, pipelineName, startTime, reason } = req.body;
         let datesRange;
         let search;
         let errormsg;
-        if (startTime !== undefined && startTime !== {}) {
+        if (startTime && Object.keys(startTime).length > 0) {
             datesRange = { from: startTime.from, to: startTime.to };
             search = { query: { jobId, pipelineName, datesRange } };
         }
@@ -79,51 +87,58 @@ const routes = (options) => {
             });
         }
         await Promise.all(jobsToStop.map(async job => {
-            await Execution.stopJob({ job, reason });
+            await Execution.stopJob({ job, reason, userName });
         }));
         return res.json({ message: 'OK' });
     });
-    router.post('/pause', async (req, res) => {
+    router.post('/pause', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const userName = keycloak.getPreferredUsername(req);
         const { jobId } = req.body;
-        await Execution.pauseJob({ jobId });
+        await Execution.pauseJob({ jobId, userName });
         res.json({ message: 'OK' });
     });
-    router.post('/resume', async (req, res) => {
+    router.post('/resume', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const userName = keycloak.getPreferredUsername(req);
         const { jobId } = req.body;
-        await Execution.resumeJob({ jobId });
+        await Execution.resumeJob({ jobId, userName });
         res.json({ message: 'OK' });
     });
-    router.all('/pipelines/:jobId?', methods(['GET']), async (req, res) => {
+    router.all('/pipelines/:jobId?', methods(['GET']), keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { jobId } = req.params;
         const response = await Execution.getPipeline({ jobId });
         res.json(response);
     });
-    router.all('/pipeline/list', methods(['GET']), async (req, res) => {
+    router.all('/pipeline/list', methods(['GET']), keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const response = await Execution.getRunningPipelines();
         res.json(response);
     });
-    router.all('/jobs', methods(['GET']), async (req, res,) => {
+    router.all('/jobs', methods(['GET']), keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res,) => {
         const { status, raw } = req.query;
         const response = await Execution.getActivePipelines({ status, raw });
         res.json(response);
     });
-    router.all('/status/:jobId?', methods(['GET']), async (req, res) => {
+    router.all('/status/:jobId?', methods(['GET']), keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { jobId } = req.params;
         const response = await Execution.getJobStatus({ jobId });
         res.json(response);
     });
-    router.all('/results/:jobId?', methods(['GET']), async (req, res) => {
+    router.all('/auditTrail/:jobId?', methods(['GET']), keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+        const { jobId } = req.params;
+        const response = await Execution.getAuditTrail({ jobId });
+        res.json(response);
+    });
+    router.all('/results/:jobId?', methods(['GET']), keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { jobId } = req.params;
         const response = await Execution.getJobResult({ jobId });
         res.json(response);
         res.jobId = jobId;
     });
-    router.all('/tree/:jobId?', methods(['GET']), async (req, res) => {
+    router.all('/tree/:jobId?', methods(['GET']), keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { jobId } = req.params;
         const response = await Execution.getTree({ jobId });
         res.json(response);
     });
-    router.get('/flowInput/:jobId?', async (req, res) => {
+    router.get('/flowInput/:jobId?', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const data = await Execution.getFlowInputByJobId(req.params.jobId);
         if (data) {
             if (req.query.download) {
@@ -136,7 +151,7 @@ const routes = (options) => {
         }
     });
 
-    router.get('/search', async (req, res) => {
+    router.get('/search', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const { experimentName, pipelineName, pipelineType, algorithmName, pipelineStatus, from, to, cursor, page, sort, limit, fields, exists } = req.query;
         const search = {
             query: {
@@ -157,7 +172,7 @@ const routes = (options) => {
         const response = await Execution.search(search);
         res.json(response);
     });
-    router.post('/search', async (req, res) => {
+    router.post('/search', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
         const response = await Execution.search(req.body);
         res.json(response);
     });

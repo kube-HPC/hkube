@@ -1,8 +1,11 @@
 const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
+const { warningCodes } = require('@hkube/consts');
 const { consts, gpuVendors } = require('../consts');
 const { lessWithTolerance } = require('../helpers/compare');
+const { settings } = require('../helpers/settings');
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
+const { createWarning } = require('../utils/warningCreator');
 
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, useResourcePressure = true) => {
     let freeCpu;
@@ -21,40 +24,47 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
         freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESSURE));
     }
     else {
+        totalCpu = node.total.cpu;
+        totalGpu = node.total.gpu;
+        totalMemory = node.total.memory;
         freeCpu = node.free.cpu;
         freeGpu = node.free.gpu;
         freeMemory = node.free.memory;
     }
 
-    const cpu = requestedCpu < freeCpu;
-    const mem = requestedMemory < freeMemory;
-    const gpu = requestedGpu === 0 || lessWithTolerance(requestedGpu, freeGpu);
+    // Check if requested resources fit within availble resources.
+    const hasSufficientCpu = requestedCpu < freeCpu;
+    const hasSufficientMemory = requestedMemory < freeMemory;
+    const hasSufficientGpu = requestedGpu === 0 || lessWithTolerance(requestedGpu, freeGpu);
 
-    const cpuMaxCapacity = requestedCpu > totalCpu;
-    const memMaxCapacity = requestedMemory > totalMemory;
-    const gpuMaxCapacity = requestedGpu > 0 && lessWithTolerance(totalGpu, requestedGpu);
+    // Check if requested resources exceed node's max capacity.
+    const exceedsCpuMaxCapacity = requestedCpu > totalCpu;
+    const exceedsMemMaxCapacity = requestedMemory > totalMemory;
+    const exceedsGpuMaxCapacity = requestedGpu > 0 && lessWithTolerance(totalGpu, requestedGpu);
+
     // log the amount of missing capacity per resource.
     let missingCpu;
     let missingMem;
     let missingGpu;
-    if (!cpu) {
+
+    if (!hasSufficientCpu) {
         missingCpu = requestedCpu - freeCpu;
         missingCpu = missingCpu.toFixed(2);
     }
-    if (!mem) {
+    if (!hasSufficientMemory) {
         missingMem = requestedMemory - freeMemory;
         missingMem = missingMem.toFixed(2);
     }
-    if ((requestedGpu > 0) && !gpu) {
+    if ((requestedGpu > 0) && !hasSufficientGpu) {
         missingGpu = requestedGpu - freeGpu;
         missingGpu = missingGpu.toFixed(2);
     }
 
     return {
         node,
-        available: cpu && mem && gpu,
-        maxCapacity: { cpu: cpuMaxCapacity, mem: memMaxCapacity, gpu: gpuMaxCapacity },
-        details: { cpu, mem, gpu },
+        available: hasSufficientCpu && hasSufficientMemory && hasSufficientGpu,
+        maxCapacity: { cpu: exceedsCpuMaxCapacity, mem: exceedsMemMaxCapacity, gpu: exceedsGpuMaxCapacity },
+        details: { cpu: hasSufficientCpu, mem: hasSufficientMemory, gpu: hasSufficientGpu },
         amountsMissing: { cpu: missingCpu || 0, mem: missingMem || 0, gpu: missingGpu || 0 }
     };
 };
@@ -78,89 +88,79 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
     return matched;
 };
 
-const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesAfterSelector) => {
-    const messages = [];
-    let ns;
-    let complexResourceDescriptor;
-    if (unMatchedNodesBySelector) {
-        ns = Object.entries(jobDetails.nodeSelector).map(([k, v]) => `${k}=${v}`); // Key value array of selectors
-        complexResourceDescriptor = {
-            ...complexResourceDescriptor,
-            requestedSelectors: ns,
-            numUnmatchedNodesBySelector: unMatchedNodesBySelector
-        };
-    } // Handle selector info, and update info for the complexResourceDescriptor
-    if (!nodesAfterSelector) {
-        messages.push(`No nodes available for scheduling due to selector condition - '${ns.join(',')}'`);
-    }
-    
-    let hasMaxCapacity = true;
-    const resourcesMap = Object.create(null);
-    const maxCapacityMap = Object.create(null);
-
-    const nodes = [];
-    nodesForSchedule.forEach(n => {
-        // let nodeIndex = -1;
-        let currentNode = {nodeName: n.node.name, amountsMissing: n.amountsMissing};
-        const maxCapacity = Object.entries(n.maxCapacity).filter(([, v]) => v === true);
-        if (maxCapacity.length === 0) {
-            hasMaxCapacity = false;
+/**
+ * Checks the availability of volumes.
+ * 
+ * This method checks whether each volume (PVC, ConfigMap, or Secret) in requested volumes exists based on the provided list of all available volumes.
+ * It returns an array of names of volumes that do not exist.
+ * 
+ * @param {Array<Object>} requestedVolumes - An array of requested volumes.
+ * Each volume can have `persistentVolumeClaim`, `configMap`, or `secret` properties.
+ * @param {Object} allVolumes - An object containing all available PVCs, ConfigMaps, and Secrets with their names.
+ * @returns {Array<string>} An array of names of missing volumes. If all volumes exist, the array will be empty.
+ */
+const _getMissingVolumes = (requestedVolumes, allVolumes) => {
+    if (!requestedVolumes || requestedVolumes.length === 0) return [];
+    const missingVolumes = [];
+    requestedVolumes.forEach(volume => {
+        if (volume.persistentVolumeClaim) {
+            const name = volume.persistentVolumeClaim.claimName;
+            if (!allVolumes.pvcs.find(pvcName => pvcName === name)) {
+                missingVolumes.push(name);
+            }
         }
-        maxCapacity.forEach(([k]) => {
-            if (!maxCapacityMap[k]) {
-                maxCapacityMap[k] = 0;
+        if (volume.configMap) {
+            const { name } = volume.configMap;
+            if (!allVolumes.configMaps.find(configMapName => configMapName === name)) {
+                missingVolumes.push(name);
             }
-            maxCapacityMap[k] += 1;
-        });
-        if (maxCapacity) {
-            currentNode = {
-                ...currentNode,
-                requestsOverMaxCapacity: maxCapacity
-            };         
-        } // if requests exceed max capacity, add the array containing mem, cpu, gpu.
-        const nodeMissingResources = Object.entries(n.details).filter(([, v]) => v === false);
-        nodeMissingResources.forEach(([k]) => {
-            if (!resourcesMap[k]) {
-                resourcesMap[k] = 0;
+        }
+        if (volume.secret) {
+            const name = volume.secret.secretName;
+            if (!allVolumes.secrets.find(secretName => secretName === name)) {
+                missingVolumes.push(name);
             }
-            resourcesMap[k] += 1;
-        });
-        nodes.push(currentNode);
+        }
     });
-    // Valid node's total resource is lower than requested
-    if (hasMaxCapacity && Object.keys(maxCapacityMap).length > 0) {
-        const maxCapacity = Object.entries(maxCapacityMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`Maximum capacity exceeded ${maxCapacity.join(' ')}`);
-    }
-    // Not enough resources in valid node
-    else if (Object.keys(resourcesMap).length > 0) {
-        const resources = Object.entries(resourcesMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`Insufficient ${resources.join(', ')}`);
-    }
-    complexResourceDescriptor = {
-        ...complexResourceDescriptor,
-        nodes,
-    };
-    const warning = {
-        algorithmName: jobDetails.algorithmName,
-        type: 'warning',
-        reason: 'failedScheduling',
-        hasMaxCapacity,
-        message: messages.join(', '),
-        timestamp: Date.now(),
-        complexResourceDescriptor,
-        requestedResources: jobDetails.resourceRequests.requests
-    };
-    return warning;
+    return missingVolumes;
 };
 
-const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
+/**
+ * Calculates the total requested CPU and memory from all containers.
+ * 
+ * @param {Object} params - The job details, containing the resource details.
+ * @param {Object} params.resourceRequests - The algorunner resource requests.
+ * @param {Object} params.workerResourceRequests - The worker resource requests.
+ * @param {Object} [params.workerCustomResources] - The optional custom worker resource requests.
+ * @param {Object} [params.sideCars] - The optional sidecar container.
+ * @param {Object} [params.sideCars.container] - The container inside the sidecar.
+ * @param {Object} [params.sideCars.container.resources] - The resource requests of the sidecar container.
+ * @returns {Object} An object containing the total requested CPU and memory.
+ * @returns {number} return.requestedCpu - The total requested CPU in cores.
+ * @returns {number} return.requestedMemory - The total requested memory in MiB.
+ */
+const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCustomResources, sideCars }) => {
+    const sideCarResources = sideCars?.map(sideCar => sideCar?.container?.resources) || [];
+    const workerRequestedCPU = settings.applyResources ? workerResourceRequests.requests.cpu : '0';
+    const workerRequestedMemory = settings.applyResources ? workerResourceRequests.requests.memory : '0Mi';
+
+    const requestedCpu = parse.getCpuInCore(resourceRequests?.requests?.cpu || '0')
+        + parse.getCpuInCore(workerCustomResources?.requests?.cpu || workerRequestedCPU)
+        + sideCarResources.reduce((acc, resources) => acc + parse.getCpuInCore(resources?.requests?.cpu || '0'), 0);
+
+    const requestedMemory = parse.getMemoryInMi(resourceRequests?.requests?.memory || '0Mi')
+        + parse.getMemoryInMi(workerCustomResources?.requests?.memory || workerRequestedMemory)
+        + sideCarResources.reduce((acc, resources) => acc + parse.getMemoryInMi(resources?.requests?.memory || '0Mi'), 0);
+
+    return { requestedCpu, requestedMemory };
+};
+
+const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) => {
     if (totalAdded >= MAX_JOBS_PER_TICK) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
-    const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
+    const { requestedCpu, requestedMemory } = getAllRequested(jobDetails);
     const requestedGpu = jobDetails.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
-    const requestedMemory = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
     const nodesBySelector = availableResources.nodeList.filter(n => nodeSelectorFilter(n.labels, jobDetails.nodeSelector));
     const nodesForSchedule = nodesBySelector.map(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
 
@@ -168,8 +168,25 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     if (!availableNode) {
         // Number of total nodes that don't fit the attribute under nodeSelector
         const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
-        const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesBySelector.length);
+        const warning = createWarning({
+            unMatchedNodesBySelector,
+            jobDetails,
+            nodesForSchedule,
+            nodesAfterSelector: nodesBySelector.length,
+            code: warningCodes.RESOURCES
+        });
+        // const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesBySelector.length);
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
+    }
+
+    const missingVolumes = _getMissingVolumes(jobDetails.volumes, allVolumes);
+    if (missingVolumes.length > 0) {
+        const warning = createWarning({ jobDetails, missingVolumes, code: warningCodes.INVALID_VOLUME });
+        return {
+            shouldAdd: false,
+            warning,
+            newResources: { ...availableResources }
+        };
     }
 
     const nodeForSchedule = availableNode.node;
@@ -302,8 +319,8 @@ const pauseAccordingToResources = (stopDetails, availableResources, skippedReque
     return { toStop };
 };
 
-const matchJobsToResources = (createDetails, availableResources, scheduledRequests = []) => {
-    const created = [];
+const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], allVolumes) => {
+    const requested = [];
     const skipped = [];
     const localDetails = clone(createDetails);
     let addedThisTime = 0;
@@ -311,10 +328,10 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
     // loop over all the job types one by one and assign until it can't fit in any node
     const cb = (j) => {
         if (j.numberOfNewJobs > 0) {
-            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded);
+            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, allVolumes);
             if (shouldAdd) {
                 const toCreate = { ...j.jobDetails, createdTime: Date.now(), node };
-                created.push(toCreate);
+                requested.push(toCreate);
                 scheduledRequests.push({ algorithmName: toCreate.algorithmName });
             }
             else {
@@ -331,7 +348,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
         localDetails.forEach(cb);
     } while (addedThisTime > 0);
 
-    return { created, skipped };
+    return { requested, skipped };
 };
 
 module.exports = {

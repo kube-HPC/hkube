@@ -6,7 +6,7 @@ const pipelineStats = require('./get-pipeline-stats');
 let log;
 const ETCD_INTERVAL = 2000;
 const MAX_ITEMS = 100;
-const component = 'ETCD-Wrapper';
+const component = require('../../../lib/consts/componentNames').ETCD_WRAPPER;
 const allExperimentsName = 'show-all';
 
 class DatabaseQuerier extends Events {
@@ -95,14 +95,16 @@ class DatabaseQuerier extends Events {
         return { experimentName, jobs };
     }
 
-    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, cursor, pageNum, sort, limit = MAX_ITEMS }) {
+    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, user, action, cursor, pageNum, sort, limit = MAX_ITEMS }) {
         const query = {
             experimentName,
             pipelineName,
             pipelineType,
             pipelineStatus,
             algorithmName,
-            datesRange
+            datesRange,
+            user,
+            action
         };
         const jobs = await this._db.jobs.searchApi({
             query,

@@ -25,6 +25,8 @@
   $ref: ./exec/jobs.yaml
 /exec/status/{jobId}:
   $ref: ./exec/status.yaml
+/exec/auditTrail/{jobId}:
+ $ref: ./exec/auditTrail.yaml
 /exec/results/{jobId}:
   $ref: ./exec/results.yaml
 /exec/tree/{jobId}:
@@ -172,6 +174,8 @@
   $ref: ./versions/pipelines/version.yaml
 /versions/pipelines/{name}/{version}:
   $ref: ./versions/pipelines/version_id.yaml
+/versions/pipelines/apply:
+  $ref: ./versions/pipelines/apply.yaml
 
 # experiment
 /experiment/{name}:

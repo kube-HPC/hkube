@@ -1,4 +1,5 @@
 const RestServer = require('@hkube/rest-server');
+const { keycloakRoles } = require('@hkube/consts');
 const storage = require('../../../../lib/service/storage');
 const {
     handleStorageError,
@@ -6,24 +7,25 @@ const {
     promisifyStream,
     downloadApi
 } = require('../../../../lib/stream');
+const keycloak = require('../../../../lib/service/keycloak');
 
 const routes = (options) => {
     const router = RestServer.router();
 
-    router.get('/', (req, res, next) => {
+    router.get('/', keycloak.getProtect(keycloakRoles.API_VIEW), (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
-    router.get('/info', async (req, res, next) => {
+    router.get('/info', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const response = await storage.getInfo();
         res.json(response);
         next();
     });
-    router.get('/prefix/types', (req, res, next) => {
+    router.get('/prefix/types', keycloak.getProtect(keycloakRoles.API_VIEW), (req, res, next) => {
         res.json(storage.prefixesTypes);
         next();
     });
-    router.get('/prefixes', async (req, res, next) => {
+    router.get('/prefixes', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const { sort, order, from, to } = req.query;
         try {
             const response = await storage.getAllPrefixes({ sort, order, from, to });
@@ -34,7 +36,7 @@ const routes = (options) => {
             next(handleStorageError(e));
         }
     });
-    router.get('/prefixes/*', async (req, res, next) => {
+    router.get('/prefixes/*', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const path = req.params[0];
         const { sort, order, from, to } = req.query;
         try {
@@ -46,7 +48,7 @@ const routes = (options) => {
             next(handleStorageError(e, 'prefix', path));
         }
     });
-    router.get('/keys', async (req, res, next) => {
+    router.get('/keys', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const { sort, order, from, to } = req.query;
         try {
             const response = await storage.getAllKeys({ sort, order, from, to });
@@ -57,7 +59,7 @@ const routes = (options) => {
             next(handleStorageError(e));
         }
     });
-    router.get('/keys/*', async (req, res, next) => {
+    router.get('/keys/*', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const path = req.params[0];
         const { sort, order, from, to } = req.query;
         try {
@@ -69,7 +71,7 @@ const routes = (options) => {
             next(handleStorageError(e, 'key', path));
         }
     });
-    router.get('/values/*', async (req, res, next) => {
+    router.get('/values/*', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const path = req.params[0];
         try {
             const metadata = await storage.getMetadata({ path });
@@ -85,7 +87,7 @@ const routes = (options) => {
             next(handleStorageError(e, 'value', path));
         }
     });
-    router.get('/stream/custom/*', async (req, res, next) => {
+    router.get('/stream/custom/*', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const path = req.params[0];
         try {
             const stream = await storage.getCustomStream({ path });
@@ -95,7 +97,7 @@ const routes = (options) => {
             handleStreamError(e, path, res, next);
         }
     });
-    router.get('/stream/*', async (req, res, next) => {
+    router.get('/stream/*', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const path = req.params[0];
         try {
             const stream = await storage.getStream({ path });
@@ -105,7 +107,7 @@ const routes = (options) => {
             handleStreamError(e, path, res, next);
         }
     });
-    router.get('/download/custom/*', async (req, res, next) => {
+    router.get('/download/custom/*', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const path = req.params[0];
         const { ext, namefile } = req.query;
         try {
@@ -116,7 +118,7 @@ const routes = (options) => {
             handleStreamError(e, path, res, next);
         }
     });
-    router.get('/download/pipeline/result/:jobId/:namefile?', async (req, res, next) => {
+    router.get('/download/pipeline/result/:jobId/:namefile?', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const { jobId, namefile } = req.params;
         try {
             const stream = await storage.getPipelineResult({ jobId });
@@ -126,7 +128,7 @@ const routes = (options) => {
             handleStreamError(e, 'path', res, next);
         }
     });
-    router.get('/download/*', async (req, res, next) => {
+    router.get('/download/*', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res, next) => {
         const path = req.params[0];
         const { ext } = req.query;
         try {

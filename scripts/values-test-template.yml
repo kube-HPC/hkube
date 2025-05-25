@@ -1,5 +1,6 @@
 global:
-  clusterName: test
+  clusterName: test-spot
+  hkube_url: https://cicd-test.hkube.org/hkube
   storage:
     binary: true
     fs:
@@ -7,7 +8,7 @@ global:
       pvc:
         capacity: 50Gi
         name: hkube-storage
-        nfs_root: /nfs/storageclass/test-new
+        nfs_root: /nfs/storageclass/test
         nfs_server: 172.20.45.142
         storage_class: "-"
       dev_pvc:
@@ -18,6 +19,8 @@ global:
   ingress:
     use_regex: true
 env:
+  kibana_url: "https://cicd-test.hkube.org/system/kibana/"
+  grafana_url: "https://cicd-test.hkube.org/grafana"
   default_storage: "fs"
 build_secret:
   docker_registry: ""
@@ -43,3 +46,5 @@ jaeger:
   enable: true
 minio:
   enable: true
+keycloak:
+  enable: false

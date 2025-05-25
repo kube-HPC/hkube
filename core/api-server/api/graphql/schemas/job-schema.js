@@ -117,6 +117,12 @@ const jobTypeDefs = gql`
     edges: [Edges]
   }
 
+  type AuditEntry {
+    timestamp: Float
+    user: String
+    action: String
+  }
+
   type States {
     succeed: Int
     failed: Int
@@ -190,6 +196,7 @@ const jobTypeDefs = gql`
 
   type PipelineForJob {
     name: String
+    version: String
     experimentName: String
     kind: String
     priority: Int
@@ -225,6 +232,7 @@ const jobTypeDefs = gql`
     userPipeline: UserPipeline
     cursor: String
     timeTook: String
+    auditTrail: [AuditEntry]
   }
 
   type AggregatedJobs {
@@ -235,6 +243,8 @@ const jobTypeDefs = gql`
 
   extend type Query {
     jobsAggregated(
+      user: String
+      action: String
       experimentName: String
       pipelineName: String
       pipelineType: String

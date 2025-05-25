@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 const { parser } = require('@hkube/parsers');
-const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
+const { pipelineStatuses, taskStatuses, stateType, pipelineKind, warningCodes } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
 const log = logger.GetLogFromContainer();
@@ -127,12 +127,13 @@ class TaskRunner {
             });
             n.status = event.reason;
             n.warnings = n.warnings || [];
-            const { resourceMessage, isError } = this._buildNodeResourceMessage(event, clusterNodes);
+            const { message, isError } = this._handleWarningMessage(event, clusterNodes);
             if (isError) {
-                n.error = resourceMessage;
+                n.error = message;
+                n.endTime = Date.now();
             }
             else {
-                n.warnings.push(resourceMessage);
+                n.warnings.push(message);
             }
         });
         this._progressStatus({ status: DriverStates.ACTIVE });
@@ -141,25 +142,54 @@ class TaskRunner {
     _filterTasksByEvent(task, event) {
         return task.algorithmName === event.algorithmName
             && task.status === taskStatuses.CREATING
-            && (Date.now() - event.timestamp > this._schedulingWarningTimeoutMs || event.hasMaxCapacity);
+            && (Date.now() - event.timestamp > this._schedulingWarningTimeoutMs || event.surpassTimeout);
+    }
+
+    /**
+     * Handles a warning message based on its code and generates an appropriate response.
+     *
+     * @param {Object} event - The event object containing details about the warning.
+     * @param {string} event.message - The warning message.
+     * @param {number} event.timestamp - The timestamp when the warning occurred.
+     * @param {string} event.code - The warning code indicating the type of issue.
+     * @param {Array} clusterNodes - The list of cluster nodes to assist with resource-related warnings.
+     *
+     * @returns {Object} The processed warning response, containing the message, timestamp, and a flag indicating whether it's an error.
+     *
+     * @throws {Error} Throws an error if the warning code is unknown or unsupported.
+     */
+    _handleWarningMessage(event, clusterNodes) {
+        const { message, code } = event;
+        switch (code) {
+            case warningCodes.JOB_CREATION_FAILED:
+                return { message, isError: true };
+            case warningCodes.INVALID_VOLUME:
+                return { message, isError: true };
+            case warningCodes.RESOURCES:
+                return this._buildNodeResourceMessage(event, clusterNodes);
+            default:
+                log.error(`Unknown warning code: ${code}`);
+                return { message, isError: false };
+        }
     }
 
     // Build a custom message for each unscheduled algorithm
     _buildNodeResourceMessage(unScheduledAlg, clusterNodes) {
+        const { complexResourceDescriptor, message } = unScheduledAlg;
         let isError = false;
-        const resourceSummary = `${unScheduledAlg.message}\n`;
+        const resourceSummary = `${message}\n`;
         let resourceMessage = '';
         let selectors = '';
-        if (unScheduledAlg.complexResourceDescriptor.requestedSelectors) {
-            selectors = `${unScheduledAlg.complexResourceDescriptor.requestedSelectors.join(', ')}`;
+        if (complexResourceDescriptor.requestedSelectors) {
+            selectors = `${complexResourceDescriptor.requestedSelectors.join(', ')}`;
         } // Build selector string
-        if (unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector) {
-            if (unScheduledAlg.complexResourceDescriptor.nodes.length === 0) {
-                resourceMessage += `None of the ${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes match node selector '${selectors}'\n`;
+        if (complexResourceDescriptor.numUnmatchedNodesBySelector) {
+            if (complexResourceDescriptor.nodes.length === 0) {
+                resourceMessage += `None of the ${complexResourceDescriptor.numUnmatchedNodesBySelector} nodes match node selector '${selectors}'\n`;
                 isError = true;
             } // Unmatched all nodes by selector condition
             else {
-                resourceMessage += `${unScheduledAlg.complexResourceDescriptor.numUnmatchedNodesBySelector} nodes don't match node selector: '${selectors}',\n`;
+                resourceMessage += `${complexResourceDescriptor.numUnmatchedNodesBySelector} nodes don't match node selector: '${selectors}',\n`;
                 ({ resourceMessage, isError } = this._buildSpecificNodeResourceMessage(unScheduledAlg, resourceMessage, isError, clusterNodes));
             } // Selector present, but also resource issues.
         }
@@ -167,7 +197,7 @@ class TaskRunner {
             ({ resourceMessage, isError } = this._buildSpecificNodeResourceMessage(unScheduledAlg, resourceMessage, isError, clusterNodes));
         } // No selectors, only node resource issues
         resourceMessage = resourceSummary.concat(resourceMessage);
-        return { resourceMessage, isError };
+        return { message: resourceMessage, isError };
     }
 
     // eslint-disable-next-line no-unused-vars
@@ -305,7 +335,7 @@ class TaskRunner {
         pipeline.nodes = await Promise.all(pipeline.nodes.map(async node => {
             const algorithm = await stateManager.getAlgorithmsByName(node.algorithmName);
             node.algorithmVersion = algorithm?.version;
-            node.devMode = algorithm.options.devMode;
+            node.devMode = algorithm?.options?.devMode;
             return node;
         }));
 

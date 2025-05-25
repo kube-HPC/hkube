@@ -36,56 +36,68 @@ class EsLogs {
         }
     }
 
-    addComponentCriteria(nodeKind) {
+    addComponentCriteria(nodeKind, containerNameList) {
         let search;
-        const components = getSearchComponent(nodeKind).map(sc => `${this._structuredPrefix}meta.internal.component: "${sc}"`);
+        const componentNames = getSearchComponent(nodeKind);
+        if (containerNameList) {
+            componentNames.push(...containerNameList);
+        }
+        const components = componentNames.map(sc => `${this._structuredPrefix}meta.internal.component: "${sc}"`);
         if (components.length) {
             search = `(${components.join(' OR ')})`;
         }
         return search;
     }
 
-    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime }) {
+    async getLogs({ taskId, nodeKind, podName, logMode, sort, limit, skip, searchWord, taskTime, containerNameList }) {
         const query = [];
-        if (taskId) {
-            query.push(`${this._structuredPrefix}meta.internal.taskId: "${taskId}"`);
-        }
         if (podName) {
             query.push(`kubernetes.pod_name: "${podName}"`);
         }
-        if (logMode === logModes.INTERNAL) {
+        // Handle message structure
+        switch (logMode) {
+        case logModes.INTERNAL: // Source = System
             query.push(`${this._structuredPrefix}message: "${internalLogPrefix}*"`);
-        }
-        if (logMode === logModes.ALGORITHM) {
+            break;
+        case logModes.ALGORITHM || logModes.SIDECAR: // Source = Algorithm / SideCar
             query.push(`NOT ${this._structuredPrefix}message: "${internalLogPrefix}*"`);
+            break;
+        default:
+            break;
         }
-        if (nodeKind) {
-            const searchComponent = this.addComponentCriteria(nodeKind);
+        // Handle components
+        if (logMode === logModes.SIDECAR) { // In this case, it's possible to ask for 1 sideCar only.
+            if (containerNameList.length === 0) {
+                log.error('a sideCar Name is requried in containerNames when logMode is SIDECAR!', { component });
+                return [];
+            }
+            const searchComponent = `${this._structuredPrefix}meta.internal.component: "${containerNameList[0]}"`;
+            query.push(searchComponent);
+        }
+        else if (nodeKind) {
+            const searchComponent = this.addComponentCriteria(nodeKind, containerNameList);
             if (searchComponent) {
                 query.push(searchComponent);
             }
         }
+
         if (searchWord) {
             query.push(`${searchWord}*`);
         }
 
+        let queryStringNoTaskId;
+        if (logMode !== logModes.INTERNAL && logMode !== logModes.ALGORITHM) {
+            const queryNoTaskId = [...query, 'stream: "stdout"'];
+            queryStringNoTaskId = queryNoTaskId.join(' AND ');
+        }
+
+        if (taskId) {
+            query.push(`${this._structuredPrefix}meta.internal.taskId: "${taskId}"`);
+        }
+
         const queryString = query.join(' AND ');
 
-        const body = {
-            size: limit,
-            from: skip,
-            sort: [{ [`${this._structuredPrefix}meta.timestamp`]: { order: sort } }],
-            _source: [`${this._structuredPrefix}message`, 'level', `${this._structuredPrefix}meta.timestamp`],
-            query: {
-                bool: {
-                    must: [{
-                        query_string: {
-                            query: queryString
-                        }
-                    }]
-                }
-            }
-        };
+        const body = this._buildBody(limit, skip, sort, queryString);
 
         // add range date
         if (taskTime) {
@@ -104,12 +116,48 @@ class EsLogs {
             type: this._type,
             body
         });
+
         if (this._structuredPrefix) {
             logs.hits = logs.hits.map(line => ({
                 ...line, ...line[this._structuredPrefixAtrributeName]
             }));
         }
+
+        if (queryStringNoTaskId) {
+            const bodyNoTaskId = this._buildBody(limit, skip, sort, queryStringNoTaskId);
+            const logsNoTaskId = await this._client.search({
+                index: this._index,
+                type: this._type,
+                body: bodyNoTaskId
+            });
+            if (this._structuredPrefix) {
+                logsNoTaskId.hits = logsNoTaskId.hits.map(line => ({
+                    ...line, ...line[this._structuredPrefixAtrributeName]
+                }));
+            }
+            return [...logs.hits, ...logsNoTaskId.hits];
+        }
+
         return logs.hits;
+    }
+
+    _buildBody(size, from, sort, queryString) {
+        const body = {
+            size,
+            from,
+            sort: [{ [`${this._structuredPrefix}meta.timestamp`]: { order: sort } }],
+            _source: [`${this._structuredPrefix}message`, 'level', `${this._structuredPrefix}meta.timestamp`],
+            query: {
+                bool: {
+                    must: [{
+                        query_string: {
+                            query: queryString
+                        }
+                    }]
+                }
+            }
+        };
+        return body;
     }
 }
 

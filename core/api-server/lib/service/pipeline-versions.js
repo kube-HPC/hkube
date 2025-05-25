@@ -2,7 +2,7 @@ const asyncQueue = require('async.queue');
 const versioning = require('./versioning');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError } = require('../errors');
+const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 
 class PipelineVersions {
     constructor() {
@@ -30,6 +30,48 @@ class PipelineVersions {
         return pipelineVersion;
     }
 
+    async applyVersion(options, userName) {
+        const { name, version } = options;
+        validator.pipelines.validatePipelineVersion(options);
+        const pipelineVersion = await this.getVersion({ name, version });
+        const oldPipeline = await stateManager.getPipeline({ name });
+        // Handle audit for version
+        if (!oldPipeline.auditTrail) {
+            pipelineVersion.pipeline.auditTrail = [];
+        }
+        const auditEntry = {
+            user: userName,
+            timestamp: null,
+            version: pipelineVersion.version
+        };
+        pipelineVersion.pipeline.auditTrail = [
+            auditEntry,
+            ...oldPipeline.auditTrail || []
+        ];
+        //
+        await stateManager.updatePipeline(pipelineVersion.pipeline);
+        return pipelineVersion;
+    }
+
+    async deleteVersion(options) {
+        const { version, name } = options;
+        validator.pipelines.validatePipelineVersion({ name, version });
+        const pipeline = await stateManager.getPipeline({ name });
+        if (!pipeline) {
+            throw new ResourceNotFoundError('pipeline', name);
+        }
+        if (pipeline.version === version) {
+            throw new ActionNotAllowed('unable to remove the currently used version');
+        }
+        const pipelineVersion = await versioning.getVersion({ version }, true);
+        if (!pipelineVersion) {
+            throw new ResourceNotFoundError('version', version);
+        }
+        const res = await stateManager.deleteVersion({ name, version }, true);
+        const deleted = parseInt(res.deleted, 10);
+        return { deleted };
+    }
+
     /**
      * This method creates new pipeline version.
      * Version is created for any change in pipeline.
@@ -44,9 +86,9 @@ class PipelineVersions {
      * 5) if lock was unsuccessful, try to increment the semver again.
      * 6) create the version.
      */
-    async createVersion(pipeline) {
+    async createVersion(pipeline, userName) {
         return new Promise((resolve, reject) => {
-            this._versionsQueue.push({ pipeline }, (err, res) => {
+            this._versionsQueue.push({ pipeline, userName }, (err, res) => {
                 if (err) {
                     return reject(err);
                 }

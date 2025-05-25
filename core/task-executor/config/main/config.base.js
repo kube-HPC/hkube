@@ -63,6 +63,10 @@ config.resources = {
         'limits.memory': process.env.DEFAULT_QUOTA_MEM || '20Gi',
         'requests.nvidia.com/gpu': process.env.DEFAULT_QUOTA_GPU || 0
     },
+    sideCar: {
+        cpu: parseFloat(process.env.DEFAULT_SIDECAR_CPU) || 0.1,
+        memory: process.env.DEFAULT_SIDECAR_MEMORY || '128Mi'
+    },
     useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false)
 }
 
