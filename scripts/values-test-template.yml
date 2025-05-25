@@ -1,5 +1,5 @@
 global:
-  clusterName: test
+  clusterName: test-spot
   hkube_url: https://cicd-test.hkube.org/hkube
   storage:
     binary: true
