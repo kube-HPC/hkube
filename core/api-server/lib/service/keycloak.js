@@ -60,6 +60,12 @@ class KeycloakMiddleware {
                 log.info('Authorization header not found, rejecting request.', { component });
                 return res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
             }
+            const originalRedirect = res.redirect.bind(res);
+            res.redirect = (url) => {
+                log.warn(`Intercepted redirect to: ${url}`, { component });
+                res.redirect = originalRedirect;
+                res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized: login redirect suppressed' });
+            };
             // If roles are undefined or an empty array, treat it as no role protection
             if (!roles || roles.length === 0) {
                 log.info('No roles provided, protecting route without role restrictions.', { component });
