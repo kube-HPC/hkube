@@ -62,7 +62,7 @@ class KeycloakMiddleware {
             }
             const originalRedirect = res.redirect.bind(res);
             res.redirect = (url) => {
-                log.warn(`Intercepted redirect to: ${url}`, { component });
+                log.info(`Intercepted redirect to: ${url}`, { component });
                 res.redirect = originalRedirect;
                 res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized: login redirect suppressed' });
             };

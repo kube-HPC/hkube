@@ -50,11 +50,7 @@ class AppServer {
 
         // Keycloak interceptor
         if (options.keycloak.enabled) {
-            beforeRoutesMiddlewares.push(keycloak._keycloak.middleware({
-                accessDenied: (req, res) => {
-                    res.status(401).json({ error: 'Unauthorized: token missing or invalid' });
-                }
-            }));
+            beforeRoutesMiddlewares.push(keycloak._keycloak.middleware());
         }
 
         const opt = {
