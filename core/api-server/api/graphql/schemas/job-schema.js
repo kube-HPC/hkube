@@ -196,6 +196,7 @@ const jobTypeDefs = gql`
 
   type PipelineForJob {
     name: String
+    version: String
     experimentName: String
     kind: String
     priority: Int
