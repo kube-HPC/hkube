@@ -1,6 +1,7 @@
 const Keycloak = require('keycloak-connect');
 const axios = require('axios');
 const Logger = require('@hkube/logger');
+const HttpStatus = require('http-status-codes');
 
 let log;
 const component = require('../consts/componentNames').KEYCLOAK_MIDDLEWARE;
@@ -53,6 +54,11 @@ class KeycloakMiddleware {
         return (req, res, next) => {
             if (!this._options.enabled) {
                 return next();
+            }
+            const authHeader = req.headers.authorization;
+            if (!authHeader) {
+                log.info('Authorization header not found, rejecting request.', { component });
+                return res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
             }
             // If roles are undefined or an empty array, treat it as no role protection
             if (!roles || roles.length === 0) {
