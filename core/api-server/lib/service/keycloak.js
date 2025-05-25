@@ -64,14 +64,13 @@ class KeycloakMiddleware {
             res.redirect = (url) => {
                 log.info(`Intercepted redirect to: ${url}`, { component });
                 res.redirect = originalRedirect;
-                res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized: login redirect suppressed' });
+                res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
             };
             // If roles are undefined or an empty array, treat it as no role protection
             if (!roles || roles.length === 0) {
                 log.info('No roles provided, protecting route without role restrictions.', { component });
                 return this._keycloak.protect()(req, res, next);
             }
-
             // Directly call the keycloak.protect() method with multiple roles
             return this._keycloak.protect(roles)(req, res, next);
         };
