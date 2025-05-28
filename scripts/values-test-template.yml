@@ -47,4 +47,4 @@ jaeger:
 minio:
   enable: true
 keycloak:
-  enable: true
+  enable: false
