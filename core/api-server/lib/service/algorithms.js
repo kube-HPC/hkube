@@ -36,24 +36,25 @@ class AlgorithmStore {
             const versions = await stateManager.getVersions({ name });
             const newAlgorithm = merge({}, algorithm, { algorithmImage, options: { pending: false } });
             const version = await versionsService.createVersion(newAlgorithm, buildId);
-
-            // check if running pipelines
+            const oldAlgorithm = await stateManager.getAlgorithm({ name });
+            if (oldAlgorithm.auditTrail) {
+                newAlgorithm.auditTrail = oldAlgorithm.auditTrail;
+                newAlgorithm.auditTrail[0].version = version;
+            }
+            // check if  any running pipelines
             const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
 
-            // if not versions on this Algorithm or not running pipelines then update Algorithm to new version
+            // if there are no versions for this Algorithm or no running pipelines then update Algorithm to new version
             if (versions.length === 0 || runningPipelines.length === 0) {
                 stateManager.updateAlgorithm({ ...newAlgorithm, version });
             }
             else {
-                // get old algorithm by algorithmName
-                const oldAlgorithm = await stateManager.getAlgorithm({ name });
-
-                // set error version is not last
+                // set error -  version is not last
                 oldAlgorithm.errors = oldAlgorithm.errors || [];
 
                 oldAlgorithm.errors.push(errorsCode.NOT_LAST_VERSION_ALGORITHM);
 
-                // update Algorithm and no create new version
+                // update Algorithm and dont create a new version
                 stateManager.updateAlgorithm(oldAlgorithm);
             }
         });
