@@ -2441,7 +2441,10 @@ describe('Store/Algorithms', () => {
 
                 const { options, created: c1, modified: c2, reservedMemory: none,auditTrail, ...restProps } = res1.body.algorithm;
                 const res2 = await request({ uri: `${versionsPath}/${algorithmName}`, method: 'GET' });
+                const versionForBuild = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
                 const { version, created, modified, reservedMemory, auditTrail:auditTrail1 , ...algorithm } = res2.body[0].algorithm;
+                expect(versionForBuild.body.auditTrail[0]).to.have.property('version');
+                expect(versionForBuild.body.auditTrail[0].version).to.not.equal('undefined');
                 expect(algorithm).to.eql({ ...defaultProps, ...restProps, algorithmImage });
             });
 
