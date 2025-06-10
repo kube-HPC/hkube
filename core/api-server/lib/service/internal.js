@@ -6,7 +6,7 @@ const execution = require('./execution');
 class InternalService {
     async runStoredTriggerPipeline(options) {
         validator.internal.validateStoredInternal(options);
-        const { name, parentJobId, userName} = options;
+        const { name, parentJobId, userName } = options;
         const execPipeline = await stateManager.getJobPipeline({ jobId: parentJobId });
         const rootJobId = execPipeline.rootJobId || parentJobId;
         const rootJobName = execPipeline.name;
