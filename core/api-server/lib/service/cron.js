@@ -56,9 +56,10 @@ class CronService {
     }
 
     async runStoredCron(options) {
+        const { userName } = options;
         validator.internal.validateStoredInternal(options);
         const pipeline = await this._createPipeline(options);
-        return execution._runStored({ pipeline, types: [pipelineTypes.STORED, pipelineTypes.INTERNAL, pipelineTypes.CRON] });
+        return execution._runStored({ pipeline, types: [pipelineTypes.STORED, pipelineTypes.INTERNAL, pipelineTypes.CRON], userName });
     }
 
     async startCronJob(options) {
