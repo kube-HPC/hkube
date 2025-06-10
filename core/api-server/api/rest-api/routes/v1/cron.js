@@ -24,12 +24,12 @@ const routes = (options) => {
         const response = await Cron.getCronList({ sort, order, limit });
         res.json(response);
     });
-    router.post('/start', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+    router.post('/start', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const { name, pattern } = req.body;
         await Cron.startCronJob({ name, pattern });
         res.json({ message: 'OK' });
     });
-    router.post('/stop', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+    router.post('/stop', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const { name, pattern } = req.body;
         await Cron.stopCronJob({ name, pattern });
         res.json({ message: 'OK' });

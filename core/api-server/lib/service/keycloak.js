@@ -1,6 +1,7 @@
 const Keycloak = require('keycloak-connect');
 const axios = require('axios');
 const Logger = require('@hkube/logger');
+const HttpStatus = require('http-status-codes');
 
 let log;
 const component = require('../consts/componentNames').KEYCLOAK_MIDDLEWARE;
@@ -54,12 +55,22 @@ class KeycloakMiddleware {
             if (!this._options.enabled) {
                 return next();
             }
+            const authHeader = req.headers.authorization;
+            if (!authHeader) {
+                log.info('Authorization header not found, rejecting request.', { component });
+                return res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
+            }
+            const originalRedirect = res.redirect.bind(res);
+            res.redirect = (url) => {
+                log.info(`Intercepted redirect to: ${url}`, { component });
+                res.redirect = originalRedirect;
+                res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
+            };
             // If roles are undefined or an empty array, treat it as no role protection
             if (!roles || roles.length === 0) {
                 log.info('No roles provided, protecting route without role restrictions.', { component });
                 return this._keycloak.protect()(req, res, next);
             }
-
             // Directly call the keycloak.protect() method with multiple roles
             return this._keycloak.protect(roles)(req, res, next);
         };
