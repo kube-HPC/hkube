@@ -18,31 +18,66 @@ global:
       base_directory: '/hkubedata'
   ingress:
     use_regex: true
+
 env:
   kibana_url: "https://dev.hkube.org/system/kibana/"
   grafana_url: "https://dev.hkube.org/grafana"
   default_storage: 'fs'
+
 build_secret:
   docker_registry: ''
   docker_namespace: ''
   docker_username: ${DOCKER_BUILD_PUSH_USERNAME}
   docker_password: ${DOCKER_BUILD_PUSH_PASSWORD}
+
 etcd:
   persistentVolume:
     enabled: true
     storageClass: etcd-sc
+
 task_executor:
   env:
     pipeline_drivers_amount: 5
     use_resource_limits: true
+
 monitor_server:
   env:
     elasticsearch_service_url: 'http://elasticsearch-ingest.logging:9200'
+
 storage_cleaner:
   pattern: "30 7 * * *"
+
 etcd_cleaner:
   pattern: "30 7 * * *"
+
+cassandra:
+  persistence:
+    storageClass: nfs-client
+
+mongodb:
+  persistence:
+    storageClass: nfs-client
+
+postgresql:
+  persistence:
+    storageClass: nfs-client
+
+gitea:
+  persistence:
+    storageClass: nfs-client
+
 jaeger:
-  enable: true  
+  enable: true
+  query:
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+    service:
+      port: 80
+      annotations: {}
+      type: ClusterIP
+      loadBalancerSourceRanges: []
+
 minio:
   enable: true
