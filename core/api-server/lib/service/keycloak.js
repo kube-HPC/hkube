@@ -1,4 +1,5 @@
 const Keycloak = require('keycloak-connect');
+const https = require('https');
 const axios = require('axios');
 const Logger = require('@hkube/logger');
 const HttpStatus = require('http-status-codes');
@@ -14,6 +15,8 @@ class KeycloakMiddleware {
 
     async init(options) {
         this._options = options.keycloak;
+        // this._dockerRegistry = options.build_secret?.docker_registry; // TODO - make this configurable
+        this._dockerRegistry = 'registry.minikube'; // For testing purposes, set to 'registry.minikube'
         log = Logger.GetLogFromContainer();
         log.info('Initializing Keycloak middleware...', { component });
 
@@ -31,7 +34,16 @@ class KeycloakMiddleware {
             try {
                 // Validate realm configuration by fetching the realm info
                 const realmInfoUrl = `${this._options.authServerUrl}/realms/${this._options.realm}`;
-                const response = await axios.get(realmInfoUrl);
+                // Conditionally create https agent to trust self-signed certs
+                const axiosOptions = {};
+                if (this._dockerRegistry === 'registry.minikube') {
+                    axiosOptions.httpsAgent = new https.Agent({
+                        rejectUnauthorized: false
+                    });
+                    log.info('Trusting self-signed certificates for Minikube environment.', { component });
+                }
+
+                const response = await axios.get(realmInfoUrl, axiosOptions);
                 log.info(`Keycloak realm '${response.data.realm}' validated successfully.`, { component });
             }
             catch (error) {
@@ -58,13 +70,13 @@ class KeycloakMiddleware {
             const authHeader = req.headers.authorization;
             if (!authHeader) {
                 log.info('Authorization header not found, rejecting request.', { component });
-                return res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
+                return res.status(HttpStatus.StatusCodes.UNAUTHORIZED).json({ error: 'Unauthorized' });
             }
             const originalRedirect = res.redirect.bind(res);
             res.redirect = (url) => {
                 log.info(`Intercepted redirect to: ${url}`, { component });
                 res.redirect = originalRedirect;
-                res.status(HttpStatus.UNAUTHORIZED).json({ error: 'Unauthorized' });
+                res.status(HttpStatus.StatusCodes.UNAUTHORIZED).json({ error: 'Unauthorized' });
             };
             // If roles are undefined or an empty array, treat it as no role protection
             if (!roles || roles.length === 0) {
