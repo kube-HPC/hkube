@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: get environment
         run: |
+          curl https://api.ipify.org
           echo "environment is: $DEPLOY_ENVIRONMENT"
           URL=''
           case "$DEPLOY_ENVIRONMENT" in
@@ -80,6 +81,13 @@ jobs:
           node-version: 18.x
       - name: Docker login
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+      - name: build changed
+        id: build_changed
+        uses: yehiyam/deploy-to-k8s@master
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          prNumber: ${{ github.event.deployment.payload.prNumber }}
+          branchName: ${{ github.event.ref }}
 
       - uses: actions/upload-artifact@v4
         with:
