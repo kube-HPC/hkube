@@ -15,7 +15,6 @@ class KeycloakMiddleware {
 
     async init(options) {
         this._options = options.keycloak;
-        this._isSelfSigned = options.isSelfSigned;
         log = Logger.GetLogFromContainer();
         log.info('Initializing Keycloak middleware...', { component });
 
@@ -35,7 +34,7 @@ class KeycloakMiddleware {
                 const realmInfoUrl = `${this._options.authServerUrl}/realms/${this._options.realm}`;
                 // Conditionally create https agent to trust self-signed certs
                 const axiosOptions = {};
-                if (this._isSelfSigned) {
+                if (this._options.allowSelfSignedCert) {
                     axiosOptions.httpsAgent = new https.Agent({
                         rejectUnauthorized: false
                     });
