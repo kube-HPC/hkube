@@ -15,8 +15,7 @@ class KeycloakMiddleware {
 
     async init(options) {
         this._options = options.keycloak;
-        // this._dockerRegistry = options.build_secret?.docker_registry; // TODO - make this configurable
-        this._dockerRegistry = 'registry.minikube'; // For testing purposes, set to 'registry.minikube'
+        this._isSelfSigned = options.isSelfSigned;
         log = Logger.GetLogFromContainer();
         log.info('Initializing Keycloak middleware...', { component });
 
@@ -36,7 +35,7 @@ class KeycloakMiddleware {
                 const realmInfoUrl = `${this._options.authServerUrl}/realms/${this._options.realm}`;
                 // Conditionally create https agent to trust self-signed certs
                 const axiosOptions = {};
-                if (this._dockerRegistry === 'registry.minikube') {
+                if (this._isSelfSigned) {
                     axiosOptions.httpsAgent = new https.Agent({
                         rejectUnauthorized: false
                     });
