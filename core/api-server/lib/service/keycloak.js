@@ -32,9 +32,9 @@ class KeycloakMiddleware {
             try {
                 // Validate realm configuration by fetching the realm info
                 const realmInfoUrl = `${this._options.authServerUrl}/realms/${this._options.realm}`;
-                // Conditionally create https agent to trust self-signed certs
                 const axiosOptions = {};
                 if (this._options.allowSelfSignedCert) {
+                    // Create https agent to trust self-signed certs
                     axiosOptions.httpsAgent = new https.Agent({
                         rejectUnauthorized: false
                     });
