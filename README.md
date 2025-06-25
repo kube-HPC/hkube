@@ -98,6 +98,7 @@ build_secret:
     password: ''
 ```
 
+
 2. Install HKube chart
 
    ```console
