@@ -219,7 +219,7 @@ config.keycloak = {
     clientSecret: process.env.KC_CLIENT_SECRET || '4q2NZlxDJXcm01p3dAfL8eqVWkmb1HpL',
     authServerUrl: process.env.KC_URL || 'https://cicd.hkube.org/hkube/keycloak',
     defaultUserAuditingName: process.env.KC_DEFAULT_USER_AUDITING_NAME || 'defaultUser',
-    allowSelfSignedCert: formatter.parseBool(process.env.ALLOW_SELF_SIGNED_CERT, false),
+    allowInsecureTLS: process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0",
 }
 
 module.exports = config;
