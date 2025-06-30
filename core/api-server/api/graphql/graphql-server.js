@@ -18,7 +18,7 @@ const buildContext = (req, keycloak) => {
         if (!keycloak) return true; // Bypass if auth is disabled
         if (!user) throw new AuthenticationError('Unauthorized: Missing or invalid token', StatusCodes.UNAUTHORIZED);
         if (!requiredRoles || requiredRoles.length === 0) return true; // No role restriction
-        return requiredRoles.every(role => userRoles.includes(role)); // Check if user has a required role
+        return requiredRoles.every(role => userRoles.includes(role)); // Check if user has all required roles
     };
 
     const context = { checkPermission, ...req };
