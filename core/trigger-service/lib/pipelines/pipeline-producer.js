@@ -1,4 +1,5 @@
 const request = require('requestretry');
+const { generalConsts } = require('../consts');
 
 class PipelineProducer {
     constructor() {
@@ -23,7 +24,8 @@ class PipelineProducer {
             uri: `${this._apiUrl}/${trigger.type}`,
             body: {
                 name: trigger.name,
-                parentJobId: trigger.jobId
+                parentJobId: trigger.jobId,
+                userName: generalConsts.TRIGGER_USER_FOR_AUDIT
             },
             json: true,
             ...this.retrySettings

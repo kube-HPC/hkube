@@ -6,7 +6,7 @@ const execution = require('./execution');
 class InternalService {
     async runStoredTriggerPipeline(options) {
         validator.internal.validateStoredInternal(options);
-        const { name, parentJobId } = options;
+        const { name, parentJobId, userName } = options;
         const execPipeline = await stateManager.getJobPipeline({ jobId: parentJobId });
         const rootJobId = execPipeline.rootJobId || parentJobId;
         const rootJobName = execPipeline.name;
@@ -16,7 +16,7 @@ class InternalService {
         if (results?.data) {
             pipeline.flowInput = { parent: results.data };
         }
-        const { jobId, gateways } = await execution._runStored({ pipeline, rootJobId, mergeFlowInput: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
+        const { jobId, gateways } = await execution._runStored({ pipeline, rootJobId, mergeFlowInput: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER], userName });
         await stateManager.updateTriggersTree({ name, rootJobName, jobId, rootJobId, parentJobId });
         return { jobId, gateways };
     }
