@@ -39,6 +39,13 @@ class AlgorithmVersions {
         return ver;
     }
 
+    async updateVersionAlias(options) {
+        const { version, alias } = options;
+        await stateManager.updateVersion({ version, versionAlias: alias });
+        const updatedVer = await versioning.getVersion({ version });
+        return updatedVer;
+    }
+
     async applyVersion(options, userName) {
         const { name, version, force } = options;
         validator.algorithms.validateAlgorithmVersion(options);

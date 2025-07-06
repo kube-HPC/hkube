@@ -30,6 +30,13 @@ class PipelineVersions {
         return pipelineVersion;
     }
 
+    async updateVersionAlias(options) {
+        const { version, alias } = options;
+        await stateManager.updateVersion({ version, versionAlias: alias }, true);
+        const updatedVer = await versioning.getVersion({ version }, true);
+        return updatedVer;
+    }
+
     async applyVersion(options, userName) {
         const { name, version } = options;
         validator.pipelines.validatePipelineVersion(options);
