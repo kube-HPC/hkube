@@ -126,6 +126,25 @@ const _getMissingVolumes = (requestedVolumes, allVolumes) => {
 };
 
 /**
+ * Applies the configuration from the kaiObject to annotations and labels.
+ * 
+ * @param {Object} kaiObject - The kaiObject containing the values to apply.
+ * @param {string} algorithmName - The name of the algorithm being configured.
+ * @param {Object} annotations - The annotations object to modify.
+ * @param {Object} labels - The labels object to modify.
+ * 
+ * @returns {string|undefined} - A string message if 'queue' is missing from kaiObject, otherwise undefined.
+ */
+const validateKai = ({ kaiObject, algorithmName }) => {
+    const { queue } = kaiObject || {};
+    if (!queue) {
+        return `Missing 'queue' in kaiObject for algorithm "${algorithmName}"`;
+    }
+
+    return undefined;
+};
+
+/**
  * Calculates the total requested CPU and memory from all containers.
  * 
  * @param {Object} params - The job details, containing the resource details.
@@ -187,6 +206,18 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) =>
             warning,
             newResources: { ...availableResources }
         };
+    }
+
+    if (jobDetails.kaiObject && Object.keys(jobDetails.kaiObject).length > 0) {
+        const kaiError = validateKai(jobDetails);
+        if (kaiError) {
+            const warning = createWarning({ jobDetails, message: kaiError, code: warningCodes.KAI || 1004 });
+            return {
+                shouldAdd: false,
+                warning,
+                newResources: { ...availableResources }
+            };
+        }
     }
 
     const nodeForSchedule = availableNode.node;
