@@ -41,9 +41,14 @@ class AlgorithmVersions {
 
     async updateVersionAlias(options) {
         const { version, alias } = options;
-        await stateManager.updateVersion({ version, versionAlias: alias });
-        const updatedVer = await versioning.getVersion({ version });
-        return updatedVer;
+        try {
+            await stateManager.updateVersion({ version, versionAlias: alias });
+            const updatedVer = await versioning.getVersion({ version });
+            return updatedVer;
+        }
+        catch (error) {
+            return error;
+        }
     }
 
     async applyVersion(options, userName) {

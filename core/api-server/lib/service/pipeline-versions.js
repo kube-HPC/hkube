@@ -32,9 +32,14 @@ class PipelineVersions {
 
     async updateVersionAlias(options) {
         const { version, alias } = options;
-        await stateManager.updateVersion({ version, versionAlias: alias }, true);
-        const updatedVer = await versioning.getVersion({ version }, true);
-        return updatedVer;
+        try {
+            await stateManager.updateVersion({ version, versionAlias: alias }, true);
+            const updatedVer = await versioning.getVersion({ version }, true);
+            return updatedVer;
+        }
+        catch (error) {
+            return error;
+        }
     }
 
     async applyVersion(options, userName) {
