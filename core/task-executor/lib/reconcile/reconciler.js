@@ -162,7 +162,7 @@ const _processAllRequests = (
         const workerResourceRequests = createContainerResource(workerResources);
 
         const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector,
-            entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars, volumes, volumeMounts } = algorithmTemplate;
+            entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars, volumes, volumeMounts, kaiObject } = algorithmTemplate;
 
         // Add request details for new job creation (will need to get confirmation via matchJobsToResources)
         createDetails.push({
@@ -190,7 +190,8 @@ const _processAllRequests = (
                 sideCars,
                 workerCustomResources,
                 volumes,
-                volumeMounts
+                volumeMounts,
+                kaiObject
             }
         });
 
