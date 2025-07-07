@@ -158,6 +158,19 @@ const _createJobCreationFailedWarning = ({ jobDetails, code, message: givenMessa
     });
 };
 
+const _createKaiWarning = ({ jobDetails, message: givenMessage, code }) => {
+    const { algorithmName, algorithmVersion } = jobDetails;
+    const message = `Kai object validation failed for algorithm ${algorithmName} version ${algorithmVersion}.\nError: ${givenMessage}`;
+    return _createWarning({
+        algorithmName,
+        algorithmVersion,
+        predictedStatus: 'failedScheduling',
+        message,
+        surpassTimeout: true,
+        code
+    });
+};
+
 const _createDefaultWarning = ({ message: givenMessage }) => {
     const message = `Unknown warning or error occured, message: ${givenMessage || 'Unknown'}`;
     log.info(message, { component });
@@ -173,6 +186,8 @@ const createWarning = (options = {}) => {
             return _createResourcesWarning(options);
         case warningCodes.JOB_CREATION_FAILED:
             return _createJobCreationFailedWarning(options);
+        case warningCodes.KAI || 1004:
+            return _createKaiWarning(options);
         default:
             return _createDefaultWarning(options);
     }
