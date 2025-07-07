@@ -560,8 +560,6 @@ const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
  * @property {string[]} pvcs - An array of PersistentVolumeClaim names.
  * @property {string[]} configMaps - An array of ConfigMap names.
  * @property {string[]} secrets - An array of Secret names.
- *
- * @throws {Error} Throws an error if there is an issue while fetching the resources.
  */
 const _getAllVolumeNames = async () => {
     const pvcs = await kubernetes.getAllPVCNames();
