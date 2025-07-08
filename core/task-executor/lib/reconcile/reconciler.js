@@ -755,7 +755,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // Handle job creation and scheduling
     const allVolumesNames = await _getAllVolumeNames();
-    const { requested, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumesNames);
+    const existingQueuesNames = await kubernetes.getAllQueueNames();
+    const extraResources = { allVolumesNames, existingQueuesNames };
+    const { requested, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, extraResources);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];

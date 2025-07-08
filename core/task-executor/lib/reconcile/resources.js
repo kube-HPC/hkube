@@ -96,28 +96,28 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
  * 
  * @param {Array<Object>} requestedVolumes - An array of requested volumes.
  * Each volume can have `persistentVolumeClaim`, `configMap`, or `secret` properties.
- * @param {Object} allVolumes - An object containing all available PVCs, ConfigMaps, and Secrets with their names.
+ * @param {Object} allVolumesNames - An object containing all available PVCs, ConfigMaps, and Secrets with their names.
  * @returns {Array<string>} An array of names of missing volumes. If all volumes exist, the array will be empty.
  */
-const _getMissingVolumes = (requestedVolumes, allVolumes) => {
+const _getMissingVolumes = (requestedVolumes, allVolumesNames) => {
     if (!requestedVolumes || requestedVolumes.length === 0) return [];
     const missingVolumes = [];
     requestedVolumes.forEach(volume => {
         if (volume.persistentVolumeClaim) {
             const name = volume.persistentVolumeClaim.claimName;
-            if (!allVolumes.pvcs.find(pvcName => pvcName === name)) {
+            if (!allVolumesNames.pvcs.find(pvcName => pvcName === name)) {
                 missingVolumes.push(name);
             }
         }
         if (volume.configMap) {
             const { name } = volume.configMap;
-            if (!allVolumes.configMaps.find(configMapName => configMapName === name)) {
+            if (!allVolumesNames.configMaps.find(configMapName => configMapName === name)) {
                 missingVolumes.push(name);
             }
         }
         if (volume.secret) {
             const name = volume.secret.secretName;
-            if (!allVolumes.secrets.find(secretName => secretName === name)) {
+            if (!allVolumesNames.secrets.find(secretName => secretName === name)) {
                 missingVolumes.push(name);
             }
         }
@@ -174,7 +174,8 @@ const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCusto
     return { requestedCpu, requestedMemory };
 };
 
-const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) => {
+const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources) => {
+    const { allVolumesNames, existingQueuesNames } = extraResources || {};
     if (totalAdded >= MAX_JOBS_PER_TICK) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
@@ -198,7 +199,7 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) =>
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
     }
 
-    const missingVolumes = _getMissingVolumes(jobDetails.volumes, allVolumes);
+    const missingVolumes = _getMissingVolumes(jobDetails.volumes, allVolumesNames);
     if (missingVolumes.length > 0) {
         const warning = createWarning({ jobDetails, missingVolumes, code: warningCodes.INVALID_VOLUME });
         return {
@@ -350,7 +351,7 @@ const pauseAccordingToResources = (stopDetails, availableResources, skippedReque
     return { toStop };
 };
 
-const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], allVolumes) => {
+const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], extraResources) => {
     const requested = [];
     const skipped = [];
     const localDetails = clone(createDetails);
@@ -359,7 +360,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
     // loop over all the job types one by one and assign until it can't fit in any node
     const cb = (j) => {
         if (j.numberOfNewJobs > 0) {
-            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, allVolumes);
+            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, extraResources);
             if (shouldAdd) {
                 const toCreate = { ...j.jobDetails, createdTime: Date.now(), node };
                 requested.push(toCreate);
