@@ -160,7 +160,7 @@ class KubernetesApi {
         }
         catch (error) {
             log.error(`Error fetching Secrets: ${error.message}`, { component }, error);
-            throw new Error(`Failed to fetch Secrets: ${error.message}`);
+            return [];
         }
     }
 
@@ -179,7 +179,9 @@ class KubernetesApi {
         }
         catch (error) {
             log.error(`Error fetching ConfigMaps: ${error.message}`, { component }, error);
-            throw new Error(`Failed to fetch ConfigMaps: ${error.message}`);
+            return [];
+        }
+    }
         }
     }
 }
