@@ -126,19 +126,25 @@ const _getMissingVolumes = (requestedVolumes, allVolumesNames) => {
 };
 
 /**
- * Applies the configuration from the kaiObject to annotations and labels.
+ * Validates the kaiObject configuration for a given algorithm by checking the presence
+ * and validity of the specified queue against existing Kai queue names.
  * 
- * @param {Object} kaiObject - The kaiObject containing the values to apply.
- * @param {string} algorithmName - The name of the algorithm being configured.
- * @param {Object} annotations - The annotations object to modify.
- * @param {Object} labels - The labels object to modify.
+ * @param {Object} params
+ * @param {Object} params.kaiObject - The kaiObject containing the configuration values.
+ * @param {string} params.algorithmName - The name of the algorithm being validated.
+ * @param {string[]} existingQueuesNames - List of valid Kai queue names to check against.
  * 
- * @returns {string|undefined} - A string message if 'queue' is missing from kaiObject, otherwise undefined.
+ * @returns {string|undefined} - A string error message if validation fails, otherwise undefined.
  */
-const validateKai = ({ kaiObject, algorithmName }) => {
+const validateKaiQueue = ({ kaiObject, algorithmName }, existingQueuesNames) => {
     const { queue } = kaiObject || {};
+    
     if (!queue) {
         return `Missing 'queue' in kaiObject for algorithm "${algorithmName}"`;
+    }
+
+    if (!existingQueuesNames.includes(queue)) {
+        return `Queue "${queue}" in kaiObject for algorithm "${algorithmName}" does not exist in available Kai queues`;
     }
 
     return undefined;
@@ -210,9 +216,9 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources
     }
 
     if (jobDetails.kaiObject && Object.keys(jobDetails.kaiObject).length > 0) {
-        const kaiError = validateKai(jobDetails);
+        const kaiError = validateKaiQueue(jobDetails, existingQueuesNames);
         if (kaiError) {
-            const warning = createWarning({ jobDetails, message: kaiError, code: warningCodes.KAI || 1004 });
+            const warning = createWarning({ jobDetails, message: kaiError, code: warningCodes.KAI });
             return {
                 shouldAdd: false,
                 warning,
