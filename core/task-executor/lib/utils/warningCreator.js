@@ -186,7 +186,7 @@ const createWarning = (options = {}) => {
             return _createResourcesWarning(options);
         case warningCodes.JOB_CREATION_FAILED:
             return _createJobCreationFailedWarning(options);
-        case warningCodes.KAI || 1004:
+        case warningCodes.KAI:
             return _createKaiWarning(options);
         default:
             return _createDefaultWarning(options);
