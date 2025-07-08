@@ -140,11 +140,14 @@ const validateKaiQueue = ({ kaiObject, algorithmName }, existingQueuesNames) => 
     const { queue } = kaiObject || {};
     
     if (!queue) {
-        return `Missing 'queue' in kaiObject for algorithm "${algorithmName}"`;
+        const message = `Missing 'queue' in kaiObject for algorithm "${algorithmName}"`;
+        return { message };
     }
 
     if (!existingQueuesNames.includes(queue)) {
-        return `Queue "${queue}" in kaiObject for algorithm "${algorithmName}" does not exist in available Kai queues`;
+        const message = `Queue "${queue}" in kaiObject for algorithm "${algorithmName}" does not exist in available Kai queues`;
+        const isError = true;
+        return { message, isError };
     }
 
     return undefined;
@@ -218,7 +221,7 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources
     if (jobDetails.kaiObject && Object.keys(jobDetails.kaiObject).length > 0) {
         const kaiError = validateKaiQueue(jobDetails, existingQueuesNames);
         if (kaiError) {
-            const warning = createWarning({ jobDetails, message: kaiError, code: warningCodes.KAI });
+            const warning = createWarning({ jobDetails, ...kaiError, code: warningCodes.KAI });
             return {
                 shouldAdd: false,
                 warning,
