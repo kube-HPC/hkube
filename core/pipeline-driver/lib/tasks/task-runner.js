@@ -159,14 +159,16 @@ class TaskRunner {
      * @throws {Error} Throws an error if the warning code is unknown or unsupported.
      */
     _handleWarningMessage(event, clusterNodes) {
-        const { message, code } = event;
+        const { message, code, isError } = event;
         switch (code) {
             case warningCodes.JOB_CREATION_FAILED:
-                return { message, isError: true };
+                return { message, isError };
             case warningCodes.INVALID_VOLUME:
-                return { message, isError: true };
+                return { message, isError };
             case warningCodes.RESOURCES:
                 return this._buildNodeResourceMessage(event, clusterNodes);
+            case warningCodes.KAI:
+                return { message, isError };
             default:
                 log.error(`Unknown warning code: ${code}`);
                 return { message, isError: false };
