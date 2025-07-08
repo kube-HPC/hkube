@@ -141,7 +141,7 @@ class KubernetesApi {
         }
         catch (error) {
             log.error(`Error fetching PVCs: ${error.message}`, { component }, error);
-            throw new Error(`Failed to fetch PVCs: ${error.message}`);
+            return [];
         }
     }
 
