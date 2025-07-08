@@ -4,6 +4,7 @@ const objectPath = require('object-path');
 const { components, containers, sidecars } = require('../consts');
 const { settings } = require('./settings');
 const { cacheResults } = require('../utils/utils');
+const { kaiValues } = require('../consts');
 const component = components.K8S;
 const CONTAINERS = containers;
 
@@ -12,6 +13,7 @@ let log;
 class KubernetesApi {
     async init(options = {}) {
         log = Logger.GetLogFromContainer();
+        this._crdMissingWarnLogged = false;
         this._client = new KubernetesClient();
         await this._client.init(options.kubernetes);
         this._isNamespaced = options.kubernetes.isNamespaced;
@@ -182,6 +184,52 @@ class KubernetesApi {
             return [];
         }
     }
+
+    /**
+     * Fetches the names of all Kai Queues in the cluster, if available.
+     * 
+     * This method first checks if the Kai Queues CRD is installed and served.
+     * If so, it queries for queue resources using the discovered API version.
+     * Returns an empty array if the CRD is missing or access is denied.
+     *
+     * @async
+     * @function getAllQueueNames
+     * @returns {Promise<string[]>} A promise that resolves to an array of queue names, or an empty array if Kai is not installed or inaccessible.
+     */
+    async getAllQueueNames() {
+        try {
+            // Check if Kai Queues CRD exists
+            const crdList = await this._client.crds.all({
+                group: kaiValues.KUBERNETES.CRD_GROUP,
+                version: kaiValues.KUBERNETES.CRD_VERSION,
+                resource: kaiValues.KUBERNETES.CRD_RESOURCE
+            });
+
+            const exists = crdList?.body?.items?.some(cr => cr.metadata.name === kaiValues.KUBERNETES.QUEUES_CRD_NAME);
+
+            if (!exists) {
+                if (!this._crdMissingWarnLogged) {
+                    log.info(`Kai Queues CRD (${kaiValues.KUBERNETES.QUEUES_CRD_NAME}) not found. Assuming Kai is not installed.`, { component });
+                    this._crdMissingWarnLogged = true;
+                }
+                return [];
+            }
+            this._crdMissingWarnLogged = false;
+
+            const crd = crdList.body.items.find(cr => cr.metadata.name === kaiValues.KUBERNETES.QUEUES_CRD_NAME);
+            const version = crd?.spec?.versions?.find(v => v.served)?.name;
+
+            const queuesList = await this._client.crds.all({
+                group: kaiValues.KUBERNETES.QUEUES_API_GROUP,
+                version,
+                resource: kaiValues.KUBERNETES.RESOURCE
+            });
+
+            return queuesList.body.items.map(q => q.metadata.name);
+        }
+        catch (error) {
+            log.error(`Error fetching Kai Queues: ${error.message}`, { component }, error);
+            return [];
         }
     }
 }
