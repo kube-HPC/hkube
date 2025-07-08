@@ -1218,6 +1218,40 @@ describe('reconciler', () => {
         });
     });
 
+    describe('reconcile algorithms with kaiObject', function() {
+        it('should schedule algorithm with kaiObject', async () => {
+            const algorithm = 'algo-kai-object';
+            const argument = createReconcileArgs(algorithm);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+        });
+
+        it('should schedule algorithm with empty kaiObject', async () => {
+            const algorithm = 'algo-kai-object-empty';
+            const argument = createReconcileArgs(algorithm);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+        });
+
+        it('should not schedule algorithm with missing queue in kaiObject', async () => {
+            const algorithm = 'algo-kai-object-no-queue';
+            const argument = createReconcileArgs(algorithm);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 0, skipped: 1, resumed: 0 } });
+        });
+
+        it('should not schedule algorithm with not existing queue', async () => {
+            const algorithm = 'algo-kai-object-queue-not-exist';
+            const argument = createReconcileArgs(algorithm);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 0, skipped: 1, resumed: 0 } });
+        });
+    });
+
     describe('reconcile algorithms with sideCar', function () {
         it('should schedule algorithm with sideCar', async () => {
             const algorithm = 'algo-car-emptyDir';

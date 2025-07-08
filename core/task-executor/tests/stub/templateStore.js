@@ -468,5 +468,44 @@ module.exports = [
                 mountPath: "/tmp/foo"
             }
         ],
+    },
+    {
+        name: 'algo-kai-object',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        "kaiObject": {
+            queue: 'test',
+            memory: "3000",
+            fraction: 0.5
+        }
+    },
+    {
+        name: 'algo-kai-object-no-queue',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        "kaiObject": {
+            memory: "3000",
+            fraction: 0.5
+        }
+    },
+    {
+        name: 'algo-kai-object-empty',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        "kaiObject": {}
+    },
+    {
+        name: 'algo-kai-object-queue-not-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        "kaiObject": {
+            queue: 'non-exist-queue',
+            memory: "3000",
+            fraction: 0.5
+        }
     }
 ];
