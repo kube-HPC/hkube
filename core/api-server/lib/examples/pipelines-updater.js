@@ -151,6 +151,7 @@ class PipelinesUpdater {
     async _syncAlgorithmsData(algorithmList) {
         let versionsCount = 0;
         let buildsCount = 0;
+        let addedVersionsCount = 0;
         const limit = 1000;
 
         for (const algorithm of algorithmList) {
@@ -164,9 +165,10 @@ class PipelinesUpdater {
                 // Add versions only to algorithms with no versions.
                 const existingVersion = await algorithmsVersionsService.getLatestSemver(algorithm);
                 if (!existingVersion) {
-                    const userName = keycloak.getPreferredUsername(req);
+                    const userName = keycloak.getPreferredUsername();
                     const newVersion = await algorithmsVersionsService.createVersion(algorithm, undefined, userName);
-                    await algorithmsVersionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true })
+                    await algorithmsVersionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true });
+                    addedVersionsCount++;
                 }
             }
 
@@ -176,7 +178,7 @@ class PipelinesUpdater {
                 await stateManager.createBuilds(builds);
             }
         }
-        log.info(`algorithms: synced ${versionsCount} versions and ${buildsCount} builds to sync from storage to db`);
+        log.info(`algorithms: synced ${versionsCount} versions, added ${addedVersionsCount}, made ${buildsCount} builds to sync from storage to db`);
     }
 
     _logSyncSuccess(type, result) {
@@ -226,12 +228,14 @@ class PipelinesUpdater {
                 // Add versions only to pipelines with no versions.
                 const existingVersion = await pipelinesVersionsService.getLatestSemver(pipeline);
                 if (!existingVersion) {
-                    const newVersion = await pipelinesVersionsService.createVersion(pipeline);
+                    const userName = keycloak.getPreferredUsername();
+                    const newVersion = await pipelinesVersionsService.createVersion(pipeline, userName);
                     addedVersionsCount++;
+                    await pipelinesVersionsService.applyVersion({ name, version: newVersion, force: true });
                 }
             }
         }
-        log.info(`pipelines: synced ${versionsCount} versions and added ${addedVersionsCount} builds to sync from storage to db`);
+        log.info(`pipelines: synced ${versionsCount} versions and added ${addedVersionsCount} versions to sync from storage to db`);
     }
 
     async _createExperiments(type, list) {
