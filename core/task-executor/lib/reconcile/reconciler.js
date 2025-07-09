@@ -162,7 +162,7 @@ const _processAllRequests = (
         const workerResourceRequests = createContainerResource(workerResources);
 
         const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector,
-            entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars, volumes, volumeMounts } = algorithmTemplate;
+            entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars, volumes, volumeMounts, kaiObject } = algorithmTemplate;
 
         // Add request details for new job creation (will need to get confirmation via matchJobsToResources)
         createDetails.push({
@@ -190,7 +190,8 @@ const _processAllRequests = (
                 sideCars,
                 workerCustomResources,
                 volumes,
-                volumeMounts
+                volumeMounts,
+                kaiObject
             }
         });
 
@@ -560,8 +561,6 @@ const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
  * @property {string[]} pvcs - An array of PersistentVolumeClaim names.
  * @property {string[]} configMaps - An array of ConfigMap names.
  * @property {string[]} secrets - An array of Secret names.
- *
- * @throws {Error} Throws an error if there is an issue while fetching the resources.
  */
 const _getAllVolumeNames = async () => {
     const pvcs = await kubernetes.getAllPVCNames();
@@ -756,7 +755,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // Handle job creation and scheduling
     const allVolumesNames = await _getAllVolumeNames();
-    const { requested, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, allVolumesNames);
+    const existingQueuesNames = await kubernetes.getAllQueueNames();
+    const extraResources = { allVolumesNames, existingQueuesNames };
+    const { requested, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, extraResources);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];

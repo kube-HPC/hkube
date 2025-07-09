@@ -5,6 +5,7 @@ const KubernetesApi = require('../lib/helpers/kubernetes').KubernetesApi;
 const kubernetesServerMock = require('./mocks/kubernetes-server.mock');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
+const sinon = require('sinon');
 
 let instance;
 
@@ -92,5 +93,30 @@ describe('Kubernetes API', () => {
     it('should get all Secret names', async () => {
         const res = await instance.getAllSecretNames();
         expect(res).to.be.an('array').that.includes('secret-1', 'secret-2');
+    });
+    it('should get all Kai Queues names', async () => {
+        kubernetesServerMock.setKaiCRDEnabled(true);
+        const res = await instance.getAllQueueNames();
+        expect(res).to.be.an('array').that.includes('test', 'default');
+    });
+    it('should return empty list when Kai CRD is missing', async () => {
+        kubernetesServerMock.setKaiCRDEnabled(false);
+        const res = await instance.getAllQueueNames();
+        expect(res).to.be.an('array').that.is.empty;
+    });
+    it('should log missing CRD warning only once', async () => {
+        kubernetesServerMock.setKaiCRDEnabled(false);
+        const Logger = require('@hkube/logger');
+        const log1 = Logger.GetLogFromContainer();
+
+        const logSpy = sinon.spy(log1, 'info');
+
+        await instance.getAllQueueNames();
+        await instance.getAllQueueNames();
+        const matchingLogs = logSpy.getCalls().filter(call =>
+            call.args[0].includes('Kai Queues CRD') && call.args[0].includes('not found')
+        );
+
+        expect(matchingLogs.length).to.equal(1);
     });
 });

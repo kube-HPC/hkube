@@ -1,4 +1,4 @@
-const { gpuVendors } = require('../../lib/consts');
+const { gpuVendors, kaiValues } = require('../../lib/consts');
 
 const pods = {
     body: {
@@ -439,6 +439,39 @@ const secret = {
     ]
 };
 
+const customResourceDefinition = { // for Kai (run-ai) Queues + extra dummy CRD
+    items: [
+        {
+            metadata: {
+                name: kaiValues.KUBERNETES.QUEUES_CRD_NAME
+            },
+            spec: {
+                versions: [
+                    { name: 'v2', served: true }
+                ]
+            }
+        },
+        {
+            metadata: {
+                name: 'widgets.example.com'
+            },
+            spec: {
+                versions: [
+                    { name: 'v1alpha1', served: true }
+                ]
+            }
+        }
+    ]
+};
+
+
+const queues = { // for Kai (run-ai)
+    items: [
+        { metadata: { name: 'default' } },
+        { metadata: { name: 'test' } }
+    ]
+};
+
 
 module.exports = {
     pods,
@@ -448,5 +481,7 @@ module.exports = {
     podsGpu,
     persistentVolumeClaim,
     configMap,
-    secret
+    secret,
+    customResourceDefinition,
+    queues
 };

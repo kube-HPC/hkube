@@ -10,7 +10,7 @@ const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImag
     applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation,
     applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const parse = require('@hkube/units-converter');
-const { components, containers, gpuVendors, volumes: volumeKinds } = require('../consts');
+const { components, containers, gpuVendors, volumes: volumeKinds, kaiValues } = require('../consts');
 const { JAVA } = require('../consts/envs');
 const component = components.K8S;
 const { hyperparamsTunerEnv, workerTemplate, gatewayEnv, varLog, varlibdockercontainers, varlogMount, varlibdockercontainersMount, sharedVolumeMounts, algoMetricVolume } = require('../templates');
@@ -391,8 +391,44 @@ const applySidecars = (inputSpec, customSideCars = [], clusterOptions = {}) => {
     return spec;
 };
 
+const applyScheduler = (inputSpec, schedulerName) => {
+    const spec = clonedeep(inputSpec);
+    if (schedulerName) {
+        spec.spec.template.spec.schedulerName = schedulerName;
+    }
+    return spec;
+};
+
+/**
+ * Applies the configuration from the kaiObject to annotations and labels in the spec.
+ * 
+ * @param {Object} inputSpec - The job spec that will be updated.
+ * @param {Object} kaiObject - The kaiObject containing values to apply to the spec.
+ * 
+ * @returns {Object} - The updated job spec.
+ */
+const applyKai = (inputSpec, kaiObject) => {
+    let spec = clonedeep(inputSpec);
+    if (!kaiObject || Object.keys(kaiObject).length === 0) {
+        return spec;
+    }
+    const { queue, memory, fraction } = kaiObject;
+    
+    const annotations = {};
+    const labels = {};
+    if (memory) annotations[kaiValues.ANNOTATIONS.MEMORY] = memory;
+    if (fraction) annotations[kaiValues.ANNOTATIONS.FRACTION] = fraction;
+    labels[kaiValues.LABELS.QUEUE] = queue;
+
+    spec = applyLabels(spec, labels);
+    spec = applyAnnotations(spec, annotations);
+    spec = applyScheduler(spec, kaiValues.SCHEDULER_NAME);
+
+    return spec;
+};
+
 const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env, workerCustomResources, sideCars, volumes, volumeMounts }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env, workerCustomResources, sideCars, volumes, volumeMounts, kaiObject }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -445,6 +481,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, hyperparamsTunerEnv);
         spec = applyDatascienceMetricsVolumes(spec, clusterOptions?.optunaDashboardEnabled);
     }
+    spec = applyKai(spec, kaiObject, labels, annotations);
     spec = applyLabels(spec, labels);
     spec = applyAnnotations(spec, annotations);
     spec = applyVolumesAndMounts(spec, volumes, volumeMounts);
