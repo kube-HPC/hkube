@@ -228,12 +228,14 @@ class PipelinesUpdater {
                 // Add versions only to pipelines with no versions.
                 const existingVersion = await pipelinesVersionsService.getLatestSemver(pipeline);
                 if (!existingVersion) {
-                    const newVersion = await pipelinesVersionsService.createVersion(pipeline);
+                    const userName = keycloak.getPreferredUsername();
+                    const newVersion = await pipelinesVersionsService.createVersion(pipeline, userName);
                     addedVersionsCount++;
+                    await pipelinesVersionsService.applyVersion({ name, version: newVersion, force: true });
                 }
             }
         }
-        log.info(`pipelines: synced ${versionsCount} versions and added ${addedVersionsCount} builds to sync from storage to db`);
+        log.info(`pipelines: synced ${versionsCount} versions and added ${addedVersionsCount} versions to sync from storage to db`);
     }
 
     async _createExperiments(type, list) {
