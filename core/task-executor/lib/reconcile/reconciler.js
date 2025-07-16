@@ -719,13 +719,13 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const workerTypes = calcRatio(mergedWorkers);
     log.info(`Print workers registered in discovery = ${JSON.stringify(Object.entries(workerTypes.algorithms).map((
         [k, v]
-    ) => ({ name: k, count: v.count })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    ) => ({ name: k, count: v.count })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`, { component });
 
-    log.info(`Print lately createdjobs = ${JSON.stringify(Object.entries(createdJobsList).map(([k, v]) => ({ name: k, count: v.count })), null, 2)}`);
+    log.info(`Print lately createdjobs = ${JSON.stringify(Object.entries(createdJobsList).map(([k, v]) => ({ name: k, count: v.count })), null, 2)}`, { component });
     const createdJobsByType = calcRatio(createdJobsList);
     log.info(`Print lately createdjobs = ${JSON.stringify(Object.entries(createdJobsByType.algorithms).map(
         ([k, v]) => ({ name: k, count: v.count })
-    ), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    ), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`, { component });
     // =========== LOGS ADDITIONS END =============
 
     // get a list of workers that should turn 'hot' and be marked as hot.
@@ -752,7 +752,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     log.info(
         `Print requests before cat by maxworkers =${JSON.stringify(Object.entries(
             requestsBeforeMaxCut.algorithms
-        ).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`
+        ).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`, { component }
     );
     // =========== LOGS ADDITIONS END =============
 
@@ -763,7 +763,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const requestsBeforeWindowCut = calcRatio(maxFilteredRequests);
     log.info(`Print requests before getting cut by window =${JSON.stringify(
         Object.entries(requestsBeforeWindowCut.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2
-    ).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    ).replace(/(\r\n|\n|\r)\s+/gm, '')}`, { component });
     // =========== LOGS ADDITIONS END =============
 
     // In order to handle request gradually create a sub list (according to prioritization.)
@@ -778,7 +778,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // =========== LOGS ADDITIONS =============
     log.info(`Print requests before getting cut due to ratio = ${JSON.stringify(Object.entries(
         requestTypes.algorithms
-    ).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    ).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`, { component });
     // =========== LOGS ADDITIONS END =============
 
     // cut requests based on ratio, since totalCapacityNow should grow gradually, we cut some of the requests, we do it according to their ratio of all requests.
@@ -789,7 +789,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     log.info(`Print requests after getting cut due to ratio = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map((
         [k, v]
 
-    ) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`);
+    ) => ({ name: k, count: v.count, req: v.required })), null, 2).replace(/(\r\n|\n|\r)\s+/gm, '')}`, { component });
     // =========== LOGS ADDITIONS END =============
 
     _processAllRequests({
@@ -851,7 +851,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
         });
     });
-    log.info(`Print result = ${JSON.stringify(mapForPrint, null, 2)}`);
+    log.info(`Print result = ${JSON.stringify(mapForPrint, null, 2)}`, { component });
     // =========== LOGS ADDITIONS END =============
     
     return reconcileResult;
