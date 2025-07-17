@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: get environment
         run: |
+          curl https://api.ipify.org
           echo "environment is: $DEPLOY_ENVIRONMENT"
           URL=''
           case "$DEPLOY_ENVIRONMENT" in

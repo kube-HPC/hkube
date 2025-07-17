@@ -221,4 +221,9 @@ config.keycloak = {
     defaultUserAuditingName: process.env.KC_DEFAULT_USER_AUDITING_NAME || 'defaultUser',
 }
 
+config.interceptor = {
+    apiIngressPath: process.env.API_INGRESS_PATH || '/hkube/api-server',
+}
+
+
 module.exports = config;
