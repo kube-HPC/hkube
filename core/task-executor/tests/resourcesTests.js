@@ -3,7 +3,6 @@ const { nodeSelectorFilter, shouldAddJob } = require('../lib/reconcile/resources
 const { settings: globalSettings } = require('../lib/helpers/settings');
 
 describe('resources manager', () => {
-
     it('should add job only when enough resources', () => {
         const availableResources = {
             node: {
