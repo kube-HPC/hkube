@@ -19,12 +19,14 @@ class Versioning {
         const version = uid({ length: SETTINGS.VERSION_LENGTH });
         const latestSemver = await this.getLatestSemver({ name }, isPipeline);
         const semver = this.incSemver(latestSemver);
+        const versionAlias = `v${semver}`;
         const newVersion = {
             version,
             semver,
             created: Date.now(),
             createdBy: object.userName,
             name,
+            versionAlias,
             [isPipeline ? 'pipeline' : 'algorithm']: { ...extractedObject, version }
         };
         // Remove audit from version to avoid db duplicacy.

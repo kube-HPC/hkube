@@ -550,6 +550,7 @@ describe('TaskRunner', function () {
                     message: 'template error message of volume error',
                     timestamp: Date.now(),
                     code: warningCodes.INVALID_VOLUME,
+                    isError: true,
                     requestedResources: {
                       cpu: 2  
                     },
@@ -635,6 +636,7 @@ describe('TaskRunner', function () {
                     message: 'template error message of job creation failed',
                     timestamp: Date.now(),
                     code: warningCodes.JOB_CREATION_FAILED,
+                    isError: true,
                     requestedResources: {
                       cpu: 2  
                     },
