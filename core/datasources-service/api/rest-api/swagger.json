@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.3",
+    "version": "2.9.4",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -19089,6 +19089,116 @@
         }
       }
     },
+    "/versions/algorithms/alias": {
+      "put": {
+        "tags": [
+          "Algorithm Versions"
+        ],
+        "summary": "Algorithm version alias",
+        "description": "Change the alias of a specific algorithm version.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "string",
+                    "description": "Unique identifier representing version id",
+                    "minLength": 1,
+                    "maxLength": 10
+                  },
+                  "alias": {
+                    "type": "string",
+                    "description": "alias for the version"
+                  }
+                },
+                "required": [
+                  "version",
+                  "alias"
+                ]
+              }
+            }
+          },
+          "description": "an object representing all information needed to change the algorithmn's alias",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "the OK string",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Algorithm version Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/versions/pipelines/{name}": {
       "get": {
         "tags": [
@@ -20353,6 +20463,116 @@
           },
           "404": {
             "description": "jobId Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/versions/pipelines/alias": {
+      "put": {
+        "tags": [
+          "Pipeline Versions"
+        ],
+        "summary": "Pipeline version alias",
+        "description": "Change the alias of a specific algorithm version.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "string",
+                    "description": "Unique identifier representing version id",
+                    "minLength": 1,
+                    "maxLength": 10
+                  },
+                  "alias": {
+                    "type": "string",
+                    "description": "alias for the version"
+                  }
+                },
+                "required": [
+                  "version",
+                  "alias"
+                ]
+              }
+            }
+          },
+          "description": "an object representing all information needed to change the pipeline's alias",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "the OK string",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pipeline version not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -28109,6 +28329,25 @@
             "description": "Any resource noted here, was requested over the maximum capacity of a node"
           }
         }
+      },
+      "versionAlias": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "description": "Unique identifier representing version id",
+            "minLength": 1,
+            "maxLength": 10
+          },
+          "alias": {
+            "type": "string",
+            "description": "alias for the version"
+          }
+        },
+        "required": [
+          "version",
+          "alias"
+        ]
       },
       "loginResponse": {
         "type": "object",
