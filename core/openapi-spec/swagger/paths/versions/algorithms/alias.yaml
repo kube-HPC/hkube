@@ -24,7 +24,7 @@ put:
           schema:
             $ref: "#/components/schemas/error"
     "404":
-      description: jobId Not Found
+      description: Algorithm version Not Found
       content:
         application/json:
           schema:

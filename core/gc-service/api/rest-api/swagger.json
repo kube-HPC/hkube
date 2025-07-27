@@ -19159,7 +19159,7 @@
             }
           },
           "404": {
-            "description": "jobId Not Found",
+            "description": "Algorithm version Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -20572,7 +20572,7 @@
             }
           },
           "404": {
-            "description": "jobId Not Found",
+            "description": "Pipeline version not Found",
             "content": {
               "application/json": {
                 "schema": {
