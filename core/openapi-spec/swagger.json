@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.3",
+    "version": "2.9.4",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -7103,7 +7103,7 @@
                       "nullable": true,
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
-                    "streamKind": {
+                    "stateType": {
                       "enum": [
                         "stateless",
                         "stateful"
@@ -7787,7 +7787,7 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
-                      "streamKind": {
+                      "stateType": {
                         "enum": [
                           "stateless",
                           "stateful"
@@ -8277,7 +8277,7 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
-                      "streamKind": {
+                      "stateType": {
                         "enum": [
                           "stateless",
                           "stateful"
@@ -8755,7 +8755,7 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
-                      "streamKind": {
+                      "stateType": {
                         "enum": [
                           "stateless",
                           "stateful"
@@ -9305,7 +9305,7 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
-                      "streamKind": {
+                      "stateType": {
                         "enum": [
                           "stateless",
                           "stateful"
@@ -9843,7 +9843,7 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
-                      "streamKind": {
+                      "stateType": {
                         "enum": [
                           "stateless",
                           "stateful"
@@ -10323,7 +10323,7 @@
                           "nullable": true,
                           "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
-                        "streamKind": {
+                        "stateType": {
                           "enum": [
                             "stateless",
                             "stateful"
@@ -17965,7 +17965,7 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
-                      "streamKind": {
+                      "stateType": {
                         "enum": [
                           "stateless",
                           "stateful"
@@ -18508,7 +18508,7 @@
                         "nullable": true,
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
-                      "streamKind": {
+                      "stateType": {
                         "enum": [
                           "stateless",
                           "stateful"
@@ -23386,7 +23386,7 @@
             "nullable": true,
             "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
           },
-          "streamKind": {
+          "stateType": {
             "enum": [
               "stateless",
               "stateful"
@@ -24041,7 +24041,7 @@
                 "nullable": true,
                 "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
               },
-              "streamKind": {
+              "stateType": {
                 "enum": [
                   "stateless",
                   "stateful"
