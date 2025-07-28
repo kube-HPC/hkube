@@ -222,4 +222,9 @@ config.keycloak = {
     allowInsecureTLS: process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0",
 }
 
+config.interceptor = {
+    apiIngressPath: process.env.API_INGRESS_PATH || '/hkube/api-server',
+}
+
+
 module.exports = config;

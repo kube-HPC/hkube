@@ -5,7 +5,7 @@ const { components } = require('../consts');
 const component = components.RECONCILER;
 
 // Creates a warning object. Note this is a base warning template which is used in pipeline driver.
-const _createWarning = ({ algorithmName, predictedStatus, surpassTimeout = false, message, code, ...additionalData }) => {
+const _createWarning = ({ algorithmName, predictedStatus, surpassTimeout = false, message, code, isError = false, ...additionalData }) => {
     const warning = {
         algorithmName,
         type: 'warning',
@@ -14,6 +14,7 @@ const _createWarning = ({ algorithmName, predictedStatus, surpassTimeout = false
         message,
         timestamp: Date.now(),
         code,
+        isError,
         ...additionalData // any additional data required for the pipeline driver.
     };
     return warning;
@@ -103,6 +104,7 @@ const _createInvalidVolumeWarning = ({ jobDetails, missingVolumes, code }) => {
         predictedStatus: 'failedScheduling',
         message,
         code,
+        isError: true,
         missingVolumes
     });
 };
@@ -154,14 +156,34 @@ const _createJobCreationFailedWarning = ({ jobDetails, code, message: givenMessa
         predictedStatus: 'failedScheduling',
         message,
         surpassTimeout: true,
-        code
+        code,
+        isError: true
     });
 };
 
-const _createDefaultWarning = ({ message: givenMessage }) => {
+const _createKaiWarning = ({ jobDetails, message: givenMessage, isError, code }) => {
+    const { algorithmName, algorithmVersion } = jobDetails;
+    const message = `Kai object validation failed for algorithm ${algorithmName} version ${algorithmVersion}.\nError: ${givenMessage}`;
+    return _createWarning({
+        algorithmName,
+        algorithmVersion,
+        predictedStatus: 'failedScheduling',
+        message,
+        surpassTimeout: true,
+        code,
+        isError
+    });
+};
+
+const _createDefaultWarning = ({ jobDetails, message: givenMessage, code = 520 }) => {
     const message = `Unknown warning or error occured, message: ${givenMessage || 'Unknown'}`;
     log.info(message, { component });
-    return message;
+    return _createWarning({
+        algorithmName: jobDetails.algorithmName || 'Unknown',
+        predictedStatus: 'failedScheduling',
+        message,
+        code
+    });
 };
 
 const createWarning = (options = {}) => {
@@ -173,6 +195,8 @@ const createWarning = (options = {}) => {
             return _createResourcesWarning(options);
         case warningCodes.JOB_CREATION_FAILED:
             return _createJobCreationFailedWarning(options);
+        case warningCodes.KAI:
+            return _createKaiWarning(options);
         default:
             return _createDefaultWarning(options);
     }

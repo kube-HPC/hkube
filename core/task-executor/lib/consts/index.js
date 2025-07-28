@@ -6,6 +6,7 @@ const commands = require('./commands');
 const gpuVendors = require('./gpu-vendors');
 const volumes = require('./volumes');
 const sidecars = require('./sidecars');
+const kaiValues = require('./kai-values');
 
 module.exports = {
     components,
@@ -15,5 +16,6 @@ module.exports = {
     commands,
     gpuVendors,
     volumes,
-    sidecars
+    sidecars,
+    kaiValues
 };
