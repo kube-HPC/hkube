@@ -168,6 +168,8 @@
   $ref: ./versions/algorithms/apply.yaml
 /versions/algorithms/tag:
   $ref: ./versions/algorithms/tag.yaml
+/versions/algorithms/alias:
+  $ref: ./versions/algorithms/alias.yaml
 
 # pipelines versions
 /versions/pipelines/{name}:
@@ -176,6 +178,8 @@
   $ref: ./versions/pipelines/version_id.yaml
 /versions/pipelines/apply:
   $ref: ./versions/pipelines/apply.yaml
+/versions/pipelines/alias:
+  $ref: ./versions/pipelines/alias.yaml
 
 # experiment
 /experiment/{name}:

@@ -1218,6 +1218,57 @@ describe('reconciler', () => {
         });
     });
 
+    describe('reconcile algorithms with kaiObject', function() {
+        it('should schedule algorithm with kaiObject', async () => {
+            const algorithm = 'algo-kai-object';
+            const argument = createReconcileArgs(algorithm);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+        });
+
+        it('should schedule algorithm with empty kaiObject', async () => {
+            const algorithm = 'algo-kai-object-empty';
+            const argument = createReconcileArgs(algorithm);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+        });
+
+        const generateMessage = (algorithm, givenMessage) => {
+            const expectedMessage = `Kai object validation failed for algorithm ${algorithm.name} version ${algorithm.version}.\nError: ${givenMessage}`;
+            return expectedMessage;
+        }
+
+        it('should not schedule algorithm with missing queue in kaiObject', async () => {
+            const algorithm = algorithmTemplates['algo-kai-object-no-queue'];
+            const argument = createReconcileArgs(algorithm.name);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: 1, paused: 0, created: 0, skipped: 1, resumed: 0 } });
+
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            const givenMessage = `Missing 'queue' in kaiObject for algorithm "${algorithm.name}"`;
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql(generateMessage(algorithm, givenMessage));
+        });
+
+        it('should not schedule algorithm with not existing queue', async () => {
+            const algorithm = algorithmTemplates['algo-kai-object-queue-not-exist'];
+            const argument = createReconcileArgs(algorithm.name);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: 1, paused: 0, created: 0, skipped: 1, resumed: 0 } });
+
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            const givenMessage = `Queue "${algorithm.kaiObject.queue}" in kaiObject for algorithm "${algorithm.name}" does not exist in available Kai queues`;
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql(generateMessage(algorithm, givenMessage));
+        });
+    });
+
     describe('reconcile algorithms with sideCar', function () {
         it('should schedule algorithm with sideCar', async () => {
             const algorithm = 'algo-car-emptyDir';

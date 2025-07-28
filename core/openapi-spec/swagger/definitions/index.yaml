@@ -288,6 +288,10 @@ complexResourceDescriptor:
 nodes:
   $ref: ./resources/nodes.yaml
 
+# versions
+versionAlias:
+  $ref: ./versions/versionAlias.yaml
+  
 # auth
 loginResponse:
   $ref: ./auth/loginResponse.yaml
