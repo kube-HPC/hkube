@@ -312,7 +312,20 @@ const normalizeRequests = (requests, algorithmTemplates) => {
     if (requests == null || requests.length === 0 || requests[0].data == null) {
         return [];
     }
-    const normalizedRequests = requests[0].data.map(r => ({ algorithmName: r.name })).filter(r => algorithmTemplates[r.algorithmName]);
+    
+    const normalizedRequests = requests[0].data.reduce((acc, request) => {
+        const algorithmName = request.name;
+        const template = algorithmTemplates[algorithmName];
+        if (!template) return acc;
+        const requestType = template.stateType ? template.stateType.toLowerCase() : 'batch';
+
+        acc.push({
+            algorithmName,
+            requestType
+        });
+        return acc;
+    }, []);
+
     return normalizedRequests;
 };
 
