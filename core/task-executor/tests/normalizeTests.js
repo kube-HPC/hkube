@@ -342,13 +342,16 @@ describe('normalize', () => {
             expect(res).to.have.length(4);
             expect(res).to.deep.include({
                 algorithmName: 'black-alg',
+                requestType: 'batch',
             });
             expect(res.filter(r => r.algorithmName === 'black-alg')).to.have.lengthOf(2);
             expect(res).to.deep.include({
                 algorithmName: 'green-alg',
+                requestType: 'batch',
             });
             expect(res).to.deep.include({
                 algorithmName: 'yellow-alg',
+                requestType: 'batch',
             });
         });
         it('should filter requests not in algorithmTemplateStore', () => {
@@ -379,12 +382,15 @@ describe('normalize', () => {
             expect(res).to.have.length(2);
             expect(res).to.not.deep.include({
                 algorithmName: 'black-alg',
+                requestType: 'batch',
             });
             expect(res).to.deep.include({
                 algorithmName: 'green-alg',
+                requestType: 'batch',
             });
             expect(res).to.deep.include({
                 algorithmName: 'yellow-alg',
+                requestType: 'batch',
             });
         });
     });

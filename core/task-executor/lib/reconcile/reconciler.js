@@ -1,5 +1,5 @@
 const Logger = require('@hkube/logger');
-const { warningCodes } = require('@hkube/consts');
+const { warningCodes, stateType } = require('@hkube/consts');
 const log = Logger.GetLogFromContainer();
 const clonedeep = require('lodash.clonedeep');
 const { createWarning } = require('../utils/warningCreator');
@@ -22,7 +22,7 @@ const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('
 const { matchJobsToResources, pauseAccordingToResources, parseResources } = require('./resources');
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
-let createdJobsList = [];
+const createdJobsLists = { batch: [], [stateType.Stateful]: [], [stateType.Stateless]: [] };
 
 let totalCapacityNow = 10; // how much pods are running now
 const WINDOW_SIZE_FACTOR = 3;
@@ -40,6 +40,13 @@ const _updateCapacity = (algorithmCount) => {
     if (totalCapacityNow > maxCapacity) {
         totalCapacityNow = maxCapacity;
     }
+};
+
+const _countBatchWorkers = (idleWorkers, activeWorkers, algorithmTemplates) => {
+    const filterCondition = worker => algorithmTemplates[worker.algorithmName]?.stateType === undefined;
+    const batchWorkers = idleWorkers.filter(filterCondition);
+    const activeBatchWorkers = activeWorkers.filter(filterCondition);
+    return batchWorkers.length + activeBatchWorkers.length + createdJobsLists.batch.length;
 };
 
 const _createJob = (jobDetails, options) => {
@@ -100,13 +107,21 @@ const _exitWorker = (worker) => {
     });
 };
 
-const _clearCreatedJobsList = (now, options) => {
-    const newCreatedJobsList = createdJobsList.filter(j => (now || Date.now()) - j.createdTime < options.createdJobsTTL);
-    const items = createdJobsList.length - newCreatedJobsList.length;
-    if (items > 0) {
-        log.trace(`removed ${items} items from jobCreated list`, { component });
+const _clearCreatedJobsLists = (options, now) => {
+    const currentTime = now || Date.now();
+    let removedCount = 0;
+
+    Object.keys(createdJobsLists).forEach((key) => {
+        const originalLength = createdJobsLists[key].length;
+        createdJobsLists[key] = createdJobsLists[key].filter(
+            (job) => currentTime - job.createdTime < options.createdJobsTTL
+        );
+        removedCount += originalLength - createdJobsLists[key].length;
+    });
+
+    if (removedCount > 0) {
+        log.trace(`Removed ${removedCount} items from createdJobsLists`, { component });
     }
-    createdJobsList = newCreatedJobsList;
 };
 
 const _processAllRequests = (
@@ -161,7 +176,7 @@ const _processAllRequests = (
         const resourceRequests = createContainerResource(algorithmTemplate);
         const workerResourceRequests = createContainerResource(workerResources);
 
-        const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector,
+        const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector, stateType: algorithmStateType = 'batch',
             entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars, volumes, volumeMounts, kaiObject } = algorithmTemplate;
 
         // Add request details for new job creation (will need to get confirmation via matchJobsToResources)
@@ -191,7 +206,8 @@ const _processAllRequests = (
                 workerCustomResources,
                 volumes,
                 volumeMounts,
-                kaiObject
+                kaiObject,
+                stateType: algorithmStateType
             }
         });
 
@@ -447,6 +463,10 @@ const _mergeRequisiteRequests = (requests, requisites) => {
             const diff = requisites.totalRequired - required;
             const total = diff < 0 ? requisites.totalRequired : required;
             const arr = v.required.slice(0, total);
+            arr.forEach(r => { // Mark requisite requests
+                r.isRequisite = true;
+            });
+
             requisites.totalRequired -= arr.length;
             requests.unshift(...arr);
         });
@@ -492,7 +512,22 @@ const _createRequisitesRequests = (normRequests, algorithmTemplates, idleWorkers
     return { requests, requisites };
 };
 
-const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
+/**
+ * This method does mainly this thing:
+ *    Prioritizing algorithms that have `quotaGuarantee`.
+ * The algorithm is as follows:
+ *    If there is any algorithm with `quotaGuarantee`.
+ *      a. Iterate all requests.
+ *      b. If encountered an algorithm with `quotaGuarantee` that didn't handle.
+ *         b1. Mark the algorithm as visited.
+ *         b2. Calculate missing algorithms by `quotaGuarantee - running`.
+ *         b3. If there are a missing algorithms, move these algorithms to the top of our window (start of request array).
+ *         b4. Save the indices of these algorithms to ignore them next iteration.
+ *         b5. If there are no missing algorithms, just add it to the window.
+ *      c. If already moved this algorithm to the top, ignore it, else add it to the window.
+ */
+const _createRequisite = (normRequests, algorithmTemplates, categorizedWorkers) => {
+    const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers } = categorizedWorkers;
     const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.quotaGuarantee);
     let currentRequests = normRequests;
 
@@ -503,32 +538,72 @@ const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeW
     return currentRequests;
 };
 
-const _createWindow = (currentRequests) => {
+/**
+ * This method is creating a subset (window) from the given batch requests.
+ */
+const _createBatchRequestsWindow = (currentRequests) => {
     const windowSize = Math.round(totalCapacityNow * WINDOW_SIZE_FACTOR);
-    return currentRequests.slice(0, windowSize);
+    const requestsWindow = currentRequests.slice(0, windowSize);
+    return requestsWindow;
+};
+
+const _categorizeRequests = (requests) => {
+    const batchRequests = [];
+    const streamingRequests = [];
+    let batchCount = 0;
+    let streamingCount = 0;
+    requests.forEach(request => {
+        const shouldSkipWindow = request.requestType === stateType.Stateful || request.requestType === stateType.Stateless;
+        if (shouldSkipWindow) {
+            if (request.requestType === stateType.Stateful) {
+                streamingRequests.unshift(request);
+            }
+            else {
+                streamingRequests.push(request);
+            }
+            streamingCount += 1;
+        }
+        else {
+            batchRequests.push(request);
+            batchCount += 1;
+        }
+    });
+    log.info(`Categorized requests: ${batchCount} batch, ${streamingCount} streaming`, { component });
+    return { batchRequests, streamingRequests };
+};
+
+const _makeRequisiteRequests = (categorizedRequests, algorithmTemplates, categorizedWorkers) => {
+    // Get list of requests that are quotaGuaranteed, meaning should be handled first.
+    const { batchRequests, streamingRequests } = categorizedRequests;
+    const batchRequisiteRequests = _createRequisite(batchRequests, algorithmTemplates, categorizedWorkers);
+    const streamingRequisiteRequests = _createRequisite(streamingRequests, algorithmTemplates, categorizedWorkers);
+    return { batchRequisiteRequests, streamingRequisiteRequests };
+};
+
+const _handleHotRequests = (batchRequests, streamingRequests, algorithmTemplateStore) => {
+    const hotBatchRequests = normalizeHotRequests(batchRequests, algorithmTemplateStore);
+    const hotStreamingRequests = normalizeHotRequests(streamingRequests, algorithmTemplateStore, [stateType.Stateful, stateType.Stateless]);
+    return { hotBatchRequests, hotStreamingRequests };
 };
 
 /**
- * This method does two things: 
- *    1. prioritizing algorithms that have `quotaGuarantee`.
- *    2. creating a subset (window) from the requests.
- * The algorithm is as follows:
- *    1. If there is any algorithm with `quotaGuarantee`.
- *      a. Iterate all requests.
- *      b. If encountered an algorithm with `quotaGuarantee` that didn't handle.
- *         b1. Mark the algorithm as visited.
- *         b2. Calculate missing algorithms by `quotaGuarantee - running`.
- *         b3. If there are a missing algorithms, move these algorithms to the top of our window.
- *         b4. Save the indices of these algorithms to ignore them next iteration.
- *         b5. If there are no missing algorithms, just add it to the window.
- *      c. If already moved this algorithm to the top, ignore it, else add it to the window.
- *    2. creating new window from the requests
+ * Creates a combined list of requests in the following order:
+ * 1. Requisite requests (from both streaming and batch).
+ * 2. Remaining streaming requests.
+ * 3. Remaining batch requests.
+ *
+ * @param {Array} batchRequests - List of batch-type requests.
+ * @param {Array} streamingRequests - List of streaming-type requests.
+ * @returns {Array} Combined and ordered list of all requests.
  */
-const _createRequestsWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
-    // Get list of requests that are quotaGuaranteed, meaning should be handled first.
-    const currentRequests = _createRequisite(normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
-    const requestsWindow = _createWindow(currentRequests);
-    return requestsWindow;
+const _createFinalRequestsList = (batchRequests, streamingRequests) => {
+    const isRequisite = req => req.isRequisite;
+
+    const requisites = [...streamingRequests, ...batchRequests].filter(isRequisite);
+    const streaming = streamingRequests.filter(req => !isRequisite(req));
+    const batch = batchRequests.filter(req => !isRequisite(req));
+
+    return [...requisites, ...streaming, ...batch];
 };
 
 const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
@@ -537,15 +612,18 @@ const _handleMaxWorkers = (algorithmTemplates, normRequests, workers) => {
         prev[algorithmName] = prev[algorithmName] ? prev[algorithmName] + 1 : 1;
         return prev;
     }, {});
+
     const filtered = normRequests.filter(r => {
         const maxWorkers = algorithmTemplates[r.algorithmName]?.maxWorkers;
         if (!maxWorkers) {
             return true;
         }
+
         if ((workersPerAlgorithm[r.algorithmName] || 0) < maxWorkers) {
             workersPerAlgorithm[r.algorithmName] = workersPerAlgorithm[r.algorithmName] ? workersPerAlgorithm[r.algorithmName] + 1 : 1;
             return true;
         }
+
         return false;
     });
     return filtered;
@@ -588,18 +666,16 @@ const _categorizeWorkers = (mergedWorkers, merged) => {
     const pausedWorkers = clonedeep(mergedWorkers.filter(w => _pausedWorkerFilter(w)));
     // workers that already have a job created but no worker registered yet:
     const pendingWorkers = clonedeep(merged.extraJobs);
-    const jobsCreated = clonedeep(createdJobsList);
     
     return {
-        idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, jobsCreated
+        idleWorkers, activeWorkers, pausedWorkers, pendingWorkers
     };
 };
 
-// cut requests based on ratio, since totalCapacityNow should grow gradually, we cut some of the requests, we do it according to their ratio of all requests.
 const _cutRequests = (totalRequests, requestTypes) => {
     const cutRequests = [];
     totalRequests.forEach(r => {
-        const ratios = calcRatio(cutRequests, totalCapacityNow);
+        const ratios = calcRatio(cutRequests);
         const { required } = requestTypes.algorithms[r.algorithmName];
         const algorithm = ratios.algorithms[r.algorithmName];
         if (!algorithm || algorithm.count < required) {
@@ -699,7 +775,7 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
 
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     // Update the cache of jobs lately created by removing old jobs
-    _clearCreatedJobsList(null, options);
+    _clearCreatedJobsLists(options);
 
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
@@ -727,30 +803,37 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const toResume = [];
     const scheduledRequests = [];
 
-    // Categorize workers into idle, active, paused, etc.
-    const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, jobsCreated } = _categorizeWorkers(mergedWorkers, merged);
+    // Categorize workers into idle, active, paused, etc. and clone the created jobs list.
+    const categorizedWorkers = _categorizeWorkers(mergedWorkers, merged);
+    const jobsCreated = clonedeep(Object.values(createdJobsLists).flat());
 
-    _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
+    const batchCount = _countBatchWorkers(categorizedWorkers.idleWorkers, categorizedWorkers.activeWorkers, algorithmTemplates);
+    _updateCapacity(batchCount);
 
     // leave only requests that are not exceeding max workers.
     const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
-    // In order to handle request gradually create a sub list (according to prioritization.)
-    const requestsWindow = _createRequestsWindow(algorithmTemplates, maxFilteredRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
+    // Categorize requests into batch and streaming.
+    const categorizedRequests = _categorizeRequests(maxFilteredRequests);
+    // Get list of requests that are quotaGuaranteed, meaning should be handled first.
+    const { batchRequisiteRequests, streamingRequisiteRequests } = _makeRequisiteRequests(categorizedRequests, algorithmTemplates, categorizedWorkers);
+    // In order to handle batch requests gradually, create a window list (also sort by prioritization of quotaGuarantee).
+    const batchRequestWindow = _createBatchRequestsWindow(batchRequisiteRequests);
     // Add requests for hot workers as well
-    const totalRequests = normalizeHotRequests(requestsWindow, algorithmTemplates);
+    const { hotBatchRequests, hotStreamingRequests } = _handleHotRequests(batchRequestWindow, streamingRequisiteRequests, algorithmTemplates);
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
-    const requestTypes = calcRatio(totalRequests, totalCapacityNow);
+    const requestTypes = calcRatio(hotBatchRequests, totalCapacityNow);
     // const workerTypes = calcRatio(mergedWorkers);
     // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
     // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);'
-    const cutRequests = _cutRequests(totalRequests, requestTypes);
+    const cutRequests = _cutRequests(hotBatchRequests, requestTypes);
+    const finalRequests = _createFinalRequestsList(cutRequests, hotStreamingRequests);
 
     // const cutRequestTypes = calcRatio(cutRequests, totalCapacityNow);
     // log.info(`cut-requests = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map(([k, v]) =>
     //     ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
 
     _processAllRequests({
-        idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests: cutRequests, registry, clusterOptions, workerResources
+        ...categorizedWorkers, algorithmTemplates, versions, jobsCreated, normRequests: finalRequests, registry, clusterOptions, workerResources
     }, { createDetails, reconcileResult, toResume, scheduledRequests });
 
     // Handle job creation and scheduling
@@ -761,9 +844,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
-    _findWorkersToStop({
-        skipped, idleWorkers, activeWorkers, algorithmTemplates, scheduledRequests
-    }, { stopDetails });
+    _findWorkersToStop({ skipped, ...categorizedWorkers, algorithmTemplates, scheduledRequests }, { stopDetails });
 
     const { toStop } = pauseAccordingToResources(stopDetails, normResources, skipped);
 
@@ -779,7 +860,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const created = await _processPromises({ 
         exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, skipped, requested, options 
     });
-    created.forEach(j => createdJobsList.push(j));
+    created.forEach(job => createdJobsLists[job.stateType].push(job));
 
     const unScheduledObject = _checkUnscheduled(created, skipped, maxFilteredRequests, unscheduledAlgorithms, ignoredunscheduledAlgorithms, algorithmTemplates);
     const { unScheduledAlgorithms, ignoredUnScheduledAlgorithms } = unScheduledObject;
@@ -795,6 +876,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
 module.exports = {
     reconcile,
-    _clearCreatedJobsList,
+    _clearCreatedJobsLists,
     _updateCapacity
 };

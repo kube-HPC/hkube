@@ -74,7 +74,7 @@ describe('reconciler', () => {
 
     beforeEach(() => {
         clearCount();
-        reconciler._clearCreatedJobsList(Date.now() + 100000, options);
+        reconciler._clearCreatedJobsLists(options, Date.now() + 100000);
         reconciler._updateCapacity(1000);
         const res = clone(resources);
         res.nodes.body.items.push(res.nodeWithLabels);
