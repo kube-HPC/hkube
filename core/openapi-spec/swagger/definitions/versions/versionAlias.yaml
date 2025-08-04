@@ -1,0 +1,11 @@
+type: object
+properties:
+
+  version:
+    $ref: "#/components/schemas/algorithmVersionId"
+  alias:
+    type: string
+    description: alias for the version
+required:
+  - version
+  - alias
