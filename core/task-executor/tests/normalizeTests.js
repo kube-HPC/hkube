@@ -424,6 +424,44 @@ describe('normalize', () => {
                 requestType: 'batch',
             });
         });
+
+        it('should apply correct requestType', () => {
+            const stub = [
+                {
+                    data: [
+                        {
+                            name: 'stateless',
+                        },
+                        {
+                            name: 'stateful',
+                        },
+                        {
+                            name: 'batch',
+                        },
+                    ]
+                }
+            ];
+            const algorithmTemplateStore = {
+                'stateless': { stateType: stateType.Stateless },
+                'stateful': { stateType: stateType.Stateful },
+                'batch': { stateType: undefined },
+            }
+
+            const res = normalizeRequests(stub, algorithmTemplateStore);
+            expect(res).to.have.length(3);
+            expect(res).to.deep.include({
+                algorithmName: 'stateless',
+                requestType: stateType.Stateless
+            });
+            expect(res).to.deep.include({
+                algorithmName: 'stateful',
+                requestType: stateType.Stateful
+            });
+            expect(res).to.deep.include({
+                algorithmName: 'batch',
+                requestType: 'batch'
+            });
+        });
     });
 
     describe('normalize resources', () => {
