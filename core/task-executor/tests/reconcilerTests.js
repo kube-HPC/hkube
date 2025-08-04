@@ -1,4 +1,5 @@
 const { expect } = require('chai');
+const { stateType } = require('@hkube/consts');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const clone = require('lodash.clonedeep');
@@ -13,6 +14,7 @@ const fsVolumes = { name: 'storage-volume', persistentVolumeClaim: { claimName: 
 const fsVolumeMounts = { name: 'storage-volume', mountPath: '/hkubedata' };
 const { workerTemplate, varlogMount, varlibdockercontainersMount, varLog, varlibdockercontainers, } = require('../lib/templates/index');
 const { settings: globalSettings } = require('../lib/helpers/settings');
+const { consts } = require('../lib/consts');
 const resources = require('./stub/resources');
 
 const options = main;
@@ -30,7 +32,7 @@ describe('reconciler', () => {
     /**
      * Creates an argument object for the reconciler.
      *
-     * @param {string | string[]} algNames - A single algorithm name or an array of algorithm names.
+     * @param {string | string[]} algNamesRequest - A single algorithm name or an array of algorithm names (normRequests).
      * @param {Object} [options={}] - Optional configuration overrides.
      * @param {Object} [options.localOptions=options] - Overrides the default `options` if provided.
      * @param {Object} [options.localNormResources=normResources] - Overrides the default `normResources` if provided.
@@ -42,9 +44,9 @@ describe('reconciler', () => {
      * @param {Object} [options.workers]
      * @returns {Object} The argument object for the reconciler, containing options, normResources, algorithmTemplates, algorithmRequests, clusterOptions, versions, registry, workerResources, and workers.
      */
-    const createReconcileArgs = (algNames, { localOptions = options, localNormResources = normResources, localAlgorithmTemplates = algorithmTemplates,
+    const createReconcileArgs = (algNamesRequest, { localOptions = options, localNormResources = normResources, localAlgorithmTemplates = algorithmTemplates,
         clusterOptions, versions, registry, workerResources, workers } = {}) => {
-        const data = Array.isArray(algNames) ? algNames.map(name => ({ name })) : [{ name: algNames }];
+        const data = Array.isArray(algNamesRequest) ? algNamesRequest.map(name => ({ name })) : [{ name: algNamesRequest }];
         return {
             options: localOptions,
             normResources: localNormResources,
@@ -1286,6 +1288,55 @@ describe('reconciler', () => {
 
             expect(volume).to.have.property('emptyDir');
             expect(volume.emptyDir).to.be.an('object').that.deep.equals({});
+        });
+    });
+
+    describe('reconcile different stateType algorithms', function () {
+        const cases = [
+            undefined,
+            stateType.Stateful,
+            stateType.Stateless
+        ]
+
+        cases.forEach((stateType) => {
+            it(`should schedule algorithm with stateType ${stateType}`, async () => {
+                const algorithm = `algo-state-type-${stateType ? stateType : 'undefined'}`;
+                const argument = createReconcileArgs(algorithm, { stateType });
+                const res = await reconciler.reconcile(argument);
+                expect(res).to.exist;
+                expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+            });
+        });
+
+        it('should schedule streaming types without cutting', async () => {
+            const algorithmStatefull = `algo-state-type-${stateType.Stateful}`;
+            const algorithmStateless = `algo-state-type-${stateType.Stateless}`;
+            const amount = consts.MAX_JOBS_PER_TICK / 2;
+            const array = [
+                ...Array(amount).fill(algorithmStatefull),
+                ...Array(amount).fill(algorithmStateless)
+            ];
+            
+            const argument = createReconcileArgs(array);
+            const res = await reconciler.reconcile(argument);
+
+            expect(res).to.exist;
+            expect(res[algorithmStatefull].required).to.eql(amount);
+            expect(res[algorithmStatefull].created).to.eql(amount);
+            expect(res[algorithmStateless].required).to.eql(amount);
+            expect(res[algorithmStateless].created).to.eql(amount);
+        });
+
+        it('should cut non-streaming types (batch)', async () => {
+            const algorithm = `algo-state-type-undefined`;
+            const amount = consts.MAX_JOBS_PER_TICK;
+            const array = Array(amount).fill(algorithm);
+            
+            const argument = createReconcileArgs(array);
+            const res = await reconciler.reconcile(argument);
+
+            expect(res).to.exist;
+            expect(res[algorithm].required).to.be.lessThan(amount);
         });
     });
 });
