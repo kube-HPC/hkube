@@ -57,7 +57,7 @@ const _idleWorkerFilter = (worker, algorithmName) => {
 };
 
 const _activeWorkerFilter = (worker, algorithmName) => {
-    let match = worker.workerStatus !== 'ready' && !worker.workerPaused;
+    let match = worker.workerStatus !== 'ready' && !worker.workerPaused && worker.workerStatus !== 'bootstrap';
     if (algorithmName) {
         match = match && worker.algorithmName === algorithmName;
     }
@@ -110,7 +110,7 @@ const _clearCreatedJobsList = (now, options) => {
 };
 
 const _processAllRequests = (
-    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions, workerResources },
+    { idleWorkers, pausedWorkers, pendingWorkers, bootstrapWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions, workerResources },
     { createDetails, reconcileResult, toResume, scheduledRequests }
 ) => {
     for (let r of normRequests) {// eslint-disable-line
@@ -119,7 +119,7 @@ const _processAllRequests = (
         // Check for idle workers
         const idleWorkerIndex = idleWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (idleWorkerIndex !== -1) {
-            // there is idle worker. don't do anything
+            // there is idle worker ready for work, no need to create new one.
             const [worker] = idleWorkers.splice(idleWorkerIndex, 1);
             scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
@@ -137,7 +137,7 @@ const _processAllRequests = (
         // Check for recently creates jobs
         const jobsCreatedIndex = jobsCreated.findIndex(w => w.algorithmName === algorithmName);
         if (jobsCreatedIndex !== -1) {
-            // there is a pending worker.
+            // there is a job which was recently created.
             const [worker] = jobsCreated.splice(jobsCreatedIndex, 1);
             scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
@@ -149,6 +149,15 @@ const _processAllRequests = (
             // there is paused worker. wake it up
             toResume.push({ ...(pausedWorkers[pausedWorkerIndex]) });
             const [worker] = pausedWorkers.splice(pausedWorkerIndex, 1);
+            scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
+            continue;
+        }
+
+        // Check for bootstrapped workers
+        const bootstrapWorkerIndex = bootstrapWorkers.findIndex(w => w.algorithmName === algorithmName);
+        if (bootstrapWorkerIndex !== -1) {
+            // there is a worker in bootstrap for this algorithm.
+            const [worker] = bootstrapWorkers.splice(bootstrapWorkerIndex, 1);
             scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
@@ -586,12 +595,13 @@ const _categorizeWorkers = (mergedWorkers, merged) => {
     const idleWorkers = clonedeep(mergedWorkers.filter(w => _idleWorkerFilter(w)));
     const activeWorkers = clonedeep(mergedWorkers.filter(w => _activeWorkerFilter(w)));
     const pausedWorkers = clonedeep(mergedWorkers.filter(w => _pausedWorkerFilter(w)));
+    const bootstrapWorkers = clonedeep(mergedWorkers.filter(w => w.workerStatus === 'bootstrap'));
     // workers that already have a job created but no worker registered yet:
     const pendingWorkers = clonedeep(merged.extraJobs);
     const jobsCreated = clonedeep(createdJobsList);
     
     return {
-        idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, jobsCreated
+        idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, bootstrapWorkers, jobsCreated
     };
 };
 
@@ -728,7 +738,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const scheduledRequests = [];
 
     // Categorize workers into idle, active, paused, etc.
-    const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, jobsCreated } = _categorizeWorkers(mergedWorkers, merged);
+    const { idleWorkers, activeWorkers, pausedWorkers, bootstrapWorkers, pendingWorkers, jobsCreated } = _categorizeWorkers(mergedWorkers, merged);
 
     _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
 
@@ -750,7 +760,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     //     ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
 
     _processAllRequests({
-        idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests: cutRequests, registry, clusterOptions, workerResources
+        idleWorkers, pausedWorkers, pendingWorkers, bootstrapWorkers, algorithmTemplates, versions, jobsCreated, normRequests: cutRequests, registry, clusterOptions, workerResources
     }, { createDetails, reconcileResult, toResume, scheduledRequests });
 
     // Handle job creation and scheduling

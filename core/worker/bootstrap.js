@@ -17,7 +17,6 @@ const modules = [
     require('./lib/boards/boards.js'),
     require('./lib/states/stateManager.js'),
     require('./lib/states/stateAdapter.js'),
-    require('./lib/algorithm-communication/workerCommunication.js'),
     require('./lib/consumer/JobConsumer.js'),
     require('./lib/producer/producer.js'),
     require('./lib/helpers/kubernetes.js'),
@@ -53,6 +52,7 @@ class Bootstrap {
                 await m.init(main, log);
             }
             await worker.init();
+            require('./lib/algorithm-communication/workerCommunication.js').init(main, log);
 
             return main;
         }
