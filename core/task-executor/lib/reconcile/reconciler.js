@@ -767,7 +767,7 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
         if (total !== 0) {
             log.info(`CYCLE: task-executor: algo: ${algorithmName} created jobs: ${_created}, 
                 skipped jobs: ${_skipped}, paused workers: ${paused}, 
-                resumed workers: ${resumed}, required: ${required}.`);
+                resumed workers: ${resumed}, required: ${required}.`, { component });
         }
         reconcileResult[algorithmName].active = ws.count;
     });
