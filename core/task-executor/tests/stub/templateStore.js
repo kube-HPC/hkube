@@ -1,3 +1,5 @@
+const { stateType } = require('@hkube/consts');
+
 module.exports = [
     {
         name: 'eval-alg',
@@ -511,5 +513,26 @@ module.exports = [
             memory: "3000",
             fraction: 0.5
         }
+    },
+    {
+        name: 'algo-state-type-' + stateType.Stateful,
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.001,
+        mem: '128Mi',
+        stateType: stateType.Stateful
+    },
+    {
+        name: 'algo-state-type-' + stateType.Stateless,
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.001,
+        mem: '128Mi',
+        stateType: stateType.Stateless
+    },
+    {
+        name: 'algo-state-type-undefined',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.001,
+        mem: '128Mi',
+        stateType: undefined
     }
 ];

@@ -1684,6 +1684,25 @@ describe('Store/Algorithms', () => {
                 expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.contain('Sidecar container names must be unique!');
             });
+
+            it('should throw validation error when stateType is invalid', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '6666Ki',
+                    cpu: 1,
+                    stateType: 'no_such'
+                };
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    formData: { payload }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.contain("data.stateType should be equal to one of the allowed values (stateless,stateful)");
+            });
         });
 
         describe('labels and annotations', () => {
