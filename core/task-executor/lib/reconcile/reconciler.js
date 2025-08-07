@@ -568,6 +568,7 @@ const _categorizeRequests = (requests) => {
             batchCount += 1;
         }
     });
+    log.trace(`Categorized requests: ${batchCount} batch, ${streamingCount} streaming`, { component });
     return { batchRequests, streamingRequests };
 };
 
