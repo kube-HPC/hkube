@@ -568,7 +568,6 @@ const _categorizeRequests = (requests) => {
             batchCount += 1;
         }
     });
-    log.info(`Categorized requests: ${batchCount} batch, ${streamingCount} streaming`, { component });
     return { batchRequests, streamingRequests };
 };
 
