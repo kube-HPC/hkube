@@ -41,7 +41,7 @@ class Gateway extends AlgorithmBase {
             jobId,
             nodeName,
             kind: nodeKind.Gateway,
-            streamKind: stateType.Stateful,
+            stateType: stateType.Stateful,
             algorithmImage: 'hkube/algorithm-gateway',
             algorithmEnv: {
                 GATEWAY_NAME: gatewayName,
@@ -54,7 +54,7 @@ class Gateway extends AlgorithmBase {
         };
         validator.gateways.validateGateway(algorithm);
         await stateManager.updateAlgorithm(algorithm);
-        return { algorithmName, url: gatewayUrl, streamKind: algorithm.streamKind };
+        return { algorithmName, url: gatewayUrl, stateType: algorithm.stateType };
     }
 
     async deleteGateways({ pipeline, jobId }) {

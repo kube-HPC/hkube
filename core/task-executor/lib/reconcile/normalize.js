@@ -91,10 +91,14 @@ const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, regist
  * This method tries to fill the missing `minHotWorkers` 
  * for each algorithm request
  */
-const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
+const normalizeHotRequestsByType = (algorithmRequests, algorithmTemplateStore, requestTypes) => {
     const normRequests = algorithmRequests || [];
     const algorithmTemplates = algorithmTemplateStore || {};
-    const algorithmStore = Object.entries(algorithmTemplates).filter(([, v]) => v.minHotWorkers > 0);
+
+    const algorithmStore = Object.entries(algorithmTemplates).filter(([, alg]) => {
+        const stateType = alg.stateType ? alg.stateType.toLowerCase() : 'batch';
+        return alg.minHotWorkers > 0 && (requestTypes ? requestTypes.includes(stateType) : stateType === 'batch');
+    });
 
     if (algorithmStore.length === 0) {
         return normRequests;
@@ -102,17 +106,18 @@ const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
     const requests = [];
     const groupNormRequests = groupBy(normRequests, 'algorithmName');
 
-    algorithmStore.forEach(([k, v]) => {
-        const hotWorkers = new Array(v.minHotWorkers).fill({ algorithmName: k, hotWorker: true });
-        const groupNor = groupNormRequests[k];
+    algorithmStore.forEach(([algName, algTemplate]) => {
+        const requestType = algTemplate.stateType ? algTemplate.stateType.toLowerCase() : 'batch';
+        const hotWorkers = new Array(algTemplate.minHotWorkers).fill({ algorithmName: algName, hotWorker: true, requestType });
+        const groupNor = groupNormRequests[algName];
         const requestsPerAlgorithm = (groupNor && groupNor.length) || 0;
 
-        if (requestsPerAlgorithm > v.minHotWorkers) {
-            const diff = requestsPerAlgorithm - v.minHotWorkers;
+        if (requestsPerAlgorithm > algTemplate.minHotWorkers) {
+            const diff = requestsPerAlgorithm - algTemplate.minHotWorkers;
             const array = groupNor.slice(0, diff);
             requests.push(...hotWorkers, ...array);
         }
-        else if (requestsPerAlgorithm <= v.minHotWorkers) {
+        else if (requestsPerAlgorithm <= algTemplate.minHotWorkers) {
             requests.push(...hotWorkers);
         }
     });
@@ -312,7 +317,20 @@ const normalizeRequests = (requests, algorithmTemplates) => {
     if (requests == null || requests.length === 0 || requests[0].data == null) {
         return [];
     }
-    const normalizedRequests = requests[0].data.map(r => ({ algorithmName: r.name })).filter(r => algorithmTemplates[r.algorithmName]);
+    
+    const normalizedRequests = requests[0].data.reduce((acc, request) => {
+        const algorithmName = request.name;
+        const template = algorithmTemplates[algorithmName];
+        if (!template) return acc;
+        const requestType = template.stateType ? template.stateType.toLowerCase() : 'batch';
+
+        acc.push({
+            algorithmName,
+            requestType
+        });
+        return acc;
+    }, []);
+
     return normalizedRequests;
 };
 
@@ -370,7 +388,7 @@ const mergeWorkers = (workers, jobs) => {
 module.exports = {
     normalizeWorkers,
     normalizeWorkerImages,
-    normalizeHotRequests,
+    normalizeHotRequestsByType,
     normalizeHotWorkers,
     normalizeColdWorkers,
     normalizeRequests,
