@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequestsByType, normalizeColdWorkers } = require('../lib/reconcile/normalize');
 const { twoCompleted } = require('./stub/jobsRaw');
 const { stateType } = require('@hkube/consts');
 const utils = require('../lib/utils/utils');
@@ -123,28 +123,28 @@ describe('normalize', () => {
 
     describe('normalize hot workers', () => {
         it('should work with undefined', () => {
-            const res = normalizeHotRequests();
+            const res = normalizeHotRequestsByType();
             expect(res).to.have.lengthOf(0);
         });
 
         it('should work with empty data', () => {
             const normRequests = [];
             const algorithmTemplates = {};
-            const res = normalizeHotRequests(normRequests, algorithmTemplates);
+            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
 
         it('should work with empty normRequests', () => {
             const normRequests = null;
             const algorithmTemplates = {};
-            const res = normalizeHotRequests(normRequests, algorithmTemplates);
+            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
 
         it('should work with empty algorithmTemplates', () => {
             const normRequests = [];
             const algorithmTemplates = null;
-            const res = normalizeHotRequests(normRequests, algorithmTemplates);
+            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
 
@@ -185,7 +185,7 @@ describe('normalize', () => {
                 const minHotWorkers = _getHotWorkersAmount(algorithmNames, currStateType);
                 const additionalRequests = _getAdditionalRequestsAmount(algorithmNames, currStateType);
 
-                const response = normalizeHotRequests(normRequests, algorithmTemplates, currStateType);
+                const response = normalizeHotRequestsByType(normRequests, algorithmTemplates, currStateType);
                 expect(response).to.have.lengthOf(minHotWorkers + additionalRequests);
                 expect(response[0]).to.have.property('algorithmName');
                 expect(response[0]).to.have.property('hotWorker');
@@ -200,7 +200,7 @@ describe('normalize', () => {
                 const minHotWorkers = _getHotWorkersAmount(algorithmNames, currStateType);
                 const additionalRequests = _getAdditionalRequestsAmount(algorithmNames, currStateType);
 
-                const response = normalizeHotRequests(normRequests, algorithmTemplates, currStateType);
+                const response = normalizeHotRequestsByType(normRequests, algorithmTemplates, currStateType);
                 expect(response).to.have.lengthOf(minHotWorkers + additionalRequests);
                 expect(response[0]).to.have.property('algorithmName');
                 expect(response[0]).to.have.property('hotWorker');

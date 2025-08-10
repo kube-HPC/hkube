@@ -11,7 +11,7 @@ const component = components.RECONCILER;
 
 const { normalizeWorkers,
     normalizeWorkerImages,
-    normalizeHotRequests,
+    normalizeHotRequestsByType,
     normalizeHotWorkers,
     normalizeColdWorkers,
     normalizeRequests,
@@ -581,8 +581,8 @@ const _makeRequisiteRequests = (categorizedRequests, algorithmTemplates, categor
 };
 
 const _handleHotRequests = (batchRequests, streamingRequests, algorithmTemplateStore) => {
-    const hotBatchRequests = normalizeHotRequests(batchRequests, algorithmTemplateStore);
-    const hotStreamingRequests = normalizeHotRequests(streamingRequests, algorithmTemplateStore, [stateType.Stateful, stateType.Stateless]);
+    const hotBatchRequests = normalizeHotRequestsByType(batchRequests, algorithmTemplateStore);
+    const hotStreamingRequests = normalizeHotRequestsByType(streamingRequests, algorithmTemplateStore, [stateType.Stateful, stateType.Stateless]);
     return { hotBatchRequests, hotStreamingRequests };
 };
 

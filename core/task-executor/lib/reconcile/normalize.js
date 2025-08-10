@@ -91,7 +91,7 @@ const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, regist
  * This method tries to fill the missing `minHotWorkers` 
  * for each algorithm request
  */
-const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore, requestTypes) => {
+const normalizeHotRequestsByType = (algorithmRequests, algorithmTemplateStore, requestTypes) => {
     const normRequests = algorithmRequests || [];
     const algorithmTemplates = algorithmTemplateStore || {};
 
@@ -388,7 +388,7 @@ const mergeWorkers = (workers, jobs) => {
 module.exports = {
     normalizeWorkers,
     normalizeWorkerImages,
-    normalizeHotRequests,
+    normalizeHotRequestsByType,
     normalizeHotWorkers,
     normalizeColdWorkers,
     normalizeRequests,
