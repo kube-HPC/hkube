@@ -8,15 +8,9 @@ const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
 const { commands, components, consts } = require('../consts');
 const component = components.RECONCILER;
+const WorkersManager = require('./managers/workers');
 
-const { normalizeWorkers,
-    normalizeWorkerImages,
-    normalizeHotRequestsByType,
-    normalizeHotWorkers,
-    normalizeColdWorkers,
-    normalizeRequests,
-    normalizeJobs,
-    mergeWorkers } = require('./normalize');
+const { normalizeHotRequestsByType, normalizeRequests } = require('./normalize');
 
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
 const { matchJobsToResources, pauseAccordingToResources, parseResources } = require('./resources');
@@ -53,30 +47,6 @@ const _createJob = (jobDetails, options) => {
     const spec = createJobSpec({ ...jobDetails, options });
     const jobCreateResult = kubernetes.createJob({ spec, jobDetails });
     return jobCreateResult;
-};
-
-const _idleWorkerFilter = (worker, algorithmName) => {
-    let match = worker.workerStatus === 'ready' && !worker.workerPaused;
-    if (algorithmName) {
-        match = match && worker.algorithmName === algorithmName;
-    }
-    return match;
-};
-
-const _activeWorkerFilter = (worker, algorithmName) => {
-    let match = worker.workerStatus !== 'ready' && !worker.workerPaused && worker.workerStatus !== 'bootstrap';
-    if (algorithmName) {
-        match = match && worker.algorithmName === algorithmName;
-    }
-    return match;
-};
-
-const _pausedWorkerFilter = (worker, algorithmName) => {
-    let match = worker.workerStatus === 'ready' && worker.workerPaused;
-    if (algorithmName) {
-        match = match && worker.algorithmName === algorithmName;
-    }
-    return match;
 };
 
 const _stopWorker = (worker) => {
@@ -667,21 +637,6 @@ const _checkResourcePressure = (normResources) => {
     }
 };
 
-// Utility function to categorize workers
-const _categorizeWorkers = (mergedWorkers, merged) => {
-    // Identify worker types
-    const idleWorkers = clonedeep(mergedWorkers.filter(w => _idleWorkerFilter(w)));
-    const activeWorkers = clonedeep(mergedWorkers.filter(w => _activeWorkerFilter(w)));
-    const pausedWorkers = clonedeep(mergedWorkers.filter(w => _pausedWorkerFilter(w)));
-    const bootstrapWorkers = clonedeep(mergedWorkers.filter(w => w.workerStatus === 'bootstrap'));
-    // workers that already have a job created but no worker registered yet:
-    const pendingWorkers = clonedeep(merged.extraJobs);
-    
-    return {
-        idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, bootstrapWorkers
-    };
-};
-
 const _cutRequests = (totalRequests, requestTypes) => {
     const cutRequests = [];
     totalRequests.forEach(r => {
@@ -787,23 +742,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // Update the cache of jobs lately created by removing old jobs
     _clearCreatedJobsLists(options);
 
-    const normWorkers = normalizeWorkers(workers);
-    const normJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
+    const workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
 
-    // assign created jobs to workers, and list all jobs with no workers.
-    const merged = mergeWorkers(normWorkers, normJobs);
-    // filter out algorithm requests that have no such algorithm definition
     const normRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
-
-    // find workers who's image changed
-    const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
-    // subtract the workers which changed from the workers list.
-    const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
-
-    // get a list of workers that should turn 'hot' and be marked as hot.
-    const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
-    // get a list of workers that should turn 'cold' and not be marked as hot any longer
-    const coolDownWorkers = normalizeColdWorkers(mergedWorkers, algorithmTemplates);
 
     _checkResourcePressure(normResources);
 
@@ -814,18 +755,17 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const scheduledRequests = [];
 
     // Categorize workers into idle, active, paused, etc. and clone the created jobs list.
-    const categorizedWorkers = _categorizeWorkers(mergedWorkers, merged);
     const jobsCreated = clonedeep(Object.values(createdJobsLists).flat());
 
-    const batchCount = _countBatchWorkers(categorizedWorkers.idleWorkers, categorizedWorkers.activeWorkers, algorithmTemplates);
+    const batchCount = _countBatchWorkers(workersManager.categorizedWorkers.idleWorkers, workersManager.categorizedWorkers.activeWorkers, algorithmTemplates);
     _updateCapacity(batchCount);
 
     // leave only requests that are not exceeding max workers.
-    const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
+    const maxFilteredRequests = _handleMaxWorkers(algorithmTemplates, normRequests, workersManager.mergedWorkers);
     // Categorize requests into batch and streaming.
     const categorizedRequests = _categorizeRequests(maxFilteredRequests);
     // Get list of requests that are quotaGuaranteed, meaning should be handled first.
-    const { batchRequisiteRequests, streamingRequisiteRequests } = _makeRequisiteRequests(categorizedRequests, algorithmTemplates, categorizedWorkers);
+    const { batchRequisiteRequests, streamingRequisiteRequests } = _makeRequisiteRequests(categorizedRequests, algorithmTemplates, workersManager.categorizedWorkers);
     // In order to handle batch requests gradually, create a window list (also sort by prioritization of quotaGuarantee).
     const batchRequestWindow = _createBatchRequestsWindow(batchRequisiteRequests);
     // Add requests for hot workers as well
@@ -843,7 +783,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     //     ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
 
     _processAllRequests({
-        ...categorizedWorkers, algorithmTemplates, versions, jobsCreated, normRequests: finalRequests, registry, clusterOptions, workerResources
+        ...workersManager.categorizedWorkers, algorithmTemplates, versions, jobsCreated, normRequests: finalRequests, registry, clusterOptions, workerResources
     }, { createDetails, reconcileResult, toResume, scheduledRequests });
 
     // Handle job creation and scheduling
@@ -854,7 +794,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
-    _findWorkersToStop({ skipped, ...categorizedWorkers, algorithmTemplates, scheduledRequests }, { stopDetails });
+    _findWorkersToStop({ skipped, ...workersManager.categorizedWorkers, algorithmTemplates, scheduledRequests }, { stopDetails });
 
     const { toStop } = pauseAccordingToResources(stopDetails, normResources, skipped);
 
@@ -866,9 +806,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const toStopFiltered = _filterWorkersToStop(toStop, toResume);
 
     // log.info(`to stop: ${JSON.stringify(toStopFiltered.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
-
     const created = await _processPromises({ 
-        exitWorkers, warmUpWorkers, coolDownWorkers, toStopFiltered, toResume, skipped, requested, options 
+        ...workersManager, toStopFiltered, toResume, skipped, requested, options 
     });
     created.forEach(job => createdJobsLists[job.stateType].push(job));
 
@@ -876,7 +815,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const { unScheduledAlgorithms, ignoredUnScheduledAlgorithms } = unScheduledObject;
 
     // add created and skipped info
-    const workerStats = _calcStats(normWorkers);
+    const workerStats = _calcStats(workersManager.normWorkers);
     await _updateReconcileResult({
         reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, created, skipped, toStop, toResume, workerStats, normResources
     });
