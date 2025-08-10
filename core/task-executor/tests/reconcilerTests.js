@@ -16,6 +16,7 @@ const { workerTemplate, varlogMount, varlibdockercontainersMount, varLog, varlib
 const { settings: globalSettings } = require('../lib/helpers/settings');
 const { consts } = require('../lib/consts');
 const resources = require('./stub/resources');
+const { requestsManager } = require('../lib/reconcile/managers');
 
 const options = main;
 let callCount, clearCount, normResources, reconciler, algorithmTemplates;
@@ -77,7 +78,8 @@ describe('reconciler', () => {
     beforeEach(() => {
         clearCount();
         reconciler._clearCreatedJobsLists(options, Date.now() + 100000);
-        reconciler._updateCapacity(1000);
+        const { requestsManager } = require('../lib/reconcile/managers');
+        requestsManager.updateCapacity(1000);
         const res = clone(resources);
         res.nodes.body.items.push(res.nodeWithLabels);
         normResources = normalizeResources(res);

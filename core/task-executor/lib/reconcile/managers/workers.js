@@ -1,4 +1,5 @@
 const clonedeep = require('lodash.clonedeep');
+
 const { normalizeWorkers,
     normalizeWorkerImages,
     normalizeHotWorkers,
@@ -26,6 +27,14 @@ class WorkersManager {
 
         // Categorize workers into idle, active, paused, etc. and clone the created jobs list.
         this.categorizedWorkers = this._categorizeWorkers(this.mergedWorkers, merged);
+    }
+
+    countBatchWorkers(algorithmTemplates, batchJobsCount) {
+        const { idleWorkers, activeWorkers } = this.categorizedWorkers;
+        const filterCondition = worker => algorithmTemplates[worker.algorithmName]?.stateType === undefined;
+        const batchWorkers = idleWorkers.filter(filterCondition);
+        const activeBatchWorkers = activeWorkers.filter(filterCondition);
+        return batchWorkers.length + activeBatchWorkers.length + batchJobsCount;
     }
 
     // Utility function to categorize workers
