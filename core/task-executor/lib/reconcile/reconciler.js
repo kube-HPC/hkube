@@ -678,7 +678,7 @@ const _categorizeWorkers = (mergedWorkers, merged) => {
     const pendingWorkers = clonedeep(merged.extraJobs);
     
     return {
-        idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, bootstrapWorkers, jobsCreated
+        idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, bootstrapWorkers
     };
 };
 
