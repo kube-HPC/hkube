@@ -1,6 +1,7 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequestsByType, normalizeColdWorkers } = require('../lib/reconcile/normalize');
 const { twoCompleted } = require('./stub/jobsRaw');
+const { stateType } = require('@hkube/consts');
 const utils = require('../lib/utils/utils');
 const { workersStub, jobsStub } = require('./stub/normalizedStub');
 const { nodes, pods } = require('./stub/resources');
@@ -16,37 +17,45 @@ describe('normalize', () => {
             const res = normalizeJobs(jobsRaw);
             expect(res).to.be.empty;
         });
+
         it('should work with undefined', () => {
             const res = normalizeJobs();
             expect(res).to.be.empty;
         });
+
         it('should ignore completed jobs', () => {
             const res = normalizeJobs(twoCompleted, null, j => !j.status.succeeded);
             expect(res).to.have.lengthOf(2);
         });
+
         it('should ignore active jobs', () => {
             const res = normalizeJobs(twoCompleted, null, j => j.status.succeeded);
             expect(res).to.have.lengthOf(2);
         });
+
         it('should ignore completed and failed jobs', () => {
             const res = normalizeJobs(twoCompleted, null, j => (!j.status.succeeded && !j.status.failed));
             expect(res).to.have.lengthOf(1);
         });
+
         it('should return all jobs', () => {
             const res = normalizeJobs(twoCompleted);
             expect(res).to.have.lengthOf(4);
         });
     });
+
     describe('normalize workers', () => {
         it('should work with empty worker array', () => {
             const workers = [];
             const res = normalizeWorkers(workers);
             expect(res).to.be.empty;
         });
+
         it('should work with undefined worker array', () => {
             const res = normalizeWorkers();
             expect(res).to.be.empty;
         });
+
         it('should return object with ids', () => {
             const workers = [
                 {
@@ -111,106 +120,121 @@ describe('normalize', () => {
             });
         });
     });
+
     describe('normalize hot workers', () => {
         it('should work with undefined', () => {
-            const res = normalizeHotRequests();
+            const res = normalizeHotRequestsByType();
             expect(res).to.have.lengthOf(0);
         });
+
         it('should work with empty data', () => {
             const normRequests = [];
             const algorithmTemplates = {};
-            const res = normalizeHotRequests(normRequests, algorithmTemplates);
+            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
+
         it('should work with empty normRequests', () => {
             const normRequests = null;
             const algorithmTemplates = {};
-            const res = normalizeHotRequests(normRequests, algorithmTemplates);
+            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
+
         it('should work with empty algorithmTemplates', () => {
             const normRequests = [];
             const algorithmTemplates = null;
-            const res = normalizeHotRequests(normRequests, algorithmTemplates);
+            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
-        it('should return hot workers', () => {
-            const normRequests = [
-                {
-                    "algorithmName": "green-alg"
-                },
-                {
-                    "algorithmName": "black-alg"
-                },
-                {
-                    "algorithmName": "eval-alg"
-                },
-                {
-                    "algorithmName": "yellow-alg"
+
+        const cases = [
+            undefined,
+            stateType.Stateful,
+            stateType.Stateless,
+            [stateType.Stateful, stateType.Stateless]
+        ];
+        
+        const _getAdditionalRequestsAmount = (algorithmNames, currStateType) => {
+            return algorithmNames.reduce((acc, algorithmName) => {
+                if (!algorithmTemplates[algorithmName]) {
+                    acc += 1;
                 }
-            ]
-            const minHotWorkers = Object.values(algorithmTemplates).map(a => a.minHotWorkers).reduce((a, b) => a + b, 0);
-            const res = normalizeHotRequests(normRequests, algorithmTemplates);
-            expect(res).to.have.lengthOf(minHotWorkers);
-            expect(res[0]).to.have.property('algorithmName');
-            expect(res[0]).to.have.property('hotWorker');
+                else {
+                    const algStateType = algorithmTemplates[algorithmName].stateType;
+                    if ((!Array.isArray(currStateType) && algStateType !== currStateType) || (Array.isArray(currStateType) && !currStateType.includes(algStateType)))
+                        acc += 1;
+                }
+                return acc;
+            }, 0);
+        };
+
+        const _getHotWorkersAmount = (algorithmNames, currStateType) => {
+            const minHotWorkers = Object.values(algorithmTemplates)
+                    .filter(a => a.minHotWorkers && (a.stateType === currStateType || (Array.isArray(currStateType) && currStateType.includes(a.stateType))))
+                    .map(a => a.minHotWorkers)
+                    .reduce((a, b) => a + b, 0);
+            return minHotWorkers;
+        };
+
+        cases.forEach((currStateType) => {
+            it('should return hot workers with stateType: ' + currStateType, () => {
+                const algorithmNames = ["green-alg", "black-alg", "eval-alg", "yellow-alg", "algo-state-type-stateful", "algo-state-type-stateless", "algo-state-type-undefined"];
+                const normRequests = algorithmNames.map(algorithmName => ({ algorithmName }));
+                
+                const minHotWorkers = _getHotWorkersAmount(algorithmNames, currStateType);
+                const additionalRequests = _getAdditionalRequestsAmount(algorithmNames, currStateType);
+
+                const response = normalizeHotRequestsByType(normRequests, algorithmTemplates, currStateType);
+                expect(response).to.have.lengthOf(minHotWorkers + additionalRequests);
+                expect(response[0]).to.have.property('algorithmName');
+                expect(response[0]).to.have.property('hotWorker');
+            });
         });
-        it('should return hot workers and not hot workers', () => {
-            const normRequests = [
-                {
-                    "algorithmName": "green-alg"
-                },
-                {
-                    "algorithmName": "black-alg"
-                },
-                {
-                    "algorithmName": "eval-alg"
-                },
-                {
-                    "algorithmName": "yellow-alg"
-                },
-                {
-                    "algorithmName": "nothot-alg"
-                },
-                {
-                    "algorithmName": "nothot-alg"
-                },
-                {
-                    "algorithmName": "nothot-alg"
-                }
-            ]
 
+        cases.forEach((currStateType) => {
+            it('should return hot workers and not hot workers with stateType: ' + currStateType, () => {
+                const algorithmNames = ["green-alg", "black-alg", "eval-alg", "yellow-alg", "nothot-alg", "nothot-alg", "nothot-alg"];
+                const normRequests = algorithmNames.map(algorithmName => ({ algorithmName }));
 
-            const minHotWorkers = Object.values(algorithmTemplates).map(a => a.minHotWorkers).reduce((a, b) => a + b, 0);
-            const res = normalizeHotRequests(normRequests, algorithmTemplates);
-            expect(res).to.have.lengthOf(minHotWorkers + 3);
-            expect(res[0]).to.have.property('algorithmName');
-            expect(res[0]).to.have.property('hotWorker');
+                const minHotWorkers = _getHotWorkersAmount(algorithmNames, currStateType);
+                const additionalRequests = _getAdditionalRequestsAmount(algorithmNames, currStateType);
+
+                const response = normalizeHotRequestsByType(normRequests, algorithmTemplates, currStateType);
+                expect(response).to.have.lengthOf(minHotWorkers + additionalRequests);
+                expect(response[0]).to.have.property('algorithmName');
+                expect(response[0]).to.have.property('hotWorker');
+            });
         });
     });
+
     describe('normalize cold workers', () => {
         it('should work with undefined', () => {
             const res = normalizeColdWorkers();
             expect(res).to.have.lengthOf(0);
         });
+
         it('should work with empty data', () => {
             const normWorkers = [];
             const algorithmTemplates = {};
             const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
+
         it('should work with empty normWorkers', () => {
             const normWorkers = null;
             const algorithmTemplates = {};
             const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
+
         it('should work with empty hotWorkers', () => {
             const normWorkers = [];
             const algorithmTemplates = null;
             const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
+
         it('should return full cold workers array', () => {
             const normWorkers = [
                 {
@@ -236,6 +260,7 @@ describe('normalize', () => {
             const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(normWorkers.length);
         });
+
         it('should return empty array with high minHotWorkers', () => {
             const normWorkers = [
                 {
@@ -261,6 +286,7 @@ describe('normalize', () => {
             const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
+
         it('should return partial cold workers array', () => {
             const normWorkers = [
                 {
@@ -286,6 +312,7 @@ describe('normalize', () => {
             const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(normWorkers.length - 1);
         });
+
         it('should return empty cold workers array', () => {
             const normWorkers = [
                 {
@@ -304,15 +331,18 @@ describe('normalize', () => {
             expect(res).to.have.lengthOf(normWorkers.length - 2);
         });
     });
+
     describe('normalize requests', () => {
         it('should work with empty requests array', () => {
             const res = normalizeRequests([]);
             expect(res).to.be.empty;
         });
+
         it('should work with undefined requests array', () => {
             const res = normalizeRequests();
             expect(res).to.be.empty;
         });
+
         it('should return object with requests per algorithms', () => {
             const stub = [
                 {
@@ -342,15 +372,19 @@ describe('normalize', () => {
             expect(res).to.have.length(4);
             expect(res).to.deep.include({
                 algorithmName: 'black-alg',
+                requestType: 'batch',
             });
             expect(res.filter(r => r.algorithmName === 'black-alg')).to.have.lengthOf(2);
             expect(res).to.deep.include({
                 algorithmName: 'green-alg',
+                requestType: 'batch',
             });
             expect(res).to.deep.include({
                 algorithmName: 'yellow-alg',
+                requestType: 'batch',
             });
         });
+
         it('should filter requests not in algorithmTemplateStore', () => {
             const stub = [
                 {
@@ -379,29 +413,74 @@ describe('normalize', () => {
             expect(res).to.have.length(2);
             expect(res).to.not.deep.include({
                 algorithmName: 'black-alg',
+                requestType: 'batch',
             });
             expect(res).to.deep.include({
                 algorithmName: 'green-alg',
+                requestType: 'batch',
             });
             expect(res).to.deep.include({
                 algorithmName: 'yellow-alg',
+                requestType: 'batch',
+            });
+        });
+
+        it('should apply correct requestType', () => {
+            const stub = [
+                {
+                    data: [
+                        {
+                            name: 'stateless',
+                        },
+                        {
+                            name: 'stateful',
+                        },
+                        {
+                            name: 'batch',
+                        },
+                    ]
+                }
+            ];
+            const algorithmTemplateStore = {
+                'stateless': { stateType: stateType.Stateless },
+                'stateful': { stateType: stateType.Stateful },
+                'batch': { stateType: undefined },
+            }
+
+            const res = normalizeRequests(stub, algorithmTemplateStore);
+            expect(res).to.have.length(3);
+            expect(res).to.deep.include({
+                algorithmName: 'stateless',
+                requestType: stateType.Stateless
+            });
+            expect(res).to.deep.include({
+                algorithmName: 'stateful',
+                requestType: stateType.Stateful
+            });
+            expect(res).to.deep.include({
+                algorithmName: 'batch',
+                requestType: 'batch'
             });
         });
     });
+
     describe('normalize resources', () => {
         beforeEach(() => {
             globalSettings.useResourceLimits = false
         });
+
         it('should work with empty resources array', () => {
             const res = normalizeResources({});
             expect(res.allNodes.ratio.cpu).to.eq(0);
             expect(res.allNodes.ratio.memory).to.eq(0);
         });
+
         it('should work with undefined resources array', () => {
             const res = normalizeResources();
             expect(res.allNodes.ratio.cpu).to.eq(0);
             expect(res.allNodes.ratio.memory).to.eq(0);
         });
+
         it('should return resources by node and totals', () => {
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.total.cpu).to.eq(23.4);
@@ -410,6 +489,7 @@ describe('normalize', () => {
             expect(res.nodeList[1].requests.cpu).to.eq(0.25);
             expect(res.nodeList[2].requests.cpu).to.eq(0);
         });
+
         it('should return resources by node and totals with useLimits', () => {
             globalSettings.useResourceLimits = true
             const res = normalizeResources({ pods, nodes });
@@ -419,6 +499,7 @@ describe('normalize', () => {
             expect(res.nodeList[1].requests.cpu).to.eq(0.7);
             expect(res.nodeList[2].requests.cpu).to.eq(0);
         });
+
         it('should return resources free resources by node', () => {
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.free.cpu).to.eq(22.95);
@@ -428,6 +509,7 @@ describe('normalize', () => {
             expect(res.nodeList[2].free.cpu).to.eq(7.8);
         });
     });
+
     describe('merge workers', () => {
         it('should work with empty items', () => {
             const merged = mergeWorkers([], []);
@@ -436,6 +518,7 @@ describe('normalize', () => {
             expect(merged.extraJobs).to.be.an('array');
             expect(merged.extraJobs).to.be.empty;
         });
+
         it('should keep all workers, and not change with no jobs', () => {
             const merged = mergeWorkers(workersStub, []);
             expect(merged.mergedWorkers).to.be.an('array')
@@ -443,7 +526,6 @@ describe('normalize', () => {
             expect(merged.mergedWorkers[0].job).to.not.exist;
             expect(merged.mergedWorkers[1].job).to.not.exist;
             expect(merged.extraJobs).to.be.empty;
-
         });
 
         it('should keep all workers, and enrich with one jobs', () => {
@@ -453,8 +535,8 @@ describe('normalize', () => {
             expect(merged.mergedWorkers[0].job).to.eql(jobsStub[0]);
             expect(merged.mergedWorkers[1].job).to.not.exist;
             expect(merged.extraJobs).to.be.empty;
-
         });
+
         it('should keep all workers, and enrich with all jobs', () => {
             const merged = mergeWorkers(workersStub, jobsStub);
             expect(merged.mergedWorkers).to.be.an('array')
@@ -464,7 +546,6 @@ describe('normalize', () => {
             expect(merged.mergedWorkers[2].job).to.eql(jobsStub[2]);
             expect(merged.mergedWorkers[3].job).to.eql(jobsStub[3]);
             expect(merged.extraJobs).to.be.empty;
-
         });
 
         it('should report all jobs as extra jobs', () => {
@@ -476,7 +557,6 @@ describe('normalize', () => {
             expect(merged.extraJobs[1]).to.eql(jobsStub[1]);
             expect(merged.extraJobs[2]).to.eql(jobsStub[2]);
             expect(merged.extraJobs[3]).to.eql(jobsStub[3]);
-
         });
         it('should report extra jobs', () => {
             const merged = mergeWorkers(workersStub.slice(0, 1), jobsStub);
@@ -486,7 +566,6 @@ describe('normalize', () => {
             expect(merged.extraJobs[0]).to.eql(jobsStub[1]);
             expect(merged.extraJobs[1]).to.eql(jobsStub[2]);
             expect(merged.extraJobs[2]).to.eql(jobsStub[3]);
-
         });
     });
 });
