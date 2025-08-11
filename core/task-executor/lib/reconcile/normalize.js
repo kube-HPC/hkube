@@ -238,7 +238,8 @@ const normalizeResources = ({ pods, nodes } = {}) => {
                     gpu: 0,
                     memory: 0
                 }
-            }
+            },
+            nodeList: []
         };
     }
     const initial = nodes.body.items.filter(_nodeTaintsFilter).reduce((acc, cur) => {

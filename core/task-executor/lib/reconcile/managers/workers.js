@@ -29,12 +29,12 @@ class WorkersManager {
         this.categorizedWorkers = this._categorizeWorkers(this.mergedWorkers, merged);
     }
 
-    countBatchWorkers(algorithmTemplates, batchJobsCount) {
+    countBatchWorkers(algorithmTemplates) {
         const { idleWorkers, activeWorkers } = this.categorizedWorkers;
         const filterCondition = worker => algorithmTemplates[worker.algorithmName]?.stateType === undefined;
         const batchWorkers = idleWorkers.filter(filterCondition);
         const activeBatchWorkers = activeWorkers.filter(filterCondition);
-        return batchWorkers.length + activeBatchWorkers.length + batchJobsCount;
+        return batchWorkers.length + activeBatchWorkers.length;
     }
 
     // Utility function to categorize workers

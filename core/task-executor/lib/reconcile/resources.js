@@ -331,7 +331,7 @@ const matchWorkersToNodes = (nodeList, workers) => {
 const pauseAccordingToResources = (stopDetails, availableResources, skippedRequests) => {
     const toStop = [];
     if (stopDetails.length === 0) {
-        return { toStop };
+        return toStop;
     }
     let localDetails = stopDetails.map(sd => sd.details);
     const localResources = clone(availableResources);
@@ -357,7 +357,7 @@ const pauseAccordingToResources = (stopDetails, availableResources, skippedReque
         }
     });
 
-    return { toStop };
+    return toStop;
 };
 
 const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], extraResources) => {
