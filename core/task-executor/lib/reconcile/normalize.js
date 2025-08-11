@@ -5,38 +5,14 @@ const objectPath = require('object-path');
 const { gpuVendors } = require('../consts');
 const { setWorkerImage } = require('./createOptions');
 const { settings: globalSettings } = require('../helpers/settings');
-/**
- * normalizes the worker info from discovery
- * input will look like:
- * <code>
- * {
- *  '/discovery/workers/worker-uuid':{
- *      algorithmName,
- *      workerStatus,
- *      jobStatus,
- *      error
- *      },
- *  '/discovery/workers/worker-uuid2':{
- *      algorithmName,
- *      workerStatus,
- *      jobStatus,
- *      error
- *      }
- * }
- * </code>
- * normalized output should be:
- * <code>
- * {
- *   worker-uuid:{
- *     algorithmName,
- *     workerStatus // ready, working
- * 
- *   }
- * }
- * </code>
- * @param {*} workers 
- */
 
+/**
+ * Normalizes raw worker objects from etcd into a simplified structure.
+ * Removes unnecessary fields and keeps only relevant worker attributes.
+ *
+ * @param {Object[]} workers - Raw workers array from etcd.
+ * @returns {Object[]} Normalized workers array.
+ */
 const normalizeWorkers = (workers) => {
     if (!workers) {
         return [];
@@ -58,15 +34,21 @@ const normalizeWorkers = (workers) => {
 };
 
 /**
- * This method tries to find workers that at least one image (worker/algorithm) 
- * is different from the current image version.
+ * Identifies workers that should exit due to changes in image or algorithm version.
+ * Adds a `message` property if applicable.
+ *
+ * @param {Object[]} normalizedWorkers - Normalized worker objects.
+ * @param {Object} algorithmTemplates - Algorithm templates from DB.
+ * @param {Object} versions - System versions object.
+ * @param {Object} registry - Registry configuration.
+ * @returns {Object[]} Workers that must exit.
  */
-const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, registry) => {
+const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, registry) => {
     const workers = [];
-    if (!Array.isArray(normWorkers) || normWorkers.length === 0) {
+    if (!Array.isArray(normalizedWorkers) || normalizedWorkers.length === 0) {
         return workers;
     }
-    normWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
+    normalizedWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
         const algorithm = algorithmTemplates[w.algorithmName];
         if (!algorithm) {
             return;
@@ -126,8 +108,12 @@ const normalizeHotRequestsByType = (algorithmRequests, algorithmTemplateStore, r
 };
 
 /**
- * find workers that should transform from cold to hot by calculating 
+ * Finds workers that should transform from cold to hot by calculating 
  * the diff between the current hot workers and desired hot workers.
+ *
+ * @param {Object[]} normWorkers - Normalized workers array.
+ * @param {Object} algorithmTemplates - Algorithm templates from DB.
+ * @returns {Object[]} Workers to warm up.
  */
 const normalizeHotWorkers = (normWorkers, algorithmTemplates) => {
     const hotWorkers = [];
@@ -150,8 +136,12 @@ const normalizeHotWorkers = (normWorkers, algorithmTemplates) => {
 };
 
 /**
- * find workers that should transform from hot to cold by calculating 
+ * Finds workers that should transform from hot to cold by calculating 
  * the diff between the current hot workers and desired hot workers.
+ *
+ * @param {Object[]} jobAttachedWorkers - Workers linked to jobs.
+ * @param {Object} algorithmTemplates - Algorithm templates from DB.
+ * @returns {Object[]} Workers to cool down.
  */
 const normalizeColdWorkers = (normWorkers, algorithmTemplates) => {
     const coldWorkers = [];
@@ -348,42 +338,75 @@ const _tryParseTime = (timeString) => {
     }
 };
 
-const normalizeJobs = (jobsRaw, pods, predicate = () => true) => {
-    if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
-        return [];
-    }
+/**
+ * Normalizes raw Kubernetes job objects into a simplified structure.
+ *
+ * @param {Object} jobs - Raw Kubernetes jobs object.
+ * @param {Object[]} pods - Kubernetes pod objects.
+ * @param {Function} filterFn - Function to filter which jobs to keep.
+ * @returns {Object[]} Normalized jobs array.
+ */
+const normalizeJobs = (jobs, pods, filterFn = () => true) => {
+    const jobItems = jobs?.body?.items || [];
     const podsList = objectPath.get(pods, 'body.items', []);
-    const jobs = jobsRaw.body.items
-        .filter(predicate)
-        .map((j) => {
-            const pod = podsList.find(p => objectPath.get(p, 'metadata.labels.controller-uid', '') === objectPath.get(j, 'metadata.uid'));
+    return jobItems
+        .filter(filterFn)
+        .map(job => {
+            const pod = podsList.find(p => objectPath.get(p, 'metadata.labels.controller-uid', '') === objectPath.get(job, 'metadata.uid'));
             return {
-                name: j.metadata.name,
-                algorithmName: j.metadata.labels['algorithm-name'],
-                active: j.status.active === 1,
-                startTime: _tryParseTime(j.status.startTime),
-                podName: objectPath.get(pod, 'metadata.name'),
-                nodeName: objectPath.get(pod, 'spec.nodeName'),
-
+                name: job.metadata.name,
+                algorithmName: job.metadata.labels['algorithm-name'],
+                active: job.status.active === 1,
+                startTime: _tryParseTime(job.status.startTime),
+                podName: pod?.metadata?.name,
+                nodeName: pod?.spec?.nodeName
             };
         });
-    return jobs;
+    // const jobs = jobsRaw.body.items
+    //     .filter(predicate)
+    //     .map((j) => {
+    //         const pod = podsList.find(p => objectPath.get(p, 'metadata.labels.controller-uid', '') === objectPath.get(j, 'metadata.uid'));
+    //         return {
+    //             name: j.metadata.name,
+    //             algorithmName: j.metadata.labels['algorithm-name'],
+    //             active: j.status.active === 1,
+    //             startTime: _tryParseTime(j.status.startTime),
+    //             podName: objectPath.get(pod, 'metadata.name'),
+    //             nodeName: objectPath.get(pod, 'spec.nodeName'),
+
+    //         };
+    //     });
+    // return jobs;
 };
 
+/**
+ * Attaches matching jobs to each worker and identifies jobs with no assigned worker.
+ *
+ * Matching logic:
+ * - A job is matched to a worker if the worker's podName starts with the job's name.
+ * - Each matched worker gets a `job` property (undefined if no match).
+ * - Jobs that are not matched to any worker are returned as `unassignedJobs`.
+ *
+ * @param {Object[]} workers - Array of normalized worker objects.
+ * @param {Object[]} jobs - Array of normalized job objects.
+ * @returns {Object} Object containing:
+ *   - jobAttachedWorkers: workers with their matched job (or undefined).
+ *   - unassignedJobs: jobs with no worker assigned.
+ */
 const mergeWorkers = (workers, jobs) => {
-    const foundJobs = [];
-    const mergedWorkers = workers.map((w) => {
-        const jobForWorker = jobs.find(j => w.podName && w.podName.startsWith(j.name));
-        if (jobForWorker) {
-            foundJobs.push(jobForWorker.name);
+    const matchedJobNames = new Set();
+
+    const jobAttachedWorkers = workers.map((worker) => {
+        const matchedJob = jobs.find(job => worker.podName && worker.podName.startsWith(job.name));
+        if (matchedJob) {
+            matchedJobNames.add(matchedJob.name);
         }
-        return { ...w, job: jobForWorker ? { ...jobForWorker } : undefined };
+        return { ...worker, job: matchedJob ? { ...matchedJob } : undefined };
     });
 
-    const extraJobs = jobs.filter((job) => {
-        return !foundJobs.find(j => j === job.name);
-    });
-    return { mergedWorkers, extraJobs };
+    const extraJobs = jobs.filter(job => !matchedJobNames.has(job.name));
+
+    return { jobAttachedWorkers, extraJobs };
 };
 
 module.exports = {

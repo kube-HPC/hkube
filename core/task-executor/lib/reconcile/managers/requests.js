@@ -12,22 +12,22 @@ class RequestsManager {
         this.finalRequests = {};
     }
 
-    prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, mergedWorkers, categorizedWorkers) {
+    prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, jobAttachedWorkers, workerCategories) {
         const normRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
 
         // leave only requests that are not exceeding max workers.
-        this.maxFilteredRequests = this._handleMaxWorkers(algorithmTemplates, normRequests, mergedWorkers);
+        this.maxFilteredRequests = this._handleMaxWorkers(algorithmTemplates, normRequests, jobAttachedWorkers);
         // Categorize requests into batch and streaming.
         const categorizedRequests = this._categorizeRequests(this.maxFilteredRequests);
         // Get list of requests that are quotaGuaranteed, meaning should be handled first.
-        const { batchRequisiteRequests, streamingRequisiteRequests } = this._makeRequisiteRequests(categorizedRequests, algorithmTemplates, categorizedWorkers);
+        const { batchRequisiteRequests, streamingRequisiteRequests } = this._makeRequisiteRequests(categorizedRequests, algorithmTemplates, workerCategories);
         // In order to handle batch requests gradually, create a window list (also sort by prioritization of quotaGuarantee).
         const batchRequestWindow = this._createBatchRequestsWindow(batchRequisiteRequests);
         // Add requests for hot workers as well
         const { hotBatchRequests, hotStreamingRequests } = this._handleHotRequests(batchRequestWindow, streamingRequisiteRequests, algorithmTemplates);
         // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
         const requestTypes = this._calcRatio(hotBatchRequests, this.totalCapacityNow);
-        // const workerTypes = calcRatio(mergedWorkers);
+        // const workerTypes = calcRatio(jobAttachedWorkers);
         // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
         // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);'
         const cutRequests = this._cutRequests(hotBatchRequests, requestTypes);
@@ -95,11 +95,11 @@ class RequestsManager {
         return { batchRequests, streamingRequests };
     }
 
-    _makeRequisiteRequests(categorizedRequests, algorithmTemplates, categorizedWorkers) {
+    _makeRequisiteRequests(categorizedRequests, algorithmTemplates, workerCategories) {
         // Get list of requests that are quotaGuaranteed, meaning should be handled first.
         const { batchRequests, streamingRequests } = categorizedRequests;
-        const batchRequisiteRequests = this._createRequisite(batchRequests, algorithmTemplates, categorizedWorkers);
-        const streamingRequisiteRequests = this._createRequisite(streamingRequests, algorithmTemplates, categorizedWorkers);
+        const batchRequisiteRequests = this._createRequisite(batchRequests, algorithmTemplates, workerCategories);
+        const streamingRequisiteRequests = this._createRequisite(streamingRequests, algorithmTemplates, workerCategories);
         return { batchRequisiteRequests, streamingRequisiteRequests };
     }
 
@@ -117,8 +117,8 @@ class RequestsManager {
      *         b5. If there are no missing algorithms, just add it to the window.
      *      c. If already moved this algorithm to the top, ignore it, else add it to the window.
      */
-    _createRequisite(normRequests, algorithmTemplates, categorizedWorkers) {
-        const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers } = categorizedWorkers;
+    _createRequisite(normRequests, algorithmTemplates, workerCategories) {
+        const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers } = workerCategories;
         const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.quotaGuarantee);
         let currentRequests = normRequests;
 

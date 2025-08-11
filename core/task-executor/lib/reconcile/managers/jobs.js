@@ -39,11 +39,11 @@ class JobsManager {
         }
     }
 
-    async finalizeScheduling(workersManager, algorithmTemplates, normResources, maxFilteredRequests, versions, requests, registry, clusterOptions, workerResources, options, reconcileResult) {
+    async finalizeScheduling(WorkersStateManager, algorithmTemplates, normResources, maxFilteredRequests, versions, requests, registry, clusterOptions, workerResources, options, reconcileResult) {
         const jobsCreated = clonedeep(Object.values(this.createdJobsLists).flat());
 
         const { createDetails, toResume } = this._processAllRequests({
-            ...workersManager.categorizedWorkers, algorithmTemplates, versions, jobsCreated, requests, registry, clusterOptions, workerResources
+            ...WorkersStateManager.workerCategories, algorithmTemplates, versions, jobsCreated, requests, registry, clusterOptions, workerResources
         }, reconcileResult);
 
         // Handle job creation and scheduling
@@ -51,7 +51,7 @@ class JobsManager {
         const { requested, skipped } = matchJobsToResources(createDetails, normResources, this.scheduledRequests, extraResources);
         
         // if couldn't create all, try to stop some workers
-        const stopDetails = this._findWorkersToStop({ skipped, ...workersManager.categorizedWorkers, algorithmTemplates });
+        const stopDetails = this._findWorkersToStop({ skipped, ...WorkersStateManager.workerCategories, algorithmTemplates });
     
         const toStop = pauseAccordingToResources(stopDetails, normResources, skipped);
     
@@ -64,7 +64,7 @@ class JobsManager {
     
         // log.info(`toStop filtered: ${JSON.stringify(this.toStop.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))}`);
         const created = await this._processPromises({ 
-            ...workersManager, options, toResume, toStopFiltered, requested, skipped
+            ...WorkersStateManager, options, toResume, toStopFiltered, requested, skipped
         });
         created.forEach(job => this.createdJobsLists[job.stateType].push(job));
 
@@ -308,11 +308,11 @@ class JobsManager {
     }
 
     // Function to process promises for worker actions (stopping, warming, cooling, etc.)
-    async _processPromises({ exitWorkers, warmUpWorkers, requested, skipped, toStopFiltered, toResume, coolDownWorkers, options }) {
+    async _processPromises({ workersToExit, workersToWarmUp, requested, skipped, toStopFiltered, toResume, workersToCoolDown, options }) {
         const created = [];
-        const exitWorkersPromises = exitWorkers.map(r => this._exitWorker(r));
-        const warmUpPromises = warmUpWorkers.map(r => this._warmUpWorker(r));
-        const coolDownPromises = coolDownWorkers.map(r => this._coolDownWorker(r));
+        const exitWorkersPromises = workersToExit.map(r => this._exitWorker(r));
+        const warmUpPromises = workersToWarmUp.map(r => this._warmUpWorker(r));
+        const coolDownPromises = workersToCoolDown.map(r => this._coolDownWorker(r));
         const stopPromises = toStopFiltered.map(r => this._stopWorker(r));
         const resumePromises = toResume.map(r => this._resumeWorker(r));
         const createPromises = [];

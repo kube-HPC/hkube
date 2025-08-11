@@ -4,7 +4,7 @@ const clonedeep = require('lodash.clonedeep');
 const etcd = require('../helpers/etcd');
 const { components, consts } = require('../consts');
 const component = components.RECONCILER;
-const { WorkersManager, requestsManager, jobsManager } = require('./managers');
+const { WorkersStateManager, requestsManager, jobsManager } = require('./managers');
 
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
@@ -131,17 +131,17 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     jobsManager.clearCreatedJobsLists(options);
     _checkResourcePressure(normResources);
 
-    const workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
+    const workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);
 
-    const batchCount = workersManager.countBatchWorkers(algorithmTemplates) + jobsManager.createdJobsLists.batch.length;
+    const batchCount = workersStateManager.countBatchWorkers(algorithmTemplates) + jobsManager.createdJobsLists.batch.length;
     requestsManager.updateCapacity(batchCount);
-    requestsManager.prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, workersManager.mergedWorkers, workersManager.categorizedWorkers);
+    requestsManager.prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, workersStateManager.jobAttachedWorkers, workersStateManager.workerCategories);
 
-    await jobsManager.finalizeScheduling(workersManager, algorithmTemplates, normResources, requestsManager.maxFilteredRequests,
+    await jobsManager.finalizeScheduling(workersStateManager, algorithmTemplates, normResources, requestsManager.maxFilteredRequests,
         versions, requestsManager.finalRequests, registry, clusterOptions, workerResources, options, reconcileResult);
     
     // add created and skipped info
-    const workerStats = _calcStats(workersManager.normWorkers);
+    const workerStats = _calcStats(workersStateManager.normalizedWorkers);
     await _updateReconcileResult({
         reconcileResult, workerStats, ...jobsManager, normResources
     });
@@ -149,6 +149,4 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     return reconcileResult;
 };
 
-module.exports = {
-    reconcile
-};
+module.exports = { reconcile };
