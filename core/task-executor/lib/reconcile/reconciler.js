@@ -3,7 +3,6 @@ const log = Logger.GetLogFromContainer();
 const clonedeep = require('lodash.clonedeep');
 const etcd = require('../helpers/etcd');
 const { components, consts } = require('../consts');
-const kubernetes = require('../helpers/kubernetes');
 const component = components.RECONCILER;
 const { WorkersManager, requestsManager, jobsManager } = require('./managers');
 
@@ -146,8 +145,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     await _updateReconcileResult({
         reconcileResult, workerStats, ...jobsManager, normResources
     });
-
-    log.info(kubernetes.getAllConfigMapNames(), { component });
 
     return reconcileResult;
 };
