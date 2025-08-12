@@ -111,13 +111,15 @@ class Worker {
         });
         stateAdapter.on(workerCommands.stopProcessing, async (data) => {
             const isPaused = jobConsumer.isConsumerPaused;
+            const isHandling = jobConsumer.isHandlingJob;
             const isServing = this._isAlgorithmServing();
             const shouldStop = !isPaused && !isServing;
             const paused = isPaused ? 'paused' : 'not paused';
             const serving = isServing ? 'serving' : 'not serving';
+            const handling = isHandling ? 'handling' : 'not handling';
             const stop = shouldStop ? 'stop' : 'not stop';
             const reason = data.reason || '';
-            log.info(`got stop processing, ${reason || ''} worker is ${paused} and ${serving} and therefore will ${stop}`, { component });
+            log.info(`got stop processing, ${reason || ''} worker is ${paused} and ${serving} and ${handling} and therefore will ${stop}`, { component });
 
             if (shouldStop) {
                 await jobConsumer.pause();
