@@ -9,13 +9,16 @@ const component = 'RequestsManager';
  */
 class RequestsManager {
     constructor() {
-        /** @type {number} Current scheduling capacity */
+        // Current scheduling capacity
         this.totalCapacityNow = 10;
-        /** @type {number} Factor for calculating the request window size */
+
+        // Factor for calculating the request window size
         this.windowSizeFactor = 3;
-        /** @type {Object[]} Requests after filtering by max worker limits */
+
+        // Requests after filtering by max worker limits
         this.maxFilteredRequests = [];
-        /** @type {Object[]} Final ordered list of requests for execution */
+        
+        // Final ordered list of requests for execution
         this.finalRequests = [];
     }
 
@@ -39,31 +42,31 @@ class RequestsManager {
      * @param {Object} workerCategories - Categorized workers (idle, active, paused, pending, bootstrap).
      */
     prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, jobAttachedWorkers, workerCategories) {
-        // Step 1: Normalize incoming requests
+        // 1. Normalize incoming requests
         const normalizedRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
 
-        // Step 2: Filter out requests exceeding maxWorkers limit
+        // 2. Filter out requests exceeding maxWorkers limit
         this.maxFilteredRequests = this._filterByMaxWorkers(algorithmTemplates, normalizedRequests, jobAttachedWorkers);
 
-        // Step 3: Categorize into batch and streaming
+        // 3. Categorize into batch and streaming
         const categorizedRequests = this._splitByType(this.maxFilteredRequests);
 
-        // Step 4: Move quota-guaranteed requests to the front
+        // 4. Move quota-guaranteed requests to the front
         const { batchRequisiteRequests, streamingRequisiteRequests } = this._prioritizeQuotaGuaranteeRequests(categorizedRequests, algorithmTemplates, workerCategories);
         
-        // Step 5: Create a limited batch window in order to handle batch requests gradually.
+        // 5. Create a limited batch window in order to handle batch requests gradually.
         const batchRequestWindow = this._createBatchWindow(batchRequisiteRequests);
 
-        // Step 6: Add hot worker requests
+        // 6. Add hot worker requests
         const { hotBatchRequests, hotStreamingRequests } = this._addHotRequests(batchRequestWindow, streamingRequisiteRequests, algorithmTemplates);
         
-        // Step 7: Calculate per-algorithm request ratios
+        // 7. Calculate per-algorithm request ratios
         const requestTypes = this._calculateRequestRatios(hotBatchRequests, this.totalCapacityNow);
 
-        // Step 8: Trim requests to required per-algorithm count
+        // 8. Trim requests to required per-algorithm count
         const limitedBatchRequests = this._limitRequestsByCapacity(hotBatchRequests, requestTypes);
 
-        // Step 9: Merge requisites, streaming, and batch into final list
+        // 9. Merge requisites, streaming, and batch into final list
         this.finalRequests = this._mergeFinalRequests(limitedBatchRequests, hotStreamingRequests);
     }
 
@@ -152,8 +155,8 @@ class RequestsManager {
      */
     _prioritizeQuotaGuaranteeRequests(categorizedRequests, algorithmTemplates, workerCategories) {
         const { batchRequests, streamingRequests } = categorizedRequests;
-        const batchRequisiteRequests = this._prioritizeRequisite(batchRequests, algorithmTemplates, workerCategories);
-        const streamingRequisiteRequests = this._prioritizeRequisite(streamingRequests, algorithmTemplates, workerCategories);
+        const batchRequisiteRequests = this._prioritizeQuotaRequisite(batchRequests, algorithmTemplates, workerCategories);
+        const streamingRequisiteRequests = this._prioritizeQuotaRequisite(streamingRequests, algorithmTemplates, workerCategories);
         return { batchRequisiteRequests, streamingRequisiteRequests };
     }
 
@@ -173,7 +176,7 @@ class RequestsManager {
      * @param {Object} workerCategories - Categorized workers with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers.
      * @returns {Array<Object>} Prioritized requests (array ordered with requisites first).
      */
-    _prioritizeRequisite(normRequests, algorithmTemplates, workerCategories) {
+    _prioritizeQuotaRequisite(normRequests, algorithmTemplates, workerCategories) {
         const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers } = workerCategories;
         const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.quotaGuarantee);
         let currentRequests = normRequests;
@@ -408,7 +411,7 @@ class RequestsManager {
 
     /**
      * Creates a combined list of requests in the following order:
-     * 1. Requisite requests (from both streaming and batch).
+     * 1. Requisite requests (from both streaming and batch, first streaming then batch).
      * 2. Remaining streaming requests.
      * 3. Remaining batch requests.
      *

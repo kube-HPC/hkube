@@ -20,30 +20,30 @@ class WorkersStateManager {
      * @param {Object} registry - Registry configuration.
      */
     constructor(workers, jobs, pods, algorithmTemplates, versions, registry) {
-        // Normalize raw worker list from etcd into simplified structure
+        // 1. Normalize raw worker list from etcd into simplified structure
         this.normalizedWorkers = normalizeWorkers(workers);
 
-        // Normalize raw jobs from Kubernetes into simplified structure
+        // 2. Normalize raw jobs from Kubernetes into simplified structure
         const normalizedJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
 
-        // Merge workers with their associated jobs (undefined for job if none); also detect jobs with no assigned worker
+        // 3. Merge workers with their associated jobs (undefined for job if none); also detect jobs with no assigned worker
         const merged = mergeWorkers(this.normalizedWorkers, normalizedJobs);
 
-        // Identify workers that must exit due to image/version changes
+        // 4. Identify workers that must exit due to image/version changes
         this.workersToExit = normalizeWorkerImages(this.normalizedWorkers, algorithmTemplates, versions, registry);
 
-        // Filter out exiting workers from the merged list
+        // 5. Filter out exiting workers from the merged list
         this.jobAttachedWorkers = merged.jobAttachedWorkers.filter(
             w => !this.workersToExit.find(e => e.id === w.id)
         );
 
-        // Detect workers that need to turn and be marked as 'hot' (cold → hot transition)
+        // 6. Detect workers that need to turn and be marked as 'hot' (cold → hot transition)
         this.workersToWarmUp = normalizeHotWorkers(this.jobAttachedWorkers, algorithmTemplates);
 
-        // Detect workers that need cooling down (hot → cold transition)
+        // 7. Detect workers that need cooling down (hot → cold transition)
         this.workersToCoolDown = normalizeColdWorkers(this.jobAttachedWorkers, algorithmTemplates);
 
-        // Categorize workers into idle, active, paused, pending, and bootstrap
+        // 8. Categorize workers into idle, active, paused, pending, and bootstrap
         this.workerCategories = this._buildWorkerCategories(this.jobAttachedWorkers, merged.extraJobs);
     }
 
