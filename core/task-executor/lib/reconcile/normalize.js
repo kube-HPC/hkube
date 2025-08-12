@@ -70,40 +70,66 @@ const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, 
 };
 
 /**
- * This method tries to fill the missing `minHotWorkers` 
- * for each algorithm request
+ * Normalizes algorithm requests by ensuring the minimum number of "hot worker" requests
+ * are included for each algorithm type specified.
+ * 
+ * For each algorithm in the template store that matches the requested types and has a
+ * positive `minHotWorkers` value, this function ensures there are at least that many
+ * "hot worker" requests (with the `hotWorker: true` flag). If there are more existing requests
+ * than the minimum, the excess requests are appended after the hot workers. Requests for
+ * algorithms not in the filtered template store are appended unchanged.
+ * 
+ * @param {Object[]} algorithmRequests - Array of algorithm request objects.
+ * @param {Object} algorithmTemplateStore - Algorithm definitions from DB.
+ * @param {string[]} [requestTypes] - Optional array of request types to filter algorithms.
+ *        If not provided, defaults to only 'batch' stateType algorithms.
+ * 
+ * @returns {Object[]} An array of requests that includes the required minimum hot worker requests
+ *          for each algorithm and retains existing requests beyond the minimum.
  */
 const normalizeHotRequestsByType = (algorithmRequests, algorithmTemplateStore, requestTypes) => {
-    const normRequests = algorithmRequests || [];
     const algorithmTemplates = algorithmTemplateStore || {};
+    const normRequests = algorithmRequests || [];
 
-    const algorithmStore = Object.entries(algorithmTemplates).filter(([, alg]) => {
-        const stateType = alg.stateType ? alg.stateType.toLowerCase() : 'batch';
+    // Filter templates by minHotWorkers > 0 and matching requestTypes or default to 'batch'
+    const filteredTemplates = Object.entries(algorithmTemplates).filter(([, alg]) => {
+        const stateType = (alg.stateType || 'batch').toLowerCase();
         return alg.minHotWorkers > 0 && (requestTypes ? requestTypes.includes(stateType) : stateType === 'batch');
     });
 
-    if (algorithmStore.length === 0) {
+    if (filteredTemplates.length === 0) {
         return normRequests;
     }
+
     const requests = [];
-    const groupNormRequests = groupBy(normRequests, 'algorithmName');
+    // Group requests by algorithmName for quick lookup
+    const groupedRequests = groupBy(normRequests, 'algorithmName');
 
-    algorithmStore.forEach(([algName, algTemplate]) => {
-        const requestType = algTemplate.stateType ? algTemplate.stateType.toLowerCase() : 'batch';
-        const hotWorkers = new Array(algTemplate.minHotWorkers).fill({ algorithmName: algName, hotWorker: true, requestType });
-        const groupNor = groupNormRequests[algName];
-        const requestsPerAlgorithm = (groupNor && groupNor.length) || 0;
+    const filteredAlgNames = new Set();
+    filteredTemplates.forEach(([algName, algTemplate]) => {
+        filteredAlgNames.add(algName);
+        const requestType = (algTemplate.stateType || 'batch').toLowerCase();
+        const minHot = algTemplate.minHotWorkers;
+        const existingRequests = groupedRequests[algName] || [];
+        const requestsPerAlgorithm = existingRequests.length;
 
-        if (requestsPerAlgorithm > algTemplate.minHotWorkers) {
-            const diff = requestsPerAlgorithm - algTemplate.minHotWorkers;
-            const array = groupNor.slice(0, diff);
-            requests.push(...hotWorkers, ...array);
+        // Create hot worker requests
+        const hotWorkers = new Array(minHot).fill(null).map(() => ({ algorithmName: algName, hotWorker: true, requestType }));
+
+        if (requestsPerAlgorithm > minHot) {
+            // Keep hot workers and append the extra existing requests beyond the minimum
+            const diff = requestsPerAlgorithm - minHot;
+            const excessRequests = existingRequests.slice(0, diff);
+            requests.push(...hotWorkers, ...excessRequests);
         }
-        else if (requestsPerAlgorithm <= algTemplate.minHotWorkers) {
+        else {
+            // Just add the hot workers if not enough existing requests
             requests.push(...hotWorkers);
         }
     });
-    requests.push(...normRequests.filter(r => !algorithmStore.find(a => a[0] === r.algorithmName)));
+
+    // Add back any requests whose algorithmName does not appear in filteredTemplates
+    requests.push(...normRequests.filter(req => !filteredAlgNames.has(req.algorithmName)));
     return requests;
 };
 

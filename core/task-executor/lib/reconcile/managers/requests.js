@@ -336,7 +336,7 @@ class RequestsManager {
      * @private
      * @param {Object[]} batchRequests - Array of batch requests.
      * @param {Object[]} streamingRequests - Array of streaming requests.
-     * @param {Object} algorithmTemplateStore - Algorithm templates store.
+     * @param {Object} algorithmTemplateStore - Algorithm definitions from DB.
      * @returns {{ hotBatchRequests: Object[], hotStreamingRequests: Object[] }}
      *          Batch and streaming requests updated with hot worker requests.
      */

@@ -128,7 +128,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // Update the cache of jobs lately created by removing old jobs
     const reconcileResult = {};
 
-    jobsManager.clearCreatedJobsLists(options);
+    jobsManager.clearCreatedJobsLists(options.createdJobsTTL);
     _checkResourcePressure(normResources);
 
     const workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);

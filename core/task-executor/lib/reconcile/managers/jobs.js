@@ -22,23 +22,6 @@ class JobsManager {
         };
     }
 
-    clearCreatedJobsLists(options, now) {
-        const currentTime = now || Date.now();
-        let removedCount = 0;
-    
-        Object.keys(this.createdJobsLists).forEach((key) => {
-            const originalLength = this.createdJobsLists[key].length;
-            this.createdJobsLists[key] = this.createdJobsLists[key].filter(
-                (job) => currentTime - job.createdTime < options.createdJobsTTL
-            );
-            removedCount += originalLength - this.createdJobsLists[key].length;
-        });
-    
-        if (removedCount > 0) {
-            log.trace(`Removed ${removedCount} items from createdJobsLists`, { component });
-        }
-    }
-
     async finalizeScheduling(WorkersStateManager, algorithmTemplates, normResources, maxFilteredRequests, versions, requests, registry, clusterOptions, workerResources, options, reconcileResult) {
         const jobsCreated = clonedeep(Object.values(this.createdJobsLists).flat());
 
@@ -74,6 +57,23 @@ class JobsManager {
         this.jobsInfo.skipped = skipped;
         this.jobsInfo.toResume = toResume;
         this.jobsInfo.toStop = toStopFiltered;
+    }
+
+    clearCreatedJobsLists(createdJobsTTL, now) {
+        const currentTime = now || Date.now();
+        let removedCount = 0;
+    
+        Object.keys(this.createdJobsLists).forEach((key) => {
+            const originalLength = this.createdJobsLists[key].length;
+            this.createdJobsLists[key] = this.createdJobsLists[key].filter(
+                (job) => currentTime - job.createdTime < createdJobsTTL
+            );
+            removedCount += originalLength - this.createdJobsLists[key].length;
+        });
+    
+        if (removedCount > 0) {
+            log.trace(`Removed ${removedCount} items from createdJobsLists`, { component });
+        }
     }
 
     _processAllRequests(
