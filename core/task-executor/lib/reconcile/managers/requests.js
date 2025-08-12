@@ -4,120 +4,176 @@ const log = Logger.GetLogFromContainer();
 const { normalizeHotRequestsByType, normalizeRequests } = require('../normalize');
 const component = 'RequestsManager';
 
+/**
+ * Manages scheduling and prioritization of algorithm execution requests.
+ */
 class RequestsManager {
     constructor() {
+        /** @type {number} Current scheduling capacity */
         this.totalCapacityNow = 10;
+        /** @type {number} Factor for calculating the request window size */
         this.windowSizeFactor = 3;
-        this.maxFilteredRequests = {};
-        this.finalRequests = {};
+        /** @type {Object[]} Requests after filtering by max worker limits */
+        this.maxFilteredRequests = [];
+        /** @type {Object[]} Final ordered list of requests for execution */
+        this.finalRequests = [];
     }
 
+    /**
+     * Prepares and prioritizes algorithm requests for scheduling.
+     *
+     * Pipeline steps:
+     * 1. Normalize raw algorithm requests into a consistent structure.
+     * 2. Filter out requests for algorithms that have reached `maxWorkers`.
+     * 3. Split requests into batch and streaming types.
+     * 4. Prioritize quota-guaranteed algorithms (requisite requests).
+     * 5. Create a batch window based on available capacity.
+     * 6. Include hot worker requests.
+     * 7. Calculate per-algorithm ratios and required request counts (for batch).
+     * 8. Trim requests to match capacity per algorithm (for batch).
+     * 9. Merge streaming and batch into a final ordered list.
+     *
+     * @param {Object[]} algorithmRequests - Incoming raw algorithm requests from etcd.
+     * @param {Object} algorithmTemplates - Algorithm definitions from DB.
+     * @param {Object[]} jobAttachedWorkers - Workers with their assigned jobs.
+     * @param {Object} workerCategories - Categorized workers (idle, active, paused, pending, bootstrap).
+     */
     prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, jobAttachedWorkers, workerCategories) {
-        const normRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
+        // Step 1: Normalize incoming requests
+        const normalizedRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
 
-        // leave only requests that are not exceeding max workers.
-        this.maxFilteredRequests = this._handleMaxWorkers(algorithmTemplates, normRequests, jobAttachedWorkers);
-        // Categorize requests into batch and streaming.
-        const categorizedRequests = this._categorizeRequests(this.maxFilteredRequests);
-        // Get list of requests that are quotaGuaranteed, meaning should be handled first.
-        const { batchRequisiteRequests, streamingRequisiteRequests } = this._makeRequisiteRequests(categorizedRequests, algorithmTemplates, workerCategories);
-        // In order to handle batch requests gradually, create a window list (also sort by prioritization of quotaGuarantee).
-        const batchRequestWindow = this._createBatchRequestsWindow(batchRequisiteRequests);
-        // Add requests for hot workers as well
-        const { hotBatchRequests, hotStreamingRequests } = this._handleHotRequests(batchRequestWindow, streamingRequisiteRequests, algorithmTemplates);
-        // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
-        const requestTypes = this._calcRatio(hotBatchRequests, this.totalCapacityNow);
-        // const workerTypes = calcRatio(jobAttachedWorkers);
-        // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
-        // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);'
-        const cutRequests = this._cutRequests(hotBatchRequests, requestTypes);
-        this.finalRequests = this._createFinalRequestsList(cutRequests, hotStreamingRequests);
+        // Step 2: Filter out requests exceeding maxWorkers limit
+        this.maxFilteredRequests = this._filterByMaxWorkers(algorithmTemplates, normalizedRequests, jobAttachedWorkers);
+
+        // Step 3: Categorize into batch and streaming
+        const categorizedRequests = this._splitByType(this.maxFilteredRequests);
+
+        // Step 4: Move quota-guaranteed requests to the front
+        const { batchRequisiteRequests, streamingRequisiteRequests } = this._prioritizeQuotaGuaranteeRequests(categorizedRequests, algorithmTemplates, workerCategories);
+        
+        // Step 5: Create a limited batch window in order to handle batch requests gradually.
+        const batchRequestWindow = this._createBatchWindow(batchRequisiteRequests);
+
+        // Step 6: Add hot worker requests
+        const { hotBatchRequests, hotStreamingRequests } = this._addHotRequests(batchRequestWindow, streamingRequisiteRequests, algorithmTemplates);
+        
+        // Step 7: Calculate per-algorithm request ratios
+        const requestTypes = this._calculateRequestRatios(hotBatchRequests, this.totalCapacityNow);
+
+        // Step 8: Trim requests to required per-algorithm count
+        const limitedBatchRequests = this._limitRequestsByCapacity(hotBatchRequests, requestTypes);
+
+        // Step 9: Merge requisites, streaming, and batch into final list
+        this.finalRequests = this._mergeFinalRequests(limitedBatchRequests, hotStreamingRequests);
     }
 
+    /**
+     * Updates the total capacity based on currently running algorithms.
+     * @param {number} algorithmCount - Number of currently running algorithm workers.
+     */
     updateCapacity(algorithmCount) {
         const factor = 0.9;
         const minCapacity = 2;
         const maxCapacity = 50;
         this.totalCapacityNow = this.totalCapacityNow * factor + algorithmCount * (1 - factor);
-        if (this.totalCapacityNow < minCapacity) {
-            this.totalCapacityNow = minCapacity;
-        }
-        if (this.totalCapacityNow > maxCapacity) {
-            this.totalCapacityNow = maxCapacity;
-        }
+        this.totalCapacityNow = Math.max(minCapacity, Math.min(maxCapacity, this.totalCapacityNow));
     }
 
-    _handleMaxWorkers(algorithmTemplates, normRequests, workers) {
-        const workersPerAlgorithm = workers.reduce((prev, cur) => {
-            const { algorithmName } = cur;
-            prev[algorithmName] = prev[algorithmName] ? prev[algorithmName] + 1 : 1;
-            return prev;
+    /**
+     * Filters out requests that exceed the max worker limit for each algorithm.
+     * @private
+     * @param {Object} algorithmTemplates
+     * @param {Object[]} normalizedRequests
+     * @param {Object[]} workers
+     * @returns {Object[]} Filtered requests
+     */
+    _filterByMaxWorkers(algorithmTemplates, normalizedRequests, workers) {
+        const workersPerAlgorithm = workers.reduce((acc, worker) => {
+            const { algorithmName } = worker;
+            acc[algorithmName] = (acc[worker.algorithmName] || 0) + 1;
+            return acc;
         }, {});
 
-        const filtered = normRequests.filter(r => {
-            const maxWorkers = algorithmTemplates[r.algorithmName]?.maxWorkers;
-            if (!maxWorkers) {
+        const filtered = normalizedRequests.filter(request => {
+            const maxWorkers = algorithmTemplates[request.algorithmName]?.maxWorkers;
+            if (!maxWorkers) return true;
+
+            if ((workersPerAlgorithm[request.algorithmName] || 0) < maxWorkers) {
+                workersPerAlgorithm[request.algorithmName] = (workersPerAlgorithm[request.algorithmName] || 0) + 1;
                 return true;
             }
-
-            if ((workersPerAlgorithm[r.algorithmName] || 0) < maxWorkers) {
-                workersPerAlgorithm[r.algorithmName] = workersPerAlgorithm[r.algorithmName] ? workersPerAlgorithm[r.algorithmName] + 1 : 1;
-                return true;
-            }
-
             return false;
         });
         return filtered;
     }
 
-    _categorizeRequests(requests) {
+    /**
+     * Splits a list of requests into batch and streaming categories.
+     * Streaming requests include both Stateful and Stateless types.
+     * Stateful requests are placed at the front of the streaming list.
+     *
+     * @private
+     * @param {Object[]} requests - Array of normalized request objects.
+     * @returns {{ batchRequests: Object[], streamingRequests: Object[] }}
+     *          An object containing separate arrays for batch and streaming requests.
+     */
+    _splitByType(requests) {
         const batchRequests = [];
         const streamingRequests = [];
-        let batchCount = 0;
-        let streamingCount = 0;
+
         requests.forEach(request => {
-            const shouldSkipWindow = request.requestType === stateType.Stateful || request.requestType === stateType.Stateless;
-            if (shouldSkipWindow) {
+            const isStreaming = request.requestType === stateType.Stateful || request.requestType === stateType.Stateless; // Skips window
+            if (isStreaming) {
                 if (request.requestType === stateType.Stateful) {
-                    streamingRequests.unshift(request);
+                    streamingRequests.unshift(request); // Stateful at front
                 }
                 else {
                     streamingRequests.push(request);
                 }
-                streamingCount += 1;
             }
             else {
                 batchRequests.push(request);
-                batchCount += 1;
             }
         });
-        log.trace(`Categorized requests: ${batchCount} batch, ${streamingCount} streaming`, { component });
+        log.trace(`Categorized requests: ${batchRequests.length} batch, ${streamingRequests.length} streaming`, { component });
         return { batchRequests, streamingRequests };
     }
 
-    _makeRequisiteRequests(categorizedRequests, algorithmTemplates, workerCategories) {
-        // Get list of requests that are quotaGuaranteed, meaning should be handled first.
+    /**
+     * Applies quota guarantee prioritization to categorized requests.
+     * Quota-guaranteed requests are handled first for both batch and streaming categories.
+     *
+     * @private
+     * @param {{ batchRequests: Object[], streamingRequests: Object[] }} categorizedRequests - Requests split into batch and streaming.
+     * @param {Object} algorithmTemplates - Map of algorithmName -> algorithm template.
+     * @param {Object} workerCategories - Categorized workers (idle, active, paused, pending, bootstrap).
+     * @returns {{ batchRequisiteRequests: Object[], streamingRequisiteRequests: Object[] }}
+     *          Requests with quota-guaranteed items prioritized in each category.
+     */
+    _prioritizeQuotaGuaranteeRequests(categorizedRequests, algorithmTemplates, workerCategories) {
         const { batchRequests, streamingRequests } = categorizedRequests;
-        const batchRequisiteRequests = this._createRequisite(batchRequests, algorithmTemplates, workerCategories);
-        const streamingRequisiteRequests = this._createRequisite(streamingRequests, algorithmTemplates, workerCategories);
+        const batchRequisiteRequests = this._prioritizeRequisite(batchRequests, algorithmTemplates, workerCategories);
+        const streamingRequisiteRequests = this._prioritizeRequisite(streamingRequests, algorithmTemplates, workerCategories);
         return { batchRequisiteRequests, streamingRequisiteRequests };
     }
 
     /**
-     * This method does mainly this thing:
-     *    Prioritizing algorithms that have `quotaGuarantee`.
-     * The algorithm is as follows:
-     *    If there is any algorithm with `quotaGuarantee`.
-     *      a. Iterate all requests.
-     *      b. If encountered an algorithm with `quotaGuarantee` that didn't handle.
-     *         b1. Mark the algorithm as visited.
-     *         b2. Calculate missing algorithms by `quotaGuarantee - running`.
-     *         b3. If there are a missing algorithms, move these algorithms to the top of our window (start of request array).
-     *         b4. Save the indices of these algorithms to ignore them next iteration.
-     *         b5. If there are no missing algorithms, just add it to the window.
-     *      c. If already moved this algorithm to the top, ignore it, else add it to the window.
+     * Prioritize requests for algorithms that have `quotaGuarantee`.
+     *
+     * Behaviour:
+     *  - If no algorithm in the incoming requests has `quotaGuarantee`, returns the input unchanged.
+     *  - Otherwise it builds two structures:
+     *      1. `requests` - the input requests with indices that should be processed normally (excludes those reserved by requisites)
+     *      2. `requisites` - an object describing per-algorithm lists of required requests that must be handled first
+     *    Then merges them back into a prioritized request list via _mergeRequisiteRequests.
+     *
+     * @private
+     * @param {Array<Object>} normalizedRequests - Array of normalized requests (each has algorithmName).
+     * @param {Object} algorithmTemplates - Map of algorithmName -> algorithm template (may contain quotaGuarantee).
+     * @param {Object} workerCategories - Categorized workers with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers.
+     * @returns {Array<Object>} Prioritized requests (array ordered with requisites first).
      */
-    _createRequisite(normRequests, algorithmTemplates, workerCategories) {
+    _prioritizeRequisite(normRequests, algorithmTemplates, workerCategories) {
         const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers } = workerCategories;
         const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.quotaGuarantee);
         let currentRequests = normRequests;
@@ -129,72 +185,118 @@ class RequestsManager {
         return currentRequests;
     }
 
-    _createRequisitesRequests(normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) {
+    /**
+     * Create the requisites structure and a requests list without the reserved indices.
+     *
+     * For each algorithm that has `quotaGuarantee`:
+     *  - determine how many are currently running (using the runningWorkersList)
+     *  - compute diff = quotaGuarantee - running
+     *  - if diff > 0, take up to `diff` occurrences of that algorithm from the requests array
+     *    and mark them as `requisites.algorithms[algorithmName].required`
+     *  - indices of chosen requests are saved so those requests are not included in the 'requests' output
+     *
+     * @private
+     * @param {Array<Object>} normalizedRequests - Array of normalized requests (each has algorithmName).
+     * @param {Object} algorithmTemplates - Map of algorithmName -> algorithm template (may contain quotaGuarantee).
+     * @param {Array<Object>} idleWorkers - Idle workers list.
+     * @param {Array<Object>} activeWorkers - Active workers list.
+     * @param {Array<Object>} pausedWorkers - Paused workers list.
+     * @param {Array<Object>} pendingWorkers - Pending workers list (jobs with no worker).
+     * @returns {{requests: Array<Object>, requisites: Object}} 
+     *          - requests: the requests array excluding those reserved for requisites
+     *          - requisites: object { algorithms: { <alg>: { required: [requests...] } }, totalRequired: number }
+     */
+    _createRequisitesRequests(normalizedRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) {
         const requests = [];
         const visited = {};
-        const indices = {};
+        const indicesToIgnore = {};
         const requisites = { algorithms: {}, totalRequired: 0 };
+
+        // combine the running workers into a single list to count running per algorithm
         const runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
         const runningWorkersMap = this._workersToMap(runningWorkersList);
 
-        normRequests.forEach((r, i) => {
-            const { algorithmName } = r;
+        normalizedRequests.forEach((request, idx) => {
+            const { algorithmName } = request;
             const quotaGuarantee = algorithmTemplates[algorithmName]?.quotaGuarantee;
+
             if (quotaGuarantee && !visited[algorithmName]) {
                 visited[algorithmName] = true;
-                const running = runningWorkersMap[algorithmName] || 0;
-                const diff = quotaGuarantee - running;
-                if (diff > 0) {
-                    const required = normRequests
-                        .map((a, j) => ({ index: j, alg: a }))
-                        .filter(n => n.alg.algorithmName === algorithmName)
-                        .slice(0, diff);
+                const runningCount = runningWorkersMap[algorithmName] || 0;
+                const missing = quotaGuarantee - runningCount;
+
+                if (missing > 0) {
+                    // pick up to `missing` requests for this algorithm from the full normalizedRequests array
+                    const required = normalizedRequests
+                        .map((r, j) => ({ index: j, alg: r }))
+                        .filter(x => x.alg.algorithmName === algorithmName)
+                        .slice(0, missing);
+                    
                     requisites.algorithms[algorithmName] = requisites.algorithms[algorithmName] || {};
-                    requisites.algorithms[algorithmName].required = required.map(a => a.alg);
+                    requisites.algorithms[algorithmName].required = required.map(x => x.alg);
                     requisites.totalRequired += required.length;
+
+                    // mark indices to ignore so they won't be added to the normal 'requests' list next iteration.
                     required.forEach((alg) => {
-                        indices[alg.index] = true; // save the indices so we will ignore them next iteration.
+                        indicesToIgnore[alg.index] = true;
                     });
                 }
                 else {
-                    requests.push(r);
+                    // no need to reserve requests for this algorithm, treat current one as normal
+                    requests.push(request);
                 }
             }
-            else if (!indices[i]) {
-                requests.push(r);
+            else if (!indicesToIgnore[idx]) {
+                // not a reserved index -> include in normal requests
+                requests.push(request);
             }
         });
+
         return { requests, requisites };
     }
 
-    _workersToMap(requests) {
-        return requests.reduce((prev, cur) => {
-            if (!prev[cur.algorithmName]) {
-                prev[cur.algorithmName] = 0;
+    /**
+     * Convert an array of workers into a count map.
+     *
+     * Example output:
+     *   { algoA: 3, algoB: 1 }
+     *
+     * @private
+     * @param {Array<Object>} workers - Array of workers.
+     * @returns {Object} Map of algorithmName -> count
+     */
+    _workersToMap(workers) {
+        return workers.reduce((acc, worker) => {
+            if (!acc[worker.algorithmName]) {
+                acc[worker.algorithmName] = 0;
             }
-            prev[cur.algorithmName] += 1;
-            return prev;
+            acc[worker.algorithmName] += 1;
+            return acc;
         }, {});
     }
 
+    /**
+     * Merge requisites back into the requests list, distributing reserved requisite requests across the final list.
+     *
+     * Algorithm (preserves your original logic):
+     *  - while requisites.totalRequired > 0:
+     *      - for each algorithm in requisites.algorithms:
+     *          - ratio = v.required.length / ratioSum
+     *          - required = Math.round(v.required.length * ratio) || 1
+     *          - total = diff < 0 ? requisites.totalRequired : required
+     *          - arr = v.required.slice(0, total)
+     *          - mark each element in arr with isRequisite = true
+     *          - reduce requisites.totalRequired by arr.length
+     *          - unshift arr into requests (puts requisites at the front gradually)
+     *
+     * This keeps the original distribution heuristic intact.
+     *
+     * @private
+     * @param {Array<Object>} requests - Requests array (the non-reserved part produced earlier).
+     * @param {Object} requisites - Object produced by _createRequisitesRequests
+     * @returns {Array<Object>} Combined requests array with requisites distributed at the front.
+     */
     _mergeRequisiteRequests(requests, requisites) {
-        /**
-        *
-        * requisites:
-        *     alg  | count | req  | diff
-        *   green  |  800  |  80  |  10
-        *   yellow |  200  |  20  |  8
-        *   black  |  100  |  10  |  5
-        *   total  |  1100 |  110 |  23
-        * 
-        * ratios:
-        *   green:  (10 / 23) * 10 = ~4
-        *   yellow: (08 / 23) * 8  = ~3
-        *   black:  (05 / 23) * 5  = ~1
-        *   [g,g,g,g,y,y,y,b]
-        *
-        */
-
         const ratioSum = requisites.totalRequired;
 
         while (requisites.totalRequired > 0) {
@@ -216,55 +318,92 @@ class RequestsManager {
     }
 
     /**
-     * This method is creating a subset (window) from the given batch requests.
+     * Creates a subset of batch requests based on the current total capacity.
+     *
+     * @private
+     * @param {Object[]} requests - Batch requests array.
+     * @returns {Object[]} Subset of batch requests limited by the window size factor.
      */
-    _createBatchRequestsWindow(currentRequests) {
+    _createBatchWindow(requests) {
         const windowSize = Math.round(this.totalCapacityNow * this.windowSizeFactor);
-        const requestsWindow = currentRequests.slice(0, windowSize);
+        const requestsWindow = requests.slice(0, windowSize);
         return requestsWindow;
     }
 
-    _handleHotRequests(batchRequests, streamingRequests, algorithmTemplateStore) {
+    /**
+     * Adds hot worker requests to both batch and streaming request arrays.
+     *
+     * @private
+     * @param {Object[]} batchRequests - Array of batch requests.
+     * @param {Object[]} streamingRequests - Array of streaming requests.
+     * @param {Object} algorithmTemplateStore - Algorithm templates store.
+     * @returns {{ hotBatchRequests: Object[], hotStreamingRequests: Object[] }}
+     *          Batch and streaming requests updated with hot worker requests.
+     */
+    _addHotRequests(batchRequests, streamingRequests, algorithmTemplateStore) {
         const hotBatchRequests = normalizeHotRequestsByType(batchRequests, algorithmTemplateStore);
         const hotStreamingRequests = normalizeHotRequestsByType(streamingRequests, algorithmTemplateStore, [stateType.Stateful, stateType.Stateless]);
         return { hotBatchRequests, hotStreamingRequests };
     }
 
-    _calcRatio(totalRequests, capacity) {
-        const requestTypes = totalRequests.reduce((prev, cur) => {
-            if (!prev.algorithms[cur.algorithmName]) {
-                prev.algorithms[cur.algorithmName] = {
+    /**
+     * Calculates per-algorithm request counts, ratios, and required capacity.
+     *
+     * @private
+     * @param {Object[]} totalRequests - Array of requests to analyze.
+     * @param {number} [capacity] - Optional total capacity to distribute among algorithms.
+     * @returns {{ total: number, algorithms: Object }}
+     *          Object containing the total number of requests and per-algorithm statistics.
+     */
+    _calculateRequestRatios(totalRequests, capacity) {
+        const requestStats = totalRequests.reduce((acc, req) => {
+            if (!acc.algorithms[req.algorithmName]) {
+                acc.algorithms[req.algorithmName] = {
                     count: 0,
                     list: []
                 };
             }
-            prev.algorithms[cur.algorithmName].count += 1;
-            prev.algorithms[cur.algorithmName].list.push(cur);
-            prev.total += 1;
-            return prev;
+            acc.algorithms[req.algorithmName].count += 1;
+            acc.algorithms[req.algorithmName].list.push(req);
+            acc.total += 1;
+            return acc;
         }, { total: 0, algorithms: {} });
-        Object.keys(requestTypes.algorithms).forEach(k => {
-            if (capacity) {
-                const ratio = requestTypes.algorithms[k].count / requestTypes.total;
-                const required = ratio * capacity;
-                requestTypes.algorithms[k].ratio = ratio;
-                requestTypes.algorithms[k].required = required;
-            }
-        });
-        return requestTypes;
+
+        if (capacity) {
+            Object.values(requestStats.algorithms).forEach(stats => {
+                stats.ratio = stats.count / requestStats.total;
+                stats.required = stats.ratio * capacity;
+            });
+        }
+
+        return requestStats;
     }
 
-    _cutRequests(totalRequests, requestTypes) {
-        const cutRequests = [];
-        totalRequests.forEach(r => {
-            const ratios = this._calcRatio(cutRequests);
-            const { required } = requestTypes.algorithms[r.algorithmName];
-            const algorithm = ratios.algorithms[r.algorithmName];
-            if (!algorithm || algorithm.count < required) {
-                cutRequests.push(r);
+    /**
+     * Restricts the number of requests per algorithm based on calculated capacity.
+     *
+     * For each algorithm, only allows requests up to the `required` count
+     * defined in `requestTypes.algorithms[algorithmName].required`.
+     * Requests beyond that limit for a given algorithm are excluded.
+     *
+     * @private
+     * @param {Object[]} totalRequests - Array of requests to limit.
+     * @param {{ total: number, algorithms: Object }} requestTypes - Result of `_calculateRequestRatios`
+     *        containing per-algorithm stats with `required` counts.
+     * @returns {Object[]} Limited array of requests, respecting per-algorithm capacity.
+     */
+    _limitRequestsByCapacity(totalRequests, requestTypes) {
+        const capacityLimitedRequests = [];
+        totalRequests.forEach(req => {
+            const currentStats = this._calculateRequestRatios(capacityLimitedRequests);
+            const { required: maxAllowedForAlgorithm } = requestTypes.algorithms[req.algorithmName];
+            const algorithm = currentStats.algorithms[req.algorithmName];
+
+            if (!algorithm || algorithm.count < maxAllowedForAlgorithm) {
+                capacityLimitedRequests.push(req);
             }
         });
-        return cutRequests;
+        return capacityLimitedRequests;
     }
 
     /**
@@ -277,7 +416,7 @@ class RequestsManager {
      * @param {Array} streamingRequests - List of streaming-type requests.
      * @returns {Array} Combined and ordered list of all requests.
      */
-    _createFinalRequestsList(batchRequests, streamingRequests) {
+    _mergeFinalRequests(batchRequests, streamingRequests) {
         const isRequisite = req => req.isRequisite;
 
         const requisites = [...streamingRequests, ...batchRequests].filter(isRequisite);

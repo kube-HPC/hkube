@@ -304,12 +304,20 @@ const normalizeResources = ({ pods, nodes } = {}) => {
     return { allNodes, nodeList };
 };
 
-const normalizeRequests = (requests, algorithmTemplates) => {
-    if (requests == null || requests.length === 0 || requests[0].data == null) {
+/**
+ * Normalize raw algorithm requests by extracting algorithm names and their request types.
+ *
+ * @param {Object[]} requests -  Incoming raw algorithm requests from etcd.
+ * @param {Object} algorithmTemplates - Algorithm definitions from DB.
+ *   Each template may have a `stateType` property indicating the request type.
+ * @returns {Object[]} Array of normalized requests containing `algorithmName` and `requestType` (lowercased or 'batch' if missing).
+ */
+const normalizeRequests = (algorithmRequests, algorithmTemplates) => {
+    if (algorithmRequests == null || algorithmRequests.length === 0 || algorithmRequests[0].data == null) {
         return [];
     }
     
-    const normalizedRequests = requests[0].data.reduce((acc, request) => {
+    const normalizedRequests = algorithmRequests[0].data.reduce((acc, request) => {
         const algorithmName = request.name;
         const template = algorithmTemplates[algorithmName];
         if (!template) return acc;
