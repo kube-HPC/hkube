@@ -2,7 +2,7 @@ const { dataAdapter } = require('@hkube/worker-data-adapter');
 const { tracer } = require('@hkube/metrics');
 const { pipelineKind } = require('@hkube/consts');
 const jobConsumer = require('../consumer/JobConsumer');
-const tracing = require('../tracing/tracing.js');
+const tracing = require('../tracing/tracing');
 
 class Storage {
     _startSpanBound(func, argsBound) {

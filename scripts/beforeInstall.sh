@@ -8,7 +8,7 @@ wget --no-verbose -O /tmp/dvc.deb https://github.com/iterative/dvc/releases/down
 git config --global user.email "hkube@hkube.io" && git config --global user.name "hkube"
 
 # run all the required containers
-docker run -d --name etcd -p 2380:2380 -p 4001:4001 quay.io/coreos/etcd:latest /usr/local/bin/etcd \
+docker run -d --name etcd -p 2380:2380 -p 4001:4001 quay.io/coreos/etcd:v3.5.14  /usr/local/bin/etcd \
   --data-dir=data.etcd --name "my-etcd" --cors='*' --initial-advertise-peer-urls http://0.0.0.0:2380 \
   --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:4001 \
   --listen-client-urls http://0.0.0.0:4001 --initial-cluster-state new

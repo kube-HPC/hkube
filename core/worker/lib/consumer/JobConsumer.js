@@ -33,6 +33,7 @@ class JobConsumer extends EventEmitter {
         this.jobCurrentTime = null;
         this._hotWorker = false;
         this._result = undefined;
+        this._handlingJob = false; // Used to decide the if the job is actually processing. ( stopProcessing )
     }
 
     async init(options) {
@@ -51,9 +52,11 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${this._options.jobConsumer.job.type}`, { component });
 
         this._consumer.on('job', async (job) => {
+            this._handlingJob = true;
             if (job.data.status === taskStatuses.PRESCHEDULE) {
                 log.info(`job ${job.data.jobId}, taskId ${job.data.taskId} is in ${job.data.status} mode, calling done...`,
                     { component, jobId: job.data.jobId, taskId: job.data.taskId });
+                this._handlingJob = false;
                 job.done();
                 return;
             }
@@ -114,6 +117,7 @@ class JobConsumer extends EventEmitter {
     finishBullJob(options) {
         const shouldCompleteJob = this._shouldNormalExit(options);
         if (this._job && shouldCompleteJob) {
+            this._handlingJob = false;
             this._job.done(this._job.error);
             log.info(`finish job ${this._jobId}`);
         }
@@ -147,6 +151,7 @@ class JobConsumer extends EventEmitter {
     async _stopJob(job, status) {
         await stateAdapter.unwatch({ jobId: job.data.jobId });
         log.info(`job ${job.data.jobId} already in ${status} status`);
+        this._handlingJob = false;
         job.done();
     }
 
@@ -337,6 +342,10 @@ class JobConsumer extends EventEmitter {
 
     get isConsumerPaused() {
         return this._consumerPaused;
+    }
+
+    get isHandlingJob() {
+        return this._handlingJob;
     }
 
     get jobData() {
