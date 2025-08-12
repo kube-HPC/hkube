@@ -113,7 +113,7 @@ class Worker {
             const isPaused = jobConsumer.isConsumerPaused;
             const isHandling = jobConsumer.isHandlingJob;
             const isServing = this._isAlgorithmServing();
-            const shouldStop = !isPaused && !isServing;
+            const shouldStop = !isPaused && !isServing && !isHandling;
             const paused = isPaused ? 'paused' : 'not paused';
             const serving = isServing ? 'serving' : 'not serving';
             const handling = isHandling ? 'handling' : 'not handling';
