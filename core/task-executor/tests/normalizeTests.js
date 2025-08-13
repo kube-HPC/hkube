@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequestsByType, normalizeColdWorkers } = require('../lib/reconcile/normalize');
-const { twoCompleted } = require('./stub/jobsRaw');
+const { twoCompleted } = require('./stub/jobsRawTwoCompleted');
 const { stateType } = require('@hkube/consts');
 const utils = require('../lib/utils/utils');
 const { workersStub, jobsStub } = require('./stub/normalizedStub');
