@@ -16,6 +16,8 @@ before(async () => {
     mockery.registerMock('./helpers/kubernetes', mock);
     mockery.registerMock('../helpers/kubernetes', mock);
     mockery.registerMock('./lib/helpers/kubernetes', mock);
+    mockery.registerMock('../../helpers/kubernetes', mock);
+
     const bootstrap = require('../bootstrap');
     await bootstrap.init();
     await etcd._etcd._client.delete('/', { isPrefix: true });

@@ -121,16 +121,12 @@ class StateManager extends EventEmitter {
             sort: { created: sort },
             limit
         });
-        // This section handles algorithms that are not satisfied, which may occur under the following conditions:
-        // 1 - Insufficient CPU/GPU/Memory for a hot worker to start.
-        // 2 - When a job is running, there are not enough resources for the worker to run the algorithm.
-        const taskExecuter = await this.getSystemResources();
-        const unScheduledAndIgnored = taskExecuter ? {
-            ...taskExecuter[0]?.unScheduledAlgorithms,
-            ...taskExecuter[0]?.ignoredUnScheduledAlgorithms
-        } : {};
+        // This section handles algorithms that are not satisfied, which may occur when a job is not scheduled yet.
+        // May occur because resources missing (CPU / memory / GPU) or any other reason.
+        const discoveryTaskExecutor = await this.getSystemResources();
+        const unScheduled = { ...discoveryTaskExecutor[0]?.unScheduledAlgorithms };
         const updatedAlgorithms = allAlgorithms.map(algo => {
-            const unscheduledReason = unScheduledAndIgnored[algo.name] ? unScheduledAndIgnored[algo.name].message : undefined;
+            const unscheduledReason = unScheduled[algo.name] ? unScheduled[algo.name].message : undefined;
             if (unscheduledReason) {
                 return { ...algo, unscheduledReason };
             }
