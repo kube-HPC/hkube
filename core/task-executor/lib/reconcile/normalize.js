@@ -392,25 +392,10 @@ const normalizeJobs = (jobs, pods, filterFn = () => true) => {
                 algorithmName: job.metadata.labels['algorithm-name'],
                 active: job.status.active === 1,
                 startTime: _tryParseTime(job.status.startTime),
-                podName: pod?.metadata?.name,
-                nodeName: pod?.spec?.nodeName
+                podName: objectPath.get(pod, 'metadata.name'),
+                nodeName: objectPath.get(pod, 'spec.nodeName')
             };
         });
-    // const jobs = jobsRaw.body.items
-    //     .filter(predicate)
-    //     .map((j) => {
-    //         const pod = podsList.find(p => objectPath.get(p, 'metadata.labels.controller-uid', '') === objectPath.get(j, 'metadata.uid'));
-    //         return {
-    //             name: j.metadata.name,
-    //             algorithmName: j.metadata.labels['algorithm-name'],
-    //             active: j.status.active === 1,
-    //             startTime: _tryParseTime(j.status.startTime),
-    //             podName: objectPath.get(pod, 'metadata.name'),
-    //             nodeName: objectPath.get(pod, 'spec.nodeName'),
-
-    //         };
-    //     });
-    // return jobs;
 };
 
 /**
