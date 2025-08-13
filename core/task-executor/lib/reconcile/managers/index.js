@@ -1,9 +1,9 @@
 const WorkersStateManager = require('./workers');
 const requestsManager = require('./requests');
-const JobsHandler = require('./jobs');
+const jobsHandler = require('./jobs');
 
 module.exports = {
     WorkersStateManager,
     requestsManager,
-    JobsHandler
+    jobsHandler
 };

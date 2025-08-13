@@ -4,7 +4,7 @@ const clonedeep = require('lodash.clonedeep');
 const etcd = require('../helpers/etcd');
 const { components, consts } = require('../consts');
 const component = components.RECONCILER;
-const { WorkersStateManager, requestsManager, JobsHandler } = require('./managers');
+const { WorkersStateManager, requestsManager, jobsHandler } = require('./managers');
 
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
@@ -128,24 +128,24 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // Update the cache of jobs lately created by removing old jobs
     const reconcileResult = {};
 
-    JobsHandler.clearCreatedJobsLists(options.createdJobsTTL);
+    jobsHandler.clearCreatedJobsLists(options.createdJobsTTL);
     _checkResourcePressure(normResources);
 
     const workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);
 
-    const batchCount = workersStateManager.countBatchWorkers(algorithmTemplates) + JobsHandler.createdJobsLists.batch.length;
+    const batchCount = workersStateManager.countBatchWorkers(algorithmTemplates) + jobsHandler.createdJobsLists.batch.length;
     requestsManager.updateCapacity(batchCount);
     const { maxFilteredRequests, finalRequests } = requestsManager.prepareAlgorithmRequests(
         algorithmRequests, algorithmTemplates, workersStateManager.jobAttachedWorkers, workersStateManager.workerCategories
     );
 
-    const jobsInfo = await JobsHandler.finalizeScheduling(workersStateManager, algorithmTemplates, normResources, versions,
+    const jobsInfo = await jobsHandler.finalizeScheduling(workersStateManager, algorithmTemplates, normResources, versions,
         maxFilteredRequests, finalRequests, registry, clusterOptions, workerResources, options, reconcileResult);
     
     // add created and skipped info
     const workerStats = _calcStats(workersStateManager.normalizedWorkers);
     await _updateReconcileResult({
-        reconcileResult, ...JobsHandler, jobsInfo, workerStats, normResources
+        reconcileResult, ...jobsHandler, jobsInfo, workerStats, normResources
     });
 
     return reconcileResult;

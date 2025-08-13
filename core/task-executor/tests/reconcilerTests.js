@@ -74,8 +74,8 @@ describe('reconciler', () => {
 
     beforeEach(() => {
         clearCount();
-        const { requestsManager, JobsHandler } = require('../lib/reconcile/managers');
-        JobsHandler.clearCreatedJobsLists(options.createdJobsTTL, Date.now() + 100000);
+        const { requestsManager, jobsHandler } = require('../lib/reconcile/managers');
+        jobsHandler.clearCreatedJobsLists(options.createdJobsTTL, Date.now() + 100000);
         requestsManager.updateCapacity(1000);
         const res = clone(resources);
         res.nodes.body.items.push(res.nodeWithLabels);
