@@ -4,7 +4,7 @@ const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const kubernetes = require('../../helpers/kubernetes');
 const etcd = require('../../helpers/etcd');
-const component = 'JobsManager';
+const component = 'JobsHandler';
 const { commands } = require('../../consts');
 const { createJobSpec } = require('../../jobs/jobCreator');
 const { createWarning } = require('../../utils/warningCreator');
@@ -15,7 +15,7 @@ const { matchJobsToResources, pauseAccordingToResources, parseResources } = requ
  * Manages job scheduling lifecycle, including matching requests to resources,
  * deciding worker stop/resume actions, and creating jobs when required.
  */
-class JobsManager {
+class JobsHandler {
     constructor() {
         // Jobs created by type
         this.createdJobsLists = { batch: [], [stateType.Stateful]: [], [stateType.Stateless]: [] };
@@ -47,8 +47,8 @@ class JobsManager {
      * @param {Object} WorkersStateManager - Holds workers information lists.
      * @param {Object} algorithmTemplates - Algorithm definitions from DB.
      * @param {Object} normResources - Normalized cluster resources (CPU/Memory/GPU).
-     * @param {Object[]} maxFilteredRequests - Requests after max workers filtering.
      * @param {Object} versions - System versions object.
+     * @param {Object[]} maxFilteredRequests - Requests after max workers filtering.
      * @param {Object[]} requests - Requests selected for scheduling (final requests).
      * @param {Object} registry - Registry configuration.
      * @param {Object} clusterOptions - Cluster-wide configuration.
@@ -56,7 +56,7 @@ class JobsManager {
      * @param {Object} options - Confguration containing additional job creation options.
      * @param {Object} reconcileResult - Scheduling reconcile stats by algorithm.
      */
-    async finalizeScheduling(WorkersStateManager, algorithmTemplates, normResources, maxFilteredRequests, versions, requests, registry, clusterOptions, workerResources, options, reconcileResult) {
+    async finalizeScheduling(WorkersStateManager, algorithmTemplates, normResources, versions, maxFilteredRequests, requests, registry, clusterOptions, workerResources, options, reconcileResult) {
         // 1. Clone list of already created jobs (avoid mutating original)
         const jobsCreated = clonedeep(Object.values(this.createdJobsLists).flat());
         
@@ -540,4 +540,4 @@ class JobsManager {
     }
 }
 
-module.exports = new JobsManager();
+module.exports = new JobsHandler();

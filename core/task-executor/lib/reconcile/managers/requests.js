@@ -11,12 +11,6 @@ class RequestsManager {
     constructor() {
         // Current scheduling capacity
         this._totalCapacityNow = 10;
-
-        // Requests after filtering by max worker limits
-        this.maxFilteredRequests = [];
-        
-        // Final ordered list of requests for execution
-        this.finalRequests = [];
     }
 
     /**
@@ -43,10 +37,10 @@ class RequestsManager {
         const normalizedRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
 
         // 2. Filter out requests exceeding maxWorkers limit
-        this.maxFilteredRequests = this._filterByMaxWorkers(algorithmTemplates, normalizedRequests, jobAttachedWorkers);
+        const maxFilteredRequests = this._filterByMaxWorkers(algorithmTemplates, normalizedRequests, jobAttachedWorkers);
 
         // 3. Categorize into batch and streaming
-        const categorizedRequests = this._splitByType(this.maxFilteredRequests);
+        const categorizedRequests = this._splitByType(maxFilteredRequests);
 
         // 4. Move quota-guaranteed requests to the front
         const { batchRequisiteRequests, streamingRequisiteRequests } = this._prioritizeQuotaGuaranteeRequests(categorizedRequests, algorithmTemplates, workerCategories);
@@ -64,7 +58,9 @@ class RequestsManager {
         const limitedBatchRequests = this._limitRequestsByCapacity(hotBatchRequests, requestTypes);
 
         // 9. Merge requisites, streaming, and batch into final list
-        this.finalRequests = this._mergeFinalRequests(limitedBatchRequests, hotStreamingRequests);
+        const finalRequests = this._mergeFinalRequests(limitedBatchRequests, hotStreamingRequests);
+
+        return { maxFilteredRequests, finalRequests }; // Requests after filtering by max worker limits & Final ordered list of requests for execution
     }
 
     /**

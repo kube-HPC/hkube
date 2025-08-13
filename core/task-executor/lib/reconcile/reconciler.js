@@ -4,7 +4,7 @@ const clonedeep = require('lodash.clonedeep');
 const etcd = require('../helpers/etcd');
 const { components, consts } = require('../consts');
 const component = components.RECONCILER;
-const { WorkersStateManager, requestsManager, jobsManager } = require('./managers');
+const { WorkersStateManager, requestsManager, JobsHandler } = require('./managers');
 
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
@@ -128,22 +128,24 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // Update the cache of jobs lately created by removing old jobs
     const reconcileResult = {};
 
-    jobsManager.clearCreatedJobsLists(options.createdJobsTTL);
+    JobsHandler.clearCreatedJobsLists(options.createdJobsTTL);
     _checkResourcePressure(normResources);
 
     const workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);
 
-    const batchCount = workersStateManager.countBatchWorkers(algorithmTemplates) + jobsManager.createdJobsLists.batch.length;
+    const batchCount = workersStateManager.countBatchWorkers(algorithmTemplates) + JobsHandler.createdJobsLists.batch.length;
     requestsManager.updateCapacity(batchCount);
-    requestsManager.prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, workersStateManager.jobAttachedWorkers, workersStateManager.workerCategories);
+    const { maxFilteredRequests, finalRequests } = requestsManager.prepareAlgorithmRequests(
+        algorithmRequests, algorithmTemplates, workersStateManager.jobAttachedWorkers, workersStateManager.workerCategories
+    );
 
-    const jobsInfo = await jobsManager.finalizeScheduling(workersStateManager, algorithmTemplates, normResources, requestsManager.maxFilteredRequests,
-        versions, requestsManager.finalRequests, registry, clusterOptions, workerResources, options, reconcileResult);
+    const jobsInfo = await JobsHandler.finalizeScheduling(workersStateManager, algorithmTemplates, normResources, versions,
+        maxFilteredRequests, finalRequests, registry, clusterOptions, workerResources, options, reconcileResult);
     
     // add created and skipped info
     const workerStats = _calcStats(workersStateManager.normalizedWorkers);
     await _updateReconcileResult({
-        reconcileResult, ...jobsManager, jobsInfo, workerStats, normResources
+        reconcileResult, ...JobsHandler, jobsInfo, workerStats, normResources
     });
 
     return reconcileResult;
