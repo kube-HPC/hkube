@@ -1,11 +1,10 @@
 const { expect } = require('chai');
 const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequestsByType, normalizeColdWorkers } = require('../lib/reconcile/normalize');
-const { twoCompleted } = require('./stub/jobsRawTwoCompleted');
+const { twoCompleted, workersStub, jobsStub, resources } = require('./stub');
+const { nodes, pods } = resources;
+let { templateStore } = require('./stub');
 const { stateType } = require('@hkube/consts');
 const utils = require('../lib/utils/utils');
-const { workersStub, jobsStub } = require('./stub/normalizedStub');
-const { nodes, pods } = require('./stub/resources');
-let templateStore = require('./stub/templateStore');
 const { settings: globalSettings } = require('../lib/helpers/settings');
 templateStore = templateStore.map(t => ({ ...t, minHotWorkers: 10 }));
 const algorithmTemplates = utils.arrayToMap(templateStore);

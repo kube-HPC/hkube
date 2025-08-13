@@ -638,6 +638,4 @@ const twoCompleted = {
   
 };
 
-module.exports = {
-  twoCompleted
-};
+module.exports = twoCompleted;

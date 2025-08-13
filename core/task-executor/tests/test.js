@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const etcd = require('../lib/helpers/etcd');
-const { discoveryStub, templateStoreStub } = require('./stub/discoveryStub');
+const { discoveryStub, templateStoreStub } = require('./stub');
 
 describe('bootstrap', () => {
     it('should get', async () => {

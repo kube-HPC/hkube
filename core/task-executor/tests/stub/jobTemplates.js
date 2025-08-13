@@ -92,6 +92,4 @@ const jobTemplate = {
     }
 };
 
-module.exports = {
-    jobTemplate
-};
+module.exports = jobTemplate;

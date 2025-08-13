@@ -2,7 +2,8 @@ const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
 const { kaiValues } = require('../../lib/consts');
-const {
+const { resources } = require('../stub');
+const { 
     pods,
     nodes,
     persistentVolumeClaim,
@@ -10,7 +11,7 @@ const {
     configMap,
     customResourceDefinition,
     queues
-} = require('../stub/resources');
+} = resources;
 
 const app = express();
 

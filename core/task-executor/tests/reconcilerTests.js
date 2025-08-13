@@ -13,7 +13,7 @@ const fsVolumeMounts = { name: 'storage-volume', mountPath: '/hkubedata' };
 const { varlogMount, varlibdockercontainersMount, varLog, varlibdockercontainers, } = require('../lib/templates');
 const { settings: globalSettings } = require('../lib/helpers/settings');
 const { consts } = require('../lib/consts');
-const resources = require('./stub/resources');
+const { resources } = require('./stub');
 
 const options = main;
 let callCount, clearCount, normResources, reconciler, algorithmTemplates;

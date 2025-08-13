@@ -1,6 +1,6 @@
 const { stateType } = require('@hkube/consts');
 
-module.exports = [
+const templateStore = [
     {
         name: 'eval-alg',
         algorithmImage: 'hkube/algorunner',
@@ -536,3 +536,5 @@ module.exports = [
         stateType: undefined
     }
 ];
+
+module.exports = templateStore;

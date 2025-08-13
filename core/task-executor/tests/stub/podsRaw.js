@@ -1,7 +1,7 @@
 // INFO: 6 Worker pods raw from K8S, algorithms: print-every-10-sec (twice), green-alg, yellow-alg, eval-alg, black-alg)
 // Also, green-alg, yellow-alg, eval-alg, black-alg are hot workers, and print-every-10-sec one of them active and other ready/idle.
 // This file is in sync with workersRaw and jobsRaw.
-module.exports = [
+const pods = [
   {
     "apiVersion": "v1",
     "kind": "Pod",
@@ -3917,3 +3917,5 @@ module.exports = [
     }
   }
 ]
+
+module.exports = pods;

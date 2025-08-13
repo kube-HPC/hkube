@@ -1,7 +1,7 @@
 // INFO: 6 Workers raw from ETCD, one working (print-every-10-sec algo) and the other 5 ready (print-every-10-sec, green-alg, yellow-alg, eval-alg, black-alg)
 // Also, green-alg, yellow-alg, eval-alg, black-alg are hot workers.
 // This file is in sync with podsRaw and jobsRaw.
-module.exports = [
+const workers = [
   {
     "workerStatus": "ready",
     "isMaster": false,
@@ -124,3 +124,5 @@ module.exports = [
     "algorithmVersion": "lm5mznqqq4"
   }
 ]
+
+module.exports = workers;
