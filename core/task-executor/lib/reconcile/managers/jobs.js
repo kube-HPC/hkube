@@ -73,7 +73,7 @@ class JobsManager {
 
         // 3. Match jobs to resources, and skip those that doesn't have the required resources.
         const extraResources = await this._getExtraResources();
-        const { requested, skipped } = matchJobsToResources(createDetails, normResources, this.scheduledRequests, extraResources);
+        const { toRequest, skipped } = matchJobsToResources(createDetails, normResources, this.scheduledRequests, extraResources);
         
         // 4. Find workers to stop if resources insufficient
         const stopDetails = this._findWorkersToStop({ skipped, ...WorkersStateManager.workerCategories, algorithmTemplates });
@@ -81,8 +81,8 @@ class JobsManager {
         // 5. Pause workers according to resource needs
         const toStop = pauseAccordingToResources(stopDetails, normResources, skipped);
     
-        if (requested.length > 0) {
-            log.trace(`trying to create ${requested.length} algorithms....`, { component });
+        if (toRequest.length > 0) {
+            log.trace(`trying to create ${toRequest.length} algorithms....`, { component });
         }
 
         // 6. Filter stop list to avoid stopping workers we plan to resume
@@ -90,7 +90,7 @@ class JobsManager {
     
         // 7. Execute all actions (create jobs, stop, resume, warm/cool workers, etc.)
         const created = await this._processPromises({ 
-            ...WorkersStateManager, options, toResume, toStopFiltered, requested, skipped
+            ...WorkersStateManager, options, toResume, toStopFiltered, toRequest, skipped
         });
         created.forEach(job => this.createdJobsLists[job.stateType].push(job));
 
@@ -401,7 +401,7 @@ class JobsManager {
      * @private
      * @returns {Promise<Object[]>} Successfully created jobs.
      */
-    async _processPromises({ workersToExit, workersToWarmUp, requested, skipped, toStopFiltered, toResume, workersToCoolDown, options }) {
+    async _processPromises({ workersToExit, workersToWarmUp, toRequest, skipped, toStopFiltered, toResume, workersToCoolDown, options }) {
         const created = [];
         const exitWorkersPromises = workersToExit.map(r => this._exitWorker(r));
         const warmUpPromises = workersToWarmUp.map(r => this._warmUpWorker(r));
@@ -409,7 +409,7 @@ class JobsManager {
         const stopPromises = toStopFiltered.map(r => this._stopWorker(r));
         const resumePromises = toResume.map(r => this._resumeWorker(r));
         const createPromises = [];
-        requested.forEach(jobDetails => createPromises.push(this._createJob(jobDetails, options)));
+        toRequest.forEach(jobDetails => createPromises.push(this._createJob(jobDetails, options)));
 
         const resolvedPromises = await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
         createPromises.forEach((_, index) => {

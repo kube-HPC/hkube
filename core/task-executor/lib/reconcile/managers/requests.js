@@ -63,7 +63,7 @@ class RequestsManager {
         // 7. Calculate per-algorithm request ratios
         const requestTypes = this._calculateRequestRatios(hotBatchRequests, this.totalCapacityNow);
 
-        // 8. Trim requests to required per-algorithm count
+        // 8. Limit requests amount to required per-algorithm count
         const limitedBatchRequests = this._limitRequestsByCapacity(hotBatchRequests, requestTypes);
 
         // 9. Merge requisites, streaming, and batch into final list
