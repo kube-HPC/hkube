@@ -20,17 +20,11 @@ class JobsManager {
         // Jobs created by type
         this.createdJobsLists = { batch: [], [stateType.Stateful]: [], [stateType.Stateless]: [] };
 
-        // Requests successfully matched to a worker or job
-        this.scheduledRequests = [];
-
         // Map of algorithmName -> warning for unscheduled algorithms
         this.unScheduledAlgorithms = {};
 
         // Map of ignored unscheduled algorithms
         this.ignoredUnScheduledAlgorithms = {};
-        
-        // Jobs info after finalize scheduling
-        this.jobsInfo = { created: [], skipped: [], toResume: [], toStop: [] };
     }
 
     /**
@@ -67,13 +61,13 @@ class JobsManager {
         const jobsCreated = clonedeep(Object.values(this.createdJobsLists).flat());
         
         // 2. Assign requests to workers or prepare job creation details
-        const { createDetails, toResume } = this._processAllRequests({
+        const { createDetails, toResume, scheduledRequests } = this._processAllRequests({
             ...WorkersStateManager.workerCategories, algorithmTemplates, versions, jobsCreated, requests, registry, clusterOptions, workerResources
         }, reconcileResult);
 
         // 3. Match jobs to resources, and skip those that doesn't have the required resources.
         const extraResources = await this._getExtraResources();
-        const { toRequest, skipped } = matchJobsToResources(createDetails, normResources, this.scheduledRequests, extraResources);
+        const { toRequest, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, extraResources);
         
         // 4. Find workers to stop if resources insufficient
         const stopDetails = this._findWorkersToStop({ skipped, ...WorkersStateManager.workerCategories, algorithmTemplates });
@@ -97,11 +91,8 @@ class JobsManager {
         // 8. Update unscheduled algorithms tracking
         this._checkUnscheduled(created, skipped, maxFilteredRequests, algorithmTemplates);
 
-        // 9. Update jobs info for reporting
-        this.jobsInfo.created = created;
-        this.jobsInfo.skipped = skipped;
-        this.jobsInfo.toResume = toResume;
-        this.jobsInfo.toStop = toStopFiltered;
+        // 9. Return jobs info for reporting
+        return { created, skipped, toResume, toStop: toStopFiltered };
     }
 
     /**
@@ -142,6 +133,7 @@ class JobsManager {
     ) {
         const createDetails = [];
         const toResume = [];
+        const scheduledRequests = []; // Requests successfully matched to a worker or job
 
         for (let req of requests) {// eslint-disable-line
             const { algorithmName, hotWorker } = req;
@@ -151,7 +143,7 @@ class JobsManager {
             if (idleWorkerIndex !== -1) {
                 // there is idle worker ready for work, no need to create new one.
                 const [worker] = idleWorkers.splice(idleWorkerIndex, 1);
-                this.scheduledRequests.push({ algorithmName, id: worker.id });
+                scheduledRequests.push({ algorithmName, id: worker.id });
                 continue;
             }
 
@@ -160,7 +152,7 @@ class JobsManager {
             if (pendingWorkerIndex !== -1) {
                 // there is a pending worker.
                 const [worker] = pendingWorkers.splice(pendingWorkerIndex, 1);
-                this.scheduledRequests.push({ algorithmName, id: worker.id });
+                scheduledRequests.push({ algorithmName, id: worker.id });
                 continue;
             }
 
@@ -169,7 +161,7 @@ class JobsManager {
             if (jobsCreatedIndex !== -1) {
                 // there is a job which was recently created.
                 const [worker] = jobsCreated.splice(jobsCreatedIndex, 1);
-                this.scheduledRequests.push({ algorithmName, id: worker.id });
+                scheduledRequests.push({ algorithmName, id: worker.id });
                 continue;
             }
 
@@ -179,7 +171,7 @@ class JobsManager {
                 // there is paused worker. wake it up
                 toResume.push({ ...(pausedWorkers[pausedWorkerIndex]) });
                 const [worker] = pausedWorkers.splice(pausedWorkerIndex, 1);
-                this.scheduledRequests.push({ algorithmName, id: worker.id });
+                scheduledRequests.push({ algorithmName, id: worker.id });
                 continue;
             }
 
@@ -188,7 +180,7 @@ class JobsManager {
             if (bootstrapWorkerIndex !== -1) {
                 // there is a worker in bootstrap for this algorithm.
                 const [worker] = bootstrapWorkers.splice(bootstrapWorkerIndex, 1);
-                this.scheduledRequests.push({ algorithmName, id: worker.id });
+                scheduledRequests.push({ algorithmName, id: worker.id });
                 continue;
             }
 
@@ -245,7 +237,7 @@ class JobsManager {
                 reconcileResult[algorithmName].required += 1;
             }
         }
-        return { createDetails, toResume };
+        return { createDetails, toResume, scheduledRequests };
     }
 
     /**

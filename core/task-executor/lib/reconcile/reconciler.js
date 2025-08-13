@@ -137,13 +137,13 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     requestsManager.updateCapacity(batchCount);
     requestsManager.prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, workersStateManager.jobAttachedWorkers, workersStateManager.workerCategories);
 
-    await jobsManager.finalizeScheduling(workersStateManager, algorithmTemplates, normResources, requestsManager.maxFilteredRequests,
+    const jobsInfo = await jobsManager.finalizeScheduling(workersStateManager, algorithmTemplates, normResources, requestsManager.maxFilteredRequests,
         versions, requestsManager.finalRequests, registry, clusterOptions, workerResources, options, reconcileResult);
     
     // add created and skipped info
     const workerStats = _calcStats(workersStateManager.normalizedWorkers);
     await _updateReconcileResult({
-        reconcileResult, workerStats, ...jobsManager, normResources
+        reconcileResult, ...jobsManager, jobsInfo, workerStats, normResources
     });
 
     return reconcileResult;
