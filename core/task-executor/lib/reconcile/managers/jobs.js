@@ -286,9 +286,6 @@ class JobsManager {
         }
         const stopDetails = [];
     
-        // find stats about required workers
-        // log.info(`totalCapacityNow=${totalCapacityNow}, missingCount=${missingCount}`);
-    
         const skippedTypes = Object.entries(skipped.reduce((prev, cur, index) => {
             if (!prev[cur.algorithmName]) {
                 prev[cur.algorithmName] = {

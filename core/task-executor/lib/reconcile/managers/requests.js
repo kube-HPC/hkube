@@ -10,10 +10,7 @@ const component = 'RequestsManager';
 class RequestsManager {
     constructor() {
         // Current scheduling capacity
-        this.totalCapacityNow = 10;
-
-        // Factor for calculating the request window size
-        this.windowSizeFactor = 3;
+        this._totalCapacityNow = 10;
 
         // Requests after filtering by max worker limits
         this.maxFilteredRequests = [];
@@ -61,7 +58,7 @@ class RequestsManager {
         const { hotBatchRequests, hotStreamingRequests } = this._addHotRequests(batchRequestWindow, streamingRequisiteRequests, algorithmTemplates);
         
         // 7. Calculate per-algorithm request ratios
-        const requestTypes = this._calculateRequestRatios(hotBatchRequests, this.totalCapacityNow);
+        const requestTypes = this._calculateRequestRatios(hotBatchRequests, this._totalCapacityNow);
 
         // 8. Limit requests amount to required per-algorithm count
         const limitedBatchRequests = this._limitRequestsByCapacity(hotBatchRequests, requestTypes);
@@ -78,8 +75,8 @@ class RequestsManager {
         const factor = 0.9;
         const minCapacity = 2;
         const maxCapacity = 50;
-        this.totalCapacityNow = this.totalCapacityNow * factor + algorithmCount * (1 - factor);
-        this.totalCapacityNow = Math.max(minCapacity, Math.min(maxCapacity, this.totalCapacityNow));
+        this._totalCapacityNow = this._totalCapacityNow * factor + algorithmCount * (1 - factor);
+        this._totalCapacityNow = Math.max(minCapacity, Math.min(maxCapacity, this._totalCapacityNow));
     }
 
     /**
@@ -328,7 +325,8 @@ class RequestsManager {
      * @returns {Object[]} Subset of batch requests limited by the window size factor.
      */
     _createBatchWindow(requests) {
-        const windowSize = Math.round(this.totalCapacityNow * this.windowSizeFactor);
+        const windowSizeFactor = 3; // Factor for calculating the request window size
+        const windowSize = Math.round(this._totalCapacityNow * windowSizeFactor);
         const requestsWindow = requests.slice(0, windowSize);
         return requestsWindow;
     }
