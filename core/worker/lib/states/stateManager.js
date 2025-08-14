@@ -89,6 +89,7 @@ class StateManager extends EventEmitter {
                 this._startInactiveTimer();
             }
             else {
+                log.debug('clearing inactive timeout from StateManager.js _initStateMachine()');
                 clearTimeout(this._inactiveTimer);
                 this._inactiveTimer = null;
             }
