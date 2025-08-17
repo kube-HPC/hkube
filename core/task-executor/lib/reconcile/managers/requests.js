@@ -293,24 +293,27 @@ class RequestsManager {
      * @returns {Array<Object>} Combined requests array with requisites distributed at the front.
      */
     _mergeRequisiteRequests(requests, requisites) {
+        const mergedRequisiteRequests = [...requests];
         const ratioSum = requisites.totalRequired;
 
         while (requisites.totalRequired > 0) {
-            Object.values(requisites.algorithms).forEach((v) => {
-                const ratio = (v.required.length / ratioSum);
-                const required = Math.round(v.required.length * ratio) || 1;
-                const diff = requisites.totalRequired - required;
-                const total = diff < 0 ? requisites.totalRequired : required;
-                const arr = v.required.slice(0, total);
-                arr.forEach(r => { // Mark requisite requests
-                    r.isRequisite = true;
-                });
+            Object.values(requisites.algorithms)
+                .sort((a, b) => b.required.length - a.required.length) // Sort by length descending, since first we want to handle requests which has more requisite
+                .forEach((v) => {
+                    const ratio = (v.required.length / ratioSum);
+                    const required = Math.round(v.required.length * ratio) || 1;
+                    const diff = requisites.totalRequired - required;
+                    const total = diff < 0 ? requisites.totalRequired : required;
+                    const arr = v.required.slice(0, total);
+                    arr.forEach(r => { // Mark requisite requests
+                        r.isRequisite = true;
+                    });
 
-                requisites.totalRequired -= arr.length;
-                requests.unshift(...arr);
-            });
+                    requisites.totalRequired -= arr.length;
+                    mergedRequisiteRequests.unshift(...arr);
+                });
         }
-        return requests;
+        return mergedRequisiteRequests;
     }
 
     /**
