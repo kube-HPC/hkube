@@ -304,13 +304,14 @@ class RequestsManager {
                     const required = Math.round(v.required.length * ratio) || 1;
                     const diff = requisites.totalRequired - required;
                     const total = diff < 0 ? requisites.totalRequired : required;
-                    const arr = v.required.slice(0, total);
-                    arr.forEach(r => { // Mark requisite requests
-                        r.isRequisite = true;
-                    });
+                    const requisitesToAdd = v.required.slice(0, total);
+                    const requisiteMarked = requisitesToAdd.map(req => ({
+                        ...req,
+                        isRequisite: true
+                    }));
 
-                    requisites.totalRequired -= arr.length;
-                    mergedRequisiteRequests.unshift(...arr);
+                    requisites.totalRequired -= requisitesToAdd.length;
+                    mergedRequisiteRequests.unshift(...requisiteMarked);
                 });
         }
         return mergedRequisiteRequests;
