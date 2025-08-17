@@ -294,16 +294,18 @@ class RequestsManager {
      */
     _mergeRequisiteRequests(requests, requisites) {
         const mergedRequisiteRequests = [...requests];
-        const ratioSum = requisites.totalRequired;
+        const totalRequiredCount = requisites.totalRequired;
 
         while (requisites.totalRequired > 0) {
             Object.values(requisites.algorithms)
                 .sort((a, b) => b.required.length - a.required.length) // Sort by length descending, since first we want to handle requests which has more requisite
                 .forEach((v) => {
-                    const ratio = (v.required.length / ratioSum);
+                    const ratio = (v.required.length / totalRequiredCount);
                     const required = Math.round(v.required.length * ratio) || 1;
-                    const diff = requisites.totalRequired - required;
-                    const total = diff < 0 ? requisites.totalRequired : required;
+
+                    // Make sure we don't pull more than what's left
+                    const total = Math.min(requisites.totalRequired, required);
+                    
                     const requisitesToAdd = v.required.slice(0, total);
                     const requisiteMarked = requisitesToAdd.map(req => ({
                         ...req,
