@@ -12,7 +12,7 @@ const { normalizeWorkers,
 let algorithmTemplates;
 let WorkersStateManager, RequestsManager;
 
-describe.only('Managers tests', () => {
+describe('Managers tests', () => {
     const registry = { registry: '' }
 
     describe('WorkersStateManager Class', () => {
@@ -113,6 +113,6 @@ describe.only('Managers tests', () => {
     });
 
     describe('RequestsManager Class', () => {
-        
+
     });
 });
