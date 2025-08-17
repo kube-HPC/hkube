@@ -64,7 +64,7 @@ class WorkersStateManager {
      * Categorizes workers into idle, active, paused, pending, and bootstrap.
      * @private
      * @param {Object[]} jobAttachedWorkers - List of merged worker/job objects.
-     * @param {Object} extraJobs - Object containing jobs with no worker assigned to them.
+     * @param {Object[]} extraJobs - Array containing jobs with no worker assigned to them.
      * @returns {Object} Categorized workers.
      */
     _buildWorkerCategories(jobAttachedWorkers, extraJobs) {

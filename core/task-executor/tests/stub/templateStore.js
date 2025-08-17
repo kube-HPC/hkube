@@ -534,6 +534,12 @@ const templateStore = [
         cpu: 0.001,
         mem: '128Mi',
         stateType: undefined
+    },
+    {
+        name: 'print-every-10-sec',
+        algorithmImage: 'docker.io/hkubedevtest/print-every-10-sec:vokska3od',
+        cpu: 2.8,
+        mem: '256Mi'
     }
 ];
 
