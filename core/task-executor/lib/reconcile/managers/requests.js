@@ -170,15 +170,13 @@ class RequestsManager {
      * @returns {Array<Object>} Prioritized requests (array ordered with requisites first).
      */
     _prioritizeQuotaRequisite(normRequests, algorithmTemplates, workerCategories) {
-        const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers } = workerCategories;
         const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.quotaGuarantee);
-        let currentRequests = normRequests;
 
         if (hasRequisiteAlgorithms) {
-            const { requests, requisites } = this._createRequisitesRequests(normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
-            currentRequests = this._mergeRequisiteRequests(requests, requisites);
+            const { requests, requisites } = this._createRequisitesRequests(normRequests, algorithmTemplates, workerCategories);
+            return this._mergeRequisiteRequests(requests, requisites);
         }
-        return currentRequests;
+        return normRequests;
     }
 
     /**
@@ -194,15 +192,17 @@ class RequestsManager {
      * @private
      * @param {Array<Object>} normalizedRequests - Array of normalized requests (each has algorithmName).
      * @param {Object} algorithmTemplates - Map of algorithmName -> algorithm template (may contain quotaGuarantee).
-     * @param {Array<Object>} idleWorkers - Idle workers list.
-     * @param {Array<Object>} activeWorkers - Active workers list.
-     * @param {Array<Object>} pausedWorkers - Paused workers list.
-     * @param {Array<Object>} pendingWorkers - Pending workers list (jobs with no worker).
+     * @param {Object} workerCategories - Categorized workers with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers.
+     * @param {Array<Object>} workerCategories.idleWorkers - Idle workers list.
+     * @param {Array<Object>} workerCategories.activeWorkers - Active workers list.
+     * @param {Array<Object>} workerCategories.pausedWorkers - Paused workers list.
+     * @param {Array<Object>} workerCategories.pendingWorkers - Pending workers list (jobs with no worker).
      * @returns {{requests: Array<Object>, requisites: Object}} 
      *          - requests: the requests array excluding those reserved for requisites
      *          - requisites: object { algorithms: { <alg>: { required: [requests...] } }, totalRequired: number }
      */
-    _createRequisitesRequests(normalizedRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) {
+    _createRequisitesRequests(normalizedRequests, algorithmTemplates, workerCategories) {
+        const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers } = workerCategories;
         const requests = [];
         const visited = {};
         const indicesToIgnore = {};
