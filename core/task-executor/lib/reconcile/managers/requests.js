@@ -300,7 +300,7 @@ class RequestsManager {
      * @returns {{ batchRequests: Object[], streamingRequests: Object[] }}
      *          An object containing separate arrays for batch and streaming requests.
      */
-    _splitAlgorithmsByType(algorithmTemplates) {
+    _splitAlgorithmsByType(algorithmTemplates = {}) {
         const batchTemplates = {};
         const streamingTemplates = {};
         const streamingStateTypes = [stateType.Stateful, stateType.Stateless];
@@ -454,11 +454,11 @@ class RequestsManager {
 
         const requisites = [...streamingRequests, ...batchRequests].filter(isRequisite);
 
-        const nonRequisiteStreaming = streamingRequests.filter(req => !isRequisite(req));
-        const statefulStreaming = nonRequisiteStreaming.filter(req => req.stateType === stateType.Stateful);
-        const statelessStreaming = nonRequisiteStreaming.filter(req => req.stateType === stateType.Stateless);
+        const nonRequisiteStreaming = streamingRequests.filter(request => !isRequisite(request));
+        const statefulStreaming = nonRequisiteStreaming.filter(request => request.requestType === stateType.Stateful);
+        const statelessStreaming = nonRequisiteStreaming.filter(request => request.requestType === stateType.Stateless);
 
-        const nonRequisiteBatch = batchRequests.filter(req => !isRequisite(req));
+        const nonRequisiteBatch = batchRequests.filter(request => !isRequisite(request));
 
         return [
             ...requisites,
