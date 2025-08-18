@@ -81,21 +81,16 @@ const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, 
  * 
  * @param {Object[]} algorithmRequests - Array of algorithm request objects.
  * @param {Object} algorithmTemplateStore - Algorithm definitions from DB.
- * @param {string[]} [requestTypes] - Optional array of request types to filter algorithms.
- *        If not provided, defaults to only 'batch' stateType algorithms.
  * 
  * @returns {Object[]} An array of requests that includes the required minimum hot worker requests
  *          for each algorithm and retains existing requests beyond the minimum.
  */
-const normalizeHotRequestsByType = (algorithmRequests, algorithmTemplateStore, requestTypes) => {
+const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
     const algorithmTemplates = algorithmTemplateStore || {};
     const normRequests = algorithmRequests || [];
 
-    // Filter templates by minHotWorkers > 0 and matching requestTypes or default to 'batch'
-    const filteredTemplates = Object.entries(algorithmTemplates).filter(([, alg]) => {
-        const stateType = (alg.stateType || 'batch').toLowerCase();
-        return alg.minHotWorkers > 0 && (requestTypes ? requestTypes.includes(stateType) : stateType === 'batch');
-    });
+    // Filter templates by minHotWorkers > 0
+    const filteredTemplates = Object.entries(algorithmTemplates).filter(([, alg]) => alg.minHotWorkers > 0);
 
     if (filteredTemplates.length === 0) {
         return normRequests;
@@ -431,7 +426,7 @@ const mergeWorkers = (workers, jobs) => {
 module.exports = {
     normalizeWorkers,
     normalizeWorkerImages,
-    normalizeHotRequestsByType,
+    normalizeHotRequests,
     normalizeHotWorkers,
     normalizeColdWorkers,
     normalizeRequests,
