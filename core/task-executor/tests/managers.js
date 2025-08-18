@@ -112,12 +112,16 @@ describe('Managers tests', () => {
 
     describe('RequestsManager Class', () => {
         let workersStateManager;
+        let workerCategories;
         const batchRequest = { algorithmName: 'algo-batch', requestType: 'batch' };
         const statefulRequest = { algorithmName: 'algo-stateful', requestType: stateType.Stateful };
         const statelessRequest = { algorithmName: 'algo-stateless', requestType: stateType.Stateless };
+        const algo1Request = { algorithmName: 'algo1', requestType: 'batch' };
+        const algo2Request = { algorithmName: 'algo2', requestType: 'batch' };
 
         before(async () => {
             workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);
+            ({ workerCategories } = workersStateManager);
         });
 
         beforeEach(async () => {
@@ -200,87 +204,13 @@ describe('Managers tests', () => {
             });
         });
 
-        describe('_splitByType Method', () => {
-            const shuffleArray = (array) => {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(0.5 * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-                return array;
-            };
-            const buildRequests = (batchAmount, statefulAmount, statelessAmount, shouldShuffle = true) => {
-                const batchRequests = Array(batchAmount).fill(batchRequest);
-                const statefulRequests = Array(statefulAmount).fill(statefulRequest);
-                const statelessRequests = Array(statelessAmount).fill(statelessRequest);
-                const allRequests =  [...batchRequests,...statefulRequests,...statelessRequests];
-                return shouldShuffle ? shuffleArray(allRequests) : allRequests;
-            };
-            const checkResult = (result, expectedBatch, expectedStreaming) => {
-                expect(result).to.be.an('object');
-                expect(result.batchRequests).to.be.an('array');
-                expect(result.batchRequests.length).to.be.equal(expectedBatch);
-                expect(result.streamingRequests).to.be.an('array');
-                expect(result.streamingRequests.length).to.be.equal(expectedStreaming);
-            };
-
-            it('should split correctly when getting stateful, stateless and batch requests', () => {
-                const requests = buildRequests(2, 2, 2);
-                const result = requestsManager._splitByType(requests);
-                checkResult(result, 2, 4);
-            });
-
-            it('should work with only batch request types', () => {
-                const requests = buildRequests(6, 0, 0);
-                const result = requestsManager._splitByType(requests);
-                checkResult(result, 6, 0);
-            });
-
-            it('should work with only streaming request types', () => {
-                const requests = buildRequests(0, 3, 3);
-                const result = requestsManager._splitByType(requests);
-                checkResult(result, 0, 6);
-            });
-
-            it('should order stateful requests before stateless requests', () => {
-                const statefulCount = 3;
-                const requests = buildRequests(0, statefulCount, 3);
-                const { streamingRequests } = requestsManager._splitByType(requests);
-                streamingRequests.forEach((request, index) => {
-                    if (index < statefulCount) {
-                        expect(request.requestType).to.equal(stateType.Stateful);
-                    }
-                    else {
-                        expect(request.requestType).to.equal(stateType.Stateless);
-                    }
-                });
-            });
-
-            it('should handle empty input', () => {
-                const result = requestsManager._splitByType([]);
-                checkResult(result, 0, 0);
-            })
-        });
-
-        describe('_prioritizeQuotaGuaranteeRequests Method', () => {
-            // This method has nothing to check since it's dependant on other methods (the next tests checking them).
-            let workerCategories;
+        describe('QuotaGuarantee logic tests', () => {
             const categorizedRequests = {
                 batchRequests: [batchRequest, batchRequest],
                 streamingRequests: [statefulRequest, statefulRequest, statelessRequest, statelessRequest]
             };
             const greenRequest = { algorithmName: 'green-alg', requestType: 'batch' };
             const blackRequest = { algorithmName: 'black-alg', requestType: 'batch' };
-
-            before(() => {
-                ({ workerCategories } = workersStateManager);
-            });
-
-            it('should return object of requests', () => {
-                const result = requestsManager._prioritizeQuotaGuaranteeRequests(categorizedRequests, algorithmTemplates, workerCategories);
-                expect(result).to.be.an('object');
-                expect(result.batchRequisiteRequests).to.be.an('array');
-                expect(result.streamingRequisiteRequests).to.be.an('array');
-            });
 
             describe('_prioritizeQuotaRequisite Method', () => {
                 const { batchRequests } = categorizedRequests;
@@ -349,7 +279,7 @@ describe('Managers tests', () => {
                         normRequests.push(greenRequest);
 
                         const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, workerCategories);
-                        expect(existingWorkers).to.be.above(0, 'The raw worker stub was edited (green-alg)!');
+                        expect(existingWorkers).to.be.greaterThan(0, 'The raw worker stub was edited (green-alg)!');
                         expect(requests).to.be.an('array');
                         expect(requests.filter(request => request.algorithmName === algorithmName)).to.be.empty;
                         expect(requisites).to.be.an('object');
@@ -406,7 +336,7 @@ describe('Managers tests', () => {
                 describe('_mergeRequisiteRequests Method', () => {
                     const requests = [batchRequest, batchRequest, greenRequest, blackRequest, blackRequest];
 
-                    it('should merge the requisite requests correctly when the requisites is first lower requisite algo and than higher requisite algo', () => {
+                    it('should merge the requisite requests correctly when the requisites order is first lower requisite algo and then higher requisite algo', () => {
                         const requisiteRequestsAmount = 3;
                         const requisites =  {
                             totalRequired: requisiteRequestsAmount,
@@ -425,7 +355,7 @@ describe('Managers tests', () => {
                         expect(mergedRequests.filter(request => request.requestType === 'batch').length).to.equal(8);
                     });
 
-                    it('should merge the requisite requests correctly when the requisites is first higher requisite algo and than lower requisite algo', () => {
+                    it('should merge the requisite requests correctly when the requisites order is first higher requisite algo and then lower requisite algo', () => {
                         const requisiteRequestsAmount = 3;
                         const requisites =  {
                             totalRequired: requisiteRequestsAmount,
@@ -463,8 +393,490 @@ describe('Managers tests', () => {
                                 expect(request.isRequisite).to.be.undefined;
                             }
                         });
-                    })
+                    });
+
+                    it('should return the same request list untouched when requisites is empty', () => {
+                        const mergedRequests = requestsManager._mergeRequisiteRequests(requests, {});
+                        expect(mergedRequests).to.be.an('array');
+                        expect(mergedRequests).to.deep.equal(requests);
+                    });
                 });
+            });
+        });
+
+        describe('_workersToMap Method', () => {
+            let runningWorkersList;
+
+            before(() => {
+                const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers } = workerCategories;
+                runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
+            });
+
+            it('should correctly count workers grouped by their algorithmName', () => {
+                const workersMap = requestsManager._workersToMap(runningWorkersList);
+                expect(workersMap).to.be.an('object');
+                Object.entries(workersMap).forEach(([algName, count]) => {
+                    const workersCount = runningWorkersList.filter(worker => worker.algorithmName === algName).length;
+                    expect(count).to.equal(workersCount);
+                });
+            });
+
+            it('should handle an empty workers array', () => {
+                const workersMap = requestsManager._workersToMap([]);
+                expect(workersMap).to.be.an('object');
+                expect(Object.keys(workersMap)).to.be.empty;
+            });
+        });
+
+        describe('_splitRequestsByType Method', () => {
+            const shuffleArray = (array) => {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(0.5 * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            };
+            const buildRequests = (batchAmount, statefulAmount, statelessAmount, shouldShuffle = true) => {
+                const batchRequests = Array(batchAmount).fill(batchRequest);
+                const statefulRequests = Array(statefulAmount).fill(statefulRequest);
+                const statelessRequests = Array(statelessAmount).fill(statelessRequest);
+                const allRequests =  [...batchRequests,...statefulRequests,...statelessRequests];
+                return shouldShuffle ? shuffleArray(allRequests) : allRequests;
+            };
+            const checkResult = (result, expectedBatch, expectedStreaming) => {
+                expect(result).to.be.an('object');
+                expect(result.batchRequests).to.be.an('array');
+                expect(result.batchRequests.length).to.be.equal(expectedBatch);
+                expect(result.streamingRequests).to.be.an('array');
+                expect(result.streamingRequests.length).to.be.equal(expectedStreaming);
+            };
+
+            it('should split correctly when getting stateful, stateless and batch requests', () => {
+                const requests = buildRequests(2, 2, 2);
+                const result = requestsManager._splitRequestsByType(requests);
+                checkResult(result, 2, 4);
+            });
+
+            it('should work with only batch request types', () => {
+                const requests = buildRequests(6, 0, 0);
+                const result = requestsManager._splitRequestsByType(requests);
+                checkResult(result, 6, 0);
+            });
+
+            it('should work with only streaming request types', () => {
+                const requests = buildRequests(0, 3, 3);
+                const result = requestsManager._splitRequestsByType(requests);
+                checkResult(result, 0, 6);
+            });
+
+            it('should order stateful requests before stateless requests', () => {
+                const statefulCount = 3;
+                const requests = buildRequests(0, statefulCount, 3);
+                const { streamingRequests } = requestsManager._splitRequestsByType(requests);
+                streamingRequests.forEach((request, index) => {
+                    if (index < statefulCount) {
+                        expect(request.requestType).to.equal(stateType.Stateful);
+                    }
+                    else {
+                        expect(request.requestType).to.equal(stateType.Stateless);
+                    }
+                });
+            });
+
+            it('should handle empty input', () => {
+                const result = requestsManager._splitRequestsByType([]);
+                checkResult(result, 0, 0);
+            })
+        });
+
+        describe('_splitAlgorithmsByType Method', () => {
+            it('should return empty objects when input is empty', () => {
+                const result = requestsManager._splitAlgorithmsByType({});
+                expect(result).to.deep.equal({ batchTemplates: {}, streamingTemplates: {} });
+            });
+
+            it('should categorize batch templates without stateType', () => {
+                const templates = {
+                    alg1: { name: 'alg1' },
+                    alg2: { name: 'alg2', stateType: undefined },
+                    alg3: { name: 'alg3', stateType: null }
+                };
+
+                const result = requestsManager._splitAlgorithmsByType(templates);
+                expect(Object.keys(result.batchTemplates)).to.have.members(['alg1', 'alg2', 'alg3']);
+                expect(result.streamingTemplates).to.deep.equal({});
+            });
+
+            it('should categorize streaming templates with stateful or stateless', () => {
+                const templates = {
+                    statefulAlg: { name: 'statefulAlg', stateType: stateType.Stateful },
+                    statelessAlg: { name: 'statelessAlg', stateType: stateType.Stateless }
+                };
+
+                const result = requestsManager._splitAlgorithmsByType(templates);
+                expect(Object.keys(result.streamingTemplates)).to.have.members(['statefulAlg', 'statelessAlg']);
+                expect(result.batchTemplates).to.deep.equal({});
+            });
+
+            it('should categorize mixed batch and streaming correctly', () => {
+                const templates = {
+                    batch1: { name: 'batch1' },
+                    stream1: { name: 'stream1', stateType: stateType.Stateful },
+                    stream2: { name: 'stream2', stateType: stateType.Stateless },
+                    batch2: { name: 'batch2' }
+                };
+
+                const result = requestsManager._splitAlgorithmsByType(templates);
+                expect(Object.keys(result.batchTemplates)).to.have.members(['batch1', 'batch2']);
+                expect(Object.keys(result.streamingTemplates)).to.have.members(['stream1', 'stream2']);
+            });
+
+            it('should ignore templates with non-streaming unknown stateType', () => {
+                const templates = {
+                    batch1: { name: 'batch1' },
+                    unknown: { name: 'unknown', stateType: 'window' } // Not in [Stateful, Stateless]
+                };
+
+                const result = requestsManager._splitAlgorithmsByType(templates);
+                expect(Object.keys(result.batchTemplates)).to.have.members(['batch1']);
+                expect(Object.keys(result.streamingTemplates)).to.not.include('unknown');
+            });
+        });
+
+        describe('_handleBatchRequests Method', () => {
+            it('should return batch requests array', () => {
+                const requests = [
+                    { algorithmName: 'batch-algo', requestType: 'batch' }
+                ];
+                const batchTemplates = {
+                    'batch-algo': { algorithmName: 'batch-algo' }
+                };
+
+                const result = requestsManager._handleBatchRequests(requests, batchTemplates);
+                expect(result).to.be.an('array');
+                expect(result.length).to.be.equal(1);
+            });
+
+            it('should return empty array if no empty lists are given', () => {
+                const result = requestsManager._handleBatchRequests([], {});
+                expect(result).to.be.an('array').that.is.empty;
+            });
+        });
+
+        describe('_createBatchWindow Method', () => {
+            // Reminder - _totalCapacityNow is being reset back to 10 every test (in the beforeEach)
+            it('should return all batch requests if the window size is large enough', () => {
+                const requestCount = 30;
+                const factor = 3;
+                expect(requestsManager._totalCapacityNow * factor).to.be.gte(requestCount, '_totalCapacityNow was changed!');
+                const requests = new Array(requestCount).fill(batchRequest);
+                const batchWindow = requestsManager._createBatchWindow(requests);
+                expect(batchWindow).to.be.an('array');
+                expect(batchWindow).to.deep.equal(requests);
+            });
+
+            it('should return a subset of batch requests based on the window size factor', () => {
+                const requestCount = 31;
+                const factor = 3;
+                expect(requestsManager._totalCapacityNow * factor).to.be.lte(requestCount, '_totalCapacityNow was changed!');
+                const requests = new Array(requestCount).fill(batchRequest);
+                const batchWindow = requestsManager._createBatchWindow(requests);
+                expect(batchWindow).to.be.an('array');
+                expect(batchWindow.length).to.be.lt(requestCount);
+            });
+
+            it('should return empty array when there are no requests', () => {
+                const batchWindow = requestsManager._createBatchWindow([]);
+                expect(batchWindow).to.be.an('array');
+                expect(batchWindow).to.be.empty;
+            });
+        });
+
+        describe('_limitRequestsByCapacity Method', () => {
+            // Explanation: result=count/Total → result * totalCapacityNow (≈ round up)
+
+            it('should return all requests if capacity is high enough', () => {
+                requestsManager._totalCapacityNow = 10;
+
+                const requests = [ algo1Request, algo2Request, algo1Request, algo2Request ];
+
+                const result = requestsManager._limitRequestsByCapacity(requests);
+                expect(result).to.have.lengthOf(4);
+                expect(result).to.deep.equal(requests);
+            });
+
+            it('should limit requests proportionally by algorithm ratio', () => {
+                requestsManager._totalCapacityNow = 3;
+                const requests = [ ...Array(4).fill(algo1Request), algo2Request, batchRequest ];
+
+                // Total:       6
+                // algo1:       4/6 = 0.666.. → 0.666.. * 3 = 2 (≈ 2 allowed)
+                // algo2:       1/6 = 0.166.. → 0.166.. * 3 = 0.5 (≈ 1 allowed)
+                // batch-algo:  1/6 = 0.166.. → 0.166.. * 3 = 0.5 (≈ 1 allowed)
+
+                const result = requestsManager._limitRequestsByCapacity(requests);
+
+                const counts = result.reduce((acc, r) => {
+                    acc[r.algorithmName] = (acc[r.algorithmName] || 0) + 1;
+                    return acc;
+                }, {});
+
+                expect(result.length).to.be.at.most(4);
+                expect(counts[algo1Request.algorithmName]).to.be.at.most(2);
+                expect(counts[algo2Request.algorithmName]).to.be.equal(1);
+                expect(counts[batchRequest.algorithmName]).to.be.equal(1);
+            });
+
+            it('should not include more requests than allowed per algorithm', () => {
+                requestsManager._totalCapacityNow = 2;
+
+                const requests = [ algo1Request, algo1Request, algo1Request, algo2Request ];
+
+                // Total: 4
+                // a: 3/4 = 0.75 → 0.75 * 2 = 1.5 (≈ 2 allowed)
+                // b: 1/4 = 0.25 → 0.25 * 2 = 0.5 (≈ 1 allowed)
+
+                const result = requestsManager._limitRequestsByCapacity(requests);
+
+                const countA = result.filter(r => r.algorithmName === algo1Request.algorithmName).length;
+                const countB = result.filter(r => r.algorithmName === algo2Request.algorithmName).length;
+
+                expect(result.length).to.be.at.most(3);
+                expect(countA).to.be.at.most(2);
+                expect(countB).to.be.at.most(1);
+            });
+
+            it('should return an empty array if given no requests', () => {
+                requestsManager._totalCapacityNow = 5;
+                const result = requestsManager._limitRequestsByCapacity([]);
+                expect(result).to.deep.equal([]);
+            });
+
+            it('should handle single algorithm with multiple requests and limited capacity', () => {
+                requestsManager._totalCapacityNow = 1;
+
+                const requests = [ algo1Request, algo1Request, algo1Request ];
+
+                const result = requestsManager._limitRequestsByCapacity(requests);
+
+                expect(result.length).to.equal(1);
+                expect(result[0].algorithmName).to.equal(algo1Request.algorithmName);
+            });
+
+            it('should distribute fairly across multiple algorithms when possible', () => {
+                requestsManager._totalCapacityNow = 6;
+
+                const requests = [ algo1Request, algo1Request, algo1Request, algo2Request, algo2Request, batchRequest ];
+
+                // Total: 6
+                // a: 0.5 → 3
+                // b: 0.33 → 2
+                // c: 0.17 → 1
+
+                const result = requestsManager._limitRequestsByCapacity(requests);
+
+                const counts = result.reduce((acc, r) => {
+                    acc[r.algorithmName] = (acc[r.algorithmName] || 0) + 1;
+                    return acc;
+                }, {});
+
+                expect(result.length).to.equal(6);
+                expect(counts[algo1Request.algorithmName]).to.equal(3);
+                expect(counts[algo2Request.algorithmName]).to.equal(2);
+                expect(counts[batchRequest.algorithmName]).to.equal(1);
+            });
+        });
+
+        describe('_calculateRequestRatios Method', () => {
+            it('should return zero total and empty algorithm stats when there are no requests', () => {
+                const result = requestsManager._calculateRequestRatios([], 10);
+                expect(result.total).to.equal(0);
+                expect(result.algorithms).to.deep.equal({});
+            });
+
+            it('should return total 1 and one algorithm count when there is only one request', () => {
+                const requests = [ algo1Request ];
+                const result = requestsManager._calculateRequestRatios(requests);
+                expect(result.total).to.equal(1);
+                expect(result.algorithms[algo1Request.algorithmName].count).to.equal(1);
+            });
+
+            it('should correctly calculate counts for a single algorithm with multiple requests', () => {
+                const requests = [ algo1Request, algo1Request ];
+                const result = requestsManager._calculateRequestRatios(requests);
+                expect(result.total).to.equal(2);
+                expect(result.algorithms[algo1Request.algorithmName].count).to.equal(2);
+            });
+
+            it('should correctly calculate counts and list for multiple different algorithms', () => {
+                const requests = [ algo1Request, algo2Request, algo1Request ];
+                const result = requestsManager._calculateRequestRatios(requests);
+                expect(result.total).to.equal(3);
+                expect(result.algorithms[algo1Request.algorithmName].count).to.equal(2);
+                expect(result.algorithms[algo2Request.algorithmName].count).to.equal(1);
+            });
+
+            it('should calculate ratios and required capacity when capacity is provided', () => {
+                const requests = [ algo1Request, algo1Request, algo2Request ];
+                const capacity = 10;
+                const result = requestsManager._calculateRequestRatios(requests, capacity);
+                expect(result.algorithms[algo1Request.algorithmName].ratio).to.equal(2 / 3);
+                expect(result.algorithms[algo1Request.algorithmName].required).to.equal(10 * (2 / 3));
+                expect(result.algorithms[algo2Request.algorithmName].ratio).to.equal(1 / 3);
+                expect(result.algorithms[algo2Request.algorithmName].required).to.equal(10 * (1 / 3));
+            });
+
+            it('should not exceed total requests when capacity is larger than total number of requests', () => {
+                const requests = [ algo1Request, algo2Request ];
+                const capacity = 100;
+                const result = requestsManager._calculateRequestRatios(requests, capacity);
+                expect(result.algorithms[algo1Request.algorithmName].required).to.equal(50); // 100 * (1/2)
+                expect(result.algorithms[algo2Request.algorithmName].required).to.equal(50); // 100 * (1/2)
+            });
+        });
+
+        describe('_handleStreamingRequests Method', () => {
+            it('should return streaming requests array', () => {
+                const requests = [
+                    { algorithmName: 'stream-algo', requestType: stateType.Stateful }
+                ];
+                const streamingTemplates = {
+                    'stream-algo': { algorithmName: 'stream-algo' }
+                };
+
+                const result = requestsManager._handleStreamingRequests(requests, streamingTemplates);
+                expect(result).to.be.an('array');
+                expect(result.length).to.be.equal(1);
+            });
+
+            it('should return empty array if no empty lists are given', () => {
+                const result = requestsManager._handleStreamingRequests([], {});
+                expect(result).to.be.an('array').that.is.empty;
+            });
+        });
+
+        describe('_merge Method', () => {
+            it('should return an empty array when both inputs are empty', () => {
+                const result = requestsManager._merge([], []);
+                expect(result).to.deep.equal([]);
+            });
+
+            it('should return all requisites with streaming before batch', () => {
+                const batch = [ { algorithmName: 'batch1', requestType: 'batch', isRequisite: true } ];
+                const streaming = [
+                    { algorithmName: 'stream1', requestType: stateType.Stateful, stateType: stateType.Stateful, isRequisite: true },
+                    { algorithmName: 'stream2', requestType: stateType.Stateless, stateType: stateType.Stateless, isRequisite: true }
+                ];
+
+                const result = requestsManager._merge(batch, streaming);
+                expect(result.map(r => r.algorithmName)).to.deep.equal(['stream1', 'stream2', 'batch1']);
+            });
+
+            it('should return requisites followed by stateful and stateless streaming, then batch', () => {
+                const batch = [
+                    { algorithmName: 'batch1', requestType: 'batch' },
+                    { algorithmName: 'batch2', requestType: 'batch', isRequisite: true }
+                ];
+                const streaming = [
+                    { algorithmName: 'stream1', requestType: stateType.Stateful, stateType: stateType.Stateful, isRequisite: true },
+                    { algorithmName: 'stream2', requestType: stateType.Stateful, stateType: stateType.Stateful },
+                    { algorithmName: 'stream3', requestType: stateType.Stateless, stateType: stateType.Stateless }
+                ];
+
+                const result = requestsManager._merge(batch, streaming);
+                expect(result.map(r => r.algorithmName)).to.deep.equal([
+                    'stream1', // requisite (streaming)
+                    'batch2',  // requisite (batch)
+                    'stream2', // stateful
+                    'stream3', // stateless
+                    'batch1'   // normal batch
+                ]);
+            });
+
+            it('should order non-requisite streaming by stateful before stateless', () => {
+                const streaming = [
+                    { algorithmName: 's1', requestType: stateType.Stateless, stateType: stateType.Stateless },
+                    { algorithmName: 's2', requestType: stateType.Stateful, stateType: stateType.Stateful },
+                    { algorithmName: 's3', requestType: stateType.Stateless, stateType: stateType.Stateless },
+                    { algorithmName: 's4', requestType: stateType.Stateful, stateType: stateType.Stateful }
+                ];
+
+                const result = requestsManager._merge([], streaming);
+                expect(result.map(r => r.algorithmName)).to.deep.equal(['s2', 's4', 's1', 's3']);
+            });
+
+            it('should place all non-requisite batch requests last', () => {
+                const batch = [
+                    { algorithmName: 'b1', requestType: 'batch' },
+                    { algorithmName: 'b2', requestType: 'batch' }
+                ];
+
+                const result = requestsManager._merge(batch, []);
+                expect(result.map(r => r.algorithmName)).to.deep.equal(['b1', 'b2']);
+            });
+
+            it('should not include requisites more than once', () => {
+                const streaming = [
+                    { algorithmName: 's1', requestType: stateType.Stateful, stateType: stateType.Stateful, isRequisite: true },
+                    { algorithmName: 's2', requestType: stateType.Stateful, stateType: stateType.Stateful }
+                ];
+                const batch = [
+                    { algorithmName: 'b1', requestType: 'batch', isRequisite: true },
+                    { algorithmName: 'b2', requestType: 'batch' }
+                ];
+
+                const result = requestsManager._merge(batch, streaming);
+
+                // Ensure s1 and b1 appear only once, despite also being requisites
+                const names = result.map(r => r.algorithmName);
+                const uniqueNames = new Set(names);
+                expect(names.length).to.equal(uniqueNames.size);
+            });
+
+            it('should handle only requisites correctly', () => {
+                const batch = [
+                    { algorithmName: 'b1', requestType: 'batch', isRequisite: true }
+                ];
+                const streaming = [
+                    { algorithmName: 's1', requestType: stateType.Stateful, stateType: stateType.Stateful, isRequisite: true }
+                ];
+
+                const result = requestsManager._merge(batch, streaming);
+                expect(result.map(r => r.algorithmName)).to.deep.equal(['s1', 'b1']);
+            });
+
+            it('should handle only non-requisite streaming', () => {
+                const streaming = [
+                    { algorithmName: 's1', requestType: stateType.Stateful, stateType: stateType.Stateful },
+                    { algorithmName: 's2', requestType: stateType.Stateless, stateType: stateType.Stateless }
+                ];
+
+                const result = requestsManager._merge([], streaming);
+                expect(result.map(r => r.algorithmName)).to.deep.equal(['s1', 's2']);
+            });
+
+            it('should handle only non-requisite batch', () => {
+                const batch = [
+                    { algorithmName: 'b1', requestType: 'batch' },
+                    { algorithmName: 'b2', requestType: 'batch' }
+                ];
+
+                const result = requestsManager._merge(batch, []);
+                expect(result.map(r => r.algorithmName)).to.deep.equal(['b1', 'b2']);
+            });
+
+            it('should preserve internal order within each category', () => {
+                const batch = [
+                    { algorithmName: 'b1', requestType: 'batch' },
+                    { algorithmName: 'b2', requestType: 'batch' }
+                ];
+                const streaming = [
+                    { algorithmName: 's1', requestType: stateType.Stateful, stateType: stateType.Stateful },
+                    { algorithmName: 's2', requestType: stateType.Stateless, stateType: stateType.Stateless }
+                ];
+
+                const result = requestsManager._merge(batch, streaming);
+                expect(result.map(r => r.algorithmName)).to.deep.equal(['s1', 's2', 'b1', 'b2']);
             });
         });
     });
