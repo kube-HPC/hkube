@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequestsByType, normalizeColdWorkers } = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
 const { twoCompleted, workersStub, jobsStub, resources } = require('./stub');
 const { nodes, pods } = resources;
 let { templateStore } = require('./stub');
@@ -122,88 +122,29 @@ describe('normalize', () => {
 
     describe('normalize hot workers', () => {
         it('should work with undefined', () => {
-            const res = normalizeHotRequestsByType();
+            const res = normalizeHotRequests();
             expect(res).to.have.lengthOf(0);
         });
 
         it('should work with empty data', () => {
             const normRequests = [];
             const algorithmTemplates = {};
-            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
 
         it('should work with empty normRequests', () => {
             const normRequests = null;
             const algorithmTemplates = {};
-            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
 
         it('should work with empty algorithmTemplates', () => {
             const normRequests = [];
             const algorithmTemplates = null;
-            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
-        });
-
-        const cases = [
-            undefined,
-            stateType.Stateful,
-            stateType.Stateless,
-            [stateType.Stateful, stateType.Stateless]
-        ];
-        
-        const _getAdditionalRequestsAmount = (algorithmNames, currStateType) => {
-            return algorithmNames.reduce((acc, algorithmName) => {
-                if (!algorithmTemplates[algorithmName]) {
-                    acc += 1;
-                }
-                else {
-                    const algStateType = algorithmTemplates[algorithmName].stateType;
-                    if ((!Array.isArray(currStateType) && algStateType !== currStateType) || (Array.isArray(currStateType) && !currStateType.includes(algStateType)))
-                        acc += 1;
-                }
-                return acc;
-            }, 0);
-        };
-
-        const _getHotWorkersAmount = (algorithmNames, currStateType) => {
-            const minHotWorkers = Object.values(algorithmTemplates)
-                    .filter(a => a.minHotWorkers && (a.stateType === currStateType || (Array.isArray(currStateType) && currStateType.includes(a.stateType))))
-                    .map(a => a.minHotWorkers)
-                    .reduce((a, b) => a + b, 0);
-            return minHotWorkers;
-        };
-
-        cases.forEach((currStateType) => {
-            it('should return hot workers with stateType: ' + currStateType, () => {
-                const algorithmNames = ["green-alg", "black-alg", "eval-alg", "yellow-alg", "algo-state-type-stateful", "algo-state-type-stateless", "algo-state-type-undefined"];
-                const normRequests = algorithmNames.map(algorithmName => ({ algorithmName }));
-                
-                const minHotWorkers = _getHotWorkersAmount(algorithmNames, currStateType);
-                const additionalRequests = _getAdditionalRequestsAmount(algorithmNames, currStateType);
-
-                const response = normalizeHotRequestsByType(normRequests, algorithmTemplates, currStateType);
-                expect(response).to.have.lengthOf(minHotWorkers + additionalRequests);
-                expect(response[0]).to.have.property('algorithmName');
-                expect(response[0]).to.have.property('hotWorker');
-            });
-        });
-
-        cases.forEach((currStateType) => {
-            it('should return hot workers and not hot workers with stateType: ' + currStateType, () => {
-                const algorithmNames = ["green-alg", "black-alg", "eval-alg", "yellow-alg", "nothot-alg", "nothot-alg", "nothot-alg"];
-                const normRequests = algorithmNames.map(algorithmName => ({ algorithmName }));
-
-                const minHotWorkers = _getHotWorkersAmount(algorithmNames, currStateType);
-                const additionalRequests = _getAdditionalRequestsAmount(algorithmNames, currStateType);
-
-                const response = normalizeHotRequestsByType(normRequests, algorithmTemplates, currStateType);
-                expect(response).to.have.lengthOf(minHotWorkers + additionalRequests);
-                expect(response[0]).to.have.property('algorithmName');
-                expect(response[0]).to.have.property('hotWorker');
-            });
         });
     });
 
