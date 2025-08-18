@@ -50,7 +50,7 @@ const routes = (options) => {
     });
     router.post('/stop', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const userName = keycloak.getPreferredUsername(req);
-        const { jobId, pipelineName, startTime, reason } = req.body;
+        const { jobId, pipelineName, startTime, reason, statusToStop } = req.body;
         let datesRange;
         let search;
         let errormsg;
@@ -65,7 +65,22 @@ const routes = (options) => {
             search.query.pipelineName = jobId;
         }
         const searchResponse = await Execution.search({ ...search });
-        const jobsToStop = searchResponse.hits.filter(j => j.status.status === pipelineStatuses.ACTIVE || j.status.status === pipelineStatuses.PENDING || j.status.status === pipelineStatuses.PAUSED);
+        let statusesToFilter;
+        if (Array.isArray(statusToStop) && statusToStop.length > 0) {
+            statusesToFilter = statusToStop;
+        }
+        else if (typeof statusToStop === 'string') {
+            if (statusToStop.includes(',')) {
+                statusesToFilter = statusToStop.split(',').map(s => s.trim());
+            }
+            else {
+                statusesToFilter = [statusToStop];
+            }
+        }
+        else {
+            statusesToFilter = [pipelineStatuses.ACTIVE, pipelineStatuses.PENDING, pipelineStatuses.PAUSED];
+        }
+        const jobsToStop = searchResponse.hits.filter(j => statusesToFilter.includes(j.status.status));
         if (jobsToStop.length === 0) {
             if (jobId) {
                 errormsg = `jobId ${jobId} Not Found`;
