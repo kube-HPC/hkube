@@ -135,12 +135,12 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     const batchCount = workersStateManager.countBatchWorkers(algorithmTemplates) + jobsHandler.createdJobsLists.batch.length;
     requestsManager.updateCapacity(batchCount);
-    const { maxFilteredRequests, finalRequests } = requestsManager.prepareAlgorithmRequests(
+    const requests = requestsManager.prepareAlgorithmRequests(
         algorithmRequests, algorithmTemplates, workersStateManager.jobAttachedWorkers, workersStateManager.workerCategories
     );
 
     const jobsInfo = await jobsHandler.finalizeScheduling(workersStateManager, algorithmTemplates, normResources, versions,
-        maxFilteredRequests, finalRequests, registry, clusterOptions, workerResources, options, reconcileResult);
+        requests, registry, clusterOptions, workerResources, options, reconcileResult);
     
     // add created and skipped info
     const workerStats = _calcStats(workersStateManager.normalizedWorkers);
