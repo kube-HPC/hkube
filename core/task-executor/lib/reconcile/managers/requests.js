@@ -212,7 +212,7 @@ class RequestsManager {
         const runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
         const runningWorkersMap = this._workersToMap(runningWorkersList);
 
-        normalizedRequests.forEach((request, idx) => {
+        normalizedRequests.forEach((request, index) => {
             const { algorithmName } = request;
             const quotaGuarantee = algorithmTemplates[algorithmName]?.quotaGuarantee;
 
@@ -224,7 +224,7 @@ class RequestsManager {
                 if (missing > 0) {
                     // pick up to `missing` requests for this algorithm from the full normalizedRequests array
                     const required = normalizedRequests
-                        .map((r, j) => ({ index: j, alg: r }))
+                        .map((req, idx) => ({ index: idx, alg: req }))
                         .filter(x => x.alg.algorithmName === algorithmName)
                         .slice(0, missing);
                     
@@ -242,7 +242,7 @@ class RequestsManager {
                     requests.push(request);
                 }
             }
-            else if (!indicesToIgnore[idx]) {
+            else if (!indicesToIgnore[index]) {
                 // not a reserved index -> include in normal requests
                 requests.push(request);
             }
