@@ -1,7 +1,7 @@
 const { stateType } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
-const { normalizeHotRequestsByType, normalizeRequests } = require('../normalize');
+const { normalizeHotRequests, normalizeRequests } = require('../normalize');
 const component = 'RequestsManager';
 
 /**
@@ -19,13 +19,10 @@ class RequestsManager {
      * Pipeline steps:
      * 1. Normalize raw algorithm requests into a consistent structure.
      * 2. Filter out requests for algorithms that have reached `maxWorkers`.
-     * 3. Split requests into batch and streaming types.
-     * 4. Prioritize quota-guaranteed algorithms (requisite requests).
-     * 5. Create a batch window based on available capacity.
-     * 6. Include hot worker requests.
-     * 7. Calculate per-algorithm ratios and required request counts (for batch).
-     * 8. Trim requests to match capacity per algorithm (for batch).
-     * 9. Merge streaming and batch into a final ordered list.
+     * 3. Prioritize quota-guaranteed algorithms (requisite requests).
+     * 4. Split requests & algorithm templates into batch and streaming types.
+     * 5. Handle batch and streaming request types.
+     * 6. Merge streaming and batch into a final ordered list.
      *
      * @param {Object[]} algorithmRequests - Incoming raw algorithm requests from etcd.
      * @param {Object} algorithmTemplates - Algorithm definitions from DB.
@@ -34,33 +31,26 @@ class RequestsManager {
      */
     prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, jobAttachedWorkers, workerCategories) {
         // 1. Normalize incoming requests
-        const normalizedRequests = normalizeRequests(algorithmRequests, algorithmTemplates);
+        let requests = normalizeRequests(algorithmRequests, algorithmTemplates);
 
         // 2. Filter out requests exceeding maxWorkers limit
-        const maxFilteredRequests = this._filterByMaxWorkers(algorithmTemplates, normalizedRequests, jobAttachedWorkers);
+        requests = this._filterByMaxWorkers(algorithmTemplates, requests, jobAttachedWorkers);
 
-        // 3. Categorize into batch and streaming
-        const categorizedRequests = this._splitByType(maxFilteredRequests);
+        // 3. Move quota-guaranteed requests to the front
+        requests = this._prioritizeQuotaRequisite(requests, algorithmTemplates, workerCategories);
 
-        // 4. Move quota-guaranteed requests to the front
-        const { batchRequisiteRequests, streamingRequisiteRequests } = this._prioritizeQuotaGuaranteeRequests(categorizedRequests, algorithmTemplates, workerCategories);
-        
-        // 5. Create a limited batch window in order to handle batch requests gradually.
-        const batchRequestWindow = this._createBatchWindow(batchRequisiteRequests);
+        // 4. Categorize into batch and streaming
+        let { batchRequests, streamingRequests } = this._splitRequestsByType(requests);
+        const { batchTemplates, streamingTemplates } = this._splitAlgorithmsByType(algorithmTemplates);
 
-        // 6. Add hot worker requests
-        const { hotBatchRequests, hotStreamingRequests } = this._addHotRequests(batchRequestWindow, streamingRequisiteRequests, algorithmTemplates);
-        
-        // 7. Calculate per-algorithm request ratios
-        const requestTypes = this._calculateRequestRatios(hotBatchRequests, this._totalCapacityNow);
+        // 5. Handle batch and streaming requests separately
+        batchRequests = this._handleBatchRequests(batchRequests, batchTemplates);
+        streamingRequests = this._handleStreamingRequests(streamingRequests, streamingTemplates);
 
-        // 8. Limit requests amount to required per-algorithm count
-        const limitedBatchRequests = this._limitRequestsByCapacity(hotBatchRequests, requestTypes);
+        // 6. Merge requisites, streaming, and batch into final list
+        requests = this._merge(batchRequests, streamingRequests);
 
-        // 9. Merge requisites, streaming, and batch into final list
-        const finalRequests = this._mergeFinalRequests(limitedBatchRequests, hotStreamingRequests);
-
-        return { maxFilteredRequests, finalRequests }; // Requests after filtering by max worker limits & Final ordered list of requests for execution
+        return requests; // Final ordered list of requests for execution
     }
 
     /**
@@ -101,56 +91,6 @@ class RequestsManager {
             return false;
         });
         return filtered;
-    }
-
-    /**
-     * Splits a list of requests into batch and streaming categories.
-     * Streaming requests include both Stateful and Stateless types.
-     * Stateful requests are placed at the front of the streaming list.
-     *
-     * @private
-     * @param {Object[]} requests - Array of normalized request objects.
-     * @returns {{ batchRequests: Object[], streamingRequests: Object[] }}
-     *          An object containing separate arrays for batch and streaming requests.
-     */
-    _splitByType(requests) {
-        const batchRequests = [];
-        const streamingRequests = [];
-
-        requests.forEach(request => {
-            const isStreaming = request.requestType === stateType.Stateful || request.requestType === stateType.Stateless; // Skips window
-            if (isStreaming) {
-                if (request.requestType === stateType.Stateful) {
-                    streamingRequests.unshift(request); // Stateful at front
-                }
-                else {
-                    streamingRequests.push(request);
-                }
-            }
-            else {
-                batchRequests.push(request);
-            }
-        });
-        log.trace(`Categorized requests: ${batchRequests.length} batch, ${streamingRequests.length} streaming`, { component });
-        return { batchRequests, streamingRequests };
-    }
-
-    /**
-     * Applies quota guarantee prioritization to categorized requests.
-     * Quota-guaranteed requests are handled first for both batch and streaming categories.
-     *
-     * @private
-     * @param {{ batchRequests: Object[], streamingRequests: Object[] }} categorizedRequests - Requests split into batch and streaming.
-     * @param {Object} algorithmTemplates - Map of algorithmName -> algorithm template.
-     * @param {Object} workerCategories - Categorized workers (idle, active, paused, pending, bootstrap).
-     * @returns {{ batchRequisiteRequests: Object[], streamingRequisiteRequests: Object[] }}
-     *          Requests with quota-guaranteed items prioritized in each category.
-     */
-    _prioritizeQuotaGuaranteeRequests(categorizedRequests, algorithmTemplates, workerCategories) {
-        const { batchRequests, streamingRequests } = categorizedRequests;
-        const batchRequisiteRequests = this._prioritizeQuotaRequisite(batchRequests, algorithmTemplates, workerCategories);
-        const streamingRequisiteRequests = this._prioritizeQuotaRequisite(streamingRequests, algorithmTemplates, workerCategories);
-        return { batchRequisiteRequests, streamingRequisiteRequests };
     }
 
     /**
@@ -320,6 +260,89 @@ class RequestsManager {
     }
 
     /**
+     * Splits a list of requests into batch and streaming categories.
+     * Streaming requests include both Stateful and Stateless types.
+     * Stateful requests are placed at the front of the streaming list.
+     *
+     * @private
+     * @param {Object[]} requests - Array of normalized request objects.
+     * @returns {{ batchRequests: Object[], streamingRequests: Object[] }}
+     *          An object containing separate arrays for batch and streaming requests.
+     */
+    _splitRequestsByType(requests) {
+        const batchRequests = [];
+        const streamingRequests = [];
+
+        requests.forEach(request => {
+            const isStreaming = request.requestType === stateType.Stateful || request.requestType === stateType.Stateless; // Skips window
+            if (isStreaming) {
+                if (request.requestType === stateType.Stateful) {
+                    streamingRequests.unshift(request); // Stateful at front
+                }
+                else {
+                    streamingRequests.push(request);
+                }
+            }
+            else {
+                batchRequests.push(request);
+            }
+        });
+        log.trace(`Categorized requests: ${batchRequests.length} batch, ${streamingRequests.length} streaming`, { component });
+        return { batchRequests, streamingRequests };
+    }
+
+    /**
+     * Splits a list of algorithm templates into batch and streaming categories.
+     * Streaming templates include both Stateful and Stateless types.
+     *
+     * @private
+     * @param {Object} algorithmTemplates - Object of algorithm templates objects.
+     * @returns {{ batchRequests: Object[], streamingRequests: Object[] }}
+     *          An object containing separate arrays for batch and streaming requests.
+     */
+    _splitAlgorithmsByType(algorithmTemplates) {
+        const batchTemplates = {};
+        const streamingTemplates = {};
+        const streamingStateTypes = [stateType.Stateful, stateType.Stateless];
+
+        Object.entries(algorithmTemplates).forEach(([algName, algSpec]) => {
+            if (!algSpec.stateType) {
+                batchTemplates[algName] = algSpec;
+            }
+            else if (streamingStateTypes.includes(algSpec.stateType)) {
+                streamingTemplates[algName] = algSpec;
+            }
+        });
+
+        return { batchTemplates, streamingTemplates };
+    }
+
+    /**
+     * Handles batch requests type processing process:
+     * 1. Create a batch window based on available capacity.
+     * 2. Include hot worker requests.
+     * 3. Calculate per-algorithm ratios and required request counts.
+     * 4. Cutting requests to match capacity per algorithm.
+     *
+     * @private
+     * @param {Object[]} requests - Array of batch request type.
+     * @param {Object} batchTemplates - Array of batch algorithm templates objects.
+     * @returns {Object[]} An array containing processed batch requests.
+     */
+    _handleBatchRequests(requests, batchTemplates) {
+        // Create a limited batch window in order to handle batch requests gradually.
+        requests = this._createBatchWindow(requests);
+
+        // Add hot worker requests
+        requests = normalizeHotRequests(requests, batchTemplates);
+
+        // Limit requests amount to required per-algorithm count
+        requests = this._limitRequestsByCapacity(requests);
+
+        return requests;
+    }
+
+    /**
      * Creates a subset of batch requests based on the current total capacity.
      *
      * @private
@@ -334,19 +357,31 @@ class RequestsManager {
     }
 
     /**
-     * Adds hot worker requests to both batch and streaming request arrays.
+     * Restricts the number of requests per algorithm based on calculated capacity.
+     *
+     * For each algorithm, only allows requests up to the `required` count
+     * defined in `requestTypes.algorithms[algorithmName].required`.
+     * Requests beyond that limit for a given algorithm are excluded.
      *
      * @private
-     * @param {Object[]} batchRequests - Array of batch requests.
-     * @param {Object[]} streamingRequests - Array of streaming requests.
-     * @param {Object} algorithmTemplateStore - Algorithm definitions from DB.
-     * @returns {{ hotBatchRequests: Object[], hotStreamingRequests: Object[] }}
-     *          Batch and streaming requests updated with hot worker requests.
+     * @param {Object[]} totalRequests - Array of requests to limit.
+     * @returns {Object[]} Limited array of requests, respecting per-algorithm capacity.
      */
-    _addHotRequests(batchRequests, streamingRequests, algorithmTemplateStore) {
-        const hotBatchRequests = normalizeHotRequestsByType(batchRequests, algorithmTemplateStore);
-        const hotStreamingRequests = normalizeHotRequestsByType(streamingRequests, algorithmTemplateStore, [stateType.Stateful, stateType.Stateless]);
-        return { hotBatchRequests, hotStreamingRequests };
+    _limitRequestsByCapacity(totalRequests) {
+        // Calculate per-algorithm request ratios
+        const requestTypes = this._calculateRequestRatios(totalRequests, this._totalCapacityNow);
+
+        const capacityLimitedRequests = [];
+        totalRequests.forEach(req => {
+            const currentStats = this._calculateRequestRatios(capacityLimitedRequests);
+            const { required: maxAllowedForAlgorithm } = requestTypes.algorithms[req.algorithmName];
+            const algorithm = currentStats.algorithms[req.algorithmName];
+
+            if (!algorithm || algorithm.count < maxAllowedForAlgorithm) {
+                capacityLimitedRequests.push(req);
+            }
+        });
+        return capacityLimitedRequests;
     }
 
     /**
@@ -383,50 +418,54 @@ class RequestsManager {
     }
 
     /**
-     * Restricts the number of requests per algorithm based on calculated capacity.
-     *
-     * For each algorithm, only allows requests up to the `required` count
-     * defined in `requestTypes.algorithms[algorithmName].required`.
-     * Requests beyond that limit for a given algorithm are excluded.
+     * Handles streaming requests type processing process:
+     * 1. Create a batch window based on available capacity.
+     * 2. Include hot worker requests.
+     * 3. Calculate per-algorithm ratios and required request counts.
+     * 4. Cutting requests to match capacity per algorithm.
      *
      * @private
-     * @param {Object[]} totalRequests - Array of requests to limit.
-     * @param {{ total: number, algorithms: Object }} requestTypes - Result of `_calculateRequestRatios`
-     *        containing per-algorithm stats with `required` counts.
-     * @returns {Object[]} Limited array of requests, respecting per-algorithm capacity.
+     * @param {Object[]} requests - Array of streaming request type.
+     * @param {Object} streamingTemplates - Array of streaming algorithm templates objects.
+     * @returns {Object[]} An array containing processed streaming requests.
      */
-    _limitRequestsByCapacity(totalRequests, requestTypes) {
-        const capacityLimitedRequests = [];
-        totalRequests.forEach(req => {
-            const currentStats = this._calculateRequestRatios(capacityLimitedRequests);
-            const { required: maxAllowedForAlgorithm } = requestTypes.algorithms[req.algorithmName];
-            const algorithm = currentStats.algorithms[req.algorithmName];
+    _handleStreamingRequests(requests, streamingTemplates) {
+        // Add hot worker requests
+        requests = normalizeHotRequests(requests, streamingTemplates);
 
-            if (!algorithm || algorithm.count < maxAllowedForAlgorithm) {
-                capacityLimitedRequests.push(req);
-            }
-        });
-        return capacityLimitedRequests;
+        return requests;
     }
 
     /**
      * Creates a combined list of requests in the following order:
-     * 1. Requisite requests (from both streaming and batch, first streaming then batch).
-     * 2. Remaining streaming requests.
+     * 1. Requisite requests (from both streaming and batch), with streaming requisites first, followed by batch requisites.
+     * 2. Remaining streaming requests, ordered by:
+     *    a. Stateful streaming requests.
+     *    b. Stateless streaming requests.
      * 3. Remaining batch requests.
      *
-     * @param {Array} batchRequests - List of batch-type requests.
-     * @param {Array} streamingRequests - List of streaming-type requests.
-     * @returns {Array} Combined and ordered list of all requests.
+     * @private
+     * @param {Array<Object>} batchRequests - List of batch-type request objects.
+     * @param {Array<Object>} streamingRequests - List of streaming-type request objects.
+     * @returns {Array<Object>} Combined and ordered list of all request objects.
      */
-    _mergeFinalRequests(batchRequests, streamingRequests) {
+    _merge(batchRequests, streamingRequests) {
         const isRequisite = req => req.isRequisite;
 
         const requisites = [...streamingRequests, ...batchRequests].filter(isRequisite);
-        const streaming = streamingRequests.filter(req => !isRequisite(req));
-        const batch = batchRequests.filter(req => !isRequisite(req));
 
-        return [...requisites, ...streaming, ...batch];
+        const nonRequisiteStreaming = streamingRequests.filter(req => !isRequisite(req));
+        const statefulStreaming = nonRequisiteStreaming.filter(req => req.stateType === stateType.Stateful);
+        const statelessStreaming = nonRequisiteStreaming.filter(req => req.stateType === stateType.Stateless);
+
+        const nonRequisiteBatch = batchRequests.filter(req => !isRequisite(req));
+
+        return [
+            ...requisites,
+            ...statefulStreaming,
+            ...statelessStreaming,
+            ...nonRequisiteBatch
+        ];
     }
 }
 
