@@ -56,7 +56,7 @@ class JobsHandler {
      * @param {Object} options - Confguration containing additional job creation options.
      * @param {Object} reconcileResult - Scheduling reconcile stats by algorithm.
      */
-    async finalizeScheduling(WorkersStateManager, algorithmTemplates, normResources, versions, maxFilteredRequests, requests, registry, clusterOptions, workerResources, options, reconcileResult) {
+    async finalizeScheduling(WorkersStateManager, algorithmTemplates, normResources, versions, requests, registry, clusterOptions, workerResources, options, reconcileResult) {
         // 1. Clone list of already created jobs (avoid mutating original)
         const jobsCreated = clonedeep(Object.values(this.createdJobsLists).flat());
         
@@ -89,7 +89,7 @@ class JobsHandler {
         created.forEach(job => this.createdJobsLists[job.stateType].push(job));
 
         // 8. Update unscheduled algorithms tracking
-        this._checkUnscheduled(created, skipped, maxFilteredRequests, algorithmTemplates);
+        this._checkUnscheduled(created, skipped, requests, algorithmTemplates);
 
         // 9. Return jobs info for reporting
         return { created, skipped, toResume, toStop: toStopFiltered };
