@@ -128,6 +128,73 @@ describe('Managers tests', () => {
             requestsManager._totalCapacityNow = 10; // "init"
         });
 
+        describe('prepareAlgorithmRequests Method', () => {
+            // Not too much to test here, since all it's pipeline methods are being tested below.
+
+            it('should process a minimal request list without errors', () => {
+                const requests = [ { data: [ { name: 'alg1' } ] } ];
+                const templates = { alg1: {} };
+                const result = requestsManager.prepareAlgorithmRequests(requests, templates, [], {
+                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: []
+                });
+
+                expect(result).to.be.an('array');
+                expect(result.length).to.be.greaterThan(0);
+            });
+
+            it('should return an array of properly structured requests', () => {
+                const requests = [ { data: [ { name: 'stateful-alg' }, { name: 'batch-alg' } ] } ];
+                const templates = { 'stateful-alg': { stateType: stateType.Stateful }, 'batch-alg': {} };
+
+                const result = requestsManager.prepareAlgorithmRequests(requests, templates, [], {
+                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: []
+                });
+
+                expect(result).to.be.an('array');
+                expect(result.length).to.be.greaterThan(0);
+                result.forEach(req => {
+                    expect(req).to.have.property('algorithmName');
+                    expect(req).to.have.property('requestType');
+                });
+            });
+
+            it('should filter out requests when maxWorkers limit is reached', () => {
+                const requests = [ { data: [ { name: 'limited-alg' }, { name: 'limited-alg' } ] } ];
+                const templates = { 'limited-alg': { maxWorkers: 1 } };
+                const jobWorkers = [
+                    { algorithmName: 'limited-alg' } // already using 1 worker
+                ];
+
+                const result = requestsManager.prepareAlgorithmRequests(requests, templates, jobWorkers, {
+                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: []
+                });
+
+                expect(result.length).to.equal(0);
+            });
+
+            it('should move quota-required requests to the front', () => {
+                const requests = [ { data: [ { name: 'other' }, { name: 'guaranteed' } ] } ];
+                const templates = {
+                    'guaranteed': { quotaGuarantee: 1 },
+                    'other': {}
+                };
+
+                const result = requestsManager.prepareAlgorithmRequests(requests, templates, [], {
+                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: []
+                });
+
+                expect(result[0].algorithmName).to.equal('guaranteed');
+            });
+
+            it('should return an empty array when input is empty', () => {
+                const result = requestsManager.prepareAlgorithmRequests([], {}, [], {
+                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: []
+                });
+                expect(result).to.deep.equal([]);
+            });
+
+        });
+
         describe('updateCapacity Method', () => {
             it('should not pass 50 capacity', () => {
                 requestsManager.updateCapacity(666666);
@@ -879,5 +946,9 @@ describe('Managers tests', () => {
                 expect(result.map(r => r.algorithmName)).to.deep.equal(['s1', 's2', 'b1', 'b2']);
             });
         });
+    });
+
+    describe('JobsHandler Class', () => {
+
     });
 });
