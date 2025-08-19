@@ -540,6 +540,18 @@ const templateStore = [
         algorithmImage: 'docker.io/hkubedevtest/print-every-10-sec:vokska3od',
         cpu: 2.8,
         mem: '256Mi'
+    },
+    {
+        name: 'alg1',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.5,
+        mem: '256Mi'
+    },
+    {
+        name: 'alg2',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.5,
+        mem: '256Mi'
     }
 ];
 

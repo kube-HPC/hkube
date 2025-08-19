@@ -1,10 +1,10 @@
-const { expect, should } = require('chai');
-const { workers, jobs, pods, versions } = require('./stub');
+const { expect } = require('chai');
+const { workers, jobs, pods, versions, clusterOptions, normResources, templateStore } = require('./stub');
 const etcd = require('../lib/helpers/etcd');
 const { stateType } = require('@hkube/consts');
 
 
-describe('Managers tests', () => {
+describe.only('Managers tests', () => {
     const registry = { registry: '' }
     let algorithmTemplates;
     let WorkersStateManager, requestsManager, jobsHandler;
@@ -125,7 +125,7 @@ describe('Managers tests', () => {
         });
 
         beforeEach(async () => {
-            requestsManager._totalCapacityNow = 10; // "init"
+            requestsManager._totalCapacityNow = 10; // Default/init state
         });
 
         describe('prepareAlgorithmRequests Method', () => {
@@ -948,7 +948,301 @@ describe('Managers tests', () => {
         });
     });
 
-    describe('JobsHandler Class', () => {
+    describe.only('JobsHandler Class', () => {
+        let workersStateManager, workerCategories;
+        const workerResources = { mem: 512, cpu: 0.1 }
 
+        before(async () => {
+            workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);
+            ({ workerCategories } = workersStateManager);
+        });
+
+        beforeEach(() => {
+            // Default/init state
+            jobsHandler.createdJobsLists = { batch: [], [stateType.Stateful]: [], [stateType.Stateless]: [] };
+            jobsHandler.unScheduledAlgorithms = {};
+            jobsHandler.ignoredUnScheduledAlgorithms = {};
+        });
+
+        describe('clearCreatedJobsLists Method', () => {
+            it('should remove jobs that exceed the TTL from all categories', () => {
+                const now = Date.now();
+                jobsHandler.createdJobsLists = {
+                    batch: [
+                        { createdTime: now - 10000 },
+                        { createdTime: now - 2000 }
+                    ],
+                    Stateful: [
+                        { createdTime: now - 5000 },
+                        { createdTime: now - 1000 }
+                    ],
+                    Stateless: [
+                        { createdTime: now - 9000 },
+                        { createdTime: now - 100 }
+                    ]
+                };
+
+                jobsHandler.clearCreatedJobsLists(3000, now);
+
+                expect(jobsHandler.createdJobsLists.batch).to.have.lengthOf(1);
+                expect(jobsHandler.createdJobsLists.Stateful).to.have.lengthOf(1);
+                expect(jobsHandler.createdJobsLists.Stateless).to.have.lengthOf(1);
+
+                expect(jobsHandler.createdJobsLists.batch[0].createdTime).to.equal(now - 2000);
+                expect(jobsHandler.createdJobsLists.Stateful[0].createdTime).to.equal(now - 1000);
+                expect(jobsHandler.createdJobsLists.Stateless[0].createdTime).to.equal(now - 100);
+            });
+
+            it('should not remove any jobs if all are within the TTL', () => {
+                const now = Date.now();
+                jobsHandler.createdJobsLists = {
+                    batch: [
+                        { createdTime: now - 500 },
+                        { createdTime: now - 1000 }
+                    ],
+                    Stateful: [],
+                    Stateless: []
+                };
+
+                jobsHandler.clearCreatedJobsLists(2000, now);
+
+                expect(jobsHandler.createdJobsLists.batch).to.have.lengthOf(2);
+                expect(jobsHandler.createdJobsLists.Stateful).to.be.empty;
+                expect(jobsHandler.createdJobsLists.Stateless).to.be.empty;
+            });
+
+            it('should remove all jobs if all exceed the TTL', () => {
+                const now = Date.now();
+                jobsHandler.createdJobsLists = {
+                    batch: [
+                        { createdTime: now - 8000 },
+                        { createdTime: now - 6000 }
+                    ],
+                    Stateful: [
+                        { createdTime: now - 7000 }
+                    ],
+                    Stateless: [
+                        { createdTime: now - 9000 }
+                    ]
+                };
+
+                jobsHandler.clearCreatedJobsLists(3000, now);
+
+                expect(jobsHandler.createdJobsLists.batch).to.be.empty;
+                expect(jobsHandler.createdJobsLists.Stateful).to.be.empty;
+                expect(jobsHandler.createdJobsLists.Stateless).to.be.empty;
+            });
+
+            it('should handle empty lists gracefully', () => {
+                const now = Date.now();
+                jobsHandler.createdJobsLists = {
+                    batch: [],
+                    Stateful: [],
+                    Stateless: []
+                };
+
+                expect(() => jobsHandler.clearCreatedJobsLists(1000, now)).to.not.throw();
+                expect(jobsHandler.createdJobsLists.batch).to.be.empty;
+                expect(jobsHandler.createdJobsLists.Stateful).to.be.empty;
+                expect(jobsHandler.createdJobsLists.Stateless).to.be.empty;
+            });
+
+            it('should default to Date.now() when currentTime is not provided', () => {
+                jobsHandler.createdJobsLists = {
+                    batch: [{ createdTime: Date.now() - 10 }],
+                    Stateful: [],
+                    Stateless: []
+                };
+
+                expect(() => jobsHandler.clearCreatedJobsLists(1000)).to.not.throw();
+                expect(jobsHandler.createdJobsLists.batch).to.have.lengthOf(1);
+            });
+        });
+
+        describe.only('_processAllRequests Method', () => {
+            const algorithmName = 'alg1';
+            const baseRequest = { algorithmName, requestType: 'batch' };
+            let reconcileResult = {};
+
+            beforeEach(() => {
+                reconcileResult = {};
+            });
+
+            it('should assign request to idle worker', () => {
+                const result = jobsHandler._processAllRequests({
+                    idleWorkers: [{ id: 'w1', algorithmName }],
+                    pausedWorkers: [],
+                    pendingWorkers: [],
+                    bootstrapWorkers: [],
+                    algorithmTemplates,
+                    versions,
+                    jobsCreated: [],
+                    requests: [baseRequest],
+                    registry,
+                    clusterOptions,
+                    workerResources
+                }, reconcileResult);
+                
+                expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w1' }]);
+                expect(result.createDetails).to.be.empty;
+                expect(result.toResume).to.be.empty;
+                expect(reconcileResult).to.be.empty;
+            });
+
+            it('should assign request to pending worker', () => {
+                const result = jobsHandler._processAllRequests({
+                    idleWorkers: [],
+                    pausedWorkers: [],
+                    pendingWorkers: [{ id: 'w2', algorithmName }],
+                    bootstrapWorkers: [],
+                    algorithmTemplates,
+                    versions,
+                    jobsCreated: [],
+                    requests: [baseRequest],
+                    registry,
+                    clusterOptions,
+                    workerResources
+                }, reconcileResult);
+                
+                expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w2' }]);
+                expect(result.createDetails).to.be.empty;
+                expect(result.toResume).to.be.empty;
+                expect(reconcileResult).to.be.empty;
+            });
+
+            it('should assign request to recently created job', () => {
+                const result = jobsHandler._processAllRequests({
+                    idleWorkers: [],
+                    pausedWorkers: [],
+                    pendingWorkers: [],
+                    bootstrapWorkers: [],
+                    algorithmTemplates,
+                    versions,
+                    jobsCreated: [{ id: 'w3', algorithmName }],
+                    requests: [baseRequest],
+                    registry,
+                    clusterOptions,
+                    workerResources
+                }, reconcileResult);
+                
+                expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w3' }]);
+                expect(result.createDetails).to.be.empty;
+                expect(result.toResume).to.be.empty;
+                expect(reconcileResult).to.be.empty;
+            });
+
+            it('should wake up a paused worker and add it to toResume', () => {
+                const result = jobsHandler._processAllRequests({
+                    idleWorkers: [],
+                    pausedWorkers: [{ id: 'w4', algorithmName, status: 'paused' }],
+                    pendingWorkers: [],
+                    bootstrapWorkers: [],
+                    algorithmTemplates,
+                    versions,
+                    jobsCreated: [],
+                    requests: [baseRequest],
+                    registry,
+                    clusterOptions,
+                    workerResources
+                }, reconcileResult);
+                
+                expect(result.toResume).to.have.lengthOf(1);
+                expect(result.toResume[0].id).to.equal('w4');
+                expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w4' }]);
+                expect(result.createDetails).to.be.empty;
+                expect(reconcileResult).to.be.empty;
+            });
+
+            it('should assign request to bootstrap worker', () => {
+                const result = jobsHandler._processAllRequests({
+                    idleWorkers: [],
+                    pausedWorkers: [],
+                    pendingWorkers: [],
+                    bootstrapWorkers: [{ id: 'w5', algorithmName }],
+                    algorithmTemplates,
+                    versions,
+                    jobsCreated: [],
+                    requests: [baseRequest],
+                    registry,
+                    clusterOptions,
+                    workerResources
+                }, reconcileResult);
+                
+                expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w5' }]);
+                expect(result.createDetails).to.be.empty;
+                expect(result.toResume).to.be.empty;
+                expect(reconcileResult).to.be.empty;
+            });
+
+            it('should prepare job creation when no worker is available', () => {
+                const result = jobsHandler._processAllRequests({
+                    idleWorkers: [],
+                    pausedWorkers: [],
+                    pendingWorkers: [],
+                    bootstrapWorkers: [],
+                    algorithmTemplates,
+                    versions,
+                    jobsCreated: [],
+                    requests: [baseRequest],
+                    registry,
+                    clusterOptions,
+                    workerResources
+                }, reconcileResult);
+
+                expect(result.createDetails).to.have.lengthOf(1);
+                expect(result.createDetails[0].numberOfNewJobs).to.equal(1);
+                expect(result.createDetails[0].jobDetails.algorithmName).to.equal(algorithmName);
+
+                expect(reconcileResult).to.have.property(algorithmName);
+                expect(reconcileResult.alg1.required).to.equal(1);
+
+                expect(result.scheduledRequests).to.be.empty;
+                expect(result.toResume).to.be.empty;
+            });
+
+            it('should increment existing reconcileResult if already exists', () => {
+                reconcileResult = { alg1: { required: 2, idle: 0, paused: 0 } };
+
+                const result = jobsHandler._processAllRequests({
+                    idleWorkers: [],
+                    pausedWorkers: [],
+                    pendingWorkers: [],
+                    bootstrapWorkers: [],
+                    algorithmTemplates,
+                    versions,
+                    jobsCreated: [],
+                    requests: [baseRequest],
+                    registry,
+                    clusterOptions,
+                    workerResources
+                }, reconcileResult);
+
+                expect(reconcileResult.alg1.required).to.equal(3);
+                expect(result.createDetails).to.have.lengthOf(1);
+            });
+
+            it('should process multiple requests and handle mixed assignment + creation', () => {
+                const requests = [baseRequest, { algorithmName: 'alg2', requestType: 'batch' }];
+
+                const result = jobsHandler._processAllRequests({
+                    idleWorkers: [{ id: 'w1', algorithmName }],
+                    pausedWorkers: [],
+                    pendingWorkers: [],
+                    bootstrapWorkers: [],
+                    algorithmTemplates,
+                    versions,
+                    jobsCreated: [],
+                    requests,
+                    registry,
+                    clusterOptions,
+                    workerResources
+                }, reconcileResult);
+
+                expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w1' }]);
+                expect(result.createDetails).to.have.lengthOf(1);
+                expect(result.createDetails[0].jobDetails.algorithmName).to.equal('alg2');
+                expect(reconcileResult.alg2.required).to.equal(1);
+            });
+        });
     });
 });
