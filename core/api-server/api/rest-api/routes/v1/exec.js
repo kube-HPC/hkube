@@ -82,18 +82,12 @@ const routes = (options) => {
         }
         const jobsToStop = searchResponse.hits.filter(j => statusesToFilter.includes(j.status.status));
         if (jobsToStop.length === 0) {
-            if (jobId) {
-                errormsg = `jobId ${jobId} Not Found`;
-            }
-            else if (pipelineName && !datesRange) {
-                errormsg = `No running jobs of ${pipelineName} to stop`;
-            }
-            else if (pipelineName) {
-                errormsg = `No running jobs of ${pipelineName} which started between ${datesRange.from} to ${datesRange.to} to stop`;
-            }
-            else if (datesRange) {
-                errormsg = `No Jobs Found between ${datesRange.from} to ${datesRange.to}`;
-            }
+            const details = [];
+            if (jobId) details.push(`jobId: ${jobId}`);
+            if (pipelineName) details.push(`pipelineName: ${pipelineName}`);
+            if (datesRange) details.push(`datesRange: ${datesRange.from} to ${datesRange.to}`);
+            if (statusesToFilter && statusesToFilter.length > 0) details.push(`statuses: ${statusesToFilter.join(',')}`);
+            errormsg = `No jobs found matching criteria${details.length ? ` (${details.join(', ')})` : ''}`;
             return res.status(404).json({
                 error: {
                     code: 404,
