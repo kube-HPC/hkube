@@ -1,4 +1,5 @@
 const { expect } = require('chai');
+const { StatusCodes } = require('http-status-codes');
 const { workers, jobs, pods, versions, clusterOptions, normResources, templateStore } = require('./stub');
 const etcd = require('../lib/helpers/etcd');
 const { stateType } = require('@hkube/consts');
@@ -1413,5 +1414,97 @@ describe('Managers tests', () => {
             });
         });
 
+        describe('_processPromises Method', () => {
+            let mockJobsHandler;
+            let shouldFail;
+            const fakeJob1 = { algorithmName: 'alg1' };
+            const fakeJob2 = { algorithmName: 'alg2' };
+
+            before(() => {
+                mockJobsHandler = { ...jobsHandler };
+                mockJobsHandler._processPromises = jobsHandler._processPromises;
+                mockJobsHandler._stopWorker = async (worker) => (worker !== undefined);
+                mockJobsHandler._exitWorker = async (worker) => (worker !== undefined);
+                mockJobsHandler._warmUpWorker = async (worker) => (worker !== undefined);
+                mockJobsHandler._coolDownWorker = async (worker) => (worker !== undefined);
+                mockJobsHandler._resumeWorker = async (worker) => (worker !== undefined);
+                mockJobsHandler._createJob = async (jobDetails) =>
+                    (shouldFail.includes(jobDetails.algorithmName) ? 
+                { statusCode: StatusCodes.UNPROCESSABLE_ENTITY, jobDetails, message: 'error with creating', spec: {} } : { statusCode: StatusCodes.OK, jobDetails });
+            });
+
+            beforeEach(() => {
+                shouldFail = [];
+            });
+
+            it('should return successfully created jobs and handle skipped ones', async () => {
+                const skipped = [];
+                shouldFail.push(fakeJob2.algorithmName);
+
+                const result = await mockJobsHandler._processPromises({
+                    toRequest: [fakeJob1, fakeJob2],
+                    workersToExit: [{ id: 'e1' }],
+                    workersToWarmUp: [{ id: 'w1' }],
+                    workersToCoolDown: [{ id: 'c1' }],
+                    toStopFiltered: [{ id: 's1' }],
+                    toResume: [{ id: 'r1' }],
+                    skipped,
+                    options: {}
+                });
+
+                expect(result).to.be.an('array');
+                expect(result).to.deep.equal([{ algorithmName: fakeJob1.algorithmName }]);
+                expect(skipped).to.have.lengthOf(1);
+                expect(skipped[0]).to.have.property('warning');
+                expect(skipped[0].warning).to.be.an('object');
+                expect(skipped[0].warning).to.not.be.empty;
+                expect(skipped[0].algorithmName).to.equal(fakeJob2.algorithmName);
+            });
+
+            it('should return an empty array if no jobs succeed', async () => {
+                const skipped = [];
+                shouldFail.push(fakeJob1.algorithmName);
+                shouldFail.push(fakeJob2.algorithmName);
+
+                const result = await mockJobsHandler._processPromises({
+                    toRequest: [fakeJob1, fakeJob2],
+                    workersToExit: [],
+                    workersToWarmUp: [],
+                    workersToCoolDown: [],
+                    toStopFiltered: [],
+                    toResume: [],
+                    skipped,
+                    options: {}
+                });
+
+                expect(result).to.be.an('array');
+                expect(result).to.deep.equal([]);
+                expect(skipped).to.have.lengthOf(2);
+                skipped.forEach(item => {
+                    expect(item).to.be.an('object');
+                    expect(item).to.have.property('warning');
+                    expect(skipped[0].warning).to.be.an('object');
+                    expect(skipped[0].warning).to.not.be.empty;
+                });
+            });
+
+            it('should handle an empty input gracefully', async () => {
+                const skipped = []
+
+                const result = await mockJobsHandler._processPromises({
+                    toRequest: [],
+                    workersToExit: [],
+                    workersToWarmUp: [],
+                    workersToCoolDown: [],
+                    toStopFiltered: [],
+                    toResume: [],
+                    skipped,
+                    options: {}
+                });
+
+                expect(result).to.deep.equal([]);
+                expect(skipped).to.deep.equal([]);
+            });
+        });
     });
 });
