@@ -56,13 +56,13 @@ class JobsHandler {
      * @param {Object} options - Confguration containing additional job creation options.
      * @param {Object} reconcileResult - Scheduling reconcile stats by algorithm.
      */
-    async finalizeScheduling(WorkersStateManager, algorithmTemplates, normResources, versions, requests, registry, clusterOptions, workerResources, options, reconcileResult) {
+    async finalizeScheduling(workersStateManager, algorithmTemplates, normResources, versions, requests, registry, clusterOptions, workerResources, options, reconcileResult) {
         // 1. Clone list of already created jobs (avoid mutating original)
         const jobsCreated = clonedeep(Object.values(this.createdJobsLists).flat());
         
         // 2. Assign requests to workers or prepare job creation details
         const { createDetails, toResume, scheduledRequests } = this._processAllRequests({
-            ...WorkersStateManager.workerCategories, algorithmTemplates, versions, jobsCreated, requests, registry, clusterOptions, workerResources
+            ...workersStateManager.workerCategories, algorithmTemplates, versions, jobsCreated, requests, registry, clusterOptions, workerResources
         }, reconcileResult);
 
         // 3. Match jobs to resources, and skip those that doesn't have the required resources.
@@ -70,7 +70,7 @@ class JobsHandler {
         const { toRequest, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, extraResources);
         
         // 4. Find workers to stop if resources insufficient
-        const stopDetails = this._findWorkersToStop({ skipped, ...WorkersStateManager.workerCategories, algorithmTemplates });
+        const stopDetails = this._findWorkersToStop({ skipped, ...workersStateManager.workerCategories, algorithmTemplates });
     
         // 5. Pause workers according to resource needs
         const toStop = pauseAccordingToResources(stopDetails, normResources, skipped);
@@ -84,7 +84,7 @@ class JobsHandler {
     
         // 7. Execute all actions (create jobs, stop, resume, warm/cool workers, etc.)
         const created = await this._processPromises({ 
-            ...WorkersStateManager, options, toResume, toStopFiltered, toRequest, skipped
+            ...workersStateManager, options, toResume, toStopFiltered, toRequest, skipped
         });
         created.forEach(job => this.createdJobsLists[job.stateType].push(job));
 
