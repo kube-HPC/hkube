@@ -99,10 +99,9 @@ class JobsHandler {
      * Removes jobs from createdJobsLists that exceed their TTL.
      *
      * @param {number} createdJobsTTL - Time-to-live in ms.
-     * @param {number} [now=Date.now()] - Current timestamp (optional for testing).
+     * @param {number} [currentTime=Date.now()] - Current timestamp (optional for testing).
      */
-    clearCreatedJobsLists(createdJobsTTL, now) {
-        const currentTime = now || Date.now();
+    clearCreatedJobsLists(createdJobsTTL, currentTime = Date.now()) {
         let removedCount = 0;
     
         Object.keys(this.createdJobsLists).forEach((key) => {
