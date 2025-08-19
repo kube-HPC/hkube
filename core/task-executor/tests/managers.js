@@ -2,9 +2,10 @@ const { expect } = require('chai');
 const { workers, jobs, pods, versions, clusterOptions, normResources, templateStore } = require('./stub');
 const etcd = require('../lib/helpers/etcd');
 const { stateType } = require('@hkube/consts');
+const { createContainerResource } = require('../lib/reconcile/createOptions');
 
 
-describe.only('Managers tests', () => {
+describe('Managers tests', () => {
     const registry = { registry: '' }
     let algorithmTemplates;
     let WorkersStateManager, requestsManager, jobsHandler;
@@ -948,7 +949,7 @@ describe.only('Managers tests', () => {
         });
     });
 
-    describe.only('JobsHandler Class', () => {
+    describe('JobsHandler Class', () => {
         let workersStateManager, workerCategories;
         const workerResources = { mem: 512, cpu: 0.1 }
 
@@ -1059,7 +1060,7 @@ describe.only('Managers tests', () => {
             });
         });
 
-        describe.only('_processAllRequests Method', () => {
+        describe('_processAllRequests Method', () => {
             const algorithmName = 'alg1';
             const baseRequest = { algorithmName, requestType: 'batch' };
             let reconcileResult = {};
@@ -1244,5 +1245,173 @@ describe.only('Managers tests', () => {
                 expect(reconcileResult.alg2.required).to.equal(1);
             });
         });
+
+        describe('_getAllVolumeNames Method', () => {
+            it('should return an object with keys pvcs, configMaps, and secrets as arrays', async () => {
+                const result = await jobsHandler._getAllVolumeNames();
+                expect(result).to.have.keys(['pvcs', 'configMaps', 'secrets']);
+                expect(result.pvcs).to.be.an('array');
+                expect(result.configMaps).to.be.an('array');
+                expect(result.secrets).to.be.an('array');
+            });
+        });
+
+        describe('_getExtraResources Method', () => {
+            it('should return an object with keys allVolumesNames and existingQueuesNames', async () => {
+                const result = await jobsHandler._getExtraResources();
+                expect(result).to.have.keys(['allVolumesNames', 'existingQueuesNames']);
+                const { allVolumesNames, existingQueuesNames } = result;
+
+                // allVolumesNames structure
+                expect(allVolumesNames).to.be.an('object');
+                expect(allVolumesNames).to.have.keys(['pvcs', 'configMaps', 'secrets']);
+                expect(allVolumesNames.pvcs).to.be.an('array');
+                expect(allVolumesNames.configMaps).to.be.an('array');
+                expect(allVolumesNames.secrets).to.be.an('array');
+
+                // existingQueuesNames structure
+                expect(existingQueuesNames).to.be.an('array');
+            });
+        });
+
+        describe('_createStopDetails', () => {
+            const algorithmName = 'alg1';
+            const baseWorker = { id: 'worker-1', algorithmName, podName: 'pod-1' };
+            it('should return correct stop details for a worker', () => {
+                const worker = { ...baseWorker, job: { nodeName: 'node-1' } };
+
+                const result = jobsHandler._createStopDetails({ worker, algorithmTemplates });
+                const { cpu, mem } = algorithmTemplates[algorithmName];
+                const expectedResources = createContainerResource({ cpu, mem });
+
+                expect(result).to.have.property('count', 1);
+                expect(result).to.have.property('details');
+                expect(result.details).to.include({
+                    algorithmName,
+                    nodeName: 'node-1',
+                    podName: 'pod-1',
+                    id: 'worker-1'
+                });
+                expect(result.details.resourceRequests).to.be.an('object');
+                expect(result.details.resourceRequests).to.deep.equal(expectedResources)
+            });
+
+            it('should return null nodeName if job is missing', () => {
+                const result = jobsHandler._createStopDetails({ worker: baseWorker, algorithmTemplates });
+                expect(result.details.nodeName).to.be.null;
+            });
+        });
+
+        describe('_findWorkersToStop', () => {
+            it('should return an empty array if there are no skipped jobs', () => {
+                const result = jobsHandler._findWorkersToStop({
+                    skipped: [],
+                    idleWorkers: [],
+                    activeWorkers: [],
+                    algorithmTemplates: {}
+                });
+
+                expect(result).to.be.an('array').that.is.empty;
+            });
+
+            it('should return workers to stop', () => {
+                const algorithmName = 'alg1';
+                const { cpu, mem } = algorithmTemplates[algorithmName];
+                const resourceRequests = createContainerResource({ cpu, mem });
+                const skipped = [ { algorithmName, resourceRequests } ];
+
+                const idleWorkers = [ { id: 'idle-1', algorithmName, podName: 'p1', job: { nodeName: 'n1' } } ];
+
+                const activeWorkers = [ { id: 'active-1', algorithmName: 'alg2', podName: 'p2', job: { nodeName: 'n2' } } ];
+
+                const result = jobsHandler._findWorkersToStop({
+                    skipped,
+                    idleWorkers,
+                    activeWorkers,
+                    algorithmTemplates
+                });
+
+                expect(result).to.be.an('array').that.is.not.empty;
+                result.forEach(r => {
+                    expect(r).to.have.keys(['count', 'details']);
+                    expect(r.count).to.equal(1);
+                    expect(r.details).to.include.keys([
+                        'algorithmName',
+                        'resourceRequests',
+                        'nodeName',
+                        'podName',
+                        'id'
+                    ]);
+                });
+            });
+
+            it('should return empty array if there are no workers', () => {
+                const algorithmName = 'alg1';
+                const { cpu, mem } = algorithmTemplates[algorithmName];
+                const resourceRequests = createContainerResource({ cpu, mem });
+                const skipped = [ { algorithmName, resourceRequests } ];
+
+                const result = jobsHandler._findWorkersToStop({
+                    skipped,
+                    idleWorkers: [],
+                    activeWorkers: [],
+                    algorithmTemplates
+                });
+
+                expect(result).to.be.an('array').that.is.empty;
+            });
+        });
+
+        describe('_filterWorkersToStop', () => {
+            it('should return the same list if there are no workers to resume', () => {
+                const toStop = [ { algorithmName: 'alg1' }, { algorithmName: 'alg2' } ];
+                const toResume = [];
+
+                const result = jobsHandler._filterWorkersToStop(toStop, toResume);
+
+                expect(result).to.deep.equal(toStop);
+            });
+
+            it('should remove workers from toStop that match algorithmName in toResume', () => {
+                const toStop = [ { algorithmName: 'alg1' }, { algorithmName: 'alg2' }, { algorithmName: 'alg3' } ];
+                const toResume = [ { algorithmName: 'alg2' } ];
+
+                const result = jobsHandler._filterWorkersToStop(toStop, toResume);
+
+                expect(result).to.deep.equal([ { algorithmName: 'alg1' }, { algorithmName: 'alg3' } ]);
+            });
+
+            it('should handle multiple matches and modify toResume in place', () => {
+                const toStop = [ { algorithmName: 'alg1' }, { algorithmName: 'alg2' }, { algorithmName: 'alg3' } ];
+
+                const toResume = [ { algorithmName: 'alg1' }, { algorithmName: 'alg3' } ];
+
+                const result = jobsHandler._filterWorkersToStop(toStop, toResume);
+
+                expect(result).to.deep.equal([ { algorithmName: 'alg2' } ]);
+                expect(toResume).to.deep.equal([]);
+            });
+
+            it('should return empty list if all toStop are matched in toResume', () => {
+                const toStop = [ { algorithmName: 'alg1' },  { algorithmName: 'alg2' } ];
+                const toResume = [ { algorithmName: 'alg1' }, { algorithmName: 'alg2' } ];
+
+                const result = jobsHandler._filterWorkersToStop(toStop, toResume);
+
+                expect(result).to.deep.equal([]);
+                expect(toResume).to.deep.equal([]);
+            });
+
+            it('should not remove unmatched workers from toResume', () => {
+                const toStop = [ { algorithmName: 'alg1' } ];
+                const toResume = [ { algorithmName: 'alg2' } ];
+
+                const result = jobsHandler._filterWorkersToStop(toStop, toResume);
+
+                expect(result).to.deep.equal(toStop);
+                expect(toResume).to.deep.equal([{ algorithmName: 'alg2' }]);
+            });
+        });
+
     });
 });
