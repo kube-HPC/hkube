@@ -304,23 +304,24 @@ class JobsHandler {
         let activeWorkersLocal = clonedeep(activeWorkers);
         const notUsedWorkers = activeWorkersLocal.filter(w => !skippedTypes.find(d => d.algorithmName === w.algorithmName));
         const usedWorkers = activeWorkersLocal.filter(w => skippedTypes.find(d => d.algorithmName === w.algorithmName));
+
+        const __needMoreResources = ({ requestedCpu, memoryRequests, requestedGpu }) => {
+            return requestedCpu > 0 || memoryRequests > 0 || requestedGpu > 0;
+        };
+
+        const __subtractResources = (resources, { requestedCpu, memoryRequests, requestedGpu }) => {
+            const newResources = {
+                requestedCpu: resources.requestedCpu - requestedCpu,
+                memoryRequests: resources.memoryRequests - memoryRequests,
+                requestedGpu: resources.requestedGpu - requestedGpu
+            };
+            return newResources;
+        };
     
         skippedLocal.forEach((s) => {
             let skippedResources = parseResources(s);
-            const needMoreResources = ({ requestedCpu, memoryRequests, requestedGpu }) => {
-                return requestedCpu > 0 || memoryRequests > 0 || requestedGpu > 0;
-            };
     
-            const _subtractResources = (resources, { requestedCpu, memoryRequests, requestedGpu }) => {
-                const newResources = {
-                    requestedCpu: resources.requestedCpu - requestedCpu,
-                    memoryRequests: resources.memoryRequests - memoryRequests,
-                    requestedGpu: resources.requestedGpu - requestedGpu
-                };
-                return newResources;
-            };
-    
-            while ((idleWorkersLocal.length > 0 || notUsedWorkers.length > 0 || usedWorkers.length > 0) && needMoreResources(skippedResources)) {
+            while ((idleWorkersLocal.length > 0 || notUsedWorkers.length > 0 || usedWorkers.length > 0) && __needMoreResources(skippedResources)) {
                 let worker = idleWorkersLocal.shift();
                 if (!worker) {
                     worker = notUsedWorkers.shift();
@@ -331,7 +332,7 @@ class JobsHandler {
                 if (worker) {
                     activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
                     const toStop = this._createStopDetails({ worker, algorithmTemplates });
-                    skippedResources = _subtractResources(skippedResources, parseResources(toStop.details));
+                    skippedResources = __subtractResources(skippedResources, parseResources(toStop.details));
                     stopDetails.push(toStop);
                 }
             }
