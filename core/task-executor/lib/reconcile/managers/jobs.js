@@ -1,4 +1,5 @@
 const clonedeep = require('lodash.clonedeep');
+const { StatusCodes } = require('http-status-codes');
 const { warningCodes, stateType } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
@@ -402,9 +403,9 @@ class JobsHandler {
 
         const resolvedPromises = await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
         createPromises.forEach((_, index) => {
-            const response = resolvedPromises[index];
+            const response = resolvedPromises[index]; // Thats fine because resolvedPromises first contains createPromises
         
-            if (response && response.statusCode === 422) {
+            if (response && response.statusCode === StatusCodes.UNPROCESSABLE_ENTITY) {
                 const { jobDetails, message, spec } = response;
                 const warning = createWarning({ jobDetails, code: warningCodes.JOB_CREATION_FAILED, message, spec });
         
@@ -413,7 +414,7 @@ class JobsHandler {
                     warning
                 });
             }
-            else if (response.statusCode === 200 || response.statusCode === 201) {
+            else if (response.statusCode === StatusCodes.OK || response.statusCode === StatusCodes.CREATED) {
                 created.push(response.jobDetails);
             }
         });
