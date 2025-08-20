@@ -3,118 +3,174 @@ const { StatusCodes } = require('http-status-codes');
 const { workers, jobs, pods, versions, clusterOptions, normResources, templateStore } = require('./stub');
 const etcd = require('../lib/helpers/etcd');
 const { stateType } = require('@hkube/consts');
+const { commands } = require('../lib/consts');
 const { createContainerResource } = require('../lib/reconcile/createOptions');
 
 
 describe('Managers tests', () => {
     const registry = { registry: '' }
     let algorithmTemplates;
-    let WorkersStateManager, requestsManager, jobsHandler;
+    let WorkersManager, requestsManager, jobsHandler;
 
     before(async () => {
         algorithmTemplates = await etcd.getAlgorithmTemplate();
-        ({ WorkersStateManager, requestsManager, jobsHandler } = require('../lib/reconcile/managers'));
+        ({ WorkersManager, requestsManager, jobsHandler } = require('../lib/reconcile/managers'));
     });
 
     beforeEach(async () => {
         algorithmTemplates = await etcd.getAlgorithmTemplate();
     });
 
-    describe('WorkersStateManager Class', () => {
-        let workersStateManager;
+    describe('WorkersManager Class', () => {
+        let workersManager;
 
         beforeEach(async () => {
-            workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);
+            workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
         });
 
         describe('Constructor', () => {
             it('should build the object with relevant attributes', () => {
                 algorithmTemplates['print-every-10-sec'].minHotWorkers = 1;
-                workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);
-                expect(workersStateManager.normalizedWorkers).to.be.an('array');
-                expect(workersStateManager.normalizedWorkers.length).to.be.equal(workers.length);
-                expect(workersStateManager.workersToExit).to.be.an('array');
-                expect(workersStateManager.workersToExit.length).to.be.equal(0);
-                expect(workersStateManager.jobAttachedWorkers).to.be.an('array');
-                expect(workersStateManager.jobAttachedWorkers.length).to.be.equal(6); // all the 6 workers in stub data has a job
-                expect(workersStateManager.workersToWarmUp).to.be.an('array');
-                expect(workersStateManager.workersToWarmUp.length).to.be.equal(1); // print-every-10-sec has 2 workers (not hot)
-                expect(workersStateManager.workersToCoolDown).to.be.an('array');
-                expect(workersStateManager.workersToCoolDown.length).to.be.equal(4); // 4 workers in stub data are hot, with no requirement for it.
-                expect(workersStateManager.workerCategories).to.be.an('object');
-                expect(Object.keys(workersStateManager.workerCategories).length).to.be.equal(5); // idle, active, paused, pending, bootstrap
+                workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
+                expect(workersManager.normalizedWorkers).to.be.an('array');
+                expect(workersManager.normalizedWorkers.length).to.be.equal(workers.length);
+                expect(workersManager._workersToExit).to.be.an('array');
+                expect(workersManager._workersToExit.length).to.be.equal(0);
+                expect(workersManager.jobAttachedWorkers).to.be.an('array');
+                expect(workersManager.jobAttachedWorkers.length).to.be.equal(6); // all the 6 workers in stub data has a job
             });
         });
 
         describe('countBatchWorkers Method', () => {
             it('should count batch workers', () => {
-                const batchWorkers = workersStateManager.countBatchWorkers(algorithmTemplates);
-                expectedAmount = workersStateManager.workerCategories.idleWorkers.length + workersStateManager.workerCategories.activeWorkers.length;
+                const batchWorkers = workersManager.countBatchWorkers(algorithmTemplates);
+                expectedAmount = workersManager.getIdleWorkers().length + workersManager.getActiveWorkers().length;
                 expect(batchWorkers).to.equal(expectedAmount); // Suppose to have 5 active and 1 batch workers, all workers algos are batch
             });
 
             it('should not count non-batch workers', () => {
                 algorithmTemplates['green-alg'].stateType = stateType.Stateful;
-                const batchWorkers = workersStateManager.countBatchWorkers(algorithmTemplates);
-                expectedAmount = workersStateManager.workerCategories.idleWorkers.length + workersStateManager.workerCategories.activeWorkers.length - 1;
+                const batchWorkers = workersManager.countBatchWorkers(algorithmTemplates);
+                expectedAmount = workersManager.getIdleWorkers().length + workersManager.getActiveWorkers().length - 1;
                 expect(batchWorkers).to.equal(expectedAmount);
             });
         });
 
-        describe('_buildWorkerCategories Method', () => {
-            const customTestWorkers = [
-                { workerStatus: 'ready', workerPaused: false }, // idle
-                { workerStatus: 'working', workerPaused: false }, // active
-                { workerStatus: 'ready', workerPaused: true }, // paused
-                { workerStatus: 'bootstrap' } // bootstrap
+        describe('WorkersManager getters', () => {
+            const baseWorkers = [
+                { id: 'idle', workerStatus: 'ready', workerPaused: false },
+                { id: 'active', workerStatus: 'working', workerPaused: false },
+                { id: 'paused', workerStatus: 'ready', workerPaused: true },
+                { id: 'bootstrap', workerStatus: 'bootstrap' }
             ];
-            const extraJobs = [
-                { name: 'job1' }
-            ];
-            const checkResult = (categorizedWorkers, values) => {
-                let count = 0;
-                Object.entries(categorizedWorkers).forEach(([category, workers]) => {
-                    expect(workers).to.be.an('array');
-                    expect(workers.length).to.be.equal(values[category]);
-                    count += workers.length;
+
+            beforeEach(() => {
+                workersManager.jobAttachedWorkers = baseWorkers;
+            });
+
+            describe('getIdleWorkers Method', () => {
+                it('should return all workers that are idle', () => {
+                    const result = workersManager.getIdleWorkers();
+                    expect(result).to.deep.equal(baseWorkers.filter(worker => worker.id === 'idle'));
+                    expect(result).to.not.equal(workersManager.jobAttachedWorkers.filter(w => workersManager._isIdleWorker(w))); // deep cloned
                 });
-                return count;
-            };
-            const buildValues = (idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, bootstrapWorkers) => ({ idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, bootstrapWorkers });
-
-            it('should build worker categories', () => {
-                const categorizedWorkers = workersStateManager._buildWorkerCategories(customTestWorkers, extraJobs);
-                const values = buildValues(1, 1, 1, 1, 1);
-                const total = checkResult(categorizedWorkers, values);
-                expect(total).to.equal(customTestWorkers.length + extraJobs.length);
             });
 
-            it('should handle with no workers or extra jobs', () => {
-                const categorizedWorkers = workersStateManager._buildWorkerCategories([], []);
-                const values = buildValues(0, 0, 0, 0, 0);
-                const total = checkResult(categorizedWorkers, values);
-                expect(total).to.equal(0);
+            describe('getActiveWorkers Method', () => {
+                it('should return all workers that are active', () => {
+                    const result = workersManager.getActiveWorkers();
+                    expect(result).to.deep.equal(baseWorkers.filter(worker => worker.id === 'active'));
+                    expect(result).to.not.equal(workersManager.jobAttachedWorkers.filter(w => workersManager._isActiveWorker(w))); // deep cloned
+                });
             });
 
-            it('should handle with no workers and with extraJobs', () => {
-                const categorizedWorkers = workersStateManager._buildWorkerCategories([], extraJobs);
-                const values = buildValues(0, 0, 0, 1, 0);
-                const total = checkResult(categorizedWorkers, values);
-                expect(total).to.equal(extraJobs.length);
+            describe('getPausedWorkers Method', () => {
+                it('should return all workers that are paused', () => {
+                    const result = workersManager.getPausedWorkers();
+                    expect(result).to.deep.equal(baseWorkers.filter(worker => worker.id === 'paused'));
+                    expect(result).to.not.equal(workersManager.jobAttachedWorkers.filter(w => workersManager._isPausedWorker(w))); // deep cloned
+                });
             });
 
-            it('should handle with workers but no extraJobs', () => {
-                const categorizedWorkers = workersStateManager._buildWorkerCategories(customTestWorkers, []);
-                const values = buildValues(1, 1, 1, 0, 1);
-                const total = checkResult(categorizedWorkers, values);
-                expect(total).to.equal(customTestWorkers.length);
+            describe('getBootstrappingWorkers Method', () => {
+                it('should return all workers in bootstrap state', () => {
+                    const result = workersManager.getBootstrappingWorkers();
+                    expect(result).to.deep.equal(baseWorkers.filter(worker => worker.id === 'bootstrap'));
+                    expect(result).to.not.equal(workersManager.jobAttachedWorkers.filter(worker => worker.workerStatus === 'bootstrap')); // deep cloned
+                });
+            });
+        });
+
+        describe('Worker lifecycle handlers', () => {
+            const fakeWorkers = [
+                { id: 'w1', algorithmName: 'alg1', podName: 'pod1', message: 'exit now' },
+                { id: 'w2', algorithmName: 'alg2', podName: 'pod2' }
+            ];
+
+            describe('handleExitWorkers', () => {
+                it('should return a list of exit command promises for each worker in _workersToExit', () => {
+                    workersManager._workersToExit = fakeWorkers;
+                    const result =  workersManager.handleExitWorkers();
+
+                    expect(result).to.be.an('array').with.lengthOf(2);
+                    result.forEach((promise) => {
+                        expect(promise).to.have.property('then').that.is.a('function'); // confirms it's a Promise
+                    });
+                });
+            });
+
+            describe('handleWarmUpWorkers', () => {
+                it('should return a list of warm-up command promises for hot workers', () => {
+                    const coldWorker = workersManager.jobAttachedWorkers.find(worker => !worker.hotWorker);
+                    expect(coldWorker, 'All workers in workersRaw are hot, should have at least one cold').to.not.be.undefined;
+                    algorithmTemplates[coldWorker.algorithmName].minHotWorkers = 1;
+                    const result =  workersManager.handleWarmUpWorkers();
+
+                    expect(result).to.be.an('array').with.lengthOf(1);
+                    result.forEach((promise) => {
+                        expect(promise).to.have.property('then').that.is.a('function'); // confirms it's a Promise
+                    });
+                });
+            });
+
+            describe('handleCoolDownWorkers', () => {
+                it('should return a list of cool-down command promises for cold workers', () => {
+                    const result =  workersManager.handleCoolDownWorkers(); // we have in stub workers 4 hot workers that should be cold
+
+                    expect(result).to.be.an('array').with.lengthOf(4);
+                    result.forEach((promise) => {
+                        expect(promise).to.have.property('then').that.is.a('function'); // confirms it's a Promise
+                    });
+                });
+            });
+
+            describe('stop', () => {
+                it('should return a list of stop-processing command promises for each worker', () => {
+                    const result = workersManager.stop(fakeWorkers);
+
+                    expect(result).to.be.an('array').with.lengthOf(fakeWorkers.length);
+                    result.forEach(promise => {
+                        expect(promise).to.have.property('then').that.is.a('function'); // ensures it's a Promise
+                    });
+                });
+            });
+
+            describe('resume', () => {
+                it('should return a list of start-processing command promises for each worker', () => {
+                    const result = workersManager.resume(fakeWorkers);
+
+                    expect(result).to.be.an('array').with.lengthOf(fakeWorkers.length);
+                    result.forEach(promise => {
+                        expect(promise).to.have.property('then').that.is.a('function'); // ensures it's a Promise
+                    });
+                });
             });
         });
     });
 
     describe('RequestsManager Class', () => {
-        let workersStateManager;
-        let workerCategories;
+        let workersManager;
+        let allAllocatedJobs;
         const batchRequest = { algorithmName: 'algo-batch', requestType: 'batch' };
         const statefulRequest = { algorithmName: 'algo-stateful', requestType: stateType.Stateful };
         const statelessRequest = { algorithmName: 'algo-stateless', requestType: stateType.Stateless };
@@ -122,8 +178,15 @@ describe('Managers tests', () => {
         const algo2Request = { algorithmName: 'algo2', requestType: 'batch' };
 
         before(async () => {
-            workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);
-            ({ workerCategories } = workersStateManager);
+            workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
+            const { jobsPendingForWorkers } = workersManager;
+            const idleWorkers = workersManager.getIdleWorkers();
+            const activeWorkers = workersManager.getActiveWorkers();
+            const pausedWorkers = workersManager.getPausedWorkers();
+            const bootstrappingWorkers = workersManager.getBootstrappingWorkers();
+            allAllocatedJobs = {
+                idleWorkers, activeWorkers, pausedWorkers, bootstrappingWorkers, jobsPendingForWorkers
+            };
         });
 
         beforeEach(async () => {
@@ -137,7 +200,7 @@ describe('Managers tests', () => {
                 const requests = [ { data: [ { name: 'alg1' } ] } ];
                 const templates = { alg1: {} };
                 const result = requestsManager.prepareAlgorithmRequests(requests, templates, [], {
-                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: []
+                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], jobsPendingForWorkers: []
                 });
 
                 expect(result).to.be.an('array');
@@ -149,7 +212,7 @@ describe('Managers tests', () => {
                 const templates = { 'stateful-alg': { stateType: stateType.Stateful }, 'batch-alg': {} };
 
                 const result = requestsManager.prepareAlgorithmRequests(requests, templates, [], {
-                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: []
+                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], jobsPendingForWorkers: []
                 });
 
                 expect(result).to.be.an('array');
@@ -168,7 +231,7 @@ describe('Managers tests', () => {
                 ];
 
                 const result = requestsManager.prepareAlgorithmRequests(requests, templates, jobWorkers, {
-                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: []
+                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], jobsPendingForWorkers: []
                 });
 
                 expect(result.length).to.equal(0);
@@ -182,7 +245,7 @@ describe('Managers tests', () => {
                 };
 
                 const result = requestsManager.prepareAlgorithmRequests(requests, templates, [], {
-                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: []
+                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], jobsPendingForWorkers: []
                 });
 
                 expect(result[0].algorithmName).to.equal('guaranteed');
@@ -190,7 +253,7 @@ describe('Managers tests', () => {
 
             it('should return an empty array when input is empty', () => {
                 const result = requestsManager.prepareAlgorithmRequests([], {}, [], {
-                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: []
+                    idleWorkers: [], activeWorkers: [], pausedWorkers: [], jobsPendingForWorkers: []
                 });
                 expect(result).to.deep.equal([]);
             });
@@ -213,7 +276,7 @@ describe('Managers tests', () => {
             let jobAttachedWorkers;
 
             before(() => {
-                ({ jobAttachedWorkers } = workersStateManager);
+                ({ jobAttachedWorkers } = workersManager);
             });
 
             it('should return empty list when no reqeusts', () => {
@@ -284,14 +347,14 @@ describe('Managers tests', () => {
             describe('_prioritizeQuotaRequisite Method', () => {
                 const { batchRequests } = categorizedRequests;
                 it('should return the same requests as input when there is no algorithms with quotaGuarantee', () => {
-                    const result = requestsManager._prioritizeQuotaRequisite(batchRequests, algorithmTemplates, workerCategories);
+                    const result = requestsManager._prioritizeQuotaRequisite(batchRequests, algorithmTemplates, allAllocatedJobs);
                     expect(result).to.be.an('array');
                     expect(result).to.be.deep.equal(categorizedRequests.batchRequests);
                 });
 
                 it('should return prioritized requests based on algorithms with quotaGuarantee', () => {
                     const algorithmName = 'green-alg';
-                    const existingWorkers = Object.values(workerCategories).reduce((acc, workersCategory) => {
+                    const existingWorkers = Object.values(allAllocatedJobs).reduce((acc, workersCategory) => {
                         return acc + workersCategory.reduce((acc, worker) => {
                             return acc + (worker.algorithmName === algorithmName ? 1 : 0);
                         }, 0);
@@ -301,7 +364,7 @@ describe('Managers tests', () => {
                     normRequests.push(greenRequest);
 
                     expect(normRequests[0].algorithmName).to.not.equal(algorithmName);
-                    const result = requestsManager._prioritizeQuotaRequisite(normRequests, algorithmTemplates, workerCategories);
+                    const result = requestsManager._prioritizeQuotaRequisite(normRequests, algorithmTemplates, allAllocatedJobs);
                     expect(result).to.be.an('array');
                     expect(result[0].algorithmName).to.equal(algorithmName);
                     expect(result[0].isRequisite).to.be.true;
@@ -309,7 +372,7 @@ describe('Managers tests', () => {
 
                 describe('_createRequisitesRequests Method', () => {
                     const getExisitingWorkersAmount = (algorithmName) => {
-                        return Object.values(workerCategories).reduce((acc, workersCategory) => {
+                        return Object.values(allAllocatedJobs).reduce((acc, workersCategory) => {
                             return acc + workersCategory.reduce((acc, worker) => {
                                 return acc + (worker.algorithmName === algorithmName ? 1 : 0);
                             }, 0);
@@ -317,7 +380,7 @@ describe('Managers tests', () => {
                     };
 
                     it('should return all requests as they are and no requisite if no requisite algorithm exist', () => {
-                        const { requests, requisites } = requestsManager._createRequisitesRequests(batchRequests, algorithmTemplates, workerCategories);
+                        const { requests, requisites } = requestsManager._createRequisitesRequests(batchRequests, algorithmTemplates, allAllocatedJobs);
                         expect(requests).to.be.an('array');
                         expect(requests).to.be.deep.equal(categorizedRequests.batchRequests);
                         expect(requisites).to.be.an('object');
@@ -329,9 +392,9 @@ describe('Managers tests', () => {
                         algorithmTemplates[algorithmName].quotaGuarantee = 1;
                         const normRequests = [...batchRequests];
                         normRequests.push(greenRequest);
-                        const workerCategoriesStub = { idleWorkers: [], activeWorkers: [], pausedWorkers: [], pendingWorkers: [] };
+                        const allAllocatedJobsStub = { idleWorkers: [], activeWorkers: [], pausedWorkers: [], bootstrappingWorkers: [], jobsPendingForWorkers: [] };
 
-                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, workerCategoriesStub);
+                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobsStub);
                         expect(requests).to.be.an('array');
                         expect(requests.filter(request => request.algorithmName === algorithmName)).to.be.empty;
                         expect(requisites).to.be.an('object');
@@ -347,7 +410,7 @@ describe('Managers tests', () => {
                         const normRequests = [...batchRequests];
                         normRequests.push(greenRequest);
 
-                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, workerCategories);
+                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
                         expect(existingWorkers).to.be.greaterThan(0, 'The raw worker stub was edited (green-alg)!');
                         expect(requests).to.be.an('array');
                         expect(requests.filter(request => request.algorithmName === algorithmName)).to.be.empty;
@@ -364,7 +427,7 @@ describe('Managers tests', () => {
                         const normRequests = [...batchRequests];
                         normRequests.push(greenRequest);
 
-                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, workerCategories);
+                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
                         expect(existingWorkers).to.be.above(0, 'The raw worker stub was edited (green-alg)!');
                         expect(requests).to.be.an('array');
                         expect(requests.filter(request => request.algorithmName === algorithmName).length).to.be.equal(1);
@@ -388,7 +451,7 @@ describe('Managers tests', () => {
                         normRequests.push(blackRequest);
                         normRequests.push(blackRequest);
 
-                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, workerCategories);
+                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
                         expect(existingWorkers1).to.be.above(0, 'The raw worker stub was edited (green-alg)!');
                         expect(existingWorkers2).to.be.above(0, 'The raw worker stub was edited (black-alg)!');
                         expect(requests).to.be.an('array');
@@ -477,8 +540,7 @@ describe('Managers tests', () => {
             let runningWorkersList;
 
             before(() => {
-                const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers } = workerCategories;
-                runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
+                runningWorkersList = Object.values(allAllocatedJobs).flat();
             });
 
             it('should correctly count workers grouped by their algorithmName', () => {
@@ -951,13 +1013,7 @@ describe('Managers tests', () => {
     });
 
     describe('JobsHandler Class', () => {
-        let workersStateManager, workerCategories;
         const workerResources = { mem: 512, cpu: 0.1 }
-
-        before(async () => {
-            workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);
-            ({ workerCategories } = workersStateManager);
-        });
 
         beforeEach(() => {
             // Default/init state
@@ -1065,26 +1121,19 @@ describe('Managers tests', () => {
             const algorithmName = 'alg1';
             const baseRequest = { algorithmName, requestType: 'batch' };
             let reconcileResult = {};
+            let allAllocatedJobs;
 
             beforeEach(() => {
                 reconcileResult = {};
+                allAllocatedJobs = { idleWorkers: [], pausedWorkers: [], bootstrappingWorkers: [], jobsPendingForWorkers: [] }
             });
 
             it('should assign request to idle worker', () => {
-                const result = jobsHandler._processAllRequests({
-                    idleWorkers: [{ id: 'w1', algorithmName }],
-                    pausedWorkers: [],
-                    pendingWorkers: [],
-                    bootstrapWorkers: [],
-                    algorithmTemplates,
-                    versions,
-                    jobsCreated: [],
-                    requests: [baseRequest],
-                    registry,
-                    clusterOptions,
-                    workerResources
-                }, reconcileResult);
-                
+                allAllocatedJobs.idleWorkers.push({ id: 'w1', algorithmName });
+                const requests = [baseRequest];
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                     registry, clusterOptions, workerResources, reconcileResult);
+
                 expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w1' }]);
                 expect(result.createDetails).to.be.empty;
                 expect(result.toResume).to.be.empty;
@@ -1092,19 +1141,10 @@ describe('Managers tests', () => {
             });
 
             it('should assign request to pending worker', () => {
-                const result = jobsHandler._processAllRequests({
-                    idleWorkers: [],
-                    pausedWorkers: [],
-                    pendingWorkers: [{ id: 'w2', algorithmName }],
-                    bootstrapWorkers: [],
-                    algorithmTemplates,
-                    versions,
-                    jobsCreated: [],
-                    requests: [baseRequest],
-                    registry,
-                    clusterOptions,
-                    workerResources
-                }, reconcileResult);
+                allAllocatedJobs.jobsPendingForWorkers.push({ id: 'w2', algorithmName });
+                const requests = [baseRequest];
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                     registry, clusterOptions, workerResources, reconcileResult);
                 
                 expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w2' }]);
                 expect(result.createDetails).to.be.empty;
@@ -1113,19 +1153,10 @@ describe('Managers tests', () => {
             });
 
             it('should assign request to recently created job', () => {
-                const result = jobsHandler._processAllRequests({
-                    idleWorkers: [],
-                    pausedWorkers: [],
-                    pendingWorkers: [],
-                    bootstrapWorkers: [],
-                    algorithmTemplates,
-                    versions,
-                    jobsCreated: [{ id: 'w3', algorithmName }],
-                    requests: [baseRequest],
-                    registry,
-                    clusterOptions,
-                    workerResources
-                }, reconcileResult);
+                jobsHandler.createdJobsLists.batch.push({ algorithmName, id: 'w3' } );
+                const requests = [baseRequest];
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                     registry, clusterOptions, workerResources, reconcileResult);
                 
                 expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w3' }]);
                 expect(result.createDetails).to.be.empty;
@@ -1134,19 +1165,10 @@ describe('Managers tests', () => {
             });
 
             it('should wake up a paused worker and add it to toResume', () => {
-                const result = jobsHandler._processAllRequests({
-                    idleWorkers: [],
-                    pausedWorkers: [{ id: 'w4', algorithmName, status: 'paused' }],
-                    pendingWorkers: [],
-                    bootstrapWorkers: [],
-                    algorithmTemplates,
-                    versions,
-                    jobsCreated: [],
-                    requests: [baseRequest],
-                    registry,
-                    clusterOptions,
-                    workerResources
-                }, reconcileResult);
+                allAllocatedJobs.pausedWorkers.push({ id: 'w4', algorithmName, status: 'paused' });
+                const requests = [baseRequest];
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                     registry, clusterOptions, workerResources, reconcileResult);
                 
                 expect(result.toResume).to.have.lengthOf(1);
                 expect(result.toResume[0].id).to.equal('w4');
@@ -1156,19 +1178,10 @@ describe('Managers tests', () => {
             });
 
             it('should assign request to bootstrap worker', () => {
-                const result = jobsHandler._processAllRequests({
-                    idleWorkers: [],
-                    pausedWorkers: [],
-                    pendingWorkers: [],
-                    bootstrapWorkers: [{ id: 'w5', algorithmName }],
-                    algorithmTemplates,
-                    versions,
-                    jobsCreated: [],
-                    requests: [baseRequest],
-                    registry,
-                    clusterOptions,
-                    workerResources
-                }, reconcileResult);
+                allAllocatedJobs.bootstrappingWorkers.push({ id: 'w5', algorithmName });
+                const requests = [baseRequest];
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                     registry, clusterOptions, workerResources, reconcileResult);
                 
                 expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w5' }]);
                 expect(result.createDetails).to.be.empty;
@@ -1177,19 +1190,9 @@ describe('Managers tests', () => {
             });
 
             it('should prepare job creation when no worker is available', () => {
-                const result = jobsHandler._processAllRequests({
-                    idleWorkers: [],
-                    pausedWorkers: [],
-                    pendingWorkers: [],
-                    bootstrapWorkers: [],
-                    algorithmTemplates,
-                    versions,
-                    jobsCreated: [],
-                    requests: [baseRequest],
-                    registry,
-                    clusterOptions,
-                    workerResources
-                }, reconcileResult);
+                const requests = [baseRequest];
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                     registry, clusterOptions, workerResources, reconcileResult);
 
                 expect(result.createDetails).to.have.lengthOf(1);
                 expect(result.createDetails[0].numberOfNewJobs).to.equal(1);
@@ -1203,57 +1206,26 @@ describe('Managers tests', () => {
             });
 
             it('should increment existing reconcileResult if already exists', () => {
+                const requests = [baseRequest];
                 reconcileResult = { alg1: { required: 2, idle: 0, paused: 0 } };
 
-                const result = jobsHandler._processAllRequests({
-                    idleWorkers: [],
-                    pausedWorkers: [],
-                    pendingWorkers: [],
-                    bootstrapWorkers: [],
-                    algorithmTemplates,
-                    versions,
-                    jobsCreated: [],
-                    requests: [baseRequest],
-                    registry,
-                    clusterOptions,
-                    workerResources
-                }, reconcileResult);
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                     registry, clusterOptions, workerResources, reconcileResult);
 
                 expect(reconcileResult.alg1.required).to.equal(3);
                 expect(result.createDetails).to.have.lengthOf(1);
             });
 
             it('should process multiple requests and handle mixed assignment + creation', () => {
+                allAllocatedJobs.idleWorkers.push({ id: 'w1', algorithmName });
                 const requests = [baseRequest, { algorithmName: 'alg2', requestType: 'batch' }];
-
-                const result = jobsHandler._processAllRequests({
-                    idleWorkers: [{ id: 'w1', algorithmName }],
-                    pausedWorkers: [],
-                    pendingWorkers: [],
-                    bootstrapWorkers: [],
-                    algorithmTemplates,
-                    versions,
-                    jobsCreated: [],
-                    requests,
-                    registry,
-                    clusterOptions,
-                    workerResources
-                }, reconcileResult);
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                     registry, clusterOptions, workerResources, reconcileResult);
 
                 expect(result.scheduledRequests).to.deep.equal([{ algorithmName, id: 'w1' }]);
                 expect(result.createDetails).to.have.lengthOf(1);
                 expect(result.createDetails[0].jobDetails.algorithmName).to.equal('alg2');
                 expect(reconcileResult.alg2.required).to.equal(1);
-            });
-        });
-
-        describe('_getAllVolumeNames Method', () => {
-            it('should return an object with keys pvcs, configMaps, and secrets as arrays', async () => {
-                const result = await jobsHandler._getAllVolumeNames();
-                expect(result).to.have.keys(['pvcs', 'configMaps', 'secrets']);
-                expect(result.pvcs).to.be.an('array');
-                expect(result.configMaps).to.be.an('array');
-                expect(result.secrets).to.be.an('array');
             });
         });
 
@@ -1275,7 +1247,67 @@ describe('Managers tests', () => {
             });
         });
 
-        describe('_createStopDetails', () => {
+        describe('_getAllVolumeNames Method', () => {
+            it('should return an object with keys pvcs, configMaps, and secrets as arrays', async () => {
+                const result = await jobsHandler._getAllVolumeNames();
+                expect(result).to.have.keys(['pvcs', 'configMaps', 'secrets']);
+                expect(result.pvcs).to.be.an('array');
+                expect(result.configMaps).to.be.an('array');
+                expect(result.secrets).to.be.an('array');
+            });
+        });
+
+        describe('_findWorkersToStop Method', () => {
+            let allAllocatedJobs;
+
+            beforeEach(() => {
+                allAllocatedJobs = { idleWorkers: [], activeWorkers: [] }
+            });
+
+            it('should return an empty array if there are no skipped jobs', () => {
+                const result = jobsHandler._findWorkersToStop([], allAllocatedJobs, {});
+
+                expect(result).to.be.an('array').that.is.empty;
+            });
+
+            it('should return workers to stop', () => {
+                const algorithmName = 'alg1';
+                const { cpu, mem } = algorithmTemplates[algorithmName];
+                const resourceRequests = createContainerResource({ cpu, mem });
+                const skipped = [ { algorithmName, resourceRequests } ];
+
+                allAllocatedJobs.idleWorkers.push({ id: 'idle-1', algorithmName, podName: 'p1', job: { nodeName: 'n1' } });
+                allAllocatedJobs.activeWorkers.push({ id: 'active-1', algorithmName: 'alg2', podName: 'p2', job: { nodeName: 'n2' } });
+
+                const result = jobsHandler._findWorkersToStop(skipped, allAllocatedJobs, algorithmTemplates);
+
+                expect(result).to.be.an('array').that.is.not.empty;
+                result.forEach(r => {
+                    expect(r).to.have.keys(['count', 'details']);
+                    expect(r.count).to.equal(1);
+                    expect(r.details).to.include.keys([
+                        'algorithmName',
+                        'resourceRequests',
+                        'nodeName',
+                        'podName',
+                        'id'
+                    ]);
+                });
+            });
+
+            it('should return empty array if there are no workers', () => {
+                const algorithmName = 'alg1';
+                const { cpu, mem } = algorithmTemplates[algorithmName];
+                const resourceRequests = createContainerResource({ cpu, mem });
+                const skipped = [ { algorithmName, resourceRequests } ];
+
+                const result = jobsHandler._findWorkersToStop(skipped, allAllocatedJobs, algorithmTemplates);
+
+                expect(result).to.be.an('array').that.is.empty;
+            });
+        });
+
+        describe('_createStopDetails Method', () => {
             const algorithmName = 'alg1';
             const baseWorker = { id: 'worker-1', algorithmName, podName: 'pod-1' };
             it('should return correct stop details for a worker', () => {
@@ -1303,67 +1335,7 @@ describe('Managers tests', () => {
             });
         });
 
-        describe('_findWorkersToStop', () => {
-            it('should return an empty array if there are no skipped jobs', () => {
-                const result = jobsHandler._findWorkersToStop({
-                    skipped: [],
-                    idleWorkers: [],
-                    activeWorkers: [],
-                    algorithmTemplates: {}
-                });
-
-                expect(result).to.be.an('array').that.is.empty;
-            });
-
-            it('should return workers to stop', () => {
-                const algorithmName = 'alg1';
-                const { cpu, mem } = algorithmTemplates[algorithmName];
-                const resourceRequests = createContainerResource({ cpu, mem });
-                const skipped = [ { algorithmName, resourceRequests } ];
-
-                const idleWorkers = [ { id: 'idle-1', algorithmName, podName: 'p1', job: { nodeName: 'n1' } } ];
-
-                const activeWorkers = [ { id: 'active-1', algorithmName: 'alg2', podName: 'p2', job: { nodeName: 'n2' } } ];
-
-                const result = jobsHandler._findWorkersToStop({
-                    skipped,
-                    idleWorkers,
-                    activeWorkers,
-                    algorithmTemplates
-                });
-
-                expect(result).to.be.an('array').that.is.not.empty;
-                result.forEach(r => {
-                    expect(r).to.have.keys(['count', 'details']);
-                    expect(r.count).to.equal(1);
-                    expect(r.details).to.include.keys([
-                        'algorithmName',
-                        'resourceRequests',
-                        'nodeName',
-                        'podName',
-                        'id'
-                    ]);
-                });
-            });
-
-            it('should return empty array if there are no workers', () => {
-                const algorithmName = 'alg1';
-                const { cpu, mem } = algorithmTemplates[algorithmName];
-                const resourceRequests = createContainerResource({ cpu, mem });
-                const skipped = [ { algorithmName, resourceRequests } ];
-
-                const result = jobsHandler._findWorkersToStop({
-                    skipped,
-                    idleWorkers: [],
-                    activeWorkers: [],
-                    algorithmTemplates
-                });
-
-                expect(result).to.be.an('array').that.is.empty;
-            });
-        });
-
-        describe('_filterWorkersToStop', () => {
+        describe('_filterWorkersToStop Method', () => {
             it('should return the same list if there are no workers to resume', () => {
                 const toStop = [ { algorithmName: 'alg1' }, { algorithmName: 'alg2' } ];
                 const toResume = [];
@@ -1414,96 +1386,65 @@ describe('Managers tests', () => {
             });
         });
 
-        describe('_processPromises Method', () => {
+        describe('_createJobs Method', () => {
             let mockJobsHandler;
             let shouldFail;
             const fakeJob1 = { algorithmName: 'alg1' };
             const fakeJob2 = { algorithmName: 'alg2' };
+            const options = {};
 
             before(() => {
                 mockJobsHandler = { ...jobsHandler };
-                mockJobsHandler._processPromises = jobsHandler._processPromises;
-                mockJobsHandler._stopWorker = async (worker) => (worker !== undefined);
-                mockJobsHandler._exitWorker = async (worker) => (worker !== undefined);
-                mockJobsHandler._warmUpWorker = async (worker) => (worker !== undefined);
-                mockJobsHandler._coolDownWorker = async (worker) => (worker !== undefined);
-                mockJobsHandler._resumeWorker = async (worker) => (worker !== undefined);
-                mockJobsHandler._createJob = async (jobDetails) =>
-                    (shouldFail.includes(jobDetails.algorithmName) ? 
-                { statusCode: StatusCodes.UNPROCESSABLE_ENTITY, jobDetails, message: 'error with creating', spec: {} } : { statusCode: StatusCodes.OK, jobDetails });
+                mockJobsHandler._createJobs = jobsHandler._createJobs;
+                mockJobsHandler._createJob = async (jobDetails) => (
+                    shouldFail.includes(jobDetails.algorithmName) ? {
+                        statusCode: StatusCodes.UNPROCESSABLE_ENTITY,
+                        jobDetails,
+                        message: 'error with creating',
+                        spec: {}
+                    } : { statusCode: StatusCodes.OK, jobDetails }
+                );
             });
 
             beforeEach(() => {
                 shouldFail = [];
             });
 
-            it('should return successfully created jobs and handle skipped ones', async () => {
-                const skipped = [];
+            it('should return successfully created jobs and failed jobs with warnings', async () => {
                 shouldFail.push(fakeJob2.algorithmName);
+                const jobsToRequest = [fakeJob1, fakeJob2];
+                const result = await mockJobsHandler._createJobs(jobsToRequest, options);
 
-                const result = await mockJobsHandler._processPromises({
-                    toRequest: [fakeJob1, fakeJob2],
-                    workersToExit: [{ id: 'e1' }],
-                    workersToWarmUp: [{ id: 'w1' }],
-                    workersToCoolDown: [{ id: 'c1' }],
-                    toStopFiltered: [{ id: 's1' }],
-                    toResume: [{ id: 'r1' }],
-                    skipped,
-                    options: {}
-                });
-
-                expect(result).to.be.an('array');
-                expect(result).to.deep.equal([{ algorithmName: fakeJob1.algorithmName }]);
-                expect(skipped).to.have.lengthOf(1);
-                expect(skipped[0]).to.have.property('warning');
-                expect(skipped[0].warning).to.be.an('object');
-                expect(skipped[0].warning).to.not.be.empty;
-                expect(skipped[0].algorithmName).to.equal(fakeJob2.algorithmName);
+                expect(result).to.be.an('object');
+                expect(result.created).to.deep.equal([fakeJob1]);
+                expect(result.failed).to.have.lengthOf(1);
+                expect(result.failed[0]).to.have.property('warning');
+                expect(result.failed[0].warning).to.be.an('object');
+                expect(result.failed[0].warning).to.not.be.empty;
+                expect(result.failed[0].algorithmName).to.equal(fakeJob2.algorithmName);
             });
 
             it('should return an empty array if no jobs succeed', async () => {
-                const skipped = [];
-                shouldFail.push(fakeJob1.algorithmName);
-                shouldFail.push(fakeJob2.algorithmName);
+                shouldFail.push(fakeJob1.algorithmName, fakeJob2.algorithmName);
+                const jobsToRequest = [fakeJob1, fakeJob2];
+                const result = await mockJobsHandler._createJobs(jobsToRequest, options);
 
-                const result = await mockJobsHandler._processPromises({
-                    toRequest: [fakeJob1, fakeJob2],
-                    workersToExit: [],
-                    workersToWarmUp: [],
-                    workersToCoolDown: [],
-                    toStopFiltered: [],
-                    toResume: [],
-                    skipped,
-                    options: {}
-                });
-
-                expect(result).to.be.an('array');
-                expect(result).to.deep.equal([]);
-                expect(skipped).to.have.lengthOf(2);
-                skipped.forEach(item => {
+                expect(result).to.be.an('object');
+                expect(result.created).to.be.an('array').that.is.empty;
+                expect(result.failed).to.have.lengthOf(2);
+                result.failed.forEach(item => {
                     expect(item).to.be.an('object');
                     expect(item).to.have.property('warning');
-                    expect(skipped[0].warning).to.be.an('object');
-                    expect(skipped[0].warning).to.not.be.empty;
+                    expect(item.warning).to.be.an('object').that.is.not.empty;
                 });
             });
 
             it('should handle an empty input gracefully', async () => {
                 const skipped = []
 
-                const result = await mockJobsHandler._processPromises({
-                    toRequest: [],
-                    workersToExit: [],
-                    workersToWarmUp: [],
-                    workersToCoolDown: [],
-                    toStopFiltered: [],
-                    toResume: [],
-                    skipped,
-                    options: {}
-                });
+                const result = await mockJobsHandler._createJobs([], options);
 
-                expect(result).to.deep.equal([]);
-                expect(skipped).to.deep.equal([]);
+                expect(result).to.deep.equal({ created: [], failed: [] });
             });
         });
     });

@@ -27,9 +27,9 @@ class RequestsManager {
      * @param {Object[]} algorithmRequests - Incoming raw algorithm requests from etcd.
      * @param {Object} algorithmTemplates - Algorithm definitions from DB.
      * @param {Object[]} jobAttachedWorkers - Workers with their assigned jobs.
-     * @param {Object} workerCategories - Categorized workers (idle, active, paused, pending, bootstrap).
+     * @param {Object} allAllocatedJobs - All allocated jobs with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, boostrappingWorkers.
      */
-    prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, jobAttachedWorkers, workerCategories) {
+    prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, jobAttachedWorkers, allAllocatedJobs) {
         // 1. Normalize incoming requests
         let requests = normalizeRequests(algorithmRequests, algorithmTemplates);
 
@@ -37,7 +37,7 @@ class RequestsManager {
         requests = this._filterByMaxWorkers(algorithmTemplates, requests, jobAttachedWorkers);
 
         // 3. Move quota-guaranteed requests to the front
-        requests = this._prioritizeQuotaRequisite(requests, algorithmTemplates, workerCategories);
+        requests = this._prioritizeQuotaRequisite(requests, algorithmTemplates, allAllocatedJobs);
 
         // 4. Categorize into batch and streaming
         let { batchRequests, streamingRequests } = this._splitRequestsByType(requests);
@@ -106,14 +106,14 @@ class RequestsManager {
      * @private
      * @param {Array<Object>} normalizedRequests - Array of normalized requests (each has algorithmName).
      * @param {Object} algorithmTemplates - Map of algorithmName -> algorithm template (may contain quotaGuarantee).
-     * @param {Object} workerCategories - Categorized workers with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers.
+     * @param {Object} allAllocatedJobs - All allocated jobs with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, boostrappingWorkers.
      * @returns {Array<Object>} Prioritized requests (array ordered with requisites first).
      */
-    _prioritizeQuotaRequisite(normRequests, algorithmTemplates, workerCategories) {
+    _prioritizeQuotaRequisite(normRequests, algorithmTemplates, allAllocatedJobs) {
         const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.quotaGuarantee);
 
         if (hasRequisiteAlgorithms) {
-            const { requests, requisites } = this._createRequisitesRequests(normRequests, algorithmTemplates, workerCategories);
+            const { requests, requisites } = this._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
             return this._mergeRequisiteRequests(requests, requisites);
         }
         return normRequests;
@@ -132,24 +132,24 @@ class RequestsManager {
      * @private
      * @param {Array<Object>} normalizedRequests - Array of normalized requests (each has algorithmName).
      * @param {Object} algorithmTemplates - Map of algorithmName -> algorithm template (may contain quotaGuarantee).
-     * @param {Object} workerCategories - Categorized workers with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers.
-     * @param {Array<Object>} workerCategories.idleWorkers - Idle workers list.
-     * @param {Array<Object>} workerCategories.activeWorkers - Active workers list.
-     * @param {Array<Object>} workerCategories.pausedWorkers - Paused workers list.
-     * @param {Array<Object>} workerCategories.pendingWorkers - Pending workers list (jobs with no worker).
+     * @param {Object} allAllocatedJobs - All allocated jobs with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, boostrappingWorkers.
+     * @param {Array<Object>} allAllocatedJobs.idleWorkers - Idle workers list.
+     * @param {Array<Object>} allAllocatedJobs.activeWorkers - Active workers list.
+     * @param {Array<Object>} allAllocatedJobs.pausedWorkers - Paused workers list.
+     * @param {Array<Object>} allAllocatedJobs.jobsPendingForWorkers - Jobs pending for workers list (jobs with no worker).
+     * @param {Array<Object>} allAllocatedJobs.bootstrappingWorkers - bootstrappingWorkers workers list.
      * @returns {{requests: Array<Object>, requisites: Object}} 
      *          - requests: the requests array excluding those reserved for requisites
      *          - requisites: object { algorithms: { <alg>: { required: [requests...] } }, totalRequired: number }
      */
-    _createRequisitesRequests(normalizedRequests, algorithmTemplates, workerCategories) {
-        const { idleWorkers, activeWorkers, pausedWorkers, pendingWorkers } = workerCategories;
+    _createRequisitesRequests(normalizedRequests, algorithmTemplates, allAllocatedJobs) {
         const requests = [];
         const visited = {};
         const indicesToIgnore = {};
         const requisites = { algorithms: {}, totalRequired: 0 };
 
         // combine the running workers into a single list to count running per algorithm
-        const runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
+        const runningWorkersList = Object.values(allAllocatedJobs).flat();
         const runningWorkersMap = this._workersToMap(runningWorkersList);
 
         normalizedRequests.forEach((request, index) => {

@@ -4,7 +4,7 @@ const clonedeep = require('lodash.clonedeep');
 const etcd = require('../helpers/etcd');
 const { components, consts } = require('../consts');
 const component = components.RECONCILER;
-const { WorkersStateManager, requestsManager, jobsHandler } = require('./managers');
+const { WorkersManager, requestsManager, jobsHandler } = require('./managers');
 
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
@@ -128,22 +128,41 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // Update the cache of jobs lately created by removing old jobs
     const reconcileResult = {};
 
+    // Clear created jobs list after TTL, and check for resource pressure
     jobsHandler.clearCreatedJobsLists(options.createdJobsTTL);
     _checkResourcePressure(normResources);
 
-    const workersStateManager = new WorkersStateManager(workers, jobs, pods, algorithmTemplates, versions, registry);
+    // Create a new instance of workers manager
+    const workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
 
-    const batchCount = workersStateManager.countBatchWorkers(algorithmTemplates) + jobsHandler.createdJobsLists.batch.length;
+    // Update batch capacity
+    const batchCount = workersManager.countBatchWorkers() + jobsHandler.createdJobsLists.batch.length;
     requestsManager.updateCapacity(batchCount);
-    const requests = requestsManager.prepareAlgorithmRequests(
-        algorithmRequests, algorithmTemplates, workersStateManager.jobAttachedWorkers, workersStateManager.workerCategories
-    );
 
-    const jobsInfo = await jobsHandler.finalizeScheduling(workersStateManager, algorithmTemplates, normResources, versions,
+    // Prepare algorithm requests
+    const { jobAttachedWorkers, jobsPendingForWorkers } = workersManager;
+    const idleWorkers = workersManager.getIdleWorkers();
+    const activeWorkers = workersManager.getActiveWorkers();
+    const pausedWorkers = workersManager.getPausedWorkers();
+    const bootstrappingWorkers = workersManager.getBootstrappingWorkers();
+    const allAllocatedJobs = {
+        idleWorkers, activeWorkers, pausedWorkers, bootstrappingWorkers, jobsPendingForWorkers
+    };
+    const requests = requestsManager.prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, jobAttachedWorkers, allAllocatedJobs);
+
+    const workersToExitPromises = workersManager.handleExitWorkers();
+    const workersToWarmUpPromises = workersManager.handleWarmUpWorkers();
+    const workersToCoolDownPromises = workersManager.handleCoolDownWorkers();
+    const jobsInfo = await jobsHandler.schedule(allAllocatedJobs, algorithmTemplates, normResources, versions,
         requests, registry, clusterOptions, workerResources, options, reconcileResult);
+
+    const { toResume, toStop } = jobsInfo;
+    const workersToStopPromises = workersManager.stop(toStop);
+    const workersToResumePromises = workersManager.resume(toResume);
+    await Promise.all([...workersToStopPromises, ...workersToExitPromises, ...workersToWarmUpPromises, ...workersToCoolDownPromises, ...workersToResumePromises]);
     
     // add created and skipped info
-    const workerStats = _calcStats(workersStateManager.normalizedWorkers);
+    const workerStats = _calcStats(workersManager.normalizedWorkers);
     await _updateReconcileResult({
         reconcileResult, ...jobsHandler, jobsInfo, workerStats, normResources
     });

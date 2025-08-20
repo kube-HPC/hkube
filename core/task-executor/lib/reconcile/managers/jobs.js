@@ -45,11 +45,10 @@ class JobsHandler {
      * 8. Update jobsInfo with final scheduling data.
      *
      * @async
-     * @param {Object} WorkersStateManager - Holds workers information lists.
+     * @param {Object} allAllocatedJobs - All allocated jobs with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, boostrappingWorkers.
      * @param {Object} algorithmTemplates - Algorithm definitions from DB.
      * @param {Object} normResources - Normalized cluster resources (CPU/Memory/GPU).
      * @param {Object} versions - System versions object.
-     * @param {Object[]} maxFilteredRequests - Requests after max workers filtering.
      * @param {Object[]} requests - Requests selected for scheduling (final requests).
      * @param {Object} registry - Registry configuration.
      * @param {Object} clusterOptions - Cluster-wide configuration.
@@ -57,42 +56,37 @@ class JobsHandler {
      * @param {Object} options - Confguration containing additional job creation options.
      * @param {Object} reconcileResult - Scheduling reconcile stats by algorithm.
      */
-    async finalizeScheduling(workersStateManager, algorithmTemplates, normResources, versions, requests, registry, clusterOptions, workerResources, options, reconcileResult) {
-        // 1. Clone list of already created jobs (avoid mutating original)
-        const jobsCreated = clonedeep(Object.values(this.createdJobsLists).flat());
-        
-        // 2. Assign requests to workers or prepare job creation details
-        const { createDetails, toResume, scheduledRequests } = this._processAllRequests({
-            ...workersStateManager.workerCategories, algorithmTemplates, versions, jobsCreated, requests, registry, clusterOptions, workerResources
-        }, reconcileResult);
+    async schedule(allAllocatedJobs, algorithmTemplates, normResources, versions, requests, registry, clusterOptions, workerResources, options, reconcileResult) {        
+        // 1. Assign requests to workers or prepare job creation details
+        const { createDetails, toResume, scheduledRequests } = this._processAllRequests(allAllocatedJobs, algorithmTemplates,
+            versions, requests, registry, clusterOptions, workerResources, reconcileResult);
 
-        // 3. Match jobs to resources, and skip those that doesn't have the required resources.
+        // 2. Match jobs to resources, and skip those that doesn't have the required resources.
         const extraResources = await this._getExtraResources();
-        const { toRequest, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, extraResources);
+        const { jobsToRequest, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, extraResources);
         
-        // 4. Find workers to stop if resources insufficient
-        const stopDetails = this._findWorkersToStop({ skipped, ...workersStateManager.workerCategories, algorithmTemplates });
+        // 3. Find workers to stop if resources insufficient
+        const stopDetails = this._findWorkersToStop(skipped, allAllocatedJobs, algorithmTemplates);
     
-        // 5. Pause workers according to resource needs
+        // 4. Pause workers according to resource needs
         const toStop = pauseAccordingToResources(stopDetails, normResources, skipped);
     
-        if (toRequest.length > 0) {
-            log.trace(`trying to create ${toRequest.length} algorithms....`, { component });
+        if (jobsToRequest.length > 0) {
+            log.trace(`trying to create ${jobsToRequest.length} algorithms....`, { component });
         }
 
-        // 6. Filter stop list to avoid stopping workers we plan to resume
+        // 5. Filter stop list to avoid stopping workers we plan to resume
         const toStopFiltered = this._filterWorkersToStop(toStop, toResume);
     
-        // 7. Execute all actions (create jobs, stop, resume, warm/cool workers, etc.)
-        const created = await this._processPromises({ 
-            ...workersStateManager, options, toResume, toStopFiltered, toRequest, skipped
-        });
+        // 6. Execute all actions (create jobs, stop, resume, warm/cool workers, etc.)
+        const { created, failed } = await this._createJobs(jobsToRequest, options);
         created.forEach(job => this.createdJobsLists[job.stateType].push(job));
+        failed.forEach(job => skipped.push(job));
 
-        // 8. Update unscheduled algorithms tracking
+        // 7. Update unscheduled algorithms tracking
         this._checkUnscheduled(created, skipped, requests, algorithmTemplates);
 
-        // 9. Return jobs info for reporting
+        // 8. Return jobs info for reporting
         return { created, skipped, toResume, toStop: toStopFiltered };
     }
 
@@ -123,17 +117,26 @@ class JobsHandler {
      * If no suitable worker exists, prepares job creation details.
      *
      * @private
-     * @param {Object} params - Combined parameters including workers lists, templates, etc.
-     * @param {Object} reconcileResult - Scheduling stats by algorithm.
-     * @returns {{createDetails: Object[], toResume: Object[]}} - Job creation details and workers to resume.
+     * @param {Object} allAllocatedJobs - All allocated jobs with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, boostrappingWorkers.
+     * @param {Array<Object>} allAllocatedJobs.idleWorkers - Idle workers list.
+     * @param {Array<Object>} allAllocatedJobs.pausedWorkers - Paused workers list.
+     * @param {Array<Object>} allAllocatedJobs.bootstrappingWorkers - bootstrappingWorkers workers list.
+     * @param {Array<Object>} allAllocatedJobs.jobsPendingForWorkers - Jobs pending for workers list (jobs with no worker).
+     * @param {Object} algorithmTemplates - Algorithm definitions from DB.
+     * @param {Object} versions - System versions object.
+     * @param {Object[]} requests - Requests selected for scheduling (final requests).
+     * @param {Object} registry - Registry configuration.
+     * @param {Object} clusterOptions - Cluster-wide configuration.
+     * @param {Object} workerResources - Default worker resource requests.
+     * @param {Object} reconcileResult - Scheduling reconcile stats by algorithm.
+     * @returns {{createDetails: Object[], toResume: Object[], scheduledRequests: Object[]}} - Job creation details, workers to resume and all scheduled requests.
      */
-    _processAllRequests(
-        { idleWorkers, pausedWorkers, pendingWorkers, bootstrapWorkers, algorithmTemplates, versions, jobsCreated, requests, registry, clusterOptions, workerResources },
-        reconcileResult
-    ) {
+    _processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests, registry, clusterOptions, workerResources, reconcileResult) {
         const createDetails = [];
         const toResume = [];
         const scheduledRequests = []; // Requests successfully matched to a worker or job
+        const { idleWorkers, pausedWorkers, bootstrappingWorkers, jobsPendingForWorkers } = allAllocatedJobs;
+        const alreadyCreatedJobs = clonedeep(Object.values(this.createdJobsLists).flat()); // avoid mutating original
 
         for (let req of requests) {// eslint-disable-line
             const { algorithmName, hotWorker } = req;
@@ -148,19 +151,19 @@ class JobsHandler {
             }
 
             // Check for pending worker
-            const pendingWorkerIndex = pendingWorkers.findIndex(worker => worker.algorithmName === algorithmName);
+            const pendingWorkerIndex = jobsPendingForWorkers.findIndex(worker => worker.algorithmName === algorithmName);
             if (pendingWorkerIndex !== -1) {
                 // there is a pending worker.
-                const [worker] = pendingWorkers.splice(pendingWorkerIndex, 1);
+                const [worker] = jobsPendingForWorkers.splice(pendingWorkerIndex, 1);
                 scheduledRequests.push({ algorithmName, id: worker.id });
                 continue;
             }
 
             // Check for recently created jobs
-            const jobsCreatedIndex = jobsCreated.findIndex(worker => worker.algorithmName === algorithmName);
+            const jobsCreatedIndex = alreadyCreatedJobs.findIndex(worker => worker.algorithmName === algorithmName);
             if (jobsCreatedIndex !== -1) {
                 // there is a job which was recently created.
-                const [worker] = jobsCreated.splice(jobsCreatedIndex, 1);
+                const [worker] = alreadyCreatedJobs.splice(jobsCreatedIndex, 1);
                 scheduledRequests.push({ algorithmName, id: worker.id });
                 continue;
             }
@@ -176,10 +179,10 @@ class JobsHandler {
             }
 
             // Check for bootstrapped workers
-            const bootstrapWorkerIndex = bootstrapWorkers.findIndex(worker => worker.algorithmName === algorithmName);
+            const bootstrapWorkerIndex = bootstrappingWorkers.findIndex(worker => worker.algorithmName === algorithmName);
             if (bootstrapWorkerIndex !== -1) {
                 // there is a worker in bootstrap for this algorithm.
-                const [worker] = bootstrapWorkers.splice(bootstrapWorkerIndex, 1);
+                const [worker] = bootstrappingWorkers.splice(bootstrapWorkerIndex, 1);
                 scheduledRequests.push({ algorithmName, id: worker.id });
                 continue;
             }
@@ -276,10 +279,15 @@ class JobsHandler {
      * Finds workers that can be stopped to free resources for skipped jobs.
      *
      * @private
-     * @param {Object} params - Contains skipped jobs, idle workers, active workers, and templates.
+     * @param {Object} skipped - Jobs that have been skipped (not scheduled).
+     * @param {Object} allAllocatedJobs - All allocated jobs with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, boostrappingWorkers.
+     * @param {Array<Object>} allAllocatedJobs.idleWorkers - Idle workers list.
+     * @param {Array<Object>} allAllocatedJobs.activeWorkers - Active workers list.
+     * @param {Object} algorithmTemplates - Algorithm definitions from DB.
      * @returns {Object[]} Workers to stop with details.
      */
-    _findWorkersToStop({ skipped, idleWorkers, activeWorkers, algorithmTemplates }) {
+    _findWorkersToStop(skipped, allAllocatedJobs, algorithmTemplates) {
+        const { idleWorkers, activeWorkers } = allAllocatedJobs;
         const missingCount = skipped.length;
         if (missingCount === 0) {
             return [];
@@ -386,30 +394,33 @@ class JobsHandler {
     }
 
     /**
-     * Executes create/stop/resume/warm/cool worker actions in parallel.
-     *
+     * Attempts to create multiple jobs in parallel.
+     * 
+     * For each job:
+     * - If creation fails with an UNPROCESSABLE_ENTITY error, it is added to the `failed` list with a warning.
+     * - If creation succeeds (status OK or CREATED), it is added to the `created` list.
+     * 
      * @private
-     * @returns {Promise<Object[]>} Successfully created jobs.
+     * @async
+     * @param {Array<Object>} jobsToRequest - List of job details to attempt to create.
+     * @param {Object} options - Additional options passed to each job creation request.
+     * 
+     * @returns {Promise<{ created: Array<Object>, failed: Array<Object> }>} 
+     *          An object containing arrays of successfully created and failed job details.
      */
-    async _processPromises({ workersToExit, workersToWarmUp, toRequest, skipped, toStopFiltered, toResume, workersToCoolDown, options }) {
+    async _createJobs(jobsToRequest, options) {
         const created = [];
-        const exitWorkersPromises = workersToExit.map(r => this._exitWorker(r));
-        const warmUpPromises = workersToWarmUp.map(r => this._warmUpWorker(r));
-        const coolDownPromises = workersToCoolDown.map(r => this._coolDownWorker(r));
-        const stopPromises = toStopFiltered.map(r => this._stopWorker(r));
-        const resumePromises = toResume.map(r => this._resumeWorker(r));
+        const failed = [];
         const createPromises = [];
-        toRequest.forEach(jobDetails => createPromises.push(this._createJob(jobDetails, options)));
+        jobsToRequest.forEach(jobDetails => createPromises.push(this._createJob(jobDetails, options)));
+        const resolvedPromises = await Promise.all(createPromises);
 
-        const resolvedPromises = await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
-        createPromises.forEach((_, index) => {
-            const response = resolvedPromises[index]; // Thats fine because resolvedPromises first contains createPromises
-        
+        resolvedPromises.forEach(response => {        
             if (response && response.statusCode === StatusCodes.UNPROCESSABLE_ENTITY) {
                 const { jobDetails, message, spec } = response;
                 const warning = createWarning({ jobDetails, code: warningCodes.JOB_CREATION_FAILED, message, spec });
         
-                skipped.push({
+                failed.push({
                     ...jobDetails,
                     warning
                 });
@@ -418,46 +429,7 @@ class JobsHandler {
                 created.push(response.jobDetails);
             }
         });
-        return created;
-    }
-
-    /**
-     * Sends an exit command to a worker, instructing it to terminate.
-     *
-     * @private
-     * @param {Object} worker - Worker object.
-     * @returns {Promise<Object>} Response from etcd.
-     */
-    _exitWorker(worker) {
-        return etcd.sendCommandToWorker({
-            workerId: worker.id, command: commands.exit, message: worker.message, algorithmName: worker.algorithmName, podName: worker.podName
-        });
-    }
-
-    /**
-     * Sends a warm-up command to a worker, preparing it for execution.
-     *
-     * @private
-     * @param {Object} worker - Worker object.
-     * @returns {Promise<Object>} Response from etcd.
-     */
-    _warmUpWorker(worker) {
-        return etcd.sendCommandToWorker({
-            workerId: worker.id, command: commands.warmUp, algorithmName: worker.algorithmName, podName: worker.podName
-        });
-    }
-
-    /**
-     * Sends a cool-down command to a worker, signaling it to reduce activity or release resources.
-     *
-     * @private
-     * @param {Object} worker - Worker object.
-     * @returns {Promise<Object>} Response from etcd.
-     */
-    _coolDownWorker(worker) {
-        return etcd.sendCommandToWorker({
-            workerId: worker.id, command: commands.coolDown, algorithmName: worker.algorithmName, podName: worker.podName
-        });
+        return { created, failed };
     }
 
     /**
