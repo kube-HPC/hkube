@@ -34,7 +34,8 @@ describe('Executions', function () {
             };
             const response = await request(optionsStop);
             expect(response.body.error).to.not.exist;
-            expect(response.body.message).to.equal('OK');
+            expect(response.body.stoppedJobIds).to.be.an('array');
+            expect(response.body.stoppedJobIds).to.include(stored.body.jobId);
         });
         it('should succeed to stop jobs with startTime filter', async () => {
             const optionsStored = {
@@ -64,7 +65,8 @@ describe('Executions', function () {
             };
             const response = await request(optionsStop);
             expect(response.body.error).to.not.exist;
-            expect(response.body.message).to.equal('OK');
+            expect(response.body.stoppedJobIds).to.be.an('array');
+            expect(response.body.stoppedJobIds).to.include(stored.body.jobId);
         });
         it('should throw a "not found" error when no jobs are found within a time frame', async () => {
             const optionsStored = {
@@ -140,10 +142,10 @@ describe('Executions', function () {
         it('should run stop jobs with statusToStop as a comma-separated string', async () => {
             const optionsStop = {
                 uri: restUrl + '/exec/stop',
-                body: { statusToStop: `${pipelineStatuses.ACTIVE},${pipelineStatuses.RESUMED}` }
+                body: { statusToStop: `${pipelineStatuses.DEQUEUED},${pipelineStatuses.CRASHED}` }
             };
             const response = await request(optionsStop);
-            expect(response.body.message).to.equal(`OK`);
+            expect(response.body.error.message).to.equal(`No jobs found matching criteria (statuses: ${pipelineStatuses.DEQUEUED},${pipelineStatuses.CRASHED})`);
         });
         it('should stop jobs with statusToStop as a single string', async () => {
             const optionsStop = {
@@ -154,16 +156,12 @@ describe('Executions', function () {
             expect(response.body.error.message).to.equal(`No jobs found matching criteria (statuses: ${pipelineStatuses.ACTIVE})`);
         });
         it('should stop jobs with statusToStop as an array', async () => {
-            const optionsStored = {
-                uri: restUrl + '/exec/stored',
-                body: { name: 'flow1' }
-            };
             const optionsStop = {
                 uri: restUrl + '/exec/stop',
-                body: { statusToStop: [pipelineStatuses.ACTIVE, pipelineStatuses.RESUMED] }
+                body: { statusToStop: [pipelineStatuses.ACTIVE, pipelineStatuses.RESUMED], pipelineName: 'flow30' }
             };
             const response = await request(optionsStop);
-            expect(response.body.error.message).to.equal(`No jobs found matching criteria (statuses: ${pipelineStatuses.ACTIVE},${pipelineStatuses.RESUMED})`);
+            expect(response.body.error.message).to.equal(`No jobs found matching criteria (pipelineName: ${optionsStop.body.pipelineName}, statuses: ${pipelineStatuses.ACTIVE},${pipelineStatuses.RESUMED})`);
         });
     });
 });

@@ -95,10 +95,13 @@ const routes = (options) => {
                 }
             });
         }
-        await Promise.all(jobsToStop.map(async job => {
-            await Execution.stopJob({ job, reason, userName });
-        }));
-        return res.json({ message: 'OK' });
+        const stoppedJobIds = await Promise.all(
+            jobsToStop.map(async job => {
+                await Execution.stopJob({ job, reason, userName });
+                return job.jobId;
+            })
+        );
+        return res.status(200).json({ stoppedJobIds });
     });
     router.post('/pause', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const userName = keycloak.getPreferredUsername(req);
