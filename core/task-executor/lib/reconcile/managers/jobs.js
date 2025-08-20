@@ -4,7 +4,7 @@ const { warningCodes, stateType } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const kubernetes = require('../../helpers/kubernetes');
-const component = 'jobsHandler';
+const component = require('../../consts').components.JOBS_HANDLER;
 const { createJobSpec } = require('../../jobs/jobCreator');
 const { createWarning } = require('../../utils/warningCreator');
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('../createOptions');
@@ -234,6 +234,7 @@ class JobsHandler {
                 reconcileResult[algorithmName].required += 1;
             }
         }
+        if (createDetails.length > 0) log.debug(`_processAllRequests - Got a total of ${createDetails.length} jobs create details out of ${requests.length} requests`, { component });
         return { createDetails, toResume, scheduledRequests };
     }
 
@@ -340,6 +341,7 @@ class JobsHandler {
                 }
             }
         });
+        if (stopDetails.length > 0) log.debug(`_findWorkersToStop - Identified ${stopDetails.length} candidate workers for stopping`, { component });
         return stopDetails;
     }
 
@@ -384,6 +386,7 @@ class JobsHandler {
                 toStopFiltered.push(worker);
             }
         });
+        if (toStopFiltered.length > 0) log.debug(`_filterWorkersToStop - ${toStopFiltered.length} workers marked for stopping`, { component });
         return toStopFiltered;
     }
 
@@ -403,9 +406,7 @@ class JobsHandler {
      *          An object containing arrays of successfully created and failed job details.
      */
     async _createJobs(jobsToRequest, options) {
-        if (jobsToRequest.length > 0) {
-            log.trace(`trying to create ${jobsToRequest.length} algorithms...`, { component });
-        }
+        if (jobsToRequest.length > 0) log.trace(`_createJobs - Trying to create ${jobsToRequest.length} algorithms...`, { component });
         
         const created = [];
         const failed = [];
@@ -427,6 +428,7 @@ class JobsHandler {
                 created.push(response.jobDetails);
             }
         });
+        if (jobsToRequest.length > 0) log.debug(`_createJobs - Created ${created.length} jobs, failed creating ${failed.length} jobs`, { component });
         return { created, failed };
     }
 
@@ -459,9 +461,12 @@ class JobsHandler {
      * @param {Object} algorithmTemplates - Available algorithm templates.
      */
     _checkUnscheduled(created, skipped, requests, algorithmTemplates) {
+        const unScheduledCounters = { added: 0, removed: 0 };
+        const ignoredStartingLength = this.ignoredUnScheduledAlgorithms.length;
         skipped.forEach((s) => {
             if (!this.unScheduledAlgorithms[s.algorithmName]) {
                 this.unScheduledAlgorithms[s.algorithmName] = s.warning;
+                unScheduledCounters.added += 1;
             }
         });
 
@@ -479,8 +484,15 @@ class JobsHandler {
                         [k]: this.unScheduledAlgorithms[k]
                     };
                     delete this.unScheduledAlgorithms[k];
+                    unScheduledCounters.removed += 1;
                 }
             });
+        }
+
+        if (unScheduledCounters.added > 0) log.debug(`_checkUnscheduled - Added ${unScheduledCounters.added} algorithms to unScheduledAlgorithms`, { component });
+        if (unScheduledCounters.removed > 0) log.debug(`_checkUnscheduled - Removed ${unScheduledCounters.removed} algorithms to unScheduledAlgorithms`, { component });
+        if (this.ignoredUnScheduledAlgorithms.length > ignoredStartingLength) {
+            log.debug(`_checkUnscheduled - Added ${this.ignoredUnScheduledAlgorithms.length - ignoredStartingLength} algorithms to ignoredUnScheduledAlgorithms`, { component });
         }
     }
 }

@@ -1,8 +1,8 @@
 const { stateType } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
+const component = require('../../consts').components.REQUESTS_MANAGER;
 const { normalizeHotRequests, normalizeRequests } = require('../normalize');
-const component = 'RequestsManager';
 
 /**
  * Manages scheduling and prioritization of algorithm execution requests.
@@ -90,6 +90,9 @@ class RequestsManager {
             }
             return false;
         });
+        
+        if (normalizedRequests.length > filtered.length) log.debug(`_filterByMaxWorkers - Filtered out ${normalizedRequests.length - filtered.length} requests`, { component });
+
         return filtered;
     }
 
@@ -114,7 +117,9 @@ class RequestsManager {
 
         if (hasRequisiteAlgorithms) {
             const { requests, requisites } = this._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
-            return this._mergeRequisiteRequests(requests, requisites);
+            const mergedWithRequisite = this._mergeRequisiteRequests(requests, requisites);
+            if (requisites.totalRequired > 0) log.debug(`_prioritizeQuotaRequisite - Got ${requisites.totalRequired} requisite requests out of ${normRequests.length} requests`, { component });
+            return mergedWithRequisite;
         }
         return normRequests;
     }
@@ -287,7 +292,6 @@ class RequestsManager {
                 batchRequests.push(request);
             }
         });
-        log.trace(`Categorized requests: ${batchRequests.length} batch, ${streamingRequests.length} streaming`, { component });
         return { batchRequests, streamingRequests };
     }
 
@@ -334,7 +338,9 @@ class RequestsManager {
         requests = this._createBatchWindow(requests);
 
         // Add hot worker requests
+        const beforeHotLength = requests.length;
         requests = normalizeHotRequests(requests, batchTemplates);
+        if (requests.length > beforeHotLength) log.debug(`_handleBatchRequests - Added ${requests.length - beforeHotLength} hot batch requests`, { component });
 
         // Limit requests amount to required per-algorithm count
         requests = this._limitRequestsByCapacity(requests);
@@ -353,6 +359,7 @@ class RequestsManager {
         const windowSizeFactor = 3; // Factor for calculating the request window size
         const windowSize = Math.round(this._totalCapacityNow * windowSizeFactor);
         const requestsWindow = requests.slice(0, windowSize);
+        if (requests.length > requestsWindow.length) log.debug(`_createBatchWindow - Removed ${requests.length - requestsWindow.length} requests due window`, { component });
         return requestsWindow;
     }
 
@@ -381,6 +388,8 @@ class RequestsManager {
                 capacityLimitedRequests.push(req);
             }
         });
+        if (totalRequests.length > capacityLimitedRequests.length) log.debug(`_limitRequestsByCapacity - Removed ${totalRequests.length - capacityLimitedRequests.length} requests`, { component });
+
         return capacityLimitedRequests;
     }
 
@@ -430,8 +439,10 @@ class RequestsManager {
      * @returns {Object[]} An array containing processed streaming requests.
      */
     _handleStreamingRequests(requests, streamingTemplates) {
+        const beforeHotLength = requests.length;
         // Add hot worker requests
         requests = normalizeHotRequests(requests, streamingTemplates);
+        if (requests.length > beforeHotLength) log.debug(`_handleStreamingRequests - Added ${requests.length - beforeHotLength} hot streaming requests`, { component });
 
         return requests;
     }
@@ -460,12 +471,14 @@ class RequestsManager {
 
         const nonRequisiteBatch = batchRequests.filter(request => !isRequisite(request));
 
-        return [
+        const merged = [
             ...requisites,
             ...statefulStreaming,
             ...statelessStreaming,
             ...nonRequisiteBatch
         ];
+        if (merged.length > 0) log.debug(`_merge - Got a total of ${merged.length} valid requests`, { component });
+        return merged;
     }
 }
 

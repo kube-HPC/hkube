@@ -113,12 +113,12 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
                 required: 0
             };
         }
-        const { created: _created, skipped: _skipped, paused, resumed, required } = reconcileResult[algorithmName];
-        const total = _created + _skipped + paused + resumed + required;
+        const { created: totalCreated, skipped: totalSkipped, paused: totalPaused, resumed: totalResumed, required: totalRequired } = reconcileResult[algorithmName];
+        const total = totalCreated + totalSkipped + totalPaused + totalResumed + totalRequired;
         if (total !== 0) {
-            log.info(`CYCLE: task-executor: algo: ${algorithmName} created jobs: ${_created}, 
-                skipped jobs: ${_skipped}, paused workers: ${paused}, 
-                resumed workers: ${resumed}, required: ${required}.`, { component });
+            log.info(`_updateReconcileResult - Results for algo ${algorithmName} : created jobs: ${totalCreated}, 
+                skipped jobs: ${totalSkipped}, paused workers: ${totalPaused}, 
+                resumed workers: ${totalResumed}, required: ${totalRequired}.`, { component });
         }
         reconcileResult[algorithmName].active = ws.count;
     });
@@ -139,7 +139,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const batchCount = workersManager.countBatchWorkers() + jobsHandler.createdJobsLists.batch.length;
     requestsManager.updateCapacity(batchCount);
 
-    // Prepare algorithm requests
+    // Organise all allocated jobs (all existing k8s jobs, those with worker (each worker has a k8s job) and those appending to a worker) 
     const { jobAttachedWorkers, jobsPendingForWorkers } = workersManager;
     const idleWorkers = workersManager.getIdleWorkers();
     const activeWorkers = workersManager.getActiveWorkers();
@@ -148,20 +148,25 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const allAllocatedJobs = {
         idleWorkers, activeWorkers, pausedWorkers, bootstrappingWorkers, jobsPendingForWorkers
     };
+    // Prepare algorithm requests
     const requests = requestsManager.prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, jobAttachedWorkers, allAllocatedJobs);
 
+    // Handle workers life-cycle
     const workersToExitPromises = workersManager.handleExitWorkers();
     const workersToWarmUpPromises = workersManager.handleWarmUpWorkers();
     const workersToCoolDownPromises = workersManager.handleCoolDownWorkers();
+
+    // Schedule the requests
     const jobsInfo = await jobsHandler.schedule(allAllocatedJobs, algorithmTemplates, normResources, versions,
         requests, registry, clusterOptions, workerResources, options, reconcileResult);
 
+    // Handle workers life-cycle & wait for the promises to resolve
     const { toResume, toStop } = jobsInfo;
     const workersToStopPromises = workersManager.stop(toStop);
     const workersToResumePromises = workersManager.resume(toResume);
     await Promise.all([...workersToStopPromises, ...workersToExitPromises, ...workersToWarmUpPromises, ...workersToCoolDownPromises, ...workersToResumePromises]);
     
-    // add created and skipped info
+    // Write in etcd the reconcile result
     const workerStats = _calcStats(workersManager.normalizedWorkers);
     await _updateReconcileResult({
         reconcileResult, ...jobsHandler, jobsInfo, workerStats, normResources

@@ -1,6 +1,9 @@
 const clonedeep = require('lodash.clonedeep');
+const Logger = require('@hkube/logger');
+const log = Logger.GetLogFromContainer();
 const etcd = require('../../helpers/etcd');
-const { commands } = require('../../consts');
+const { commands, components } = require('../../consts');
+const component = components.WORKERS_MANAGER;
 const { normalizeWorkers,
     normalizeWorkerImages,
     normalizeHotWorkers,
@@ -54,7 +57,8 @@ class WorkersManager {
         const filterCondition = worker => this._algorithmTemplates[worker.algorithmName]?.stateType === undefined;
         const batchWorkers = idleWorkers.filter(filterCondition);
         const activeBatchWorkers = activeWorkers.filter(filterCondition);
-        return batchWorkers.length + activeBatchWorkers.length;
+        const numberOfBatchWorkers = batchWorkers.length + activeBatchWorkers.length;
+        return numberOfBatchWorkers;
     }
 
     /**
@@ -104,6 +108,7 @@ class WorkersManager {
                 workerId: worker.id, command: commands.exit, message: worker.message, algorithmName: worker.algorithmName, podName: worker.podName
             });
         }));
+        if (workersToExitPromises.length > 0) log.debug(`handleExitWorkers - Sent ${commands.exit} command to ${workersToExitPromises.length} workers`, { component });
 
         return workersToExitPromises;
     }
@@ -121,6 +126,7 @@ class WorkersManager {
                 workerId: worker.id, command: commands.warmUp, algorithmName: worker.algorithmName, podName: worker.podName
             });
         }));
+        if (workersToWarmUpPromises.length > 0) log.debug(`handleWarmUpWorkers - Sent ${commands.warmUp} command to ${workersToWarmUpPromises.length} workers`, { component });
 
         return workersToWarmUpPromises;
     }
@@ -135,9 +141,10 @@ class WorkersManager {
 
         const workersToCoolDownPromises = workersToCoolDown.map((worker => {
             return etcd.sendCommandToWorker({
-                workerId: worker.id, command: commands.warmUp, algorithmName: worker.algorithmName, podName: worker.podName
+                workerId: worker.id, command: commands.coolDown, algorithmName: worker.algorithmName, podName: worker.podName
             });
         }));
+        if (workersToCoolDownPromises.length > 0) log.debug(`handleCoolDownWorkers - Sent ${commands.coolDown} command to ${workersToCoolDownPromises.length} workers`, { component });
 
         return workersToCoolDownPromises;
     }
@@ -155,6 +162,8 @@ class WorkersManager {
                 workerId: worker.id, command: commands.stopProcessing, algorithmName: worker.algorithmName, podName: worker.podName
             });
         });
+        if (workersToStopPromises.length > 0) log.debug(`stop - Sent ${commands.stopProcessing} command to ${workersToStopPromises.length} workers`, { component });
+
         return workersToStopPromises;
     }
 
@@ -171,6 +180,8 @@ class WorkersManager {
                 workerId: worker.id, command: commands.startProcessing, algorithmName: worker.algorithmName, podName: worker.podName
             });
         });
+        if (workersToResumePromises.length > 0) log.debug(`resume - Sent ${commands.startProcessing} command to ${workersToResumePromises.length} workers`, { component });
+
         return workersToResumePromises;
     }
 
