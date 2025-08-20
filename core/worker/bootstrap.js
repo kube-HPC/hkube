@@ -17,7 +17,6 @@ const modules = [
     require('./lib/boards/boards.js'),
     require('./lib/states/stateManager.js'),
     require('./lib/states/stateAdapter.js'),
-    require('./lib/consumer/JobConsumer.js'),
     require('./lib/producer/producer.js'),
     require('./lib/helpers/kubernetes.js'),
     require('./lib/algorithm-logging/logging-proxy.js'),
@@ -52,9 +51,10 @@ class Bootstrap {
                 await m.init(main, log);
             }
             await worker.init();
+            log.debug('starting worker.init() from bootstrap.js', { component });
             require('./lib/algorithm-communication/workerCommunication.js').init(main, log);
-
-            return main;
+            require('./lib/consumer/JobConsumer.js').init(main, log);
+            log.debug('finishing worker.init() from bootstrap.js', { component });
         }
         catch (error) {
             this._onInitFailed(error);
