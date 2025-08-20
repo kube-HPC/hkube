@@ -7,10 +7,17 @@ RUN npm ci --production
 ARG BASE_PRIVATE_REGISTRY=""
 FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v2.0.1-buster
 LABEL maintainer="yehiyam@gmail.com"
-RUN apt update && apt install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
-RUN wget -O dvc.deb https://github.com/iterative/dvc/releases/download/2.9.3/dvc_2.9.3_amd64.deb &&\
-  apt install ./dvc.deb &&\
-  rm ./dvc.deb
+
+# Fix Buster EOL apt sources
+RUN sed -i 's|deb.debian.org/debian|archive.debian.org/debian|g' /etc/apt/sources.list && \
+    sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
+    apt update && \
+    apt install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN wget -O dvc.deb https://github.com/iterative/dvc/releases/download/2.9.3/dvc_2.9.3_amd64.deb && \
+    apt install -y ./dvc.deb && \
+    rm ./dvc.deb
 ADD dockerfile/gitconfig /.gitconfig
 ADD dockerfile/gitconfig /root/.gitconfig
 RUN mkdir -p /hkube/datasource-service

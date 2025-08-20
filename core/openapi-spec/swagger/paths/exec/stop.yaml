@@ -2,7 +2,7 @@ post:
   tags:
     - Execution
   summary: Stop pipeline execution
-  description: Call to stop pipeline execution by jobId, pipelineName or startTime
+  description: Call to stop pipeline execution by jobId, pipelineName, startTime or pipelineStatus
   requestBody:
     content:
       application/json:
