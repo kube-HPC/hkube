@@ -68,10 +68,6 @@ class JobsHandler {
     
         // 4. Pause workers according to resource needs
         const toStop = pauseAccordingToResources(stopDetails, normResources, skipped);
-    
-        if (jobsToRequest.length > 0) {
-            log.trace(`trying to create ${jobsToRequest.length} algorithms....`, { component });
-        }
 
         // 5. Filter stop list to avoid stopping workers we plan to resume
         const toStopFiltered = this._filterWorkersToStop(toStop, toResume);
@@ -407,6 +403,10 @@ class JobsHandler {
      *          An object containing arrays of successfully created and failed job details.
      */
     async _createJobs(jobsToRequest, options) {
+        if (jobsToRequest.length > 0) {
+            log.trace(`trying to create ${jobsToRequest.length} algorithms...`, { component });
+        }
+        
         const created = [];
         const failed = [];
         const createPromises = [];
