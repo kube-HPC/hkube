@@ -455,10 +455,10 @@ class JobsHandler {
      * @private
      * @param {Object[]} created - Successfully created jobs.
      * @param {Object[]} skipped - Jobs skipped due to insufficient resources or other reasons.
-     * @param {Object[]} maxFilteredRequests - Requests after applying max workers filtering.
+     * @param {Object[]} requests - Algorithm requests.
      * @param {Object} algorithmTemplates - Available algorithm templates.
      */
-    _checkUnscheduled(created, skipped, maxFilteredRequests, algorithmTemplates) {
+    _checkUnscheduled(created, skipped, requests, algorithmTemplates) {
         skipped.forEach((s) => {
             if (!this.unScheduledAlgorithms[s.algorithmName]) {
                 this.unScheduledAlgorithms[s.algorithmName] = s.warning;
@@ -468,7 +468,7 @@ class JobsHandler {
         const algorithmsMap = Object.keys(this.unScheduledAlgorithms);
         if (algorithmsMap.length > 0) {
             const createdSet = new Set(created.map(x => x.algorithmName));
-            const requestSet = new Set(maxFilteredRequests.map(x => x.algorithmName));
+            const requestSet = new Set(requests.map(x => x.algorithmName));
             algorithmsMap.forEach((k) => {
                 const create = createdSet.has(k);
                 const request = requestSet.has(k);

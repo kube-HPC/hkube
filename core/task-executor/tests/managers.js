@@ -1440,11 +1440,69 @@ describe('Managers tests', () => {
             });
 
             it('should handle an empty input gracefully', async () => {
-                const skipped = []
-
                 const result = await mockJobsHandler._createJobs([], options);
-
                 expect(result).to.deep.equal({ created: [], failed: [] });
+            });
+        });
+
+        describe.only('_checkUnscheduled', () => {
+            it('should add skipped algorithms to unScheduledAlgorithms', () => {
+                const skipped = [{ algorithmName: 'alg1', warning: 'low memory' }];
+                const created = [];
+                const maxFilteredRequests = [{ algorithmName: 'alg1' }];
+
+                jobsHandler._checkUnscheduled(created, skipped, maxFilteredRequests, algorithmTemplates);
+
+                expect(jobsHandler.unScheduledAlgorithms).to.have.property('alg1', 'low memory');
+                expect(jobsHandler.ignoredUnScheduledAlgorithms).to.be.empty;
+            });
+
+            it('should remove algorithm if it was created', () => {
+                jobsHandler.unScheduledAlgorithms = { alg1: 'some warning' };
+                const skipped = [];
+                const created = [{ algorithmName: 'alg1' }];
+                const maxFilteredRequests = [{ algorithmName: 'alg1' }];
+
+                jobsHandler._checkUnscheduled(created, skipped, maxFilteredRequests, algorithmTemplates);
+
+                expect(jobsHandler.unScheduledAlgorithms).to.be.empty;
+                expect(jobsHandler.ignoredUnScheduledAlgorithms).to.have.property('alg1', 'some warning');
+            });
+
+            it('should remove algorithm if it was not requested anymore', () => {
+                jobsHandler.unScheduledAlgorithms = { alg1: 'some warning' };
+                const skipped = [];
+                const created = [];
+                const requests = [{ algorithmName: 'other' }]; // alg1 missing
+
+                jobsHandler._checkUnscheduled(created, skipped, requests, algorithmTemplates);
+
+                expect(jobsHandler.unScheduledAlgorithms).to.be.empty;
+                expect(jobsHandler.ignoredUnScheduledAlgorithms).to.have.property('alg1', 'some warning');
+            });
+
+            it('should remove algorithm if template is missing', () => {
+                jobsHandler.unScheduledAlgorithms = { alg1: 'some warning' };
+                const skipped = [];
+                const created = [];
+                const maxFilteredRequests = [{ algorithmName: 'alg1' }];
+                const { alg1, ...customAlgorithmTemplates } = algorithmTemplates // extract alg1 out of algorithmTemplates
+                jobsHandler._checkUnscheduled(created, skipped, maxFilteredRequests, customAlgorithmTemplates);
+
+                expect(jobsHandler.unScheduledAlgorithms).to.be.empty;
+                expect(jobsHandler.ignoredUnScheduledAlgorithms).to.have.property('alg1', 'some warning');
+            });
+
+            it('should keep algorithm in unScheduledAlgorithms if still skipped and requested and has template', () => {
+                jobsHandler.unScheduledAlgorithms = { alg1: 'existing warning' };
+                const skipped = [{ algorithmName: 'alg1', warning: 'new warning' }]; // should not override existing
+                const created = [];
+                const maxFilteredRequests = [{ algorithmName: 'alg1' }];
+
+                jobsHandler._checkUnscheduled(created, skipped, maxFilteredRequests, algorithmTemplates);
+
+                expect(jobsHandler.unScheduledAlgorithms).to.have.property('alg1', 'existing warning');
+                expect(jobsHandler.ignoredUnScheduledAlgorithms).to.be.empty;
             });
         });
     });
