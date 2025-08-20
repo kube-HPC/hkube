@@ -4,9 +4,7 @@ const { warningCodes, stateType } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const kubernetes = require('../../helpers/kubernetes');
-const etcd = require('../../helpers/etcd');
 const component = 'jobsHandler';
-const { commands } = require('../../consts');
 const { createJobSpec } = require('../../jobs/jobCreator');
 const { createWarning } = require('../../utils/warningCreator');
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('../createOptions');
@@ -430,32 +428,6 @@ class JobsHandler {
             }
         });
         return { created, failed };
-    }
-
-    /**
-     * Sends a stop-processing command to a worker, halting further job execution.
-     *
-     * @private
-     * @param {Object} worker - Worker object.
-     * @returns {Promise<Object>} Response from etcd.
-     */
-    _stopWorker(worker) {
-        return etcd.sendCommandToWorker({
-            workerId: worker.id, command: commands.stopProcessing, algorithmName: worker.algorithmName, podName: worker.podName
-        });
-    }
-
-    /**
-     * Sends a start-processing command to a worker, resuming job execution.
-     *
-     * @private
-     * @param {Object} worker - Worker object.
-     * @returns {Promise<Object>} Response from etcd.
-     */
-    _resumeWorker(worker) {
-        return etcd.sendCommandToWorker({
-            workerId: worker.id, command: commands.startProcessing, algorithmName: worker.algorithmName, podName: worker.podName
-        });
     }
 
     /**
