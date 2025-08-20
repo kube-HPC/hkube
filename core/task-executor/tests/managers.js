@@ -1445,7 +1445,7 @@ describe('Managers tests', () => {
             });
         });
 
-        describe.only('_checkUnscheduled', () => {
+        describe('_checkUnscheduled', () => {
             it('should add skipped algorithms to unScheduledAlgorithms', () => {
                 const skipped = [{ algorithmName: 'alg1', warning: 'low memory' }];
                 const created = [];
