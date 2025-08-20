@@ -3,9 +3,7 @@ const { StatusCodes } = require('http-status-codes');
 const { workers, jobs, pods, versions, clusterOptions, normResources, templateStore } = require('./stub');
 const etcd = require('../lib/helpers/etcd');
 const { stateType } = require('@hkube/consts');
-const { commands } = require('../lib/consts');
 const { createContainerResource } = require('../lib/reconcile/createOptions');
-const { kubernetes } = require('./mocks/kubernetes.mock');
 
 
 describe('Managers tests', () => {
