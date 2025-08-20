@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.4",
+    "version": "2.9.6",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -1474,7 +1474,7 @@
           "Execution"
         ],
         "summary": "Stop pipeline execution",
-        "description": "Call to stop pipeline execution by jobId, pipelineName or startTime",
+        "description": "Call to stop pipeline execution by jobId, pipelineName, startTime or pipelineStatus",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1501,6 +1501,10 @@
                         "example": "2021-03-11T14:30:00"
                       }
                     }
+                  },
+                  "statusToStop": {
+                    "type": "string",
+                    "description": "pipeline status to stop"
                   }
                 }
               }
@@ -26081,6 +26085,10 @@
                 "example": "2021-03-11T14:30:00"
               }
             }
+          },
+          "statusToStop": {
+            "type": "string",
+            "description": "pipeline status to stop"
           }
         }
       },
