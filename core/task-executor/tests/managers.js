@@ -5,6 +5,7 @@ const etcd = require('../lib/helpers/etcd');
 const { stateType } = require('@hkube/consts');
 const { commands } = require('../lib/consts');
 const { createContainerResource } = require('../lib/reconcile/createOptions');
+const { kubernetes } = require('./mocks/kubernetes.mock');
 
 
 describe('Managers tests', () => {
@@ -107,7 +108,7 @@ describe('Managers tests', () => {
                 { id: 'w2', algorithmName: 'alg2', podName: 'pod2' }
             ];
 
-            describe('handleExitWorkers', () => {
+            describe('handleExitWorkers Method', () => {
                 it('should return a list of exit command promises for each worker in _workersToExit', () => {
                     workersManager._workersToExit = fakeWorkers;
                     const result =  workersManager.handleExitWorkers();
@@ -119,7 +120,7 @@ describe('Managers tests', () => {
                 });
             });
 
-            describe('handleWarmUpWorkers', () => {
+            describe('handleWarmUpWorkers Method', () => {
                 it('should return a list of warm-up command promises for hot workers', () => {
                     const coldWorker = workersManager.jobAttachedWorkers.find(worker => !worker.hotWorker);
                     expect(coldWorker, 'All workers in workersRaw are hot, should have at least one cold').to.not.be.undefined;
@@ -133,7 +134,7 @@ describe('Managers tests', () => {
                 });
             });
 
-            describe('handleCoolDownWorkers', () => {
+            describe('handleCoolDownWorkers Method', () => {
                 it('should return a list of cool-down command promises for cold workers', () => {
                     const result =  workersManager.handleCoolDownWorkers(); // we have in stub workers 4 hot workers that should be cold
 
@@ -144,7 +145,7 @@ describe('Managers tests', () => {
                 });
             });
 
-            describe('stop', () => {
+            describe('stop Method', () => {
                 it('should return a list of stop-processing command promises for each worker', () => {
                     const result = workersManager.stop(fakeWorkers);
 
@@ -155,7 +156,7 @@ describe('Managers tests', () => {
                 });
             });
 
-            describe('resume', () => {
+            describe('resume Method', () => {
                 it('should return a list of start-processing command promises for each worker', () => {
                     const result = workersManager.resume(fakeWorkers);
 
@@ -336,7 +337,7 @@ describe('Managers tests', () => {
             });
         });
 
-        describe('QuotaGuarantee logic tests', () => {
+        describe('QuotaGuarantee methods tests', () => {
             const categorizedRequests = {
                 batchRequests: [batchRequest, batchRequest],
                 streamingRequests: [statefulRequest, statefulRequest, statelessRequest, statelessRequest]
@@ -1014,12 +1015,46 @@ describe('Managers tests', () => {
 
     describe('JobsHandler Class', () => {
         const workerResources = { mem: 512, cpu: 0.1 }
+        const options = { kubernetes: {} };
+        const allAllocatedJobs = { idleWorkers: [], pausedWorkers: [], bootstrappingWorkers: [], jobsPendingForWorkers: [] }
 
         beforeEach(() => {
             // Default/init state
             jobsHandler.createdJobsLists = { batch: [], [stateType.Stateful]: [], [stateType.Stateless]: [] };
             jobsHandler.unScheduledAlgorithms = {};
             jobsHandler.ignoredUnScheduledAlgorithms = {};
+        });
+
+        describe('schedule Method', () => {
+            it('should return the expected structure with a created job', async () => {
+                const requests = [{ algorithmName: 'alg1' }];
+                const result = await jobsHandler.schedule(
+                    allAllocatedJobs,
+                    algorithmTemplates,
+                    normResources,
+                    versions,
+                    requests,
+                    registry, clusterOptions, workerResources, options,
+                    {} // reconcileResult
+                );
+
+                expect(result).to.have.all.keys(['created', 'skipped', 'toResume', 'toStop']);
+                expect(result.created).to.be.an('array').with.length.gte(0);
+                expect(result.skipped).to.be.an('array');
+                expect(result.toResume).to.be.an('array');
+                expect(result.toStop).to.be.an('array');
+            });
+
+            it('should handle empty requests gracefully', async () => {
+                const result = await jobsHandler.schedule(allAllocatedJobs, {}, {}, {}, [], {}, {}, {}, {}, {});
+
+                expect(result).to.deep.equal({
+                    created: [],
+                    skipped: [],
+                    toResume: [],
+                    toStop: []
+                });
+            });
         });
 
         describe('clearCreatedJobsLists Method', () => {
@@ -1391,7 +1426,6 @@ describe('Managers tests', () => {
             let shouldFail;
             const fakeJob1 = { algorithmName: 'alg1' };
             const fakeJob2 = { algorithmName: 'alg2' };
-            const options = {};
 
             before(() => {
                 mockJobsHandler = { ...jobsHandler };
@@ -1445,7 +1479,7 @@ describe('Managers tests', () => {
             });
         });
 
-        describe('_checkUnscheduled', () => {
+        describe('_checkUnscheduled Method', () => {
             it('should add skipped algorithms to unScheduledAlgorithms', () => {
                 const skipped = [{ algorithmName: 'alg1', warning: 'low memory' }];
                 const created = [];
