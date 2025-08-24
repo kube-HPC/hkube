@@ -414,7 +414,7 @@ const normalizeJobs = (jobs, pods, filterFn = () => true) => {
  *   - jobAttachedWorkers: workers with their matched job (or undefined).
  *   - unassignedJobs: jobs with no worker assigned.
  */
-const mergeWorkers = (workers, jobs) => {
+const attacheJobToWorker = (workers, jobs) => {
     const matchedJobNames = new Set();
 
     const jobAttachedWorkers = workers.map((worker) => {
@@ -438,6 +438,6 @@ module.exports = {
     normalizeColdWorkers,
     normalizeRequests,
     normalizeJobs,
-    mergeWorkers,
+    attacheJobToWorker,
     normalizeResources,
 };

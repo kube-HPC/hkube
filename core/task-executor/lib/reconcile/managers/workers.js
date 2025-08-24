@@ -9,7 +9,7 @@ const { normalizeWorkers,
     normalizeHotWorkers,
     normalizeColdWorkers,
     normalizeJobs,
-    mergeWorkers } = require('../normalize');
+    attacheJobToWorker } = require('../normalize');
 
 /**
  * Manages worker state, categorization, and readiness for scheduling.
@@ -34,7 +34,7 @@ class WorkersManager {
         const normalizedJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
 
         // 3. Merge workers with their associated jobs (undefined for job if none); also detect jobs with no assigned worker
-        const { jobAttachedWorkers, extraJobs } = mergeWorkers(this.normalizedWorkers, normalizedJobs);
+        const { jobAttachedWorkers, extraJobs } = attacheJobToWorker(this.normalizedWorkers, normalizedJobs);
         // A list of jobs that already have been created but no worker registered to it yet.
         this.jobsPendingForWorkers = clonedeep(extraJobs);
 

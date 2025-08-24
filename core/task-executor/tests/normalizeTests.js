@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, attacheJobToWorker, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
 const { twoCompleted, workersStub, jobsStub, resources } = require('./stub');
 const { nodes, pods } = resources;
 let { templateStore } = require('./stub');
@@ -452,7 +452,7 @@ describe('normalize', () => {
 
     describe('merge workers', () => {
         it('should work with empty items', () => {
-            const merged = mergeWorkers([], []);
+            const merged = attacheJobToWorker([], []);
             expect(merged.jobAttachedWorkers).to.be.an('array');
             expect(merged.jobAttachedWorkers).to.be.empty;
             expect(merged.extraJobs).to.be.an('array');
@@ -460,7 +460,7 @@ describe('normalize', () => {
         });
 
         it('should keep all workers, and not change with no jobs', () => {
-            const merged = mergeWorkers(workersStub, []);
+            const merged = attacheJobToWorker(workersStub, []);
             expect(merged.jobAttachedWorkers).to.be.an('array')
             expect(merged.jobAttachedWorkers).to.have.length(workersStub.length);
             expect(merged.jobAttachedWorkers[0].job).to.not.exist;
@@ -469,7 +469,7 @@ describe('normalize', () => {
         });
 
         it('should keep all workers, and enrich with one jobs', () => {
-            const merged = mergeWorkers(workersStub, jobsStub.slice(0, 1));
+            const merged = attacheJobToWorker(workersStub, jobsStub.slice(0, 1));
             expect(merged.jobAttachedWorkers).to.be.an('array')
             expect(merged.jobAttachedWorkers).to.have.length(workersStub.length);
             expect(merged.jobAttachedWorkers[0].job).to.eql(jobsStub[0]);
@@ -478,7 +478,7 @@ describe('normalize', () => {
         });
 
         it('should keep all workers, and enrich with all jobs', () => {
-            const merged = mergeWorkers(workersStub, jobsStub);
+            const merged = attacheJobToWorker(workersStub, jobsStub);
             expect(merged.jobAttachedWorkers).to.be.an('array')
             expect(merged.jobAttachedWorkers).to.have.length(workersStub.length);
             expect(merged.jobAttachedWorkers[0].job).to.eql(jobsStub[0]);
@@ -489,7 +489,7 @@ describe('normalize', () => {
         });
 
         it('should report all jobs as extra jobs', () => {
-            const merged = mergeWorkers([], jobsStub);
+            const merged = attacheJobToWorker([], jobsStub);
             expect(merged.jobAttachedWorkers).to.be.an('array')
             expect(merged.jobAttachedWorkers).to.be.empty;
             expect(merged.extraJobs).to.have.length(jobsStub.length);
@@ -499,7 +499,7 @@ describe('normalize', () => {
             expect(merged.extraJobs[3]).to.eql(jobsStub[3]);
         });
         it('should report extra jobs', () => {
-            const merged = mergeWorkers(workersStub.slice(0, 1), jobsStub);
+            const merged = attacheJobToWorker(workersStub.slice(0, 1), jobsStub);
             expect(merged.jobAttachedWorkers).to.be.an('array')
             expect(merged.jobAttachedWorkers).to.have.length(1);
             expect(merged.extraJobs).to.have.length(3);
