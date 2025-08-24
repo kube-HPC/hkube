@@ -354,6 +354,13 @@ const normalizeRequests = (algorithmRequests, algorithmTemplates) => {
     return normalizedRequests;
 };
 
+/**
+ * Tries to parse a given time string into a timestamp (milliseconds since epoch).
+ * If the string cannot be parsed, it returns null.
+ *
+ * @param {string} timeString - The time string to be parsed.
+ * @returns {number|null} - The timestamp in milliseconds if successful, or null if invalid.
+ */
 const _tryParseTime = (timeString) => {
     if (!timeString) {
         return null;
