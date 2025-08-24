@@ -185,7 +185,7 @@ const normalizeColdWorkers = (normWorkers, algorithmTemplates) => {
     return coldWorkers;
 };
 
-const calcRatioFree = (node) => {
+const _calcRatioFree = (node) => {
     node.ratio = {
         cpu: node.requests.cpu / node.total.cpu,
         gpu: (node.total.gpu && node.requests.gpu / node.total.gpu) || 0,
@@ -202,7 +202,7 @@ const _nodeTaintsFilter = (node) => {
     return !(node.spec && node.spec.taints && node.spec.taints.some(t => t.effect === 'NoSchedule'));
 };
 
-const parseGpu = (gpu) => {
+const _parseGpu = (gpu) => {
     if (!gpu || !gpu[gpuVendors.NVIDIA]) {
         return 0;
     }
@@ -210,10 +210,10 @@ const parseGpu = (gpu) => {
 };
 
 const _getGpuSpec = (pod) => {
-    let limitsGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.limits', 0)));
+    let limitsGpu = sumBy(pod.spec.containers, c => _parseGpu(objectPath.get(c, 'resources.limits', 0)));
 
     if (!limitsGpu) {
-        limitsGpu = parseGpu(objectPath.get(pod, 'metadata.annotations', null));
+        limitsGpu = _parseGpu(objectPath.get(pod, 'metadata.annotations', null));
     }
     const requestGpu = limitsGpu;
     return { limitsGpu, requestGpu };
@@ -263,7 +263,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             other: { cpu: 0, gpu: 0, memory: 0 },
             total: {
                 cpu: parse.getCpuInCore(cur.status.allocatable.cpu),
-                gpu: parseGpu(cur.status.allocatable) || 0,
+                gpu: _parseGpu(cur.status.allocatable) || 0,
                 memory: parse.getMemoryInMi(cur.status.allocatable.memory, true)
             }
         };
@@ -312,7 +312,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
 
     const nodeList = [];
     Object.entries(resourcesPerNode).forEach(([k, v]) => {
-        calcRatioFree(v);
+        _calcRatioFree(v);
         allNodes.requests.cpu += v.requests.cpu;
         allNodes.requests.gpu += v.requests.gpu;
         allNodes.requests.memory += v.requests.memory;
@@ -321,7 +321,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         allNodes.limits.memory += v.limits.memory;
         nodeList.push({ name: k, ...v });
     });
-    calcRatioFree(allNodes);
+    _calcRatioFree(allNodes);
     return { allNodes, nodeList };
 };
 
