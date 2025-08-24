@@ -1,6 +1,6 @@
 {
   "name": "task-executor",
-  "version": "2.9.6",
+  "version": "2.9.7",
   "description": "Hkube scheduler service",
   "main": "app.js",
   "scripts": {
@@ -28,13 +28,13 @@
     "@hkube/db": "^2.0.16",
     "@hkube/etcd": "^5.1.2",
     "@hkube/healthchecks": "^1.0.1",
-    "http-status-codes": "^2.3.0",
     "@hkube/kubernetes-client": "^2.0.8",
     "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
     "@hkube/uid": "^1.0.4",
     "@hkube/units-converter": "^1.0.17",
     "express": "^4.17.1",
+    "http-status-codes": "^2.3.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.groupby": "^4.6.0",
     "lodash.sumby": "^4.6.0",
