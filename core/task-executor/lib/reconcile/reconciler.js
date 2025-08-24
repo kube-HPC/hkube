@@ -4,7 +4,7 @@ const clonedeep = require('lodash.clonedeep');
 const etcd = require('../helpers/etcd');
 const { components, consts } = require('../consts');
 const component = components.RECONCILER;
-const { WorkersManager, requestsManager, jobsHandler } = require('./managers');
+const { WorkersManager, requestPreprocessor, jobsHandler } = require('./managers');
 
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
@@ -137,7 +137,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // Update batch capacity
     const batchCount = workersManager.countBatchWorkers() + jobsHandler.createdJobsLists.batch.length;
-    requestsManager.updateCapacity(batchCount);
+    requestPreprocessor.updateCapacity(batchCount);
 
     // Organise all allocated jobs (all existing k8s jobs, those with worker (each worker has a k8s job) and those appending to a worker) 
     const { jobAttachedWorkers, jobsPendingForWorkers } = workersManager;
@@ -149,7 +149,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         idleWorkers, activeWorkers, pausedWorkers, bootstrappingWorkers, jobsPendingForWorkers
     };
     // Prepare algorithm requests
-    const requests = requestsManager.prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, jobAttachedWorkers, allAllocatedJobs);
+    const requests = requestPreprocessor.prepare(algorithmRequests, algorithmTemplates, jobAttachedWorkers, allAllocatedJobs);
 
     // Handle workers life-cycle
     const workersToExitPromises = workersManager.handleExitWorkers();

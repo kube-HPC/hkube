@@ -1,13 +1,13 @@
 const { stateType } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
-const component = require('../../consts').components.REQUESTS_MANAGER;
+const component = require('../../consts').components.REQUESTS_PREPROCESSOR;
 const { normalizeHotRequests, normalizeRequests } = require('../normalize');
 
 /**
  * Manages scheduling and prioritization of algorithm execution requests.
  */
-class RequestsManager {
+class RequestPreprocessor {
     constructor() {
         // Current scheduling capacity
         this._totalCapacityNow = 10;
@@ -29,7 +29,7 @@ class RequestsManager {
      * @param {Object[]} jobAttachedWorkers - Workers with their assigned jobs.
      * @param {Object} allAllocatedJobs - All allocated jobs with keys: idleWorkers, activeWorkers, pausedWorkers, pendingWorkers, boostrappingWorkers.
      */
-    prepareAlgorithmRequests(algorithmRequests, algorithmTemplates, jobAttachedWorkers, allAllocatedJobs) {
+    prepare(algorithmRequests, algorithmTemplates, jobAttachedWorkers, allAllocatedJobs) {
         // 1. Normalize incoming requests
         let requests = normalizeRequests(algorithmRequests, algorithmTemplates);
 
@@ -482,4 +482,4 @@ class RequestsManager {
     }
 }
 
-module.exports = new RequestsManager();
+module.exports = new RequestPreprocessor();

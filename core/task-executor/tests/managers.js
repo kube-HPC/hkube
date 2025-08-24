@@ -9,11 +9,11 @@ const { createContainerResource } = require('../lib/reconcile/createOptions');
 describe('Managers tests', () => {
     const registry = { registry: '' }
     let algorithmTemplates;
-    let WorkersManager, requestsManager, jobsHandler;
+    let WorkersManager, requestPreprocessor, jobsHandler;
 
     before(async () => {
         algorithmTemplates = await etcd.getAlgorithmTemplate();
-        ({ WorkersManager, requestsManager, jobsHandler } = require('../lib/reconcile/managers'));
+        ({ WorkersManager, requestPreprocessor, jobsHandler } = require('../lib/reconcile/managers'));
     });
 
     beforeEach(async () => {
@@ -167,7 +167,7 @@ describe('Managers tests', () => {
         });
     });
 
-    describe('RequestsManager Class', () => {
+    describe('RequestPreprocessor Class', () => {
         let workersManager;
         let allAllocatedJobs;
         const batchRequest = { algorithmName: 'algo-batch', requestType: 'batch' };
@@ -189,16 +189,16 @@ describe('Managers tests', () => {
         });
 
         beforeEach(async () => {
-            requestsManager._totalCapacityNow = 10; // Default/init state
+            requestPreprocessor._totalCapacityNow = 10; // Default/init state
         });
 
-        describe('prepareAlgorithmRequests Method', () => {
+        describe('prepare Method', () => {
             // Not too much to test here, since all it's pipeline methods are being tested below.
 
             it('should process a minimal request list without errors', () => {
                 const requests = [ { data: [ { name: 'alg1' } ] } ];
                 const templates = { alg1: {} };
-                const result = requestsManager.prepareAlgorithmRequests(requests, templates, [], {
+                const result = requestPreprocessor.prepare(requests, templates, [], {
                     idleWorkers: [], activeWorkers: [], pausedWorkers: [], jobsPendingForWorkers: []
                 });
 
@@ -210,7 +210,7 @@ describe('Managers tests', () => {
                 const requests = [ { data: [ { name: 'stateful-alg' }, { name: 'batch-alg' } ] } ];
                 const templates = { 'stateful-alg': { stateType: stateType.Stateful }, 'batch-alg': {} };
 
-                const result = requestsManager.prepareAlgorithmRequests(requests, templates, [], {
+                const result = requestPreprocessor.prepare(requests, templates, [], {
                     idleWorkers: [], activeWorkers: [], pausedWorkers: [], jobsPendingForWorkers: []
                 });
 
@@ -229,7 +229,7 @@ describe('Managers tests', () => {
                     { algorithmName: 'limited-alg' } // already using 1 worker
                 ];
 
-                const result = requestsManager.prepareAlgorithmRequests(requests, templates, jobWorkers, {
+                const result = requestPreprocessor.prepare(requests, templates, jobWorkers, {
                     idleWorkers: [], activeWorkers: [], pausedWorkers: [], jobsPendingForWorkers: []
                 });
 
@@ -243,7 +243,7 @@ describe('Managers tests', () => {
                     'other': {}
                 };
 
-                const result = requestsManager.prepareAlgorithmRequests(requests, templates, [], {
+                const result = requestPreprocessor.prepare(requests, templates, [], {
                     idleWorkers: [], activeWorkers: [], pausedWorkers: [], jobsPendingForWorkers: []
                 });
 
@@ -251,7 +251,7 @@ describe('Managers tests', () => {
             });
 
             it('should return an empty array when input is empty', () => {
-                const result = requestsManager.prepareAlgorithmRequests([], {}, [], {
+                const result = requestPreprocessor.prepare([], {}, [], {
                     idleWorkers: [], activeWorkers: [], pausedWorkers: [], jobsPendingForWorkers: []
                 });
                 expect(result).to.deep.equal([]);
@@ -261,13 +261,13 @@ describe('Managers tests', () => {
 
         describe('updateCapacity Method', () => {
             it('should not pass 50 capacity', () => {
-                requestsManager.updateCapacity(666666);
-                expect(requestsManager._totalCapacityNow).to.be.equal(50);
+                requestPreprocessor.updateCapacity(666666);
+                expect(requestPreprocessor._totalCapacityNow).to.be.equal(50);
             });
 
             it('should not go lower than 2 capacity', () => {
-                requestsManager.updateCapacity(-666666);
-                expect(requestsManager._totalCapacityNow).to.be.equal(2);
+                requestPreprocessor.updateCapacity(-666666);
+                expect(requestPreprocessor._totalCapacityNow).to.be.equal(2);
             });
         });
 
@@ -279,7 +279,7 @@ describe('Managers tests', () => {
             });
 
             it('should return empty list when no reqeusts', () => {
-                const result = requestsManager._filterByMaxWorkers(algorithmTemplates, [], []);
+                const result = requestPreprocessor._filterByMaxWorkers(algorithmTemplates, [], []);
                 expect(result).to.be.an('array');
                 expect(result.length).to.be.equal(0);
             });
@@ -290,7 +290,7 @@ describe('Managers tests', () => {
                 const normRequests = [ request, request ];
                 algorithmTemplates[algo.name] = algo;
 
-                const result = requestsManager._filterByMaxWorkers(algorithmTemplates, normRequests, []);
+                const result = requestPreprocessor._filterByMaxWorkers(algorithmTemplates, normRequests, []);
                 expect(result).to.be.an('array');
                 expect(result.length).to.be.equal(1);
             });
@@ -301,7 +301,7 @@ describe('Managers tests', () => {
                 const normRequests = [ request, request ];
                 algorithmTemplates[algo.name] = algo;
 
-                const result = requestsManager._filterByMaxWorkers(algorithmTemplates, normRequests, []);
+                const result = requestPreprocessor._filterByMaxWorkers(algorithmTemplates, normRequests, []);
                 expect(result).to.be.an('array');
                 expect(result.length).to.be.equal(2);
             });
@@ -314,7 +314,7 @@ describe('Managers tests', () => {
                 const request = { algorithmName, requestType: 'batch' };
                 const normRequests = [ request, request ];
 
-                const result = requestsManager._filterByMaxWorkers(algorithmTemplates, normRequests, jobAttachedWorkers);
+                const result = requestPreprocessor._filterByMaxWorkers(algorithmTemplates, normRequests, jobAttachedWorkers);
                 const expectedAmount = maxWorkers - workersCount > 0 ? maxWorkers - workersCount : 0;
                 expect(result).to.be.an('array');
                 expect(result.length).to.be.equal(expectedAmount);
@@ -328,7 +328,7 @@ describe('Managers tests', () => {
                 const request = { algorithmName, requestType: 'batch' };
                 const normRequests = [ request, request, request, request, request, request ];
 
-                const result = requestsManager._filterByMaxWorkers(algorithmTemplates, normRequests, jobAttachedWorkers);
+                const result = requestPreprocessor._filterByMaxWorkers(algorithmTemplates, normRequests, jobAttachedWorkers);
                 const expectedAmount = maxWorkers - workersCount > 0 ? maxWorkers - workersCount : 0;
                 expect(result).to.be.an('array');
                 expect(result.length).to.be.equal(expectedAmount);
@@ -346,7 +346,7 @@ describe('Managers tests', () => {
             describe('_prioritizeQuotaRequisite Method', () => {
                 const { batchRequests } = categorizedRequests;
                 it('should return the same requests as input when there is no algorithms with quotaGuarantee', () => {
-                    const result = requestsManager._prioritizeQuotaRequisite(batchRequests, algorithmTemplates, allAllocatedJobs);
+                    const result = requestPreprocessor._prioritizeQuotaRequisite(batchRequests, algorithmTemplates, allAllocatedJobs);
                     expect(result).to.be.an('array');
                     expect(result).to.be.deep.equal(categorizedRequests.batchRequests);
                 });
@@ -363,7 +363,7 @@ describe('Managers tests', () => {
                     normRequests.push(greenRequest);
 
                     expect(normRequests[0].algorithmName).to.not.equal(algorithmName);
-                    const result = requestsManager._prioritizeQuotaRequisite(normRequests, algorithmTemplates, allAllocatedJobs);
+                    const result = requestPreprocessor._prioritizeQuotaRequisite(normRequests, algorithmTemplates, allAllocatedJobs);
                     expect(result).to.be.an('array');
                     expect(result[0].algorithmName).to.equal(algorithmName);
                     expect(result[0].isRequisite).to.be.true;
@@ -379,7 +379,7 @@ describe('Managers tests', () => {
                     };
 
                     it('should return all requests as they are and no requisite if no requisite algorithm exist', () => {
-                        const { requests, requisites } = requestsManager._createRequisitesRequests(batchRequests, algorithmTemplates, allAllocatedJobs);
+                        const { requests, requisites } = requestPreprocessor._createRequisitesRequests(batchRequests, algorithmTemplates, allAllocatedJobs);
                         expect(requests).to.be.an('array');
                         expect(requests).to.be.deep.equal(categorizedRequests.batchRequests);
                         expect(requisites).to.be.an('object');
@@ -393,7 +393,7 @@ describe('Managers tests', () => {
                         normRequests.push(greenRequest);
                         const allAllocatedJobsStub = { idleWorkers: [], activeWorkers: [], pausedWorkers: [], bootstrappingWorkers: [], jobsPendingForWorkers: [] };
 
-                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobsStub);
+                        const { requests, requisites } = requestPreprocessor._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobsStub);
                         expect(requests).to.be.an('array');
                         expect(requests.filter(request => request.algorithmName === algorithmName)).to.be.empty;
                         expect(requisites).to.be.an('object');
@@ -409,7 +409,7 @@ describe('Managers tests', () => {
                         const normRequests = [...batchRequests];
                         normRequests.push(greenRequest);
 
-                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
+                        const { requests, requisites } = requestPreprocessor._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
                         expect(existingWorkers).to.be.greaterThan(0, 'The raw worker stub was edited (green-alg)!');
                         expect(requests).to.be.an('array');
                         expect(requests.filter(request => request.algorithmName === algorithmName)).to.be.empty;
@@ -426,7 +426,7 @@ describe('Managers tests', () => {
                         const normRequests = [...batchRequests];
                         normRequests.push(greenRequest);
 
-                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
+                        const { requests, requisites } = requestPreprocessor._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
                         expect(existingWorkers).to.be.above(0, 'The raw worker stub was edited (green-alg)!');
                         expect(requests).to.be.an('array');
                         expect(requests.filter(request => request.algorithmName === algorithmName).length).to.be.equal(1);
@@ -450,7 +450,7 @@ describe('Managers tests', () => {
                         normRequests.push(blackRequest);
                         normRequests.push(blackRequest);
 
-                        const { requests, requisites } = requestsManager._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
+                        const { requests, requisites } = requestPreprocessor._createRequisitesRequests(normRequests, algorithmTemplates, allAllocatedJobs);
                         expect(existingWorkers1).to.be.above(0, 'The raw worker stub was edited (green-alg)!');
                         expect(existingWorkers2).to.be.above(0, 'The raw worker stub was edited (black-alg)!');
                         expect(requests).to.be.an('array');
@@ -476,7 +476,7 @@ describe('Managers tests', () => {
                                 'green-alg': { required: [greenRequest, greenRequest] }
                             }
                         };
-                        const mergedRequests = requestsManager._mergeRequisiteRequests(requests, requisites);
+                        const mergedRequests = requestPreprocessor._mergeRequisiteRequests(requests, requisites);
                         expect(mergedRequests).to.be.an('array');
                         expect(mergedRequests.length).to.equal(requests.length + requisiteRequestsAmount);
                         expect(mergedRequests).to.deep.include.members(Object.values(requisites.algorithms).flatMap(a => a.required));
@@ -495,7 +495,7 @@ describe('Managers tests', () => {
                                 'black-alg': { required: [blackRequest] },
                             }
                         };
-                        const mergedRequests = requestsManager._mergeRequisiteRequests(requests, requisites);
+                        const mergedRequests = requestPreprocessor._mergeRequisiteRequests(requests, requisites);
                         expect(mergedRequests).to.be.an('array');
                         expect(mergedRequests.length).to.equal(requests.length + requisiteRequestsAmount);
                         expect(mergedRequests).to.deep.include.members(Object.values(requisites.algorithms).flatMap(a => a.required));
@@ -514,7 +514,7 @@ describe('Managers tests', () => {
                                 'green-alg': { required: [greenRequest, greenRequest] }
                             }
                         };
-                        const mergedRequests = requestsManager._mergeRequisiteRequests(requests, requisites);
+                        const mergedRequests = requestPreprocessor._mergeRequisiteRequests(requests, requisites);
                         mergedRequests.forEach((request, index) => {
                             if (index < requisiteRequestsAmount) {
                                 expect(request.isRequisite).to.be.true;
@@ -527,7 +527,7 @@ describe('Managers tests', () => {
                     });
 
                     it('should return the same request list untouched when requisites is empty', () => {
-                        const mergedRequests = requestsManager._mergeRequisiteRequests(requests, {});
+                        const mergedRequests = requestPreprocessor._mergeRequisiteRequests(requests, {});
                         expect(mergedRequests).to.be.an('array');
                         expect(mergedRequests).to.deep.equal(requests);
                     });
@@ -543,7 +543,7 @@ describe('Managers tests', () => {
             });
 
             it('should correctly count workers grouped by their algorithmName', () => {
-                const workersMap = requestsManager._workersToMap(runningWorkersList);
+                const workersMap = requestPreprocessor._workersToMap(runningWorkersList);
                 expect(workersMap).to.be.an('object');
                 Object.entries(workersMap).forEach(([algName, count]) => {
                     const workersCount = runningWorkersList.filter(worker => worker.algorithmName === algName).length;
@@ -552,7 +552,7 @@ describe('Managers tests', () => {
             });
 
             it('should handle an empty workers array', () => {
-                const workersMap = requestsManager._workersToMap([]);
+                const workersMap = requestPreprocessor._workersToMap([]);
                 expect(workersMap).to.be.an('object');
                 expect(Object.keys(workersMap)).to.be.empty;
             });
@@ -583,26 +583,26 @@ describe('Managers tests', () => {
 
             it('should split correctly when getting stateful, stateless and batch requests', () => {
                 const requests = buildRequests(2, 2, 2);
-                const result = requestsManager._splitRequestsByType(requests);
+                const result = requestPreprocessor._splitRequestsByType(requests);
                 checkResult(result, 2, 4);
             });
 
             it('should work with only batch request types', () => {
                 const requests = buildRequests(6, 0, 0);
-                const result = requestsManager._splitRequestsByType(requests);
+                const result = requestPreprocessor._splitRequestsByType(requests);
                 checkResult(result, 6, 0);
             });
 
             it('should work with only streaming request types', () => {
                 const requests = buildRequests(0, 3, 3);
-                const result = requestsManager._splitRequestsByType(requests);
+                const result = requestPreprocessor._splitRequestsByType(requests);
                 checkResult(result, 0, 6);
             });
 
             it('should order stateful requests before stateless requests', () => {
                 const statefulCount = 3;
                 const requests = buildRequests(0, statefulCount, 3);
-                const { streamingRequests } = requestsManager._splitRequestsByType(requests);
+                const { streamingRequests } = requestPreprocessor._splitRequestsByType(requests);
                 streamingRequests.forEach((request, index) => {
                     if (index < statefulCount) {
                         expect(request.requestType).to.equal(stateType.Stateful);
@@ -614,14 +614,14 @@ describe('Managers tests', () => {
             });
 
             it('should handle empty input', () => {
-                const result = requestsManager._splitRequestsByType([]);
+                const result = requestPreprocessor._splitRequestsByType([]);
                 checkResult(result, 0, 0);
             })
         });
 
         describe('_splitAlgorithmsByType Method', () => {
             it('should return empty objects when input is empty', () => {
-                const result = requestsManager._splitAlgorithmsByType({});
+                const result = requestPreprocessor._splitAlgorithmsByType({});
                 expect(result).to.deep.equal({ batchTemplates: {}, streamingTemplates: {} });
             });
 
@@ -632,7 +632,7 @@ describe('Managers tests', () => {
                     alg3: { name: 'alg3', stateType: null }
                 };
 
-                const result = requestsManager._splitAlgorithmsByType(templates);
+                const result = requestPreprocessor._splitAlgorithmsByType(templates);
                 expect(Object.keys(result.batchTemplates)).to.have.members(['alg1', 'alg2', 'alg3']);
                 expect(result.streamingTemplates).to.deep.equal({});
             });
@@ -643,7 +643,7 @@ describe('Managers tests', () => {
                     statelessAlg: { name: 'statelessAlg', stateType: stateType.Stateless }
                 };
 
-                const result = requestsManager._splitAlgorithmsByType(templates);
+                const result = requestPreprocessor._splitAlgorithmsByType(templates);
                 expect(Object.keys(result.streamingTemplates)).to.have.members(['statefulAlg', 'statelessAlg']);
                 expect(result.batchTemplates).to.deep.equal({});
             });
@@ -656,7 +656,7 @@ describe('Managers tests', () => {
                     batch2: { name: 'batch2' }
                 };
 
-                const result = requestsManager._splitAlgorithmsByType(templates);
+                const result = requestPreprocessor._splitAlgorithmsByType(templates);
                 expect(Object.keys(result.batchTemplates)).to.have.members(['batch1', 'batch2']);
                 expect(Object.keys(result.streamingTemplates)).to.have.members(['stream1', 'stream2']);
             });
@@ -667,7 +667,7 @@ describe('Managers tests', () => {
                     unknown: { name: 'unknown', stateType: 'window' } // Not in [Stateful, Stateless]
                 };
 
-                const result = requestsManager._splitAlgorithmsByType(templates);
+                const result = requestPreprocessor._splitAlgorithmsByType(templates);
                 expect(Object.keys(result.batchTemplates)).to.have.members(['batch1']);
                 expect(Object.keys(result.streamingTemplates)).to.not.include('unknown');
             });
@@ -682,13 +682,13 @@ describe('Managers tests', () => {
                     'batch-algo': { algorithmName: 'batch-algo' }
                 };
 
-                const result = requestsManager._handleBatchRequests(requests, batchTemplates);
+                const result = requestPreprocessor._handleBatchRequests(requests, batchTemplates);
                 expect(result).to.be.an('array');
                 expect(result.length).to.be.equal(1);
             });
 
             it('should return empty array if no empty lists are given', () => {
-                const result = requestsManager._handleBatchRequests([], {});
+                const result = requestPreprocessor._handleBatchRequests([], {});
                 expect(result).to.be.an('array').that.is.empty;
             });
         });
@@ -698,9 +698,9 @@ describe('Managers tests', () => {
             it('should return all batch requests if the window size is large enough', () => {
                 const requestCount = 30;
                 const factor = 3;
-                expect(requestsManager._totalCapacityNow * factor).to.be.gte(requestCount, '_totalCapacityNow was changed!');
+                expect(requestPreprocessor._totalCapacityNow * factor).to.be.gte(requestCount, '_totalCapacityNow was changed!');
                 const requests = new Array(requestCount).fill(batchRequest);
-                const batchWindow = requestsManager._createBatchWindow(requests);
+                const batchWindow = requestPreprocessor._createBatchWindow(requests);
                 expect(batchWindow).to.be.an('array');
                 expect(batchWindow).to.deep.equal(requests);
             });
@@ -708,15 +708,15 @@ describe('Managers tests', () => {
             it('should return a subset of batch requests based on the window size factor', () => {
                 const requestCount = 31;
                 const factor = 3;
-                expect(requestsManager._totalCapacityNow * factor).to.be.lte(requestCount, '_totalCapacityNow was changed!');
+                expect(requestPreprocessor._totalCapacityNow * factor).to.be.lte(requestCount, '_totalCapacityNow was changed!');
                 const requests = new Array(requestCount).fill(batchRequest);
-                const batchWindow = requestsManager._createBatchWindow(requests);
+                const batchWindow = requestPreprocessor._createBatchWindow(requests);
                 expect(batchWindow).to.be.an('array');
                 expect(batchWindow.length).to.be.lt(requestCount);
             });
 
             it('should return empty array when there are no requests', () => {
-                const batchWindow = requestsManager._createBatchWindow([]);
+                const batchWindow = requestPreprocessor._createBatchWindow([]);
                 expect(batchWindow).to.be.an('array');
                 expect(batchWindow).to.be.empty;
             });
@@ -726,17 +726,17 @@ describe('Managers tests', () => {
             // Explanation: result=count/Total → result * totalCapacityNow (≈ round up)
 
             it('should return all requests if capacity is high enough', () => {
-                requestsManager._totalCapacityNow = 10;
+                requestPreprocessor._totalCapacityNow = 10;
 
                 const requests = [ algo1Request, algo2Request, algo1Request, algo2Request ];
 
-                const result = requestsManager._limitRequestsByCapacity(requests);
+                const result = requestPreprocessor._limitRequestsByCapacity(requests);
                 expect(result).to.have.lengthOf(4);
                 expect(result).to.deep.equal(requests);
             });
 
             it('should limit requests proportionally by algorithm ratio', () => {
-                requestsManager._totalCapacityNow = 3;
+                requestPreprocessor._totalCapacityNow = 3;
                 const requests = [ ...Array(4).fill(algo1Request), algo2Request, batchRequest ];
 
                 // Total:       6
@@ -744,7 +744,7 @@ describe('Managers tests', () => {
                 // algo2:       1/6 = 0.166.. → 0.166.. * 3 = 0.5 (≈ 1 allowed)
                 // batch-algo:  1/6 = 0.166.. → 0.166.. * 3 = 0.5 (≈ 1 allowed)
 
-                const result = requestsManager._limitRequestsByCapacity(requests);
+                const result = requestPreprocessor._limitRequestsByCapacity(requests);
 
                 const counts = result.reduce((acc, r) => {
                     acc[r.algorithmName] = (acc[r.algorithmName] || 0) + 1;
@@ -758,7 +758,7 @@ describe('Managers tests', () => {
             });
 
             it('should not include more requests than allowed per algorithm', () => {
-                requestsManager._totalCapacityNow = 2;
+                requestPreprocessor._totalCapacityNow = 2;
 
                 const requests = [ algo1Request, algo1Request, algo1Request, algo2Request ];
 
@@ -766,7 +766,7 @@ describe('Managers tests', () => {
                 // a: 3/4 = 0.75 → 0.75 * 2 = 1.5 (≈ 2 allowed)
                 // b: 1/4 = 0.25 → 0.25 * 2 = 0.5 (≈ 1 allowed)
 
-                const result = requestsManager._limitRequestsByCapacity(requests);
+                const result = requestPreprocessor._limitRequestsByCapacity(requests);
 
                 const countA = result.filter(r => r.algorithmName === algo1Request.algorithmName).length;
                 const countB = result.filter(r => r.algorithmName === algo2Request.algorithmName).length;
@@ -777,24 +777,24 @@ describe('Managers tests', () => {
             });
 
             it('should return an empty array if given no requests', () => {
-                requestsManager._totalCapacityNow = 5;
-                const result = requestsManager._limitRequestsByCapacity([]);
+                requestPreprocessor._totalCapacityNow = 5;
+                const result = requestPreprocessor._limitRequestsByCapacity([]);
                 expect(result).to.deep.equal([]);
             });
 
             it('should handle single algorithm with multiple requests and limited capacity', () => {
-                requestsManager._totalCapacityNow = 1;
+                requestPreprocessor._totalCapacityNow = 1;
 
                 const requests = [ algo1Request, algo1Request, algo1Request ];
 
-                const result = requestsManager._limitRequestsByCapacity(requests);
+                const result = requestPreprocessor._limitRequestsByCapacity(requests);
 
                 expect(result.length).to.equal(1);
                 expect(result[0].algorithmName).to.equal(algo1Request.algorithmName);
             });
 
             it('should distribute fairly across multiple algorithms when possible', () => {
-                requestsManager._totalCapacityNow = 6;
+                requestPreprocessor._totalCapacityNow = 6;
 
                 const requests = [ algo1Request, algo1Request, algo1Request, algo2Request, algo2Request, batchRequest ];
 
@@ -803,7 +803,7 @@ describe('Managers tests', () => {
                 // b: 0.33 → 2
                 // c: 0.17 → 1
 
-                const result = requestsManager._limitRequestsByCapacity(requests);
+                const result = requestPreprocessor._limitRequestsByCapacity(requests);
 
                 const counts = result.reduce((acc, r) => {
                     acc[r.algorithmName] = (acc[r.algorithmName] || 0) + 1;
@@ -819,28 +819,28 @@ describe('Managers tests', () => {
 
         describe('_calculateRequestRatios Method', () => {
             it('should return zero total and empty algorithm stats when there are no requests', () => {
-                const result = requestsManager._calculateRequestRatios([], 10);
+                const result = requestPreprocessor._calculateRequestRatios([], 10);
                 expect(result.total).to.equal(0);
                 expect(result.algorithms).to.deep.equal({});
             });
 
             it('should return total 1 and one algorithm count when there is only one request', () => {
                 const requests = [ algo1Request ];
-                const result = requestsManager._calculateRequestRatios(requests);
+                const result = requestPreprocessor._calculateRequestRatios(requests);
                 expect(result.total).to.equal(1);
                 expect(result.algorithms[algo1Request.algorithmName].count).to.equal(1);
             });
 
             it('should correctly calculate counts for a single algorithm with multiple requests', () => {
                 const requests = [ algo1Request, algo1Request ];
-                const result = requestsManager._calculateRequestRatios(requests);
+                const result = requestPreprocessor._calculateRequestRatios(requests);
                 expect(result.total).to.equal(2);
                 expect(result.algorithms[algo1Request.algorithmName].count).to.equal(2);
             });
 
             it('should correctly calculate counts and list for multiple different algorithms', () => {
                 const requests = [ algo1Request, algo2Request, algo1Request ];
-                const result = requestsManager._calculateRequestRatios(requests);
+                const result = requestPreprocessor._calculateRequestRatios(requests);
                 expect(result.total).to.equal(3);
                 expect(result.algorithms[algo1Request.algorithmName].count).to.equal(2);
                 expect(result.algorithms[algo2Request.algorithmName].count).to.equal(1);
@@ -849,7 +849,7 @@ describe('Managers tests', () => {
             it('should calculate ratios and required capacity when capacity is provided', () => {
                 const requests = [ algo1Request, algo1Request, algo2Request ];
                 const capacity = 10;
-                const result = requestsManager._calculateRequestRatios(requests, capacity);
+                const result = requestPreprocessor._calculateRequestRatios(requests, capacity);
                 expect(result.algorithms[algo1Request.algorithmName].ratio).to.equal(2 / 3);
                 expect(result.algorithms[algo1Request.algorithmName].required).to.equal(10 * (2 / 3));
                 expect(result.algorithms[algo2Request.algorithmName].ratio).to.equal(1 / 3);
@@ -859,7 +859,7 @@ describe('Managers tests', () => {
             it('should not exceed total requests when capacity is larger than total number of requests', () => {
                 const requests = [ algo1Request, algo2Request ];
                 const capacity = 100;
-                const result = requestsManager._calculateRequestRatios(requests, capacity);
+                const result = requestPreprocessor._calculateRequestRatios(requests, capacity);
                 expect(result.algorithms[algo1Request.algorithmName].required).to.equal(50); // 100 * (1/2)
                 expect(result.algorithms[algo2Request.algorithmName].required).to.equal(50); // 100 * (1/2)
             });
@@ -874,20 +874,20 @@ describe('Managers tests', () => {
                     'stream-algo': { algorithmName: 'stream-algo' }
                 };
 
-                const result = requestsManager._handleStreamingRequests(requests, streamingTemplates);
+                const result = requestPreprocessor._handleStreamingRequests(requests, streamingTemplates);
                 expect(result).to.be.an('array');
                 expect(result.length).to.be.equal(1);
             });
 
             it('should return empty array if no empty lists are given', () => {
-                const result = requestsManager._handleStreamingRequests([], {});
+                const result = requestPreprocessor._handleStreamingRequests([], {});
                 expect(result).to.be.an('array').that.is.empty;
             });
         });
 
         describe('_merge Method', () => {
             it('should return an empty array when both inputs are empty', () => {
-                const result = requestsManager._merge([], []);
+                const result = requestPreprocessor._merge([], []);
                 expect(result).to.deep.equal([]);
             });
 
@@ -898,7 +898,7 @@ describe('Managers tests', () => {
                     { algorithmName: 'stream2', requestType: stateType.Stateless, stateType: stateType.Stateless, isRequisite: true }
                 ];
 
-                const result = requestsManager._merge(batch, streaming);
+                const result = requestPreprocessor._merge(batch, streaming);
                 expect(result.map(r => r.algorithmName)).to.deep.equal(['stream1', 'stream2', 'batch1']);
             });
 
@@ -913,7 +913,7 @@ describe('Managers tests', () => {
                     { algorithmName: 'stream3', requestType: stateType.Stateless, stateType: stateType.Stateless }
                 ];
 
-                const result = requestsManager._merge(batch, streaming);
+                const result = requestPreprocessor._merge(batch, streaming);
                 expect(result.map(r => r.algorithmName)).to.deep.equal([
                     'stream1', // requisite (streaming)
                     'batch2',  // requisite (batch)
@@ -931,7 +931,7 @@ describe('Managers tests', () => {
                     { algorithmName: 's4', requestType: stateType.Stateful, stateType: stateType.Stateful }
                 ];
 
-                const result = requestsManager._merge([], streaming);
+                const result = requestPreprocessor._merge([], streaming);
                 expect(result.map(r => r.algorithmName)).to.deep.equal(['s2', 's4', 's1', 's3']);
             });
 
@@ -941,7 +941,7 @@ describe('Managers tests', () => {
                     { algorithmName: 'b2', requestType: 'batch' }
                 ];
 
-                const result = requestsManager._merge(batch, []);
+                const result = requestPreprocessor._merge(batch, []);
                 expect(result.map(r => r.algorithmName)).to.deep.equal(['b1', 'b2']);
             });
 
@@ -955,7 +955,7 @@ describe('Managers tests', () => {
                     { algorithmName: 'b2', requestType: 'batch' }
                 ];
 
-                const result = requestsManager._merge(batch, streaming);
+                const result = requestPreprocessor._merge(batch, streaming);
 
                 // Ensure s1 and b1 appear only once, despite also being requisites
                 const names = result.map(r => r.algorithmName);
@@ -971,7 +971,7 @@ describe('Managers tests', () => {
                     { algorithmName: 's1', requestType: stateType.Stateful, stateType: stateType.Stateful, isRequisite: true }
                 ];
 
-                const result = requestsManager._merge(batch, streaming);
+                const result = requestPreprocessor._merge(batch, streaming);
                 expect(result.map(r => r.algorithmName)).to.deep.equal(['s1', 'b1']);
             });
 
@@ -981,7 +981,7 @@ describe('Managers tests', () => {
                     { algorithmName: 's2', requestType: stateType.Stateless, stateType: stateType.Stateless }
                 ];
 
-                const result = requestsManager._merge([], streaming);
+                const result = requestPreprocessor._merge([], streaming);
                 expect(result.map(r => r.algorithmName)).to.deep.equal(['s1', 's2']);
             });
 
@@ -991,7 +991,7 @@ describe('Managers tests', () => {
                     { algorithmName: 'b2', requestType: 'batch' }
                 ];
 
-                const result = requestsManager._merge(batch, []);
+                const result = requestPreprocessor._merge(batch, []);
                 expect(result.map(r => r.algorithmName)).to.deep.equal(['b1', 'b2']);
             });
 
@@ -1005,7 +1005,7 @@ describe('Managers tests', () => {
                     { algorithmName: 's2', requestType: stateType.Stateless, stateType: stateType.Stateless }
                 ];
 
-                const result = requestsManager._merge(batch, streaming);
+                const result = requestPreprocessor._merge(batch, streaming);
                 expect(result.map(r => r.algorithmName)).to.deep.equal(['s1', 's2', 'b1', 'b2']);
             });
         });

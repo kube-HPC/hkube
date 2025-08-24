@@ -6,7 +6,7 @@ const Components = {
     METRICS: 'Metrics',
     RECONCILER: 'Reconciler',
     WORKERS_MANAGER: 'WorkersManager',
-    REQUESTS_MANAGER: 'RequestsManager',
+    REQUESTS_PREPROCESSOR: 'RequestPreprocessor',
     JOBS_HANDLER: 'JobsHandler'
 };
 
