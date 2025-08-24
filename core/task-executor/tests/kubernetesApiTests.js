@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
+const { StatusCodes } = require('http-status-codes');
 const KubernetesApi = require('../lib/helpers/kubernetes').KubernetesApi;
 const kubernetesServerMock = require('./mocks/kubernetes-server.mock');
 const { main, logger } = configIt.load();
@@ -53,11 +54,11 @@ describe('Kubernetes API', () => {
     });
     it('should get worker jobs', async () => {
         const res = await instance.getWorkerJobs();
-        expect(res.statusCode).to.eql(200);
+        expect(res.statusCode).to.eql(StatusCodes.OK);
     });
     it('should get worker for job', async () => {
         const res = await instance.getPodsForJob({ spec: { selector: { matchLabels: 'myLabel=mySelector' } } });
-        expect(res.statusCode).to.eql(200);
+        expect(res.statusCode).to.eql(StatusCodes.OK);
     });
     it('should fail to get worker for job if no selector', async () => {
         const res = await instance.getPodsForJob({ spec: { selector: { matchLabels: null } } });

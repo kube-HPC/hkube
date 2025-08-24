@@ -1,11 +1,10 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequestsByType, normalizeColdWorkers } = require('../lib/reconcile/normalize');
-const { twoCompleted } = require('./stub/jobsRaw');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, attacheJobToWorker, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
+const { twoCompleted, workersStub, jobsStub, resources } = require('./stub');
+const { nodes, pods } = resources;
+let { templateStore } = require('./stub');
 const { stateType } = require('@hkube/consts');
 const utils = require('../lib/utils/utils');
-const { workersStub, jobsStub } = require('./stub/normalizedStub');
-const { nodes, pods } = require('./stub/resources');
-let templateStore = require('./stub/templateStore');
 const { settings: globalSettings } = require('../lib/helpers/settings');
 templateStore = templateStore.map(t => ({ ...t, minHotWorkers: 10 }));
 const algorithmTemplates = utils.arrayToMap(templateStore);
@@ -123,88 +122,29 @@ describe('normalize', () => {
 
     describe('normalize hot workers', () => {
         it('should work with undefined', () => {
-            const res = normalizeHotRequestsByType();
+            const res = normalizeHotRequests();
             expect(res).to.have.lengthOf(0);
         });
 
         it('should work with empty data', () => {
             const normRequests = [];
             const algorithmTemplates = {};
-            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
 
         it('should work with empty normRequests', () => {
             const normRequests = null;
             const algorithmTemplates = {};
-            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
 
         it('should work with empty algorithmTemplates', () => {
             const normRequests = [];
             const algorithmTemplates = null;
-            const res = normalizeHotRequestsByType(normRequests, algorithmTemplates);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
-        });
-
-        const cases = [
-            undefined,
-            stateType.Stateful,
-            stateType.Stateless,
-            [stateType.Stateful, stateType.Stateless]
-        ];
-        
-        const _getAdditionalRequestsAmount = (algorithmNames, currStateType) => {
-            return algorithmNames.reduce((acc, algorithmName) => {
-                if (!algorithmTemplates[algorithmName]) {
-                    acc += 1;
-                }
-                else {
-                    const algStateType = algorithmTemplates[algorithmName].stateType;
-                    if ((!Array.isArray(currStateType) && algStateType !== currStateType) || (Array.isArray(currStateType) && !currStateType.includes(algStateType)))
-                        acc += 1;
-                }
-                return acc;
-            }, 0);
-        };
-
-        const _getHotWorkersAmount = (algorithmNames, currStateType) => {
-            const minHotWorkers = Object.values(algorithmTemplates)
-                    .filter(a => a.minHotWorkers && (a.stateType === currStateType || (Array.isArray(currStateType) && currStateType.includes(a.stateType))))
-                    .map(a => a.minHotWorkers)
-                    .reduce((a, b) => a + b, 0);
-            return minHotWorkers;
-        };
-
-        cases.forEach((currStateType) => {
-            it('should return hot workers with stateType: ' + currStateType, () => {
-                const algorithmNames = ["green-alg", "black-alg", "eval-alg", "yellow-alg", "algo-state-type-stateful", "algo-state-type-stateless", "algo-state-type-undefined"];
-                const normRequests = algorithmNames.map(algorithmName => ({ algorithmName }));
-                
-                const minHotWorkers = _getHotWorkersAmount(algorithmNames, currStateType);
-                const additionalRequests = _getAdditionalRequestsAmount(algorithmNames, currStateType);
-
-                const response = normalizeHotRequestsByType(normRequests, algorithmTemplates, currStateType);
-                expect(response).to.have.lengthOf(minHotWorkers + additionalRequests);
-                expect(response[0]).to.have.property('algorithmName');
-                expect(response[0]).to.have.property('hotWorker');
-            });
-        });
-
-        cases.forEach((currStateType) => {
-            it('should return hot workers and not hot workers with stateType: ' + currStateType, () => {
-                const algorithmNames = ["green-alg", "black-alg", "eval-alg", "yellow-alg", "nothot-alg", "nothot-alg", "nothot-alg"];
-                const normRequests = algorithmNames.map(algorithmName => ({ algorithmName }));
-
-                const minHotWorkers = _getHotWorkersAmount(algorithmNames, currStateType);
-                const additionalRequests = _getAdditionalRequestsAmount(algorithmNames, currStateType);
-
-                const response = normalizeHotRequestsByType(normRequests, algorithmTemplates, currStateType);
-                expect(response).to.have.lengthOf(minHotWorkers + additionalRequests);
-                expect(response[0]).to.have.property('algorithmName');
-                expect(response[0]).to.have.property('hotWorker');
-            });
         });
     });
 
@@ -512,46 +452,46 @@ describe('normalize', () => {
 
     describe('merge workers', () => {
         it('should work with empty items', () => {
-            const merged = mergeWorkers([], []);
-            expect(merged.mergedWorkers).to.be.an('array');
-            expect(merged.mergedWorkers).to.be.empty;
+            const merged = attacheJobToWorker([], []);
+            expect(merged.jobAttachedWorkers).to.be.an('array');
+            expect(merged.jobAttachedWorkers).to.be.empty;
             expect(merged.extraJobs).to.be.an('array');
             expect(merged.extraJobs).to.be.empty;
         });
 
         it('should keep all workers, and not change with no jobs', () => {
-            const merged = mergeWorkers(workersStub, []);
-            expect(merged.mergedWorkers).to.be.an('array')
-            expect(merged.mergedWorkers).to.have.length(workersStub.length);
-            expect(merged.mergedWorkers[0].job).to.not.exist;
-            expect(merged.mergedWorkers[1].job).to.not.exist;
+            const merged = attacheJobToWorker(workersStub, []);
+            expect(merged.jobAttachedWorkers).to.be.an('array')
+            expect(merged.jobAttachedWorkers).to.have.length(workersStub.length);
+            expect(merged.jobAttachedWorkers[0].job).to.not.exist;
+            expect(merged.jobAttachedWorkers[1].job).to.not.exist;
             expect(merged.extraJobs).to.be.empty;
         });
 
         it('should keep all workers, and enrich with one jobs', () => {
-            const merged = mergeWorkers(workersStub, jobsStub.slice(0, 1));
-            expect(merged.mergedWorkers).to.be.an('array')
-            expect(merged.mergedWorkers).to.have.length(workersStub.length);
-            expect(merged.mergedWorkers[0].job).to.eql(jobsStub[0]);
-            expect(merged.mergedWorkers[1].job).to.not.exist;
+            const merged = attacheJobToWorker(workersStub, jobsStub.slice(0, 1));
+            expect(merged.jobAttachedWorkers).to.be.an('array')
+            expect(merged.jobAttachedWorkers).to.have.length(workersStub.length);
+            expect(merged.jobAttachedWorkers[0].job).to.eql(jobsStub[0]);
+            expect(merged.jobAttachedWorkers[1].job).to.not.exist;
             expect(merged.extraJobs).to.be.empty;
         });
 
         it('should keep all workers, and enrich with all jobs', () => {
-            const merged = mergeWorkers(workersStub, jobsStub);
-            expect(merged.mergedWorkers).to.be.an('array')
-            expect(merged.mergedWorkers).to.have.length(workersStub.length);
-            expect(merged.mergedWorkers[0].job).to.eql(jobsStub[0]);
-            expect(merged.mergedWorkers[1].job).to.eql(jobsStub[1]);
-            expect(merged.mergedWorkers[2].job).to.eql(jobsStub[2]);
-            expect(merged.mergedWorkers[3].job).to.eql(jobsStub[3]);
+            const merged = attacheJobToWorker(workersStub, jobsStub);
+            expect(merged.jobAttachedWorkers).to.be.an('array')
+            expect(merged.jobAttachedWorkers).to.have.length(workersStub.length);
+            expect(merged.jobAttachedWorkers[0].job).to.eql(jobsStub[0]);
+            expect(merged.jobAttachedWorkers[1].job).to.eql(jobsStub[1]);
+            expect(merged.jobAttachedWorkers[2].job).to.eql(jobsStub[2]);
+            expect(merged.jobAttachedWorkers[3].job).to.eql(jobsStub[3]);
             expect(merged.extraJobs).to.be.empty;
         });
 
         it('should report all jobs as extra jobs', () => {
-            const merged = mergeWorkers([], jobsStub);
-            expect(merged.mergedWorkers).to.be.an('array')
-            expect(merged.mergedWorkers).to.be.empty;
+            const merged = attacheJobToWorker([], jobsStub);
+            expect(merged.jobAttachedWorkers).to.be.an('array')
+            expect(merged.jobAttachedWorkers).to.be.empty;
             expect(merged.extraJobs).to.have.length(jobsStub.length);
             expect(merged.extraJobs[0]).to.eql(jobsStub[0]);
             expect(merged.extraJobs[1]).to.eql(jobsStub[1]);
@@ -559,9 +499,9 @@ describe('normalize', () => {
             expect(merged.extraJobs[3]).to.eql(jobsStub[3]);
         });
         it('should report extra jobs', () => {
-            const merged = mergeWorkers(workersStub.slice(0, 1), jobsStub);
-            expect(merged.mergedWorkers).to.be.an('array')
-            expect(merged.mergedWorkers).to.have.length(1);
+            const merged = attacheJobToWorker(workersStub.slice(0, 1), jobsStub);
+            expect(merged.jobAttachedWorkers).to.be.an('array')
+            expect(merged.jobAttachedWorkers).to.have.length(1);
             expect(merged.extraJobs).to.have.length(3);
             expect(merged.extraJobs[0]).to.eql(jobsStub[1]);
             expect(merged.extraJobs[1]).to.eql(jobsStub[2]);

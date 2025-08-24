@@ -7,6 +7,19 @@ const { settings } = require('../helpers/settings');
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
 const { createWarning } = require('../utils/warningCreator');
 
+/**
+ * Checks if a node can fit the requested resources.
+ *
+ * Applies resource pressure limits if enabled, then determines
+ * if CPU, memory, and GPU requests can be satisfied.
+ *
+ * @param {Object} node - Node resource object with `total` and `free` properties.
+ * @param {number} requestedCpu - Requested CPU cores.
+ * @param {number} requestedGpu - Requested GPUs.
+ * @param {number} requestedMemory - Requested memory in Mi.
+ * @param {boolean} [useResourcePressure=true] - Whether to apply resource pressure limits.
+ * @returns {Object} Scheduling result with availability, capacity limits, and missing amounts.
+ */
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, useResourcePressure = true) => {
     let freeCpu;
     let freeGpu;
@@ -69,6 +82,13 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
     };
 };
 
+/**
+ * Checks if a node matches the given nodeSelector.
+ *
+ * @param {Object} labels - Node labels as key-value pairs.
+ * @param {Object} nodeSelector - Required nodeSelector key-value mapping.
+ * @returns {boolean} True if labels match the selector, false otherwise.
+ */
 const nodeSelectorFilter = (labels, nodeSelector) => {
     let matched = true;
     if (!nodeSelector) {
@@ -183,6 +203,18 @@ const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCusto
     return { requestedCpu, requestedMemory };
 };
 
+/**
+ * Determines whether a job can be added to the schedule.
+ *
+ * Validates resource availability, missing volumes, KAI object constraints,
+ * and applies nodeSelector filtering. Generates warnings when job cannot be scheduled.
+ *
+ * @param {Object} jobDetails - Job details including resource requests, volumes, etc.
+ * @param {Object} availableResources - Current cluster resource state.
+ * @param {number} totalAdded - Number of jobs added so far this tick.
+ * @param {Object} [extraResources] - Additional metadata such as volumes and queues.
+ * @returns {Object} Scheduling decision with `shouldAdd`, optional `warning`, and updated resources.
+ */
 const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources) => {
     const { allVolumesNames, existingQueuesNames } = extraResources || {};
     if (totalAdded >= MAX_JOBS_PER_TICK) {
@@ -204,7 +236,6 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources
             nodesAfterSelector: nodesBySelector.length,
             code: warningCodes.RESOURCES
         });
-        // const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesBySelector.length);
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
     }
 
@@ -238,11 +269,27 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources
     return { shouldAdd: true, node: nodeForSchedule.name, newResources: { ...availableResources, allNodes: { ...availableResources.allNodes } } };
 };
 
+/**
+ * Finds a node that can run the requested algorithm without resource pressure.
+ *
+ * @param {Object[]} nodeList - List of node resource objects.
+ * @param {Object} requests - Requested CPU, GPU, and memory values.
+ * @param {number} requests.requestedCpu - Requested CPU cores.
+ * @param {number} requests.requestedGpu - Requested GPUs.
+ * @param {number} requests.memoryRequests - Requested memory in Mi.
+ * @returns {Object|undefined} Matching node or undefined if none found.
+ */
 function _scheduleAlgorithmToNode(nodeList, { requestedCpu, requestedGpu, memoryRequests }) {
     const nodeForSchedule = nodeList.find(n => findNodeForSchedule(n, requestedCpu, requestedGpu, memoryRequests, false).available);
     return nodeForSchedule;
 }
 
+/**
+ * Subtracts requested resources from a node's free/requested/ratio values.
+ *
+ * @param {Object} resources - Node resource object to modify.
+ * @param {Object} requests - Resource amounts to subtract.
+ */
 const _subtractResources = (resources, { requestedCpu, memoryRequests, requestedGpu }) => {
     if (resources.free) {
         resources.free = {
@@ -267,6 +314,12 @@ const _subtractResources = (resources, { requestedCpu, memoryRequests, requested
     }
 };
 
+/**
+ * Parses a worker's resource requests into numeric CPU, memory, and GPU values.
+ *
+ * @param {Object} worker - Worker with resourceRequests property.
+ * @returns {Object} Parsed resources { requestedCpu, memoryRequests, requestedGpu }.
+ */
 const parseResources = (worker) => {
     const requestedCpu = parse.getCpuInCore('' + worker.resourceRequests.requests.cpu);
     const memoryRequests = parse.getMemoryInMi(worker.resourceRequests.requests.memory);
@@ -275,6 +328,14 @@ const parseResources = (worker) => {
     return { requestedCpu, memoryRequests, requestedGpu };
 };
 
+/**
+ * Updates a node's resources in a node list by subtracting the given amounts.
+ *
+ * @param {Object[]} nodeList - Array of node resource objects.
+ * @param {string} nodeName - Name of the node to update.
+ * @param {Object} requests - Resource amounts to subtract.
+ * @returns {Object[]} Updated copy of nodeList.
+ */
 const _updateNodeResources = (nodeList, nodeName, { requestedCpu, requestedGpu, memoryRequests }) => {
     const nodeListLocal = nodeList.slice();
     const nodeIndex = nodeListLocal.findIndex(n => n.name === nodeName);
@@ -288,6 +349,15 @@ const _updateNodeResources = (nodeList, nodeName, { requestedCpu, requestedGpu, 
     return nodeListLocal;
 };
 
+/**
+ * Attempts to free resources by finding a worker to stop until the requested
+ * algorithm can be scheduled on a node.
+ *
+ * @param {Object[]} nodeList - List of nodes.
+ * @param {string} algorithmName - Name of the algorithm to schedule.
+ * @param {Object} resources - Requested resources for scheduling.
+ * @returns {Object} Updated nodeList and workers to stop.
+ */
 const _findWorkersToStop = (nodeList, algorithmName, resources) => {
     let nodeListLocal = clone(nodeList);
     let workersToStop;
@@ -321,6 +391,13 @@ const _findWorkersToStop = (nodeList, algorithmName, resources) => {
     };
 };
 
+/**
+ * Matches workers to the nodes they are running on.
+ *
+ * @param {Object[]} nodeList - List of node objects.
+ * @param {Object[]} workers - List of worker objects.
+ * @returns {Object[]} Nodes with `workers` array populated.
+ */
 const matchWorkersToNodes = (nodeList, workers) => {
     return nodeList.map(n => ({
         ...n,
@@ -328,10 +405,21 @@ const matchWorkersToNodes = (nodeList, workers) => {
     }));
 };
 
+/**
+ * Decides which workers to pause to free up resources for pending jobs.
+ *
+ * Iterates over skipped requests, tries to stop non-matching workers to
+ * make space, and returns workers to stop.
+ *
+ * @param {Object[]} stopDetails - Workers that can be stopped.
+ * @param {Object} availableResources - Cluster resource state.
+ * @param {Object[]} skippedRequests - Jobs that were skipped due to lack of resources.
+ * @returns {Object[]} List of workers to stop.
+ */
 const pauseAccordingToResources = (stopDetails, availableResources, skippedRequests) => {
     const toStop = [];
     if (stopDetails.length === 0) {
-        return { toStop };
+        return toStop;
     }
     let localDetails = stopDetails.map(sd => sd.details);
     const localResources = clone(availableResources);
@@ -357,11 +445,21 @@ const pauseAccordingToResources = (stopDetails, availableResources, skippedReque
         }
     });
 
-    return { toStop };
+    return toStop;
 };
 
+/**
+ * Matches jobs to available resources, scheduling as many as possible
+ * until no additional jobs can be placed in the current tick.
+ *
+ * @param {Object[]} createDetails - Details of jobs to create.
+ * @param {Object} availableResources - Current cluster resource state.
+ * @param {Object[]} [scheduledRequests=[]] - Already scheduled requests.
+ * @param {Object} [extraResources] - Additional metadata for scheduling checks.
+ * @returns {Object} { requested: jobs scheduled, skipped: jobs not scheduled }
+ */
 const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], extraResources) => {
-    const requested = [];
+    const jobsToRequest = [];
     const skipped = [];
     const localDetails = clone(createDetails);
     let addedThisTime = 0;
@@ -372,7 +470,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
             const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, extraResources);
             if (shouldAdd) {
                 const toCreate = { ...j.jobDetails, createdTime: Date.now(), node };
-                requested.push(toCreate);
+                jobsToRequest.push(toCreate);
                 scheduledRequests.push({ algorithmName: toCreate.algorithmName });
             }
             else {
@@ -389,7 +487,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
         localDetails.forEach(cb);
     } while (addedThisTime > 0);
 
-    return { requested, skipped };
+    return { jobsToRequest, skipped };
 };
 
 module.exports = {

@@ -5,38 +5,14 @@ const objectPath = require('object-path');
 const { gpuVendors } = require('../consts');
 const { setWorkerImage } = require('./createOptions');
 const { settings: globalSettings } = require('../helpers/settings');
-/**
- * normalizes the worker info from discovery
- * input will look like:
- * <code>
- * {
- *  '/discovery/workers/worker-uuid':{
- *      algorithmName,
- *      workerStatus,
- *      jobStatus,
- *      error
- *      },
- *  '/discovery/workers/worker-uuid2':{
- *      algorithmName,
- *      workerStatus,
- *      jobStatus,
- *      error
- *      }
- * }
- * </code>
- * normalized output should be:
- * <code>
- * {
- *   worker-uuid:{
- *     algorithmName,
- *     workerStatus // ready, working
- * 
- *   }
- * }
- * </code>
- * @param {*} workers 
- */
 
+/**
+ * Normalizes raw worker objects from etcd into a simplified structure.
+ * Removes unnecessary fields and keeps only relevant worker attributes.
+ *
+ * @param {Object[]} workers - Raw workers array from etcd.
+ * @returns {Object[]} Normalized workers array.
+ */
 const normalizeWorkers = (workers) => {
     if (!workers) {
         return [];
@@ -58,15 +34,21 @@ const normalizeWorkers = (workers) => {
 };
 
 /**
- * This method tries to find workers that at least one image (worker/algorithm) 
- * is different from the current image version.
+ * Identifies workers that should exit due to changes in image or algorithm version.
+ * Adds a `message` property if applicable.
+ *
+ * @param {Object[]} normalizedWorkers - Normalized worker objects.
+ * @param {Object} algorithmTemplates - Algorithm templates from DB.
+ * @param {Object} versions - System versions object.
+ * @param {Object} registry - Registry configuration.
+ * @returns {Object[]} Workers that must exit.
  */
-const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, registry) => {
+const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, registry) => {
     const workers = [];
-    if (!Array.isArray(normWorkers) || normWorkers.length === 0) {
+    if (!Array.isArray(normalizedWorkers) || normalizedWorkers.length === 0) {
         return workers;
     }
-    normWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
+    normalizedWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
         const algorithm = algorithmTemplates[w.algorithmName];
         if (!algorithm) {
             return;
@@ -88,46 +70,71 @@ const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, regist
 };
 
 /**
- * This method tries to fill the missing `minHotWorkers` 
- * for each algorithm request
+ * Normalizes algorithm requests by ensuring the minimum number of "hot worker" requests
+ * are included for each algorithm type specified.
+ * 
+ * For each algorithm in the template store that matches the requested types and has a
+ * positive `minHotWorkers` value, this function ensures there are at least that many
+ * "hot worker" requests (with the `hotWorker: true` flag). If there are more existing requests
+ * than the minimum, the excess requests are appended after the hot workers. Requests for
+ * algorithms not in the filtered template store are appended unchanged.
+ * 
+ * @param {Object[]} algorithmRequests - Array of algorithm request objects.
+ * @param {Object} algorithmTemplateStore - Algorithm definitions from DB.
+ * 
+ * @returns {Object[]} An array of requests that includes the required minimum hot worker requests
+ *          for each algorithm and retains existing requests beyond the minimum.
  */
-const normalizeHotRequestsByType = (algorithmRequests, algorithmTemplateStore, requestTypes) => {
-    const normRequests = algorithmRequests || [];
+const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
     const algorithmTemplates = algorithmTemplateStore || {};
+    const normRequests = algorithmRequests || [];
 
-    const algorithmStore = Object.entries(algorithmTemplates).filter(([, alg]) => {
-        const stateType = alg.stateType ? alg.stateType.toLowerCase() : 'batch';
-        return alg.minHotWorkers > 0 && (requestTypes ? requestTypes.includes(stateType) : stateType === 'batch');
-    });
+    // Filter templates by minHotWorkers > 0
+    const filteredTemplates = Object.entries(algorithmTemplates).filter(([, alg]) => alg.minHotWorkers > 0);
 
-    if (algorithmStore.length === 0) {
+    if (filteredTemplates.length === 0) {
         return normRequests;
     }
+
     const requests = [];
-    const groupNormRequests = groupBy(normRequests, 'algorithmName');
+    // Group requests by algorithmName for quick lookup
+    const groupedRequests = groupBy(normRequests, 'algorithmName');
 
-    algorithmStore.forEach(([algName, algTemplate]) => {
-        const requestType = algTemplate.stateType ? algTemplate.stateType.toLowerCase() : 'batch';
-        const hotWorkers = new Array(algTemplate.minHotWorkers).fill({ algorithmName: algName, hotWorker: true, requestType });
-        const groupNor = groupNormRequests[algName];
-        const requestsPerAlgorithm = (groupNor && groupNor.length) || 0;
+    const filteredAlgNames = new Set();
+    filteredTemplates.forEach(([algName, algTemplate]) => {
+        filteredAlgNames.add(algName);
+        const requestType = (algTemplate.stateType || 'batch').toLowerCase();
+        const minHot = algTemplate.minHotWorkers;
+        const existingRequests = groupedRequests[algName] || [];
+        const requestsPerAlgorithm = existingRequests.length;
 
-        if (requestsPerAlgorithm > algTemplate.minHotWorkers) {
-            const diff = requestsPerAlgorithm - algTemplate.minHotWorkers;
-            const array = groupNor.slice(0, diff);
-            requests.push(...hotWorkers, ...array);
+        // Create hot worker requests
+        const hotWorkers = new Array(minHot).fill(null).map(() => ({ algorithmName: algName, hotWorker: true, requestType }));
+
+        if (requestsPerAlgorithm > minHot) {
+            // Keep hot workers and append the extra existing requests beyond the minimum
+            const diff = requestsPerAlgorithm - minHot;
+            const excessRequests = existingRequests.slice(0, diff);
+            requests.push(...hotWorkers, ...excessRequests);
         }
-        else if (requestsPerAlgorithm <= algTemplate.minHotWorkers) {
+        else {
+            // Just add the hot workers if not enough existing requests
             requests.push(...hotWorkers);
         }
     });
-    requests.push(...normRequests.filter(r => !algorithmStore.find(a => a[0] === r.algorithmName)));
+
+    // Add back any requests whose algorithmName does not appear in filteredTemplates
+    requests.push(...normRequests.filter(req => !filteredAlgNames.has(req.algorithmName)));
     return requests;
 };
 
 /**
- * find workers that should transform from cold to hot by calculating 
+ * Finds workers that should transform from cold to hot by calculating 
  * the diff between the current hot workers and desired hot workers.
+ *
+ * @param {Object[]} normWorkers - Normalized workers array.
+ * @param {Object} algorithmTemplates - Algorithm templates from DB.
+ * @returns {Object[]} Workers to warm up.
  */
 const normalizeHotWorkers = (normWorkers, algorithmTemplates) => {
     const hotWorkers = [];
@@ -150,8 +157,12 @@ const normalizeHotWorkers = (normWorkers, algorithmTemplates) => {
 };
 
 /**
- * find workers that should transform from hot to cold by calculating 
+ * Finds workers that should transform from hot to cold by calculating 
  * the diff between the current hot workers and desired hot workers.
+ *
+ * @param {Object[]} jobAttachedWorkers - Workers linked to jobs.
+ * @param {Object} algorithmTemplates - Algorithm templates from DB.
+ * @returns {Object[]} Workers to cool down.
  */
 const normalizeColdWorkers = (normWorkers, algorithmTemplates) => {
     const coldWorkers = [];
@@ -174,7 +185,7 @@ const normalizeColdWorkers = (normWorkers, algorithmTemplates) => {
     return coldWorkers;
 };
 
-const calcRatioFree = (node) => {
+const _calcRatioFree = (node) => {
     node.ratio = {
         cpu: node.requests.cpu / node.total.cpu,
         gpu: (node.total.gpu && node.requests.gpu / node.total.gpu) || 0,
@@ -191,7 +202,7 @@ const _nodeTaintsFilter = (node) => {
     return !(node.spec && node.spec.taints && node.spec.taints.some(t => t.effect === 'NoSchedule'));
 };
 
-const parseGpu = (gpu) => {
+const _parseGpu = (gpu) => {
     if (!gpu || !gpu[gpuVendors.NVIDIA]) {
         return 0;
     }
@@ -199,10 +210,10 @@ const parseGpu = (gpu) => {
 };
 
 const _getGpuSpec = (pod) => {
-    let limitsGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.limits', 0)));
+    let limitsGpu = sumBy(pod.spec.containers, c => _parseGpu(objectPath.get(c, 'resources.limits', 0)));
 
     if (!limitsGpu) {
-        limitsGpu = parseGpu(objectPath.get(pod, 'metadata.annotations', null));
+        limitsGpu = _parseGpu(objectPath.get(pod, 'metadata.annotations', null));
     }
     const requestGpu = limitsGpu;
     return { limitsGpu, requestGpu };
@@ -238,7 +249,8 @@ const normalizeResources = ({ pods, nodes } = {}) => {
                     gpu: 0,
                     memory: 0
                 }
-            }
+            },
+            nodeList: []
         };
     }
     const initial = nodes.body.items.filter(_nodeTaintsFilter).reduce((acc, cur) => {
@@ -251,7 +263,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             other: { cpu: 0, gpu: 0, memory: 0 },
             total: {
                 cpu: parse.getCpuInCore(cur.status.allocatable.cpu),
-                gpu: parseGpu(cur.status.allocatable) || 0,
+                gpu: _parseGpu(cur.status.allocatable) || 0,
                 memory: parse.getMemoryInMi(cur.status.allocatable.memory, true)
             }
         };
@@ -300,7 +312,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
 
     const nodeList = [];
     Object.entries(resourcesPerNode).forEach(([k, v]) => {
-        calcRatioFree(v);
+        _calcRatioFree(v);
         allNodes.requests.cpu += v.requests.cpu;
         allNodes.requests.gpu += v.requests.gpu;
         allNodes.requests.memory += v.requests.memory;
@@ -309,16 +321,24 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         allNodes.limits.memory += v.limits.memory;
         nodeList.push({ name: k, ...v });
     });
-    calcRatioFree(allNodes);
+    _calcRatioFree(allNodes);
     return { allNodes, nodeList };
 };
 
-const normalizeRequests = (requests, algorithmTemplates) => {
-    if (requests == null || requests.length === 0 || requests[0].data == null) {
+/**
+ * Normalize raw algorithm requests by extracting algorithm names and their request types.
+ *
+ * @param {Object[]} requests -  Incoming raw algorithm requests from etcd.
+ * @param {Object} algorithmTemplates - Algorithm definitions from DB.
+ *   Each template may have a `stateType` property indicating the request type.
+ * @returns {Object[]} Array of normalized requests containing `algorithmName` and `requestType` (lowercased or 'batch' if missing).
+ */
+const normalizeRequests = (algorithmRequests, algorithmTemplates) => {
+    if (algorithmRequests == null || algorithmRequests.length === 0 || algorithmRequests[0].data == null) {
         return [];
     }
     
-    const normalizedRequests = requests[0].data.reduce((acc, request) => {
+    const normalizedRequests = algorithmRequests[0].data.reduce((acc, request) => {
         const algorithmName = request.name;
         const template = algorithmTemplates[algorithmName];
         if (!template) return acc;
@@ -334,6 +354,13 @@ const normalizeRequests = (requests, algorithmTemplates) => {
     return normalizedRequests;
 };
 
+/**
+ * Tries to parse a given time string into a timestamp (milliseconds since epoch).
+ * If the string cannot be parsed, it returns null.
+ *
+ * @param {string} timeString - The time string to be parsed.
+ * @returns {number|null} - The timestamp in milliseconds if successful, or null if invalid.
+ */
 const _tryParseTime = (timeString) => {
     if (!timeString) {
         return null;
@@ -347,52 +374,70 @@ const _tryParseTime = (timeString) => {
     }
 };
 
-const normalizeJobs = (jobsRaw, pods, predicate = () => true) => {
-    if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
-        return [];
-    }
+/**
+ * Normalizes raw Kubernetes job objects into a simplified structure.
+ *
+ * @param {Object} jobs - Raw Kubernetes jobs object.
+ * @param {Object[]} pods - Kubernetes pod objects.
+ * @param {Function} filterFn - Function to filter which jobs to keep.
+ * @returns {Object[]} Normalized jobs array.
+ */
+const normalizeJobs = (jobs, pods, filterFn = () => true) => {
+    const jobItems = jobs?.body?.items || [];
     const podsList = objectPath.get(pods, 'body.items', []);
-    const jobs = jobsRaw.body.items
-        .filter(predicate)
-        .map((j) => {
-            const pod = podsList.find(p => objectPath.get(p, 'metadata.labels.controller-uid', '') === objectPath.get(j, 'metadata.uid'));
+    return jobItems
+        .filter(filterFn)
+        .map(job => {
+            const pod = podsList.find(p => objectPath.get(p, 'metadata.labels.controller-uid', '') === objectPath.get(job, 'metadata.uid'));
             return {
-                name: j.metadata.name,
-                algorithmName: j.metadata.labels['algorithm-name'],
-                active: j.status.active === 1,
-                startTime: _tryParseTime(j.status.startTime),
+                name: job.metadata.name,
+                algorithmName: job.metadata.labels['algorithm-name'],
+                active: job.status.active === 1,
+                startTime: _tryParseTime(job.status.startTime),
                 podName: objectPath.get(pod, 'metadata.name'),
-                nodeName: objectPath.get(pod, 'spec.nodeName'),
-
+                nodeName: objectPath.get(pod, 'spec.nodeName')
             };
         });
-    return jobs;
 };
 
-const mergeWorkers = (workers, jobs) => {
-    const foundJobs = [];
-    const mergedWorkers = workers.map((w) => {
-        const jobForWorker = jobs.find(j => w.podName && w.podName.startsWith(j.name));
-        if (jobForWorker) {
-            foundJobs.push(jobForWorker.name);
+/**
+ * Attaches matching jobs to each worker and identifies jobs with no assigned worker.
+ *
+ * Matching logic:
+ * - A job is matched to a worker if the worker's podName starts with the job's name.
+ * - Each matched worker gets a `job` property (undefined if no match).
+ * - Jobs that are not matched to any worker are returned as `unassignedJobs`.
+ *
+ * @param {Object[]} workers - Array of normalized worker objects.
+ * @param {Object[]} jobs - Array of normalized job objects.
+ * @returns {Object} Object containing:
+ *   - jobAttachedWorkers: workers with their matched job (or undefined).
+ *   - unassignedJobs: jobs with no worker assigned.
+ */
+const attacheJobToWorker = (workers, jobs) => {
+    const matchedJobNames = new Set();
+
+    const jobAttachedWorkers = workers.map((worker) => {
+        const matchedJob = jobs.find(job => worker.podName && worker.podName.startsWith(job.name));
+        if (matchedJob) {
+            matchedJobNames.add(matchedJob.name);
         }
-        return { ...w, job: jobForWorker ? { ...jobForWorker } : undefined };
+        return { ...worker, job: matchedJob ? { ...matchedJob } : undefined };
     });
 
-    const extraJobs = jobs.filter((job) => {
-        return !foundJobs.find(j => j === job.name);
-    });
-    return { mergedWorkers, extraJobs };
+    const extraJobs = jobs.filter(job => !matchedJobNames.has(job.name));
+
+    return { jobAttachedWorkers, extraJobs };
 };
 
 module.exports = {
     normalizeWorkers,
     normalizeWorkerImages,
-    normalizeHotRequestsByType,
+    normalizeHotRequests,
     normalizeHotWorkers,
     normalizeColdWorkers,
     normalizeRequests,
     normalizeJobs,
-    mergeWorkers,
+    attacheJobToWorker,
     normalizeResources,
 };

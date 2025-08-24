@@ -28,6 +28,7 @@
     "@hkube/db": "^2.0.16",
     "@hkube/etcd": "^5.1.2",
     "@hkube/healthchecks": "^1.0.1",
+    "http-status-codes": "^2.3.0",
     "@hkube/kubernetes-client": "^2.0.8",
     "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",

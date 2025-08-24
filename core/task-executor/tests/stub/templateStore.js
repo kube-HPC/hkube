@@ -1,6 +1,6 @@
 const { stateType } = require('@hkube/consts');
 
-module.exports = [
+const templateStore = [
     {
         name: 'eval-alg',
         algorithmImage: 'hkube/algorunner',
@@ -534,5 +534,25 @@ module.exports = [
         cpu: 0.001,
         mem: '128Mi',
         stateType: undefined
+    },
+    {
+        name: 'print-every-10-sec',
+        algorithmImage: 'docker.io/hkubedevtest/print-every-10-sec:vokska3od',
+        cpu: 2.8,
+        mem: '256Mi'
+    },
+    {
+        name: 'alg1',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.5,
+        mem: '256Mi'
+    },
+    {
+        name: 'alg2',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.5,
+        mem: '256Mi'
     }
 ];
+
+module.exports = templateStore;

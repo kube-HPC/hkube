@@ -1,10 +1,8 @@
 const { expect } = require('chai');
 const { stateType } = require('@hkube/consts');
 const configIt = require('@hkube/config');
-const Logger = require('@hkube/logger');
 const clone = require('lodash.clonedeep');
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
+const { main } = configIt.load();
 const etcd = require('../lib/helpers/etcd');
 const { normalizeResources } = require('../lib/reconcile/normalize');
 const awsAccessKeyId = { name: 'AWS_ACCESS_KEY_ID', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsKey' } } };
@@ -12,10 +10,10 @@ const awsSecretAccessKey = { name: 'AWS_SECRET_ACCESS_KEY', valueFrom: { secretK
 const s3EndpointUrl = { name: 'S3_ENDPOINT_URL', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsEndpointUrl' } } };
 const fsVolumes = { name: 'storage-volume', persistentVolumeClaim: { claimName: 'hkube-storage-pvc' } };
 const fsVolumeMounts = { name: 'storage-volume', mountPath: '/hkubedata' };
-const { workerTemplate, varlogMount, varlibdockercontainersMount, varLog, varlibdockercontainers, } = require('../lib/templates/index');
+const { varlogMount, varlibdockercontainersMount, varLog, varlibdockercontainers, } = require('../lib/templates');
 const { settings: globalSettings } = require('../lib/helpers/settings');
 const { consts } = require('../lib/consts');
-const resources = require('./stub/resources');
+const { resources } = require('./stub');
 
 const options = main;
 let callCount, clearCount, normResources, reconciler, algorithmTemplates;
@@ -76,8 +74,9 @@ describe('reconciler', () => {
 
     beforeEach(() => {
         clearCount();
-        reconciler._clearCreatedJobsLists(options, Date.now() + 100000);
-        reconciler._updateCapacity(1000);
+        const { requestPreprocessor, jobsHandler } = require('../lib/reconcile/managers');
+        jobsHandler.clearCreatedJobsLists(options.createdJobsTTL, Date.now() + 100000);
+        requestPreprocessor.updateCapacity(1000);
         const res = clone(resources);
         res.nodes.body.items.push(res.nodeWithLabels);
         normResources = normalizeResources(res);
