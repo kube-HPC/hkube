@@ -35,7 +35,7 @@ const _calcStats = (data) => {
     return { stats, total: data.length };
 };
 
-const _getNodeStats = (normResources) => {
+const _getNodeStats = (normResources, normalizedWorkers) => {
     const localResources = clonedeep(normResources);
     const resourcesWithWorkers = localResources.nodeList;
     const statsPerNode = resourcesWithWorkers.map(n => ({
@@ -64,8 +64,7 @@ const _getNodeStats = (normResources) => {
         },
         labels: n.labels,
         workers2: n.workers,
-        workers: _calcStats(n.workers)
-
+        workers: _calcStats(normalizedWorkers.filter(worker => n.workers.some(nWorker => nWorker.podName === worker.podName)))
     }
     ));
     return statsPerNode;
@@ -80,7 +79,7 @@ const _checkResourcePressure = (normResources) => {
     }
 };
 
-const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, jobsInfo, workerStats, normResources }) => {
+const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, jobsInfo, normalizedWorkers, normResources }) => {
     const { created, skipped, toStop, toResume } = jobsInfo;
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.created = created.filter(c => c.algorithmName === algorithmName).length;
@@ -88,6 +87,8 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
         res.paused = toStop.filter(c => c.algorithmName === algorithmName).length;
         res.resumed = toResume.filter(c => c.algorithmName === algorithmName).length;
     });
+
+    const workerStats = _calcStats(normalizedWorkers);
 
     await etcd.updateDiscovery({
         reconcileResult,
@@ -99,7 +100,7 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
             gpu: consts.GPU_RATIO_PRESSURE,
             mem: consts.MEMORY_RATIO_PRESSURE
         },
-        nodes: _getNodeStats(normResources)
+        nodes: _getNodeStats(normResources, normalizedWorkers)
     });
 
     workerStats.stats.forEach((ws) => {
@@ -167,9 +168,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     await Promise.all([...workersToStopPromises, ...workersToExitPromises, ...workersToWarmUpPromises, ...workersToCoolDownPromises, ...workersToResumePromises]);
     
     // Write in etcd the reconcile result
-    const workerStats = _calcStats(workersManager.normalizedWorkers);
+    const { normalizedWorkers } = workersManager;
     await _updateReconcileResult({
-        reconcileResult, ...jobsHandler, jobsInfo, workerStats, normResources
+        reconcileResult, ...jobsHandler, jobsInfo, normalizedWorkers, normResources
     });
 
     return reconcileResult;

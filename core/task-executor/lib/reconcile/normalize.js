@@ -330,6 +330,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             accumulator[nodeName].workersTotal.memory += requestMem;
             accumulator[nodeName].workers.push({
                 algorithmName: objectPath.get(pod, 'metadata.labels.algorithm-name'),
+                podName: objectPath.get(pod, 'metadata.name'),
                 nodeName
             });
         }
