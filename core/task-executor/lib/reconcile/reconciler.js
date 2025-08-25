@@ -1,7 +1,6 @@
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const clonedeep = require('lodash.clonedeep');
-const kubernetes = require('../helpers/kubernetes');
 const { settings } = require('../helpers/settings');
 const etcd = require('../helpers/etcd');
 const { components, consts } = require('../consts');
@@ -126,10 +125,15 @@ const _buildNodeStats = (normResources, normalizedWorkers) => {
  * @param {Object} options.resources.worker - Worker resource configuration.
  * @param {number|string} [options.resources.worker.cpu] - Worker CPU request.
  * @param {number|string} [options.resources.worker.mem] - Worker memory request.
+ * @param {Object} containerDefaults - Default container resources from Kubernetes.
+ * @param {Object} [containerDefaults.cpu] - Default CPU resource from Kubernetes.
+ * @param {string|number} [containerDefaults.cpu.defaultRequest] - Default CPU request
+ * @param {Object} [containerDefaults.memory] - Default memory resource from Kubernetes.
+ * @param {string|number} [containerDefaults.memory.defaultRequest] - Default memory request
  * @returns {Promise<{cpu: (number|string|undefined), mem: (number|string|undefined)}>}
  *          Default worker resources (CPU, memory), or `undefined` if not resolved.
  */
-const _resolveWorkerResourceDefaults = async (options) => {
+const _resolveWorkerResourceDefaults = async (options, containerDefaults) => {
     const defaults = {};
 
     if (settings.applyResources) {
@@ -137,7 +141,6 @@ const _resolveWorkerResourceDefaults = async (options) => {
         defaults.mem = options.resources.worker.mem;
     }
 
-    const containerDefaults = await kubernetes.getContainerDefaultResources();
     if (!defaults.cpu && containerDefaults.cpu) defaults.cpu = containerDefaults.cpu.defaultRequest;
     if (!defaults.mem && containerDefaults.memory) defaults.mem = containerDefaults.memory?.defaultRequest;
     
@@ -160,8 +163,9 @@ const _resolveWorkerResourceDefaults = async (options) => {
  * @param {Object[]} params.normalizedWorkers - Normalized workers.
  * @param {Object} params.normResources - Normalized cluster resources.
  * @param {Object} params.options - Global configuration.
+ * @param {Object} params.containerDefaults - Default container resources from Kubernetes.
  */
-const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, jobsInfo, normalizedWorkers, normResources, options }) => {
+const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, jobsInfo, normalizedWorkers, normResources, options, containerDefaults }) => {
     const { created, skipped, toStop, toResume } = jobsInfo;
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.created = created.filter(c => c.algorithmName === algorithmName).length;
@@ -171,7 +175,7 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
     });
 
     const workerStats = _aggregateWorkerStats(normalizedWorkers);
-    const defaultWorkerResources = await _resolveWorkerResourceDefaults(options);
+    const defaultWorkerResources = await _resolveWorkerResourceDefaults(options, containerDefaults);
 
     await etcd.updateDiscovery({
         reconcileResult,
@@ -209,7 +213,7 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
     });
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
+const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, options, registry, clusterOptions, pods, workerResources, containerDefaults } = {}) => {
     // Update the cache of jobs lately created by removing old jobs
     const reconcileResult = {};
 
@@ -254,7 +258,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // Write in etcd the reconcile result
     const { normalizedWorkers } = workersManager;
     await _updateReconcileResult({
-        reconcileResult, ...jobsHandler, jobsInfo, normalizedWorkers, normResources, options
+        reconcileResult, ...jobsHandler, jobsInfo, normalizedWorkers, normResources, options, containerDefaults
     });
 
     return reconcileResult;
