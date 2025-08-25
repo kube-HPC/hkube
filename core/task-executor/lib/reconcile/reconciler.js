@@ -1,6 +1,8 @@
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const clonedeep = require('lodash.clonedeep');
+const kubernetes = require('../helpers/kubernetes');
+const { settings } = require('../helpers/settings');
 const etcd = require('../helpers/etcd');
 const { components, consts } = require('../consts');
 const component = components.RECONCILER;
@@ -81,28 +83,28 @@ const _buildNodeStats = (normResources, normalizedWorkers) => {
 
         return {
             name: node.name,
-        total: {
+            total: {
                 cpu: node.total.cpu,
                 gpu: node.total.gpu,
                 mem: node.total.memory,
 
-        },
-        requests: {
+            },
+            requests: {
                 cpu: node.requests.cpu,
                 gpu: node.requests.gpu,
                 mem: node.requests.memory,
 
-        },
-        other: {
+            },
+            other: {
                 cpu: node.other.cpu,
                 gpu: node.other.gpu,
                 mem: node.other.memory,
-        },
-        workersTotal: {
+            },
+            workersTotal: {
                 cpu: node.workersTotal.cpu,
                 gpu: node.workersTotal.gpu,
                 mem: node.workersTotal.memory,
-        },
+            },
             labels: node.labels,
             workers2: node.workers,
             workers: _aggregateWorkerStats(nodeWorkers)
@@ -111,16 +113,55 @@ const _buildNodeStats = (normResources, normalizedWorkers) => {
     return statsPerNode;
 };
 
-const _checkResourcePressure = (normResources) => {
-    const isCpuPressure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESSURE;
-    const isMemoryPressure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESSURE;
-    const isResourcePressure = isCpuPressure || isMemoryPressure;
-    if (isResourcePressure) {
-        log.trace(`isCpuPressure: ${isCpuPressure}, isMemoryPressure: ${isMemoryPressure}`, { component });
+/**
+ * Retrieves default CPU and memory resources for workers.
+ *
+ * Priority:
+ * 1. Use explicit worker resources from options if `applyResources` is enabled.
+ * 2. Otherwise, fallback to Kubernetes container default requests.
+ *
+ * @async
+ * @param {Object} options - Configuration options.
+ * @param {Object} options.resources - Resource configurations.
+ * @param {Object} options.resources.worker - Worker resource configuration.
+ * @param {number|string} [options.resources.worker.cpu] - Worker CPU request.
+ * @param {number|string} [options.resources.worker.mem] - Worker memory request.
+ * @returns {Promise<{cpu: (number|string|undefined), mem: (number|string|undefined)}>}
+ *          Default worker resources (CPU, memory), or `undefined` if not resolved.
+ */
+const _resolveWorkerResourceDefaults = async (options) => {
+    const defaults = {};
+
+    if (settings.applyResources) {
+        defaults.cpu = options.resources.worker.cpu;
+        defaults.mem = options.resources.worker.mem;
     }
+
+    const containerDefaults = await kubernetes.getContainerDefaultResources();
+    if (!defaults.cpu && containerDefaults.cpu) defaults.cpu = containerDefaults.cpu.defaultRequest;
+    if (!defaults.mem && containerDefaults.memory) defaults.mem = containerDefaults.memory?.defaultRequest;
+    
+    return defaults;
 };
 
-const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, jobsInfo, normalizedWorkers, normResources }) => {
+/**
+ * Updates reconciliation results with job and worker statistics,
+ * synchronizes the current cluster state with etcd, and logs summary information.
+ *
+ * @param {Object} params
+ * @param {Object.<string, Object>} params.reconcileResult - Current reconciliation results per algorithm.
+ * @param {Object} params.unScheduledAlgorithms - Algorithms that could not be scheduled and were skipped.
+ * @param {Object} params.ignoredUnScheduledAlgorithms - Algorithms previously unscheduled but now ignored (if they were created, not requested anymore, or removed from templates).
+ * @param {Object} params.jobsInfo - Job scheduling information.
+ * @param {Object[]} params.jobsInfo.created - Jobs successfully created.
+ * @param {Object[]} params.jobsInfo.skipped - Jobs that were skipped due any reason (resources missing etc).
+ * @param {Object[]} params.jobsInfo.toStop - Jobs whose workers should be stopped.
+ * @param {Object[]} params.jobsInfo.toResume - Jobs whose workers should be resumed.
+ * @param {Object[]} params.normalizedWorkers - Normalized workers.
+ * @param {Object} params.normResources - Normalized cluster resources.
+ * @param {Object} params.options - Global configuration.
+ */
+const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, ignoredUnScheduledAlgorithms, jobsInfo, normalizedWorkers, normResources, options }) => {
     const { created, skipped, toStop, toResume } = jobsInfo;
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.created = created.filter(c => c.algorithmName === algorithmName).length;
@@ -130,6 +171,7 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
     });
 
     const workerStats = _aggregateWorkerStats(normalizedWorkers);
+    const defaultWorkerResources = await _resolveWorkerResourceDefaults(options);
 
     await etcd.updateDiscovery({
         reconcileResult,
@@ -141,6 +183,7 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
             gpu: consts.GPU_RATIO_PRESSURE,
             mem: consts.MEMORY_RATIO_PRESSURE
         },
+        defaultWorkerResources,
         nodes: _buildNodeStats(normResources, normalizedWorkers)
     });
 
@@ -211,7 +254,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // Write in etcd the reconcile result
     const { normalizedWorkers } = workersManager;
     await _updateReconcileResult({
-        reconcileResult, ...jobsHandler, jobsInfo, normalizedWorkers, normResources
+        reconcileResult, ...jobsHandler, jobsInfo, normalizedWorkers, normResources, options
     });
 
     return reconcileResult;

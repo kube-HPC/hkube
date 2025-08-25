@@ -76,16 +76,20 @@ class NodesStatistics {
         return results;
     }
 
-    _buildAlgorithmResult(node, algorithms, metric, resourcePressure) {
+    _buildAlgorithmResult(node, algorithms, metric, resourcePressure, defaultWorker) {
         let otherAmount = 0;
         const algorithmsData = [];
 
         const getMetric = (mtr, algorithm) => {
-            const rawMetric = algorithm[mtr] ? algorithm[mtr] : 0;
+            const algoRawMetric = algorithm[mtr] ? algorithm[mtr] : 0;
+            const workerRawMetric = algorithm?.workerCustomResources?.requests[mtr] || defaultWorker || 0;
             if (mtr === 'mem') {
-                return parse.getMemoryInMi(rawMetric);
+                return parse.getMemoryInMi(algoRawMetric) + (workerRawMetric ? parse.getMemoryInMi(workerRawMetric) : 0);
             }
-            return rawMetric;
+            if (mtr === 'cpu') {
+                return algoRawMetric + (workerRawMetric ? parse.getCpuInCore(workerRawMetric) : 0);
+            }
+            return algoRawMetric; // for gpu, worker doesnt need gpu
         };
         node.workers.stats.forEach(algorithm => {
             const requestedAlgorithm = algorithms.find(alg => alg.name === algorithm.algorithmName);
@@ -135,7 +139,7 @@ class NodesStatistics {
             'reserved'
         ];
         const results = taskExecutor.length ? taskExecutor[0].nodes.map(node => {
-            const algorithmsData = this._buildAlgorithmResult(node, algorithms, metric, taskExecutor[0].resourcePressure[metric]);
+            const algorithmsData = this._buildAlgorithmResult(node, algorithms, metric, taskExecutor[0].resourcePressure[metric], taskExecutor[0].defaultWorkerResources[metric]);
             return {
                 name: node.name,
                 algorithmsData

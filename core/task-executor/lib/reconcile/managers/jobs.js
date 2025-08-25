@@ -183,14 +183,14 @@ class JobsHandler {
 
             // No existing worker found — prepare job creation request
             const algorithmTemplate = algorithmTemplates[algorithmName];
-            const { workerCustomResources } = algorithmTemplates[algorithmName];
             const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
             const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
             const resourceRequests = createContainerResource(algorithmTemplate);
             const workerResourceRequests = createContainerResource(workerResources);
 
-            const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector, stateType: algorithmStateType = 'batch',
-                entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars, volumes, volumeMounts, kaiObject } = algorithmTemplate;
+            const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector,
+                stateType: algorithmStateType = 'batch', entryPoint, options: algorithmOptions, reservedMemory,
+                mounts, env, sideCars, volumes, volumeMounts, workerCustomResources, kaiObject } = algorithmTemplate;
 
             createDetails.push({
                 numberOfNewJobs: 1,
@@ -451,7 +451,7 @@ class JobsHandler {
      *
      * Logic:
      * 1. Add skipped algorithms to the `unScheduledAlgorithms` map if not already present.
-     * 2. Check if any of these algorithms have been created, requested, or removed from templates.
+     * 2. Check if any of these algorithms have been created, not requested anymore, or removed from templates.
      * 3. Remove such algorithms from the map and move them to `ignoredUnScheduledAlgorithms`.
      *
      * @private
