@@ -116,7 +116,7 @@ class NodesStatistics {
         algorithmsData.push({
             name: 'reserved',
             amount: otherAmount,
-            size: +(node.total[metric] * (1 - resourcePressure) + (free < 0 ? free : 0)).toFixed(1),
+            size: free < 0 ? +node.total[metric].toFixed(1) - +(node.other[metric].toFixed(1)) : +(node.total[metric] * (1 - resourcePressure)).toFixed(1)
         });
         algorithmsData.push({
             name: 'total',
