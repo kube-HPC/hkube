@@ -327,13 +327,19 @@ const applyAnnotations = (spec, keyVal) => {
 };
 
 const mergeResourceRequest = (defaultResource, customResource) => {
-    const mergedRequest = { requests: {}, limits: {} };
+    const mergedRequest = {};
 
     for (const key of ['requests', 'limits']) {
-        mergedRequest[key].memory = customResource[key]?.memory || defaultResource[key]?.memory || null;
-        mergedRequest[key].cpu = customResource[key]?.cpu || defaultResource[key]?.cpu || null;
+        const cpu = customResource?.[key]?.cpu || defaultResource?.[key]?.cpu;
+        const memory = customResource?.[key]?.memory || defaultResource?.[key]?.memory;
+
+        if (cpu || memory) {
+            mergedRequest[key] = {};
+            if (cpu) mergedRequest[key].cpu = cpu;
+            if (memory) mergedRequest[key].memory = memory;
+        }
     }
-    return mergedRequest;
+    return Object.keys(mergedRequest).length > 0 ? mergedRequest : undefined;
 };
 
 const _applyDefaultResourcesSideCar = (container) => {
@@ -453,11 +459,12 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_VERSION: algorithmVersion });
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_IMAGE: workerImage });
     spec = applyAlgorithmResourceRequests(spec, resourceRequests, node);
-    if (settings.applyResources || workerCustomResources) {
-        if (workerCustomResources) {
-            workerResourceRequests = mergeResourceRequest(workerResourceRequests, workerCustomResources);
-        }
+    if (settings.applyResources) {
+        workerResourceRequests = mergeResourceRequest(workerResourceRequests, workerCustomResources);
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);
+    }
+    else if (workerCustomResources) {
+        spec = applyWorkerResourceRequests(spec, workerCustomResources);
     }
     spec = applyNodeSelector(spec, nodeSelector);
     spec = applyHotWorker(spec, hotWorker);
