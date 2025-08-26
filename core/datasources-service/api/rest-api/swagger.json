@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.6",
+    "version": "2.9.7",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -213,6 +213,13 @@
                           "type": "integer",
                           "description": "Maximum number of stateless nodes to scale up to.",
                           "minimum": 0
+                        },
+                        "streamSamplePercentage": {
+                          "type": "number",
+                          "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "example": 0.1
                         },
                         "spec": {
                           "anyOf": [
@@ -724,6 +731,13 @@
                           "type": "integer",
                           "description": "Maximum number of stateless nodes to scale up to.",
                           "minimum": 0
+                        },
+                        "streamSamplePercentage": {
+                          "type": "number",
+                          "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "example": 0.1
                         },
                         "spec": {
                           "anyOf": [
@@ -2280,6 +2294,13 @@
                             "description": "Maximum number of stateless nodes to scale up to.",
                             "minimum": 0
                           },
+                          "streamSamplePercentage": {
+                            "type": "number",
+                            "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "example": 0.1
+                          },
                           "spec": {
                             "anyOf": [
                               {
@@ -2789,6 +2810,13 @@
                             "type": "integer",
                             "description": "Maximum number of stateless nodes to scale up to.",
                             "minimum": 0
+                          },
+                          "streamSamplePercentage": {
+                            "type": "number",
+                            "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "example": 0.1
                           },
                           "spec": {
                             "anyOf": [
@@ -10692,6 +10720,13 @@
                             "description": "Maximum number of stateless nodes to scale up to.",
                             "minimum": 0
                           },
+                          "streamSamplePercentage": {
+                            "type": "number",
+                            "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "example": 0.1
+                          },
                           "spec": {
                             "anyOf": [
                               {
@@ -11401,6 +11436,13 @@
                               "description": "Maximum number of stateless nodes to scale up to.",
                               "minimum": 0
                             },
+                            "streamSamplePercentage": {
+                              "type": "number",
+                              "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                              "minimum": 0,
+                              "maximum": 100,
+                              "example": 0.1
+                            },
                             "spec": {
                               "anyOf": [
                                 {
@@ -11829,6 +11871,13 @@
                             "description": "Maximum number of stateless nodes to scale up to.",
                             "minimum": 0
                           },
+                          "streamSamplePercentage": {
+                            "type": "number",
+                            "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "example": 0.1
+                          },
                           "spec": {
                             "anyOf": [
                               {
@@ -12164,6 +12213,13 @@
                               "type": "integer",
                               "description": "Maximum number of stateless nodes to scale up to.",
                               "minimum": 0
+                            },
+                            "streamSamplePercentage": {
+                              "type": "number",
+                              "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                              "minimum": 0,
+                              "maximum": 100,
+                              "example": 0.1
                             },
                             "spec": {
                               "anyOf": [
@@ -12644,6 +12700,13 @@
                           "description": "Maximum number of stateless nodes to scale up to.",
                           "minimum": 0
                         },
+                        "streamSamplePercentage": {
+                          "type": "number",
+                          "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "example": 0.1
+                        },
                         "spec": {
                           "anyOf": [
                             {
@@ -13088,6 +13151,13 @@
                             "type": "integer",
                             "description": "Maximum number of stateless nodes to scale up to.",
                             "minimum": 0
+                          },
+                          "streamSamplePercentage": {
+                            "type": "number",
+                            "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "example": 0.1
                           },
                           "spec": {
                             "anyOf": [
@@ -13595,6 +13665,13 @@
                           "description": "Maximum number of stateless nodes to scale up to.",
                           "minimum": 0
                         },
+                        "streamSamplePercentage": {
+                          "type": "number",
+                          "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "example": 0.1
+                        },
                         "spec": {
                           "anyOf": [
                             {
@@ -14039,6 +14116,13 @@
                             "type": "integer",
                             "description": "Maximum number of stateless nodes to scale up to.",
                             "minimum": 0
+                          },
+                          "streamSamplePercentage": {
+                            "type": "number",
+                            "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "example": 0.1
                           },
                           "spec": {
                             "anyOf": [
@@ -19379,6 +19463,13 @@
                               "description": "Maximum number of stateless nodes to scale up to.",
                               "minimum": 0
                             },
+                            "streamSamplePercentage": {
+                              "type": "number",
+                              "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                              "minimum": 0,
+                              "maximum": 100,
+                              "example": 0.1
+                            },
                             "spec": {
                               "anyOf": [
                                 {
@@ -19914,6 +20005,13 @@
                               "type": "integer",
                               "description": "Maximum number of stateless nodes to scale up to.",
                               "minimum": 0
+                            },
+                            "streamSamplePercentage": {
+                              "type": "number",
+                              "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                              "minimum": 0,
+                              "maximum": 100,
+                              "example": 0.1
                             },
                             "spec": {
                               "anyOf": [
@@ -26701,6 +26799,13 @@
                   "description": "Maximum number of stateless nodes to scale up to.",
                   "minimum": 0
                 },
+                "streamSamplePercentage": {
+                  "type": "number",
+                  "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "example": 0.1
+                },
                 "spec": {
                   "anyOf": [
                     {
@@ -26972,6 +27077,13 @@
                       "type": "integer",
                       "description": "Maximum number of stateless nodes to scale up to.",
                       "minimum": 0
+                    },
+                    "streamSamplePercentage": {
+                      "type": "number",
+                      "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "example": 0.1
                     },
                     "spec": {
                       "anyOf": [
@@ -27481,6 +27593,13 @@
                   "description": "Maximum number of stateless nodes to scale up to.",
                   "minimum": 0
                 },
+                "streamSamplePercentage": {
+                  "type": "number",
+                  "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "example": 0.1
+                },
                 "spec": {
                   "anyOf": [
                     {
@@ -27921,6 +28040,13 @@
             "type": "integer",
             "description": "Maximum number of stateless nodes to scale up to.",
             "minimum": 0
+          },
+          "streamSamplePercentage": {
+            "type": "number",
+            "description": "Percentage of messages to sample. Can be any number between 0 and 100 (inclusive), including decimals. 0 disables sampling, 100 means all samples.",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 0.1
           },
           "spec": {
             "anyOf": [
