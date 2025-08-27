@@ -78,6 +78,7 @@ class NodesStatistics {
 
     _buildAlgorithmResult(node, algorithms, metric, resourcePressure, defaultWorker) {
         let otherAmount = 0;
+        let algorithmTotalSize = 0;
         const algorithmsData = [];
 
         const getMetric = (mtr, algorithm) => {
@@ -93,13 +94,14 @@ class NodesStatistics {
         };
         node.workers.stats.forEach(algorithm => {
             const requestedAlgorithm = algorithms.find(alg => alg.name === algorithm.algorithmName);
-
+            const size = +(algorithm.count * getMetric(metric, requestedAlgorithm)).toFixed(1);
             if (requestedAlgorithm) {
                 algorithmsData.push({
                     name: algorithm.algorithmName,
                     amount: algorithm.count,
-                    size: +(algorithm.count * getMetric(metric, requestedAlgorithm)).toFixed(1),
+                    size
                 });
+                algorithmTotalSize += size;
             }
             else {
                 otherAmount += algorithm.count;
@@ -108,8 +110,7 @@ class NodesStatistics {
         algorithmsData.push({
             name: 'other',
             amount: otherAmount,
-            // size: +(node.total[metric] *  resourcePressure -(nodeFree + (algorithmsData.reduce((sum, alg) =>  sum + alg.size, 0)))).toFixed(1),
-            size: +(node.other[metric].toFixed(1)),
+            size: Math.min(+(node.other[metric].toFixed(1)), node.total[metric] - algorithmTotalSize),
         });
         const free = node.total[metric] * resourcePressure - node.requests[metric];
         algorithmsData.push({
@@ -120,7 +121,7 @@ class NodesStatistics {
         algorithmsData.push({
             name: 'reserved',
             amount: otherAmount,
-            size: free < 0 ? +node.total[metric].toFixed(1) - +(node.other[metric].toFixed(1)) : +(node.total[metric] * (1 - resourcePressure)).toFixed(1)
+            size: Math.max(+(node.total[metric] * (1 - resourcePressure) + (free < 0 ? free : 0)).toFixed(1), 0)
         });
         algorithmsData.push({
             name: 'total',
