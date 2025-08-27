@@ -141,8 +141,8 @@ const _resolveWorkerResourceDefaults = async (options, containerDefaults) => {
         defaults.mem = options.resources.worker.mem;
     }
 
-    if (!defaults.cpu && containerDefaults.cpu) defaults.cpu = containerDefaults.cpu.defaultRequest;
-    if (!defaults.mem && containerDefaults.memory) defaults.mem = containerDefaults.memory?.defaultRequest;
+    if (!defaults.cpu && containerDefaults?.cpu) defaults.cpu = containerDefaults.cpu.defaultRequest;
+    if (!defaults.mem && containerDefaults?.memory) defaults.mem = containerDefaults.memory?.defaultRequest;
     
     return defaults;
 };
@@ -247,7 +247,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // Schedule the requests
     const jobsInfo = await jobsHandler.schedule(allAllocatedJobs, algorithmTemplates, normResources, versions,
-        requests, registry, clusterOptions, workerResources, options, reconcileResult);
+        requests, registry, clusterOptions, workerResources, options, containerDefaults, reconcileResult);
 
     // Handle workers life-cycle & wait for the promises to resolve
     const { toResume, toStop } = jobsInfo;

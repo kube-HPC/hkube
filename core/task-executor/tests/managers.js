@@ -1033,7 +1033,7 @@ describe('Managers tests', () => {
                     versions,
                     requests,
                     registry, clusterOptions, workerResources, options,
-                    {} // reconcileResult
+                    {}, {} // containerDefaults & reconcileResult
                 );
 
                 expect(result).to.have.all.keys(['created', 'skipped', 'toResume', 'toStop']);
@@ -1044,7 +1044,7 @@ describe('Managers tests', () => {
             });
 
             it('should handle empty requests gracefully', async () => {
-                const result = await jobsHandler.schedule(allAllocatedJobs, {}, {}, {}, [], {}, {}, {}, {}, {});
+                const result = await jobsHandler.schedule(allAllocatedJobs, {}, {}, {}, [], {}, {}, {}, {}, {}, {});
 
                 expect(result).to.deep.equal({
                     created: [],

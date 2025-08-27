@@ -52,16 +52,17 @@ class JobsHandler {
      * @param {Object} clusterOptions - Cluster-wide configuration.
      * @param {Object} workerResources - Default worker resource requests.
      * @param {Object} options - Confguration containing additional job creation options.
+     * @param {Object} containerDefaults - Default container resources from Kubernetes.
      * @param {Object} reconcileResult - Scheduling reconcile stats by algorithm.
      */
-    async schedule(allAllocatedJobs, algorithmTemplates, normResources, versions, requests, registry, clusterOptions, workerResources, options, reconcileResult) {        
+    async schedule(allAllocatedJobs, algorithmTemplates, normResources, versions, requests, registry, clusterOptions, workerResources, options, containerDefaults, reconcileResult) {        
         // 1. Assign requests to workers or prepare job creation details
         const { createDetails, toResume, scheduledRequests } = this._processAllRequests(allAllocatedJobs, algorithmTemplates,
             versions, requests, registry, clusterOptions, workerResources, reconcileResult);
 
         // 2. Match jobs to resources, and skip those that doesn't have the required resources.
         const extraResources = await this._getExtraResources();
-        const { jobsToRequest, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, extraResources);
+        const { jobsToRequest, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, extraResources, containerDefaults);
         
         // 3. Find workers to stop if resources insufficient
         const stopDetails = this._findWorkersToStop(skipped, allAllocatedJobs, algorithmTemplates);
