@@ -306,16 +306,6 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         return accumulator;
     }, {});
 
-    const allNodes = {
-        requests: { cpu: 0, gpu: 0, memory: 0 },
-        limits: { cpu: 0, gpu: 0, memory: 0 },
-        total: {
-            cpu: sumBy(Object.values(nodeMap), 'total.cpu'),
-            gpu: sumBy(Object.values(nodeMap), 'total.gpu'),
-            memory: sumBy(Object.values(nodeMap), 'total.memory'),
-        }
-    };
-
     // Track pod usage per node
     const stateFilter = pod => pod.status.phase === 'Running' || pod.status.phase === 'Pending';
     const resourcesPerNode = pods.body.items.filter(stateFilter).reduce((accumulator, pod) => {
@@ -356,6 +346,15 @@ const normalizeResources = ({ pods, nodes } = {}) => {
 
     // Build node list and aggregate totals
     const nodeList = [];
+    const allNodes = {
+        requests: { cpu: 0, gpu: 0, memory: 0 },
+        limits: { cpu: 0, gpu: 0, memory: 0 },
+        total: {
+            cpu: sumBy(Object.values(nodeMap), 'total.cpu'),
+            gpu: sumBy(Object.values(nodeMap), 'total.gpu'),
+            memory: sumBy(Object.values(nodeMap), 'total.memory'),
+        }
+    };
     Object.entries(resourcesPerNode).forEach(([nodeName, nodeData]) => {
         _calcRatioFree(nodeData);
 
