@@ -321,7 +321,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         accumulator[nodeName].requests.gpu += requestGpu;
 
         accumulator[nodeName].limits.cpu += limitsCpu;
-        accumulator[nodeName].limits.memory += requestMem;
+        accumulator[nodeName].limits.memory += limitsMem;
         accumulator[nodeName].limits.gpu += limitsGpu;
 
         // Use actual requests value for worker and other pods accounting
