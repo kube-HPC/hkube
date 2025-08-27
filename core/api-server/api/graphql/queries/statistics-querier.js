@@ -110,9 +110,9 @@ class NodesStatistics {
         algorithmsData.push({
             name: 'other',
             amount: otherAmount,
-            size: Math.min(+(node.other[metric].toFixed(1)), node.total[metric] - algorithmTotalSize),
+            size: +(node.other[metric].toFixed(1))
         });
-        const free = node.total[metric] * resourcePressure - node.requests[metric];
+        const free = node.total[metric] * resourcePressure - node.other[metric] - algorithmTotalSize;
         algorithmsData.push({
             name: 'free',
             amount: -1,
