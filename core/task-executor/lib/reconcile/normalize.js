@@ -233,13 +233,13 @@ const _extractGpuValue = (gpu) => {
  * @returns {Object} { limitsGpu, requestGpu }
  */
 const _extractGpuResources = (pod) => {
-    let limitsGpu = sumBy(pod.spec.containers, c => _extractGpuValue(objectPath.get(c, 'resources.limits', 0)));
+    let podLimitsGpu = sumBy(pod.spec.containers, c => _extractGpuValue(objectPath.get(c, 'resources.limits', 0)));
 
-    if (!limitsGpu) {
-        limitsGpu = _extractGpuValue(objectPath.get(pod, 'metadata.annotations', null));
+    if (!podLimitsGpu) {
+        podLimitsGpu = _extractGpuValue(objectPath.get(pod, 'metadata.annotations', null));
     }
-    const requestGpu = limitsGpu;
-    return { limitsGpu, requestGpu };
+    const podRequestGpu = podLimitsGpu;
+    return { podRequestGpu, podLimitsGpu };
 };
 
 /**
@@ -248,20 +248,20 @@ const _extractGpuResources = (pod) => {
  * @param {Object} pod - Pod object with containers and resources.
  * @returns {Object} { requestCpu, requestMem, requestGpu, limitsCpu, limitsMem, limitsGpu }
  */
-const _extractPodResources = (pod) => {
+const _extractPodResources = (pod) => {    
     // CPU
-    const requestCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
-    const limitsCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.limits.cpu', '0m')));
+    const podRequestCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
+    const podLimitsCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.limits.cpu', '0m')));
 
     // Memory
-    const requestMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0), true));
-    const limitsMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.limits.memory', 0), true));
+    const podRequestMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0), true));
+    const podLimitsMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.limits.memory', 0), true));
 
     // GPU
-    const { limitsGpu, requestGpu } = _extractGpuResources(pod);
+    const { podRequestGpu, podLimitsGpu } = _extractGpuResources(pod);
 
     return {
-        requestCpu, requestMem, requestGpu, limitsCpu, limitsMem, limitsGpu
+        podRequestCpu, podRequestMem, podRequestGpu, podLimitsCpu, podLimitsMem, podLimitsGpu
     };
 };
 
@@ -323,20 +323,22 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         if (!nodeName || !accumulator[nodeName]) {
             return accumulator;
         }
-        const { requestCpu, requestMem, requestGpu, limitsCpu, limitsMem, limitsGpu } = _extractPodResources(pod);
+        const { podRequestCpu, podRequestMem, podRequestGpu, podLimitsCpu, podLimitsMem, podLimitsGpu } = _extractPodResources(pod);
         const { useResourceLimits } = globalSettings;
+        const requestCpu = (useResourceLimits && podLimitsCpu) ? Math.max(podRequestCpu, podLimitsCpu) : podRequestCpu;
+        const requestMem = (useResourceLimits && podLimitsMem) ? Math.max(podRequestMem, podLimitsMem) : podRequestMem;
 
-        accumulator[nodeName].requests.cpu += (useResourceLimits && limitsCpu) ? Math.max(requestCpu, limitsCpu) : requestCpu;
-        accumulator[nodeName].requests.memory += (useResourceLimits && limitsMem) ? Math.max(requestMem, limitsMem) : requestMem;
-        accumulator[nodeName].requests.gpu += requestGpu;
+        accumulator[nodeName].requests.cpu += requestCpu;
+        accumulator[nodeName].requests.memory += requestMem;
+        accumulator[nodeName].requests.gpu += podRequestGpu;
 
-        accumulator[nodeName].limits.cpu += limitsCpu;
-        accumulator[nodeName].limits.memory += limitsMem;
-        accumulator[nodeName].limits.gpu += limitsGpu;
+        accumulator[nodeName].limits.cpu += podLimitsCpu;
+        accumulator[nodeName].limits.memory += podLimitsMem;
+        accumulator[nodeName].limits.gpu += podLimitsGpu;
 
         if (objectPath.get(pod, 'metadata.labels.type') === 'worker') {
             accumulator[nodeName].workersTotal.cpu += requestCpu;
-            accumulator[nodeName].workersTotal.gpu += requestGpu;
+            accumulator[nodeName].workersTotal.gpu += podRequestGpu;
             accumulator[nodeName].workersTotal.memory += requestMem;
             accumulator[nodeName].workers.push({
                 algorithmName: objectPath.get(pod, 'metadata.labels.algorithm-name'),
@@ -346,7 +348,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         }
         else {
             accumulator[nodeName].other.cpu += requestCpu;
-            accumulator[nodeName].other.gpu += requestGpu;
+            accumulator[nodeName].other.gpu += podRequestGpu;
             accumulator[nodeName].other.memory += requestMem;
         }
 
