@@ -77,6 +77,7 @@ const jobTypeDefs = gql`
     input: [NodeInput]
     minStatelessCount: Int
     maxStatelessCount: Int
+    streamSamplePercentage: Float
     error: String
     warnings: [String]
     retries: Int
