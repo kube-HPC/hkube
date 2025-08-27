@@ -183,14 +183,19 @@ const validateKaiQueue = ({ kaiObject, algorithmName }, existingQueuesNames) => 
  * @param {Object} [params.sideCars] - The optional sidecar container.
  * @param {Object} [params.sideCars.container] - The container inside the sidecar.
  * @param {Object} [params.sideCars.container.resources] - The resource requests of the sidecar container.
+ * @param {Object} containerDefaults - Default container resources from Kubernetes.
+ * @param {Object} [containerDefaults.cpu] - Default CPU resource from Kubernetes.
+ * @param {string|number} [containerDefaults.cpu.defaultRequest] - Default CPU request
+ * @param {Object} [containerDefaults.memory] - Default memory resource from Kubernetes.
+ * @param {string|number} [containerDefaults.memory.defaultRequest] - Default memory request
  * @returns {Object} An object containing the total requested CPU and memory.
  * @returns {number} return.requestedCpu - The total requested CPU in cores.
  * @returns {number} return.requestedMemory - The total requested memory in MiB.
  */
-const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCustomResources, sideCars }) => {
+const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCustomResources, sideCars }, containerDefaults) => {
     const sideCarResources = sideCars?.map(sideCar => sideCar?.container?.resources) || [];
-    const workerRequestedCPU = settings.applyResources ? workerResourceRequests.requests.cpu : '0';
-    const workerRequestedMemory = settings.applyResources ? workerResourceRequests.requests.memory : '0Mi';
+    const workerRequestedCPU = settings.applyResources ? workerResourceRequests.requests.cpu : (containerDefaults?.cpu?.defaultRequest || '0');
+    const workerRequestedMemory = settings.applyResources ? workerResourceRequests.requests.memory : (containerDefaults?.memory?.defaultRequest || '0Mi');
 
     const requestedCpu = parse.getCpuInCore(resourceRequests?.requests?.cpu || '0')
         + parse.getCpuInCore(workerCustomResources?.requests?.cpu || workerRequestedCPU)
@@ -213,22 +218,24 @@ const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCusto
  * @param {Object} availableResources - Current cluster resource state.
  * @param {number} totalAdded - Number of jobs added so far this tick.
  * @param {Object} [extraResources] - Additional metadata such as volumes and queues.
+ * @param {Object} containerDefaults - Default container resources from Kubernetes.
  * @returns {Object} Scheduling decision with `shouldAdd`, optional `warning`, and updated resources.
  */
-const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources) => {
+const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources, containerDefaults) => {
     const { allVolumesNames, existingQueuesNames } = extraResources || {};
     if (totalAdded >= MAX_JOBS_PER_TICK) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
-    const { requestedCpu, requestedMemory } = getAllRequested(jobDetails);
+    const { requestedCpu, requestedMemory } = getAllRequested(jobDetails, containerDefaults);
     const requestedGpu = jobDetails.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
-    const nodesBySelector = availableResources.nodeList.filter(n => nodeSelectorFilter(n.labels, jobDetails.nodeSelector));
+    const nodesBySelector = availableResources.nodeList.filter(node => nodeSelectorFilter(node.labels, jobDetails.nodeSelector));
     const nodesForSchedule = nodesBySelector.map(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
 
     const availableNode = nodesForSchedule.find(n => n.available);
     if (!availableNode) {
         // Number of total nodes that don't fit the attribute under nodeSelector
         const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
+
         const warning = createWarning({
             unMatchedNodesBySelector,
             jobDetails,
@@ -456,9 +463,10 @@ const pauseAccordingToResources = (stopDetails, availableResources, skippedReque
  * @param {Object} availableResources - Current cluster resource state.
  * @param {Object[]} [scheduledRequests=[]] - Already scheduled requests.
  * @param {Object} [extraResources] - Additional metadata for scheduling checks.
+ * @param {Object} containerDefaults - Default container resources from Kubernetes.
  * @returns {Object} { requested: jobs scheduled, skipped: jobs not scheduled }
  */
-const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], extraResources) => {
+const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], extraResources, containerDefaults) => {
     const jobsToRequest = [];
     const skipped = [];
     const localDetails = clone(createDetails);
@@ -467,7 +475,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
     // loop over all the job types one by one and assign until it can't fit in any node
     const cb = (j) => {
         if (j.numberOfNewJobs > 0) {
-            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, extraResources);
+            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, extraResources, containerDefaults);
             if (shouldAdd) {
                 const toCreate = { ...j.jobDetails, createdTime: Date.now(), node };
                 jobsToRequest.push(toCreate);
