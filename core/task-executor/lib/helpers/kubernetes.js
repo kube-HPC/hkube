@@ -13,7 +13,7 @@ let log;
 class KubernetesApi {
     async init(options = {}) {
         log = Logger.GetLogFromContainer();
-        this._crdMissingWarnLogged = false;
+        this._warnWasLogged = { crdMissing: false, noLimitRange: false, moreThanOneLimit: false }; // To avoid spamming the logs
         this._client = new KubernetesClient();
         await this._client.init(options.kubernetes);
         this._isNamespaced = options.kubernetes.isNamespaced;
@@ -208,13 +208,13 @@ class KubernetesApi {
             const exists = crdList?.body?.items?.some(cr => cr.metadata.name === kaiValues.KUBERNETES.QUEUES_CRD_NAME);
 
             if (!exists) {
-                if (!this._crdMissingWarnLogged) {
-                    log.info(`Kai Queues CRD (${kaiValues.KUBERNETES.QUEUES_CRD_NAME}) not found. Assuming Kai is not installed.`, { component });
-                    this._crdMissingWarnLogged = true;
+                if (!this._warnWasLogged.crdMissing) {
+                    log.warning(`Kai Queues CRD (${kaiValues.KUBERNETES.QUEUES_CRD_NAME}) not found. Assuming Kai is not installed.`, { component });
+                    this._warnWasLogged.crdMissing = true;
                 }
                 return [];
             }
-            this._crdMissingWarnLogged = false;
+            this._warnWasLogged.crdMissing = false;
 
             const crd = crdList.body.items.find(cr => cr.metadata.name === kaiValues.KUBERNETES.QUEUES_CRD_NAME);
             const version = crd?.spec?.versions?.find(v => v.served)?.name;
@@ -230,6 +230,56 @@ class KubernetesApi {
         catch (error) {
             log.error(`Error fetching Kai Queues: ${error.message}`, { component }, error);
             return [];
+        }
+    }
+
+    /**
+     * Get default CPU and memory requests/limits for containers
+     * from LimitRange resources in the namespace.
+     */
+    async getContainerDefaultResources() {
+        try {
+            const res = await this._client.limitRanges.all();
+            const items = res.body?.items || [];
+
+            const containerLimits = items
+                .flatMap(item => item.spec.limits.map(limit => ({
+                    ...limit,
+                    source: item.metadata?.name,
+                })))
+                .filter(limit => limit.type === 'Container');
+
+            if (containerLimits.length === 0) {
+                if (!this._warnWasLogged.noLimitRange) {
+                    log.warning('No LimitRange with type=Container found.', { component });
+                    this._warnWasLogged.noLimitRange = true;
+                }
+                return {};
+            }
+            this._warnWasLogged.noLimitRange = false; // Reset warning flag if situation is resolved
+
+            if (containerLimits.length > 1 && !this._warnWasLogged.moreThanOneLimit) {
+                log.warning(`Multiple LimitRanges with type=Container found: ${containerLimits.map(l => l.source)}. Taking the first one.`, { component });
+                this._warnWasLogged.moreThanOneLimit = true;
+            }
+            else this._warnWasLogged.moreThanOneLimit = false; // Reset warning flag if situation is resolved
+
+            const selected = containerLimits[0];
+
+            return {
+                cpu: {
+                    defaultRequest: selected.defaultRequest?.cpu,
+                    defaultLimits: selected.default?.cpu
+                },
+                memory: {
+                    defaultRequest: selected.defaultRequest?.memory,
+                    defaultLimits: selected.default?.memory
+                }
+            };
+        } 
+        catch (error) {
+            log.error(`Failed to fetch container default resources ${error.message}`, { component }, error);
+            return {};
         }
     }
 }

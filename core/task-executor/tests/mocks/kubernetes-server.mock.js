@@ -10,7 +10,8 @@ const {
     secret,
     configMap,
     customResourceDefinition,
-    queues
+    queues,
+    limitRanges
 } = resources;
 
 const app = express();
@@ -77,6 +78,30 @@ class MockClient {
                         return;
                     }
                     res.json(queues);
+                    return;
+                }
+                if (req.url === '/api/v1/limitranges') {
+                    res.json(limitRanges);
+                    return;
+                }
+
+                if (req.url.startsWith('/api/v1/limitranges/')) {
+                    // extract the name if needed
+                    const name = req.url.split('/').pop();
+                    const item = limitRanges.items.find(lr => lr.metadata.name === name);
+                    if (item) {
+                        res.json(item);
+                    } else {
+                        res.status(404).json({
+                            kind: 'Status',
+                            apiVersion: 'v1',
+                            metadata: {},
+                            status: 'Failure',
+                            message: `limitranges "${name}" not found`,
+                            reason: 'NotFound',
+                            code: 404
+                        });
+                    }
                     return;
                 }
                 res.json(req.body);
