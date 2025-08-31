@@ -472,6 +472,47 @@ const queues = { // for Kai (run-ai)
     ]
 };
 
+const limitRanges = {
+    kind: 'LimitRangeList',
+    apiVersion: 'v1',
+    items: [
+        {
+            kind: 'LimitRange',
+            apiVersion: 'v1',
+            metadata: {
+                name: 'default-limits',
+                namespace: 'default',
+            },
+            spec: {
+                limits: [
+                    {
+                        type: 'Container',
+                        default: { cpu: '500m', memory: '512Mi' },
+                        defaultRequest: { cpu: '250m', memory: '256Mi' }
+                    }
+                ]
+            }
+        },
+        {
+            kind: 'LimitRange', // dummy for testing
+            apiVersion: 'v1',
+            metadata: {
+                name: 'another-limits',
+                namespace: 'default',
+            },
+            spec: {
+                limits: [
+                    {
+                        type: 'Container',
+                        default: { cpu: '1', memory: '1Gi' },
+                        defaultRequest: { cpu: '500m', memory: '512Mi' }
+                    }
+                ]
+            }
+        }
+    ]
+};
+
 
 module.exports = {
     pods,
@@ -483,5 +524,6 @@ module.exports = {
     configMap,
     secret,
     customResourceDefinition,
-    queues
+    queues,
+    limitRanges
 };

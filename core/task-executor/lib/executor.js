@@ -64,6 +64,7 @@ class Executor {
 
             const { pods } = resources;
             const normResources = normalizeResources(resources);
+            const containerDefaults = await kubernetes.getContainerDefaultResources();
             const data = {
                 versions,
                 normResources,
@@ -71,7 +72,8 @@ class Executor {
                 registry,
                 clusterOptions,
                 pods,
-                workerResources: options.resources.worker
+                workerResources: options.resources.worker,
+                containerDefaults
             };
 
             await Promise.all([
@@ -86,7 +88,7 @@ class Executor {
         }
     }
 
-    async _algorithmsHandle({ versions, normResources, registry, options, clusterOptions, pods, workerResources }) {
+    async _algorithmsHandle(data) {
         const [algorithmTemplates, algorithmRequests, workers, jobs] = await Promise.all([
             etcd.getAlgorithmTemplate(),
             etcd.getAlgorithmRequests({}),
@@ -95,7 +97,7 @@ class Executor {
         ]);
 
         const reconcilerResults = await reconciler.reconcile({
-            algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources
+            algorithmTemplates, algorithmRequests, workers, jobs, ...data
         });
         Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
             this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required || 0, labelValues: { algorithmName } });

@@ -185,6 +185,11 @@ const normalizeColdWorkers = (normWorkers, algorithmTemplates) => {
     return coldWorkers;
 };
 
+/**
+ * Calculates ratio of used resources and remaining free capacity for a node.
+ *
+ * @param {Object} node - Node object with `total` and `requests` fields.
+ */
 const _calcRatioFree = (node) => {
     node.ratio = {
         cpu: node.requests.cpu / node.total.cpu,
@@ -198,129 +203,172 @@ const _calcRatioFree = (node) => {
     };
 };
 
-const _nodeTaintsFilter = (node) => {
-    return !(node.spec && node.spec.taints && node.spec.taints.some(t => t.effect === 'NoSchedule'));
+/**
+ * Filters out nodes that are unschedulable due to "NoSchedule" taints.
+ *
+ * @param {Object} node - Node resource object with spec/taints.
+ * @returns {boolean} True if node can accept pods, false otherwise.
+ */
+const _filterSchedulableNodes = (node) => {
+    return !(node.spec && node.spec.taints && node.spec.taints.some(taint => taint.effect === 'NoSchedule'));
 };
 
-const _parseGpu = (gpu) => {
+/**
+ * Extracts numeric GPU allocation from a resource object.
+ *
+ * @param {Object} gpu - GPU resource object (e.g., from node allocatable or container limits).
+ * @returns {number} GPU amount, defaults to 0.
+ */
+const _extractGpuValue = (gpu) => {
     if (!gpu || !gpu[gpuVendors.NVIDIA]) {
         return 0;
     }
     return parseFloat(gpu[gpuVendors.NVIDIA]);
 };
 
-const _getGpuSpec = (pod) => {
-    let limitsGpu = sumBy(pod.spec.containers, c => _parseGpu(objectPath.get(c, 'resources.limits', 0)));
+/**
+ * Extracts GPU requests and limits from a pod definition.
+ *
+ * @param {Object} pod - Pod object with containers and metadata.
+ * @returns {Object} { limitsGpu, requestGpu }
+ */
+const _extractGpuResources = (pod) => {
+    let limitsGpu = sumBy(pod.spec.containers, c => _extractGpuValue(objectPath.get(c, 'resources.limits', 0)));
 
     if (!limitsGpu) {
-        limitsGpu = _parseGpu(objectPath.get(pod, 'metadata.annotations', null));
+        limitsGpu = _extractGpuValue(objectPath.get(pod, 'metadata.annotations', null));
     }
     const requestGpu = limitsGpu;
-    return { limitsGpu, requestGpu };
+    return { requestGpu, limitsGpu };
 };
 
-const _getRequestsAndLimits = (pod) => {
-    const { useResourceLimits } = globalSettings;
+/**
+ * Extracts CPU, memory, and GPU requests/limits from a pod definition.
+ *
+ * @param {Object} pod - Pod object with containers and resources.
+ * @returns {Object} { requestCpu, requestMem, requestGpu, limitsCpu, limitsMem, limitsGpu }
+ */
+const _extractPodResources = (pod) => {    
+    // CPU
+    const requestCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
     const limitsCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.limits.cpu', '0m')));
-    const { limitsGpu, requestGpu } = _getGpuSpec(pod);
+
+    // Memory
+    const requestMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0), true));
     const limitsMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.limits.memory', 0), true));
-    const requestCpu = useResourceLimits && limitsCpu
-        ? limitsCpu
-        : sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
-    const requestMem = useResourceLimits && limitsMem
-        ? limitsMem
-        : sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0), true));
+
+    // GPU
+    const { requestGpu, limitsGpu } = _extractGpuResources(pod);
+
     return {
-        requestCpu, requestGpu, requestMem, limitsCpu, limitsGpu, limitsMem
+        requestCpu, requestMem, requestGpu, limitsCpu, limitsMem, limitsGpu
     };
 };
 
+/**
+ * Builds cluster resource usage view by aggregating pod requests and node capacities.
+ *
+ * Produces a clear view of:
+ * - per-node usage and free resources
+ * - overall "allNodes" usage across the cluster
+ *
+ * @param {Object} resources - Cluster data from Kubernetes.
+ * @param {Object} resources.pods - Pod list API response.
+ * @param {Object} resources.nodes - Node list API response.
+ * @returns {Object} { allNodes, nodeList }
+ */
 const normalizeResources = ({ pods, nodes } = {}) => {
     if (!pods || !nodes) {
         return {
             allNodes: {
-                ratio: {
-                    cpu: 0,
-                    gpu: 0,
-                    memory: 0,
-                },
-                free: {
-                    cpu: 0,
-                    gpu: 0,
-                    memory: 0
-                }
+                ratio: { cpu: 0, gpu: 0, memory: 0 },
+                free: { cpu: 0, gpu: 0, memory: 0 }
             },
             nodeList: []
         };
     }
-    const initial = nodes.body.items.filter(_nodeTaintsFilter).reduce((acc, cur) => {
-        acc[cur.metadata.name] = {
-            labels: cur.metadata.labels,
+
+    // Build initial node map
+    const nodeMap = nodes.body.items.filter(_filterSchedulableNodes).reduce((accumulator, node) => {
+        accumulator[node.metadata.name] = {
+            labels: node.metadata.labels,
             requests: { cpu: 0, gpu: 0, memory: 0 },
             limits: { cpu: 0, gpu: 0, memory: 0 },
             workersTotal: { cpu: 0, gpu: 0, memory: 0 },
             workers: [],
             other: { cpu: 0, gpu: 0, memory: 0 },
             total: {
-                cpu: parse.getCpuInCore(cur.status.allocatable.cpu),
-                gpu: _parseGpu(cur.status.allocatable) || 0,
-                memory: parse.getMemoryInMi(cur.status.allocatable.memory, true)
+                cpu: parse.getCpuInCore(node.status.allocatable.cpu),
+                gpu: _extractGpuValue(node.status.allocatable) || 0,
+                memory: parse.getMemoryInMi(node.status.allocatable.memory, true)
             }
         };
-        return acc;
+        return accumulator;
     }, {});
-    const allNodes = {
-        requests: { cpu: 0, gpu: 0, memory: 0 },
-        limits: { cpu: 0, gpu: 0, memory: 0 },
-        total: {
-            cpu: sumBy(Object.values(initial), 'total.cpu'),
-            gpu: sumBy(Object.values(initial), 'total.gpu'),
-            memory: sumBy(Object.values(initial), 'total.memory'),
-        }
-    };
-    const stateFilter = p => p.status.phase === 'Running' || p.status.phase === 'Pending';
+
+    // Track pod usage per node
+    const stateFilter = pod => pod.status.phase === 'Running' || pod.status.phase === 'Pending';
     const resourcesPerNode = pods.body.items.filter(stateFilter).reduce((accumulator, pod) => {
         const { nodeName } = pod.spec;
         if (!nodeName || !accumulator[nodeName]) {
             return accumulator;
         }
-        const { requestCpu, requestGpu, requestMem, limitsCpu, limitsGpu, limitsMem } = _getRequestsAndLimits(pod);
+        const { requestCpu, requestMem, requestGpu, limitsCpu, limitsMem, limitsGpu } = _extractPodResources(pod);
+        const { useResourceLimits } = globalSettings;
 
-        accumulator[nodeName].requests.cpu += requestCpu;
+        accumulator[nodeName].requests.cpu += (useResourceLimits && limitsCpu) ? Math.max(requestCpu, limitsCpu) : requestCpu;
+        accumulator[nodeName].requests.memory += (useResourceLimits && limitsMem) ? Math.max(requestMem, limitsMem) : requestMem;
         accumulator[nodeName].requests.gpu += requestGpu;
-        accumulator[nodeName].requests.memory += requestMem;
+
         accumulator[nodeName].limits.cpu += limitsCpu;
-        accumulator[nodeName].limits.gpu += limitsGpu;
         accumulator[nodeName].limits.memory += limitsMem;
+        accumulator[nodeName].limits.gpu += limitsGpu;
+
+        // Use actual requests value for worker and other pods accounting
         if (objectPath.get(pod, 'metadata.labels.type') === 'worker') {
             accumulator[nodeName].workersTotal.cpu += requestCpu;
-            accumulator[nodeName].workersTotal.gpu += requestGpu;
             accumulator[nodeName].workersTotal.memory += requestMem;
+            accumulator[nodeName].workersTotal.gpu += requestGpu;
             accumulator[nodeName].workers.push({
                 algorithmName: objectPath.get(pod, 'metadata.labels.algorithm-name'),
+                podName: objectPath.get(pod, 'metadata.name'),
                 nodeName
             });
         }
         else {
             accumulator[nodeName].other.cpu += requestCpu;
-            accumulator[nodeName].other.gpu += requestGpu;
             accumulator[nodeName].other.memory += requestMem;
+            accumulator[nodeName].other.gpu += requestGpu;
         }
 
         return accumulator;
-    }, initial);
+    }, nodeMap);
 
+    // Build node list and aggregate totals
     const nodeList = [];
-    Object.entries(resourcesPerNode).forEach(([k, v]) => {
-        _calcRatioFree(v);
-        allNodes.requests.cpu += v.requests.cpu;
-        allNodes.requests.gpu += v.requests.gpu;
-        allNodes.requests.memory += v.requests.memory;
-        allNodes.limits.cpu += v.limits.cpu;
-        allNodes.limits.gpu += v.limits.gpu;
-        allNodes.limits.memory += v.limits.memory;
-        nodeList.push({ name: k, ...v });
+    const allNodes = {
+        requests: { cpu: 0, gpu: 0, memory: 0 },
+        limits: { cpu: 0, gpu: 0, memory: 0 },
+        total: {
+            cpu: sumBy(Object.values(nodeMap), 'total.cpu'),
+            gpu: sumBy(Object.values(nodeMap), 'total.gpu'),
+            memory: sumBy(Object.values(nodeMap), 'total.memory'),
+        }
+    };
+    Object.entries(resourcesPerNode).forEach(([nodeName, nodeData]) => {
+        _calcRatioFree(nodeData);
+
+        allNodes.requests.cpu += nodeData.requests.cpu;
+        allNodes.requests.memory += nodeData.requests.memory;
+        allNodes.requests.gpu += nodeData.requests.gpu;
+
+        allNodes.limits.cpu += nodeData.limits.cpu;
+        allNodes.limits.memory += nodeData.limits.memory;
+        allNodes.limits.gpu += nodeData.limits.gpu;
+
+        nodeList.push({ name: nodeName, ...nodeData });
     });
+
     _calcRatioFree(allNodes);
     return { allNodes, nodeList };
 };

@@ -448,6 +448,224 @@ describe('normalize', () => {
             expect(res.nodeList[1].free.cpu).to.eq(7.55);
             expect(res.nodeList[2].free.cpu).to.eq(7.8);
         });
+
+        it('should filter out nodes with NoSchedule taint', () => {
+            const nodesWithTaint = {
+                body: {
+                    items: [
+                        { metadata: { name: 'node1', labels: {} }, spec: { taints: [{ effect: 'NoSchedule' }] }, status: { allocatable: { cpu: '4', memory: '8Gi' } } },
+                        { metadata: { name: 'node2', labels: {} }, status: { allocatable: { cpu: '2', memory: '4Gi' } } }
+                    ]
+                }
+            };
+            const podsEmpty = { body: { items: [] } };
+
+            const res = normalizeResources({ pods: podsEmpty, nodes: nodesWithTaint });
+            expect(res.nodeList.length).to.eq(1);
+            expect(res.nodeList[0].name).to.eq('node2');
+        });
+
+        it('should ignore pods not in Running or Pending state', () => {
+            const nodes = {
+                body: {
+                    items: [
+                        { metadata: { name: 'node1', labels: {} }, status: { allocatable: { cpu: '4', memory: '8Gi' } } }
+                    ]
+                }
+            };
+            const pods = {
+                body: {
+                    items: [
+                        { status: { phase: 'Succeeded' }, spec: { nodeName: 'node1', containers: [] } },
+                        { status: { phase: 'Failed' }, spec: { nodeName: 'node1', containers: [] } }
+                    ]
+                }
+            };
+
+            const res = normalizeResources({ pods, nodes });
+            expect(res.nodeList[0].requests.cpu).to.eq(0);
+            expect(res.nodeList[0].requests.memory).to.eq(0);
+        });
+
+        it('should account worker pods separately from other pods', () => {
+            const nodes = {
+                body: {
+                    items: [
+                        { metadata: { name: 'node1', labels: {} }, status: { allocatable: { cpu: '4', memory: '8Gi' } } }
+                    ]
+                }
+            };
+            const pods = {
+                body: {
+                    items: [
+                        {
+                            status: { phase: 'Running' },
+                            spec: { nodeName: 'node1', containers: [{ resources: { requests: { cpu: '100m', memory: '128Mi' } } }] },
+                            metadata: { labels: { type: 'worker', 'algorithm-name': 'algo1' }, name: 'workerPod1' }
+                        },
+                        {
+                            status: { phase: 'Running' },
+                            spec: { nodeName: 'node1', containers: [{ resources: { requests: { cpu: '200m', memory: '256Mi' } } }] },
+                            metadata: { labels: { type: 'other' }, name: 'otherPod1' }
+                        }
+                    ]
+                }
+            };
+
+            const res = normalizeResources({ pods, nodes });
+            const node = res.nodeList[0];
+            expect(node.workersTotal.cpu).to.eq(0.1);
+            expect(node.other.cpu).to.eq(0.2);
+            expect(node.workers.length).to.eq(1);
+            expect(node.workers[0].algorithmName).to.eq('algo1');
+        });
+
+        it('should calculate GPU resources correctly', () => {
+            const nodes = {
+                body: {
+                    items: [
+                        { metadata: { name: 'node1', labels: {} }, status: { allocatable: { cpu: '4', memory: '8Gi', 'nvidia.com/gpu': '2' } } }
+                    ]
+                }
+            };
+            const pods = {
+                body: {
+                    items: [
+                        {
+                            status: { phase: 'Running' },
+                            spec: { nodeName: 'node1', containers: [{ resources: { limits: { 'nvidia.com/gpu': '1' } } }] },
+                            metadata: { labels: {}, name: 'gpuPod1' }
+                        }
+                    ]
+                }
+            };
+
+            const res = normalizeResources({ pods, nodes });
+            const node = res.nodeList[0];
+            expect(node.total.gpu).to.eq(2);
+            expect(node.requests.gpu).to.eq(1);
+            expect(node.free.gpu).to.eq(1);
+            expect(node.ratio.gpu).to.eq(0.5);
+        });
+
+        it('should accumulate limits separately from requests', () => {
+            const nodes = {
+                body: {
+                    items: [
+                        { metadata: { name: 'node1', labels: {} }, status: { allocatable: { cpu: '4', memory: '8Gi' } } }
+                    ]
+                }
+            };
+            const pods = {
+                body: {
+                    items: [
+                        {
+                            status: { phase: 'Running' },
+                            spec: {
+                                nodeName: 'node1',
+                                containers: [{
+                                    resources: {
+                                        requests: { cpu: '100m', memory: '128Mi' },
+                                        limits: { cpu: '200m', memory: '256Mi' }
+                                    }
+                                }]
+                            },
+                            metadata: { labels: {}, name: 'pod1' }
+                        }
+                    ]
+                }
+            };
+
+            const res = normalizeResources({ pods, nodes });
+            const node = res.nodeList[0];
+            expect(node.requests.cpu).to.eq(0.1);
+            expect(node.limits.cpu).to.eq(0.2);
+            expect(node.requests.memory).to.eq(128);
+            expect(node.limits.memory).to.eq(256);
+        });
+
+        it('should include nodes with no pods in nodeList with zero requests', () => {
+            const nodes = {
+                body: {
+                    items: [
+                        { metadata: { name: 'node1', labels: {} }, status: { allocatable: { cpu: '4', memory: '8Gi' } } }
+                    ]
+                }
+            };
+            const pods = { body: { items: [] } };
+
+            const res = normalizeResources({ pods, nodes });
+            expect(res.nodeList[0].requests.cpu).to.eq(0);
+            expect(res.nodeList[0].free.cpu).to.eq(4);
+        });
+
+        it('should still use actual requests for worker pods when useResourceLimits=true', () => {
+            globalSettings.useResourceLimits = true;
+            const nodes = {
+                body: { items: [{ metadata: { name: 'node1', labels: {} }, status: { allocatable: { cpu: '4', memory: '8Gi' } } }] }
+            };
+            const pods = {
+                body: {
+                    items: [
+                        {
+                            status: { phase: 'Running' },
+                            spec: {
+                                nodeName: 'node1',
+                                containers: [{
+                                    resources: {
+                                        requests: { cpu: '100m', memory: '128Mi' },
+                                        limits: { cpu: '1000m', memory: '512Mi' }
+                                    }
+                                }]
+                            },
+                            metadata: { labels: { type: 'worker', 'algorithm-name': 'algoX' }, name: 'workerPod1' }
+                        }
+                    ]
+                }
+            };
+
+            const res = normalizeResources({ pods, nodes });
+            const node = res.nodeList[0];
+
+            // requests bucket uses limit (1 core), not request
+            expect(node.requests.cpu).to.eq(1);
+            // workersTotal should use actual request (0.1 cores)
+            expect(node.workersTotal.cpu).to.eq(0.1);
+        });
+
+        it('should still use actual requests for "other" pods when useResourceLimits=true', () => {
+            globalSettings.useResourceLimits = true;
+            const nodes = {
+                body: { items: [{ metadata: { name: 'node1', labels: {} }, status: { allocatable: { cpu: '4', memory: '8Gi' } } }] }
+            };
+            const pods = {
+                body: {
+                    items: [
+                        {
+                            status: { phase: 'Running' },
+                            spec: {
+                                nodeName: 'node1',
+                                containers: [{
+                                    resources: {
+                                        requests: { cpu: '200m', memory: '256Mi' },
+                                        limits: { cpu: '2000m', memory: '1Gi' }
+                                    }
+                                }]
+                            },
+                            metadata: { labels: { type: 'other' }, name: 'otherPod1' }
+                        }
+                    ]
+                }
+            };
+
+            const res = normalizeResources({ pods, nodes });
+            const node = res.nodeList[0];
+
+            // requests bucket uses limit (2 cores)
+            expect(node.requests.cpu).to.eq(2);
+            // "other" bucket should still use actual request (0.2 cores)
+            expect(node.other.cpu).to.eq(0.2);
+        });
     });
 
     describe('merge workers', () => {
