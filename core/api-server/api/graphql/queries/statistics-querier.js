@@ -94,8 +94,8 @@ class NodesStatistics {
         };
         node.workers.stats.forEach(algorithm => {
             const requestedAlgorithm = algorithms.find(alg => alg.name === algorithm.algorithmName);
-            const size = +(algorithm.count * getMetric(metric, requestedAlgorithm)).toFixed(1);
             if (requestedAlgorithm) {
+                const size = +(algorithm.count * getMetric(metric, requestedAlgorithm)).toFixed(1);
                 algorithmsData.push({
                     name: algorithm.algorithmName,
                     amount: algorithm.count,
