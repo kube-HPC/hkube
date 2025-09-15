@@ -122,6 +122,7 @@ class GraphStore {
             algorithmName: n.algorithmName,
             algorithmVersion: n.algorithmVersion,
             devMode: n.devMode,
+            streamSamplePercentage: n.streamSamplePercentage,
             ...this._mapTask(n)
         };
         return node;
@@ -133,6 +134,7 @@ class GraphStore {
             nodeName: n.nodeName,
             algorithmName: n.algorithmName,
             algorithmVersion: n.algorithmVersion,
+            streamSamplePercentage: n.streamSamplePercentage,
             batch: n.batch.map(b => this._mapTask(b)),
             batchInfo: this._batchInfo(n.batch),
             level: n.level,
