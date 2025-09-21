@@ -18,6 +18,8 @@ global:
         enabled: true
   ingress:
     use_regex: true
+  registry_username: ${IMAGE_PULL_USERNAME}
+  registry_password: ${IMAGE_PULL_PASSWORD}
 
 env:
   kibana_url: "https://cicd-test.hkube.org/system/kibana/"
