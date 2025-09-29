@@ -353,9 +353,24 @@ const applySidecars = (inputSpec, clusterOptions = {}) => {
 
     return spec;
 };
-
+const applySecurityContext = (inputSpec, securityContext = {}) => {
+    const hasFsGroup = securityContext.fsGroup !== undefined;
+    const hasFsGroupChangePolicy = securityContext.fsGroupChangePolicy !== undefined;
+    if (!hasFsGroup && !hasFsGroupChangePolicy) {
+        return inputSpec;
+    }
+    const spec = clonedeep(inputSpec);
+    spec.spec.template.spec.securityContext = {};
+    if (hasFsGroup) {
+        spec.spec.template.spec.securityContext.fsGroup = securityContext.fsGroup;
+    }
+    if (hasFsGroupChangePolicy) {
+        spec.spec.template.spec.securityContext.fsGroupChangePolicy = securityContext.fsGroupChangePolicy;
+    }
+    return spec;
+};
 const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, labels, annotations, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env, securityContext }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -397,6 +412,7 @@ const createJobSpec = ({ kind, algorithmName, resourceRequests, workerImage, alg
     spec = applyDataSourcesVolumes(spec, clusterOptions);
     spec = applyMounts(spec, mounts);
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
+    spec = applySecurityContext(spec, securityContext);
 
     if (kind === nodeKind.Gateway) {
         spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, gatewayEnv);
