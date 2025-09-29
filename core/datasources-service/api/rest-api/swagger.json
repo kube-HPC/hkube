@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.6",
+    "version": "2.9.7",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -7195,6 +7195,17 @@
                         ]
                       }
                     },
+                    "securityContext": {
+                      "type": "object",
+                      "properties": {
+                        "fsGroup": {
+                          "type": "string"
+                        },
+                        "hasFsGroupChangePolicy": {
+                          "type": "string"
+                        }
+                      }
+                    },
                     "sideCars": {
                       "type": "array",
                       "nullable": true,
@@ -7879,6 +7890,17 @@
                           ]
                         }
                       },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -8369,6 +8391,17 @@
                           ]
                         }
                       },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -8845,6 +8878,17 @@
                             "name",
                             "mountPath"
                           ]
+                        }
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
                         }
                       },
                       "sideCars": {
@@ -9397,6 +9441,17 @@
                           ]
                         }
                       },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -9935,6 +9990,17 @@
                           ]
                         }
                       },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -10413,6 +10479,17 @@
                               "name",
                               "mountPath"
                             ]
+                          }
+                        },
+                        "securityContext": {
+                          "type": "object",
+                          "properties": {
+                            "fsGroup": {
+                              "type": "string"
+                            },
+                            "hasFsGroupChangePolicy": {
+                              "type": "string"
+                            }
                           }
                         },
                         "sideCars": {
@@ -18057,6 +18134,17 @@
                           ]
                         }
                       },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
+                      },
                       "sideCars": {
                         "type": "array",
                         "nullable": true,
@@ -18598,6 +18686,17 @@
                             "name",
                             "mountPath"
                           ]
+                        }
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
                         }
                       },
                       "sideCars": {
@@ -23698,6 +23797,17 @@
               ]
             }
           },
+          "securityContext": {
+            "type": "object",
+            "properties": {
+              "fsGroup": {
+                "type": "string"
+              },
+              "hasFsGroupChangePolicy": {
+                "type": "string"
+              }
+            }
+          },
           "sideCars": {
             "type": "array",
             "nullable": true,
@@ -24351,6 +24461,17 @@
                     "name",
                     "mountPath"
                   ]
+                }
+              },
+              "securityContext": {
+                "type": "object",
+                "properties": {
+                  "fsGroup": {
+                    "type": "string"
+                  },
+                  "hasFsGroupChangePolicy": {
+                    "type": "string"
+                  }
                 }
               },
               "sideCars": {

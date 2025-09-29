@@ -205,6 +205,13 @@ properties:
     type: array
     items:
       $ref: "#/components/schemas/volumeMounts"
+  securityContext:
+    type: object
+    properties:
+      fsGroup:
+        type: string
+      hasFsGroupChangePolicy:
+        type: string
   sideCars:
     type: array
     nullable: true
