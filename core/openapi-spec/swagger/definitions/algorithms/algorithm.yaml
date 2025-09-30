@@ -162,5 +162,12 @@ properties:
     type: string
     nullable: true
     description: the extension name that will be attached to a file when downloading algorithm result
+  securityContext:
+    type: object
+    properties:
+      fsGroup:
+        type: string
+      hasFsGroupChangePolicy:
+        type: string
 required:
   - name
