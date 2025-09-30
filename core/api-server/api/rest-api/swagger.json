@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.7.3",
+    "version": "2.7.4",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6948,6 +6948,17 @@
                       "type": "string",
                       "nullable": true,
                       "description": "the extension name that will be attached to a file when downloading algorithm result"
+                    },
+                    "securityContext": {
+                      "type": "object",
+                      "properties": {
+                        "fsGroup": {
+                          "type": "string"
+                        },
+                        "hasFsGroupChangePolicy": {
+                          "type": "string"
+                        }
+                      }
                     }
                   },
                   "required": [
@@ -7446,6 +7457,17 @@
                         "type": "string",
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -7750,6 +7772,17 @@
                         "type": "string",
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -8049,6 +8082,17 @@
                     "type": "string",
                     "nullable": true,
                     "description": "the extension name that will be attached to a file when downloading algorithm result"
+                  },
+                  "securityContext": {
+                    "type": "object",
+                    "properties": {
+                      "fsGroup": {
+                        "type": "string"
+                      },
+                      "hasFsGroupChangePolicy": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "required": [
@@ -8393,6 +8437,17 @@
                     "type": "string",
                     "nullable": true,
                     "description": "the extension name that will be attached to a file when downloading algorithm result"
+                  },
+                  "securityContext": {
+                    "type": "object",
+                    "properties": {
+                      "fsGroup": {
+                        "type": "string"
+                      },
+                      "hasFsGroupChangePolicy": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "required": [
@@ -8723,6 +8778,17 @@
                         "type": "string",
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -9017,6 +9083,17 @@
                           "type": "string",
                           "nullable": true,
                           "description": "the extension name that will be attached to a file when downloading algorithm result"
+                        },
+                        "securityContext": {
+                          "type": "object",
+                          "properties": {
+                            "fsGroup": {
+                              "type": "string"
+                            },
+                            "hasFsGroupChangePolicy": {
+                              "type": "string"
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -16445,6 +16522,17 @@
                         "type": "string",
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -16802,6 +16890,17 @@
                         "type": "string",
                         "nullable": true,
                         "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -20001,6 +20100,17 @@
             "type": "string",
             "nullable": true,
             "description": "the extension name that will be attached to a file when downloading algorithm result"
+          },
+          "securityContext": {
+            "type": "object",
+            "properties": {
+              "fsGroup": {
+                "type": "string"
+              },
+              "hasFsGroupChangePolicy": {
+                "type": "string"
+              }
+            }
           }
         },
         "required": [
@@ -20445,6 +20555,17 @@
                 "type": "string",
                 "nullable": true,
                 "description": "the extension name that will be attached to a file when downloading algorithm result"
+              },
+              "securityContext": {
+                "type": "object",
+                "properties": {
+                  "fsGroup": {
+                    "type": "string"
+                  },
+                  "hasFsGroupChangePolicy": {
+                    "type": "string"
+                  }
+                }
               }
             },
             "required": [
