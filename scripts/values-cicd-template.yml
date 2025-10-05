@@ -17,6 +17,8 @@ global:
         nfs_server: 172.20.45.142
   ingress:
     use_regex: true
+  registry_username: ${IMAGE_PULL_USERNAME}
+  registry_password: ${IMAGE_PULL_PASSWORD}
 
 env:
   kibana_url: "https://cicd.hkube.org/system/kibana/"
