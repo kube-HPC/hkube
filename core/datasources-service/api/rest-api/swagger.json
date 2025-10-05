@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.7",
+    "version": "2.9.8",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -7199,7 +7199,7 @@
                       "type": "object",
                       "properties": {
                         "fsGroup": {
-                          "type": "string"
+                          "type": "number"
                         },
                         "hasFsGroupChangePolicy": {
                           "type": "string"
@@ -7894,7 +7894,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -8395,7 +8395,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -8884,7 +8884,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -9445,7 +9445,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -9994,7 +9994,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -10485,7 +10485,7 @@
                           "type": "object",
                           "properties": {
                             "fsGroup": {
-                              "type": "string"
+                              "type": "number"
                             },
                             "hasFsGroupChangePolicy": {
                               "type": "string"
@@ -18138,7 +18138,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -18692,7 +18692,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -23801,7 +23801,7 @@
             "type": "object",
             "properties": {
               "fsGroup": {
-                "type": "string"
+                "type": "number"
               },
               "hasFsGroupChangePolicy": {
                 "type": "string"
@@ -24467,7 +24467,7 @@
                 "type": "object",
                 "properties": {
                   "fsGroup": {
-                    "type": "string"
+                    "type": "number"
                   },
                   "hasFsGroupChangePolicy": {
                     "type": "string"

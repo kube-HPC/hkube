@@ -209,7 +209,7 @@ properties:
     type: object
     properties:
       fsGroup:
-        type: string
+        type: number
       hasFsGroupChangePolicy:
         type: string
   sideCars:
@@ -220,14 +220,14 @@ properties:
       $ref: "#/components/schemas/sideCars"
     uniqueItems: true
     example:
-    - name: "my-sidecar"
-      container:
-        name: "c1"
-        image: "hkube/my-image"
-      volumeMounts:
-        - name: "v1"
-          mountPath: "/tmp/foo"
-      environments:
-        env1: "val1"
+      - name: "my-sidecar"
+        container:
+          name: "c1"
+          image: "hkube/my-image"
+        volumeMounts:
+          - name: "v1"
+            mountPath: "/tmp/foo"
+        environments:
+          env1: "val1"
 required:
   - name
