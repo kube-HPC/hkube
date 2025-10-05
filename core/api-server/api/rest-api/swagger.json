@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.7.4",
+    "version": "2.7.5",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6953,7 +6953,7 @@
                       "type": "object",
                       "properties": {
                         "fsGroup": {
-                          "type": "string"
+                          "type": "number"
                         },
                         "hasFsGroupChangePolicy": {
                           "type": "string"
@@ -7462,7 +7462,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -7777,7 +7777,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -8087,7 +8087,7 @@
                     "type": "object",
                     "properties": {
                       "fsGroup": {
-                        "type": "string"
+                        "type": "number"
                       },
                       "hasFsGroupChangePolicy": {
                         "type": "string"
@@ -8442,7 +8442,7 @@
                     "type": "object",
                     "properties": {
                       "fsGroup": {
-                        "type": "string"
+                        "type": "number"
                       },
                       "hasFsGroupChangePolicy": {
                         "type": "string"
@@ -8783,7 +8783,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -9088,7 +9088,7 @@
                           "type": "object",
                           "properties": {
                             "fsGroup": {
-                              "type": "string"
+                              "type": "number"
                             },
                             "hasFsGroupChangePolicy": {
                               "type": "string"
@@ -16527,7 +16527,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -16895,7 +16895,7 @@
                         "type": "object",
                         "properties": {
                           "fsGroup": {
-                            "type": "string"
+                            "type": "number"
                           },
                           "hasFsGroupChangePolicy": {
                             "type": "string"
@@ -20105,7 +20105,7 @@
             "type": "object",
             "properties": {
               "fsGroup": {
-                "type": "string"
+                "type": "number"
               },
               "hasFsGroupChangePolicy": {
                 "type": "string"
@@ -20560,7 +20560,7 @@
                 "type": "object",
                 "properties": {
                   "fsGroup": {
-                    "type": "string"
+                    "type": "number"
                   },
                   "hasFsGroupChangePolicy": {
                     "type": "string"
