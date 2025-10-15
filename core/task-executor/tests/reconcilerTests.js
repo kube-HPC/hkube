@@ -332,6 +332,26 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
 
+        it('should apply securityContext to job spec', async () => {
+        const algorithm = 'green-alg';
+        algorithmTemplates[algorithm] = {
+            algorithmImage: 'hkube/security-context-algorithm-example',
+            securityContext: {
+                fsGroup: 1234,
+                fsGroupChangePolicy: 'OnRootMismatch'
+            }
+        };
+        const argument = createReconcileArgs(algorithm);
+        const res = await reconciler.reconcile(argument);
+
+        expect(res).to.exist;
+        expect(callCount('createJob').length).to.eql(1);
+        const jobSpec = callCount('createJob')[0][0].spec;
+        expect(jobSpec.spec.template.spec.securityContext).to.exist;
+        expect(jobSpec.spec.template.spec.securityContext.fsGroup).to.eql(1234);
+        expect(jobSpec.spec.template.spec.securityContext.fsGroupChangePolicy).to.eql('OnRootMismatch');
+    });
+
         it('setting java memory barrier as env in spec', async () => {
             const algorithm = 'black-alg';
             algorithmTemplates[algorithm] = {

@@ -191,7 +191,7 @@ class JobsHandler {
 
             const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector,
                 stateType: algorithmStateType = 'batch', entryPoint, options: algorithmOptions, reservedMemory,
-                mounts, env, sideCars, volumes, volumeMounts, workerCustomResources, kaiObject } = algorithmTemplate;
+                mounts, env, sideCars, volumes, volumeMounts, workerCustomResources, kaiObject, securityContext } = algorithmTemplate;
 
             createDetails.push({
                 numberOfNewJobs: 1,
@@ -220,6 +220,7 @@ class JobsHandler {
                     volumes,
                     volumeMounts,
                     kaiObject,
+                    securityContext,
                     stateType: algorithmStateType
                 }
             });
