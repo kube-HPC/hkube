@@ -66,8 +66,12 @@ jobs:
             export CHANGED=$(lerna list)
           fi
           echo ${CHANGED}
-          # export CHANGED=${CHANGED:-$(lerna list)}
-          echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec npm ci --scope {}
+          # If CHANGED is not empty, run lerna exec
+          if [ -n "$CHANGED" ]; then
+            echo ${CHANGED} | xargs -d ' ' -I {} lerna exec npm ci --scope {}
+          else
+            echo "No changed packages, skipping build."
+          fi
           echo CHANGED=$CHANGED >> $GITHUB_ENV
         env:
           BUILD_ALL: "${{ github.event.client_payload.BUILD_ALL || github.event.inputs.BUILD_ALL }}"
