@@ -41,6 +41,8 @@ volumes:
   $ref: ./algorithms/volumes.yaml
 volumeMounts:
   $ref: ./algorithms/volumeMounts.yaml
+kaiObject:
+  $ref: ./algorithms/kaiObject.yaml
 
 # boards
 createBoardRequest:
