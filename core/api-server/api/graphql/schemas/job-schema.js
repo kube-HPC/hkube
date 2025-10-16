@@ -254,6 +254,7 @@ const jobTypeDefs = gql`
       datesRange: Range
       cursor: String
       limit: Int
+      tag: String
     ): AggregatedJobs
 
     job(id: String!): Job
