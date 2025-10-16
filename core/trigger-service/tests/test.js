@@ -16,6 +16,7 @@ describe('test', () => {
     before(async () => {
         nock('http://localhost:3000').persist().post('/internal/v1/exec/stored/cron').reply(200, { jobId: uuidv4() });
         nock('http://localhost:3000').persist().post('/internal/v1/exec/stored/trigger').reply(200, { jobId: uuidv4() });
+        nock('http://localhost:3000').persist().get(/\/internal\/v1\/exec\/pipelines\/.*/).reply(200, { tags: ['tag1', 'tag2'] });
         await bootstrap.init();
         await storeManager._db.pipelines.createMany(pipelines);
     });
