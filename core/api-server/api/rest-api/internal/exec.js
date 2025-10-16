@@ -35,6 +35,11 @@ const routes = () => {
         await Execution.cleanJob({ jobId });
         res.json({ message: 'OK' });
     });
+    router.all('/exec/pipelines/:jobId?', methods(['GET']), async (req, res) => {
+        const { jobId } = req.params;
+        const response = await Execution.getPipeline({ jobId });
+        res.json(response);
+    });
     return router;
 };
 
