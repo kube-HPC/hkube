@@ -202,6 +202,7 @@ const jobTypeDefs = gql`
     priority: Int
     startTime: Float
     types: [String]
+    tags: [String]
     lastRunResult: LastRunResult
     flowInputMetadata: FlowInputMetadata
     triggers: Triggers
