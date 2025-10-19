@@ -1869,6 +1869,13 @@
                   "exists": {
                     "type": "object",
                     "description": "only return records that has fields"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "filter by tags (AND logic)"
                   }
                 },
                 "example": {
@@ -2007,14 +2014,14 @@
           {
             "name": "from",
             "in": "query",
-            "example": "2021-05-22T15:00:00",
+            "example": "2025-05-22T15:00:00",
             "schema": {
               "type": "string"
             }
           },
           {
             "name": "to",
-            "example": "2021-06-22T16:00:00",
+            "example": "2025-06-22T16:00:00",
             "in": "query",
             "schema": {
               "type": "string"
@@ -2037,7 +2044,7 @@
           {
             "name": "sort",
             "in": "query",
-            "example": "asc,desc",
+            "example": "desc",
             "schema": {
               "type": "string"
             }
@@ -2061,6 +2068,14 @@
             "name": "exists",
             "in": "query",
             "example": "result:true, pipeline:false",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "example": "tag1,tag2",
             "schema": {
               "type": "string"
             }
@@ -26679,6 +26694,13 @@
           "exists": {
             "type": "object",
             "description": "only return records that has fields"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "filter by tags (AND logic)"
           }
         },
         "example": {

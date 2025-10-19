@@ -28,7 +28,8 @@ config.apiServer = {
     protocol: 'http',
     host: process.env.API_SERVER_SERVICE_HOST || 'localhost',
     port: process.env.API_SERVER_SERVICE_PORT || 3000,
-    path: 'internal/v1/exec/stored'
+    storedPath: 'internal/v1/exec/stored',
+    pipelinesPath: 'internal/v1/exec/pipelines'
 };
 
 module.exports = config;

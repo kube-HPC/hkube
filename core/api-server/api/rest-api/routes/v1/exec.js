@@ -14,6 +14,13 @@ const createQueryObjectFromString = (str) => {
     }, {});
 };
 
+const parseCommaSeparatedArray = (str) => {
+    if (!str || typeof str !== 'string') return [];
+    return str.split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+};
+
 const routes = (options) => {
     const router = RestServer.router();
     router.get('/', keycloak.getProtect(keycloakRoles.API_VIEW), (req, res) => {
@@ -164,7 +171,8 @@ const routes = (options) => {
     });
 
     router.get('/search', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
-        const { experimentName, pipelineName, pipelineType, algorithmName, pipelineStatus, from, to, cursor, page, sort, limit, fields, exists } = req.query;
+        const { experimentName, pipelineName, pipelineType, algorithmName, pipelineStatus, from, to, cursor, page, sort, limit, fields, exists, tags } = req.query;
+
         const search = {
             query: {
                 experimentName,
@@ -172,7 +180,8 @@ const routes = (options) => {
                 pipelineType,
                 algorithmName,
                 pipelineStatus,
-                datesRange: { from, to }
+                datesRange: { from, to },
+                tags: parseCommaSeparatedArray(tags)
             },
             cursor,
             sort,

@@ -47,6 +47,11 @@ properties:
   exists:
     type: object
     description: only return records that has fields
+  tags:
+    type: array
+    items:
+      type: string
+    description: filter by tags (AND logic)
 
 example:
   query:
