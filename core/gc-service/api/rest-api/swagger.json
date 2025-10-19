@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.9",
+    "version": "2.9.11",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -1888,7 +1888,8 @@
                     "pipelineName": "simple",
                     "pipelineType": "stored",
                     "algorithmName": "green-alg",
-                    "pipelineStatus": "completed"
+                    "pipelineStatus": "completed",
+                    "tags": "tag1, tag2"
                   },
                   "sort": "desc",
                   "pageNum": 1,
@@ -26713,7 +26714,8 @@
             "pipelineName": "simple",
             "pipelineType": "stored",
             "algorithmName": "green-alg",
-            "pipelineStatus": "completed"
+            "pipelineStatus": "completed",
+            "tags": "tag1, tag2"
           },
           "sort": "desc",
           "pageNum": 1,
