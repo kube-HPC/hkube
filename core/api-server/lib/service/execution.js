@@ -273,7 +273,9 @@ class ExecutionService {
 
     async getRunningPipelines() {
         const list = await stateManager.searchJobs({ hasResult: false, fields: { jobId: true, pipeline: true } });
-        return list.map(l => ({ jobId: l.jobId, ...l.pipeline }));
+        return list
+            .filter(job => job.jobId)
+            .map(job => ({ jobId: job.jobId, ...job.pipeline }));
     }
 
     async getActivePipelines({ status, raw } = {}) {
