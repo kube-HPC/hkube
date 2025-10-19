@@ -375,7 +375,6 @@ describe('TaskRunner', function () {
                                 requestsOverMaxCapacity: []
                             },
                         ],
-                        
                     }
                 }
             },
@@ -464,7 +463,6 @@ Node: node4 -`);
                                 requestsOverMaxCapacity: [['cpu', true]]
                             },
                         ],
-                        
                     }
                 }
             },
@@ -579,7 +577,6 @@ Node: node4 -`);
                                 requestsOverMaxCapacity: []
                             },
                         ],
-                        
                     }
                 }
             },
@@ -665,7 +662,6 @@ Node: node4 -`);
                                 requestsOverMaxCapacity: []
                             },
                         ],
-                        
                     }
                 }
             },
@@ -752,7 +748,6 @@ Node: node4 -`);
                                 requestsOverMaxCapacity: [['cpu', true], ['mem', true], ['gpu', true]]
                             },
                         ],
-                        
                     }
                 }
             },
