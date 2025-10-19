@@ -11,6 +11,7 @@ const Progress = require('../progress/nodes-progress');
 const DriverStates = require('../state/DriverStates');
 const Boards = require('../boards/boards');
 const component = require('../consts/componentNames').TASK_RUNNER;
+const gpuVendors = require('../consts/gpu-vendors');
 const GraphStore = require('../datastore/graph-store');
 const cachePipeline = require('./cache-pipeline');
 const uniqueDiscovery = require('../helpers/discovery');
@@ -225,8 +226,9 @@ class TaskRunner {
                 nodeErrorArray[i] = 1; // If a node has a request over capacity, it will never be valid for scheduling
                 resourceMessage += 'over capacity: ';
                 node.requestsOverMaxCapacity.forEach(([k]) => {
+                    const currentResource = k === 'gpu' ? gpuVendors.NVIDIA : k;
                     const totalResourceOfNode = clusterNodes.filter(n => n.name === node.nodeName)[0].total[k];
-                    resourceMessage += `${k} - requested-${unScheduledAlg.requestedResources[k]}, available-${totalResourceOfNode} ,\n`; // add requested and also total for node
+                    resourceMessage += `${k} - requested-${unScheduledAlg.requestedResources[currentResource]}, available-${totalResourceOfNode} ,\n`; // add requested and also total for node
                     const currentValue = breachCountPerResource.get(k);
                     breachCountPerResource.set(k, currentValue + 1);
                 });
@@ -240,7 +242,8 @@ class TaskRunner {
                 resourceMessage = '';
                 overCapKeys.forEach(key => {
                     const maxResourceByType = this._getLargestCapacityByType(clusterNodes, key);
-                    resourceMessage += `Your request of ${key} = ${unScheduledAlg.requestedResources[key]} is over max capacity of ${maxResourceByType}.\n`;
+                    const currentResource = key === 'gpu' ? gpuVendors.NVIDIA : key;
+                    resourceMessage += `Your request of ${key} = ${unScheduledAlg.requestedResources[currentResource]} is over max capacity of ${maxResourceByType}.\n`;
                 }); // If there are over-capacity for a resource type over all available cluster nodes, give out a concise clue.
             }
         }

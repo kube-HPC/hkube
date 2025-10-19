@@ -13,6 +13,7 @@ const WorkerStub = require('./mocks/worker')
 const { delay, createJobId } = require('./utils');
 const graphStore = new GraphStore();
 let config, stateManager, taskRunner, TaskRunner, consumer;
+const gpuVendors = require('../lib/consts/gpu-vendors');
 
 describe('TaskRunner', function () {
     before(async () => {
@@ -374,7 +375,6 @@ describe('TaskRunner', function () {
                                 requestsOverMaxCapacity: []
                             },
                         ],
-                        
                     }
                 }
             },
@@ -412,6 +412,11 @@ describe('TaskRunner', function () {
         expect(node.status).to.equal(algorithm.reason);
         expect(node.batch[0].status).to.equal(algorithm.reason);
         expect(node.warnings.length).to.equal(1);
+        expect(node.warnings[0]).to.equal(`Maximum capacity exceeded cpu (4)
+Node: node1 -  over capacity: cpu - requested-2, available-1 ,
+Node: node2 -  over capacity: cpu - requested-2, available-1 ,
+Node: node3 -  over capacity: cpu - requested-2, available-1 ,
+Node: node4 -`);
     });
     it('should start pipeline and handle maximum capacity exceeded - produce error', async function () {
         const jobId = createJobId();
@@ -458,7 +463,6 @@ describe('TaskRunner', function () {
                                 requestsOverMaxCapacity: [['cpu', true]]
                             },
                         ],
-                        
                     }
                 }
             },
@@ -573,7 +577,6 @@ describe('TaskRunner', function () {
                                 requestsOverMaxCapacity: []
                             },
                         ],
-                        
                     }
                 }
             },
@@ -659,7 +662,6 @@ describe('TaskRunner', function () {
                                 requestsOverMaxCapacity: []
                             },
                         ],
-                        
                     }
                 }
             },
@@ -697,5 +699,102 @@ describe('TaskRunner', function () {
         expect(node.status).to.equal(algorithm.reason);
         expect(node.batch[0].status).to.equal(algorithm.reason);
         expect(node.error).to.equal("template error message of job creation failed");
+    });
+
+    it('should start pipeline and handle maximum capacity exceeded, and write correct error message - produce warning', async function () {
+        const jobId = createJobId();
+        const job = {
+            data: { jobId },
+            done: () => { }
+        }
+        const pipeline = pipelines.find(p => p.name === 'flow2');
+        const status = { status: 'pending' };
+        await stateManager.createJob({ jobId, pipeline, status });
+        await consumer._handleJob(job);
+        const driver = consumer._drivers.get(jobId);
+        const node = driver._nodes.getNode('green');
+        const algorithmName = node.algorithmName;
+        const discovery = {
+            unScheduledAlgorithms: {
+                [algorithmName]: {
+                    algorithmName: algorithmName,
+                    type: 'warning',
+                    reason: 'failedScheduling',
+                    surpassTimeout: true,
+                    message: 'Maximum capacity exceeded cpu (4)',
+                    timestamp: Date.now(),
+                    code: warningCodes.RESOURCES,
+                    requestedResources: {
+                      cpu: 2,
+                      mem: 2,
+                      [gpuVendors.NVIDIA]: 2
+                    },
+                    complexResourceDescriptor: {
+                        "nodes": [
+                            {
+                                nodeName : 'node1',
+                                requestsOverMaxCapacity: [['cpu', true], ['mem', true], ['gpu', true]]
+                            },
+                            {
+                                nodeName : 'node2',
+                                requestsOverMaxCapacity: [['cpu', true], ['mem', true], ['gpu', true]]
+                            },
+                            {
+                                nodeName : 'node3',
+                                requestsOverMaxCapacity: [['cpu', true], ['mem', true], ['gpu', true]]
+                            },
+                            {
+                                nodeName : 'node4',
+                                requestsOverMaxCapacity: [['cpu', true], ['mem', true], ['gpu', true]]
+                            },
+                        ],
+                    }
+                }
+            },
+            nodes: [
+                {
+                    "name" : "node1",
+                    "total" : {
+                        "cpu" : 1,
+                        "mem" : 1,
+                        "gpu" : 1
+                    }
+                },
+                {
+                    "name" : "node2",
+                    "total" : {
+                        "cpu" : 1,
+                        "mem" : 1,
+                        "gpu" : 1
+                    }
+                },
+                {
+                    "name" : "node3",
+                    "total" : {
+                        "cpu" : 1,
+                        "mem" : 1,
+                        "gpu" : 1
+                    }
+                },
+                {
+                    "name" : "node4",
+                    "total" : {
+                        "cpu" : 1,
+                        "mem" : 1,
+                        "gpu" : 1
+                    }
+                }
+            ]
+        }
+        const etcd = new Etcd(config.etcd);
+        await etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
+        await delay(2000);
+        const algorithm = discovery.unScheduledAlgorithms[algorithmName];
+        expect(node.status).to.equal(algorithm.reason);
+        expect(node.batch[0].status).to.equal(algorithm.reason);
+        expect(node.error).to.equal(`Maximum capacity exceeded cpu (4)
+Your request of gpu = 2 is over max capacity of 1.
+Your request of mem = 2 is over max capacity of 1.
+Your request of cpu = 2 is over max capacity of 1`);
     });
 });
