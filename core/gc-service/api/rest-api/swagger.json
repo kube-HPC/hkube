@@ -7106,6 +7106,35 @@
                       "nullable": true,
                       "description": "key value environment variables for worker"
                     },
+                    "kaiObject": {
+                      "type": "object",
+                      "nullable": true,
+                      "description": "Configuration for KAI Scheduler integration",
+                      "properties": {
+                        "queue": {
+                          "type": "string",
+                          "description": "Name of the KAI queue to assign the algorithm to"
+                        },
+                        "memory": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+                        },
+                        "fraction": {
+                          "type": "number",
+                          "nullable": true,
+                          "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+                        }
+                      },
+                      "required": [
+                        "queue"
+                      ],
+                      "example": {
+                        "queue": "test",
+                        "memory": "512Mi",
+                        "fraction": 0.5
+                      }
+                    },
                     "nodeSelector": {
                       "type": "object",
                       "nullable": true,
@@ -7801,6 +7830,35 @@
                         "nullable": true,
                         "description": "key value environment variables for worker"
                       },
+                      "kaiObject": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Configuration for KAI Scheduler integration",
+                        "properties": {
+                          "queue": {
+                            "type": "string",
+                            "description": "Name of the KAI queue to assign the algorithm to"
+                          },
+                          "memory": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "nullable": true,
+                            "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+                          }
+                        },
+                        "required": [
+                          "queue"
+                        ],
+                        "example": {
+                          "queue": "test",
+                          "memory": "512Mi",
+                          "fraction": 0.5
+                        }
+                      },
                       "nodeSelector": {
                         "type": "object",
                         "nullable": true,
@@ -8302,6 +8360,35 @@
                         "nullable": true,
                         "description": "key value environment variables for worker"
                       },
+                      "kaiObject": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Configuration for KAI Scheduler integration",
+                        "properties": {
+                          "queue": {
+                            "type": "string",
+                            "description": "Name of the KAI queue to assign the algorithm to"
+                          },
+                          "memory": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "nullable": true,
+                            "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+                          }
+                        },
+                        "required": [
+                          "queue"
+                        ],
+                        "example": {
+                          "queue": "test",
+                          "memory": "512Mi",
+                          "fraction": 0.5
+                        }
+                      },
                       "nodeSelector": {
                         "type": "object",
                         "nullable": true,
@@ -8790,6 +8877,35 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value environment variables for worker"
+                      },
+                      "kaiObject": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Configuration for KAI Scheduler integration",
+                        "properties": {
+                          "queue": {
+                            "type": "string",
+                            "description": "Name of the KAI queue to assign the algorithm to"
+                          },
+                          "memory": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "nullable": true,
+                            "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+                          }
+                        },
+                        "required": [
+                          "queue"
+                        ],
+                        "example": {
+                          "queue": "test",
+                          "memory": "512Mi",
+                          "fraction": 0.5
+                        }
                       },
                       "nodeSelector": {
                         "type": "object",
@@ -9352,6 +9468,35 @@
                         "nullable": true,
                         "description": "key value environment variables for worker"
                       },
+                      "kaiObject": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Configuration for KAI Scheduler integration",
+                        "properties": {
+                          "queue": {
+                            "type": "string",
+                            "description": "Name of the KAI queue to assign the algorithm to"
+                          },
+                          "memory": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "nullable": true,
+                            "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+                          }
+                        },
+                        "required": [
+                          "queue"
+                        ],
+                        "example": {
+                          "queue": "test",
+                          "memory": "512Mi",
+                          "fraction": 0.5
+                        }
+                      },
                       "nodeSelector": {
                         "type": "object",
                         "nullable": true,
@@ -9901,6 +10046,35 @@
                         "nullable": true,
                         "description": "key value environment variables for worker"
                       },
+                      "kaiObject": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Configuration for KAI Scheduler integration",
+                        "properties": {
+                          "queue": {
+                            "type": "string",
+                            "description": "Name of the KAI queue to assign the algorithm to"
+                          },
+                          "memory": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "nullable": true,
+                            "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+                          }
+                        },
+                        "required": [
+                          "queue"
+                        ],
+                        "example": {
+                          "queue": "test",
+                          "memory": "512Mi",
+                          "fraction": 0.5
+                        }
+                      },
                       "nodeSelector": {
                         "type": "object",
                         "nullable": true,
@@ -10391,6 +10565,35 @@
                           "type": "object",
                           "nullable": true,
                           "description": "key value environment variables for worker"
+                        },
+                        "kaiObject": {
+                          "type": "object",
+                          "nullable": true,
+                          "description": "Configuration for KAI Scheduler integration",
+                          "properties": {
+                            "queue": {
+                              "type": "string",
+                              "description": "Name of the KAI queue to assign the algorithm to"
+                            },
+                            "memory": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+                            },
+                            "fraction": {
+                              "type": "number",
+                              "nullable": true,
+                              "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+                            }
+                          },
+                          "required": [
+                            "queue"
+                          ],
+                          "example": {
+                            "queue": "test",
+                            "memory": "512Mi",
+                            "fraction": 0.5
+                          }
                         },
                         "nodeSelector": {
                           "type": "object",
@@ -18045,6 +18248,35 @@
                         "nullable": true,
                         "description": "key value environment variables for worker"
                       },
+                      "kaiObject": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Configuration for KAI Scheduler integration",
+                        "properties": {
+                          "queue": {
+                            "type": "string",
+                            "description": "Name of the KAI queue to assign the algorithm to"
+                          },
+                          "memory": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "nullable": true,
+                            "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+                          }
+                        },
+                        "required": [
+                          "queue"
+                        ],
+                        "example": {
+                          "queue": "test",
+                          "memory": "512Mi",
+                          "fraction": 0.5
+                        }
+                      },
                       "nodeSelector": {
                         "type": "object",
                         "nullable": true,
@@ -18598,6 +18830,35 @@
                         "type": "object",
                         "nullable": true,
                         "description": "key value environment variables for worker"
+                      },
+                      "kaiObject": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Configuration for KAI Scheduler integration",
+                        "properties": {
+                          "queue": {
+                            "type": "string",
+                            "description": "Name of the KAI queue to assign the algorithm to"
+                          },
+                          "memory": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+                          },
+                          "fraction": {
+                            "type": "number",
+                            "nullable": true,
+                            "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+                          }
+                        },
+                        "required": [
+                          "queue"
+                        ],
+                        "example": {
+                          "queue": "test",
+                          "memory": "512Mi",
+                          "fraction": 0.5
+                        }
                       },
                       "nodeSelector": {
                         "type": "object",
@@ -23708,6 +23969,35 @@
             "nullable": true,
             "description": "key value environment variables for worker"
           },
+          "kaiObject": {
+            "type": "object",
+            "nullable": true,
+            "description": "Configuration for KAI Scheduler integration",
+            "properties": {
+              "queue": {
+                "type": "string",
+                "description": "Name of the KAI queue to assign the algorithm to"
+              },
+              "memory": {
+                "type": "string",
+                "nullable": true,
+                "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+              },
+              "fraction": {
+                "type": "number",
+                "nullable": true,
+                "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+              }
+            },
+            "required": [
+              "queue"
+            ],
+            "example": {
+              "queue": "test",
+              "memory": "512Mi",
+              "fraction": 0.5
+            }
+          },
           "nodeSelector": {
             "type": "object",
             "nullable": true,
@@ -24374,6 +24664,35 @@
                 "nullable": true,
                 "description": "key value environment variables for worker"
               },
+              "kaiObject": {
+                "type": "object",
+                "nullable": true,
+                "description": "Configuration for KAI Scheduler integration",
+                "properties": {
+                  "queue": {
+                    "type": "string",
+                    "description": "Name of the KAI queue to assign the algorithm to"
+                  },
+                  "memory": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+                  },
+                  "fraction": {
+                    "type": "number",
+                    "nullable": true,
+                    "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+                  }
+                },
+                "required": [
+                  "queue"
+                ],
+                "example": {
+                  "queue": "test",
+                  "memory": "512Mi",
+                  "fraction": 0.5
+                }
+              },
               "nodeSelector": {
                 "type": "object",
                 "nullable": true,
@@ -24716,6 +25035,35 @@
           "name",
           "mountPath"
         ]
+      },
+      "kaiObject": {
+        "type": "object",
+        "nullable": true,
+        "description": "Configuration for KAI Scheduler integration",
+        "properties": {
+          "queue": {
+            "type": "string",
+            "description": "Name of the KAI queue to assign the algorithm to"
+          },
+          "memory": {
+            "type": "string",
+            "nullable": true,
+            "description": "Memory limit to request (e.g., \"512Mi\", \"1Gi\")"
+          },
+          "fraction": {
+            "type": "number",
+            "nullable": true,
+            "description": "Fraction of resource usage (e.g., 0.5 for 50%)"
+          }
+        },
+        "required": [
+          "queue"
+        ],
+        "example": {
+          "queue": "test",
+          "memory": "512Mi",
+          "fraction": 0.5
+        }
       },
       "createBoardRequest": {
         "type": "object",
