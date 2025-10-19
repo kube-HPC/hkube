@@ -168,6 +168,8 @@ properties:
     type: object
     nullable: true
     description: key value environment variables for worker
+  kaiObject:
+    $ref: "#/components/schemas/kaiObject"
   nodeSelector:
     type: object
     nullable: true
