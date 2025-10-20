@@ -1212,7 +1212,14 @@ describe('reconciler', () => {
             const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             const res = await reconciler.reconcile(argument);
             await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
-            expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);globalSettings.sidecars
+            expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);
+        });
+
+        it('should schedule algorithm without cpu limit if applyCpuLimits is false', async () => {
+            const algorithm = algorithmTemplates['alg-no-cpu-limit'];
+            const argument = createReconcileArgs(algorithm.name);
+            const res = await reconciler.reconcile(argument);
+            expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);
         });
     });
 
