@@ -1888,7 +1888,8 @@
                     "pipelineName": "simple",
                     "pipelineType": "stored",
                     "algorithmName": "green-alg",
-                    "pipelineStatus": "completed"
+                    "pipelineStatus": "completed",
+                    "tags": "tag1, tag2"
                   },
                   "sort": "desc",
                   "pageNum": 1,
@@ -26768,7 +26769,8 @@
             "pipelineName": "simple",
             "pipelineType": "stored",
             "algorithmName": "green-alg",
-            "pipelineStatus": "completed"
+            "pipelineStatus": "completed",
+            "tags": "tag1, tag2"
           },
           "sort": "desc",
           "pageNum": 1,
