@@ -552,6 +552,20 @@ const templateStore = [
         algorithmImage: 'hkube/algorunner',
         cpu: 0.5,
         mem: '256Mi'
+    },
+    {
+        name: 'alg-no-cpu-limit',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.3,
+        mem: '256Mi',
+        applyCpuLimits: false
+    },
+    {
+        name: 'alg-with-cpu-limit',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.3,
+        mem: '256Mi',
+        applyCpuLimits: true
     }
 ];
 
