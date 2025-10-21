@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.11",
+    "version": "2.9.12",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6887,7 +6887,7 @@
                     "applyCpuLimits": {
                       "type": "boolean",
                       "description": "whether to apply cpu limits to the algorithm",
-                      "default": true
+                      "example": true
                     },
                     "gpu": {
                       "type": "number",
@@ -7616,7 +7616,7 @@
                       "applyCpuLimits": {
                         "type": "boolean",
                         "description": "whether to apply cpu limits to the algorithm",
-                        "default": true
+                        "example": true
                       },
                       "gpu": {
                         "type": "number",
@@ -8151,7 +8151,7 @@
                       "applyCpuLimits": {
                         "type": "boolean",
                         "description": "whether to apply cpu limits to the algorithm",
-                        "default": true
+                        "example": true
                       },
                       "gpu": {
                         "type": "number",
@@ -8674,7 +8674,7 @@
                       "applyCpuLimits": {
                         "type": "boolean",
                         "description": "whether to apply cpu limits to the algorithm",
-                        "default": true
+                        "example": true
                       },
                       "gpu": {
                         "type": "number",
@@ -9269,7 +9269,7 @@
                       "applyCpuLimits": {
                         "type": "boolean",
                         "description": "whether to apply cpu limits to the algorithm",
-                        "default": true
+                        "example": true
                       },
                       "gpu": {
                         "type": "number",
@@ -9852,7 +9852,7 @@
                       "applyCpuLimits": {
                         "type": "boolean",
                         "description": "whether to apply cpu limits to the algorithm",
-                        "default": true
+                        "example": true
                       },
                       "gpu": {
                         "type": "number",
@@ -10377,7 +10377,7 @@
                         "applyCpuLimits": {
                           "type": "boolean",
                           "description": "whether to apply cpu limits to the algorithm",
-                          "default": true
+                          "example": true
                         },
                         "gpu": {
                           "type": "number",
@@ -18064,7 +18064,7 @@
                       "applyCpuLimits": {
                         "type": "boolean",
                         "description": "whether to apply cpu limits to the algorithm",
-                        "default": true
+                        "example": true
                       },
                       "gpu": {
                         "type": "number",
@@ -18652,7 +18652,7 @@
                       "applyCpuLimits": {
                         "type": "boolean",
                         "description": "whether to apply cpu limits to the algorithm",
-                        "default": true
+                        "example": true
                       },
                       "gpu": {
                         "type": "number",
@@ -23795,7 +23795,7 @@
           "applyCpuLimits": {
             "type": "boolean",
             "description": "whether to apply cpu limits to the algorithm",
-            "default": true
+            "example": true
           },
           "gpu": {
             "type": "number",
@@ -24495,7 +24495,7 @@
               "applyCpuLimits": {
                 "type": "boolean",
                 "description": "whether to apply cpu limits to the algorithm",
-                "default": true
+                "example": true
               },
               "gpu": {
                 "type": "number",

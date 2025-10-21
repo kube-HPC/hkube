@@ -16,7 +16,7 @@ properties:
   applyCpuLimits:
     type: boolean
     description: whether to apply cpu limits to the algorithm
-    default: true
+    example: true
   gpu:
     type: number
     minimum: 0
