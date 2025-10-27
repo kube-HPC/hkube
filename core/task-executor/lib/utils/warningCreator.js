@@ -47,7 +47,7 @@ const _createWarning = ({ algorithmName, predictedStatus, surpassTimeout = false
  */
 const _createResourcesWarning = ({ unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesAfterSelector, code }) => {
     const messages = [];
-    let ns;
+    let ns = [];
     let complexResourceDescriptor;
     if (unMatchedNodesBySelector) {
         ns = Object.entries(jobDetails.nodeSelector).map(([k, v]) => `${k}=${v}`); // Key value array of selectors
