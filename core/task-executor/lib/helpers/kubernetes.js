@@ -8,11 +8,36 @@ const { kaiValues } = require('../consts');
 const component = components.K8S;
 const CONTAINERS = containers;
 
+const RETRY_LIMIT = 2;
+
 let log;
 
 class KubernetesApi {
+    async withResilience(fn, label, retries = RETRY_LIMIT) {
+        let lastError;
+        const attemptFn = async (attempt) => {
+            try {
+                return await Promise.race([
+                    fn(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timeout after ${this._defaultTimeoutMs}ms`)), this._defaultTimeoutMs))
+                ]);
+            }
+            catch (err) {
+                lastError = err;
+                if (attempt < retries) {
+                    log.warning(`[Resilience] ${label} attempt ${attempt} failed: ${err.message}. Retrying...`, { component });
+                    return attemptFn(attempt + 1);
+                }
+            }
+            log.error(`[Resilience] ${label} failed after ${retries} attempts: ${lastError.message}`, { component });
+            throw lastError;
+        };
+        return attemptFn(1);
+    }
+
     async init(options = {}) {
         log = Logger.GetLogFromContainer();
+        this._defaultTimeoutMs = options.intervalMs;
         this._warnWasLogged = { crdMissing: false, noLimitRange: false, moreThanOneLimit: false }; // To avoid spamming the logs
         this._client = new KubernetesClient();
         await this._client.init(options.kubernetes);
@@ -31,7 +56,7 @@ class KubernetesApi {
     async createJob({ spec, jobDetails = {} }) {
         log.info(`Creating job ${spec.metadata.name}${jobDetails.hotWorker ? ' [hot-worker]' : ''}`, { component });
         try {
-            const res = await this._client.jobs.create({ spec });
+            const res = await this.withResilience(() => this._client.jobs.create({ spec }), 'createJob');
             return { ...res, jobDetails };
         }
         catch (error) {
@@ -42,7 +67,7 @@ class KubernetesApi {
     }
 
     async getWorkerJobs() {
-        const jobsRaw = await this._client.jobs.get({ labelSelector: `type=${CONTAINERS.WORKER},group=hkube` });
+        const jobsRaw = await this.withResilience(() => this._client.jobs.get({ labelSelector: `type=${CONTAINERS.WORKER},group=hkube` }), 'getWorkerJobs');
         return jobsRaw;
     }
 
@@ -54,12 +79,12 @@ class KubernetesApi {
         if (!podSelector) {
             return [];
         }
-        const pods = await this._client.pods.get({ labelSelector: podSelector });
+        const pods = await this.withResilience(() => this._client.pods.get({ labelSelector: podSelector }), 'getPodsForJob');
         return pods;
     }
 
     async getVersionsConfigMap() {
-        const res = await this._client.configMaps.get({ name: 'hkube-versions' });
+        const res = await this.withResilience(() => this._client.configMaps.get({ name: 'hkube-versions' }), 'getVersionsConfigMap');
         return this._client.configMaps.extractConfigMap(res);
     }
 
@@ -69,7 +94,7 @@ class KubernetesApi {
     }
 
     async _getNamespacedResources() {
-        const podsRaw = await this._client.pods.all(true);
+        const podsRaw = await this.withResilience(() => this._client.pods.all(true), 'getNamespacedPods');
         const pods = {
             body: {
                 items: podsRaw.body.items.map((p) => {
@@ -78,7 +103,7 @@ class KubernetesApi {
                 })
             }
         };
-        const quota = await this._client.resourcequotas.get();
+        const quota = await this.withResilience(() => this._client.resourcequotas.get(), 'getResourceQuotas');
         const hard = objectPath.get(quota, 'body.items.0.spec.hard', this._defaultQuota);
         const cpu = hard['limits.cpu'] || this._defaultQuota['limits.cpu'];
         const memory = hard['limits.memory'] || this._defaultQuota['limits.memory'];
@@ -107,8 +132,8 @@ class KubernetesApi {
     }
 
     async _getNamespacedWithNodeListResources() {
-        const pods = await this._client.pods.all(true);
-        const nodesConfigMap = await this._client.configMaps.get({ name: 'hkube-nodes' });
+        const pods = await this.withResilience(() => this._client.pods.all(true), 'getNamespacedPodsWithNodeList');
+        const nodesConfigMap = await this.withResilience(() => this._client.configMaps.get({ name: 'hkube-nodes' }), 'getNodesConfigMap');
         let nodes = { items: [] };
         if (nodesConfigMap && nodesConfigMap.body.data['nodes.json']) {
             nodes = JSON.parse(nodesConfigMap.body.data['nodes.json']);
@@ -123,7 +148,10 @@ class KubernetesApi {
         if (this._isNamespaced) {
             return this._getNamespacedResources();
         }
-        const [pods, nodes] = await Promise.all([this._client.pods.all(), this._client.nodes.all()]);
+        const [pods, nodes] = await Promise.all([
+            this.withResilience(() => this._client.pods.all(), 'getAllPods'),
+            this.withResilience(() => this._client.nodes.all(), 'getAllNodes')
+        ]);
         return { pods, nodes };
     }
 
@@ -137,7 +165,7 @@ class KubernetesApi {
      */
     async getAllPVCNames() {
         try {
-            const pvc = await this._client.pvc.all(true);
+            const pvc = await this.withResilience(() => this._client.pvc.all(true), 'getAllPVCNames');
             const names = pvc.body.items.map(p => p.metadata.name);
             return names;
         }
@@ -156,7 +184,7 @@ class KubernetesApi {
         */
     async getAllSecretNames() {
         try {
-            const secrets = await this._client.secrets.get({ secretName: '' });
+            const secrets = await this.withResilience(() => this._client.secrets.get({ secretName: '' }), 'getAllSecretNames');
             const names = secrets.body.items.map(secret => secret.metadata.name);
             return names;
         }
@@ -175,7 +203,7 @@ class KubernetesApi {
      */
     async getAllConfigMapNames() {
         try {
-            const configMaps = await this._client.configMaps.get({ name: '' });
+            const configMaps = await this.withResilience(() => this._client.configMaps.get({ name: '' }), 'getAllConfigMapNames');
             const names = configMaps.body.items.map(configMap => configMap.metadata.name);
             return names;
         }
@@ -199,11 +227,11 @@ class KubernetesApi {
     async getAllQueueNames() {
         try {
             // Check if Kai Queues CRD exists
-            const crdList = await this._client.crds.all({
+            const crdList = await this.withResilience(() => this._client.crds.all({
                 group: kaiValues.KUBERNETES.CRD_GROUP,
                 version: kaiValues.KUBERNETES.CRD_VERSION,
                 resource: kaiValues.KUBERNETES.CRD_RESOURCE
-            });
+            }), 'getKaiQueuesCRD');
 
             const exists = crdList?.body?.items?.some(cr => cr.metadata.name === kaiValues.KUBERNETES.QUEUES_CRD_NAME);
 
@@ -219,11 +247,11 @@ class KubernetesApi {
             const crd = crdList.body.items.find(cr => cr.metadata.name === kaiValues.KUBERNETES.QUEUES_CRD_NAME);
             const version = crd?.spec?.versions?.find(v => v.served)?.name;
 
-            const queuesList = await this._client.crds.all({
+            const queuesList = await this.withResilience(() => this._client.crds.all({
                 group: kaiValues.KUBERNETES.QUEUES_API_GROUP,
                 version,
                 resource: kaiValues.KUBERNETES.RESOURCE
-            });
+            }), 'getKaiQueuesList');
 
             return queuesList.body.items.map(q => q.metadata.name);
         }
@@ -239,7 +267,7 @@ class KubernetesApi {
      */
     async getContainerDefaultResources() {
         try {
-            const res = await this._client.limitRanges.all();
+            const res = await this.withResilience(() => this._client.limitRanges.all(), 'getContainerDefaultResources');
             const items = res.body?.items || [];
 
             const containerLimits = items
@@ -276,7 +304,7 @@ class KubernetesApi {
                     defaultLimits: selected.default?.memory
                 }
             };
-        } 
+        }
         catch (error) {
             log.error(`Failed to fetch container default resources ${error.message}`, { component }, error);
             return {};
