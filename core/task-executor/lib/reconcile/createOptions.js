@@ -58,10 +58,13 @@ const setAlgorithmImage = (template, versions, registry) => {
  * @param {number} [factor=1] - Scaling factor.
  * @returns {Object} Resource configuration object for Kubernetes.
  */
-const _createContainerResourceByFactor = ({ cpu, mem, gpu } = {}, factor = 1) => {
-    const cpuFactored = (cpu || 0.1) * factor;
+const _createContainerResourceByFactor = ({ cpu, mem, gpu } = {}, factor = 1, applyCpuLimits = true) => {
     const memory = `${(mem || 4) * factor}Mi`;
     const gpus = gpu ? { [gpuVendors.NVIDIA]: gpu } : null;
+    if (applyCpuLimits === false) {
+        return { memory, ...gpus };
+    }
+    const cpuFactored = (cpu || 0.1) * factor;
     return { cpu: cpuFactored, memory, ...gpus };
 };
 
@@ -74,7 +77,7 @@ const _createContainerResourceByFactor = ({ cpu, mem, gpu } = {}, factor = 1) =>
 const createContainerResource = (template) => {
     const requests = _createContainerResourceByFactor(template || {}, 1);
     const limitFactor = settings.useResourceLimits ? 1 : 2;
-    const limits = _createContainerResourceByFactor(template || {}, limitFactor);
+    const limits = _createContainerResourceByFactor(template || {}, limitFactor, template && template.applyCpuLimits);
     return { requests, limits };
 };
 

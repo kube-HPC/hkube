@@ -1260,6 +1260,43 @@ describe('Managers tests', () => {
                 expect(result.createDetails[0].jobDetails.algorithmName).to.equal('alg2');
                 expect(reconcileResult.alg2.required).to.equal(1);
             });
+
+            it('should create details of job without limit for cpu when applyCpuLimits is false', () => {
+                const algName = 'alg-no-cpu-limit';
+                const requests = [{ algorithmName: algName, requestType: 'batch' }];
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                    registry, clusterOptions, workerResources, reconcileResult);
+                
+                expect(result.createDetails).to.have.lengthOf(1);
+                expect(result.createDetails[0].jobDetails.resourceRequests.requests).to.be.an('object');
+                expect(result.createDetails[0].jobDetails.resourceRequests.requests).to.have.keys(['cpu', 'memory']);
+                expect(result.createDetails[0].jobDetails.resourceRequests.limits).to.have.key('memory');
+                expect(result.createDetails[0].jobDetails.resourceRequests.limits).to.not.have.key('cpu');
+            });
+
+            it('should create details of job with limit for cpu when applyCpuLimits is true', () => {
+                const algName = 'alg-with-cpu-limit';
+                const requests = [{ algorithmName: algName, requestType: 'batch' }];
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                    registry, clusterOptions, workerResources, reconcileResult);
+                
+                expect(result.createDetails).to.have.lengthOf(1);
+                expect(result.createDetails[0].jobDetails.resourceRequests.requests).to.be.an('object');
+                expect(result.createDetails[0].jobDetails.resourceRequests.requests).to.have.keys(['cpu', 'memory']);
+                expect(result.createDetails[0].jobDetails.resourceRequests.limits).to.have.keys(['cpu', 'memory']);
+            });
+            
+            it('should create details of job with limit for cpu when applyCpuLimits is not defined', () => {
+                const algName = 'alg1';
+                const requests = [{ algorithmName: algName, requestType: 'batch' }];
+                const result = jobsHandler._processAllRequests(allAllocatedJobs, algorithmTemplates, versions, requests,
+                    registry, clusterOptions, workerResources, reconcileResult);
+                
+                expect(result.createDetails).to.have.lengthOf(1);
+                expect(result.createDetails[0].jobDetails.resourceRequests.requests).to.be.an('object');
+                expect(result.createDetails[0].jobDetails.resourceRequests.requests).to.have.keys(['cpu', 'memory']);
+                expect(result.createDetails[0].jobDetails.resourceRequests.limits).to.have.keys(['cpu', 'memory']);
+            });
         });
 
         describe('_getExtraResources Method', () => {
