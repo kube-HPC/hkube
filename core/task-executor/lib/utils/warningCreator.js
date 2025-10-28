@@ -45,7 +45,7 @@ const _createWarning = ({ algorithmName, predictedStatus, surpassTimeout = false
  * @param {number} params.code - Warning code.
  * @returns {Object} Warning object.
  */
-const _createResourcesWarning = ({ unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesAfterSelector, code }) => {
+const _createResourcesWarning = ({ unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesAfterSelector, requestedResources, code }) => {
     const messages = [];
     let ns = [];
     let complexResourceDescriptor;
@@ -108,8 +108,7 @@ const _createResourcesWarning = ({ unMatchedNodesBySelector, jobDetails, nodesFo
         ...complexResourceDescriptor,
         nodes,
     };
-    const { algorithmName, resourceRequests } = jobDetails;
-    const { requests: requestedResources } = resourceRequests;
+    const { algorithmName } = jobDetails;
     const message = messages.join(', ');
     return _createWarning({
         algorithmName,
