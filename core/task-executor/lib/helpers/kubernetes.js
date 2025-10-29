@@ -8,12 +8,26 @@ const { kaiValues } = require('../consts');
 const component = components.K8S;
 const CONTAINERS = containers;
 
-const RETRY_LIMIT = 2;
-
 let log;
 
 class KubernetesApi {
-    async withResilience(fn, label, retries = RETRY_LIMIT) {
+    /**
+     * Run a function with timeout and automatic retries to protect against
+     * hung or transient Kubernetes API calls.
+     *
+     * Behavior:
+     * - Runs the provided async function `fn()` and races it against a timeout
+     *   configured by `this._defaultTimeoutMs`.
+     * - If the call fails or times out, it will be retried up to
+     *   `this._requestRetryLimit` attempts.
+     * - Logs a warning for each retry and an error when all attempts fail.
+     *
+     * @param {Function} fn - Async function that performs the Kubernetes client call and returns a Promise.
+     * @param {string} label - A short label used in logs to identify the operation.
+     * @returns {Promise<*>} Resolves with the value returned by `fn()` on success.
+     * @throws Will re-throw the last error if all retry attempts fail.
+     */
+    async withResilience(fn, label) {
         let lastError;
         const attemptFn = async (attempt) => {
             try {
@@ -24,12 +38,12 @@ class KubernetesApi {
             }
             catch (err) {
                 lastError = err;
-                if (attempt < retries) {
+                if (attempt < this._requestRetryLimit) {
                     log.warning(`[Resilience] ${label} attempt ${attempt} failed: ${err.message}. Retrying...`, { component });
                     return attemptFn(attempt + 1);
                 }
             }
-            log.error(`[Resilience] ${label} failed after ${retries} attempts: ${lastError.message}`, { component });
+            log.error(`[Resilience] ${label} failed after ${this._requestRetryLimit} attempts: ${lastError && lastError.message}`, { component });
             throw lastError;
         };
         return attemptFn(1);
@@ -38,6 +52,8 @@ class KubernetesApi {
     async init(options = {}) {
         log = Logger.GetLogFromContainer();
         this._defaultTimeoutMs = options.intervalMs;
+        // configure request retry limit for Kubernetes API calls
+        this._requestRetryLimit = options.kubernetes.requestAttemptRetryLimit;
         this._warnWasLogged = { crdMissing: false, noLimitRange: false, moreThanOneLimit: false }; // To avoid spamming the logs
         this._client = new KubernetesClient();
         await this._client.init(options.kubernetes);

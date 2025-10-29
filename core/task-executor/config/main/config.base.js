@@ -14,6 +14,8 @@ config.kubernetes = {
     namespace: process.env.NAMESPACE || 'default',
     isNamespaced: formatter.parseBool(process.env.IS_NAMESPACED, false),
     hasNodeList: formatter.parseBool(process.env.HAS_NODE_LIST, false),
+    // How many times to retry Kubernetes API requests before failing
+    requestAttemptRetryLimit: formatter.parseInt(process.env.KUBERNETES_REQUEST_RETRY_LIMIT, 2),
     isPrivileged: formatter.parseBool(process.env.IS_PRIVILEGED, true),
     labels: {
         gpu: process.env.GPU_NODE_SELECTOR_LABEL || 'hkube-gpu'
