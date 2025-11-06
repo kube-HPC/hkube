@@ -422,7 +422,7 @@ const applyKai = (inputSpec, kaiObject) => {
     
     const annotations = {};
     const labels = {};
-    if (memory) annotations[kaiValues.ANNOTATIONS.MEMORY] = parseInt(parse.getMemoryInMi(memory, true), 10);
+    if (memory) annotations[kaiValues.ANNOTATIONS.MEMORY] = parseInt(parse.getMemoryInMi(memory), 10);
     if (fraction) annotations[kaiValues.ANNOTATIONS.FRACTION] = fraction;
     labels[kaiValues.LABELS.QUEUE] = queue;
 

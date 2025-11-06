@@ -1753,6 +1753,30 @@ describe('Store/Algorithms', () => {
                     expect(response.body.error.message).to.contain('In kaiObject, only one of "memory" or "fraction" can be defined!');
                 });
 
+                it('should throw validation error if memory in kaiObject is not a valid format', async () => {
+                    const url = 'https://github.com/hkube/my.git.foo.bar';
+                    const body = {
+                        name: uuid(),
+                        gitRepository: {
+                            url
+                        },
+                        env: 'nodejs',
+                        type: 'Git',
+                        kaiObject: {
+                            queue: 'default',
+                            memory: '512'
+                        }
+                    };
+                    const options = {
+                        uri: applyPath,
+                        body: { payload: JSON.stringify(body) }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR);
+                    expect(response.body.error.message).to.contain('memory unit must be one of Ki,M,Mi,Gi,m,K,G,T,Ti');
+                });
+
                 it('should NOT throw validation error if kaiObject has only memory defined', async () => {
                     const url = 'https://github.com/hkube/my.git.foo.bar';
                     const body = {

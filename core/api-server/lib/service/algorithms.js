@@ -367,6 +367,7 @@ class AlgorithmStore {
         if (!kaiObject) return true;
 
         const hasMemory = kaiObject.memory !== undefined;
+        if (hasMemory) unitsConverter.getMemoryInMi(kaiObject.memory); // validate memory format
         const hasFraction = kaiObject.fraction !== undefined;
 
         // Valid if at most one is defined
