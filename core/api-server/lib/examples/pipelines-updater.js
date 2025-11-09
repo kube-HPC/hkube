@@ -34,7 +34,11 @@ class PipelinesUpdater {
             if (defaultData) {
                 list = await this._getDiff(defaultData, list);
             }
-            log.info(`${type}s: found ${list.length} to sync from storage to db`);
+            if (list.length === 0) {
+                log.info(`${type}s: no items to sync from storage to db`, { component });
+                return;
+            }
+            log.info(`${type}s: found ${list.length} to sync from storage to db`, { component });
             const result = await createFunc(type, list);
             this._logSyncSuccess(type, result);
         }
@@ -143,6 +147,13 @@ class PipelinesUpdater {
             await this._deleteEtcdPrefix('algorithms', '/algorithms/builds');
             await this._deleteStoragePrefix(type);
         }
+        catch (error) {
+            // Ignoring duplicate key error in case algorithms already exist in DB.
+            if (error?.message?.includes('E11000 duplicate key error')) {
+                return;
+            }
+            throw error;
+        }
         finally {
             // In case algorithms already exist in db, check if a new version needs to be added
             await this._syncAlgorithmsData(list);
@@ -207,6 +218,13 @@ class PipelinesUpdater {
             await this._deleteEtcdPrefix('pipelines', '/pipelines/store');
             await this._deleteStoragePrefix(type);
         }
+        catch (error) {
+            // Ignoring duplicate key error in case algorithms already exist in DB.
+            if (error?.message?.includes('E11000 duplicate key error')) {
+                return;
+            }
+            throw error;
+        }
         finally {
             // In case pipelines exist in db, createPipelines will fail but syncing is needed any case.
             await this._syncPipelinesData(list);
@@ -240,9 +258,18 @@ class PipelinesUpdater {
     }
 
     async _createExperiments(type, list) {
+        try {
         await stateManager.createExperiments(list);
         await this._deleteEtcdPrefix('experiments', '/experiment');
         await this._deleteStoragePrefix(type);
+        }
+        catch (error) {
+            // Ignoring duplicate key error in case experiments already exist in DB.
+            if (error?.message?.includes('E11000 duplicate key error')) {
+                return;
+            }
+            throw error;
+        }
     }
 
     async _createPipelinesReadMe(type, list) {
