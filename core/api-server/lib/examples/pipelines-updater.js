@@ -204,11 +204,16 @@ class PipelinesUpdater {
             message += message === "" ? "" : " ";
             message += `Created ${buildsCount} builds from etcd.`;
         }
+        if (message === "") {
+            message = `Algorithms are already synced.`;
+        }
         log.info(message, { component });
     }
 
     _logSyncSuccess(type, result) {
-        log.info(`${type}s: syncing success, synced: ${result?.inserted || 0}`, { component });
+        if (result?.inserted !== 0) {
+            log.info(`${type}s: syncing success, synced: ${result.inserted || 0}`, { component });
+        }
     }
 
     _logSyncFailed(type, error) {
@@ -264,6 +269,9 @@ class PipelinesUpdater {
         }
         if (addedVersionsCount > 0) {
             log.info(`Pipelines: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`, { component });
+        }
+        else {
+            log.info(`Algorithms are already synced.`, { component });
         }
     }
 
