@@ -161,36 +161,50 @@ class PipelinesUpdater {
     }
 
     async _syncAlgorithmsData(algorithmList) {
+        let etcd_versionsCount = 0;
         let versionsCount = 0;
         let buildsCount = 0;
         let addedVersionsCount = 0;
         const limit = 1000;
 
         for (const algorithm of algorithmList) {
-            const versions = await stateManager._etcd.algorithms.versions.list({ name: algorithm.name, limit });
+            const { name } = algorithm;
+            const etcd_versions = await stateManager._etcd.algorithms.versions.list({ name, limit });
+            const versions = await stateManager.getVersions({ name, limit }, true);
 
-            if (versions.length) {
-                versionsCount += versions.length;
-                await stateManager.createVersions(versions);
-            }
-            else {
-                // Add versions only to algorithms with no versions.
-                const existingVersion = await algorithmsVersionsService.getLatestSemver(algorithm);
-                if (!existingVersion) {
-                    const userName = keycloak.getPreferredUsername();
-                    const newVersion = await algorithmsVersionsService.createVersion(algorithm, undefined, userName);
-                    await algorithmsVersionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true });
-                    addedVersionsCount++;
-                }
+            if (etcd_versions.length) {
+                etcd_versionsCount += etcd_versions.length;
+                await stateManager.createVersions(etcd_versions);
             }
 
-            const builds = await stateManager._etcd.algorithms.builds.list({ name: algorithm.name, limit });
+            const algo = await stateManager.getAlgorithm({ name });
+            if (!algo.version) {  // occurs when algo was just created (either when it has versions in the past, or first time creation)
+                const userName = keycloak.getPreferredUsername();
+                const newVersion = await algorithmsVersionsService.createVersion(algorithm, undefined, userName);
+                await algorithmsVersionsService.applyVersion({ name, version: newVersion, force: true });
+                addedVersionsCount++;
+                versionsCount += versions.length; // Including previous versions if there are any.
+            }
+
+            const builds = await stateManager._etcd.algorithms.builds.list({ name, limit });
             if (builds.length) {
                 buildsCount += builds.length;
                 await stateManager.createBuilds(builds);
             }
         }
-        log.info(`algorithms: synced ${versionsCount} versions, added ${addedVersionsCount}, made ${buildsCount} builds to sync from storage to db`);
+        const message = "";
+        if (addedVersionsCount > 0) {
+            message += `Algorithms: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`;
+        }
+        if (etcd_versionsCount > 0) {
+            message += message === "" ? "" : " ";
+            message += `Synced ${etcd_versionsCount} versions from etcd.`;
+        }
+        if (buildsCount > 0) {
+            message += message === "" ? "" : " ";
+            message += `Created ${buildsCount} builds from etcd.`;
+        }
+        log.info(message, { component });
     }
 
     _logSyncSuccess(type, result) {
@@ -237,31 +251,27 @@ class PipelinesUpdater {
         const limit = 1000;
 
         for (const pipeline of pipelineList) {
-            const name = pipeline.name;
+            const { name } = pipeline;
             const versions = await stateManager.getVersions({ name, limit }, true);
-
-            if (versions.length) {
-                versionsCount += versions.length;
-            }
-            else {
-                // Add versions only to pipelines with no versions.
-                const existingVersion = await pipelinesVersionsService.getLatestSemver(pipeline);
-                if (!existingVersion) {
-                    const userName = keycloak.getPreferredUsername();
-                    const newVersion = await pipelinesVersionsService.createVersion(pipeline, userName);
-                    addedVersionsCount++;
-                    await pipelinesVersionsService.applyVersion({ name, version: newVersion, force: true });
-                }
+            const pipe = await stateManager.getPipeline({ name });
+            if (!pipe.version) {
+                const userName = keycloak.getPreferredUsername();
+                const newVersion = await pipelinesVersionsService.createVersion(pipe, undefined, userName);
+                await pipelinesVersionsService.applyVersion({ name, version: newVersion, force: true });
+                addedVersionsCount++;
+                versionsCount += versions.length; // Including previous versions if there are any.
             }
         }
-        log.info(`pipelines: synced ${versionsCount} versions and added ${addedVersionsCount} versions to sync from storage to db`);
+        if (addedVersionsCount > 0) {
+            log.info(`Pipelines: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`, { component });
+        }
     }
 
     async _createExperiments(type, list) {
         try {
-        await stateManager.createExperiments(list);
-        await this._deleteEtcdPrefix('experiments', '/experiment');
-        await this._deleteStoragePrefix(type);
+            await stateManager.createExperiments(list);
+            await this._deleteEtcdPrefix('experiments', '/experiment');
+            await this._deleteStoragePrefix(type);
         }
         catch (error) {
             // Ignoring duplicate key error in case experiments already exist in DB.
