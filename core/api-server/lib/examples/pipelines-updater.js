@@ -205,7 +205,7 @@ class PipelinesUpdater {
             message += `Created ${buildsCount} builds from etcd.`;
         }
         if (message === "") {
-            message = `Algorithms are already synced.`;
+            message += `Algorithms are already synced.`;
         }
         log.info(message, { component });
     }
