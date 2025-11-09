@@ -211,7 +211,7 @@ class PipelinesUpdater {
     }
 
     _logSyncSuccess(type, result) {
-        if (result?.inserted !== 0) {
+        if (result?.inserted > 0) {
             log.info(`${type}s: syncing success, synced: ${result.inserted || 0}`, { component });
         }
     }
@@ -271,7 +271,7 @@ class PipelinesUpdater {
             log.info(`Pipelines: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`, { component });
         }
         else {
-            log.info(`Algorithms are already synced.`, { component });
+            log.info(`Pipelines are already synced.`, { component });
         }
     }
 
