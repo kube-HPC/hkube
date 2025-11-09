@@ -9,13 +9,14 @@ const stateManager = require('../state/state-manager');
 const algorithmsVersionsService = require('../../lib/service/algorithm-versions');
 const pipelinesVersionsService = require('../../lib/service/pipeline-versions');
 const keycloak = require('../../lib/service/keycloak');
+const component = require('../consts/componentNames').PIPELINES_UPDATER;
 
 class PipelinesUpdater {
     async init(options) {
         this._defaultStorage = options.defaultStorage;
         const addDefaultAlgorithms = options.addDefaultAlgorithms !== 'false';
         const defaultAlgorithms = addDefaultAlgorithms ? algorithms : null;
-        log.info('--------starting sync process---------');
+        log.info('--------starting sync process---------', { component });
         await this._pipelineDriversTemplate(options);
         await this._transferJobsToDB();
         await this._transferGraphsToDB(options);
@@ -24,7 +25,7 @@ class PipelinesUpdater {
         await this._transferFromStorageToDB('experiment', experiments, (...args) => this._createExperiments(...args));
         await this._transferFromStorageToDB('readme/pipeline', null, (...args) => this._createPipelinesReadMe(...args));
         await this._transferFromStorageToDB('readme/algorithms', null, (...args) => this._createAlgorithmsReadMe(...args));
-        log.info('--------finish sync process---------');
+        log.info('--------finish sync process---------', { component });
     }
 
     async _transferFromStorageToDB(type, defaultData, createFunc) {
@@ -56,7 +57,7 @@ class PipelinesUpdater {
             });
             const missingGraphs = jobs.filter(j => !j.graph);
             if (missingGraphs.length === 0) {
-                log.info('jobs: there are no graphs to sync');
+                log.info('jobs: there are no graphs to sync', { component });
                 return;
             }
             const redisClient = Factory.getClient(options.redis);
@@ -75,17 +76,17 @@ class PipelinesUpdater {
                     await redisClient.del(key);
                     migrated += 1;
                 } catch (error) {
-                    log.throttle.warning(`error syncing graph ${error.message}`);
+                    log.throttle.warning(`error syncing graph ${error.message}`, { component });
                 }
             }))
             if (migrated > 0) {
-                log.info(`jobs: synced ${migrated} graphs from redis to db`);
+                log.info(`jobs: synced ${migrated} graphs from redis to db`, { component });
             }
             else {
-                log.info('jobs: there are no graphs to sync');
+                log.info('jobs: there are no graphs to sync', { component });
             }
         } catch (error) {
-            log.warning(`error syncing graphs. ${error.message}`);
+            log.warning(`error syncing graphs. ${error.message}`, { component });
         }
 
 
@@ -107,19 +108,19 @@ class PipelinesUpdater {
                     jobs += res.a;
                 }
                 catch (error) {
-                    log.throttle.warning(`error syncing job ${error.message}`);
+                    log.throttle.warning(`error syncing job ${error.message}`, { component });
                 }
             }));
             if (jobs.length > 0) {
-                log.info(`jobs: synced ${jobs.length} from etcd to db`);
+                log.info(`jobs: synced ${jobs.length} from etcd to db`, { component });
                 await this._deleteEtcdPrefix('jobs', '/jobs');
             }
             else {
-                log.info('jobs: there are no jobs to sync');
+                log.info('jobs: there are no jobs to sync', { component });
             }
         }
         catch (error) {
-            log.warning(`error syncing jobs. ${error.message}`);
+            log.warning(`error syncing jobs. ${error.message}`, { component });
         }
     }
 
@@ -136,7 +137,7 @@ class PipelinesUpdater {
     async _createAlgorithms(type, list) {
         try {
             const result = await stateManager.createAlgorithms(list);
-            log.info(`algorithms: synced ${result?.inserted || 0} to db`);
+            log.info(`algorithms: synced ${result?.inserted || 0} to db`, { component });
             await this._deleteEtcdPrefix('algorithms', '/algorithms/store');
             await this._deleteEtcdPrefix('algorithms', '/algorithms/versions');
             await this._deleteEtcdPrefix('algorithms', '/algorithms/builds');
@@ -182,11 +183,11 @@ class PipelinesUpdater {
     }
 
     _logSyncSuccess(type, result) {
-        log.info(`${type}s: syncing success, synced: ${result?.inserted || 0}`);
+        log.info(`${type}s: syncing success, synced: ${result?.inserted || 0}`, { component });
     }
 
     _logSyncFailed(type, error) {
-        log.warning(`${type}s: syncing failed. ${error.message}`);
+        log.warning(`${type}s: syncing failed. ${error.message}`, { component });
     }
 
     async _pipelineDriversTemplate(options) {
@@ -196,7 +197,7 @@ class PipelinesUpdater {
             await this._deleteEtcdPrefix('pipelineDrivers', '/pipelineDrivers/store');
         }
         catch (error) {
-            log.warning(`pipelineDrivers: failed to upload default drivers. ${error.message} `);
+            log.warning(`pipelineDrivers: failed to upload default drivers. ${error.message} `, { component });
         }
     }
 
@@ -256,12 +257,12 @@ class PipelinesUpdater {
 
     async _deleteEtcdPrefix(type, path) {
         const result = await stateManager._etcd._client.delete(path, { isPrefix: true });
-        log.info(`${type}: clean etcd path "${path}" deleted ${result.deleted} keys`);
+        log.info(`${type}: clean etcd path "${path}" deleted ${result.deleted} keys`, { component });
     }
 
     async _deleteStoragePrefix(type) {
         await storageManager.hkubeStore.delete({ type });
-        log.info(`${type}s: clean storage path "${type}"`);
+        log.info(`${type}s: clean storage path "${type}"`, { component });
     }
 }
 
