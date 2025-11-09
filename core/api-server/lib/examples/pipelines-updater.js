@@ -109,14 +109,14 @@ class PipelinesUpdater {
                 const { jobId: j2, ...pipeline } = executions.find(r => r.jobId === s.jobId) || {};
                 try {
                     const res = await stateManager._db.jobs.create({ jobId, status, result, pipeline });
-                    jobs += res.a;
+                    jobs ++;
                 }
                 catch (error) {
                     log.throttle.warning(`error syncing job ${error.message}`, { component });
                 }
             }));
-            if (jobs.length > 0) {
-                log.info(`jobs: synced ${jobs.length} from etcd to db`, { component });
+            if (jobs > 0) {
+                log.info(`jobs: synced ${jobs} from etcd to db`, { component });
                 await this._deleteEtcdPrefix('jobs', '/jobs');
             }
             else {
@@ -192,7 +192,7 @@ class PipelinesUpdater {
                 await stateManager.createBuilds(builds);
             }
         }
-        const message = "";
+        let message = "";
         if (addedVersionsCount > 0) {
             message += `Algorithms: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`;
         }
