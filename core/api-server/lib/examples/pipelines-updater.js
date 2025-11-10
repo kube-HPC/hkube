@@ -39,8 +39,8 @@ class PipelinesUpdater {
                 return;
             }
             log.info(`${type}s: found ${list.length} to sync from storage to db`, { component });
-            const result = await createFunc(type, list);
-            this._logSyncSuccess(type, result);
+            const resultMessage = await createFunc(type, list);
+            this._logSyncSuccess(type, resultMessage);
         }
         catch (error) {
             this._logSyncFailed(type, error);
@@ -139,6 +139,7 @@ class PipelinesUpdater {
     }
 
     async _createAlgorithms(type, list) {
+        let syncResult;
         try {
             const result = await stateManager.createAlgorithms(list);
             log.info(`algorithms: synced ${result?.inserted || 0} to db`, { component });
@@ -148,16 +149,13 @@ class PipelinesUpdater {
             await this._deleteStoragePrefix(type);
         }
         catch (error) {
-            // Ignoring duplicate key error in case algorithms already exist in DB.
-            if (error?.message?.includes('E11000 duplicate key error')) {
-                return;
-            }
-            throw error;
+            this._handleDuplicateKeyErrors(error);
         }
         finally {
             // In case algorithms already exist in db, check if a new version needs to be added
-            await this._syncAlgorithmsData(list);
+            syncResult = await this._syncAlgorithmsData(list);
         }
+        return syncResult;
     }
 
     async _syncAlgorithmsData(algorithmList) {
@@ -204,16 +202,11 @@ class PipelinesUpdater {
             message += message === "" ? "" : " ";
             message += `Created ${buildsCount} builds from etcd.`;
         }
-        if (message === "") {
-            message += `Algorithms are already synced.`;
-        }
-        log.info(message, { component });
+        return message === "" ? `Algorithms are already synced.` : message;
     }
 
-    _logSyncSuccess(type, result) {
-        if (result?.inserted > 0) {
-            log.info(`${type}s: syncing success, synced: ${result.inserted || 0}`, { component });
-        }
+    _logSyncSuccess(type, resultMessage) {
+        log.info(`${type}s syncing succeed: ${resultMessage}`, { component });
     }
 
     _logSyncFailed(type, error) {
@@ -232,22 +225,20 @@ class PipelinesUpdater {
     }
 
     async _createPipelines(type, list) {
+        let syncResult;
         try {
             await stateManager.createPipelines(list);
             await this._deleteEtcdPrefix('pipelines', '/pipelines/store');
             await this._deleteStoragePrefix(type);
         }
         catch (error) {
-            // Ignoring duplicate key error in case algorithms already exist in DB.
-            if (error?.message?.includes('E11000 duplicate key error')) {
-                return;
-            }
-            throw error;
+            this._handleDuplicateKeyErrors(error);
         }
         finally {
             // In case pipelines exist in db, createPipelines will fail but syncing is needed any case.
-            await this._syncPipelinesData(list);
+            syncResult = await this._syncPipelinesData(list);
         }
+        return syncResult;
     }
 
     async _syncPipelinesData(pipelineList) {
@@ -267,27 +258,25 @@ class PipelinesUpdater {
                 versionsCount += versions.length; // Including previous versions if there are any.
             }
         }
-        if (addedVersionsCount > 0) {
-            log.info(`Pipelines: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`, { component });
-        }
-        else {
-            log.info(`Pipelines are already synced.`, { component });
-        }
+        return addedVersionsCount === 0 ? `Pipelines are already synced.` : `Pipelines: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`;
     }
 
     async _createExperiments(type, list) {
+        let duplicateCount = 0;
+        let syncResult;
         try {
             await stateManager.createExperiments(list);
             await this._deleteEtcdPrefix('experiments', '/experiment');
             await this._deleteStoragePrefix(type);
         }
         catch (error) {
-            // Ignoring duplicate key error in case experiments already exist in DB.
-            if (error?.message?.includes('E11000 duplicate key error')) {
-                return;
-            }
-            throw error;
+            duplicateCount = this._handleDuplicateKeyErrors(error);
         }
+        finally {
+            const experimentsAdded = list.length - duplicateCount;
+            syncResult = experimentsAdded === 0 ? `Experiments are already synced.` : `Experiments: Added ${experimentsAdded} experiments.`;
+        }
+        return syncResult;
     }
 
     async _createPipelinesReadMe(type, list) {
@@ -308,6 +297,25 @@ class PipelinesUpdater {
     async _deleteStoragePrefix(type) {
         await storageManager.hkubeStore.delete({ type });
         log.info(`${type}s: clean storage path "${type}"`, { component });
+    }
+
+    // Filters out duplicate key errors and throws if there are other errors
+    _handleDuplicateKeyErrors(error) {
+        const all_error_messages = error?.writeErrors?.map(e => e.err?.errmsg || e.errmsg) || [];
+
+        // Ignore duplicate key errors
+        const filtered_errors = all_error_messages.filter(
+            msg => !msg.includes('E11000 duplicate key error')
+        );
+
+        if (filtered_errors.length > 0) {
+            const filteredError = new Error(
+                `Non-duplicate errors occurred during sync:\n${filtered_errors.join('\n')}`
+            );
+            filteredError.writeErrors = filtered_errors;
+            throw filteredError;
+        }
+        return all_error_messages.length - filtered_errors.length;
     }
 }
 
