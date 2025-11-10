@@ -87,7 +87,8 @@ describe('consumer tests', () => {
                 taskId: config.taskId,
                 input: ['test-param', true, 12345],
                 pipelineName: pipelineStatuses.STOPPED
-            }
+            },
+            done: () => { return }
         });
         await delay(1000);
         expect(spy.callCount).to.eq(1);
