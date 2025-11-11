@@ -1,8 +1,8 @@
 # auth
-auth_loginSuccess:
-  $ref: ./auth/loginSuccess.yaml
 auth_loginFailed:
   $ref: ./auth/loginFailed.yaml
+auth_loginSuccess:
+  $ref: ./auth/loginSuccess.yaml
 
 # common
 badRequest:
@@ -13,9 +13,17 @@ unauthorized:
   $ref: ./common/unauthorized.yaml
 
 # kubernetes
+kubernetes_jobSuccess:
+  $ref: ./kubernetes/jobSuccess.yaml
 kubernetes_notFound:
   $ref: ./kubernetes/notFound.yaml
 kubernetes_podSuccess:
   $ref: ./kubernetes/podSuccess.yaml
-kubernetes_jobSuccess:
-  $ref: ./kubernetes/jobSuccess.yaml
+
+# resources
+resources_notFound:
+  $ref: ./resources/notFound.yaml
+resources_successMany:
+  $ref: ./resources/successMany.yaml
+resources_successSingle:
+  $ref: ./resources/successSingle.yaml

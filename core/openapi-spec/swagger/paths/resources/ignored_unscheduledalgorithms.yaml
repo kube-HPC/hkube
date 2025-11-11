@@ -5,11 +5,7 @@ get:
   description: Gets the history of algorithms that were unscheduled algorithms. The algorithms in this list, were unscheduled due some reasons (reasources, nodeSelector, etc) but got scheduled later.
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-              $ref: "#/components/schemas/resourceResponse"
+      $ref: "#/components/responses/resources_successMany"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":

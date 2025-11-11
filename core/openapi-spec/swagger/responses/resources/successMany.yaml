@@ -1,0 +1,111 @@
+description: action summary
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        algorithmName:
+          $ref: "#/components/schemas/algorithmName"
+        type:
+          type: string
+        reason:
+          type: string
+        surpassTimeout:
+          type: boolean
+          description: Indicates if the warning will instantly show or after a timeout
+        message:
+          type: string
+          description: Summary of the resource issues
+        timestamp:
+          type: number
+        code:
+          type: number
+        isError:
+          type: boolean
+        complexResourceDescriptor:
+          $ref: "#/components/schemas/complexResourceDescriptor"
+    example:
+      high-cpu-algo:
+        algorithmName: "high-cpu-algo"
+        type: "warning"
+        reason: "failedScheduling"
+        surpassTimeout: false
+        message: "Insufficient cpu (3)"
+        timestamp: 1762844610473
+        code: 1002
+        isError: false
+        complexResourceDescriptor:
+          nodes:
+            - nodeName: "i-0168920c86f5f7821"
+              amountsMissing:
+                cpu: "4.55"
+                mem: 0
+                gpu: 0
+              requestsOverMaxCapacity: []
+            - nodeName: "i-04bc2ae526ca544e1"
+              amountsMissing:
+                cpu: "4.25"
+                mem: 0
+                gpu: 0
+              requestsOverMaxCapacity: []
+            - nodeName: "i-0d5acf378602024cf"
+              amountsMissing:
+                cpu: "7.90"
+                mem: 0
+                gpu: 0
+              requestsOverMaxCapacity: []
+        requestedResources:
+          cpu: 7
+          memory: "308Mi"
+      high-cpu-algo-copy:
+        algorithmName: "high-cpu-algo-copy"
+        type: "warning"
+        reason: "failedScheduling"
+        surpassTimeout: true
+        message: "No nodes available for scheduling due to selector condition - 'kubernetes.io/hostname=ip-172-20-40-62.eu-west-1.compute.internal'"
+        timestamp: 1762871523330
+        code: 1002
+        isError: false
+        complexResourceDescriptor:
+          requestedSelectors:
+            - "kubernetes.io/hostname=ip-172-20-40-62.eu-west-1.compute.internal"
+          numUnmatchedNodesBySelector: 3
+          nodes: []
+        requestedResources:
+          cpu: 7
+          memory: "308Mi"
+      super-high-cpu-alg:
+        algorithmName: "super-high-cpu-alg"
+        type: "warning"
+        reason: "failedScheduling"
+        surpassTimeout: true
+        message: "Maximum capacity exceeded cpu (3)"
+        timestamp: 1762871849238
+        code: 1002
+        isError: false
+        complexResourceDescriptor:
+          nodes:
+            - nodeName: "i-043e2ec9d37495af8"
+              amountsMissing:
+                cpu: "13.26"
+                mem: 0
+                gpu: 0
+              requestsOverMaxCapacity:
+                - ["cpu", true]
+            - nodeName: "i-0841e11234626d826"
+              amountsMissing:
+                cpu: "16.03"
+                mem: 0
+                gpu: 0
+              requestsOverMaxCapacity:
+                - ["cpu", true]
+            - nodeName: "i-0902443e5f420c52b"
+              amountsMissing:
+                cpu: "13.05"
+                mem: 0
+                gpu: 0
+              requestsOverMaxCapacity:
+                - ["cpu", true]
+        requestedResources:
+          cpu: 16
+          memory: "768Mi"

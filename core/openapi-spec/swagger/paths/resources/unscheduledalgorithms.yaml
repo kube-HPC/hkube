@@ -5,11 +5,7 @@ get:
   description: Gets missing resources (cpu, memory, gpu) per available node, conditions (nodeSelector), requests over node capacity, or any other reason the algorithm was not scheduled.
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/resourceResponse"
+      $ref: "#/components/responses/resources_successMany"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":

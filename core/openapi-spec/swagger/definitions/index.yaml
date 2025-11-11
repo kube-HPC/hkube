@@ -283,8 +283,6 @@ gitlabWebhook:
   $ref: ./webhooks/gitlabWebhook.yaml
 
 # resource
-resourceResponse:
-  $ref: ./resources/resourceResponse.yaml
 complexResourceDescriptor:
   $ref: ./resources/complexResourceDescriptor.yaml
 nodes:

@@ -12,20 +12,12 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-              $ref: "#/components/schemas/resourceResponse"
+      $ref: "#/components/responses/resources_successSingle"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: algorithm Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/resources_notFound"
     default:
       $ref: "#/components/responses/default"
