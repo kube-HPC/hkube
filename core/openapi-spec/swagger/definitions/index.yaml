@@ -299,6 +299,8 @@ versionAlias:
   $ref: ./versions/versionAlias.yaml
   
 # auth
+failedLoginResponse:
+  $ref: ./auth/failedLoginResponse.yaml
 loginResponse:
   $ref: ./auth/loginResponse.yaml
 loginRequest:
