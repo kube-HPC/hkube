@@ -299,3 +299,5 @@ loginResponse:
   $ref: ./auth/loginResponse.yaml
 loginRequest:
   $ref: ./auth/loginRequest.yaml
+unauthorizedResponse:
+  $ref: ./auth/unauthorizedResponse.yaml
