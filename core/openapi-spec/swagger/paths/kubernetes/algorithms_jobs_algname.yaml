@@ -18,21 +18,13 @@ delete:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/kubernetes_jobSuccess"
     "400":
-      $ref: "#/components/responses/badRequestResponse"
+      $ref: "#/components/responses/badRequest"
     "401":
-      $ref: "#/components/responses/unauthorizedResponse"
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: No jobs found with selector
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/kubernetes_notFound"
     "500":
       description: internal server error
       content:
@@ -40,4 +32,4 @@ delete:
           schema:
             $ref: "#/components/schemas/error"
     default:
-      $ref: "#/components/responses/defaultResponse"
+      $ref: "#/components/responses/default"

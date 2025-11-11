@@ -43,11 +43,11 @@ get:
           schema:
             $ref: "#/components/schemas/searchJobsResponse"
     "400":
-      $ref: "#/components/responses/badRequestResponse"
+      $ref: "#/components/responses/badRequest"
     "401":
-      $ref: "#/components/responses/unauthorizedResponse"
+      $ref: "#/components/responses/unauthorized"
     default:
-      $ref: "#/components/responses/defaultResponse"
+      $ref: "#/components/responses/default"
 post:
   tags:
     - Preferred
@@ -67,10 +67,10 @@ post:
           schema:
             $ref: "#/components/schemas/addToPreferredRequest"
     "400":
-      $ref: "#/components/responses/badRequestResponse"
+      $ref: "#/components/responses/badRequest"
     "401":
-      $ref: "#/components/responses/unauthorizedResponse"
+      $ref: "#/components/responses/unauthorized"
     default:
-      $ref: "#/components/responses/defaultResponse"
+      $ref: "#/components/responses/default"
 
 

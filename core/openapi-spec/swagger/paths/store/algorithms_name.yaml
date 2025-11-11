@@ -18,9 +18,9 @@ get:
           schema:
             $ref: "#/components/schemas/algorithm"
     "400":
-      $ref: "#/components/responses/badRequestResponse"
+      $ref: "#/components/responses/badRequest"
     "401":
-      $ref: "#/components/responses/unauthorizedResponse"
+      $ref: "#/components/responses/unauthorized"
     "404":
       description: algorithm Not Found
       content:
@@ -28,7 +28,7 @@ get:
           schema:
             $ref: "#/components/schemas/error"
     default:
-      $ref: "#/components/responses/defaultResponse"
+      $ref: "#/components/responses/default"
 delete:
   tags:
     - StoreAlgorithms
@@ -55,9 +55,9 @@ delete:
           schema:
             $ref: "#/components/schemas/defaultResponse"
     "400":
-      $ref: "#/components/responses/badRequestResponse"
+      $ref: "#/components/responses/badRequest"
     "401":
-      $ref: "#/components/responses/unauthorizedResponse"
+      $ref: "#/components/responses/unauthorized"
     "404":
       description: algorithm Not Found
       content:
@@ -65,4 +65,4 @@ delete:
           schema:
             $ref: "#/components/schemas/error"
     default:
-      $ref: "#/components/responses/defaultResponse"
+      $ref: "#/components/responses/default"

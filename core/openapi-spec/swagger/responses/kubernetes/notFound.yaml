@@ -1,0 +1,5 @@
+description: No jobs found with selector
+content:
+  application/json:
+    schema:
+      type: string

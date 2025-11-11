@@ -1,5 +1,9 @@
-description: unauthorized (invalid or missing token)
+description: Unauthorized (invalid or missing token)
 content:
   application/json:
     schema:
-      $ref: "#/components/schemas/unauthorizedResponse"
+      type: object
+      properties:
+        error:
+          type: string
+

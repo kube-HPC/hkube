@@ -1,8 +1,21 @@
-badRequestResponse:
+# auth
+auth_loginSuccess:
+  $ref: ./auth/loginSuccess.yaml
+auth_loginFailed:
+  $ref: ./auth/loginFailed.yaml
+
+# common
+badRequest:
   $ref: ./common/badRequest.yaml
-
-defaultResponse:
+default:
   $ref: ./common/default.yaml
-
-unauthorizedResponse:
+unauthorized:
   $ref: ./common/unauthorized.yaml
+
+# kubernetes
+kubernetes_notFound:
+  $ref: ./kubernetes/notFound.yaml
+kubernetes_podSuccess:
+  $ref: ./kubernetes/podSuccess.yaml
+kubernetes_jobSuccess:
+  $ref: ./kubernetes/jobSuccess.yaml

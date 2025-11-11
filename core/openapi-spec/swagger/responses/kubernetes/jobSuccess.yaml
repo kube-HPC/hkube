@@ -1,0 +1,13 @@
+description: action summary
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: array
+          items:
+            type: string
+      example:
+        message:
+          - "yellow-alg-ucy0b"

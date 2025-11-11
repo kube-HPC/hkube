@@ -39,9 +39,9 @@ get:
             items:
               $ref: "#/components/schemas/pipelineResult"
     "400":
-      $ref: "#/components/responses/badRequestResponse"
+      $ref: "#/components/responses/badRequest"
     "401":
-      $ref: "#/components/responses/unauthorizedResponse"
+      $ref: "#/components/responses/unauthorized"
     "404":
       description: status Not Found
       content:
@@ -49,4 +49,4 @@ get:
           schema:
             $ref: "#/components/schemas/error"
     default:
-      $ref: "#/components/responses/defaultResponse"
+      $ref: "#/components/responses/default"

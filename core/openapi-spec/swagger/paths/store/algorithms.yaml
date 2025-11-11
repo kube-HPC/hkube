@@ -18,11 +18,11 @@ get:
             items:
               $ref: "#/components/schemas/algorithm"
     "400":
-      $ref: "#/components/responses/badRequestResponse"
+      $ref: "#/components/responses/badRequest"
     "401":
-      $ref: "#/components/responses/unauthorizedResponse"
+      $ref: "#/components/responses/unauthorized"
     default:
-      $ref: "#/components/responses/defaultResponse"
+      $ref: "#/components/responses/default"
 post:
   tags:
     - StoreAlgorithms
@@ -52,9 +52,9 @@ post:
           schema:
             $ref: "#/components/schemas/defaultResponse"
     "400":
-      $ref: "#/components/responses/badRequestResponse"
+      $ref: "#/components/responses/badRequest"
     "401":
-      $ref: "#/components/responses/unauthorizedResponse"
+      $ref: "#/components/responses/unauthorized"
     "409":
       description: pipeline conflict
       content:
@@ -62,7 +62,7 @@ post:
           schema:
             $ref: "#/components/schemas/error"
     default:
-      $ref: "#/components/responses/defaultResponse"
+      $ref: "#/components/responses/default"
 put:
   tags:
     - StoreAlgorithms
@@ -92,9 +92,9 @@ put:
           schema:
             $ref: "#/components/schemas/defaultResponse"
     "400":
-      $ref: "#/components/responses/badRequestResponse"
+      $ref: "#/components/responses/badRequest"
     "401":
-      $ref: "#/components/responses/unauthorizedResponse"
+      $ref: "#/components/responses/unauthorized"
     "404":
       description: algorithm Not Found
       content:
@@ -102,4 +102,4 @@ put:
           schema:
             $ref: "#/components/schemas/error"
     default:
-      $ref: "#/components/responses/defaultResponse"
+      $ref: "#/components/responses/default"

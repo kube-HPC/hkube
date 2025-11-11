@@ -12,18 +12,10 @@ post:
     required: true
   responses:
     "200":
-      description: login successfull
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/loginResponse"
+      $ref: "#/components/responses/auth_loginSuccess"
     "400":
-      $ref: "#/components/responses/badRequestResponse"
+      $ref: "#/components/responses/badRequest"
     "500":
-      description: internal server error - credentials incorrect or no keycloak
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/failedLoginResponse"
+      $ref: "#/components/responses/auth_loginFailed"
     default:
-      $ref: "#/components/responses/defaultResponse"
+      $ref: "#/components/responses/default"

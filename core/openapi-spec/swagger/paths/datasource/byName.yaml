@@ -20,11 +20,11 @@ get:
                                       items:
                                           $ref: '#/components/schemas/FileMeta'
         "400":
-            $ref: "#/components/responses/badRequestResponse"
+            $ref: "#/components/responses/badRequest"
         "401":
-            $ref: "#/components/responses/unauthorizedResponse"
+            $ref: "#/components/responses/unauthorized"
         default:
-            $ref: "#/components/responses/defaultResponse"
+            $ref: "#/components/responses/default"
 post:
     tags:
         - DataSource
@@ -46,11 +46,11 @@ post:
                     schema:
                         $ref: '#/components/schemas/DataSourceWithMeta'
         "400":
-            $ref: "#/components/responses/badRequestResponse"
+            $ref: "#/components/responses/badRequest"
         "401":
-            $ref: "#/components/responses/unauthorizedResponse"
+            $ref: "#/components/responses/unauthorized"
         default:
-            $ref: "#/components/responses/defaultResponse"
+            $ref: "#/components/responses/default"
 delete:
     tags:
         - DataSource
@@ -69,8 +69,8 @@ delete:
                                 type: string
                                 description: a delete acknowledgement
         "400":
-            $ref: "#/components/responses/badRequestResponse"
+            $ref: "#/components/responses/badRequest"
         "401":
-            $ref: "#/components/responses/unauthorizedResponse"
+            $ref: "#/components/responses/unauthorized"
         default:
-            $ref: "#/components/responses/defaultResponse"
+            $ref: "#/components/responses/default"
