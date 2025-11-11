@@ -1,15 +1,8 @@
 get:
   tags:
     - Resources
-  summary: Get status for an unscheduled algorithm
-  description: Gets missing resources (cpu, memory, gpu) per available node, conditions (nodeSelector), requests over node capacity, or any other reason the algorithm was not scheduled.
-  parameters:
-    - name: name
-      in: path
-      description: algorithm name to get his unscheduled reason
-      required: true
-      schema:
-        type: string
+  summary: Get resource status for all ignored unscheduled algorithms
+  description: Gets the history of algorithms that were unscheduled algorithms. The algorithms in this list, were unscheduled due some reasons (reasources, nodeSelector, etc) but got scheduled later.
   responses:
     "200":
       description: action summary
@@ -29,12 +22,6 @@ get:
         application/json:
           schema:
             $ref: "#/components/schemas/unauthorizedResponse"
-    "404":
-      description: algorithm Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
     default:
       description: Unexpected error
       content:

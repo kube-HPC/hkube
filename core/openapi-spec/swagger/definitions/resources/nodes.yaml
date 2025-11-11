@@ -5,6 +5,23 @@ properties:
   amountsMissing:
     type: object
     description: For each missing resource key, ( cpu, memory, gpu ) note how much of it is missing
+    properties:
+      cpu:
+        type: number
+      mem:
+        type: number
+      gpu:
+        type: number
   requestsOverMaxCapacity:
     type: array
-    description: Any resource noted here, was requested over the maximum capacity of a node
+    description: >
+      A list of resources that were requested over the maximum capacity of a node.
+      Each entry is a two-item array - [resourceName, isOverMaxCapacity].
+    items:
+      type: object
+      properties:
+        resourceName:
+          type: string
+        isOverMaxCapacity:
+          type: boolean
+      required: [resourceName, isOverMaxCapacity]

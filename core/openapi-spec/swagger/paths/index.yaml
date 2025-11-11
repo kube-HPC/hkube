@@ -239,11 +239,15 @@
 /status/version:
   $ref: ./status/version.yaml
 
-#resource
+# resources
 /resources/unscheduledalgorithms/:
   $ref: ./resources/unscheduledalgorithms.yaml
 /resources/unscheduledalgorithms/{algorithmName}:
   $ref: ./resources/unscheduledalgorithms_algorithmName.yaml
+/resources/ignoredunscheduledalgorithms/:
+  $ref: ./resources/ignored_unscheduledalgorithms.yaml
+/resources/ignoredunscheduledalgorithms/{algorithmName}:
+  $ref: ./resources/ignored_unscheduledalgorithms_algorithmName.yaml
 
 #kubernetes
 /kubernetes/algorithms/pods/{algName}:

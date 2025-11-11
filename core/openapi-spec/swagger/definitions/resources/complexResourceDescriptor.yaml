@@ -1,4 +1,6 @@
 type: object
 properties:
-  name:
-    $ref: "#/components/schemas/nodes"
+  nodes:
+    type: array
+    items:
+      $ref: "#/components/schemas/nodes"

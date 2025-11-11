@@ -4,12 +4,19 @@ properties:
     type: string
   type:
     type: string
-  surpassTimeout:
+  reason:
     type: string
+  surpassTimeout:
+    type: boolean
+    description: Indicates if the warning will instantly show or after a timeout
   message:
     type: string
     description: Summary of the resource issues
   timestamp:
     type: number
+  code:
+    type: number
+  isError:
+    type: boolean
   complexResourceDescriptor:
     $ref: "#/components/schemas/complexResourceDescriptor"

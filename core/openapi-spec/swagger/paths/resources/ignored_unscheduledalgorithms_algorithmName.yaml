@@ -1,8 +1,8 @@
 get:
   tags:
     - Resources
-  summary: Get status for an unscheduled algorithm
-  description: Gets missing resources (cpu, memory, gpu) per available node, conditions (nodeSelector), requests over node capacity, or any other reason the algorithm was not scheduled.
+  summary: Get status for an unscheduled algorithm (algorithm that is not scheduled yet).
+  description: Gets the history of an algorithm that was an unscheduled algorithm. This algorithm, was unscheduled due some reasons (reasources, nodeSelector, etc) but got scheduled later.
   parameters:
     - name: name
       in: path

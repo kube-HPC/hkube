@@ -2,14 +2,26 @@ get:
   tags:
     - Resources
   summary: Get resource status for all unscheduled algorithms
-  description: Gets missing resources(cpu, memory, gpu) per available node, conditions(nodeSelector), and requests over node capacity
+  description: Gets missing resources (cpu, memory, gpu) per available node, conditions (nodeSelector), requests over node capacity, or any other reason the algorithm was not scheduled.
   responses:
     "200":
       description: action summary
       content:
         application/json:
           schema:
-              $ref: "#/components/schemas/resourceResponse"
+            $ref: "#/components/schemas/resourceResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "401":
+      description: unauthorized (invalid or missing token)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/unauthorizedResponse"
     default:
       description: Unexpected error
       content:
