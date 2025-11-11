@@ -34,8 +34,13 @@ describe('Resources - unscheduled algorithms', () => {
         // restore original implementation
         DatabaseQuerier._getDiscoveryType = originalGetDiscovery;
     });
+
     describe('GET /resources/unscheduledalgorithms', () => {
-        const uri = `${restUrl}/resources/unscheduledalgorithms`;
+        let uri;
+        before(() => {
+            uri = `${restUrl}/resources/unscheduledalgorithms`;
+        });
+
         it('should return an object', async () => {
             const res = await request({ method: 'GET', uri });
             expect(res.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
@@ -50,7 +55,11 @@ describe('Resources - unscheduled algorithms', () => {
     });
 
     describe('GET /resources/unscheduledalgorithms/:algorithmName', () => {
-        const uri = `${restUrl}/resources/unscheduledalgorithms`;
+        let uri;
+        before(() => {
+            uri = `${restUrl}/resources/unscheduledalgorithms`;
+        });
+
         it('should return 404 for unknown algorithm', async () => {
             const res = await request({ method: 'GET', uri: `${uri}/does-not-exist` });
             expect([HttpStatus.StatusCodes.NOT_FOUND, HttpStatus.StatusCodes.OK]).to.include(res.response.statusCode);
@@ -64,7 +73,11 @@ describe('Resources - unscheduled algorithms', () => {
     });
 
     describe('GET /resources/ignoredunscheduledalgorithms', () => {
-        const uri = `${restUrl}/resources/ignoredunscheduledalgorithms`;
+        let uri;
+        before(() => {
+            uri = `${restUrl}/resources/ignoredunscheduledalgorithms`;
+        });
+
         it('should return an object', async () => {
             const res = await request({ method: 'GET', uri });
             expect(res.response.statusCode).to.equal(HttpStatus.StatusCodes.OK);
@@ -79,7 +92,11 @@ describe('Resources - unscheduled algorithms', () => {
     });
 
     describe('GET /resources/ignoredunscheduledalgorithms/:algorithmName', () => {
-        const uri = `${restUrl}/resources/ignoredunscheduledalgorithms`;
+        let uri;
+        before(() => {
+            uri = `${restUrl}/resources/ignoredunscheduledalgorithms`;
+        });
+
         it('should return 404 for unknown algorithm', async () => {
             const res = await request({ method: 'GET', uri: `${uri}/does-not-exist` });
             expect([HttpStatus.StatusCodes.NOT_FOUND, HttpStatus.StatusCodes.OK]).to.include(res.response.statusCode);

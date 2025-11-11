@@ -42,14 +42,14 @@ const createItemHandler = (type, label) => {
             const algorithms = await fetchAlgorithms(type);
             const algorithm = algorithms[algorithmName];
             if (!algorithm) {
-                return res.status(404).send(`Algorithm '${algorithmName}' not found in the ${label} list`);
+                return res.status(404).send(`Algorithm ${algorithmName} not found in the ${label} list`);
             }
             // change type to kind in the response
             const { type: algoType, ...rest } = algorithm;
             return res.json({ ...rest, kind: algoType });
         }
         catch (error) {
-            return res.status(500).send(`Failed fetching '${algorithmName}' info from ${taskExecResourceName}: ${error.message}`);
+            return res.status(500).send(`Failed fetching ${algorithmName} info from ${taskExecResourceName}: ${error.message}`);
         }
     };
 };
