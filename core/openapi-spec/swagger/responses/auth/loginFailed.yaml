@@ -1,4 +1,4 @@
-description: Internal server error - credentials incorrect or no keycloak
+description: Internal server error - credentials incorrect or no Keycloak
 content:
   application/json:
     schema:
@@ -9,5 +9,11 @@ content:
           properties:
             code:
               type: integer
+              example: 500
             message:
               type: string
+              example: "Request failed with status code 401"
+      example:
+        error:
+          code: 500
+          message: "Request failed with status code 401"

@@ -6,4 +6,5 @@ content:
       properties:
         error:
           type: string
-
+    example:
+      error: "Unauthorized"

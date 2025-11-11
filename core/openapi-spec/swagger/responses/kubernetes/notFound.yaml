@@ -3,3 +3,4 @@ content:
   application/json:
     schema:
       type: string
+    example: "No pods found with selector algorithm-name=yellow-algghgjk"
