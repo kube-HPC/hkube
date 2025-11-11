@@ -10,7 +10,7 @@ get:
         application/json:
           schema:
             items:
-              $ref: "#/components/schemas/defaultResponse"
+              $ref: "#/components/schemas/statusResponse"
     default:
       description: Unexpected error
       content:

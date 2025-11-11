@@ -290,6 +290,10 @@ complexResourceDescriptor:
 nodes:
   $ref: ./resources/nodes.yaml
 
+# status
+statusResponse:
+  $ref: ./status/statusResponse.yaml
+
 # versions
 versionAlias:
   $ref: ./versions/versionAlias.yaml
