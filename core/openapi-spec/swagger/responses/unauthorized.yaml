@@ -1,0 +1,5 @@
+description: unauthorized (invalid or missing token)
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/unauthorizedResponse"

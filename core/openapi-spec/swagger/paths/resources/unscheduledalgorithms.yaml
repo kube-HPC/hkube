@@ -11,20 +11,8 @@ get:
           schema:
             $ref: "#/components/schemas/resourceResponse"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/badRequestResponse"
     "401":
-      description: unauthorized (invalid or missing token)
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/unauthorizedResponse"
+      $ref: "#/components/responses/unauthorizedResponse"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/defaultResponse"

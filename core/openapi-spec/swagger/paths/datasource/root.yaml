@@ -11,6 +11,12 @@ get:
                         type: array
                         items:
                             $ref: '#/components/schemas/DataSourceMeta'
+        "400":
+            $ref: "#/components/responses/badRequestResponse"
+        "401":
+            $ref: "#/components/responses/unauthorizedResponse"
+        default:
+            $ref: "#/components/responses/defaultResponse"
 post:
     tags:
         - DataSource
@@ -29,15 +35,9 @@ post:
                 application/json:
                     schema:
                         $ref: '#/components/schemas/DataSourceWithMeta'
-        '400':
-            description: bad request
-            content:
-                application/json:
-                    schema:
-                        $ref: '#/components/schemas/Error'
+        "400":
+            $ref: "#/components/responses/badRequestResponse"
+        "401":
+            $ref: "#/components/responses/unauthorizedResponse"
         default:
-            description: Unexpected error
-            content:
-                application/json:
-                    schema:
-                        $ref: '#/components/schemas/Error'
+            $ref: "#/components/responses/defaultResponse"

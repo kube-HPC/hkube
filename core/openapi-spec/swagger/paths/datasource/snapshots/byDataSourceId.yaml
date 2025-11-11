@@ -16,3 +16,9 @@ post:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/Snapshot"
+        "400":
+            $ref: "#/components/responses/badRequestResponse"
+        "401":
+            $ref: "#/components/responses/unauthorizedResponse"
+        default:
+            $ref: "#/components/responses/defaultResponse"

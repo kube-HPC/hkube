@@ -17,11 +17,9 @@ post:
           schema:
             $ref: "#/components/schemas/jobIdObject"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/badRequestResponse"
+    "401":
+      $ref: "#/components/responses/unauthorizedResponse"
     "404":
       description: jobId Not Found
       content:
@@ -29,8 +27,4 @@ post:
           schema:
             $ref: "#/components/schemas/error"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/defaultResponse"

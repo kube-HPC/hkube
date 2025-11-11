@@ -28,9 +28,9 @@ get:
             type: array
             items:
               $ref: "#/components/schemas/jobListItem"
+    "400":
+      $ref: "#/components/responses/badRequestResponse"
+    "401":
+      $ref: "#/components/responses/unauthorizedResponse"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/defaultResponse"

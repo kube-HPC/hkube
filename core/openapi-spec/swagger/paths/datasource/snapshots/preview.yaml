@@ -25,3 +25,9 @@ post:
                         type: array
                         items:
                             $ref: "#/components/schemas/FileMeta"
+        "400":
+            $ref: "#/components/responses/badRequestResponse"
+        "401":
+            $ref: "#/components/responses/unauthorizedResponse"
+        default:
+            $ref: "#/components/responses/defaultResponse"

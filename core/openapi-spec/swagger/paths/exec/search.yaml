@@ -18,17 +18,11 @@ post:
           schema:
             $ref: "#/components/schemas/searchJobsResponse"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/badRequestResponse"
+    "401":
+      $ref: "#/components/responses/unauthorizedResponse"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/defaultResponse"
 get:
   tags:
     - Execution
@@ -105,14 +99,8 @@ get:
           schema:
             $ref: "#/components/schemas/searchJobsResponse"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/badRequestResponse"
+    "401":
+      $ref: "#/components/responses/unauthorizedResponse"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/defaultResponse"

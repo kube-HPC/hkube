@@ -1,0 +1,8 @@
+badRequestResponse:
+  $ref: ./badRequest.yaml
+
+defaultResponse:
+  $ref: ./default.yaml
+
+unauthorizedResponse:
+  $ref: ./unauthorized.yaml

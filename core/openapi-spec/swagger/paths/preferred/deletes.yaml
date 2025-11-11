@@ -17,14 +17,8 @@ post:
           schema:
             $ref: "#/components/schemas/removeFromPreferredRequest"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/badRequestResponse"
+    "401":
+      $ref: "#/components/responses/unauthorizedResponse"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/defaultResponse"

@@ -11,17 +11,11 @@ get:
           schema:
             $ref: "#/components/schemas/experiment"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/badRequestResponse"
+    "401":
+      $ref: "#/components/responses/unauthorizedResponse"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/defaultResponse"
 
 post:
   tags:
@@ -43,11 +37,9 @@ post:
           schema:
             $ref: "#/components/schemas/defaultResponseWithName"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/badRequestResponse"
+    "401":
+      $ref: "#/components/responses/unauthorizedResponse"
     "409":
       description: pipeline conflict
       content:
@@ -55,8 +47,4 @@ post:
           schema:
             $ref: "#/components/schemas/error"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/defaultResponse"

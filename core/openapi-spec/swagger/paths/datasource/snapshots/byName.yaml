@@ -27,3 +27,9 @@ get:
                                   snapshot:
                                       $ref: "#/components/schemas/Snapshot"
                             - $ref: "#/components/schemas/ResolvedSnapshot"
+        "400":
+            $ref: "#/components/responses/badRequestResponse"
+        "401":
+            $ref: "#/components/responses/unauthorizedResponse"
+        default:
+            $ref: "#/components/responses/defaultResponse"

@@ -19,6 +19,12 @@ get:
                                       type: array
                                       items:
                                           $ref: '#/components/schemas/FileMeta'
+        "400":
+            $ref: "#/components/responses/badRequestResponse"
+        "401":
+            $ref: "#/components/responses/unauthorizedResponse"
+        default:
+            $ref: "#/components/responses/defaultResponse"
 post:
     tags:
         - DataSource
@@ -39,6 +45,12 @@ post:
                 application/json:
                     schema:
                         $ref: '#/components/schemas/DataSourceWithMeta'
+        "400":
+            $ref: "#/components/responses/badRequestResponse"
+        "401":
+            $ref: "#/components/responses/unauthorizedResponse"
+        default:
+            $ref: "#/components/responses/defaultResponse"
 delete:
     tags:
         - DataSource
@@ -56,3 +68,9 @@ delete:
                             deleted:
                                 type: string
                                 description: a delete acknowledgement
+        "400":
+            $ref: "#/components/responses/badRequestResponse"
+        "401":
+            $ref: "#/components/responses/unauthorizedResponse"
+        default:
+            $ref: "#/components/responses/defaultResponse"

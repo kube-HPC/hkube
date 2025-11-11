@@ -11,11 +11,9 @@ get:
           schema:
             $ref: "#/components/schemas/defaultResponse"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/badRequestResponse"
+    "401":
+      $ref: "#/components/responses/unauthorizedResponse"
     "404":
       description: path Not Found
       content:
@@ -23,8 +21,4 @@ get:
           schema:
             $ref: "#/components/schemas/error"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/defaultResponse"

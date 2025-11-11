@@ -16,3 +16,9 @@ get:
                         properties:
                             exists:
                                 type: boolean
+        "400":
+            $ref: "#/components/responses/badRequestResponse"
+        "401":
+            $ref: "#/components/responses/unauthorizedResponse"
+        default:
+            $ref: "#/components/responses/defaultResponse"

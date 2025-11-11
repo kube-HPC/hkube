@@ -18,11 +18,7 @@ post:
           schema:
             $ref: "#/components/schemas/loginResponse"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/badRequestResponse"
     "500":
       description: internal server error - credentials incorrect or no keycloak
       content:
@@ -30,8 +26,4 @@ post:
           schema:
             $ref: "#/components/schemas/failedLoginResponse"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/defaultResponse"
