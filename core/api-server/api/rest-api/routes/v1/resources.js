@@ -4,37 +4,68 @@ const keycloak = require('../../../../lib/service/keycloak');
 const DatabaseQuerier = require('../../../graphql/queries/database-querier');
 
 const taskExecResourceName = 'task-executor';
-const routes = () => {
-    const router = RestServer.router();
-    router.get('/unscheduledalgorithms', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
-        let mergedResoures;
+
+/**
+ * Fetches and returns the algorithms data from the database.
+ * @param {'unScheduledAlgorithms'|'ignoredUnScheduledAlgorithms'} type - Type of algorithms ('unScheduledAlgorithms' or 'ignoredUnScheduledAlgorithms')
+ */
+const fetchAlgorithms = async (type) => {
+    const resources = await DatabaseQuerier._getDiscoveryType(taskExecResourceName);
+    return resources?.[0]?.[type] || {};
+};
+
+/**
+ * Creates a route handler for listing algorithms.
+ * @param {string} type - Type of algorithms ('unScheduledAlgorithms' or 'ignoredUnScheduledAlgorithms')
+ */
+const createListHandler = (type) => {
+    return async (req, res) => {
         try {
-            const resources = await DatabaseQuerier._getDiscoveryType(taskExecResourceName);
-            mergedResoures = { ...resources[0].unScheduledAlgorithms, ...resources[0].ignoredUnScheduledAlgorithms };
+            const algorithms = await fetchAlgorithms(type);
+            res.json(algorithms);
         }
         catch (error) {
-            res.status(500).send(`Failed fetching info from ${taskExecResourceName}, ${error}`);
+            res.status(500).send(`Failed fetching info from ${taskExecResourceName}: ${error.message}`);
         }
-        res.json(mergedResoures);
-    });
-    router.get('/unscheduledalgorithms/:algorithmName', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
-        let mergedResources;
+    };
+};
+
+/**
+ * Creates a route handler for fetching a specific algorithm by name.
+ * @param {string} type - Type of algorithms ('unScheduledAlgorithms' or 'ignoredUnScheduledAlgorithms')
+ * @param {string} label - Label for error messages
+ */
+const createItemHandler = (type, label) => {
+    return async (req, res) => {
         const { algorithmName } = req.params;
         try {
-            const resources = await DatabaseQuerier._getDiscoveryType(taskExecResourceName);
-            mergedResources = { ...resources[0].unScheduledAlgorithms, ...resources[0].ignoredUnScheduledAlgorithms };
-            if (!mergedResources[algorithmName]) {
-                res.status(404).send(`Algorithm ${algorithmName} not found in the unscheduled list`);
+            const algorithms = await fetchAlgorithms(type);
+            const algorithm = algorithms[algorithmName];
+            if (!algorithm) {
+                return res.status(404).send(`Algorithm '${algorithmName}' not found in the ${label} list`);
             }
-            else {
-                res.json(mergedResources[algorithmName]);
-            }
+            // change type to kind in the response
+            const { type: algoType, ...rest } = algorithm;
+            return res.json({ ...rest, kind: algoType });
         }
         catch (error) {
-            res.status(500).send(`Failed fetching '${algorithmName}' info from ${taskExecResourceName}, ${error}`);
+            return res.status(500).send(`Failed fetching '${algorithmName}' info from ${taskExecResourceName}: ${error.message}`);
         }
-        res.json(mergedResources);
-    });
+    };
+};
+
+const routes = () => {
+    const router = RestServer.router();
+    const protect = keycloak.getProtect(keycloakRoles.API_VIEW);
+
+    // Unscheduled algorithms
+    router.get('/unscheduledalgorithms', protect, createListHandler('unScheduledAlgorithms'));
+    router.get('/unscheduledalgorithms/:algorithmName', protect, createItemHandler('unScheduledAlgorithms', 'unscheduled'));
+
+    // Ignored unscheduled algorithms
+    router.get('/ignoredunscheduledalgorithms', protect, createListHandler('ignoredUnScheduledAlgorithms'));
+    router.get('/ignoredunscheduledalgorithms/:algorithmName', protect, createItemHandler('ignoredUnScheduledAlgorithms', 'ignored unscheduled'));
+
     return router;
 };
 
