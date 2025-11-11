@@ -10,7 +10,7 @@ properties:
       pipelineType:
         type: string
       algorithmName:
-        type: string
+        $ref: "#/components/schemas/algorithmName"
       pipelineStatus:
         type: string
       datesRange:

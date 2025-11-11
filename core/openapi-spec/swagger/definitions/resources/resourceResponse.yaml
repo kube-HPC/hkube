@@ -1,7 +1,7 @@
 type: object
 properties:
   algorithmName:
-    type: string
+    $ref: "#/components/schemas/algorithmName"
   type:
     type: string
   reason:
