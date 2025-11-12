@@ -5,20 +5,10 @@ get:
   description: get list of gateways
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/gateway"
+      $ref: "#/components/responses/gateway_successMany"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
-    "404":
-      description: pipeline Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
     default:
       $ref: "#/components/responses/default"
