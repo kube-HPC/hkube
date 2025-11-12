@@ -2,7 +2,7 @@ get:
   tags:
     - Resources
   summary: Get resource status for all ignored unscheduled algorithms
-  description: Gets the history of algorithms that were unscheduled algorithms. The algorithms in this list, were unscheduled due some reasons (reasources, nodeSelector, etc) but got scheduled later.
+  description: Gets the history of algorithms that were unscheduled for reasons like resources or nodeSelector, but were scheduled later.
   responses:
     "200":
       $ref: "#/components/responses/resources_successMany"

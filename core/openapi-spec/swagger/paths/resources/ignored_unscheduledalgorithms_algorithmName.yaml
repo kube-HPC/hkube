@@ -2,7 +2,8 @@ get:
   tags:
     - Resources
   summary: Get status for an unscheduled algorithm (algorithm that is not scheduled yet).
-  description: Gets the history of an algorithm that was an unscheduled algorithm. This algorithm, was unscheduled due some reasons (reasources, nodeSelector, etc) but got scheduled later.
+  description: >
+    This endpoint gets the status of a specific algorithm that wasn’t scheduled initially but have been scheduled eventually.
   parameters:
     - name: name
       in: path
