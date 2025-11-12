@@ -37,19 +37,19 @@ const createListHandler = (type) => {
  */
 const createItemHandler = (type, label) => {
     return async (req, res) => {
-        const { algorithmName } = req.params;
+        const { name } = req.params;
         try {
             const algorithms = await fetchAlgorithms(type);
-            const algorithm = algorithms[algorithmName];
+            const algorithm = algorithms[name];
             if (!algorithm) {
-                return res.status(404).send(`Algorithm ${algorithmName} not found in the ${label} list`);
+                return res.status(404).send(`Algorithm ${name} not found in the ${label} list`);
             }
             // change type to kind in the response
             const { type: algoType, ...rest } = algorithm;
             return res.json({ ...rest, kind: algoType });
         }
         catch (error) {
-            return res.status(500).send(`Failed fetching ${algorithmName} info from ${taskExecResourceName}: ${error.message}`);
+            return res.status(500).send(`Failed fetching ${name} info from ${taskExecResourceName}: ${error.message}`);
         }
     };
 };
@@ -60,11 +60,11 @@ const routes = () => {
 
     // Unscheduled algorithms
     router.get('/unscheduledalgorithms', protect, createListHandler('unScheduledAlgorithms'));
-    router.get('/unscheduledalgorithms/:algorithmName', protect, createItemHandler('unScheduledAlgorithms', 'unscheduled'));
+    router.get('/unscheduledalgorithms/:name', protect, createItemHandler('unScheduledAlgorithms', 'unscheduled'));
 
     // Ignored unscheduled algorithms
     router.get('/ignoredunscheduledalgorithms', protect, createListHandler('ignoredUnScheduledAlgorithms'));
-    router.get('/ignoredunscheduledalgorithms/:algorithmName', protect, createItemHandler('ignoredUnScheduledAlgorithms', 'ignored unscheduled'));
+    router.get('/ignoredunscheduledalgorithms/:name', protect, createItemHandler('ignoredUnScheduledAlgorithms', 'ignored unscheduled'));
 
     return router;
 };

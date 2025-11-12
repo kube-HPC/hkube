@@ -242,12 +242,12 @@
 # resources
 /resources/unscheduledalgorithms/:
   $ref: ./resources/unscheduledalgorithms.yaml
-/resources/unscheduledalgorithms/{algorithmName}:
-  $ref: ./resources/unscheduledalgorithms_algorithmName.yaml
+/resources/unscheduledalgorithms/{name}:
+  $ref: ./resources/unscheduledalgorithms_name.yaml
 /resources/ignoredunscheduledalgorithms/:
   $ref: ./resources/ignored_unscheduledalgorithms.yaml
-/resources/ignoredunscheduledalgorithms/{algorithmName}:
-  $ref: ./resources/ignored_unscheduledalgorithms_algorithmName.yaml
+/resources/ignoredunscheduledalgorithms/{name}:
+  $ref: ./resources/ignored_unscheduledalgorithms_name.yaml
 
 #kubernetes
 /kubernetes/algorithms/pods/{algName}:

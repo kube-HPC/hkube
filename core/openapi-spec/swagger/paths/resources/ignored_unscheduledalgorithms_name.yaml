@@ -1,7 +1,7 @@
 get:
   tags:
     - Resources
-  summary: Get status for an unscheduled algorithm (algorithm that is not scheduled yet).
+  summary: Get status for an unscheduled algorithm
   description: >
     This endpoint gets the status of a specific algorithm that wasn’t scheduled initially but have been scheduled eventually.
   parameters:
