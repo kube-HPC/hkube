@@ -262,10 +262,11 @@ class PipelinesUpdater {
     }
 
     async _createExperiments(type, list) {
+        const refinedList = list.map(experiment => ({ ...experiment, created: Date.now() }));
         let duplicateCount = 0;
         let syncResult;
         try {
-            await stateManager.createExperiments(list);
+            await stateManager.createExperiments(refinedList);
             await this._deleteEtcdPrefix('experiments', '/experiment');
             await this._deleteStoragePrefix(type);
         }
