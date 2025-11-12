@@ -19,6 +19,8 @@ experiment_conflictInsert:
   $ref: ./experiment/conflictInsert.yaml
 experiment_failedInsert:
   $ref: ./experiment/failedInsert.yaml
+experiment_successDelete:
+  $ref: ./experiment/successDelete.yaml
 experiment_notFound:
   $ref: ./experiment/notFound.yaml
 experiment_successInsert:

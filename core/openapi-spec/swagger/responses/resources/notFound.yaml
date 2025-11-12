@@ -3,4 +3,4 @@ content:
   application/json:
     schema:
       type: string
-    example: "Algorithm not found in the unscheduled list"
+    example: "Algorithm alg-name not found in the unscheduled list"

@@ -35,11 +35,7 @@ delete:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponseWithName"
+      $ref: "#/components/responses/experiment_successDelete"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
