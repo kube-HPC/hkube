@@ -1,4 +1,4 @@
-description: action summary
+description: Gateway information
 content:
   application/json:
     schema:

@@ -1,4 +1,4 @@
-description: action summary
+description: System status
 content:
   application/json:
     schema:

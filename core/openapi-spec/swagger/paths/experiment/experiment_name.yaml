@@ -12,21 +12,13 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/experiment"
+      $ref: "#/components/responses/experiment_successSingle"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: pipeline Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/experiment_notFound"
     default:
       $ref: "#/components/responses/default"
 delete:
@@ -53,10 +45,6 @@ delete:
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: experiment Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/experiment_notFound"
     default:
       $ref: "#/components/responses/default"

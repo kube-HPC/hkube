@@ -1,4 +1,4 @@
-description: algorithm Not Found
+description: Algorithm Not Found in Unscheduled List
 content:
   application/json:
     schema:

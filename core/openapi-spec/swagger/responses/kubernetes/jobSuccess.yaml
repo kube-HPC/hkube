@@ -1,4 +1,4 @@
-description: action summary
+description: Action summary
 content:
   application/json:
     schema:

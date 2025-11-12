@@ -1,0 +1,17 @@
+description: Failed to Insert New Experiment (Name Already Taken)
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+    example:
+      error:
+        code: 500
+        message: "could not create experiment, name is already taken"

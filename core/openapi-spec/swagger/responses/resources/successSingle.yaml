@@ -1,4 +1,4 @@
-description: action summary
+description: Unscheduled algorithm information
 content:
   application/json:
     schema:

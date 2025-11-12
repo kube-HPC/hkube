@@ -1,4 +1,4 @@
-description: Internal server error
+description: experiment Not Found
 content:
   application/json:
     schema:

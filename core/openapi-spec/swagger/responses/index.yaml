@@ -14,13 +14,27 @@ internalServerError:
 unauthorized:
   $ref: ./common/unauthorized.yaml
 
+# experiment
+experiment_conflictInsert:
+  $ref: ./experiment/conflictInsert.yaml
+experiment_failedInsert:
+  $ref: ./experiment/failedInsert.yaml
+experiment_notFound:
+  $ref: ./experiment/notFound.yaml
+experiment_successInsert:
+  $ref: ./experiment/successInsert.yaml
+experiment_successMany:
+  $ref: ./experiment/successMany.yaml
+experiment_successSingle:
+  $ref: ./experiment/successSingle.yaml
+
 # gateway
 gateway_notFound:
   $ref: ./gateway/notFound.yaml
-gateway_successSingle:
-  $ref: ./gateway/successSingle.yaml
 gateway_successMany:
   $ref: ./gateway/successMany.yaml
+gateway_successSingle:
+  $ref: ./gateway/successSingle.yaml
 
 # kubernetes
 kubernetes_jobSuccess:

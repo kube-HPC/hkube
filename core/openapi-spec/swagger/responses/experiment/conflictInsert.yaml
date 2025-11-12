@@ -1,4 +1,4 @@
-description: Internal server error
+description: pipeline conflict
 content:
   application/json:
     schema:
