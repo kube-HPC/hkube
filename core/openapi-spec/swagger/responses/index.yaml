@@ -9,6 +9,8 @@ badRequest:
   $ref: ./common/badRequest.yaml
 default:
   $ref: ./common/default.yaml
+internalServerError:
+  $ref: ./common/internalServerError.yaml
 unauthorized:
   $ref: ./common/unauthorized.yaml
 

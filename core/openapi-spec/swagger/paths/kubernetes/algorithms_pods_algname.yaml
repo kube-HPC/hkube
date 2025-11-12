@@ -26,10 +26,6 @@ delete:
     "404":
       $ref: "#/components/responses/kubernetes_notFound"
     "500":
-      description: internal server error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/internalServerError"
     default:
       $ref: "#/components/responses/default"
