@@ -1,0 +1,17 @@
+description: Gateway Not Found
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+    example:
+      error:
+        code: 404
+        message: "gateway aa Not Found"

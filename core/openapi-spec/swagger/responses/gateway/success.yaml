@@ -1,0 +1,25 @@
+description: action summary
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/gateway"
+    example:
+      name: "aaa-gateway"
+      gatewayName: "aaa"
+      gatewayUrl: "hkube/gateway/aaa"
+      mem: "512Mi"
+      cpu: 0.5
+      description: "aaa"
+      jobId: "r5pielror084"
+      nodeName: "aaa"
+      kind: "gateway"
+      stateType: "stateful"
+      algorithmImage: "hkube/algorithm-gateway"
+      algorithmEnv:
+        GATEWAY_NAME: "aaa"
+      type: "Image"
+      options:
+        pending: false
+      maxWorkers: 1
+      created: 1762935025119
+      modified: 1762935025119

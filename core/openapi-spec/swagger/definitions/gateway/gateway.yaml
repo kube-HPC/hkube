@@ -9,8 +9,46 @@ properties:
     type: string
     description: Memory allocated for streaming gateway
     format: algorithm-memory
-    default: 512Mi
+    default: "512Mi"
   cpu:
     type: number
     description: Cpu allocated for streaming gateway
     default: 0.5
+  jobId:
+    type: string
+  nodeName:
+    type: string
+  algorithmName:
+    $ref: "#/components/schemas/algorithmName"
+  gatewayUrl:
+    type: string
+    description: URL to access the gateway
+  stateType:
+    type: string
+    description: The state type of the gateway (e.g., stateful, stateless)
+  algorithmImage:
+    $ref: "#/components/schemas/algorithmImage"
+  algorithmEnv:
+    type: object
+    description: Environment variables for the algorithm
+    additionalProperties:
+      type: string
+  type:
+    type: string
+    description: The type of gateway (e.g., Image, Deployment)
+  options:
+    type: object
+    description: Additional configuration options
+    properties:
+      pending:
+        type: boolean
+        description: Indicates whether the gateway is pending
+  maxWorkers:
+    type: integer
+    description: Maximum number of workers for the gateway
+  created:
+    type: number
+    description: Timestamp when the gateway was created
+  modified:
+    type: number
+    description: Timestamp when the gateway was last modified
