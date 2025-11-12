@@ -1,8 +1,8 @@
 post:
   tags:
     - Boards
-  summary: Start board
-  description: start board
+  summary: Start Tensorboard
+  description: Start Tensorboard
   requestBody:
     content:
       application/json:
@@ -11,11 +11,7 @@ post:
     required: true
   responses:
     "200":
-      description: start board response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/createBoardResponse"
+      $ref: "#/components/responses/boards_successStartTensor"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":

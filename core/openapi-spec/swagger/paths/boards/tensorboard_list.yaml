@@ -1,15 +1,11 @@
 get:
   tags:
     - Boards
-  summary: Board list
-  description: Board list
+  summary: Tensorboard list
+  description: Tensorboard list
   responses:
     "200":
-      description: start board response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/listBoardResponse"
+      $ref: "#/components/responses/boards_successListTensor"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":

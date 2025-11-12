@@ -4,6 +4,24 @@ auth_loginFailed:
 auth_loginSuccess:
   $ref: ./auth/loginSuccess.yaml
 
+# boards
+boards_notFoundBoard:
+  $ref: ./boards/notFoundBoard.yaml
+boards_successDelete:
+  $ref: ./boards/successDelete.yaml
+boards_successGetOptuna:
+  $ref: ./boards/successGetOptuna.yaml
+boards_successGetTensor:
+  $ref: ./boards/successGetTensor.yaml
+boards_successListOptuna:
+  $ref: ./boards/successListOptuna.yaml
+boards_successListTensor:
+  $ref: ./boards/successListTensor.yaml
+boards_successStartOptuna:
+  $ref: ./boards/successStartOptuna.yaml
+boards_successStartTensor:
+  $ref: ./boards/successStartTensor.yaml
+
 # common
 badRequest:
   $ref: ./common/badRequest.yaml

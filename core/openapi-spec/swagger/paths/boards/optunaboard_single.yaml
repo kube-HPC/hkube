@@ -1,62 +1,46 @@
 get:
   tags:
     - Boards
-  summary: Board details
-  description: Board details
+  summary: Optunaboard details
+  description: Optunaboard details
   parameters:
     - name: id
       in: path
-      description: Unique identifier representing board
+      description: Unique identifier representing optunaboard
       required: true
       schema:
         type: string
   responses:
     "200":
-      description: get board response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/getBoardResponse"
+      $ref: "#/components/responses/boards_successGetOptuna"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: board Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/boards_notFoundBoard"
     default:
       $ref: "#/components/responses/default"
 delete:
   tags:
     - Boards
-  summary: Stop board
-  description: Stop board
+  summary: Stop OptunaBoard
+  description: Stop OptunaBoard
   parameters:
     - name: id
       in: path
-      description: Unique identifier representing board
+      description: Unique identifier representing OptunaBoard
       required: true
       schema:
         type: string
   responses:
     "200":
-      description: delete board response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/boards_successDelete"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: board Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/boards_notFoundBoard"
     default:
       $ref: "#/components/responses/default"

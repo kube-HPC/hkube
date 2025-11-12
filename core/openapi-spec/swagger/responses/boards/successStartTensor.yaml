@@ -1,0 +1,15 @@
+description: Start Tensorboard response
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the started board
+        message:
+          type: string
+          description: Confirmation message for board start
+    example:
+      id: "4ispixlx3ka6:D"
+      message: "Board started successfully"
