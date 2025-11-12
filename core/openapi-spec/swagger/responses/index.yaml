@@ -46,6 +46,10 @@ kubernetes_notFound:
 kubernetes_podSuccess:
   $ref: ./kubernetes/podSuccess.yaml
 
+# queue
+queue_success:
+  $ref: ./queue/success.yaml
+
 # resources
 resources_notFound:
   $ref: ./resources/notFound.yaml

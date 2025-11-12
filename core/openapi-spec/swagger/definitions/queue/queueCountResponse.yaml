@@ -1,8 +1,0 @@
-type: object
-properties:
-  preferred:
-    type: integer
-    description: preferred count
-  managed:
-    type: integer
-    description: managed count
