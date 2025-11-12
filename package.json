@@ -32,7 +32,7 @@
     "lerna": "^3.18.3"
   },
   "dependencies": {
-    "@octokit/rest": "^16.27.3",
+    "@octokit/rest": "^17.0.0",
     "js-yaml": "^3.13.1",
     "request-promise": "^4.2.4"
   }
