@@ -29,3 +29,7 @@ resources_successMany:
   $ref: ./resources/successMany.yaml
 resources_successSingle:
   $ref: ./resources/successSingle.yaml
+
+# status
+status_success:
+  $ref: ./status/success.yaml

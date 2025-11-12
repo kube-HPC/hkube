@@ -5,12 +5,7 @@ get:
   description: Get system status such as version and health
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            items:
-              $ref: "#/components/schemas/statusResponse"
+      $ref: "#/components/responses/status_success"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":

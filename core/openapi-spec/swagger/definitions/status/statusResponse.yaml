@@ -1,8 +1,0 @@
-type: object
-properties:
-  systemVersion:
-    type: string
-  clusterName:
-    type: string
-  storage:
-    type: string
