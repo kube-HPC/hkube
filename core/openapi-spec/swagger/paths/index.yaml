@@ -124,16 +124,17 @@
 /queue/preferred/deletes:
   $ref: ./preferred/deletes.yaml
 /queue/preferred/aggregation/pipeline:
-  $ref: ./aggregation/preferred.yaml
+  $ref: ./preferred/aggregationPipeline.yaml
 /queue/preferred/aggregation/tag:
-  $ref: ./aggregation/preferred.yaml
+  $ref: ./preferred/aggregationTag.yaml
+
 # managed
-/queue/managed/aggregation/pipeline:
-  $ref: ./aggregation/managed.yaml
-/queue/managed/aggregation/tag:
-  $ref: ./aggregation/managed.yaml
 /queue/managed/:
   $ref: ./managed/list.yaml
+/queue/managed/aggregation/pipeline:
+  $ref: ./managed/aggregationPipeline.yaml
+/queue/managed/aggregation/tag:
+  $ref: ./managed/aggregationTag.yaml
 
 # queue
 /queue/count:
@@ -249,12 +250,12 @@
 /resources/ignoredunscheduledalgorithms/{name}:
   $ref: ./resources/ignored_unscheduledalgorithms_name.yaml
 
-#kubernetes
+# kubernetes
 /kubernetes/algorithms/pods/{algName}:
   $ref: ./kubernetes/algorithms_pods_algname.yaml
 /kubernetes/algorithms/jobs/{algName}:
   $ref: ./kubernetes/algorithms_jobs_algname.yaml
 
-#auth
+# auth
 /auth/login:
   $ref: ./auth/login.yaml

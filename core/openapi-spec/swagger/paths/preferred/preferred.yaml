@@ -1,8 +1,8 @@
 get:
   tags:
     - Preferred
-  summary: Get preferred
-  description: Get preferred
+  summary: Get preferred list
+  description: Get preferred queue list
   parameters:
     - name: firstJobId
       in: query
@@ -37,13 +37,7 @@ get:
       description: Should get the jobs from the end of the list                  
   responses:
     "200":
-      description: Get preferred
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/searchJobsResponse"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/preferred_successList"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:
@@ -61,13 +55,9 @@ post:
     required: true
   responses:
     "200":
-      description: start board response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/addToPreferredRequest"
+      $ref: "#/components/responses/preferred_successAdd"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/preferred_badRequestAdd"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:

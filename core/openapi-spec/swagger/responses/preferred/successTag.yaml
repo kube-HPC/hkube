@@ -1,0 +1,17 @@
+description: Get preferred queue pipelines grouped by their tags
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: The name of the tag or pipeline
+          count:
+            type: integer
+            description: The count of jobs associated with the tag or pipeline
+    example:
+      - name: "tag1"
+        count: 3

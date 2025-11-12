@@ -1,8 +1,8 @@
 post:
   tags:
     - Preferred
-  summary: Remover from preferred
-  description: Remover from preferred
+  summary: Removes from preferred
+  description: Removes a job from preferred queue
   requestBody:
     content:
       application/json:
@@ -11,13 +11,9 @@ post:
     required: true
   responses:
     "200":
-      description: start board response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/removeFromPreferredRequest"
+      $ref: "#/components/responses/preferred_successDelete"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/preferred_badRequestDelete"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:

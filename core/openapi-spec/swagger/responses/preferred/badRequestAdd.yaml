@@ -1,0 +1,19 @@
+description: Invalid Query Request
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: HTTP error code
+            message:
+              type: string
+              description: Description of the error
+    example:
+      error:
+        code: 400
+        message: "No query is needed in case of position first or last"

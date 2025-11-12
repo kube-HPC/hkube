@@ -1,8 +1,8 @@
 get:
   tags:
     - Managed
-  summary: Get Managed
-  description: Get managed
+  summary: Get managed list
+  description: Get managed queue list
   parameters:
     - name: firstJobId
       in: query
@@ -38,13 +38,7 @@ get:
                               
   responses:
     "200":
-      description: Get managed jobs
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/searchJobsResponse"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/managed_successList"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:

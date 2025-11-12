@@ -1,0 +1,17 @@
+description: Get preferred pipelines grouped by their name
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: The name of the pipeline
+          count:
+            type: integer
+            description: The count of jobs associated with the pipeline
+    example:
+      - name: "sub-ein"
+        count: 3

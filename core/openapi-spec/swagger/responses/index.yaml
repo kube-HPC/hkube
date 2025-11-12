@@ -46,6 +46,30 @@ kubernetes_notFound:
 kubernetes_podSuccess:
   $ref: ./kubernetes/podSuccess.yaml
 
+# managed
+managed_successList:
+  $ref: ./managed/successList.yaml
+managed_successPipeline:
+  $ref: ./managed/successPipeline.yaml
+managed_successTag:
+  $ref: ./managed/successTag.yaml
+
+# preferred
+preferred_badRequestAdd:
+  $ref: ./preferred/badRequestAdd.yaml
+preferred_badRequestDelete:
+  $ref: ./preferred/badRequestDelete.yaml
+preferred_successAdd:
+  $ref: ./preferred/successAdd.yaml
+preferred_successDelete:
+  $ref: ./preferred/successDelete.yaml
+preferred_successList:
+  $ref: ./preferred/successList.yaml
+preferred_successPipeline:
+  $ref: ./preferred/successPipeline.yaml
+preferred_successTag:
+  $ref: ./preferred/successTag.yaml
+
 # queue
 queue_success:
   $ref: ./queue/success.yaml
