@@ -12,20 +12,12 @@ get:
         type: string
   responses:
     "200":
-      description: storage response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/storage_successGetStream"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: path Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/storage_notFound"
     default:
       $ref: "#/components/responses/default"

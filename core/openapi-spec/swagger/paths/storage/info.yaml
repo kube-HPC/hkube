@@ -5,13 +5,7 @@ get:
   description: returns the storage info
   responses:
     "200":
-      description: storage response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/storage_successGetInfo"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:

@@ -1,0 +1,15 @@
+description: Error returned when attempting to get results for a pipeline that is currently active.
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 400
+            message:
+              type: string
+              example: "unable to get results for pipeline streaming-statefull because its in active status"

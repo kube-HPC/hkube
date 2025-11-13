@@ -138,6 +138,24 @@ storePipelines_successInsert:
 storePipelines_successUpdate:
   $ref: ./store/pipelines/successUpdate.yaml
 
+# storage
+storage_badRequestDownload:
+  $ref: ./storage/badRequestDownload.yaml
+storage_notFound:
+  $ref: ./storage/notFound.yaml
+storage_successGetData:
+  $ref: ./storage/successGetData.yaml
+storage_successGetDownload:
+  $ref: ./storage/successGetDownload.yaml
+storage_successGetInfo:
+  $ref: ./storage/successGetInfo.yaml
+storage_successGetKeys:
+  $ref: ./storage/successGetKeys.yaml
+storage_successGetStream:
+  $ref: ./storage/successGetStream.yaml
+storage_successGetTypes:
+  $ref: ./storage/successGetTypes.yaml
+
 # webhooks
 webhooks_notFound:
   $ref: ./webhooks/notFound.yaml
