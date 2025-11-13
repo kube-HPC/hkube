@@ -12,11 +12,7 @@ post:
     required: true
   responses:
     "200":
-      description: graph preview
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/graphPreviewResponse"
+      $ref: "#/components/responses/storePipelines_successGetGraph"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":

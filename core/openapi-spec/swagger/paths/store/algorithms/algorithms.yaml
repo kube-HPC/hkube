@@ -11,12 +11,7 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            items:
-              $ref: "#/components/schemas/algorithm"
+      $ref: "#/components/responses/storeAlgorithms_successGetMany"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
@@ -46,21 +41,13 @@ post:
     required: true
   responses:
     "201":
-      description: algorithm created
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/storeAlgorithms_successInsert"
     "401":
       $ref: "#/components/responses/unauthorized"
     "409":
-      description: pipeline conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/storeAlgorithms_conflictInsert"
+    "500":
+      $ref: "#/components/responses/internalServerError"
     default:
       $ref: "#/components/responses/default"
 put:
@@ -86,20 +73,12 @@ put:
     required: true
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/storeAlgorithms_successUpdate"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: algorithm Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/storeAlgorithms_notFound"
+    "500":
+      $ref: "#/components/responses/internalServerError"
     default:
       $ref: "#/components/responses/default"

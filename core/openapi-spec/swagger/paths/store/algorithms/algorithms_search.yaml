@@ -43,14 +43,7 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            items:
-              $ref: "#/components/schemas/algorithm"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/storeAlgorithms_successSearch"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:

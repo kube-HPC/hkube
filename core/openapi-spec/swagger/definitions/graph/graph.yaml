@@ -1,0 +1,6 @@
+type: object
+properties:
+  edges:
+    $ref: "#/components/schemas/graphEdges"
+  nodes:
+    $ref: "#/components/schemas/graphNodes"

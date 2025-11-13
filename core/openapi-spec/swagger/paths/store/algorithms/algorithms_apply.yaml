@@ -2,7 +2,7 @@ post:
   tags:
     - StoreAlgorithms
   summary: Apply algorithm
-  description: "create or update algorithm, build id will be returned if build was triggered"
+  description: "Create or update algorithm, build id will be returned if build was triggered"
   requestBody:
     content:
       multipart/form-data:
@@ -21,14 +21,12 @@ post:
     required: true
   responses:
     "200":
-      description: algorithm applied
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/algorithmApplyResponse"
+      $ref: "#/components/responses/storeAlgorithms_successApply"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
+    "500":
+      $ref: "#/components/responses/internalServerError"
     default:
       $ref: "#/components/responses/default"

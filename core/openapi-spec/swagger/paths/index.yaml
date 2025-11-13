@@ -78,23 +78,25 @@
 /datasource/validate:
   $ref: ./datasource/validate.yaml
 
-# store
+# store - Algorithms
 /store/algorithms/{name}:
-  $ref: ./store/algorithms_name.yaml
+  $ref: ./store/algorithms/algorithms_name.yaml
 /store/algorithmsFilter:
-  $ref: ./store/algorithms_search.yaml
+  $ref: ./store/algorithms/algorithms_search.yaml
 /store/algorithms:
-  $ref: ./store/algorithms.yaml
+  $ref: ./store/algorithms/algorithms.yaml
 /store/algorithms/apply:
-  $ref: ./store/algorithms_apply.yaml
+  $ref: ./store/algorithms/algorithms_apply.yaml
+
+# store - Pipelines
 /store/pipelines/{name}:
-  $ref: ./store/pipelines_name.yaml
+  $ref: ./store/pipelines/pipelines_name.yaml
 /store/pipelines/graph/{name}:
-  $ref: ./store/pipeline_graph.yaml
+  $ref: ./store/pipelines/pipeline_graph.yaml
 /store/pipelines/graph:
-  $ref: ./store/pipeline_graph_object.yaml
+  $ref: ./store/pipelines/pipeline_graph_object.yaml
 /store/pipelines:
-  $ref: ./store/pipelines.yaml
+  $ref: ./store/pipelines/pipelines.yaml
 
 # webhooks
 /webhooks/status/{jobId}:

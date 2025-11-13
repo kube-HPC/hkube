@@ -1,0 +1,9 @@
+description: Pipeline already exists
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/error"
+    example:
+      error:
+        code: 409
+        message: "pipeline test already exists"

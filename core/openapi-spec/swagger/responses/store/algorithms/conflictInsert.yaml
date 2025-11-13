@@ -1,0 +1,19 @@
+description: Error response indicating that the algorithm already exists
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: Error code representing the conflict status (409 in this case).
+            message:
+              type: string
+              description: A description of the error message.
+    example:
+      error:
+        code: 409
+        message: "algorithm green-alg-tteesstt already exists"

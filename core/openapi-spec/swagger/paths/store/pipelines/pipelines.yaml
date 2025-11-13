@@ -11,12 +11,7 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            items:
-              $ref: "#/components/schemas/pipeline"
+      $ref: "#/components/responses/storePipelines_successGetMany"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
@@ -43,21 +38,13 @@ post:
     required: true
   responses:
     "201":
-      description: pipeline created
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/pipeline"
+      $ref: "#/components/responses/storePipelines_successInsert"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "409":
-      description: pipeline conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/storePipelines_conflictInsert"
     default:
       $ref: "#/components/responses/default"
 put:
@@ -74,20 +61,12 @@ put:
     required: true
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/pipeline"
+      $ref: "#/components/responses/storePipelines_successUpdate"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: pipeline Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/storePipelines_notFound"
     default:
       $ref: "#/components/responses/default"

@@ -1,6 +1,8 @@
 # algorithms
 algorithm:
   $ref: ./algorithms/algorithm.yaml
+algorithmApply:
+  $ref: ./algorithms/algorithmApply.yaml
 algorithmKind:
   $ref: ./algorithms/algorithmKind.yaml
 algorithmName:
@@ -225,6 +227,10 @@ response:
   $ref: ./gc/response.yaml
 
 # graph
+graphEdges:
+  $ref: ./graph/edges.yaml
+graph:
+  $ref: ./graph/graph.yaml
 graphQuery:
   $ref: ./graph/graphQuery.yaml
 graphResponse:
@@ -233,6 +239,8 @@ graphPreviewResponse:
   $ref: ./graph/graphPreviewResponse.yaml
 graphPreview:
   $ref: ./graph/graphPreview.yaml
+graphNodes:
+  $ref: ./graph/nodes.yaml
 
 # pipelines
 options:

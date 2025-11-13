@@ -1,0 +1,8 @@
+    type: array
+    items:
+      type: object
+      properties:
+        nodeName:
+          type: string
+        algorithmName:
+          type: string

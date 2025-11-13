@@ -100,6 +100,44 @@ resources_successSingle:
 status_success:
   $ref: ./status/success.yaml
 
+# store - algorithms
+storeAlgorithms_conflictInsert:
+  $ref: ./store/algorithms/conflictInsert.yaml
+storeAlgorithms_notFound:
+  $ref: ./store/algorithms/notFound.yaml
+storeAlgorithms_successApply:
+  $ref: ./store/algorithms/successApply.yaml
+storeAlgorithms_successDelete:
+  $ref: ./store/algorithms/successDelete.yaml
+storeAlgorithms_successGetMany:
+  $ref: ./store/algorithms/successGetMany.yaml
+storeAlgorithms_successGetSingle:
+  $ref: ./store/algorithms/successGetSingle.yaml
+storeAlgorithms_successInsert:
+  $ref: ./store/algorithms/successInsert.yaml
+storeAlgorithms_successSearch:
+  $ref: ./store/algorithms/successSearch.yaml
+storeAlgorithms_successUpdate:
+  $ref: ./store/algorithms/successUpdate.yaml
+
+# store - pipelines
+storePipelines_conflictInsert:
+  $ref: ./store/pipelines/conflictInsert.yaml
+storePipelines_notFound:
+  $ref: ./store/pipelines/notFound.yaml
+storePipelines_successDelete:
+  $ref: ./store/pipelines/successDelete.yaml
+storePipelines_successGetGraph:
+  $ref: ./store/pipelines/successGetGraph.yaml
+storePipelines_successGetMany:
+  $ref: ./store/pipelines/successGetMany.yaml
+storePipelines_successGetSingle:
+  $ref: ./store/pipelines/successGetSingle.yaml
+storePipelines_successInsert:
+  $ref: ./store/pipelines/successInsert.yaml
+storePipelines_successUpdate:
+  $ref: ./store/pipelines/successUpdate.yaml
+
 # webhooks
 webhooks_notFound:
   $ref: ./webhooks/notFound.yaml
