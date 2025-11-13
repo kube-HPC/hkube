@@ -56,6 +56,18 @@ gateway_successMany:
 gateway_successSingle:
   $ref: ./gateway/successSingle.yaml
 
+# gc
+gc_internalServerError:
+  $ref: ./gc/internalServerError.yaml
+gc_successClean:
+  $ref: ./gc/successClean.yaml
+gc_successCleanType:
+  $ref: ./gc/successCleanType.yaml
+gc_successStatus:
+  $ref: ./gc/successStatus.yaml
+gc_successStatusType:
+  $ref: ./gc/successStatusType.yaml
+
 # kubernetes
 kubernetes_jobSuccess:
   $ref: ./kubernetes/jobSuccess.yaml

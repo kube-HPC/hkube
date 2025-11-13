@@ -5,13 +5,7 @@ get:
   description: Get all statuses
   responses:
     "200":
-      description: success response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/response"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/gc_successStatus"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:

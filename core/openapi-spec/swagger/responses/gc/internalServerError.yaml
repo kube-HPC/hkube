@@ -1,0 +1,24 @@
+description: invalid cleaner type
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 500
+              description: HTTP error code.
+            message:
+              type: string
+              example: "cleaner type is invalid (datasource,debug,etcd,gateway,jobs,output,pipelines,redis,status,storage,taskStatus)"
+              description: Description of the error.
+          required:
+            - code
+            - message
+    example:
+      error:
+        code: 500
+        message: "cleaner type is invalid (datasource,debug,etcd,gateway,jobs,output,pipelines,redis,status,storage,taskStatus)"

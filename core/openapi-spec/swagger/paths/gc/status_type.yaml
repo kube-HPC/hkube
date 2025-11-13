@@ -11,14 +11,12 @@ get:
         type: string
   responses:
     "200":
-      description: success response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/response"
+      $ref: "#/components/responses/gc_successStatusType"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
+    "500":
+      $ref: "#/components/responses/gc_internalServerError"
     default:
       $ref: "#/components/responses/default"

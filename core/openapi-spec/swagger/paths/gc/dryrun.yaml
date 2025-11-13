@@ -12,11 +12,7 @@ post:
     required: true
   responses:
     "200":
-      description: success response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/response"
+      $ref: "#/components/responses/gc_successClean"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":

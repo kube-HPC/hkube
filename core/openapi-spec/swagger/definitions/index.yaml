@@ -219,10 +219,12 @@ sampler:
 # GC
 clean:
   $ref: ./gc/clean.yaml
+cleanResponse:
+  $ref: ./gc/cleanResponse.yaml
 gcError:
   $ref: ./gc/error.yaml
-response:
-  $ref: ./gc/response.yaml
+statusResponse:
+  $ref: ./gc/statusResponse.yaml
 
 # graph
 graphEdges:
