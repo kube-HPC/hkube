@@ -271,6 +271,8 @@ pipelineTriggersResult:
   $ref: ./pipelines/pipelineTriggersResult.yaml
 codeApiPipelineRequest:
   $ref: ./pipelines/codeApiPipelineRequest.yaml
+trigger:
+  $ref: ./pipelines/trigger.yaml
 
 # webhooks
 webhookResult:

@@ -1,0 +1,19 @@
+description: Gets pipeline execution result
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/pipelineResult"
+      example:
+        - jobId: "rpm3fxjtfsa5"
+          startTime: 1762432087478
+          pipeline: "simple"
+          data:
+            - nodeName: "black"
+              algorithmName: "black-alg"
+              result: "link1"
+          status: "completed"
+          timestamp: 1762432097150
+          timeTook: 9.673
+          storageModule: "@hkube/fs-adapter"

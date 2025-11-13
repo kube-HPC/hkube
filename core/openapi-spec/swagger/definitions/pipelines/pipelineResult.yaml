@@ -2,7 +2,7 @@ type: object
 properties:
   jobId:
     $ref: "#/components/schemas/jobId"
-  timestamp:
+  startTime:
     type: string
   pipeline:
     type: string
@@ -10,6 +10,8 @@ properties:
     type: array
     items: {}
   status:
+    type: string
+  timestamp:
     type: string
   timeTook:
     type: number

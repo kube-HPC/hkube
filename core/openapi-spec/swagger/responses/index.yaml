@@ -72,6 +72,16 @@ managed_successPipeline:
 managed_successTag:
   $ref: ./managed/successTag.yaml
 
+# pipelines
+pipelines_notFound:
+  $ref: ./pipelines/notFound.yaml
+pipelines_successGetResults:
+  $ref: ./pipelines/successGetResults.yaml
+pipelines_successGetStatus:
+  $ref: ./pipelines/successGetStatus.yaml
+pipelines_successGetTree:
+  $ref: ./pipelines/successGetTree.yaml
+
 # preferred
 preferred_successAdd:
   $ref: ./preferred/successAdd.yaml
