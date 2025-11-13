@@ -2,7 +2,7 @@ description: Algorithm successfully inserted
 content:
   application/json:
     schema:
-      $ref: "#/components/schemas/algorithmApply"
+      $ref: "#/components/schemas/algorithmApplyResponse"
     example:
       messages:
         - "a new version of algorithm green-alg-tteesstt has been created"

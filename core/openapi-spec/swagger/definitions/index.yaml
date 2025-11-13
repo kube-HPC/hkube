@@ -1,8 +1,8 @@
 # algorithms
 algorithm:
   $ref: ./algorithms/algorithm.yaml
-algorithmApply:
-  $ref: ./algorithms/algorithmApply.yaml
+algorithmApplyResponse:
+  $ref: ./algorithms/algorithmApplyResponse.yaml
 algorithmKind:
   $ref: ./algorithms/algorithmKind.yaml
 algorithmName:
@@ -31,8 +31,6 @@ algorithmUpdateOptions:
   $ref: ./algorithms/algorithmUpdateOptions.yaml
 algorithmInsertOptions:
   $ref: ./algorithms/algorithmInsertOptions.yaml
-algorithmApplyResponse:
-  $ref: ./algorithms/algorithmApplyResponse.yaml
 algorithmBuild:
   $ref: ./algorithms/algorithmBuild.yaml
 kubernetesValueFrom:
