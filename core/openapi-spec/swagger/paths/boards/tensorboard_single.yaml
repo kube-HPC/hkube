@@ -13,8 +13,6 @@ get:
   responses:
     "200":
       $ref: "#/components/responses/boards_successGetTensor"
-    "400":
-      $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
@@ -36,8 +34,6 @@ delete:
   responses:
     "200":
       $ref: "#/components/responses/boards_successDelete"
-    "400":
-      $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":

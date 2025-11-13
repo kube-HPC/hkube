@@ -106,13 +106,13 @@
 
 # boards
 /boards/tensors:
-  $ref: ./boards/tensorboard_create.yaml
+  $ref: ./boards/tensorboard_start.yaml
 /boards/tensors/{id}:
   $ref: ./boards/tensorboard_single.yaml
 /boards/tensors/:
   $ref: ./boards/tensorboard_list.yaml
 /boards/optunas:
-  $ref: ./boards/optunaboard_create.yaml
+  $ref: ./boards/optunaboard_start.yaml
 /boards/optunas/{id}:
   $ref: ./boards/optunaboard_single.yaml
 /boards/optunas/:

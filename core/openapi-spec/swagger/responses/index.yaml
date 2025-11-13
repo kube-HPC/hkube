@@ -73,10 +73,6 @@ managed_successTag:
   $ref: ./managed/successTag.yaml
 
 # preferred
-preferred_badRequestAdd:
-  $ref: ./preferred/badRequestAdd.yaml
-preferred_badRequestDelete:
-  $ref: ./preferred/badRequestDelete.yaml
 preferred_successAdd:
   $ref: ./preferred/successAdd.yaml
 preferred_successDelete:

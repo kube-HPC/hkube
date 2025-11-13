@@ -57,7 +57,7 @@ post:
     "200":
       $ref: "#/components/responses/preferred_successAdd"
     "400":
-      $ref: "#/components/responses/preferred_badRequestAdd"
+      $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:

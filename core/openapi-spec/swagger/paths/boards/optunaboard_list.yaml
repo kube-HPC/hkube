@@ -6,8 +6,6 @@ get:
   responses:
     "200":
       $ref: "#/components/responses/boards_successListOptuna"
-    "400":
-      $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:

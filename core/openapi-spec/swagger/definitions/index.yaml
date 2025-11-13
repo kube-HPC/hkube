@@ -79,6 +79,8 @@ defaultResponseWithName:
   $ref: ./common/defaultResponseWithName.yaml
 error:
   $ref: ./common/error.yaml
+errorBadRequest:
+  $ref: ./common/errorBadRequest.yaml
 jobId:
   $ref: ./common/jobId.yaml
 jobIdObject:

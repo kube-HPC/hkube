@@ -13,7 +13,7 @@ post:
     "200":
       $ref: "#/components/responses/preferred_successDelete"
     "400":
-      $ref: "#/components/responses/preferred_badRequestDelete"
+      $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:
