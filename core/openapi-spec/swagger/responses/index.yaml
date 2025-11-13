@@ -99,3 +99,13 @@ resources_successSingle:
 # status
 status_success:
   $ref: ./status/success.yaml
+
+# webhooks
+webhooks_notFound:
+  $ref: ./webhooks/notFound.yaml
+webhooks_successList:
+  $ref: ./webhooks/successList.yaml
+webhooks_successResult:
+  $ref: ./webhooks/successResult.yaml
+webhooks_successStatus:
+  $ref: ./webhooks/successStatus.yaml

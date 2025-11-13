@@ -1,0 +1,17 @@
+description: Webhook Not Found
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+    example:
+      error:
+        code: 404
+        message: "webhook m0qvfqsjunl711 Not Found"
