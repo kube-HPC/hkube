@@ -1,0 +1,9 @@
+description: Insert pipeline readme
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "OK"

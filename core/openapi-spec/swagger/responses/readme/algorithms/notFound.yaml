@@ -1,0 +1,15 @@
+description: Algorithm readme not found
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              example: 404
+            message:
+              type: string
+              example: "readme black-algg Not Found"

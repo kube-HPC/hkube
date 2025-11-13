@@ -12,15 +12,13 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/readmeAlgorithms_successGet"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/readmeAlgorithms_notFound"
     default:
       $ref: "#/components/responses/default"
 post:
@@ -49,21 +47,15 @@ post:
     required: true
   responses:
     "201":
-      description: algorithm created
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/readmeAlgorithms_successInsert"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
-    "409":
-      description: algorithm conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+    "404":
+      $ref: "#/components/responses/readmeAlgorithms_notFound"
+    "500":
+      $ref: "#/components/responses/readmeAlgorithms_internalServerError"
     default:
       $ref: "#/components/responses/default"
 put:
@@ -92,21 +84,15 @@ put:
     required: true
   responses:
     "201":
-      description: algorithm readme updated
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/readmeAlgorithms_successUpdate"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
-    "409":
-      description: algorithm conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+    "404":
+      $ref: "#/components/responses/readmeAlgorithms_notFound"
+    "500":
+      $ref: "#/components/responses/readmeAlgorithms_internalServerError"
     default:
       $ref: "#/components/responses/default"
 delete:
@@ -123,20 +109,14 @@ delete:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/readmeAlgorithms_successDelete"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: algorithm Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/readmeAlgorithms_notFound"
+    "500":
+      $ref: "#/components/responses/readmeAlgorithms_internalServerError"
     default:
       $ref: "#/components/responses/default"

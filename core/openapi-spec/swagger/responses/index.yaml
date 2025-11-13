@@ -88,6 +88,34 @@ preferred_successTag:
 queue_success:
   $ref: ./queue/success.yaml
 
+# readme - algorithms
+readmeAlgorithms_internalServerError:
+  $ref: ./readme/algorithms/internalServerError.yaml
+readmeAlgorithms_notFound:
+  $ref: ./readme/algorithms/notFound.yaml
+readmeAlgorithms_successDelete:
+  $ref: ./readme/algorithms/successDelete.yaml
+readmeAlgorithms_successGet:
+  $ref: ./readme/algorithms/successGet.yaml
+readmeAlgorithms_successInsert:
+  $ref: ./readme/algorithms/successInsert.yaml
+readmeAlgorithms_successUpdate:
+  $ref: ./readme/algorithms/successUpdate.yaml
+
+# readme - pipelines
+readmePipelines_internalServerError:
+  $ref: ./readme/pipelines/internalServerError.yaml
+readmePipelines_notFound:
+  $ref: ./readme/pipelines/notFound.yaml
+readmePipelines_successDelete:
+  $ref: ./readme/pipelines/successDelete.yaml
+readmePipelines_successGet:
+  $ref: ./readme/pipelines/successGet.yaml
+readmePipelines_successInsert:
+  $ref: ./readme/pipelines/successInsert.yaml
+readmePipelines_successUpdate:
+  $ref: ./readme/pipelines/successUpdate.yaml
+
 # resources
 resources_notFound:
   $ref: ./resources/notFound.yaml

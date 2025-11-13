@@ -12,15 +12,15 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/readmePipelines_successGet"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/readmePipelines_notFound"
+    "500":
+      $ref: "#/components/responses/readmePipelines_internalServerError"
     default:
       $ref: "#/components/responses/default"
 post:
@@ -48,22 +48,16 @@ post:
     description: pipeline readme to be added to the store
     required: true
   responses:
-    "201":
-      description: pipeline created
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+    "200":
+      $ref: "#/components/responses/readmePipelines_successInsert"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
-    "409":
-      description: pipeline conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+    "404":
+      $ref: "#/components/responses/readmePipelines_notFound"
+    "500":
+      $ref: "#/components/responses/readmePipelines_internalServerError"
     default:
       $ref: "#/components/responses/default"
 put:
@@ -91,22 +85,16 @@ put:
     description: pipeline readme to be added to the store
     required: true
   responses:
-    "201":
-      description: pipeline readme updated
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+    "200":
+      $ref: "#/components/responses/readmePipelines_successUpdate"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
-    "409":
-      description: pipeline conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+    "404":
+      $ref: "#/components/responses/readmePipelines_notFound"
+    "500":
+      $ref: "#/components/responses/readmePipelines_internalServerError"
     default:
       $ref: "#/components/responses/default"
 delete:
@@ -123,20 +111,14 @@ delete:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/readmePipelines_successDelete"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: pipeline Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/readmePipelines_notFound"
+    "500":
+      $ref: "#/components/responses/readmePipelines_internalServerError"
     default:
       $ref: "#/components/responses/default"
