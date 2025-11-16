@@ -164,6 +164,7 @@ class PipelinesUpdater {
         let buildsCount = 0;
         let addedVersionsCount = 0;
         const limit = 1000;
+        const message = [];
 
         for (const algorithm of algorithmList) {
             const { name } = algorithm;
@@ -190,19 +191,16 @@ class PipelinesUpdater {
                 await stateManager.createBuilds(builds);
             }
         }
-        let message = "";
         if (addedVersionsCount > 0) {
-            message += `Algorithms: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`;
+            message.push(`Algorithms: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`);
         }
         if (etcd_versionsCount > 0) {
-            message += message === "" ? "" : " ";
-            message += `Synced ${etcd_versionsCount} versions from etcd.`;
+            message.push(`Synced ${etcd_versionsCount} versions from etcd.`);
         }
         if (buildsCount > 0) {
-            message += message === "" ? "" : " ";
-            message += `Created ${buildsCount} builds from etcd.`;
+            message.push(`Created ${buildsCount} builds from etcd.`);
         }
-        return message === "" ? `Algorithms are already synced.` : message;
+        return message.length > 0 ? message.join(' ') : `Algorithms are already synced.`;
     }
 
     _logSyncSuccess(type, resultMessage) {
@@ -258,7 +256,7 @@ class PipelinesUpdater {
                 versionsCount += versions.length; // Including previous versions if there are any.
             }
         }
-        return addedVersionsCount === 0 ? `Pipelines are already synced.` : `Pipelines: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`;
+        return addedVersionsCount > 0 ? `Pipelines: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.` : `Pipelines are already synced.`;
     }
 
     async _createExperiments(type, list) {
