@@ -1,0 +1,20 @@
+description: Snapshot not found
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+          required:
+            - code
+            - message
+    example:
+      error:
+        code: 404
+        message: "snapshot a Not Found"

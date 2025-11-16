@@ -1,0 +1,13 @@
+description: Delete datasource result
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        deleted:
+          type: integer
+          description: Number of deleted items
+      required:
+        - deleted
+    example:
+      deleted: 1

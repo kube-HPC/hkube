@@ -1,0 +1,20 @@
+description: Internal server error due to invalid regular expression
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+          required:
+            - code
+            - message
+    example:
+      error:
+        code: 500
+        message: "Invalid regular expression: /*/: Nothing to repeat"

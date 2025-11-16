@@ -1,0 +1,22 @@
+description: a list of files
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/FileMeta"
+    example:
+      - id: "file-001"
+        name: "report.md"
+        path: "/docs/report.md"
+        size: 12345
+        type: "text/markdown"
+        description: "Monthly report"
+        uploadedAt: 1695891600994
+      - id: "file-002"
+        name: "package.deb"
+        path: "/packages/package.deb"
+        size: 87759268
+        type: "application/vnd.debian.binary-package"
+        description: "Debian package file"
+        uploadedAt: 1695892600994

@@ -1,0 +1,24 @@
+description: created dataSource
+content:
+  application/json:
+    schema:
+      $ref: '#/components/schemas/DataSourceWithMeta'
+    example:
+      id: "6358e914ce505511b3b7200a"
+      name: "ds1"
+      versionDescription: "initial version"
+      filesCount: 1
+      avgFileSize: "10"
+      totalSize: 10
+      fileTypes:
+        - "application/json"
+      commitHash: "a1b2c3d4e5f678901234567890abcdef"
+      files:
+        - id: "f1a2b3c4d5e6f7g8h9i0j1k2"
+          name: "example.json"
+          path: "/data/ds1/example.json"
+          size: 10
+          type: "application/json"
+          description: "Sample file"
+          uploadedAt: 1732345678
+      gitRepositoryUrl: "https://github.com/example/ds1.git"

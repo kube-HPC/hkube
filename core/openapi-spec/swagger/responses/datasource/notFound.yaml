@@ -1,0 +1,22 @@
+description: DataSource not found
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+          required:
+            - code
+            - message
+      required:
+        - error
+    example:
+      error:
+        code: 404
+        message: "dataSource dd Not Found"
