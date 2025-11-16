@@ -65,7 +65,9 @@ class WorkerCommunication extends EventEmitter {
                 return;
             }
         }
-        log.info(`got message on topic ${topic}, command: ${message && message.command}`, { component });
+        // connection and disconnect events are given when the connection is established or closed, not from our wrapper.
+        const command = topic !== 'connection' && topic !== 'disconnect' ? `, command: ${message?.command || 'Unknown'}` : '';
+        log.info(`got message on topic ${topic}${command}`, { component });
     }
 
     setEncodingType(type) {
