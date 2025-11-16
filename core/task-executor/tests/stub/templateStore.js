@@ -479,7 +479,7 @@ const templateStore = [
         mem: '128Mi',
         kaiObject: {
             queue: 'test',
-            memory: "3000",
+            memory: "3000Mi",
             fraction: 0.5
         }
     },
