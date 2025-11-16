@@ -27,9 +27,8 @@ const options = {
         kubeconfig
     },
     resources: { defaultQuota: {} },
-    healthchecks: { logExternalRequests: false }
-
-
+    healthchecks: { logExternalRequests: false },
+    intervalMs: 1000
 };
 
 const optionsDummy = {
