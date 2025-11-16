@@ -1,0 +1,20 @@
+description: Pipeline job execution results
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/pipelineResult"
+    example:
+      - jobId: "40l7pshwdexq"
+        timestamp: 1763308381132
+        status: "completed"
+        level: "info"
+        pipeline: "pipe1"
+        data:
+          progress: 100
+          states:
+            succeed: 2
+          details: "100% completed, 2 succeed"
+        netTimeTook: 0.297
+        grossTimeTook: 0.319

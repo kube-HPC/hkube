@@ -8,7 +8,7 @@ get:
       in: query
       description: pipeline name
       schema:
-        type: string
+        $ref: "#/components/schemas/pipelineName"
     - name: experimentName
       in: query
       description: experiment name
@@ -31,22 +31,12 @@ get:
         type: integer
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/pipelineResult"
+      $ref: "#/components/responses/cron_successResults"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: results Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/cron_notFound"
     default:
       $ref: "#/components/responses/default"

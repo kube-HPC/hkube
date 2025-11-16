@@ -7,24 +7,21 @@ post:
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/cronRequest"
+          type: object
+          properties:
+            name:
+              $ref: "#/components/schemas/pipelineName"
+          required:
+            - name
     required: true
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/cron_successStop"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: pipeline Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/cron_notFound"
     default:
       $ref: "#/components/responses/default"

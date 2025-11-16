@@ -1,0 +1,11 @@
+description: action summary
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "OK"
+    example:
+      message: "OK"

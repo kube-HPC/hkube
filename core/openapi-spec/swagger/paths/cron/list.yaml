@@ -21,22 +21,10 @@ get:
         type: integer
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/pipelineResult"
+      $ref: "#/components/responses/cron_successList"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
-    "404":
-      description: cron Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
     default:
       $ref: "#/components/responses/default"

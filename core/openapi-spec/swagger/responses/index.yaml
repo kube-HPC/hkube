@@ -32,6 +32,20 @@ internalServerError:
 unauthorized:
   $ref: ./common/unauthorized.yaml
 
+# cron
+cron_notFound:
+  $ref: ./cron/notFound.yaml
+cron_successList:
+  $ref: ./cron/successList.yaml
+cron_successResults:
+  $ref: ./cron/successResults.yaml
+cron_successStart:
+  $ref: ./cron/successStart.yaml
+cron_successStatus:
+  $ref: ./cron/successStatus.yaml
+cron_successStop:
+  $ref: ./cron/successStop.yaml
+
 # datasource - snapshots
 datasource_snapshots_notFound:
   $ref: ./datasource/snapshots/notFound.yaml
