@@ -1,4 +1,4 @@
-description: Success response with algorithm details
+description: Tag version success
 content:
   application/json:
     schema:
