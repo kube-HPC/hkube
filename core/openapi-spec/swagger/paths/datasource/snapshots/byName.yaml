@@ -12,24 +12,12 @@ get:
               type: boolean
     responses:
         "200":
-            description: A collection of snapshots
-            content:
-                application/json:
-                    schema:
-                        oneOf:
-                            - type: object
-                              properties:
-                                  dataSource:
-                                      type: object
-                                      properties:
-                                          id:
-                                              type: string
-                                  snapshot:
-                                      $ref: "#/components/schemas/Snapshot"
-                            - $ref: "#/components/schemas/ResolvedSnapshot"
+            $ref: "#/components/responses/datasource_snapshots_successGetByDatasource"
         "400":
             $ref: "#/components/responses/badRequest"
         "401":
             $ref: "#/components/responses/unauthorized"
+        "404":
+            $ref: "#/components/responses/datasource_snapshots_notFound"
         default:
             $ref: "#/components/responses/default"

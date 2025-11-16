@@ -8,14 +8,7 @@ get:
         - $ref: '#/components/parameters/idQuery'
     responses:
         '200':
-            description: ensure a datasource exists by name, version or snapshot
-            content:
-                application/json:
-                    schema:
-                        type: object
-                        properties:
-                            exists:
-                                type: boolean
+            $ref: "#/components/responses/datasource_successValidate"
         "400":
             $ref: "#/components/responses/badRequest"
         "401":

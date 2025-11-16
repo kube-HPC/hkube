@@ -1,7 +1,7 @@
 post:
     tags:
         - DataSource
-    summary: create download link
+    summary: Create download link
     parameters:
         - $ref: "#/components/parameters/idParam"
     requestBody:
@@ -18,35 +18,25 @@ post:
         required: true
     responses:
         "201":
-            description: A Zip file
-            content:
-                application/octet-stream:
-                    schema:
-                        type: object
-                        properties:
-                            href:
-                                type: string
+            $ref: "#/components/responses/datasource_successDownloadCreate"
         "400":
             $ref: "#/components/responses/badRequest"
         "401":
             $ref: "#/components/responses/unauthorized"
+        "500":
+            $ref: "#/components/responses/datasource_internalServerError"
         default:
             $ref: "#/components/responses/default"
 get:
     tags:
         - DataSource
-    summary: download an archive of the selected files
+    summary: Download an archive of the selected files
     parameters:
         - $ref: "#/components/parameters/idParam"
         - $ref: "#/components/parameters/downloadIdQuery"
     responses:
         "200":
-            description: A Zip file
-            content:
-                application/octet-stream:
-                    schema:
-                        type: string
-                        format: binary
+            $ref: "#/components/responses/datasource_successDownloadGet"
         "400":
             $ref: "#/components/responses/badRequest"
         "401":

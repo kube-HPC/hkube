@@ -18,16 +18,12 @@ post:
                         - query
     responses:
         "201":
-            description: a list of files
-            content:
-                application/json:
-                    schema:
-                        type: array
-                        items:
-                            $ref: "#/components/schemas/FileMeta"
+            $ref: "#/components/responses/datasource_snapshots_successGetPreview"
         "400":
             $ref: "#/components/responses/badRequest"
         "401":
             $ref: "#/components/responses/unauthorized"
+        "500":
+            $ref: "#/components/responses/datasource_snapshots_internalServerError"
         default:
             $ref: "#/components/responses/default"

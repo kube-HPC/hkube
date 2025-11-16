@@ -4,15 +4,7 @@ get:
     summary: Fetch all dataSources meta data
     responses:
         '200':
-            description: A collection of dataSources
-            content:
-                application/json:
-                    schema:
-                        type: array
-                        items:
-                            $ref: '#/components/schemas/DataSourceMeta'
-        "400":
-            $ref: "#/components/responses/badRequest"
+            $ref: '#/components/responses/datasource_successGetMany'
         "401":
             $ref: "#/components/responses/unauthorized"
         default:
@@ -30,11 +22,7 @@ post:
         required: true
     responses:
         '201':
-            description: created dataSource
-            content:
-                application/json:
-                    schema:
-                        $ref: '#/components/schemas/DataSourceWithMeta'
+            $ref: '#/components/responses/datasource_successCreate'
         "400":
             $ref: "#/components/responses/badRequest"
         "401":

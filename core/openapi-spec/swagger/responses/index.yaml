@@ -32,6 +32,50 @@ internalServerError:
 unauthorized:
   $ref: ./common/unauthorized.yaml
 
+# datasource - snapshots
+datasource_snapshots_notFound:
+  $ref: ./datasource/snapshots/notFound.yaml
+datasource_snapshots_internalServerError:
+  $ref: ./datasource/snapshots/internalServerError.yaml
+datasource_snapshots_successCreate:
+  $ref: ./datasource/snapshots/successCreate.yaml
+datasource_snapshots_successGetByDatasource:
+  $ref: ./datasource/snapshots/successGetByDatasource.yaml
+datasource_snapshots_successGetMany:
+  $ref: ./datasource/snapshots/successGetMany.yaml
+datasource_snapshots_successGetPreview:
+  $ref: ./datasource/snapshots/successGetPreview.yaml
+datasource_snapshots_successGetSingle:
+  $ref: ./datasource/snapshots/successGetSingle.yaml
+
+# datasource
+datasource_internalServerError:
+  $ref: ./datasource/internalServerError.yaml
+datasource_notFound:
+  $ref: ./datasource/notFound.yaml
+datasource_successCreate:
+  $ref: ./datasource/successCreate.yaml
+datasource_successCredentialsUpdate:
+  $ref: ./datasource/successCredentialsUpdate.yaml
+datasource_successDelete:
+  $ref: ./datasource/successDelete.yaml
+datasource_successDownloadCreate:
+  $ref: ./datasource/successDownloadCreate.yaml
+datasource_successDownloadGet:
+  $ref: ./datasource/successDownloadGet.yaml
+datasource_successGetMany:
+  $ref: ./datasource/successGetMany.yaml
+datasource_successGetSingle:
+  $ref: ./datasource/successGetSingle.yaml
+datasource_successGetVersions:
+  $ref: ./datasource/successGetVersions.yaml
+datasource_successSync:
+  $ref: ./datasource/successSync.yaml
+datasource_successUploadFile:
+  $ref: ./datasource/successUploadFile.yaml
+datasource_successValidate:
+  $ref: ./datasource/successValidate.yaml
+
 # experiment
 experiment_conflictInsert:
   $ref: ./experiment/conflictInsert.yaml

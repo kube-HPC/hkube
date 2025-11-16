@@ -6,15 +6,7 @@ get:
         - $ref: '#/components/parameters/nameParam'
     responses:
         '200':
-            description: A datasource item
-            content:
-                application/json:
-                    schema:
-                        type: array
-                        items:
-                            $ref: '#/components/schemas/DataSourceVersion'
-        "400":
-            $ref: "#/components/responses/badRequest"
+            $ref: '#/components/responses/datasource_successGetVersions'
         "401":
             $ref: "#/components/responses/unauthorized"
         default:
