@@ -23,6 +23,8 @@ post:
             $ref: "#/components/responses/badRequest"
         "401":
             $ref: "#/components/responses/unauthorized"
+        "404":
+            $ref: "#/components/responses/datasource_notFound"
         "500":
             $ref: "#/components/responses/datasource_internalServerError"
         default:

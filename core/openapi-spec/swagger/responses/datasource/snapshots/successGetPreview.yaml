@@ -1,4 +1,4 @@
-description: a list of files
+description: A list of files
 content:
   application/json:
     schema:

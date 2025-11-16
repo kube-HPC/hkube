@@ -6,5 +6,8 @@ content:
       properties:
         exists:
           type: boolean
+        id:
+          type: string
     example:
       exists: true
+      id: "69161346d1490230cf3724ee"

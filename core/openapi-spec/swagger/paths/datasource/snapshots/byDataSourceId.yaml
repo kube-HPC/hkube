@@ -1,7 +1,7 @@
 post:
     tags:
         - DataSource
-    summary: create a new snapshot for a given datasource version
+    summary: Create a new snapshot for a given datasource version
     parameters:
         - $ref: "#/components/parameters/idParam"
     requestBody:
@@ -16,5 +16,7 @@ post:
             $ref: "#/components/responses/badRequest"
         "401":
             $ref: "#/components/responses/unauthorized"
+        "404":
+            $ref: "#/components/responses/datasource_snapshots_notFound"
         default:
             $ref: "#/components/responses/default"
