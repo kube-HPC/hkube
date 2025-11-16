@@ -274,6 +274,9 @@ class AlgorithmStore {
         if (!this._verifyUniqueSideCarContainerNames(payload)) {
             throw new InvalidDataError('Sidecar container names must be unique!');
         }
+        if (!this._verifyKaiObjectMemoryOrFraction(payload)) {
+            throw new InvalidDataError('In kaiObject, only one of "memory" or "fraction" can be defined!');
+        }
 
         await this._validateAlgorithm(newAlgorithm);
         const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
@@ -349,6 +352,26 @@ class AlgorithmStore {
             }
             return true;
         });
+    }
+
+    /**
+     * Verifies that in payload.kaiObject, only one of 'memory' or 'fraction' is defined,
+     * or both are undefined.
+     *
+     * @param {Object} payload - The payload containing kaiObject data.
+     * @param {Object} payload.kaiObject - The KAI object with optional memory and fraction properties.
+     * @returns {boolean} - Returns `true` if only one or none is defined, otherwise `false`.
+     */
+    _verifyKaiObjectMemoryOrFraction(payload) {
+        const kaiObject = payload?.kaiObject;
+        if (!kaiObject) return true;
+
+        const hasMemory = kaiObject.memory !== undefined;
+        if (hasMemory) unitsConverter.getMemoryInMi(kaiObject.memory); // validate memory format
+        const hasFraction = kaiObject.fraction !== undefined;
+
+        // Valid if at most one is defined
+        return !(hasMemory && hasFraction);
     }
 
     _resolveType(payload, file) {
