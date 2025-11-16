@@ -7,11 +7,13 @@ get:
         - $ref: '#/components/parameters/snapshotNameQuery'
         - $ref: '#/components/parameters/idQuery'
     responses:
-        '200':
+        "200":
             $ref: "#/components/responses/datasource_successValidate"
         "400":
             $ref: "#/components/responses/badRequest"
         "401":
             $ref: "#/components/responses/unauthorized"
+        "404":
+            $ref: "#/components/responses/datasource_notFound"
         default:
             $ref: "#/components/responses/default"
