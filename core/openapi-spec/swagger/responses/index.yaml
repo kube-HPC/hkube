@@ -246,6 +246,36 @@ storePipelines_successInsert:
 storePipelines_successUpdate:
   $ref: ./store/pipelines/successUpdate.yaml
 
+# versions - algorithms
+versionsAlgorithms_notFound:
+  $ref: ./versions/algorithms/notFound.yaml
+versionsAlgorithms_successAlias:
+  $ref: ./versions/algorithms/successAlias.yaml
+versionsAlgorithms_successApply:
+  $ref: ./versions/algorithms/successApply.yaml
+versionsAlgorithms_successGetMany:
+  $ref: ./versions/algorithms/successGetMany.yaml
+versionsAlgorithms_successDelete:
+  $ref: ./versions/algorithms/successDelete.yaml
+versionsAlgorithms_successGetSingle:
+  $ref: ./versions/algorithms/successGetSingle.yaml
+versionsAlgorithms_successTag:
+  $ref: ./versions/algorithms/successTag.yaml
+
+# versions - pipelines
+versionsPipelines_notFound:
+  $ref: ./versions/pipelines/notFound.yaml
+versionsPipelines_successApply:
+  $ref: ./versions/pipelines/successApply.yaml
+versionsPipelines_successDelete:
+  $ref: ./versions/pipelines/successDelete.yaml
+versionsPipelines_successGetMany:
+  $ref: ./versions/pipelines/successGetMany.yaml
+versionsPipelines_successGetSingle:
+  $ref: ./versions/pipelines/successGetSingle.yaml
+versionsPipelines_successTag:
+  $ref: ./versions/pipelines/successTag.yaml
+
 # storage
 storage_badRequestDownload:
   $ref: ./storage/badRequestDownload.yaml

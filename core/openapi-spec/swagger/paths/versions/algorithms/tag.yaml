@@ -11,21 +11,13 @@ post:
     description: an object representing all information needed for stored pipeline execution
     required: true
   responses:
-    "200":
-      description: the OK string
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+    "201":
+      $ref: "#/components/responses/versionsAlgorithms_successTag"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: jobId Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/versionsAlgorithms_notFound"
     default:
       $ref: "#/components/responses/default"

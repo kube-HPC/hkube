@@ -12,20 +12,10 @@ put:
     required: true
   responses:
     "200":
-      description: the OK string
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/versionsPipelines_successTag"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
-    "404":
-      description: Pipeline version not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
     default:
       $ref: "#/components/responses/default"

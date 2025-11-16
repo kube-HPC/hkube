@@ -1,0 +1,79 @@
+description: Retrieves a list of algorithm versions
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/algorithm"
+    example:
+      - version: "y40ietf7km"
+        semver: "1.0.27"
+        created: 1757335500351
+        createdBy: "adir"
+        name: "green-alg"
+        versionAlias: "v1.0.27"
+        algorithm:
+          name: "green-alg"
+          algorithmImage: "hkube/algorithm-example-python"
+          cpu: 0.1
+          mem: "256Mi"
+          options:
+            pending: false
+          minHotWorkers: 0
+          type: "Image"
+          gpu: 0
+          reservedMemory: "512Mi"
+          version: "y40ietf7km"
+          created: 1671352085066
+          modified: 1754383298591
+          env: "nodejs"
+          workerEnv:
+            INACTIVE_WORKER_TIMEOUT_MS: 5000
+          buildStats:
+            total: 0
+            pending: 0
+            creating: 0
+            active: 0
+            completed: 0
+            failed: 0
+            stopped: 0
+          image:
+            algorithmImage: "hkube/algorithm-example-python"
+          algorithmEnv: {}
+
+      - version: "ln43w5a08m"
+        semver: "1.0.26"
+        created: 1754383298374
+        createdBy: "ziv"
+        name: "green-alg"
+        versionAlias: "v1.0.26"
+        algorithm:
+          name: "green-alg"
+          algorithmImage: "hkube/algorithm-example-python"
+          cpu: 0.1
+          mem: "256Mi"
+          options:
+            devMode: true
+            devFolder: "/api-server/mount/path"
+            pending: false
+          minHotWorkers: 1
+          type: "Image"
+          gpu: 0
+          reservedMemory: "512Mi"
+          version: "ln43w5a08m"
+          created: 1671352085066
+          modified: 1754383279971
+          env: "nodejs"
+          workerEnv:
+            INACTIVE_WORKER_TIMEOUT_MS: 5000
+          buildStats:
+            total: 0
+            pending: 0
+            creating: 0
+            active: 0
+            completed: 0
+            failed: 0
+            stopped: 0
+          image:
+            algorithmImage: "hkube/algorithm-example-python"
+          algorithmEnv: {}

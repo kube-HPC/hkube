@@ -2,7 +2,7 @@ get:
   tags:
     - Algorithm Versions
   summary: Get version
-  description: returns algorithm version
+  description: Returns algorithm version
   parameters:
     - name: name
       in: path
@@ -18,23 +18,11 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/algorithm"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/versionsAlgorithms_successGetSingle"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: algorithm Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/versionsAlgorithms_notFound"
     default:
       $ref: "#/components/responses/default"
 delete:
@@ -57,20 +45,12 @@ delete:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/versionsAlgorithms_successDelete"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: algorithm Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/versionsAlgorithms_notFound"
     default:
       $ref: "#/components/responses/default"

@@ -2,7 +2,7 @@ get:
   tags:
     - Algorithm Versions
   summary: Get algorithm versions
-  description: returns list of algorithm versions.
+  description: Returns list of algorithm versions.
   parameters:
     - name: name
       in: path
@@ -27,22 +27,10 @@ get:
         type: integer
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/algorithm"
+      $ref: "#/components/responses/versionsAlgorithms_successGetMany"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
-    "404":
-      description: algorithm Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
     default:
       $ref: "#/components/responses/default"
