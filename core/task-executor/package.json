@@ -1,6 +1,6 @@
 {
   "name": "task-executor",
-  "version": "2.9.12",
+  "version": "2.9.13",
   "description": "Hkube scheduler service",
   "main": "app.js",
   "scripts": {
