@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.9.11",
+    "version": "2.9.13",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -1889,7 +1889,10 @@
                     "pipelineType": "stored",
                     "algorithmName": "green-alg",
                     "pipelineStatus": "completed",
-                    "tags": "tag1, tag2"
+                    "tags": [
+                      "tag1",
+                      "tag2"
+                    ]
                   },
                   "sort": "desc",
                   "pageNum": 1,
@@ -6884,6 +6887,11 @@
                       "minimum": 0,
                       "description": "algorithm cpu"
                     },
+                    "applyCpuLimits": {
+                      "type": "boolean",
+                      "description": "whether to apply cpu limits to the algorithm",
+                      "example": true
+                    },
                     "gpu": {
                       "type": "number",
                       "minimum": 0,
@@ -7608,6 +7616,11 @@
                         "minimum": 0,
                         "description": "algorithm cpu"
                       },
+                      "applyCpuLimits": {
+                        "type": "boolean",
+                        "description": "whether to apply cpu limits to the algorithm",
+                        "example": true
+                      },
                       "gpu": {
                         "type": "number",
                         "minimum": 0,
@@ -8138,6 +8151,11 @@
                         "minimum": 0,
                         "description": "algorithm cpu"
                       },
+                      "applyCpuLimits": {
+                        "type": "boolean",
+                        "description": "whether to apply cpu limits to the algorithm",
+                        "example": true
+                      },
                       "gpu": {
                         "type": "number",
                         "minimum": 0,
@@ -8655,6 +8673,11 @@
                         "default": 0.1,
                         "minimum": 0,
                         "description": "algorithm cpu"
+                      },
+                      "applyCpuLimits": {
+                        "type": "boolean",
+                        "description": "whether to apply cpu limits to the algorithm",
+                        "example": true
                       },
                       "gpu": {
                         "type": "number",
@@ -9246,6 +9269,11 @@
                         "minimum": 0,
                         "description": "algorithm cpu"
                       },
+                      "applyCpuLimits": {
+                        "type": "boolean",
+                        "description": "whether to apply cpu limits to the algorithm",
+                        "example": true
+                      },
                       "gpu": {
                         "type": "number",
                         "minimum": 0,
@@ -9824,6 +9852,11 @@
                         "minimum": 0,
                         "description": "algorithm cpu"
                       },
+                      "applyCpuLimits": {
+                        "type": "boolean",
+                        "description": "whether to apply cpu limits to the algorithm",
+                        "example": true
+                      },
                       "gpu": {
                         "type": "number",
                         "minimum": 0,
@@ -10343,6 +10376,11 @@
                           "default": 0.1,
                           "minimum": 0,
                           "description": "algorithm cpu"
+                        },
+                        "applyCpuLimits": {
+                          "type": "boolean",
+                          "description": "whether to apply cpu limits to the algorithm",
+                          "example": true
                         },
                         "gpu": {
                           "type": "number",
@@ -18026,6 +18064,11 @@
                         "minimum": 0,
                         "description": "algorithm cpu"
                       },
+                      "applyCpuLimits": {
+                        "type": "boolean",
+                        "description": "whether to apply cpu limits to the algorithm",
+                        "example": true
+                      },
                       "gpu": {
                         "type": "number",
                         "minimum": 0,
@@ -18608,6 +18651,11 @@
                         "default": 0.1,
                         "minimum": 0,
                         "description": "algorithm cpu"
+                      },
+                      "applyCpuLimits": {
+                        "type": "boolean",
+                        "description": "whether to apply cpu limits to the algorithm",
+                        "example": true
                       },
                       "gpu": {
                         "type": "number",
@@ -23747,6 +23795,11 @@
             "minimum": 0,
             "description": "algorithm cpu"
           },
+          "applyCpuLimits": {
+            "type": "boolean",
+            "description": "whether to apply cpu limits to the algorithm",
+            "example": true
+          },
           "gpu": {
             "type": "number",
             "minimum": 0,
@@ -24441,6 +24494,11 @@
                 "default": 0.1,
                 "minimum": 0,
                 "description": "algorithm cpu"
+              },
+              "applyCpuLimits": {
+                "type": "boolean",
+                "description": "whether to apply cpu limits to the algorithm",
+                "example": true
               },
               "gpu": {
                 "type": "number",
@@ -26715,7 +26773,10 @@
             "pipelineType": "stored",
             "algorithmName": "green-alg",
             "pipelineStatus": "completed",
-            "tags": "tag1, tag2"
+            "tags": [
+              "tag1",
+              "tag2"
+            ]
           },
           "sort": "desc",
           "pageNum": 1,

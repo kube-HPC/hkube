@@ -479,7 +479,7 @@ const templateStore = [
         mem: '128Mi',
         kaiObject: {
             queue: 'test',
-            memory: "3000",
+            memory: "3000Mi",
             fraction: 0.5
         }
     },
@@ -552,6 +552,20 @@ const templateStore = [
         algorithmImage: 'hkube/algorunner',
         cpu: 0.5,
         mem: '256Mi'
+    },
+    {
+        name: 'alg-no-cpu-limit',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.3,
+        mem: '256Mi',
+        applyCpuLimits: false
+    },
+    {
+        name: 'alg-with-cpu-limit',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.3,
+        mem: '256Mi',
+        applyCpuLimits: true
     }
 ];
 

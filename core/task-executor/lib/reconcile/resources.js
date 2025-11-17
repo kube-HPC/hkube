@@ -235,12 +235,14 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources
     if (!availableNode) {
         // Number of total nodes that don't fit the attribute under nodeSelector
         const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
+        const requestedResources = { cpu: requestedCpu, memory: requestedMemory, gpu: requestedGpu };
 
         const warning = createWarning({
             unMatchedNodesBySelector,
             jobDetails,
             nodesForSchedule,
             nodesAfterSelector: nodesBySelector.length,
+            requestedResources,
             code: warningCodes.RESOURCES
         });
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
