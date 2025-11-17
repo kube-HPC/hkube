@@ -343,7 +343,7 @@ Node: mockNodeName1 -  missing resources: mem = 0.1,
 Node: mockNodeName2 -  missing resources: mem = 512,
 Node: mockNodeName3 -  missing resources: mem = 1024,
 Node: mockNodeName4 -  missing resources: mem = 256.
-Check algorithm, worker and sideCars resource requests.`);
+Check algorithm, workerCustomResources and sideCars resource requests.`);
     });
 
     it('should start pipeline and handle maximum capacity exceeded - produce warning', async function () {
@@ -434,7 +434,7 @@ Node: node1 -  over capacity: cpu - requested-2, available-1,
 Node: node2 -  over capacity: cpu - requested-2, available-1,
 Node: node3 -  over capacity: cpu - requested-2, available-1,
 Node: node4 -  missing resources: cpu = 0.5.
-Check algorithm, worker and sideCars resource requests.`);
+Check algorithm, workerCustomResources and sideCars resource requests.`);
     });
 
     it('should start pipeline and handle maximum capacity exceeded - produce error', async function () {
@@ -817,6 +817,6 @@ Check algorithm, worker and sideCars resource requests.`);
 Your total request of gpu = 2 is over max capacity of 1.
 Your total request of mem = 2 is over max capacity of 1.
 Your total request of cpu = 2 is over max capacity of 1.
-Check algorithm, worker and sideCars resource requests.`);
+Check algorithm, workerCustomResources and sideCars resource requests.`);
     });
 });

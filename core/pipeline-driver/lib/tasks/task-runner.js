@@ -245,7 +245,7 @@ class TaskRunner {
             }
         }
         // resourceMessage = resourceMessage.slice(0, -2); // remove trailing  breakrow and comma
-        resourceMessage += '.\nCheck algorithm, worker and sideCars resource requests.';
+        resourceMessage += '.\nCheck algorithm, workerCustomResources and sideCars resource requests.';
         return { resourceMessage, isError };
     }
 
