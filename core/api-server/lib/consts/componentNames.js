@@ -17,7 +17,8 @@ const Components = {
     GRAPHQL_QUERIES: 'GraphqlQueries',
     KEYCLOAK_MIDDLEWARE: 'Keycloak-Middleware',
     ETCD_WRAPPER: 'ETCD-Wrapper',
-    NODES_STATISTICS: 'NodesStatistics'
+    NODES_STATISTICS: 'NodesStatistics',
+    PIPELINES_UPDATER: 'Pipelines-Updater'
 };
 
 module.exports = Components;
