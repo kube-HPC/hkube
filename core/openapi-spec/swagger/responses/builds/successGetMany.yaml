@@ -39,10 +39,10 @@ content:
           buildMode: { type: string }
 
     example:
-      - buildId: "build-for-ziv-k218c3"
+      - buildId: "build-for-user-k218c3"
         imageTag: "af3k4fjq"
         algorithm:
-          name: "build-for-ziv"
+          name: "build-for-user"
           cpu: 1
           gpu: 0
           mem: "256Mi"
@@ -59,12 +59,12 @@ content:
             fileExt: "gz"
             checksum: "12957cb5dbaea2fca8ab84f1d3ee4cc67c8f9a78"
             fileSize: 426
-            path: "cicd-hkube-builds/build-for-ziv-k218c3"
+            path: "cicd-hkube-builds/build-for-user-k218c3"
         env: "python"
         fileExt: "gz"
-        filePath: "cicd-hkube-builds/build-for-ziv-k218c3"
+        filePath: "cicd-hkube-builds/build-for-user-k218c3"
         uploadPath: "uploads/zipped/87b9bcacaaa23228ffed0747095c9a4e"
-        algorithmName: "build-for-ziv"
+        algorithmName: "build-for-user"
         type: "Code"
         status: "completed"
         progress: 100
@@ -78,13 +78,13 @@ content:
         endTime: 1762432645762
         startTime: 1762432577883
         timestamp: 1762432645762
-        algorithmImage: "docker.io/hkubedevtest/build-for-ziv:vaf3k4fjq"
+        algorithmImage: "docker.io/hkubedevtest/build-for-user:vaf3k4fjq"
         buildMode: "kaniko"
 
-      - buildId: "build-for-ziv-cjsgn2"
+      - buildId: "build-for-user-cjsgn2"
         imageTag: "fk8ury2w"
         algorithm:
-          name: "build-for-ziv"
+          name: "build-for-user"
           cpu: 1
           gpu: 0
           mem: "256Mi"
@@ -101,8 +101,8 @@ content:
             fileExt: "gz"
             checksum: "66bf2ddb475c0171204fc076d1fbd4f7d66f02bf"
             fileSize: 525
-            path: "cicd-hkube-builds/build-for-ziv-cjsgn2"
-          algorithmImage: "docker.io/hkubedevtest/build-for-ziv:vaf3k4fjq"
+            path: "cicd-hkube-builds/build-for-user-cjsgn2"
+          algorithmImage: "docker.io/hkubedevtest/build-for-user:vaf3k4fjq"
           auditTrail:
             - user: "adir"
               timestamp: 1762432645822
@@ -112,9 +112,9 @@ content:
           modified: 1762432645822
         env: "python"
         fileExt: "gz"
-        filePath: "cicd-hkube-builds/build-for-ziv-cjsgn2"
+        filePath: "cicd-hkube-builds/build-for-user-cjsgn2"
         uploadPath: "uploads/zipped/8da2f047403fc757eeee2da182b41b99"
-        algorithmName: "build-for-ziv"
+        algorithmName: "build-for-user"
         type: "Code"
         status: "completed"
         progress: 100
@@ -128,5 +128,5 @@ content:
         endTime: 1762432733471
         startTime: 1762432665977
         timestamp: 1762432733471
-        algorithmImage: "docker.io/hkubedevtest/build-for-ziv:vfk8ury2w"
+        algorithmImage: "docker.io/hkubedevtest/build-for-user:vfk8ury2w"
         buildMode: "kaniko"
