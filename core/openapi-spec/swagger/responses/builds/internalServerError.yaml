@@ -1,0 +1,17 @@
+description: Internal Server Error - Unexpected token in JSON
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+    example:
+      error:
+        code: 500
+        message: "Unexpected token u in JSON at position 0"

@@ -1,0 +1,11 @@
+description: Success rerun build
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Response message
+    example:
+      message: "OK"

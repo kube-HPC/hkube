@@ -12,20 +12,10 @@ get:
         type: string
   responses:
     "200":
-      description: algorithm apply response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/builds_successGetSingle"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: build Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/builds_notFound"
     default:
       $ref: "#/components/responses/default"

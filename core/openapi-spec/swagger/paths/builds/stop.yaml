@@ -11,20 +11,12 @@ post:
     required: true
   responses:
     "200":
-      description: stop build response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/builds_successStop"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: build Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/builds_notFound"
     default:
       $ref: "#/components/responses/default"

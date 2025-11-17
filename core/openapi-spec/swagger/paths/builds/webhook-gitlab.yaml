@@ -12,14 +12,12 @@ post:
     required: true
   responses:
     "201":
-      description: webhook created
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/builds_successWebhook"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
+    "500":
+      $ref: "#/components/responses/builds_internalServerError"
     default:
       $ref: "#/components/responses/default"

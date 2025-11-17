@@ -1,0 +1,94 @@
+description: algorithm apply response
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        buildId:
+          type: string
+        imageTag:
+          type: string
+        algorithm:
+          $ref: "#/components/schemas/algorithm"
+        env:
+          $ref: "#/components/schemas/algorithmEnv"
+        fileExt:
+          $ref: "#/components/schemas/algorithmFileExt"
+        filePath:
+          type: string
+        uploadPath:
+          type: string
+        algorithmName:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        progress:
+          type: number
+        result:
+          type: object
+          properties:
+            data:
+              type: string
+            warnings:
+              type: string
+            errors:
+              type: string
+        error:
+          nullable: true
+        trace:
+          nullable: true
+        endTime:
+          type: number
+        startTime:
+          type: number
+        timestamp:
+          type: number
+        algorithmImage:
+          type: string
+        buildMode:
+          type: string
+
+    example:
+      buildId: "build-for-ziv-k218c3"
+      imageTag: "af3k4fjq"
+      algorithm:
+        name: "build-for-ziv"
+        cpu: 1
+        gpu: 0
+        mem: "256Mi"
+        workerEnv: {}
+        algorithmEnv: {}
+        reservedMemory: "512Mi"
+        minHotWorkers: 0
+        options:
+          pending: false
+        env: "python"
+        entryPoint: "node0_generator.py"
+        type: "Code"
+        fileInfo:
+          fileExt: "gz"
+          checksum: "12957cb5dbaea2fca8ab84f1d3ee4cc67c8f9a78"
+          fileSize: 426
+          path: "cicd-hkube-builds/build-for-ziv-k218c3"
+      env: "python"
+      fileExt: "gz"
+      filePath: "cicd-hkube-builds/build-for-ziv-k218c3"
+      uploadPath: "uploads/zipped/87b9bcacaaa23228ffed0747095c9a4e"
+      algorithmName: "build-for-ziv"
+      type: "Code"
+      status: "completed"
+      progress: 100
+      result:
+        data: |
+          ... trimmed for brevity ...
+        warnings: ""
+        errors: ""
+      error: null
+      trace: null
+      endTime: 1762432645762
+      startTime: 1762432577883
+      timestamp: 1762432645762
+      algorithmImage: "docker.io/hkubedevtest/build-for-ziv:vaf3k4fjq"
+      buildMode: "kaniko"

@@ -22,6 +22,22 @@ boards_successStartOptuna:
 boards_successStartTensor:
   $ref: ./boards/successStartTensor.yaml
 
+# builds
+builds_internalServerError:
+  $ref: ./builds/internalServerError.yaml
+builds_notFound:
+  $ref: ./builds/notFound.yaml
+builds_successGetMany:
+  $ref: ./builds/successGetMany.yaml
+builds_successGetSingle:
+  $ref: ./builds/successGetSingle.yaml
+builds_successRerun:
+  $ref: ./builds/successRerun.yaml
+builds_successStop:
+  $ref: ./builds/successStop.yaml
+builds_successWebhook:
+  $ref: ./builds/successWebhook.yaml
+
 # common
 badRequest:
   $ref: ./common/badRequest.yaml

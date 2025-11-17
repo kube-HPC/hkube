@@ -1,0 +1,19 @@
+description: Resource not found
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: Error code
+            message:
+              type: string
+              description: Error message
+    example:
+      error:
+        code: 404
+        message: "build build-for-k218c311 Not Found"
