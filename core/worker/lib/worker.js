@@ -723,10 +723,11 @@ class Worker {
                 case workerStates.init: {
                     const { error, data } = await storageHelper.extractData(job.data);
                     if (!error) {
-                        const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
+                        const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job?.data?.spanId;
+                        const payloadData = data || {};
                         algoRunnerCommunication.send({
                             command: messages.outgoing.initialize,
-                            data: { ...data, spanId }
+                            data: { ...payloadData, spanId }
                         });
                         this._handleWrapperIsAlive(false);
                     }
@@ -734,7 +735,7 @@ class Worker {
                 }
                 case workerStates.working: {
                     this._handleTtlStart(job);
-                    const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
+                    const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job?.data?.spanId;
                     algoRunnerCommunication.send({
                         command: messages.outgoing.start,
                         data: { spanId }
