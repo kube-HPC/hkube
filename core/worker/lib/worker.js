@@ -200,9 +200,13 @@ class Worker {
     }
 
     _doTheBootstrap() {
+        if (this._shouldCheckPodStatus) {
+            log.info('pod not ready yet', { component });
+            this._checkPodStatus();
+            return;
+        }
         if (!this._isConnected) {
             log.info('algorithm not connected yet', { component });
-            this._checkPodStatus();
             return;
         }
         log.info('algorithm connected', { component });
@@ -210,11 +214,6 @@ class Worker {
             if (this._devMode) {
                 jobConsumer.isConnected = true;
             }
-            return;
-        }
-        if (this._shouldCheckSideCarStatus.length > 0 && this._shouldCheckPodStatus) {
-            log.info('pod not ready yet', { component });
-            this._checkPodStatus();
             return;
         }
         this._isBootstrapped = true;

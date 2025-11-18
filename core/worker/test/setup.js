@@ -9,12 +9,17 @@ const storageManager = require('@hkube/storage-manager');
 const bootstrap = require('../bootstrap');
 const stateAdapter = require('../lib/states/stateAdapter');
 const workerCommunication = require('../lib/algorithm-communication/workerCommunication');
+const worker = require('../lib/worker');
 const config = configIt.load().main;
 
 before(async function () {
     this.timeout(10000);
     await storageManager.init(config, null, true);
     await bootstrap.init();
+    
+    // Disable pod status checks during tests to avoid external dependency calls
+    worker._shouldCheckPodStatus = false;
+
     const redis = Factory.getClient(config.redis);
     await redis.flushall();
     await stateAdapter._etcd._client.client.delete().all()
