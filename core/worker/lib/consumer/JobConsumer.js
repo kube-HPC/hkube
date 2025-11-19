@@ -9,7 +9,7 @@ const boards = require('../boards/boards');
 const metricsHelper = require('../metrics/metrics');
 const stateAdapter = require('../states/stateAdapter');
 const streamHandler = require('../streaming/services/stream-handler');
-const { Components, logMessages, jobStatus } = require('../consts');
+const { Components, logMessages, jobStatus, workerStates } = require('../consts');
 const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
@@ -94,14 +94,20 @@ class JobConsumer extends EventEmitter {
     }
 
     async _handleJob(job) {
-        if (this._isConnected) {
-            const { error } = await storage.start(job.data);
-            if (error) {
-                stateManager.done({ error });
-            }
-            else {
-                stateManager.prepare();
-            }
+        if (!this._isConnected) {
+            return;
+        }
+
+        const { error } = await storage.start(job.data);
+        if (error) {
+            stateManager.done({ error });
+            return;
+        }
+
+        // Call prepare only if we are not on init (prepare moves from READY to INIT),
+        // since it might got called already, and prepare is the only one who can change the state to INIT.
+        if (stateManager.state !== workerStates.init) {
+            stateManager.prepare();
         }
     }
 

@@ -200,9 +200,13 @@ class Worker {
     }
 
     _doTheBootstrap() {
+        if (this._shouldCheckPodStatus) {
+            log.info('pod not ready yet', { component });
+            this._checkPodStatus();
+            return;
+        }
         if (!this._isConnected) {
             log.info('algorithm not connected yet', { component });
-            this._checkPodStatus();
             return;
         }
         log.info('algorithm connected', { component });
@@ -210,11 +214,6 @@ class Worker {
             if (this._devMode) {
                 jobConsumer.isConnected = true;
             }
-            return;
-        }
-        if (this._shouldCheckSideCarStatus.length > 0 && this._shouldCheckPodStatus) {
-            log.info('pod not ready yet', { component });
-            this._checkPodStatus();
             return;
         }
         this._isBootstrapped = true;
@@ -723,10 +722,11 @@ class Worker {
                 case workerStates.init: {
                     const { error, data } = await storageHelper.extractData(job.data);
                     if (!error) {
-                        const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
+                        const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job?.data?.spanId;
+                        const payloadData = data || {};
                         algoRunnerCommunication.send({
                             command: messages.outgoing.initialize,
-                            data: { ...data, spanId }
+                            data: { ...payloadData, spanId }
                         });
                         this._handleWrapperIsAlive(false);
                     }
@@ -734,7 +734,7 @@ class Worker {
                 }
                 case workerStates.working: {
                     this._handleTtlStart(job);
-                    const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
+                    const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job?.data?.spanId;
                     algoRunnerCommunication.send({
                         command: messages.outgoing.start,
                         data: { spanId }
