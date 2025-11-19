@@ -142,11 +142,11 @@ gc_successStatus:
 gc_successStatusType:
   $ref: ./gc/successStatusType.yaml
 
-# graphs
-graphs_notFound:
-  $ref: ./graphs/notFound.yaml
-graphs_successGraph:
-  $ref: ./graphs/successGraph.yaml
+# graph
+graph_notFound:
+  $ref: ./graph/notFound.yaml
+graph_successGraph:
+  $ref: ./graph/successGraph.yaml
 
 # kubernetes
 kubernetes_jobSuccess:

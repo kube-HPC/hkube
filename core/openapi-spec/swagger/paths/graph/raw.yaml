@@ -2,7 +2,7 @@ get:
   tags:
     - Graph
   summary: Get graph as raw data
-  description: returns the graph data by jobId
+  description: Returns the graph data by jobId
   parameters:
     - name: jobId
       in: path
@@ -12,12 +12,12 @@ get:
         $ref: "#/components/schemas/jobId"
   responses:
     "200":
-      $ref: "#/components/responses/graphs_successGraph"
+      $ref: "#/components/responses/graph_successGraph"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/graphs_notFound"
+      $ref: "#/components/responses/graph_notFound"
     default:
       $ref: "#/components/responses/default"

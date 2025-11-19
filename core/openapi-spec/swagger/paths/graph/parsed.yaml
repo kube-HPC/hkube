@@ -2,7 +2,7 @@ get:
   tags:
     - Graph
   summary: Query the pipeline graph
-  description: returns the graph data by jobId, node and tasks
+  description: Returns the graph data by jobId, node and tasks
   parameters:
     - name: jobId
       in: path
@@ -12,42 +12,42 @@ get:
         type: string
     - name: node
       in: query
-      description: the node name
+      description: The node name
       required: false
       schema:
         type: string
     - name: sort
       in: query
-      description: sort by status, error or any other property
+      description: Sort by status, error or any other property
       required: false
       schema:
         type: string
     - name: order
       in: query
-      description: order by asc or desc
+      description: Order by asc or desc
       required: false
       schema:
         type: string
     - name: from
       in: query
-      description: the start index
+      description: The start index
       required: false
       schema:
         type: integer
     - name: to
       in: query
-      description: the end index
+      description: The end index
       required: false
       schema:
         type: integer
   responses:
     "200":
-      $ref: "#/components/responses/graphs_successGraph"
+      $ref: "#/components/responses/graph_successGraph"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/graphs_notFound"
+      $ref: "#/components/responses/graph_notFound"
     default:
       $ref: "#/components/responses/default"
