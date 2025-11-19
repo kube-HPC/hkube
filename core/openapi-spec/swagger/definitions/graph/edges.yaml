@@ -1,15 +1,15 @@
-    type: array
-    items:
+type: array
+items:
+  type: object
+  properties:
+    from:
+      type: string
+    to:
+      type: string
+    value:
       type: object
       properties:
-        from:
-          type: string
-        to:
-          type: string
-        value:
-          type: object
-          properties:
-            types:
-              type: array
-              items:
-                type: string
+        types:
+          type: array
+          items:
+            type: string

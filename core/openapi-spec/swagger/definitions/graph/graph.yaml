@@ -1,5 +1,9 @@
 type: object
 properties:
+  jobId:
+    type: string
+  timestamp:
+    type: string
   edges:
     $ref: "#/components/schemas/graphEdges"
   nodes:
