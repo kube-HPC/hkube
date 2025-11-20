@@ -41,25 +41,25 @@ content:
         experimentName: "main"
         version: "np5m8zqrmg"
         auditTrail:
-          - user: "adir"
+          - user: "user"
             timestamp: null
             version: "np5m8zqrmg"
-          - user: "ziv"
+          - user: "user"
             timestamp: 1763045759482
             version: "noc5m1s0gl"
-          - user: "adir"
+          - user: "user"
             timestamp: 1762336350966
             version: "n6gbxssxfs"
-          - user: "adir"
+          - user: "user"
             timestamp: 1762336337465
             version: "jg4tbaq903"
-          - user: "adir"
+          - user: "user"
             timestamp: 1753772192814
             version: "hvhuq6w54u"
-          - user: "adir"
+          - user: "user"
             timestamp: 1753772171122
             version: "5fztqnljl5"
-          - user: "adir"
+          - user: "user"
             timestamp: 1753772127999
             version: "syoogwq5tv"
         created: 1763312249706

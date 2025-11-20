@@ -33,10 +33,10 @@ get:
     "200":
       $ref: "#/components/responses/pipelines_successGetStatus"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/pipelines_notFound"
+      $ref: "#/components/responses/errorNotFound"
     default:
       $ref: "#/components/responses/default"

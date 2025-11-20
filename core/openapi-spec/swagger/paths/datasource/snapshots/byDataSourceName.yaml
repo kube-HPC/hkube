@@ -13,11 +13,11 @@ post:
         "201":
             $ref: "#/components/responses/datasource_snapshots_successGetSingle"
         "400":
-            $ref: "#/components/responses/badRequest"
+            $ref: "#/components/responses/errorBadRequest"
         "401":
             $ref: "#/components/responses/unauthorized"
         "404":
-            $ref: "#/components/responses/datasource_snapshots_notFound"
+            $ref: "#/components/responses/errorNotFound"
         default:
             $ref: "#/components/responses/default"
 get:

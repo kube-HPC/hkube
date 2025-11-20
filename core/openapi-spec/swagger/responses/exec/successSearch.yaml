@@ -248,18 +248,18 @@ content:
               details: "0% completed, 1 active"
             auditEntry:
               timestamp: 1763569923210
-              user: "adir"
+              user: "user"
               action: "resume"
           completion: false
           auditTrail:
             - timestamp: 1763569923210
-              user: "adir"
+              user: "user"
               action: "resume"
             - timestamp: 1763569829120
-              user: "adir"
+              user: "user"
               action: "pause"
             - timestamp: 1763569796132
-              user: "adir"
+              user: "user"
               action: "run"
           graph:
             jobId: "2xbtrycgafyc"
@@ -321,15 +321,15 @@ content:
             reason: "Request from simulator, Algorithms-tab Delete action"
             auditEntry:
               timestamp: 1763569811458
-              user: "adir"
+              user: "user"
               action: "stop"
           completion: true
           auditTrail:
             - timestamp: 1763569811458
-              user: "adir"
+              user: "user"
               action: "stop"
             - timestamp: 1763569687522
-              user: "adir"
+              user: "user"
               action: "run"
           graph:
             jobId: "86xs4wj75dm5"

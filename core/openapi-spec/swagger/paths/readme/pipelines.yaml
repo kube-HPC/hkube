@@ -14,13 +14,13 @@ get:
     "200":
       $ref: "#/components/responses/readmePipelines_successGet"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/readmePipelines_notFound"
+      $ref: "#/components/responses/errorNotFound"
     "500":
-      $ref: "#/components/responses/readmePipelines_internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"
 post:
@@ -51,13 +51,13 @@ post:
     "200":
       $ref: "#/components/responses/readmePipelines_successInsert"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/readmePipelines_notFound"
+      $ref: "#/components/responses/errorNotFound"
     "500":
-      $ref: "#/components/responses/readmePipelines_internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"
 put:
@@ -88,13 +88,13 @@ put:
     "200":
       $ref: "#/components/responses/readmePipelines_successUpdate"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/readmePipelines_notFound"
+      $ref: "#/components/responses/errorNotFound"
     "500":
-      $ref: "#/components/responses/readmePipelines_internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"
 delete:
@@ -113,12 +113,12 @@ delete:
     "200":
       $ref: "#/components/responses/readmePipelines_successDelete"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/readmePipelines_notFound"
+      $ref: "#/components/responses/errorNotFound"
     "500":
-      $ref: "#/components/responses/readmePipelines_internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"

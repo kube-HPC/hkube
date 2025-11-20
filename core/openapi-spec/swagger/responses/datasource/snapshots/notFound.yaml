@@ -11,9 +11,6 @@ content:
               type: integer
             message:
               type: string
-          required:
-            - code
-            - message
     example:
       error:
         code: 404

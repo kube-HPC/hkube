@@ -14,11 +14,11 @@ get:
     "200":
       $ref: "#/components/responses/readmeAlgorithms_successGet"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/readmeAlgorithms_notFound"
+      $ref: "#/components/responses/errorNotFound"
     default:
       $ref: "#/components/responses/default"
 post:
@@ -49,13 +49,13 @@ post:
     "201":
       $ref: "#/components/responses/readmeAlgorithms_successInsert"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/readmeAlgorithms_notFound"
+      $ref: "#/components/responses/errorNotFound"
     "500":
-      $ref: "#/components/responses/readmeAlgorithms_internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"
 put:
@@ -86,13 +86,13 @@ put:
     "201":
       $ref: "#/components/responses/readmeAlgorithms_successUpdate"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/readmeAlgorithms_notFound"
+      $ref: "#/components/responses/errorNotFound"
     "500":
-      $ref: "#/components/responses/readmeAlgorithms_internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"
 delete:
@@ -111,12 +111,12 @@ delete:
     "200":
       $ref: "#/components/responses/readmeAlgorithms_successDelete"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/readmeAlgorithms_notFound"
+      $ref: "#/components/responses/errorNotFound"
     "500":
-      $ref: "#/components/responses/readmeAlgorithms_internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"

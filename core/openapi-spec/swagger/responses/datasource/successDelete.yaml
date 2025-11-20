@@ -7,7 +7,5 @@ content:
         deleted:
           type: integer
           description: Number of deleted items
-      required:
-        - deleted
     example:
       deleted: 1

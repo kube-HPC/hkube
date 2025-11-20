@@ -6,6 +6,6 @@ content:
     example:
       "0":
         timestamp: 1763643353687
-        user: "adir"
+        user: "user"
         action: "run"
       jobId: "qohsjh0in1a4"

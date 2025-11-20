@@ -16,7 +16,7 @@ get:
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/boards_notFoundBoard"
+      $ref: "#/components/responses/errorNotFound"
     default:
       $ref: "#/components/responses/default"
 delete:
@@ -37,6 +37,6 @@ delete:
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/boards_notFoundBoard"
+      $ref: "#/components/responses/errorNotFound"
     default:
       $ref: "#/components/responses/default"

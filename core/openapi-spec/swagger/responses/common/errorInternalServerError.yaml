@@ -9,8 +9,10 @@ content:
           properties:
             code:
               type: integer
+              description: HTTP error code.
             message:
               type: string
+              description: Description of the error.
     example:
       error:
         code: 500

@@ -20,12 +20,12 @@ post:
         "201":
             $ref: "#/components/responses/datasource_snapshots_successGetPreview"
         "400":
-            $ref: "#/components/responses/badRequest"
+            $ref: "#/components/responses/errorBadRequest"
         "401":
             $ref: "#/components/responses/unauthorized"
         "404":
-            $ref: "#/components/responses/datasource_snapshots_notFound"
+            $ref: "#/components/responses/errorNotFound"
         "500":
-            $ref: "#/components/responses/datasource_snapshots_internalServerError"
+            $ref: "#/components/responses/errorInternalServerError"
         default:
             $ref: "#/components/responses/default"

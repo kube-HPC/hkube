@@ -9,7 +9,7 @@ content:
       - version: "y40ietf7km"
         semver: "1.0.27"
         created: 1757335500351
-        createdBy: "adir"
+        createdBy: "user"
         name: "green-alg"
         versionAlias: "v1.0.27"
         algorithm:
@@ -44,7 +44,7 @@ content:
       - version: "ln43w5a08m"
         semver: "1.0.26"
         created: 1754383298374
-        createdBy: "ziv"
+        createdBy: "user"
         name: "green-alg"
         versionAlias: "v1.0.26"
         algorithm:

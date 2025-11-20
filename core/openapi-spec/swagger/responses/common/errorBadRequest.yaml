@@ -2,7 +2,7 @@ description: Bad request
 content:
   application/json:
     schema:
-      $ref: "#/components/schemas/errorBadRequest"
+      $ref: "#/components/schemas/error"
     example:
       error:
         code: 400

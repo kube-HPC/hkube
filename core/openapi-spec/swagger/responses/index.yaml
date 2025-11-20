@@ -5,8 +5,6 @@ auth_loginSuccess:
   $ref: ./auth/loginSuccess.yaml
 
 # boards
-boards_notFoundBoard:
-  $ref: ./boards/notFoundBoard.yaml
 boards_successDelete:
   $ref: ./boards/successDelete.yaml
 boards_successGetOptuna:
@@ -23,52 +21,38 @@ boards_successStartTensor:
   $ref: ./boards/successStartTensor.yaml
 
 # builds
-builds_internalServerError:
-  $ref: ./builds/internalServerError.yaml
-builds_notFound:
-  $ref: ./builds/notFound.yaml
 builds_successGetMany:
   $ref: ./builds/successGetMany.yaml
 builds_successGetSingle:
   $ref: ./builds/successGetSingle.yaml
-builds_successRerun:
-  $ref: ./builds/successRerun.yaml
-builds_successStop:
-  $ref: ./builds/successStop.yaml
 builds_successWebhook:
   $ref: ./builds/successWebhook.yaml
 
 # common
-badRequest:
-  $ref: ./common/badRequest.yaml
+errorBadRequest:
+  $ref: ./common/errorBadRequest.yaml
 default:
   $ref: ./common/default.yaml
-internalServerError:
-  $ref: ./common/internalServerError.yaml
+errorConflict:
+  $ref: ./common/errorConflict.yaml
+errorInternalServerError:
+  $ref: ./common/errorInternalServerError.yaml
+errorNotFound:
+  $ref: ./common/errorNotFound.yaml
 success:
   $ref: ./common/success.yaml
 unauthorized:
   $ref: ./common/unauthorized.yaml
 
 # cron
-cron_notFound:
-  $ref: ./cron/notFound.yaml
 cron_successList:
   $ref: ./cron/successList.yaml
 cron_successResults:
   $ref: ./cron/successResults.yaml
-cron_successStart:
-  $ref: ./cron/successStart.yaml
 cron_successStatus:
   $ref: ./cron/successStatus.yaml
-cron_successStop:
-  $ref: ./cron/successStop.yaml
 
 # datasource - snapshots
-datasource_snapshots_notFound:
-  $ref: ./datasource/snapshots/notFound.yaml
-datasource_snapshots_internalServerError:
-  $ref: ./datasource/snapshots/internalServerError.yaml
 datasource_snapshots_successCreate:
   $ref: ./datasource/snapshots/successCreate.yaml
 datasource_snapshots_successGetByDatasource:
@@ -83,8 +67,6 @@ datasource_snapshots_successGetSingle:
 # datasource
 datasource_internalServerError:
   $ref: ./datasource/internalServerError.yaml
-datasource_notFound:
-  $ref: ./datasource/notFound.yaml
 datasource_successCreate:
   $ref: ./datasource/successCreate.yaml
 datasource_successCredentialsUpdate:
@@ -109,8 +91,6 @@ datasource_successValidate:
   $ref: ./datasource/successValidate.yaml
 
 # exec
-exec_notFound:
-  $ref: ./exec/notFound.yaml
 exec_successAudit:
   $ref: ./exec/successAudit.yaml
 exec_successFlowInput:
@@ -135,14 +115,10 @@ exec_successTree:
   $ref: ./exec/successTree.yaml
 
 # experiment
-experiment_conflictInsert:
-  $ref: ./experiment/conflictInsert.yaml
 experiment_failedInsert:
   $ref: ./experiment/failedInsert.yaml
 experiment_successDelete:
   $ref: ./experiment/successDelete.yaml
-experiment_notFound:
-  $ref: ./experiment/notFound.yaml
 experiment_successInsert:
   $ref: ./experiment/successInsert.yaml
 experiment_successMany:
@@ -151,16 +127,12 @@ experiment_successSingle:
   $ref: ./experiment/successSingle.yaml
 
 # gateway
-gateway_notFound:
-  $ref: ./gateway/notFound.yaml
 gateway_successMany:
   $ref: ./gateway/successMany.yaml
 gateway_successSingle:
   $ref: ./gateway/successSingle.yaml
 
 # gc
-gc_internalServerError:
-  $ref: ./gc/internalServerError.yaml
 gc_successClean:
   $ref: ./gc/successClean.yaml
 gc_successCleanType:
@@ -171,12 +143,12 @@ gc_successStatusType:
   $ref: ./gc/successStatusType.yaml
 
 # graph
-graph_notFound:
-  $ref: ./graph/notFound.yaml
 graph_successGraph:
   $ref: ./graph/successGraph.yaml
 
 # kubernetes
+kubernetes_errorInternalServerError:
+  $ref: ./kubernetes/errorInternalServerError.yaml
 kubernetes_jobSuccess:
   $ref: ./kubernetes/jobSuccess.yaml
 kubernetes_notFound:
@@ -193,8 +165,6 @@ managed_successTag:
   $ref: ./managed/successTag.yaml
 
 # pipelines
-pipelines_notFound:
-  $ref: ./pipelines/notFound.yaml
 pipelines_successGetResults:
   $ref: ./pipelines/successGetResults.yaml
 pipelines_successGetStatus:
@@ -219,10 +189,6 @@ queue_success:
   $ref: ./queue/success.yaml
 
 # readme - algorithms
-readmeAlgorithms_internalServerError:
-  $ref: ./readme/algorithms/internalServerError.yaml
-readmeAlgorithms_notFound:
-  $ref: ./readme/algorithms/notFound.yaml
 readmeAlgorithms_successDelete:
   $ref: ./readme/algorithms/successDelete.yaml
 readmeAlgorithms_successGet:
@@ -233,10 +199,6 @@ readmeAlgorithms_successUpdate:
   $ref: ./readme/algorithms/successUpdate.yaml
 
 # readme - pipelines
-readmePipelines_internalServerError:
-  $ref: ./readme/pipelines/internalServerError.yaml
-readmePipelines_notFound:
-  $ref: ./readme/pipelines/notFound.yaml
 readmePipelines_successDelete:
   $ref: ./readme/pipelines/successDelete.yaml
 readmePipelines_successGet:
@@ -259,10 +221,6 @@ status_success:
   $ref: ./status/success.yaml
 
 # store - algorithms
-storeAlgorithms_conflictInsert:
-  $ref: ./store/algorithms/conflictInsert.yaml
-storeAlgorithms_notFound:
-  $ref: ./store/algorithms/notFound.yaml
 storeAlgorithms_successApply:
   $ref: ./store/algorithms/successApply.yaml
 storeAlgorithms_successDelete:
@@ -279,10 +237,6 @@ storeAlgorithms_successUpdate:
   $ref: ./store/algorithms/successUpdate.yaml
 
 # store - pipelines
-storePipelines_conflictInsert:
-  $ref: ./store/pipelines/conflictInsert.yaml
-storePipelines_notFound:
-  $ref: ./store/pipelines/notFound.yaml
 storePipelines_successDelete:
   $ref: ./store/pipelines/successDelete.yaml
 storePipelines_successGetGraph:
@@ -297,8 +251,6 @@ storePipelines_successUpdate:
   $ref: ./store/pipelines/successUpdate.yaml
 
 # versions - algorithms
-versionsAlgorithms_notFound:
-  $ref: ./versions/algorithms/notFound.yaml
 versionsAlgorithms_successAlias:
   $ref: ./versions/algorithms/successAlias.yaml
 versionsAlgorithms_successApply:
@@ -313,8 +265,6 @@ versionsAlgorithms_successTag:
   $ref: ./versions/algorithms/successTag.yaml
 
 # versions - pipelines
-versionsPipelines_notFound:
-  $ref: ./versions/pipelines/notFound.yaml
 versionsPipelines_successApply:
   $ref: ./versions/pipelines/successApply.yaml
 versionsPipelines_successDelete:
@@ -327,8 +277,6 @@ versionsPipelines_successTag:
   $ref: ./versions/pipelines/successTag.yaml
 
 # storage
-storage_badRequestDownload:
-  $ref: ./storage/badRequestDownload.yaml
 storage_notFound:
   $ref: ./storage/notFound.yaml
 storage_successGetData:
@@ -345,8 +293,6 @@ storage_successGetTypes:
   $ref: ./storage/successGetTypes.yaml
 
 # webhooks
-webhooks_notFound:
-  $ref: ./webhooks/notFound.yaml
 webhooks_successList:
   $ref: ./webhooks/successList.yaml
 webhooks_successResult:

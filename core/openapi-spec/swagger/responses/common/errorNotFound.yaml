@@ -1,4 +1,4 @@
-description: Gateway Not Found
+description: Resource Not Found
 content:
   application/json:
     schema:
@@ -9,9 +9,11 @@ content:
           properties:
             code:
               type: integer
+              description: The HTTP status code indicating the error.
             message:
               type: string
+              description: A description of the error.
     example:
       error:
         code: 404
-        message: "gateway aa Not Found"
+        message: "Pipeline m0qvfqsjunl711 Not Found"

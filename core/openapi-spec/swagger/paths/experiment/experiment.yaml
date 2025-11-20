@@ -7,7 +7,7 @@ get:
     "200":
       $ref: "#/components/responses/experiment_successMany"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:
@@ -29,11 +29,11 @@ post:
     "201":
       $ref: "#/components/responses/experiment_successInsert"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "409":
-      $ref: "#/components/responses/experiment_conflictInsert"
+      $ref: "#/components/responses/errorConflict"
     "500":
       $ref: "#/components/responses/experiment_failedInsert"
     default:

@@ -1,4 +1,4 @@
-description: Webhook Not Found
+description: Request failed due to a conflict error.
 content:
   application/json:
     schema:
@@ -13,5 +13,5 @@ content:
               type: string
     example:
       error:
-        code: 404
-        message: "webhook m0qvfqsjunl711 Not Found"
+        code: 409
+        message: "could not create experiment, name is already taken"

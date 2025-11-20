@@ -13,7 +13,7 @@ get:
     "200":
       $ref: "#/components/responses/storePipelines_successGetMany"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:
@@ -40,11 +40,11 @@ post:
     "201":
       $ref: "#/components/responses/storePipelines_successInsert"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "409":
-      $ref: "#/components/responses/storePipelines_conflictInsert"
+      $ref: "#/components/responses/errorConflict"
     default:
       $ref: "#/components/responses/default"
 put:
@@ -63,10 +63,10 @@ put:
     "200":
       $ref: "#/components/responses/storePipelines_successUpdate"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/storePipelines_notFound"
+      $ref: "#/components/responses/errorNotFound"
     default:
       $ref: "#/components/responses/default"

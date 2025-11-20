@@ -3,3 +3,8 @@ content:
   application/json:
     schema:
       $ref: "#/components/schemas/error"
+    example:
+      error:
+        value:
+          status: 500
+          message: "Internal Server Error"

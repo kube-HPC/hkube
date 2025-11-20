@@ -83,7 +83,7 @@ content:
             timestamp: 1754462846381
             version: "3vjx2t98gf"
         
-      - name: "testziv4"
+      - name: "testuser4"
         modified: 1663147078780
         kind: "batch"
         nodes:

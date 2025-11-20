@@ -34,19 +34,19 @@ content:
           algorithmImage: "hkube/algorithm-example-python"
         algorithmEnv: {}
         auditTrail:
-          - user: "adir"
+          - user: "user"
             timestamp: 1757335500573
             version: "y40ietf7km"
-          - user: "ziv"
+          - user: "user"
             timestamp: 1754383298591
             version: "ln43w5a08m"
-          - user: "ziv"
+          - user: "user"
             timestamp: 1754383279971
             version: "yxnvyy60qm"
-          - user: "golan"
+          - user: "user"
             timestamp: 1749707589448
             version: "d8bvee6vu0"
-          - user: "golan"
+          - user: "user"
             timestamp: 1749707583559
             version: "n2yw2rl209"
           - user: "developer"

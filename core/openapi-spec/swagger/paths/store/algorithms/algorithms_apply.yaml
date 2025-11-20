@@ -23,10 +23,10 @@ post:
     "200":
       $ref: "#/components/responses/storeAlgorithms_successApply"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "500":
-      $ref: "#/components/responses/internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"

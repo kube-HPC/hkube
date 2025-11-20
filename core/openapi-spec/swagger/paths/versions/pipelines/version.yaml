@@ -29,7 +29,7 @@ get:
     "200":
       $ref: "#/components/responses/versionsPipelines_successGetMany"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:

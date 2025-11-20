@@ -36,7 +36,7 @@ content:
           algorithmImage: "hkube/algorithm-example-python"
         algorithmEnv: {}
         auditTrail:
-          - user: "ziv"
+          - user: "user"
             timestamp: 1763037183551
             version: "74reqfv5c5"
         version: "74reqfv5c5"

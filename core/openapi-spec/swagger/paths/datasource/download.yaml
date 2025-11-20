@@ -20,11 +20,11 @@ post:
         "201":
             $ref: "#/components/responses/datasource_successDownloadCreate"
         "400":
-            $ref: "#/components/responses/badRequest"
+            $ref: "#/components/responses/errorBadRequest"
         "401":
             $ref: "#/components/responses/unauthorized"
         "404":
-            $ref: "#/components/responses/datasource_notFound"
+            $ref: "#/components/responses/errorNotFound"
         "500":
             $ref: "#/components/responses/datasource_internalServerError"
         default:
@@ -40,7 +40,7 @@ get:
         "200":
             $ref: "#/components/responses/datasource_successDownloadGet"
         "400":
-            $ref: "#/components/responses/badRequest"
+            $ref: "#/components/responses/errorBadRequest"
         "401":
             $ref: "#/components/responses/unauthorized"
         default:

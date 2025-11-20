@@ -14,7 +14,7 @@ post:
     "200":
       $ref: "#/components/responses/auth_loginSuccess"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "500":
       $ref: "#/components/responses/auth_loginFailed"
     default:

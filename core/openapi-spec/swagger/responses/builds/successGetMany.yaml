@@ -104,7 +104,7 @@ content:
             path: "cicd-hkube-builds/build-for-user-cjsgn2"
           algorithmImage: "docker.io/hkubedevtest/build-for-user:vaf3k4fjq"
           auditTrail:
-            - user: "adir"
+            - user: "user"
               timestamp: 1762432645822
               version: "h7j9u5hrvv"
           version: "h7j9u5hrvv"

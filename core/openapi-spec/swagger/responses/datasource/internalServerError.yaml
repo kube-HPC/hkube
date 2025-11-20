@@ -9,9 +9,6 @@ content:
           properties:
             code:
               type: integer
-          required:
-            - code
-            - message
     example:
       error:
         code: 500

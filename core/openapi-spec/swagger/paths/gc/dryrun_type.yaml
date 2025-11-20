@@ -20,10 +20,10 @@ post:
     "200":
       $ref: "#/components/responses/gc_successCleanType"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "500":
-      $ref: "#/components/responses/gc_internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"

@@ -22,6 +22,6 @@ get:
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/exec_notFound"
+      $ref: "#/components/responses/errorNotFound"
     default:
       $ref: "#/components/responses/default"

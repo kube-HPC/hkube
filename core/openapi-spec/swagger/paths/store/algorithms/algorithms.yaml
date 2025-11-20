@@ -13,7 +13,7 @@ get:
     "200":
       $ref: "#/components/responses/storeAlgorithms_successGetMany"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     default:
@@ -45,9 +45,9 @@ post:
     "401":
       $ref: "#/components/responses/unauthorized"
     "409":
-      $ref: "#/components/responses/storeAlgorithms_conflictInsert"
+      $ref: "#/components/responses/errorConflict"
     "500":
-      $ref: "#/components/responses/internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"
 put:
@@ -77,8 +77,8 @@ put:
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/storeAlgorithms_notFound"
+      $ref: "#/components/responses/errorNotFound"
     "500":
-      $ref: "#/components/responses/internalServerError"
+      $ref: "#/components/responses/errorInternalServerError"
     default:
       $ref: "#/components/responses/default"

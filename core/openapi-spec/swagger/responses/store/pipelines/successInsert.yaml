@@ -37,6 +37,6 @@ content:
       priority: 3
       version: "lbqco2byu2"
       auditTrail:
-        - user: "ziv"
+        - user: "user"
           timestamp: 1763034763822
           version: "lbqco2byu2"

@@ -14,11 +14,11 @@ get:
     "200":
       $ref: "#/components/responses/experiment_successSingle"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/experiment_notFound"
+      $ref: "#/components/responses/errorNotFound"
     default:
       $ref: "#/components/responses/default"
 delete:
@@ -37,10 +37,10 @@ delete:
     "200":
       $ref: "#/components/responses/experiment_successDelete"
     "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/errorBadRequest"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      $ref: "#/components/responses/experiment_notFound"
+      $ref: "#/components/responses/errorNotFound"
     default:
       $ref: "#/components/responses/default"
